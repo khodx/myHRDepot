@@ -1,44 +1,93 @@
-# My HR Depot (MHD)
+# myHRdepot
 
-A complete HR management portal built with React 19, TypeScript, Vite, Tailwind CSS, and Supabase.
+Complete HR Management Portal with integrated workflow, approval, forms, search, reporting, and audit engines.
 
-## Quick Start
+## Technology Stack
+
+- **Frontend**: React 19.2.7 with TypeScript and Vite 8.1.3
+- **Styling**: Tailwind CSS v4 with shadcn/ui components
+- **State Management**: TanStack React Query v5
+- **Routing**: React Router v7
+- **Forms**: react-hook-form with Zod validation
+- **Backend**: Supabase (PostgreSQL 17.6.1) with RLS
+- **Deployment**: Vercel
+
+## Features
+
+- **Workflow Engine**: Task status transitions with SLA tracking
+- **Approval System**: Multi-level approval chains with audit trails
+- **Forms Engine**: Dynamic forms with logic, calculations, and conditional rendering
+- **Search**: Full-text search across tasks, people, and documents
+- **Reporting**: Task summaries, workload analytics, and KPI dashboards
+- **Audit Trail**: Complete event logging and compliance tracking
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+
+- Supabase project (MyHRdepot)
+- Vercel account
+
+### Local Development
 
 ```bash
 # Install dependencies
 npm install
 
-# Set up environment variables
+# Create .env.local with Supabase credentials
 cp .env.example .env.local
-# Edit .env.local with your Supabase credentials
 
 # Start dev server
 npm run dev
-
-# Run tests
-npm run test
 ```
+
+### Database
+
+Schema automatically deployed to Supabase. Tables include:
+- companies, users, roles, people
+- tasks, subtasks, task_assignments
+- workflow_transitions
+- approvals, approval_assignments, approval_comments
+- forms, form_submissions, form_submission_values, form_submission_attachments
+- notes, attachments
+- audit_events
+
+## Deployment
+
+### Vercel
+```bash
+vercel deploy --prod
+```
+
+### Supabase
+Database schema deployed via migrations in `supabase/migrations/`.
 
 ## Project Structure
 
-- `src/components/` - React UI components
-- `src/services/` - Business logic and API calls
-- `src/types/` - TypeScript interfaces
-- `src/routes/` - React Router configuration
-- `config/` - Build and tool configuration
+```
+src/
+├── components/      # React components
+├── services/        # Business logic (workflow, approval, search, etc.)
+├── types/          # TypeScript interfaces
+├── lib/supabase/   # Supabase client
+├── routes/         # Application routes
+├── hooks/          # Custom React hooks
+├── pages/          # Page components
+├── config/         # Configuration
+└── test/           # Test files
+```
 
-## Tech Stack
+## Entity Reference IDs
 
-- **Frontend:** React 19.2.7 + TypeScript
-- **Build:** Vite 8.1.3
-- **Styling:** Tailwind CSS 4.3.2
-- **UI:** shadcn/ui (new-york style)
-- **State:** TanStack React Query + React Context
-- **Forms:** react-hook-form + Zod
-- **Backend:** Supabase (PostgreSQL + Auth + Storage)
-- **Deployment:** Vercel
-- **Testing:** Vitest + React Testing Library
+- Companies: COMP-XXXX
+- People: PERS-XXXX
+- Tasks: TASK-XXXX
+- Approvals: APPR-XXXX
+- Notes: NOTE-XXXX
+- Attachments: ATCH-XXXX
+- Form Submissions: SUBM-XXXX
+- Forms: FORM-XXXX
 
-## Documentation
+## License
 
-See [Project Bible](./PROJECT_BIBLE.md) for complete specifications.
+MIT
