@@ -1,22 +1,26 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { PublicLayout } from '@/layouts/PublicLayout';
+import { HomePage } from '@/routes/HomePage';
+import { MhdLoginPage } from '@/features/authentication/components/MhdLoginPage';
+import { MhdForgotPasswordPage } from '@/features/authentication/components/MhdForgotPasswordPage';
+import { MhdResetPasswordPage } from '@/features/authentication/components/MhdResetPasswordPage';
+import { MhdAuthCallbackPage } from '@/features/authentication/components/MhdAuthCallbackPage';
+import { MhdProtectedRoute } from '@/features/authentication/components/MhdProtectedRoute';
 
-const Dashboard = () => <div className="p-8"><h1 className="text-4xl font-bold">Welcome to My HR Depot</h1></div>
-const Tasks = () => <div className="p-8"><h1 className="text-2xl">Tasks</h1></div>
-const Approvals = () => <div className="p-8"><h1 className="text-2xl">Approvals</h1></div>
-const Forms = () => <div className="p-8"><h1 className="text-2xl">Forms</h1></div>
-const Reports = () => <div className="p-8"><h1 className="text-2xl">Reports</h1></div>
-const Audit = () => <div className="p-8"><h1 className="text-2xl">Audit Log</h1></div>
-
-export default function AppRouter() {
+export function AppRouter() {
   return (
-    <Routes>
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/tasks" element={<Tasks />} />
-      <Route path="/approvals" element={<Approvals />} />
-      <Route path="/forms" element={<Forms />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="/audit" element={<Audit />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<MhdLoginPage />} />
+        <Route path="/forgot-password" element={<MhdForgotPasswordPage />} />
+        <Route path="/reset-password" element={<MhdResetPasswordPage />} />
+        <Route path="/auth/callback" element={<MhdAuthCallbackPage />} />
+        <Route element={<MhdProtectedRoute />}>
+          <Route element={<PublicLayout />}>
+            <Route index element={<HomePage />} />
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
