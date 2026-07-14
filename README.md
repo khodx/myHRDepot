@@ -2,30 +2,23 @@
 
 Complete HR Management Portal with integrated workflow, approval, forms, search, reporting, and audit engines.
 
+> Project rebuilt from scratch — this README reflects the current, fresh-start codebase.
+
 ## Technology Stack
 
-- **Frontend**: React 19.2.7 with TypeScript and Vite 8.1.3
-- **Styling**: Tailwind CSS v4 with shadcn/ui components
+- **Frontend**: React 19 with TypeScript and Vite
+- **Styling**: Tailwind CSS v4
 - **State Management**: TanStack React Query v5
 - **Routing**: React Router v7
 - **Forms**: react-hook-form with Zod validation
-- **Backend**: Supabase (PostgreSQL 17.6.1) with RLS
+- **Backend**: Supabase (PostgreSQL) with RLS
 - **Deployment**: Vercel
-
-## Features
-
-- **Workflow Engine**: Task status transitions with SLA tracking
-- **Approval System**: Multi-level approval chains with audit trails
-- **Forms Engine**: Dynamic forms with logic, calculations, and conditional rendering
-- **Search**: Full-text search across tasks, people, and documents
-- **Reporting**: Task summaries, workload analytics, and KPI dashboards
-- **Audit Trail**: Complete event logging and compliance tracking
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js 18+
-- Supabase project (MyHRdepot)
+- Supabase project
 - Vercel account
 
 ### Local Development
@@ -41,52 +34,37 @@ cp .env.example .env.local
 npm run dev
 ```
 
-### Database
+### Useful scripts
 
-Schema automatically deployed to Supabase. Tables include:
-- companies, users, roles, people
-- tasks, subtasks, task_assignments
-- workflow_transitions
-- approvals, approval_assignments, approval_comments
-- forms, form_submissions, form_submission_values, form_submission_attachments
-- notes, attachments
-- audit_events
-
-## Deployment
-
-### Vercel
 ```bash
-vercel deploy --prod
+npm run build        # type-check and build for production
+npm run lint          # lint the codebase
+npm run format         # format with Prettier
+npm run test            # run tests
+npm run typecheck        # type-check only
 ```
 
-### Supabase
-Database schema deployed via migrations in `supabase/migrations/`.
+### Database
+
+Schema is managed via Supabase migrations, applied directly to the linked Supabase project.
 
 ## Project Structure
 
 ```
 src/
-├── components/      # React components
-├── services/        # Business logic (workflow, approval, search, etc.)
-├── types/          # TypeScript interfaces
-├── lib/supabase/   # Supabase client
-├── routes/         # Application routes
-├── hooks/          # Custom React hooks
-├── pages/          # Page components
-├── config/         # Configuration
-└── test/           # Test files
+├── app/              # App root component
+├── components/       # Shared UI components
+├── config/           # App configuration and environment
+├── features/         # Feature modules (e.g. authentication)
+├── layouts/          # Layout components
+├── lib/supabase/     # Supabase client
+├── providers/        # App-level context providers
+├── routes/           # Application routes and pages
+├── styles/           # Global styles
+├── test/             # Test setup
+├── types/            # Shared TypeScript types
+└── utils/            # Shared utilities
 ```
-
-## Entity Reference IDs
-
-- Companies: COMP-XXXX
-- People: PERS-XXXX
-- Tasks: TASK-XXXX
-- Approvals: APPR-XXXX
-- Notes: NOTE-XXXX
-- Attachments: ATCH-XXXX
-- Form Submissions: SUBM-XXXX
-- Forms: FORM-XXXX
 
 ## License
 
