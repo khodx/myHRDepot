@@ -1,4 +1,5 @@
 import type { Session, User } from '@supabase/supabase-js';
+import { appConfig } from '@/config/appConfig';
 import { supabaseClient as mhdSupabase } from '@/lib/supabase/supabaseClient';
 import type {
   MhdAuthRoleName,
@@ -42,7 +43,7 @@ export async function mhdSignOut(): Promise<void> {
 }
 
 export async function mhdSendPasswordReset(input: MhdForgotPasswordInput): Promise<void> {
-  const redirectTo = `${window.location.origin}/reset-password`;
+  const redirectTo = `${appConfig.appUrl.replace(/\/$/, '')}/reset-password`;
   const { error } = await mhdSupabase.auth.resetPasswordForEmail(input.email, { redirectTo });
   if (error) throw error;
 }

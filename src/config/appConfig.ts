@@ -6,4 +6,6 @@ export const appConfig = {
   supabaseUrl: runtimeEnv.VITE_SUPABASE_URL,
   supabaseAnonKey: runtimeEnv.VITE_SUPABASE_ANON_KEY,
   attachmentUploadFunctionName: runtimeEnv.VITE_ATTACHMENT_UPLOAD_FUNCTION,
+  appVersion: runtimeEnv.VITE_APP_VERSION,
+  appUrl: runtimeEnv.VITE_APP_URL,
 } as const;
