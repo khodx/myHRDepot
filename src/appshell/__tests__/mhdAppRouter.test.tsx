@@ -73,6 +73,9 @@ vi.mock('@/features/tasks/components/MhdTasksPage', () => ({
 vi.mock('../components/MhdTaskDetailPage', () => ({
   MhdTaskDetailPage: () => <div>Task Detail Page</div>,
 }));
+vi.mock('@/features/notes/components/MhdTaskNotesPage', () => ({
+  MhdTaskNotesPage: () => <div>Task Notes Page</div>,
+}));
 vi.mock('@/features/people/components/MhdPeoplePage', () => ({
   MhdPeoplePage: () => <div>People Page</div>,
 }));
@@ -251,6 +254,15 @@ describe('MhdAppRouter', () => {
       render(<MhdAppRouter />);
 
       expect(screen.getByText('Companies Page')).toBeInTheDocument();
+    });
+
+    it('renders "/tasks/:taskId/notes" for a Client User (inherits the /tasks ALL rule)', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      setUrl('/tasks/task-1/notes');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText('Task Notes Page')).toBeInTheDocument();
     });
 
     it('does not restrict "/tasks", which has no role rule (ALL)', () => {

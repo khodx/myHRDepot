@@ -9,6 +9,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { MhdBreadcrumb } from './MhdBreadcrumb';
 import { mhdTaskService } from '@/features/tasks/Service';
+import { MhdTaskNotesPanel } from '@/features/notes/components/MhdTaskNotesPanel';
+import { MhdTaskAttachmentsPanel } from '@/features/attachments/components/MhdTaskAttachmentsPanel';
 
 export function MhdTaskDetailPage() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -87,6 +89,19 @@ export function MhdTaskDetailPage() {
           <p>Updated: {new Date(task.updatedAt).toLocaleString()}</p>
         </div>
       </div>
+
+      {/* Polymorphic panels (entity_type = 'TASK'): notes/comments and Drive-backed attachments. */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-neutral-900">Attachments</h2>
+        <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+          <MhdTaskAttachmentsPanel taskId={task.id} />
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-neutral-900">Notes & Comments</h2>
+        <MhdTaskNotesPanel taskId={task.id} />
+      </section>
     </div>
   );
 }

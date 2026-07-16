@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { MhdTaskPriorityBadge } from '@/features/tasks/components/MhdTaskPriorityBadge';
 import { MhdTaskStatusBadge } from '@/features/tasks/components/MhdTaskStatusBadge';
 import type { MhdTask } from '@/features/tasks/Types';
@@ -41,6 +42,8 @@ export function MhdTaskList({ tasks, isLoading, onEdit, onDelete }: MhdTaskListP
               <td className="px-4 py-4 align-top text-sm text-slate-700">{task.assignedDisplayNames.length > 0 ? task.assignedDisplayNames.join(', ') : 'Unassigned'}</td>
               <td className="px-4 py-4 align-top text-sm text-slate-700">{task.dueDate ?? 'No due date'}</td>
               <td className="px-4 py-4 align-top text-right">
+                {/* Task list navigation to the task notes page (03.5 package spec). */}
+                <Link className="mr-3 text-sm font-semibold text-blue-700 hover:text-blue-900" to={`/tasks/${task.id}/notes`}>Comments</Link>
                 <button className="mr-3 text-sm font-semibold text-blue-700 hover:text-blue-900" onClick={() => onEdit(task)}>Edit</button>
                 <button className="text-sm font-semibold text-red-700 hover:text-red-900" onClick={() => void onDelete(task.id)}>Delete</button>
               </td>

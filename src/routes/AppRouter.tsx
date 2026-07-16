@@ -13,6 +13,7 @@ import { MhdAuthCallbackPage } from '@/features/authentication/components/MhdAut
 import { MhdDashboardPage } from '@/features/dashboard/components/MhdDashboardPage';
 import { MhdTasksPage } from '@/features/tasks/components/MhdTasksPage';
 import { MhdTaskDetailPage } from '@/appshell/components/MhdTaskDetailPage';
+import { MhdTaskNotesPage } from '@/features/notes/components/MhdTaskNotesPage';
 import { MhdPeoplePage } from '@/features/people/components/MhdPeoplePage';
 import { MhdPersonDetailPage } from '@/appshell/components/MhdPersonDetailPage';
 import { MhdCompaniesPage } from '@/features/companies/components/MhdCompaniesPage';
@@ -40,6 +41,8 @@ export function AppRouter() {
               <Route path="/dashboard" element={<MhdDashboardPage />} />
               <Route path="/tasks" element={<MhdTasksPage />} />
               <Route path="/tasks/:taskId" element={<MhdTaskDetailPage />} />
+              {/* Inherits the /tasks 'ALL' rule via mhdCanAccessRoute's prefix match. */}
+              <Route path="/tasks/:taskId/notes" element={<MhdTaskNotesPage />} />
               <Route path="/people" element={<MhdPeoplePage />} />
               <Route path="/people/:personId" element={<MhdPersonDetailPage />} />
               <Route path="/companies" element={<MhdCompaniesPage />} />

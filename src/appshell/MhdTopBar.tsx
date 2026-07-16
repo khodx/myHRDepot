@@ -1,5 +1,6 @@
 import { LogOut } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { MhdNotificationBell } from '@/features/notifications/components/MhdNotificationBell';
 export function MhdTopBar() {
   const { profile, signOut } = useMhdAuth();
 
@@ -16,6 +17,7 @@ export function MhdTopBar() {
       </div>
 
       <div className="flex items-center gap-3">
+        <MhdNotificationBell />
         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">
           {initials}
         </div>
