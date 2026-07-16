@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "gen:types": "supabase gen types --local --lang typescript --schema public --workdir \"G:\\Shared drives\\Tech\\myHRDepot\\Project Plan & Implementation\\MHD Project Bible\\05 - Integration & Deployment\\Supabase-Staging-Workspace\" > src\\types\\database.types.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "format": "prettier . --write",
