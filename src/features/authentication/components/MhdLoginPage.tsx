@@ -8,6 +8,14 @@ import { mhdLoginSchema, type MhdLoginFormValues } from '../Schemas';
 import { useMhdAuth } from '../Hook';
 import { mhdToUserFacingAuthError } from '../AuthErrors';
 
+// Demo-phase convenience: the login form comes pre-filled with the shared demo
+// account and shows it on screen. Remove MHD_DEMO_LOGIN (or blank its values)
+// before real customer data enters the system.
+const MHD_DEMO_LOGIN = {
+  email: 'tech@simply-hr.org',
+  password: 'DemoPass123!',
+};
+
 export function MhdLoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,7 +24,7 @@ export function MhdLoginPage() {
 
   const form = useForm<MhdLoginFormValues>({
     resolver: zodResolver(mhdLoginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: MHD_DEMO_LOGIN.email, password: MHD_DEMO_LOGIN.password },
   });
 
   const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/';
@@ -34,6 +42,14 @@ export function MhdLoginPage() {
   return (
     <MhdAuthLayout>
       <MhdAuthCard title="Sign in" description="Access your secure My HR Depot workspace.">
+        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+          <p className="font-semibold">Demo access (pre-filled)</p>
+          <p className="mt-1">
+            Email: <span className="font-mono">{MHD_DEMO_LOGIN.email}</span>
+            <br />
+            Password: <span className="font-mono">{MHD_DEMO_LOGIN.password}</span>
+          </p>
+        </div>
         <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
           <div>
             <label className="block text-sm font-medium text-slate-700" htmlFor="email">Email</label>
