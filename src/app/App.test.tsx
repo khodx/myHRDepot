@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '@/app/App';
 
 vi.mock('@/config/env', () => ({
@@ -11,18 +11,29 @@ vi.mock('@/config/env', () => ({
   },
 }));
 
-// HomePage now sits behind MhdProtectedRoute and reads useMhdAuth() directly.
-// Mocking the hook (not the provider) keeps this a foundation-shell smoke test
-// rather than an auth integration test — see 03.1 - Authentication's own Tests/
-// for real auth-flow coverage.
+// The app shell (sidebar/topbar) and MhdProtectedRoute read useMhdAuth()
+// directly. Mocking the hook (not the provider) keeps this a foundation-shell
+// smoke test rather than an auth integration test — see the authentication
+// feature's own tests for real auth-flow coverage.
 vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => ({
     isLoading: false,
     isAuthenticated: true,
     userEmail: 'admin@example.com',
     authUserId: 'test-user-id',
-    profile: null,
-    roles: [],
+    profile: {
+      userId: 'test-user-id',
+      email: 'admin@example.com',
+      companyId: 'company-1',
+      companyName: 'Acme Co',
+      isAdmin: true,
+      personId: 'person-1',
+      displayName: 'Admin User',
+      firstName: 'Admin',
+      lastName: 'User',
+      roleNames: ['Platform Admin'],
+    },
+    roles: ['Platform Admin'],
     refreshProfile: vi.fn(),
     signIn: vi.fn(),
     signOut: vi.fn(),
@@ -31,12 +42,32 @@ vi.mock('@/features/authentication/Hook', () => ({
   }),
 }));
 
+// Keep the smoke test hermetic — the dashboard page otherwise fires Supabase
+// RPCs on mount.
+vi.mock('@/features/dashboard/Hook', () => ({
+  useMhdDashboard: () => ({
+    isLoading: false,
+    error: null,
+    taskSummary: null,
+    myTasks: [],
+    recentActivity: [],
+    lastRefreshed: null,
+    refetch: vi.fn(),
+  }),
+}));
+
 describe('App foundation', () => {
-  it('renders the enterprise foundation landing content', () => {
+  beforeEach(() => {
+    window.history.pushState({}, '', '/');
+  });
+
+  it('renders the app shell and redirects "/" to the dashboard', () => {
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: /my hr depot/i })).toBeInTheDocument();
-    expect(screen.getByText(/task management mvp foundation/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /foundation ready/i })).toBeInTheDocument();
+    // Sidebar brand + nav, top bar identity, and the dashboard page all render.
+    expect(screen.getByText('My HR Depot')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
+    expect(screen.getByText('Admin User')).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/dashboard');
   });
 });

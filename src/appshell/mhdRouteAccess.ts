@@ -1,0 +1,41 @@
+import type { MhdAuthRoleName } from '@/features/authentication/Types';
+
+export interface MhdRouteAccessRule {
+  path: string;
+  roles: MhdAuthRoleName[] | 'ALL';
+}
+
+/**
+ * Single source of truth for which roles may reach which top-level app routes.
+ * MhdSidebar reads this to decide which nav links to render, and
+ * MhdRoleGuardedRoute reads it to enforce the same rule at the router level —
+ * hiding a link is not access control, only the router guard is.
+ */
+export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
+  { path: '/dashboard', roles: 'ALL' },
+  { path: '/tasks', roles: 'ALL' },
+  { path: '/people', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  { path: '/companies', roles: ['Platform Admin', 'HR Partner'] },
+];
+
+export function mhdRouteRoles(path: string): MhdAuthRoleName[] | 'ALL' {
+  const rule = MHD_ROUTE_ACCESS.find((r) => r.path === path);
+  return rule ? rule.roles : 'ALL';
+}
+
+/**
+ * Matches `path` against the longest applicable rule (exact match or a
+ * `/parent/child` route under a guarded parent, e.g. `/companies/:companyId`
+ * inherits the `/companies` rule) and checks it against `userRoles`.
+ * Routes with no matching rule are treated as accessible to any
+ * authenticated user — MhdProtectedRoute already gates authentication.
+ */
+export function mhdCanAccessRoute(path: string, userRoles: MhdAuthRoleName[]): boolean {
+  const rule = MHD_ROUTE_ACCESS.find((r) => path === r.path || path.startsWith(`${r.path}/`));
+
+  if (!rule || rule.roles === 'ALL') {
+    return true;
+  }
+
+  return rule.roles.some((requiredRole) => userRoles.includes(requiredRole));
+}
