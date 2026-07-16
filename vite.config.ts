@@ -11,6 +11,20 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    // Split the largest stable dependency groups out of the main bundle so the
+    // app chunk stays under the 500 kB warning threshold.
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: 'react-vendor', test: /node_modules[\\/](react|react-dom|react-router|scheduler)/ },
+            { name: 'supabase', test: /node_modules[\\/]@supabase/ },
+          ],
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
