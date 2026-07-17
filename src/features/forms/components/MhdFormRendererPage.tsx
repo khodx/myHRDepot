@@ -53,6 +53,8 @@ export function MhdFormRendererPage() {
     ? onboardingDocumentKeyValue
     : null;
   const onboardingPacket = onboardingDocumentKey ? MHD_ONBOARDING_PACKET_BY_KEY[onboardingDocumentKey] : null;
+  const shouldRouteToEsignature =
+    !!onboardingPersonId && !!onboardingPacket?.requiresSignature && !!onboardingPacket.generatedDocumentRequired;
   const userPrefillValues = useMemo(
     () => ({
       firstName: profile?.firstName ?? '',
@@ -144,6 +146,33 @@ export function MhdFormRendererPage() {
             <p className="mt-1">
               Rendering <span className="font-semibold">{onboardingPacket.label}</span>
               {onboardingPersonName ? ` for ${onboardingPersonName}` : ''}. After submit, the page syncs `onboarding_checklist_items` for this person.
+            </p>
+            {shouldRouteToEsignature ? (
+              <p className="mt-2">
+                This packet item also requires a generated document plus a Stage 6 e-signature request. Once the document is generated, route it from the{' '}
+                <Link
+                  to={`/esignature?personId=${encodeURIComponent(onboardingPersonId)}&personName=${encodeURIComponent(onboardingPersonName ?? 'Person')}`}
+                  className="font-semibold text-sky-800 underline"
+                >
+                  E-Signature Center
+                </Link>.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {shouldRouteToEsignature ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <p className="font-semibold">Post-submit handoff</p>
+            <p className="mt-1">
+              Submitting this form does not itself create the signature request. After document generation completes, use the{' '}
+              <Link
+                to={`/esignature?personId=${encodeURIComponent(onboardingPersonId!)}&personName=${encodeURIComponent(onboardingPersonName ?? 'Person')}`}
+                className="font-semibold underline"
+              >
+                E-Signature Center
+              </Link>{' '}
+              to route the generated document into the signer workflow.
             </p>
           </div>
         ) : null}

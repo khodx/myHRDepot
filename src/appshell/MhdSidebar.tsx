@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Users, Building2, ClipboardList, Package2, Stamp } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Users, Building2, ClipboardList, Package2, Stamp, FileSignature } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -19,6 +19,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Tasks',     route: '/tasks',     icon: CheckSquare,     roles: mhdRouteRoles('/tasks') },
   { label: 'Forms',     route: '/forms',     icon: ClipboardList,   roles: mhdRouteRoles('/forms') },
   { label: 'Property',  route: '/property',  icon: Package2,        roles: mhdRouteRoles('/property') },
+  { label: 'E-Signature', route: '/esignature', icon: FileSignature, roles: mhdRouteRoles('/esignature') },
   { label: 'People',    route: '/people',    icon: Users,           roles: mhdRouteRoles('/people') },
   { label: 'Companies', route: '/companies', icon: Building2,       roles: mhdRouteRoles('/companies') },
   { label: 'Approvals', route: '/approvals', icon: Stamp,           roles: mhdRouteRoles('/approvals') },

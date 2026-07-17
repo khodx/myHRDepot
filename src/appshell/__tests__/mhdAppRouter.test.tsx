@@ -88,6 +88,15 @@ vi.mock('@/features/property/components/MhdPropertyPage', () => ({
 vi.mock('@/features/property/components/MhdPropertyDetailPage', () => ({
   MhdPropertyDetailPage: () => <div>Property Detail Page</div>,
 }));
+vi.mock('@/features/esignature/components/MhdEsignaturePage', () => ({
+  MhdEsignaturePage: () => <div>E-Signature Page</div>,
+}));
+vi.mock('@/features/esignature/components/MhdEsignatureDetailPage', () => ({
+  MhdEsignatureDetailPage: () => <div>E-Signature Detail Page</div>,
+}));
+vi.mock('@/features/esignature/components/MhdPublicSigningPage', () => ({
+  MhdPublicSigningPage: () => <div>Public Signing Page</div>,
+}));
 vi.mock('../components/MhdTaskDetailPage', () => ({
   MhdTaskDetailPage: () => <div>Task Detail Page</div>,
 }));
@@ -184,6 +193,17 @@ describe('MhdAppRouter', () => {
 
     expect(screen.getByText('Login Page')).toBeInTheDocument();
     expect(screen.getByTestId('auth-layout')).toBeInTheDocument();
+  });
+
+  it('renders the public signing route without requiring authentication', () => {
+    mockAuth({ isAuthenticated: false });
+    setUrl('/sign/test-token');
+
+    render(<MhdAppRouter />);
+
+    expect(screen.getByText('Public Signing Page')).toBeInTheDocument();
+    expect(screen.queryByText('Login Page')).not.toBeInTheDocument();
+    expect(window.location.pathname).toBe('/sign/test-token');
   });
 
   it('redirects an unauthenticated user away from a protected route to "/login"', () => {

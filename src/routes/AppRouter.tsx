@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { MhdProtectedRoute } from '@/features/authentication/components/MhdProtectedRoute';
 import { MhdRoleGuardedRoute } from '@/appshell/MhdRoleGuardedRoute';
 import { MhdAppShell } from '@/appshell/MhdAppShell';
+import { PublicLayout } from '@/layouts/PublicLayout';
 
 // Auth pages (scaffold's existing authentication feature — canonical)
 import { MhdLoginPage } from '@/features/authentication/components/MhdLoginPage';
@@ -20,6 +21,9 @@ import { MhdFormRendererPage } from '@/features/forms/components/MhdFormRenderer
 import { MhdFormSubmissionsPage } from '@/features/forms/components/MhdFormSubmissionsPage';
 import { MhdPropertyPage } from '@/features/property/components/MhdPropertyPage';
 import { MhdPropertyDetailPage } from '@/features/property/components/MhdPropertyDetailPage';
+import { MhdEsignaturePage } from '@/features/esignature/components/MhdEsignaturePage';
+import { MhdEsignatureDetailPage } from '@/features/esignature/components/MhdEsignatureDetailPage';
+import { MhdPublicSigningPage } from '@/features/esignature/components/MhdPublicSigningPage';
 import { MhdPeoplePage } from '@/features/people/components/MhdPeoplePage';
 import { MhdPersonDetailPage } from '@/appshell/components/MhdPersonDetailPage';
 import { MhdCompaniesPage } from '@/features/companies/components/MhdCompaniesPage';
@@ -37,6 +41,9 @@ export function AppRouter() {
         <Route path="/forgot-password" element={<MhdForgotPasswordPage />} />
         <Route path="/reset-password" element={<MhdResetPasswordPage />} />
         <Route path="/auth/callback" element={<MhdAuthCallbackPage />} />
+        <Route element={<PublicLayout />}>
+          <Route path="/sign/:token" element={<MhdPublicSigningPage />} />
+        </Route>
 
         {/* Protected app routes */}
         <Route element={<MhdProtectedRoute />}>
@@ -58,6 +65,8 @@ export function AppRouter() {
               <Route path="/forms/:formId" element={<MhdFormBuilderPage />} />
               <Route path="/property" element={<MhdPropertyPage />} />
               <Route path="/property/:itemId" element={<MhdPropertyDetailPage />} />
+              <Route path="/esignature" element={<MhdEsignaturePage />} />
+              <Route path="/esignature/:requestId" element={<MhdEsignatureDetailPage />} />
               <Route path="/people" element={<MhdPeoplePage />} />
               <Route path="/people/:personId" element={<MhdPersonDetailPage />} />
               <Route path="/companies" element={<MhdCompaniesPage />} />

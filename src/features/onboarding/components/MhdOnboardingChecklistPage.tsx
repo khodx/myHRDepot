@@ -31,6 +31,8 @@ export function MhdOnboardingChecklistPage({
   isLoading,
   errorMessage,
 }: MhdOnboardingChecklistPageProps) {
+  const hasSignatureWorkflow = items.some((item) => item.requiresSignature && item.generatedDocumentRequired);
+
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -47,6 +49,20 @@ export function MhdOnboardingChecklistPage({
           <p className="mt-1 text-xs text-slate-300">{isFullyOnboarded ? 'Packet complete' : 'Packet in progress'}</p>
         </div>
       </div>
+
+      {hasSignatureWorkflow ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+          <p>
+            Signature-required packet items route through the Stage 6 E-Signature Center after document generation.
+          </p>
+          <Link
+            to={`/esignature?personId=${encodeURIComponent(personId)}&personName=${encodeURIComponent(personDisplayName)}`}
+            className="rounded-xl bg-sky-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-sky-800"
+          >
+            Open Signature Center
+          </Link>
+        </div>
+      ) : null}
 
       {errorMessage ? (
         <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{errorMessage}</div>
