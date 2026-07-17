@@ -9,28 +9,32 @@
  *   → supabase.from('people').select(PERSON_SELECT).eq('id', personId).single()
  */
 
-import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { Mail, Phone, Smartphone, Building2 } from 'lucide-react'
-import { MhdBreadcrumb } from './MhdBreadcrumb'
-import { mhdPersonService } from '@/features/people/Service'
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { Mail, Phone, Smartphone, Building2 } from 'lucide-react';
+import { MhdBreadcrumb } from './MhdBreadcrumb';
+import { mhdPersonService } from '@/features/people/Service';
+import { useMhdOnboardingPacket } from '@/features/onboarding/Hook';
+import { MhdOnboardingChecklistPage } from '@/features/onboarding/components/MhdOnboardingChecklistPage';
 
 export function MhdPersonDetailPage() {
-  const { personId } = useParams<{ personId: string }>()
-  const navigate = useNavigate()
+  const { personId } = useParams<{ personId: string }>();
+  const navigate = useNavigate();
 
   const { data: person, isLoading, error } = useQuery({
     queryKey: ['mhd-person', personId],
     queryFn: () => mhdPersonService.getPersonById(personId!),
     enabled: !!personId,
-  })
+  });
+
+  const onboardingPacket = useMhdOnboardingPacket(person?.id ?? '', person?.companyId ?? '');
 
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <p className="text-sm text-neutral-500">Loading person…</p>
+        <p className="text-sm text-neutral-500">Loading person...</p>
       </div>
-    )
+    );
   }
 
   if (error || !person) {
@@ -47,11 +51,11 @@ export function MhdPersonDetailPage() {
           Back to People
         </button>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 p-6">
+    <div className="mx-auto max-w-6xl space-y-6 p-6">
       <MhdBreadcrumb
         items={[{ label: 'People', to: '/people' }, { label: person.displayName }]}
       />
@@ -61,7 +65,7 @@ export function MhdPersonDetailPage() {
         <div className="flex items-start gap-4">
           {/* Avatar initials */}
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-700">
-{person.firstName?.[0] ?? ''}{person.lastName?.[0] ?? ''}
+            {person.firstName?.[0] ?? ''}{person.lastName?.[0] ?? ''}
           </div>
           <div className="min-w-0">
             <h1 className="text-xl font-semibold text-neutral-900">{person.displayName}</h1>
@@ -114,6 +118,17 @@ export function MhdPersonDetailPage() {
           <p>Updated: {new Date(person.updatedAt).toLocaleDateString()}</p>
         </div>
       </div>
+
+      <MhdOnboardingChecklistPage
+        personId={person.id}
+        personDisplayName={person.displayName}
+        items={onboardingPacket.items}
+        completedCount={onboardingPacket.completedCount}
+        requiredCount={onboardingPacket.requiredItems.length}
+        isFullyOnboarded={onboardingPacket.isFullyOnboarded}
+        isLoading={onboardingPacket.isLoading}
+        errorMessage={onboardingPacket.errorMessage}
+      />
     </div>
-  )
+  );
 }

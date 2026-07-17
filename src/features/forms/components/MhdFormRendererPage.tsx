@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
+import { mhdOnboardingService } from '@/features/onboarding/Service';
+import { MHD_ONBOARDING_PACKET_BY_KEY } from '@/features/onboarding/PacketCatalog';
+import { mhdIsOnboardingDocumentKey } from '@/features/onboarding/Types';
 import type { MhdFormSubmission } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormRenderer } from './MhdFormRenderer';
@@ -15,6 +18,7 @@ export function MhdFormRendererPage() {
   const [searchParams] = useSearchParams();
   const [drafts, setDrafts] = useState<MhdFormSubmission[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -42,6 +46,13 @@ export function MhdFormRendererPage() {
 
   const submissionId = searchParams.get('submissionId') ?? undefined;
   const taskId = searchParams.get('taskId') ?? undefined;
+  const onboardingPersonId = searchParams.get('personId') ?? undefined;
+  const onboardingPersonName = searchParams.get('personName') ?? undefined;
+  const onboardingDocumentKeyValue = searchParams.get('documentKey');
+  const onboardingDocumentKey = mhdIsOnboardingDocumentKey(onboardingDocumentKeyValue)
+    ? onboardingDocumentKeyValue
+    : null;
+  const onboardingPacket = onboardingDocumentKey ? MHD_ONBOARDING_PACKET_BY_KEY[onboardingDocumentKey] : null;
   const userPrefillValues = useMemo(
     () => ({
       firstName: profile?.firstName ?? '',
@@ -51,6 +62,31 @@ export function MhdFormRendererPage() {
     }),
     [profile],
   );
+
+  async function handleSubmissionSuccess(nextSubmissionId: string) {
+    setSyncError(null);
+
+    if (onboardingPersonId && onboardingDocumentKey && profile?.userId && profile?.companyId) {
+      try {
+        await mhdOnboardingService.upsertChecklistItemFromSubmittedForm({
+          companyId: profile.companyId,
+          personId: onboardingPersonId,
+          documentKey: onboardingDocumentKey,
+          submissionId: nextSubmissionId,
+          actorUserId: profile.userId,
+        });
+        setMessage('Submission submitted and onboarding checklist updated.');
+      } catch (error) {
+        setMessage('Submission submitted successfully.');
+        setSyncError(error instanceof Error ? error.message : 'Unable to sync onboarding checklist.');
+      }
+    } else {
+      setMessage('Submission submitted successfully.');
+    }
+
+    const allDrafts = await mhdFormService.listMyDraftSubmissions();
+    setDrafts(allDrafts.filter((draft) => draft.formId === formId));
+  }
 
   if (!formId) {
     return <div className="p-6 text-sm text-red-600">No form id was provided.</div>;
@@ -65,6 +101,14 @@ export function MhdFormRendererPage() {
               <Link to="/forms" className="font-semibold text-blue-700 hover:underline">
                 Forms
               </Link>
+              {onboardingPersonId ? (
+                <>
+                  <span>/</span>
+                  <Link to={`/people/${onboardingPersonId}`} className="font-semibold text-blue-700 hover:underline">
+                    {onboardingPersonName || 'Person'}
+                  </Link>
+                </>
+              ) : null}
               <span>/</span>
               <span>Runtime Renderer</span>
             </div>
@@ -74,6 +118,14 @@ export function MhdFormRendererPage() {
             </p>
           </div>
           <div className="flex gap-3">
+            {onboardingPersonId ? (
+              <Link
+                to={`/people/${onboardingPersonId}`}
+                className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+              >
+                Back to Person
+              </Link>
+            ) : null}
             <Link to={`/forms/${formId}`} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
               {canMutate ? 'Open Builder' : 'View Form'}
             </Link>
@@ -84,6 +136,17 @@ export function MhdFormRendererPage() {
         </div>
 
         {message ? <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{message}</div> : null}
+        {syncError ? <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">{syncError}</div> : null}
+
+        {onboardingPersonId && onboardingPacket ? (
+          <div className="rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+            <p className="font-semibold">Onboarding packet context</p>
+            <p className="mt-1">
+              Rendering <span className="font-semibold">{onboardingPacket.label}</span>
+              {onboardingPersonName ? ` for ${onboardingPersonName}` : ''}. After submit, the page syncs `onboarding_checklist_items` for this person.
+            </p>
+          </div>
+        ) : null}
 
         <MhdFormResumeDrafts
           drafts={drafts.map((draft) => ({
@@ -102,11 +165,8 @@ export function MhdFormRendererPage() {
             taskId={taskId}
             readOnly={!canMutate}
             userPrefillValues={userPrefillValues}
-            onSubmitted={() => {
-              setMessage('Submission submitted successfully.');
-              void mhdFormService.listMyDraftSubmissions().then((allDrafts) => {
-                setDrafts(allDrafts.filter((draft) => draft.formId === formId));
-              });
+            onSubmitted={(nextSubmissionId) => {
+              void handleSubmissionSuccess(nextSubmissionId);
             }}
           />
         </div>
