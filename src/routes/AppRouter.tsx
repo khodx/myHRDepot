@@ -22,6 +22,8 @@ import { MhdPeoplePage } from '@/features/people/components/MhdPeoplePage';
 import { MhdPersonDetailPage } from '@/appshell/components/MhdPersonDetailPage';
 import { MhdCompaniesPage } from '@/features/companies/components/MhdCompaniesPage';
 import { MhdCompanyDetailPage } from '@/appshell/components/MhdCompanyDetailPage';
+import { MhdApprovalsPage } from '@/features/approvals/components/MhdApprovalsPage';
+import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
 import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
 
 export function AppRouter() {
@@ -56,6 +58,8 @@ export function AppRouter() {
               <Route path="/people/:personId" element={<MhdPersonDetailPage />} />
               <Route path="/companies" element={<MhdCompaniesPage />} />
               <Route path="/companies/:companyId" element={<MhdCompanyDetailPage />} />
+              <Route path="/approvals" element={<MhdApprovalsPage />} />
+              <Route path="/approvals/:approvalId" element={<MhdApprovalDetailPage />} />
             </Route>
           </Route>
         </Route>

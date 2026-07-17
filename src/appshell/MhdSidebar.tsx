@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Users, Building2, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Users, Building2, ClipboardList, Stamp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -20,6 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Forms',     route: '/forms',     icon: ClipboardList,   roles: mhdRouteRoles('/forms') },
   { label: 'People',    route: '/people',    icon: Users,           roles: mhdRouteRoles('/people') },
   { label: 'Companies', route: '/companies', icon: Building2,       roles: mhdRouteRoles('/companies') },
+  { label: 'Approvals', route: '/approvals', icon: Stamp,           roles: mhdRouteRoles('/approvals') },
 ];
 
 export function MhdSidebar() {
