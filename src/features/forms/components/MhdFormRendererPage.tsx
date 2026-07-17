@@ -103,7 +103,7 @@ export function MhdFormRendererPage() {
             readOnly={!canMutate}
             userPrefillValues={userPrefillValues}
             onSubmitted={() => {
-              setMessage('Submission saved successfully.');
+              setMessage('Submission submitted successfully.');
               void mhdFormService.listMyDraftSubmissions().then((allDrafts) => {
                 setDrafts(allDrafts.filter((draft) => draft.formId === formId));
               });

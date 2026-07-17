@@ -153,6 +153,7 @@ describe('mhdFormService', () => {
 
   it('omits optional submission values unless provided', async () => {
     mockRpc.mockReturnValueOnce(Promise.resolve({ error: null }));
+    mockRpc.mockReturnValueOnce(Promise.resolve({ error: null }));
     mockReturns.mockResolvedValueOnce({
       data: [
         {
@@ -176,6 +177,10 @@ describe('mhdFormService', () => {
 
     const submitArgs = mockRpc.mock.calls[0]?.[1] as Record<string, unknown>;
     expect(submitArgs).toEqual({ p_submission_id: 'submission-1' });
+    expect(mockRpc.mock.calls[1]).toEqual([
+      'mhd_apply_form_submission_to_destination',
+      { p_submission_id: 'submission-1' },
+    ]);
   });
 
   describe('uploadSubmissionFile (file field -> Drive bridge)', () => {

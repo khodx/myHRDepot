@@ -402,6 +402,14 @@ export const mhdFormService = {
       throw new Error(`Unable to submit form: ${error.message}`);
     }
 
+    const { error: applyError } = await supabaseClient.rpc('mhd_apply_form_submission_to_destination', {
+      p_submission_id: submissionId,
+    });
+
+    if (applyError) {
+      throw new Error(`Unable to apply submitted form to its destination: ${applyError.message}`);
+    }
+
     return this.getSubmissionById(submissionId);
   },
 
