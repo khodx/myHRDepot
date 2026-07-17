@@ -194,9 +194,8 @@ export interface MhdFormSubmission {
  * Submission value stored for a file-type field after a successful Google
  * Drive upload. This is a *reference* (Drive file id + display metadata),
  * never raw file bytes. The corresponding public.form_submission_attachments
- * row stores the same Drive file id under the legacy `storage_path` column
- * and the original file name under `file_name` (Stage-7 rename compatibility
- * shims — do not rename).
+ * row stores the same Drive file id under the `drive_file_id` column and the
+ * original file name under `file_name`.
  */
 export interface MhdFormFileValue {
   driveFileId: string;

@@ -447,9 +447,8 @@ export const mhdFormService = {
    * Drive edge-function pipeline the attachments feature uses, then records it
    * in public.form_submission_attachments via the typed client.
    *
-   * Column mapping (Stage-7 rename compatibility — the live table kept its
-   * legacy column names): `storage_path` stores the Drive file id and
-   * `file_name` stores the original file name. `uploaded_at` is defaulted by
+   * Column mapping: `drive_file_id` stores the Drive file id and `file_name`
+   * stores the original file name. `uploaded_at` is defaulted by
    * the database. The RLS INSERT policy ("Users can attach files to their own
    * submissions") requires that `submissionId` belongs to the current user,
    * which is guaranteed because this is only called during the draft/submit
@@ -484,7 +483,7 @@ export const mhdFormService = {
     const { error: insertError } = await supabaseClient.from('form_submission_attachments').insert({
       submission_id: submissionId,
       field_id: fieldId,
-      storage_path: data.driveFileId,
+      drive_file_id: data.driveFileId,
       file_name: file.name,
       file_size_bytes: file.size,
       mime_type: file.type,

@@ -482,8 +482,8 @@ export type Database = {
           generated_at: string | null
           id: string
           merge_data: Json
+          output_drive_file_id: string | null
           output_file_name: string | null
-          output_storage_path: string | null
           reference_id: string
           status: string
           template_id: string
@@ -501,8 +501,8 @@ export type Database = {
           generated_at?: string | null
           id?: string
           merge_data?: Json
+          output_drive_file_id?: string | null
           output_file_name?: string | null
-          output_storage_path?: string | null
           reference_id: string
           status?: string
           template_id: string
@@ -520,8 +520,8 @@ export type Database = {
           generated_at?: string | null
           id?: string
           merge_data?: Json
+          output_drive_file_id?: string | null
           output_file_name?: string | null
-          output_storage_path?: string | null
           reference_id?: string
           status?: string
           template_id?: string
@@ -709,15 +709,15 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
+          document_drive_file_id: string
           document_generation_id: string
           document_hash: string | null
           document_name: string
-          document_storage_path: string
           expires_at: string | null
           id: string
           reference_id: string
           signed_document_hash: string | null
-          signed_storage_path: string | null
+          signed_drive_file_id: string | null
           signing_order: string
           status: string
           updated_at: string
@@ -728,15 +728,15 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          document_drive_file_id: string
           document_generation_id: string
           document_hash?: string | null
           document_name: string
-          document_storage_path: string
           expires_at?: string | null
           id?: string
           reference_id: string
           signed_document_hash?: string | null
-          signed_storage_path?: string | null
+          signed_drive_file_id?: string | null
           signing_order?: string
           status?: string
           updated_at?: string
@@ -747,15 +747,15 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          document_drive_file_id?: string
           document_generation_id?: string
           document_hash?: string | null
           document_name?: string
-          document_storage_path?: string
           expires_at?: string | null
           id?: string
           reference_id?: string
           signed_document_hash?: string | null
-          signed_storage_path?: string | null
+          signed_drive_file_id?: string | null
           signing_order?: string
           status?: string
           updated_at?: string
@@ -2686,14 +2686,14 @@ export type Database = {
           field_id: string
           file_delete_allowed: boolean
           file_download_allowed: boolean
+          file_drive_file_id: string | null
+          file_drive_folder_id: string | null
           file_field_id: string | null
           file_metadata_capture: string | null
           file_naming_rule: string | null
           file_ocr_required: boolean
           file_preview_enabled: boolean
           file_replace_allowed: boolean
-          file_storage_bucket: string | null
-          file_storage_path: string | null
           file_storage_provider: string | null
           file_upload_enabled: boolean
           file_versioning_enabled: boolean
@@ -2737,14 +2737,14 @@ export type Database = {
           field_id: string
           file_delete_allowed?: boolean
           file_download_allowed?: boolean
+          file_drive_file_id?: string | null
+          file_drive_folder_id?: string | null
           file_field_id?: string | null
           file_metadata_capture?: string | null
           file_naming_rule?: string | null
           file_ocr_required?: boolean
           file_preview_enabled?: boolean
           file_replace_allowed?: boolean
-          file_storage_bucket?: string | null
-          file_storage_path?: string | null
           file_storage_provider?: string | null
           file_upload_enabled?: boolean
           file_versioning_enabled?: boolean
@@ -2788,14 +2788,14 @@ export type Database = {
           field_id?: string
           file_delete_allowed?: boolean
           file_download_allowed?: boolean
+          file_drive_file_id?: string | null
+          file_drive_folder_id?: string | null
           file_field_id?: string | null
           file_metadata_capture?: string | null
           file_naming_rule?: string | null
           file_ocr_required?: boolean
           file_preview_enabled?: boolean
           file_replace_allowed?: boolean
-          file_storage_bucket?: string | null
-          file_storage_path?: string | null
           file_storage_provider?: string | null
           file_upload_enabled?: boolean
           file_versioning_enabled?: boolean
@@ -4509,32 +4509,32 @@ export type Database = {
       }
       form_submission_attachments: {
         Row: {
+          drive_file_id: string
           field_id: string
           file_name: string
           file_size_bytes: number
           id: string
           mime_type: string
-          storage_path: string
           submission_id: string
           uploaded_at: string
         }
         Insert: {
+          drive_file_id: string
           field_id: string
           file_name: string
           file_size_bytes: number
           id?: string
           mime_type: string
-          storage_path: string
           submission_id: string
           uploaded_at?: string
         }
         Update: {
+          drive_file_id?: string
           field_id?: string
           file_name?: string
           file_size_bytes?: number
           id?: string
           mime_type?: string
-          storage_path?: string
           submission_id?: string
           uploaded_at?: string
         }
@@ -9451,8 +9451,8 @@ export type Database = {
         Args: {
           p_actor_user_id?: string
           p_generation_id: string
+          p_output_drive_file_id: string
           p_output_file_name: string
-          p_output_storage_path: string
         }
         Returns: {
           generated_at: string
@@ -9580,9 +9580,9 @@ export type Database = {
         Args: {
           p_actor_user_id?: string
           p_company_id: string
+          p_document_drive_file_id: string
           p_document_generation_id: string
           p_document_name: string
-          p_document_storage_path: string
           p_expires_at?: string
           p_signers: Json
           p_signing_order?: string
@@ -9889,13 +9889,13 @@ export type Database = {
           completed_at: string
           created_at: string
           created_by: string
+          document_drive_file_id: string
           document_generation_id: string
           document_name: string
-          document_storage_path: string
           expires_at: string
           id: string
           reference_id: string
-          signed_storage_path: string
+          signed_drive_file_id: string
           signers: Json
           signing_order: string
           status: string
@@ -9904,8 +9904,8 @@ export type Database = {
       mhd_get_signature_request_by_token: {
         Args: { p_signing_token: string }
         Returns: {
+          document_drive_file_id: string
           document_name: string
-          document_storage_path: string
           reference_id: string
           request_id: string
           request_status: string
@@ -10296,15 +10296,15 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
+          document_drive_file_id: string
           document_generation_id: string
           document_hash: string | null
           document_name: string
-          document_storage_path: string
           expires_at: string | null
           id: string
           reference_id: string
           signed_document_hash: string | null
-          signed_storage_path: string | null
+          signed_drive_file_id: string | null
           signing_order: string
           status: string
           updated_at: string

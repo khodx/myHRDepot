@@ -205,12 +205,12 @@ describe('mhdFormService', () => {
       expect(mockInvoke.mock.calls[0][0]).toBe('mhd-drive-upload');
 
       expect(mockFrom).toHaveBeenCalledWith('form_submission_attachments');
-      // storage_path stores the Drive file id and file_name the original file
-      // name (legacy column names kept as compatibility shims).
+      // drive_file_id stores the Drive file id and file_name the original file
+      // name.
       expect(mockInsert).toHaveBeenCalledWith({
         submission_id: 'submission-1',
         field_id: 'field-1',
-        storage_path: 'drive-file-123',
+        drive_file_id: 'drive-file-123',
         file_name: 'void-check.pdf',
         file_size_bytes: file.size,
         mime_type: 'application/pdf',
