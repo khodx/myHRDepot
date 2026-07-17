@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { FileCheck2, FileSignature, Mail, Plus, Send, ShieldCheck } from 'lucide-react';
 import { mhdCanMutateEsignature } from '@/appshell/mhdRouteAccess';
@@ -82,25 +82,29 @@ export function MhdEsignaturePage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [requestSearchTerm, setRequestSearchTerm] = useState('');
 
-  const generatedDocuments = generatedDocumentsQuery.data ?? [];
-  const requests = requestsQuery.data ?? [];
-  const users = usersQuery.data ?? [];
+  const generatedDocuments = useMemo(() => generatedDocumentsQuery.data ?? [], [generatedDocumentsQuery.data]);
+  const requests = useMemo(() => requestsQuery.data ?? [], [requestsQuery.data]);
+  const users = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
 
-  useEffect(() => {
+  // Adjust selection during render when the URL requests a specific generation.
+  const [prevRequestedGenerationId, setPrevRequestedGenerationId] = useState(requestedGenerationId);
+  if (requestedGenerationId !== prevRequestedGenerationId) {
+    setPrevRequestedGenerationId(requestedGenerationId);
     if (requestedGenerationId) {
       setSelectedGenerationId(requestedGenerationId);
     }
-  }, [requestedGenerationId]);
+  }
 
-  useEffect(() => {
-    if (!selectedGenerationId && generatedDocuments.length > 0) {
-      setSelectedGenerationId(generatedDocuments.find((item) => !item.esignatureRequestId)?.id ?? generatedDocuments[0].id);
-    }
-  }, [generatedDocuments, selectedGenerationId]);
+  // Until the user picks one, default to the first generation without a linked request.
+  const effectiveGenerationId =
+    selectedGenerationId ??
+    generatedDocuments.find((item) => !item.esignatureRequestId)?.id ??
+    generatedDocuments[0]?.id ??
+    null;
 
   const selectedGeneration = useMemo(
-    () => generatedDocuments.find((generation) => generation.id === selectedGenerationId) ?? null,
-    [generatedDocuments, selectedGenerationId],
+    () => generatedDocuments.find((generation) => generation.id === effectiveGenerationId) ?? null,
+    [generatedDocuments, effectiveGenerationId],
   );
 
   const filteredRequests = useMemo(() => {
@@ -123,7 +127,7 @@ export function MhdEsignaturePage() {
     setDisclosureVersion('2026-07-17');
     setSigningOrder('SEQUENTIAL');
     setSigners([createSignerRow('external')]);
-    setSelectedGenerationId(generation?.id ?? selectedGenerationId);
+    setSelectedGenerationId(generation?.id ?? effectiveGenerationId);
   }
 
   function updateSigner(id: string, updater: (row: DraftSignerRow) => DraftSignerRow) {
@@ -254,7 +258,7 @@ export function MhdEsignaturePage() {
 
               {generatedDocuments.map((generation) => {
                 const driveUrl = mhdBuildGoogleDriveViewUrl(generation.outputDriveFileId);
-                const isSelected = generation.id === selectedGenerationId;
+                const isSelected = generation.id === effectiveGenerationId;
 
                 return (
                   <article
@@ -340,7 +344,7 @@ export function MhdEsignaturePage() {
                     Selected generated document
                     <select
                       className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                      value={selectedGenerationId ?? ''}
+                      value={effectiveGenerationId ?? ''}
                       onChange={(event) => setSelectedGenerationId(event.target.value || null)}
                     >
                       <option value="">Choose a generated document</option>

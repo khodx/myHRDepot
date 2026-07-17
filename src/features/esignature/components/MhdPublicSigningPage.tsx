@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CheckCircle2, CircleAlert, FileSignature, ShieldCheck } from 'lucide-react';
 import { mhdEsignatureService } from '../Service';
@@ -67,19 +67,13 @@ export function MhdPublicSigningPage() {
   const consentRecorded = !!request?.consentedAt;
   const terminal = isTerminalState(request);
 
-  async function loadRequest() {
-    if (!token) {
-      setLoadError('No signing token was provided.');
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setLoadError(null);
+  const loadRequest = useCallback(async () => {
+    if (!token) return;
 
     try {
       const nextRequest = await mhdEsignatureService.getRequestByToken(token);
       setRequest(nextRequest);
+      setLoadError(null);
       setTypedSignatureName((current) => current || nextRequest.signerName || '');
     } catch (error) {
       setRequest(null);
@@ -87,11 +81,12 @@ export function MhdPublicSigningPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [token]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- package pattern: fetch-on-mount with loading state
     void loadRequest();
-  }, [token]);
+  }, [loadRequest]);
 
   async function handleCaptureConsent() {
     if (!token) return;
@@ -159,6 +154,23 @@ export function MhdPublicSigningPage() {
     } finally {
       setIsSubmittingDecline(false);
     }
+  }
+
+  if (!token) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-6 py-10">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-rose-200 bg-white p-8 shadow-sm">
+          <div className="flex items-start gap-3">
+            <CircleAlert className="mt-1 h-6 w-6 text-rose-600" />
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-rose-700">Signing Link Unavailable</p>
+              <h1 className="mt-2 text-3xl font-bold text-slate-900">This signing link cannot be used</h1>
+              <p className="mt-3 text-sm leading-6 text-slate-600">No signing token was provided.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   if (isLoading) {
