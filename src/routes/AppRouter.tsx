@@ -18,6 +18,8 @@ import { MhdFormsPage } from '@/features/forms/components/MhdFormsPage';
 import { MhdFormBuilderPage } from '@/features/forms/components/MhdFormBuilderPage';
 import { MhdFormRendererPage } from '@/features/forms/components/MhdFormRendererPage';
 import { MhdFormSubmissionsPage } from '@/features/forms/components/MhdFormSubmissionsPage';
+import { MhdPropertyPage } from '@/features/property/components/MhdPropertyPage';
+import { MhdPropertyDetailPage } from '@/features/property/components/MhdPropertyDetailPage';
 import { MhdPeoplePage } from '@/features/people/components/MhdPeoplePage';
 import { MhdPersonDetailPage } from '@/appshell/components/MhdPersonDetailPage';
 import { MhdCompaniesPage } from '@/features/companies/components/MhdCompaniesPage';
@@ -54,6 +56,8 @@ export function AppRouter() {
               <Route path="/forms/:formId/render" element={<MhdFormRendererPage />} />
               <Route path="/forms/:formId/submissions" element={<MhdFormSubmissionsPage />} />
               <Route path="/forms/:formId" element={<MhdFormBuilderPage />} />
+              <Route path="/property" element={<MhdPropertyPage />} />
+              <Route path="/property/:itemId" element={<MhdPropertyDetailPage />} />
               <Route path="/people" element={<MhdPeoplePage />} />
               <Route path="/people/:personId" element={<MhdPersonDetailPage />} />
               <Route path="/companies" element={<MhdCompaniesPage />} />

@@ -82,6 +82,12 @@ vi.mock('@/features/forms/components/MhdFormRendererPage', () => ({
 vi.mock('@/features/forms/components/MhdFormSubmissionsPage', () => ({
   MhdFormSubmissionsPage: () => <div>Form Submissions Page</div>,
 }));
+vi.mock('@/features/property/components/MhdPropertyPage', () => ({
+  MhdPropertyPage: () => <div>Property Page</div>,
+}));
+vi.mock('@/features/property/components/MhdPropertyDetailPage', () => ({
+  MhdPropertyDetailPage: () => <div>Property Detail Page</div>,
+}));
 vi.mock('../components/MhdTaskDetailPage', () => ({
   MhdTaskDetailPage: () => <div>Task Detail Page</div>,
 }));
@@ -320,6 +326,25 @@ describe('MhdAppRouter', () => {
       expect(screen.getByText('Form Submissions Page')).toBeInTheDocument();
     });
 
+    it('renders "/property" for an authenticated Viewer (read-only property access)', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl('/property');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText('Property Page')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/property');
+    });
+
+    it('renders "/property/:itemId" for a Viewer (read-only detail access)', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl('/property/item-1');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText('Property Detail Page')).toBeInTheDocument();
+    });
+
     it('still redirects a Viewer away from "/people" to "/404"', () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/people');
@@ -382,6 +407,7 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Tasks')).toBeInTheDocument();
     expect(screen.getByText('Forms')).toBeInTheDocument();
+    expect(screen.getByText('Property')).toBeInTheDocument();
     expect(screen.getByText('People')).toBeInTheDocument();
     expect(screen.queryByText('Companies')).not.toBeInTheDocument();
   });
@@ -398,6 +424,7 @@ describe('MhdSidebar role-based visibility', () => {
     );
 
     expect(screen.getByText('Forms')).toBeInTheDocument();
+    expect(screen.getByText('Property')).toBeInTheDocument();
     expect(screen.getByText('Companies')).toBeInTheDocument();
     expect(screen.getByText('Approvals')).toBeInTheDocument();
   });
@@ -415,6 +442,7 @@ describe('MhdSidebar role-based visibility', () => {
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Forms')).toBeInTheDocument();
+    expect(screen.getByText('Property')).toBeInTheDocument();
     expect(screen.queryByText('People')).not.toBeInTheDocument();
     expect(screen.queryByText('Companies')).not.toBeInTheDocument();
     expect(screen.queryByText('Approvals')).not.toBeInTheDocument();
