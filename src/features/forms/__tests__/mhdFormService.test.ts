@@ -2,19 +2,30 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mhdFormCalculationEngine, mhdFormLogicEngine, mhdFormService } from '../Service';
 import type { MhdFormCalculation, MhdFormLogicRule } from '../Types';
 
-const { mockRpc, mockReturns, mockFrom, mockDelete, mockEq } = vi.hoisted(() => {
+const { mockRpc, mockReturns, mockFrom, mockDelete, mockEq, mockInsert, mockInvoke } = vi.hoisted(() => {
   const mockReturns = vi.fn();
   const mockRpc = vi.fn();
   const mockEq = vi.fn();
   const mockDelete = vi.fn(() => ({ eq: mockEq }));
-  const mockFrom = vi.fn(() => ({ delete: mockDelete }));
-  return { mockRpc, mockReturns, mockFrom, mockDelete, mockEq };
+  const mockInsert = vi.fn();
+  const mockFrom = vi.fn(() => ({ delete: mockDelete, insert: mockInsert }));
+  const mockInvoke = vi.fn();
+  return { mockRpc, mockReturns, mockFrom, mockDelete, mockEq, mockInsert, mockInvoke };
 });
+
+vi.mock('@/config/appConfig', () => ({
+  appConfig: {
+    attachmentUploadFunctionName: 'mhd-drive-upload',
+  },
+}));
 
 vi.mock('@/lib/supabase/supabaseClient', () => ({
   supabaseClient: {
     rpc: mockRpc,
     from: mockFrom,
+    functions: {
+      invoke: (...args: unknown[]) => mockInvoke(...args),
+    },
   },
 }));
 
@@ -26,6 +37,8 @@ describe('mhdFormService', () => {
     mockFrom.mockClear();
     mockDelete.mockClear();
     mockEq.mockClear();
+    mockInsert.mockReset();
+    mockInvoke.mockReset();
   });
 
   it('maps live list-form rows and normalizes seeded legacy field types for the renderer', async () => {
@@ -163,6 +176,85 @@ describe('mhdFormService', () => {
 
     const submitArgs = mockRpc.mock.calls[0]?.[1] as Record<string, unknown>;
     expect(submitArgs).toEqual({ p_submission_id: 'submission-1' });
+  });
+
+  describe('uploadSubmissionFile (file field -> Drive bridge)', () => {
+    it('uploads through the Drive edge function, then inserts a form_submission_attachments row with the Stage-7 compatibility mapping', async () => {
+      const file = new File(['hello'], 'void-check.pdf', { type: 'application/pdf' });
+
+      mockInvoke.mockResolvedValueOnce({
+        data: {
+          driveFileId: 'drive-file-123',
+          driveFolderId: 'drive-folder-456',
+          driveWebViewLink: 'https://drive.google.com/file/d/drive-file-123/view',
+          driveWebContentLink: 'https://drive.google.com/uc?id=drive-file-123',
+          storedFileName: 'void-check.pdf',
+        },
+        error: null,
+      });
+      mockInsert.mockResolvedValueOnce({ error: null });
+
+      const reference = await mhdFormService.uploadSubmissionFile('submission-1', 'field-1', file);
+
+      expect(mockInvoke).toHaveBeenCalledTimes(1);
+      expect(mockInvoke.mock.calls[0][0]).toBe('mhd-drive-upload');
+
+      expect(mockFrom).toHaveBeenCalledWith('form_submission_attachments');
+      // storage_path stores the Drive file id and file_name the original file
+      // name (legacy column names kept as compatibility shims).
+      expect(mockInsert).toHaveBeenCalledWith({
+        submission_id: 'submission-1',
+        field_id: 'field-1',
+        storage_path: 'drive-file-123',
+        file_name: 'void-check.pdf',
+        file_size_bytes: file.size,
+        mime_type: 'application/pdf',
+      });
+
+      // The submission value is a reference (Drive file id + metadata), never raw bytes.
+      expect(reference).toEqual({
+        driveFileId: 'drive-file-123',
+        fileName: 'void-check.pdf',
+        mimeType: 'application/pdf',
+        fileSizeBytes: file.size,
+        driveWebViewLink: 'https://drive.google.com/file/d/drive-file-123/view',
+      });
+    });
+
+    it('throws and records nothing when the Drive edge function fails', async () => {
+      const file = new File(['hello'], 'void-check.pdf', { type: 'application/pdf' });
+
+      mockInvoke.mockResolvedValueOnce({ data: null, error: { message: 'Drive credentials missing' } });
+
+      await expect(mhdFormService.uploadSubmissionFile('submission-1', 'field-1', file)).rejects.toThrow(
+        'Drive credentials missing',
+      );
+      expect(mockInsert).not.toHaveBeenCalled();
+    });
+
+    it('throws when the attachment row insert fails', async () => {
+      const file = new File(['hello'], 'void-check.pdf', { type: 'application/pdf' });
+
+      mockInvoke.mockResolvedValueOnce({
+        data: { driveFileId: 'drive-file-123', driveFolderId: 'drive-folder-456', driveWebViewLink: null, driveWebContentLink: null },
+        error: null,
+      });
+      mockInsert.mockResolvedValueOnce({ error: { message: 'RLS: submission does not belong to user' } });
+
+      await expect(mhdFormService.uploadSubmissionFile('submission-1', 'field-1', file)).rejects.toThrow(
+        'Unable to record form attachment: RLS: submission does not belong to user',
+      );
+    });
+
+    it('rejects disallowed files before invoking the edge function', async () => {
+      const file = new File(['binary'], 'virus.exe', { type: 'application/x-msdownload' });
+
+      await expect(mhdFormService.uploadSubmissionFile('submission-1', 'field-1', file)).rejects.toThrow(
+        'not permitted',
+      );
+      expect(mockInvoke).not.toHaveBeenCalled();
+      expect(mockInsert).not.toHaveBeenCalled();
+    });
   });
 });
 

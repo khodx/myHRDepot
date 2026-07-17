@@ -1,4 +1,4 @@
-import type { MhdFormField as MhdFormFieldType, MhdFormPage as MhdFormPageType } from '../Types';
+import type { MhdFormField as MhdFormFieldType, MhdFormFileValue, MhdFormPage as MhdFormPageType } from '../Types';
 import { MhdFormField } from './MhdFormField';
 import { MhdFormFieldGroup } from './MhdFormFieldGroup';
 import { MhdFormTable } from './MhdFormTable';
@@ -12,6 +12,8 @@ interface MhdFormPageProps {
   requiredFieldIds: Set<string>;
   errors: Record<string, string>;
   readOnlyFieldIds?: Set<string>;
+  /** Drive upload pipeline for file-type fields; absent in preview/read-only. */
+  onUploadFieldFile?: (fieldId: string, file: File) => Promise<MhdFormFileValue>;
 }
 
 export function MhdFormPage({
@@ -23,6 +25,7 @@ export function MhdFormPage({
   requiredFieldIds,
   errors,
   readOnlyFieldIds,
+  onUploadFieldFile,
 }: MhdFormPageProps) {
   const fieldsById = new Map(fields.map((field) => [field.id, field]));
   const pageFields = page.fields
@@ -79,6 +82,7 @@ export function MhdFormPage({
             required={requiredFieldIds.has(field.id) || field.required}
             error={errors[field.id] ?? null}
             readOnly={readOnlyFieldIds?.has(field.id)}
+            onUploadFile={onUploadFieldFile ? (file) => onUploadFieldFile(field.id, file) : undefined}
           />
         );
       })}

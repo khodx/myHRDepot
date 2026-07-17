@@ -190,6 +190,28 @@ export interface MhdFormSubmission {
   isDraft: boolean;
 }
 
+/**
+ * Submission value stored for a file-type field after a successful Google
+ * Drive upload. This is a *reference* (Drive file id + display metadata),
+ * never raw file bytes. The corresponding public.form_submission_attachments
+ * row stores the same Drive file id under the legacy `storage_path` column
+ * and the original file name under `file_name` (Stage-7 rename compatibility
+ * shims — do not rename).
+ */
+export interface MhdFormFileValue {
+  driveFileId: string;
+  fileName: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  driveWebViewLink: string | null;
+}
+
+export function mhdIsFormFileValue(value: unknown): value is MhdFormFileValue {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  return typeof candidate.driveFileId === 'string' && candidate.driveFileId.length > 0 && typeof candidate.fileName === 'string';
+}
+
 export interface MhdCreateFormInput {
   name: string;
   description?: string;

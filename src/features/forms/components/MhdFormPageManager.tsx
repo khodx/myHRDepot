@@ -9,6 +9,8 @@ interface MhdFormPageManagerProps {
   values: Record<string, unknown>;
   isSubmitting?: boolean;
   onSubmit: () => void;
+  /** When false (read-only / preview), the last page shows no Submit button. */
+  showSubmit?: boolean;
 }
 
 export function MhdFormPageManager({
@@ -19,6 +21,7 @@ export function MhdFormPageManager({
   values,
   isSubmitting,
   onSubmit,
+  showSubmit = true,
 }: MhdFormPageManagerProps) {
   const sortedPages = [...pages].sort((left, right) => left.order - right.order);
   const currentPage = sortedPages[currentPageIndex];
@@ -44,21 +47,23 @@ export function MhdFormPageManager({
         Previous
       </button>
 
-      <button
-        type="button"
-        onClick={() => {
-          if (!validateCurrentPage()) return;
-          if (isLastPage) {
-            onSubmit();
-            return;
-          }
-          onNavigate(resolveNextPageIndex());
-        }}
-        disabled={isSubmitting}
-        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-      >
-        {isLastPage ? (isSubmitting ? 'Submitting...' : 'Submit') : 'Next'}
-      </button>
+      {isLastPage && !showSubmit ? null : (
+        <button
+          type="button"
+          onClick={() => {
+            if (!validateCurrentPage()) return;
+            if (isLastPage) {
+              onSubmit();
+              return;
+            }
+            onNavigate(resolveNextPageIndex());
+          }}
+          disabled={isSubmitting}
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        >
+          {isLastPage ? (isSubmitting ? 'Submitting...' : 'Submit') : 'Next'}
+        </button>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { MhdFormSubmission } from '../Types';
+import { mhdIsFormFileValue } from '../Types';
 
 interface MhdFormSubmissionReviewProps {
   submission: MhdFormSubmission | null;
@@ -37,7 +38,24 @@ export function MhdFormSubmissionReview({ submission }: MhdFormSubmissionReviewP
               <div key={fieldId} className="rounded-md border border-slate-100 bg-slate-50 p-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{fieldId}</dt>
                 <dd className="mt-1 text-sm text-slate-800 whitespace-pre-wrap">
-                  {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                  {mhdIsFormFileValue(value) ? (
+                    value.driveWebViewLink ? (
+                      <a
+                        href={value.driveWebViewLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-blue-700 hover:underline"
+                      >
+                        {value.fileName}
+                      </a>
+                    ) : (
+                      value.fileName
+                    )
+                  ) : typeof value === 'object' ? (
+                    JSON.stringify(value, null, 2)
+                  ) : (
+                    String(value)
+                  )}
                 </dd>
               </div>
             ))}

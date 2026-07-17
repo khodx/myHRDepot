@@ -4,6 +4,8 @@ import type { MhdForm } from '../Types';
 interface MhdFormListProps {
   forms: MhdForm[];
   isLoading: boolean;
+  /** False for read-only roles (Viewer): /forms/:formId opens a read-only view, so the link is labeled "View". */
+  canMutate?: boolean;
 }
 
 function statusBadgeClass(status: MhdForm['status']): string {
@@ -18,7 +20,7 @@ function statusBadgeClass(status: MhdForm['status']): string {
   }
 }
 
-export function MhdFormList({ forms, isLoading }: MhdFormListProps) {
+export function MhdFormList({ forms, isLoading, canMutate = true }: MhdFormListProps) {
   if (isLoading) {
     return <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-500">Loading forms...</div>;
   }
@@ -63,7 +65,7 @@ export function MhdFormList({ forms, isLoading }: MhdFormListProps) {
               <td className="px-4 py-4">
                 <div className="flex justify-end gap-3 text-sm font-semibold">
                   <Link to={`/forms/${form.id}`} className="text-blue-700 hover:underline">
-                    Builder
+                    {canMutate ? 'Builder' : 'View'}
                   </Link>
                   <Link to={`/forms/${form.id}/render`} className="text-blue-700 hover:underline">
                     Render

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
 import type { MhdFormSubmission } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormRenderer } from './MhdFormRenderer';
@@ -9,7 +10,8 @@ import { MhdFormResumeDrafts } from './MhdFormDraftSave';
 export function MhdFormRendererPage() {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
-  const { profile } = useMhdAuth();
+  const { profile, roles } = useMhdAuth();
+  const canMutate = mhdCanMutateForms(roles);
   const [searchParams] = useSearchParams();
   const [drafts, setDrafts] = useState<MhdFormSubmission[]>([]);
   const [message, setMessage] = useState<string | null>(null);
@@ -73,7 +75,7 @@ export function MhdFormRendererPage() {
           </div>
           <div className="flex gap-3">
             <Link to={`/forms/${formId}`} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
-              Open Builder
+              {canMutate ? 'Open Builder' : 'View Form'}
             </Link>
             <Link to={`/forms/${formId}/submissions`} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
               View Submissions
@@ -98,6 +100,7 @@ export function MhdFormRendererPage() {
             formId={formId}
             submissionId={submissionId}
             taskId={taskId}
+            readOnly={!canMutate}
             userPrefillValues={userPrefillValues}
             onSubmitted={() => {
               setMessage('Submission saved successfully.');

@@ -14,7 +14,7 @@ export interface MhdRouteAccessRule {
 export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/dashboard', roles: 'ALL' },
   { path: '/tasks', roles: 'ALL' },
-  { path: '/forms', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  { path: '/forms', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
   { path: '/people', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/companies', roles: ['Platform Admin', 'HR Partner'] },
 ];
@@ -39,4 +39,23 @@ export function mhdCanAccessRoute(path: string, userRoles: MhdAuthRoleName[]): b
   }
 
   return rule.roles.some((requiredRole) => userRoles.includes(requiredRole));
+}
+
+/**
+ * Roles that may create, edit, publish, archive, or submit forms. 'Viewer' is
+ * deliberately absent: Viewers can reach /forms routes (see MHD_ROUTE_ACCESS)
+ * but every mutating affordance — New Form, builder editing, publish/archive,
+ * draft save, and renderer submit — is gated on this list. Kept next to
+ * MHD_ROUTE_ACCESS so route reachability and in-page capability stay in one
+ * source of truth.
+ */
+export const MHD_FORMS_MUTATING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+  'Client User',
+];
+
+export function mhdCanMutateForms(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_FORMS_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }

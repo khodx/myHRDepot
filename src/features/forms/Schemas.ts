@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import type { MhdFormField } from './Types';
+import type { MhdFormField, MhdFormFileValue } from './Types';
+import { mhdIsFormFileValue } from './Types';
 
 export const mhdCreateFormInputSchema = z.object({
   name: z.string().trim().min(1, 'Form name is required').max(200, 'Form name must be 200 characters or fewer'),
@@ -28,6 +29,13 @@ export function mhdBuildFormValuesSchema(fields: MhdFormField[]): z.ZodObject<Re
       case 'checkbox':
       case 'toggle':
         schema = z.boolean();
+        break;
+      case 'file':
+      case 'file_upload':
+        // The stored value is a Drive file *reference* (MhdFormFileValue), not raw bytes.
+        schema = z.custom<MhdFormFileValue>((value) => mhdIsFormFileValue(value), {
+          message: 'A file must be uploaded',
+        });
         break;
       default:
         schema = z.string();

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
 import { useMhdFormsIndex } from '../Hook';
 import type { MhdFormStatus } from '../Types';
 import { MhdFormList } from './MhdFormList';
@@ -12,7 +13,8 @@ const STATUS_OPTIONS: Array<{ value: MhdFormStatus | 'ALL'; label: string }> = [
 ];
 
 export function MhdFormsPage() {
-  const { profile } = useMhdAuth();
+  const { profile, roles } = useMhdAuth();
+  const canMutate = mhdCanMutateForms(roles);
   const formState = useMhdFormsIndex(profile?.companyId ?? null);
 
   return (
@@ -26,12 +28,14 @@ export function MhdFormsPage() {
               Manage form definitions, open the runtime renderer, and review submissions.
             </p>
           </div>
-          <Link
-            to="/forms/new"
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
-          >
-            Create Form
-          </Link>
+          {canMutate ? (
+            <Link
+              to="/forms/new"
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
+            >
+              Create Form
+            </Link>
+          ) : null}
         </div>
 
         {formState.errorMessage ? (
@@ -82,7 +86,7 @@ export function MhdFormsPage() {
           </div>
         ) : null}
 
-        <MhdFormList forms={formState.forms} isLoading={formState.isLoading} />
+        <MhdFormList forms={formState.forms} isLoading={formState.isLoading} canMutate={canMutate} />
       </div>
     </main>
   );

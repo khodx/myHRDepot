@@ -1,0 +1,217 @@
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { MhdAuthRoleName } from '@/features/authentication/Types';
+import type { MhdForm } from '../Types';
+
+/**
+ * Component-level Viewer (read-only) gating for the forms feature. Route
+ * reachability for Viewers is covered in mhdAppRouter.test.tsx; these tests
+ * assert that mutating affordances are hidden inside the pages themselves:
+ * - forms list: no "Create Form", builder links become "View"
+ * - renderer: no draft save / submit, and no draft submission is created
+ * - builder route: read-only preview instead of an editable builder
+ */
+
+const mockUseMhdAuth = vi.fn();
+vi.mock('@/features/authentication/Hook', () => ({
+  useMhdAuth: () => mockUseMhdAuth(),
+}));
+
+const mockUseMhdFormsIndex = vi.fn();
+vi.mock('../Hook', () => ({
+  useMhdFormsIndex: (companyId: string | null) => mockUseMhdFormsIndex(companyId),
+}));
+
+vi.mock('../Service', async () => {
+  const actual = await vi.importActual<typeof import('../Service')>('../Service');
+  return {
+    ...actual,
+    mhdFormService: {
+      getFormById: vi.fn(),
+      getSubmissionById: vi.fn(),
+      createSubmission: vi.fn(),
+      saveDraft: vi.fn(),
+      submitForm: vi.fn(),
+      listMyDraftSubmissions: vi.fn().mockResolvedValue([]),
+    },
+  };
+});
+
+const { mhdFormService } = await import('../Service');
+const { MhdFormsPage } = await import('../components/MhdFormsPage');
+const { MhdFormRenderer } = await import('../components/MhdFormRenderer');
+const { MhdFormBuilderPage } = await import('../components/MhdFormBuilderPage');
+
+const baseForm: MhdForm = {
+  id: 'form-1',
+  referenceId: 'FORM-000001',
+  companyId: 'company-1',
+  name: 'Onboarding',
+  description: 'New hire onboarding form',
+  status: 'ACTIVE',
+  version: 1,
+  previousVersionId: null,
+  createdAt: '2026-07-17T00:00:00Z',
+  updatedAt: '2026-07-17T00:00:00Z',
+  publishedAt: '2026-07-17T00:00:00Z',
+  publishedBy: 'user-1',
+  definition: {
+    id: 'form-1',
+    name: 'Onboarding',
+    pages: [{ id: 'page-1', title: 'Page 1', fields: ['field-1'], order: 1 }],
+    fields: [{ id: 'field-1', type: 'text', label: 'First Name', required: true, hidden: false }],
+    logic: [],
+    calculations: [],
+    // allowDraft true on purpose: read-only mode must still not create a draft.
+    settings: { allowDraft: true, multiPage: false, progressBar: true },
+  },
+};
+
+function mockAuth(roles: MhdAuthRoleName[]) {
+  mockUseMhdAuth.mockReturnValue({
+    isLoading: false,
+    isAuthenticated: true,
+    userEmail: 'user@myhrdepot.com',
+    authUserId: 'auth-user-1',
+    profile: {
+      userId: 'user-1',
+      companyId: 'company-1',
+      companyName: 'Acme Co',
+      isAdmin: false,
+      personId: 'person-1',
+      displayName: 'Vera Viewer',
+      firstName: 'Vera',
+      lastName: 'Viewer',
+      email: 'user@myhrdepot.com',
+      roleNames: roles,
+    },
+    roles,
+  });
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockUseMhdFormsIndex.mockReturnValue({
+    forms: [baseForm],
+    drafts: [],
+    filters: { status: 'ALL' },
+    setFilters: vi.fn(),
+    isLoading: false,
+    errorMessage: null,
+    refresh: vi.fn(),
+  });
+  vi.mocked(mhdFormService.getFormById).mockResolvedValue(baseForm);
+  vi.mocked(mhdFormService.listMyDraftSubmissions).mockResolvedValue([]);
+});
+
+describe('MhdFormsPage role gating', () => {
+  it('hides "Create Form" and relabels builder links to "View" for a Viewer', () => {
+    mockAuth(['Viewer']);
+
+    render(
+      <MemoryRouter>
+        <MhdFormsPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText('Create Form')).not.toBeInTheDocument();
+    expect(screen.queryByText('Builder')).not.toBeInTheDocument();
+    expect(screen.getByText('View')).toBeInTheDocument();
+    // Read-only navigation stays available.
+    expect(screen.getByText('Render')).toBeInTheDocument();
+    expect(screen.getByText('Submissions')).toBeInTheDocument();
+  });
+
+  it('shows "Create Form" and "Builder" links for a Client User', () => {
+    mockAuth(['Client User']);
+
+    render(
+      <MemoryRouter>
+        <MhdFormsPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('Create Form')).toBeInTheDocument();
+    expect(screen.getByText('Builder')).toBeInTheDocument();
+  });
+});
+
+describe('MhdFormRenderer read-only mode (Viewer)', () => {
+  it('renders the form without submit or draft-save affordances and creates no draft submission', async () => {
+    render(<MhdFormRenderer formId="form-1" readOnly />);
+
+    expect(await screen.findByText('Onboarding')).toBeInTheDocument();
+    expect(screen.getByText('First Name')).toBeInTheDocument();
+    expect(screen.getByText('You have read-only access to this form.')).toBeInTheDocument();
+
+    expect(screen.queryByRole('button', { name: /submit/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /save draft/i })).not.toBeInTheDocument();
+    // Even though allowDraft is true, read-only mode must not create a submission.
+    expect(mhdFormService.createSubmission).not.toHaveBeenCalled();
+  });
+
+  it('still shows submit and draft-save for a writable user', async () => {
+    vi.mocked(mhdFormService.createSubmission).mockResolvedValue({
+      id: 'submission-1',
+      referenceId: 'SUBM-000001',
+      formId: 'form-1',
+      submitterId: 'user-1',
+      taskId: null,
+      status: 'DRAFT',
+      values: {},
+      createdAt: '2026-07-17T00:00:00Z',
+      updatedAt: null,
+      submittedAt: null,
+      isDraft: true,
+    });
+
+    render(<MhdFormRenderer formId="form-1" />);
+
+    expect(await screen.findByText('Onboarding')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /submit/i })).toBeInTheDocument();
+    await waitFor(() => expect(mhdFormService.createSubmission).toHaveBeenCalledTimes(1));
+  });
+});
+
+describe('MhdFormBuilderPage read-only mode (Viewer)', () => {
+  it('renders a read-only preview instead of the editable builder for a Viewer at /forms/:formId', async () => {
+    mockAuth(['Viewer']);
+
+    render(
+      <MemoryRouter initialEntries={['/forms/form-1']}>
+        <Routes>
+          <Route path="/forms/:formId" element={<MhdFormBuilderPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Onboarding (read-only)')).toBeInTheDocument();
+    expect(screen.getByText('You have read-only access to forms.')).toBeInTheDocument();
+
+    // No mutating builder affordances.
+    expect(screen.queryByRole('button', { name: /save draft/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /publish/i })).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Enter form name')).not.toBeInTheDocument();
+
+    // The preview renderer shows the form content read-only (no submit).
+    expect(await screen.findByText('First Name')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^submit$/i })).not.toBeInTheDocument();
+  });
+
+  it('renders the editable builder for a Client Admin', async () => {
+    mockAuth(['Client Admin']);
+
+    render(
+      <MemoryRouter initialEntries={['/forms/form-1']}>
+        <Routes>
+          <Route path="/forms/:formId" element={<MhdFormBuilderPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Form Builder: Onboarding')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /save draft/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /publish/i })).toBeInTheDocument();
+  });
+});

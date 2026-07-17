@@ -1,7 +1,8 @@
-import type { MhdFormField as MhdFormFieldType } from '../Types';
+import type { MhdFormField as MhdFormFieldType, MhdFormFileValue } from '../Types';
 import { MhdFormDatePicker } from './MhdFormDatePicker';
 import { MhdFormEmailInput } from './MhdFormEmailInput';
 import { MhdFormFieldError } from './MhdFormFieldError';
+import { MhdFormFileUploadField } from './MhdFormFileUploadField';
 import { MhdFormNumberInput } from './MhdFormNumberInput';
 import { MhdFormSelect } from './MhdFormSelect';
 import { MhdFormTextInput } from './MhdFormTextInput';
@@ -13,9 +14,11 @@ interface MhdFormFieldProps {
   required?: boolean;
   error?: string | null;
   readOnly?: boolean;
+  /** Drive upload pipeline for file-type fields; absent in preview/read-only. */
+  onUploadFile?: (file: File) => Promise<MhdFormFileValue>;
 }
 
-export function MhdFormField({ field, value, onChange, required, error, readOnly }: MhdFormFieldProps) {
+export function MhdFormField({ field, value, onChange, required, error, readOnly, onUploadFile }: MhdFormFieldProps) {
   const isRequired = required ?? field.required;
 
   switch (field.type) {
@@ -281,25 +284,14 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
     case 'file':
     case 'file_upload':
       return (
-        <div>
-          <label htmlFor={field.id} className="mb-1 block text-sm font-medium text-slate-900">
-            {field.label}
-            {isRequired ? <span className="ml-1 text-red-500">*</span> : null}
-          </label>
-          <input
-            id={field.id}
-            type="file"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              onChange(file ? { name: file.name, size: file.size, type: file.type } : null);
-            }}
-            className="w-full text-sm"
-          />
-          {value && typeof value === 'object' && 'name' in (value as Record<string, unknown>) ? (
-            <p className="mt-1 text-xs text-slate-500">Selected: {String((value as { name?: string }).name ?? '')}</p>
-          ) : null}
-          <MhdFormFieldError message={error} />
-        </div>
+        <MhdFormFileUploadField
+          field={field}
+          value={value}
+          onChange={onChange}
+          required={isRequired}
+          error={error}
+          onUploadFile={readOnly ? undefined : onUploadFile}
+        />
       );
 
     default:

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { mhdBuildFormValuesSchema } from '../Schemas';
 import { mhdFormCalculationEngine, mhdFormLogicEngine, mhdFormService } from '../Service';
-import type { MhdForm, MhdFormDefinition } from '../Types';
+import type { MhdForm, MhdFormDefinition, MhdFormFileValue } from '../Types';
 import { MhdFormDraftSave } from './MhdFormDraftSave';
 import { MhdFormPage } from './MhdFormPage';
 import { MhdFormPageManager } from './MhdFormPageManager';
@@ -14,6 +14,12 @@ interface MhdFormRendererProps {
   taskPrefillValues?: Record<string, unknown>;
   userPrefillValues?: Record<string, unknown>;
   onSubmitted?: (submissionId: string) => void;
+  /**
+   * Read-only mode (e.g. the Viewer role): the form renders for inspection
+   * only — no draft submission is created, and draft-save, submit, and file
+   * upload affordances are suppressed.
+   */
+  readOnly?: boolean;
   previewDefinition?: MhdFormDefinition;
   previewName?: string;
   previewDescription?: string;
@@ -36,6 +42,7 @@ export function MhdFormRenderer({
   taskPrefillValues,
   userPrefillValues,
   onSubmitted,
+  readOnly = false,
   previewDefinition,
   previewName,
   previewDescription,
@@ -72,7 +79,7 @@ export function MhdFormRenderer({
           if (isCancelled) return;
           prefill = { ...prefill, ...submission.values };
           setSubmissionId(submission.id);
-        } else if (loadedForm.definition.settings.allowDraft) {
+        } else if (!readOnly && loadedForm.definition.settings.allowDraft) {
           const submission = await mhdFormService.createSubmission(loadedForm.id, taskId);
           if (isCancelled) return;
           setSubmissionId(submission.id);
@@ -95,7 +102,7 @@ export function MhdFormRenderer({
     return () => {
       isCancelled = true;
     };
-  }, [formId, initialSubmissionId, isPreview, taskId, taskPrefillValues, userPrefillValues]);
+  }, [formId, initialSubmissionId, isPreview, readOnly, taskId, taskPrefillValues, userPrefillValues]);
 
   const definition = previewDefinition ?? form?.definition ?? null;
   const displayName = previewName ?? form?.name ?? '';
@@ -191,8 +198,15 @@ export function MhdFormRenderer({
     return submission.id;
   };
 
+  const handleUploadFieldFile = async (fieldId: string, file: File): Promise<MhdFormFileValue> => {
+    // Uploads must land on a submission owned by the current user (RLS insert
+    // policy), so a draft submission is created on demand if none exists yet.
+    const id = await ensureSubmission();
+    return mhdFormService.uploadSubmissionFile(id, fieldId, file);
+  };
+
   const handleSubmit = async () => {
-    if (isPreview) return;
+    if (isPreview || readOnly) return;
     setIsSubmitting(true);
     setSubmitError(null);
 
@@ -217,6 +231,7 @@ export function MhdFormRenderer({
 
   const currentPage = pages[currentPageIndex];
   const isMultiPage = pages.length > 1;
+  const canWrite = !isPreview && !readOnly;
 
   return (
     <form
@@ -229,6 +244,12 @@ export function MhdFormRenderer({
         <h2 className="text-2xl font-semibold text-slate-900">{displayName}</h2>
         {displayDescription ? <p className="mt-1 text-sm text-slate-600">{displayDescription}</p> : null}
       </div>
+
+      {readOnly && !isPreview ? (
+        <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+          You have read-only access to this form.
+        </p>
+      ) : null}
 
       {isMultiPage && definition.settings.progressBar ? (
         <MhdFormProgress currentPageIndex={currentPageIndex} totalPages={pages.length} />
@@ -244,40 +265,40 @@ export function MhdFormRenderer({
           requiredFieldIds={logicResult.requiredFields}
           errors={errors}
           readOnlyFieldIds={calculatedFieldIds}
+          onUploadFieldFile={canWrite ? handleUploadFieldFile : undefined}
         />
       ) : null}
 
       {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
 
-      {!isPreview && definition.settings.allowDraft && submissionId ? (
+      {canWrite && definition.settings.allowDraft && submissionId ? (
         <MhdFormDraftSave submissionId={submissionId} values={effectiveValues} />
       ) : null}
 
-      {!isPreview ? (
-        isMultiPage ? (
-          <MhdFormPageManager
-            pages={pages}
-            currentPageIndex={currentPageIndex}
-            onNavigate={setCurrentPageIndex}
-            validateCurrentPage={() => validatePage(currentPageIndex)}
-            values={effectiveValues}
-            isSubmitting={isSubmitting}
-            onSubmit={handleSubmit}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              if (validatePage(0)) {
-                void handleSubmit();
-              }
-            }}
-            disabled={isSubmitting}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </button>
-        )
+      {isMultiPage ? (
+        <MhdFormPageManager
+          pages={pages}
+          currentPageIndex={currentPageIndex}
+          onNavigate={setCurrentPageIndex}
+          validateCurrentPage={() => (canWrite ? validatePage(currentPageIndex) : true)}
+          values={effectiveValues}
+          isSubmitting={isSubmitting}
+          onSubmit={handleSubmit}
+          showSubmit={canWrite}
+        />
+      ) : canWrite ? (
+        <button
+          type="button"
+          onClick={() => {
+            if (validatePage(0)) {
+              void handleSubmit();
+            }
+          }}
+          disabled={isSubmitting}
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        >
+          {isSubmitting ? 'Submitting...' : 'Submit'}
+        </button>
       ) : null}
     </form>
   );

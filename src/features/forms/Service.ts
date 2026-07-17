@@ -1,5 +1,8 @@
+import { appConfig } from '@/config/appConfig';
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { Json, Database } from '@/types/database.types';
+import type { MhdDriveUploadResponse } from '@/features/attachments/Types';
+import { mhdValidateAttachment } from '@/features/attachments/Types';
 import type {
   MhdCalculationOp,
   MhdCreateFormInput,
@@ -8,6 +11,7 @@ import type {
   MhdFormDefinition,
   MhdFormField,
   MhdFormFieldOption,
+  MhdFormFileValue,
   MhdFormLogicRule,
   MhdFormPage,
   MhdFormStatus,
@@ -428,6 +432,67 @@ export const mhdFormService = {
     }
 
     return (data ?? []).map(mapSubmissionRow);
+  },
+
+  /**
+   * Uploads a file-field selection for a submission through the same Google
+   * Drive edge-function pipeline the attachments feature uses, then records it
+   * in public.form_submission_attachments via the typed client.
+   *
+   * Column mapping (Stage-7 rename compatibility — the live table kept its
+   * legacy column names): `storage_path` stores the Drive file id and
+   * `file_name` stores the original file name. `uploaded_at` is defaulted by
+   * the database. The RLS INSERT policy ("Users can attach files to their own
+   * submissions") requires that `submissionId` belongs to the current user,
+   * which is guaranteed because this is only called during the draft/submit
+   * flow against a submission created by mhd_create_submission.
+   */
+  async uploadSubmissionFile(submissionId: string, fieldId: string, file: File): Promise<MhdFormFileValue> {
+    const validation = mhdValidateAttachment(file);
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+
+    const formData = new FormData();
+    formData.set('file', file);
+    formData.set('entity_type', 'FORM_SUBMISSION');
+    formData.set('entity_id', submissionId);
+    formData.set('original_file_name', file.name);
+    formData.set('mime_type', file.type);
+
+    const { data, error } = await supabaseClient.functions.invoke<MhdDriveUploadResponse>(
+      appConfig.attachmentUploadFunctionName,
+      { body: formData },
+    );
+
+    if (error) {
+      throw new Error(error.message || 'Google Drive upload failed.');
+    }
+
+    if (!data?.driveFileId || !data?.driveFolderId) {
+      throw new Error('Google Drive upload function returned an incomplete payload.');
+    }
+
+    const { error: insertError } = await supabaseClient.from('form_submission_attachments').insert({
+      submission_id: submissionId,
+      field_id: fieldId,
+      storage_path: data.driveFileId,
+      file_name: file.name,
+      file_size_bytes: file.size,
+      mime_type: file.type,
+    });
+
+    if (insertError) {
+      throw new Error(`Unable to record form attachment: ${insertError.message}`);
+    }
+
+    return {
+      driveFileId: data.driveFileId,
+      fileName: file.name,
+      mimeType: file.type,
+      fileSizeBytes: file.size,
+      driveWebViewLink: data.driveWebViewLink ?? null,
+    };
   },
 
   async listMyDraftSubmissions(): Promise<MhdFormSubmission[]> {

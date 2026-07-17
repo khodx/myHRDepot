@@ -286,15 +286,42 @@ describe('MhdAppRouter', () => {
       expect(screen.getByText('Task Notes Page')).toBeInTheDocument();
     });
 
-    it('redirects an authenticated Viewer away from "/forms" to "/404"', () => {
+    it('renders "/forms" for an authenticated Viewer (read-only forms access)', () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/forms');
 
       render(<MhdAppRouter />);
 
-      expect(screen.queryByText('Forms Page')).not.toBeInTheDocument();
+      expect(screen.getByText('Forms Page')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/forms');
+    });
+
+    it('renders "/forms/:formId" for a Viewer (read-only view, inherits the /forms rule)', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl('/forms/form-1');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText('Form Builder Page')).toBeInTheDocument();
+    });
+
+    it('renders "/forms/:formId/submissions" for a Viewer', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl('/forms/form-1/submissions');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText('Form Submissions Page')).toBeInTheDocument();
+    });
+
+    it('still redirects a Viewer away from "/people" to "/404"', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl('/people');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.queryByText('People Page')).not.toBeInTheDocument();
       expect(screen.getByText('Page Not Found')).toBeInTheDocument();
-      expect(window.location.pathname).toBe('/404');
     });
 
     it('does not restrict "/tasks", which has no role rule (ALL)', () => {
@@ -347,7 +374,7 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.getByText('Companies')).toBeInTheDocument();
   });
 
-  it('hides "People" and "Companies" for a Viewer', async () => {
+  it('shows "Forms" but hides "People" and "Companies" for a Viewer', async () => {
     mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
     const { MhdSidebar } = await import('../MhdSidebar');
     const { MemoryRouter } = await import('react-router-dom');
@@ -359,7 +386,7 @@ describe('MhdSidebar role-based visibility', () => {
     );
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.queryByText('Forms')).not.toBeInTheDocument();
+    expect(screen.getByText('Forms')).toBeInTheDocument();
     expect(screen.queryByText('People')).not.toBeInTheDocument();
     expect(screen.queryByText('Companies')).not.toBeInTheDocument();
   });

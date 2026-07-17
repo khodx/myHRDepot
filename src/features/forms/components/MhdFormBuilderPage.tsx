@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
 import type { MhdForm } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormBuilder } from './MhdFormBuilder';
+import { MhdFormPreview } from './MhdFormPreview';
 
 export function MhdFormBuilderPage() {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
-  const { profile } = useMhdAuth();
+  const { profile, roles } = useMhdAuth();
+  const canMutate = mhdCanMutateForms(roles);
   const isNewForm = !formId || formId === 'new';
   const [form, setForm] = useState<MhdForm | null>(null);
   const [isLoading, setIsLoading] = useState(!isNewForm);
@@ -49,6 +52,47 @@ export function MhdFormBuilderPage() {
 
   if (!isNewForm && isLoading) {
     return <div className="p-6 text-sm text-slate-500">Loading form builder...</div>;
+  }
+
+  // Read-only roles (Viewer) never see the editable builder: /forms/:formId
+  // renders the form preview instead, and /forms/new offers nothing to edit.
+  if (!canMutate) {
+    return (
+      <main className="min-h-screen bg-slate-50 p-6">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div>
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <Link to="/forms" className="font-semibold text-blue-700 hover:underline">
+                Forms
+              </Link>
+              <span>/</span>
+              <span>{form ? form.referenceId : 'Form'}</span>
+            </div>
+            <h1 className="mt-2 text-2xl font-bold text-slate-900">{form ? form.name : 'Form'} (read-only)</h1>
+            <p className="mt-1 text-sm text-slate-600">You have read-only access to forms.</p>
+          </div>
+
+          {errorMessage ? (
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{errorMessage}</div>
+          ) : null}
+
+          {form ? (
+            <MhdFormPreview
+              form={{
+                id: form.id,
+                name: form.name,
+                description: form.description,
+                definition: form.definition,
+              }}
+            />
+          ) : (
+            <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-500">
+              There is no form to preview.
+            </div>
+          )}
+        </div>
+      </main>
+    );
   }
 
   return (

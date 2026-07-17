@@ -3,6 +3,7 @@ import { Plus, Save, UploadCloud } from 'lucide-react';
 import { mhdCreateFormInputSchema } from '../Schemas';
 import { mhdFormService } from '../Service';
 import type { MhdFieldType, MhdForm, MhdFormDefinition, MhdFormField, MhdFormPage } from '../Types';
+import { MhdFormBuilderPageTabs } from './MhdFormBuilderPageTabs';
 import { MhdFormCalculationEditor } from './MhdFormCalculationEditor';
 import { MhdFormFieldPalette } from './MhdFormFieldPalette';
 import { MhdFormLogicEditor } from './MhdFormLogicEditor';
@@ -27,6 +28,19 @@ function createBlankField(type: MhdFieldType): MhdFormField {
   };
 }
 
+function createBlankPage(order: number, existingFieldIds: string[] = []): MhdFormPage {
+  return {
+    id: order === 1 ? 'page-1' : `page-${Date.now()}-${Math.round(Math.random() * 9999)}`,
+    title: `Page ${order}`,
+    fields: existingFieldIds,
+    order,
+  };
+}
+
+function sortPages(pages: MhdFormPage[]): MhdFormPage[] {
+  return [...pages].sort((left, right) => left.order - right.order);
+}
+
 export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdFormBuilderProps) {
   const [formName, setFormName] = useState(initialForm?.name ?? '');
   const [description, setDescription] = useState(initialForm?.description ?? '');
@@ -37,6 +51,9 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
     initialForm?.definition.calculations ?? [],
   );
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
+  const [activePageId, setActivePageId] = useState<string | null>(
+    sortPages(initialForm?.definition.pages ?? [])[0]?.id ?? null,
+  );
   const [activeTab, setActiveTab] = useState<'fields' | 'logic' | 'calculations' | 'preview'>('fields');
   const [savedFormId, setSavedFormId] = useState<string | undefined>(initialForm?.id ?? formId);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,18 +66,24 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
     [fields, selectedFieldId],
   );
 
+  const sortedPages = useMemo(() => sortPages(pages), [pages]);
+  const activePage = useMemo(
+    () => sortedPages.find((page) => page.id === activePageId) ?? sortedPages[0] ?? null,
+    [activePageId, sortedPages],
+  );
+
+  const fieldsById = useMemo(() => new Map(fields.map((field) => [field.id, field])), [fields]);
+  // Canvas lists the active page's fields in page order; before any page
+  // exists (a brand-new form) it falls back to the flat field list.
+  const canvasFields = useMemo(() => {
+    if (!activePage) return fields;
+    return activePage.fields
+      .map((fieldId) => fieldsById.get(fieldId))
+      .filter((field): field is MhdFormField => Boolean(field));
+  }, [activePage, fields, fieldsById]);
+
   const buildDefinition = (): MhdFormDefinition => {
-    const nextPages =
-      pages.length > 0
-        ? pages
-        : [
-            {
-              id: 'page-1',
-              title: 'Page 1',
-              fields: fields.map((field) => field.id),
-              order: 1,
-            },
-          ];
+    const nextPages = pages.length > 0 ? sortPages(pages) : [createBlankPage(1, fields.map((field) => field.id))];
 
     const normalizedPages = nextPages.map((page, pageIndex) => ({
       ...page,
@@ -78,15 +101,18 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
     return {
       id: savedFormId ?? `form-${Date.now()}`,
       name: formName,
-      description,
+      description: description || undefined,
       pages: normalizedPages,
       fields,
       logic,
       calculations,
+      // Preserve the loaded settings so an untouched definition round-trips
+      // through load -> save unchanged; only multiPage is derived from the
+      // authored page count.
       settings: {
-        allowDraft: true,
-        multiPage: normalizedPages.length > 1,
-        progressBar: true,
+        allowDraft: initialForm?.definition.settings.allowDraft ?? true,
+        multiPage: normalizedPages.length > 1 || (initialForm?.definition.settings.multiPage ?? false),
+        progressBar: initialForm?.definition.settings.progressBar ?? true,
       },
     };
   };
@@ -95,13 +121,67 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
     const field = createBlankField(type);
     setFields((current) => [...current, field]);
     setSelectedFieldId(field.id);
+    if (pages.length === 0) {
+      // A brand-new form: materialize the implicit first page holding every
+      // field authored so far plus the new one.
+      const page = createBlankPage(1, [...fields.map((existing) => existing.id), field.id]);
+      setPages([page]);
+      setActivePageId(page.id);
+      return;
+    }
+    const targetPageId = activePage?.id ?? sortedPages[0].id;
+    setPages((current) =>
+      current.map((page) => (page.id === targetPageId ? { ...page, fields: [...page.fields, field.id] } : page)),
+    );
+  };
+
+  const addPage = () => {
+    // A brand-new form has no explicit page yet: materialize the implicit
+    // first page (holding all current fields) before appending the new one.
+    const base = pages.length > 0 ? sortPages(pages) : [createBlankPage(1, fields.map((field) => field.id))];
+    const nextPage = createBlankPage(base.length + 1);
+    setPages([...base, nextPage]);
+    setActivePageId(nextPage.id);
+  };
+
+  const renamePage = (pageId: string, title: string) => {
+    setPages((current) => current.map((page) => (page.id === pageId ? { ...page, title } : page)));
+  };
+
+  const movePage = (pageId: string, direction: -1 | 1) => {
     setPages((current) => {
-      if (current.length === 0) {
-        return [{ id: 'page-1', title: 'Page 1', fields: [field.id], order: 1 }];
-      }
-      const [firstPage, ...remainingPages] = current;
-      return [{ ...firstPage, fields: [...firstPage.fields, field.id] }, ...remainingPages];
+      const ordered = sortPages(current);
+      const index = ordered.findIndex((page) => page.id === pageId);
+      const targetIndex = index + direction;
+      if (index < 0 || targetIndex < 0 || targetIndex >= ordered.length) return current;
+      [ordered[index], ordered[targetIndex]] = [ordered[targetIndex], ordered[index]];
+      return ordered.map((page, pageIndex) => ({ ...page, order: pageIndex + 1 }));
     });
+  };
+
+  const removePage = (pageId: string) => {
+    if (pages.length <= 1) return;
+    const ordered = sortPages(pages);
+    const removed = ordered.find((page) => page.id === pageId);
+    if (!removed) return;
+    const remaining = ordered.filter((page) => page.id !== pageId);
+    // Orphaned fields are reassigned to the first remaining page so no field
+    // silently drops out of the definition.
+    remaining[0] = { ...remaining[0], fields: [...remaining[0].fields, ...removed.fields] };
+    setPages(remaining.map((page, pageIndex) => ({ ...page, order: pageIndex + 1 })));
+    setActivePageId(remaining[0].id);
+  };
+
+  const assignFieldToPage = (fieldId: string, pageId: string) => {
+    setPages((current) =>
+      current.map((page) => {
+        const withoutField = page.fields.filter((currentFieldId) => currentFieldId !== fieldId);
+        if (page.id === pageId) {
+          return { ...page, fields: [...withoutField, fieldId] };
+        }
+        return withoutField.length === page.fields.length ? page : { ...page, fields: withoutField };
+      }),
+    );
   };
 
   const handleFieldChange = (nextField: MhdFormField) => {
@@ -264,10 +344,22 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
           <MhdFormFieldPalette onAddField={addField} />
 
           <div className="flex-1 p-4">
+            <MhdFormBuilderPageTabs
+              pages={sortedPages}
+              activePageId={activePage?.id ?? null}
+              onSelectPage={setActivePageId}
+              onAddPage={addPage}
+              onRenamePage={renamePage}
+              onMovePage={movePage}
+              onRemovePage={removePage}
+            />
+
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Canvas</h3>
-                <p className="text-sm text-slate-600">Fields are ordered top-to-bottom on the first page.</p>
+                <p className="text-sm text-slate-600">
+                  Fields are ordered top-to-bottom on {activePage ? `"${activePage.title}"` : 'the first page'}.
+                </p>
               </div>
               <button
                 type="button"
@@ -280,29 +372,47 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
             </div>
 
             <div className="space-y-2">
-              {fields.map((field) => (
-                <button
+              {canvasFields.map((field) => (
+                <div
                   key={field.id}
-                  type="button"
-                  onClick={() => setSelectedFieldId(field.id)}
-                  className={`flex w-full items-center justify-between rounded-md border px-3 py-3 text-left ${
+                  className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-3 ${
                     selectedFieldId === field.id
                       ? 'border-blue-300 bg-blue-50'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">{field.label || 'Untitled field'}</p>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">{field.type}</p>
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    {field.required ? 'Required' : 'Optional'}
-                  </div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFieldId(field.id)}
+                    className="flex flex-1 items-center justify-between gap-3 text-left"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">{field.label || 'Untitled field'}</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-500">{field.type}</p>
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {field.required ? 'Required' : 'Optional'}
+                    </div>
+                  </button>
+                  {sortedPages.length > 1 ? (
+                    <select
+                      aria-label={`Page for ${field.label || 'Untitled field'}`}
+                      value={activePage?.id ?? sortedPages[0].id}
+                      onChange={(event) => assignFieldToPage(field.id, event.target.value)}
+                      className="rounded-md border border-slate-300 px-2 py-1 text-xs"
+                    >
+                      {sortedPages.map((page, pageIndex) => (
+                        <option key={page.id} value={page.id}>
+                          {page.title || `Page ${pageIndex + 1}`}
+                        </option>
+                      ))}
+                    </select>
+                  ) : null}
+                </div>
               ))}
-              {fields.length === 0 ? (
+              {canvasFields.length === 0 ? (
                 <p className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
-                  Add a field from the palette to start building the form.
+                  Add a field from the palette to start building {activePage ? `"${activePage.title}"` : 'the form'}.
                 </p>
               ) : null}
             </div>
