@@ -59,3 +59,15 @@ export const MHD_FORMS_MUTATING_ROLES: MhdAuthRoleName[] = [
 export function mhdCanMutateForms(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_FORMS_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }
+
+/**
+ * Roles that may reveal encrypted (field_encryption_required) submission
+ * values. Mirrors the database-side gate in mhd_reveal_submission_field —
+ * this list only controls whether the "Reveal" affordance renders; the RPC
+ * enforces the same roles server-side and audits every reveal.
+ */
+export const MHD_SENSITIVE_REVEAL_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner', 'Client Admin'];
+
+export function mhdCanRevealEncryptedFields(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_SENSITIVE_REVEAL_ROLES.some((role) => userRoles.includes(role));
+}

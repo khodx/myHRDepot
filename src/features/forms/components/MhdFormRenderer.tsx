@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { mhdBuildFormValuesSchema } from '../Schemas';
 import { mhdFormCalculationEngine, mhdFormLogicEngine, mhdFormService } from '../Service';
 import type { MhdForm, MhdFormDefinition, MhdFormFileValue } from '../Types';
+import { mhdIsEncryptedFormValue } from '../Types';
 import { MhdFormDraftSave } from './MhdFormDraftSave';
 import { MhdFormPage } from './MhdFormPage';
 import { MhdFormPageManager } from './MhdFormPageManager';
@@ -55,6 +56,10 @@ export function MhdFormRenderer({
   const [isLoading, setIsLoading] = useState(!previewDefinition);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // Fields whose resumed draft value came back as a masked encrypted wrapper.
+  // They render as an empty input with a "stored encrypted" hint; while left
+  // empty they are omitted from outbound saves so the ciphertext row survives.
+  const [encryptedDraftFieldIds, setEncryptedDraftFieldIds] = useState<Set<string>>(new Set());
   const isPreview = Boolean(previewDefinition);
 
   useEffect(() => {
@@ -77,7 +82,20 @@ export function MhdFormRenderer({
         if (initialSubmissionId) {
           const submission = await mhdFormService.getSubmissionById(initialSubmissionId);
           if (isCancelled) return;
-          prefill = { ...prefill, ...submission.values };
+          // Encrypted fields come back as masked wrappers (never the cipher or
+          // plaintext). Render them as empty inputs with a re-enter hint.
+          const maskedFieldIds = new Set<string>();
+          const resumedValues: Record<string, unknown> = {};
+          for (const [fieldId, fieldValue] of Object.entries(submission.values)) {
+            if (mhdIsEncryptedFormValue(fieldValue)) {
+              maskedFieldIds.add(fieldId);
+              resumedValues[fieldId] = '';
+            } else {
+              resumedValues[fieldId] = fieldValue;
+            }
+          }
+          prefill = { ...prefill, ...resumedValues };
+          setEncryptedDraftFieldIds(maskedFieldIds);
           setSubmissionId(submission.id);
         } else if (!readOnly && loadedForm.definition.settings.allowDraft) {
           const submission = await mhdFormService.createSubmission(loadedForm.id, taskId);
@@ -120,6 +138,21 @@ export function MhdFormRenderer({
 
   const effectiveValues = useMemo(() => ({ ...values, ...calculatedValues }), [calculatedValues, values]);
 
+  // Encrypted-resumed fields left empty (untouched) are omitted from outbound
+  // draft saves and submits so the stored ciphertext row is never overwritten;
+  // typing a value re-includes the field and the RPC re-encrypts it.
+  const outboundValues = useMemo(() => {
+    if (encryptedDraftFieldIds.size === 0) return effectiveValues;
+    const next: Record<string, unknown> = {};
+    for (const [fieldId, fieldValue] of Object.entries(effectiveValues)) {
+      if (encryptedDraftFieldIds.has(fieldId) && (fieldValue === '' || fieldValue === null || fieldValue === undefined)) {
+        continue;
+      }
+      next[fieldId] = fieldValue;
+    }
+    return next;
+  }, [effectiveValues, encryptedDraftFieldIds]);
+
   const logicResult = useMemo(() => {
     if (!definition) {
       return { hiddenFields: new Set<string>(), requiredFields: new Set<string>() };
@@ -147,6 +180,17 @@ export function MhdFormRenderer({
     [definition],
   );
 
+  // Encrypted-resumed fields render with a hint explaining the empty input.
+  const fieldsForRender = useMemo(() => {
+    if (!definition) return [];
+    if (encryptedDraftFieldIds.size === 0) return definition.fields;
+    return definition.fields.map((field) =>
+      encryptedDraftFieldIds.has(field.id)
+        ? { ...field, helpText: 'Stored encrypted — re-enter to change' }
+        : field,
+    );
+  }, [definition, encryptedDraftFieldIds]);
+
   const handleFieldChange = (fieldId: string, nextValue: unknown) => {
     setValues((current) => ({ ...current, [fieldId]: nextValue }));
     setErrors((current) => {
@@ -169,7 +213,15 @@ export function MhdFormRenderer({
       .filter((field) => !logicResult.hiddenFields.has(field.id))
       .map((field) => ({
         ...field,
-        required: field.required || logicResult.requiredFields.has(field.id),
+        // An encrypted-resumed field left empty still holds its stored
+        // ciphertext server-side, so required-ness is satisfied without
+        // forcing the user to re-enter the value.
+        required:
+          (field.required || logicResult.requiredFields.has(field.id)) &&
+          !(
+            encryptedDraftFieldIds.has(field.id) &&
+            (effectiveValues[field.id] === '' || effectiveValues[field.id] === null || effectiveValues[field.id] === undefined)
+          ),
       }));
 
     const schema = mhdBuildFormValuesSchema(pageFields);
@@ -212,7 +264,7 @@ export function MhdFormRenderer({
 
     try {
       const id = await ensureSubmission();
-      const submitted = await mhdFormService.submitForm(id, effectiveValues);
+      const submitted = await mhdFormService.submitForm(id, outboundValues);
       onSubmitted?.(submitted.id);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Unable to submit form');
@@ -258,7 +310,7 @@ export function MhdFormRenderer({
       {currentPage ? (
         <MhdFormPage
           page={currentPage}
-          fields={definition.fields}
+          fields={fieldsForRender}
           values={effectiveValues}
           onFieldChange={handleFieldChange}
           hiddenFieldIds={logicResult.hiddenFields}
@@ -272,7 +324,7 @@ export function MhdFormRenderer({
       {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
 
       {canWrite && definition.settings.allowDraft && submissionId ? (
-        <MhdFormDraftSave submissionId={submissionId} values={effectiveValues} />
+        <MhdFormDraftSave submissionId={submissionId} values={outboundValues} />
       ) : null}
 
       {isMultiPage ? (

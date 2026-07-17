@@ -9716,6 +9716,7 @@ export type Database = {
         Args: { p_actor_user_id?: string; p_task_id: string }
         Returns: undefined
       }
+      mhd_encrypt_field_value: { Args: { p_plain: string }; Returns: string }
       mhd_export_audit_events: {
         Args: { p_company_id: string; p_date_from: string; p_date_to: string }
         Returns: {
@@ -9805,6 +9806,7 @@ export type Database = {
       }
       mhd_get_default_task_priority_id: { Args: never; Returns: string }
       mhd_get_default_task_status_id: { Args: never; Returns: string }
+      mhd_get_field_encryption_key: { Args: never; Returns: string }
       mhd_get_form: {
         Args: { p_form_id: string }
         Returns: {
@@ -10590,6 +10592,10 @@ export type Database = {
           p_return_condition_notes: string
         }
         Returns: undefined
+      }
+      mhd_reveal_submission_field: {
+        Args: { p_field_id: string; p_submission_id: string }
+        Returns: string
       }
       mhd_save_form_draft: {
         Args: { p_submission_id: string; p_values: Json }

@@ -503,6 +503,29 @@ export const mhdFormService = {
     };
   },
 
+  /**
+   * Reveals the plaintext of one encrypted submission field via the audited,
+   * role-gated `mhd_reveal_submission_field` RPC (Platform Admin / HR Partner /
+   * Client Admin only — the database enforces this; every call writes a
+   * SENSITIVE_FIELD_REVEAL audit_events row). The returned plaintext must only
+   * be displayed transiently — never persisted or written back into form state.
+   */
+  async revealSubmissionField(submissionId: string, fieldId: string): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_reveal_submission_field', {
+      p_submission_id: submissionId,
+      p_field_id: fieldId,
+    });
+
+    if (error) {
+      throw new Error(`Unable to reveal encrypted field: ${error.message}`);
+    }
+    if (typeof data !== 'string') {
+      throw new Error('Unable to reveal encrypted field: no value returned.');
+    }
+
+    return data;
+  },
+
   async listMyDraftSubmissions(): Promise<MhdFormSubmission[]> {
     const { data, error } = await supabaseClient
       .rpc('mhd_list_my_draft_submissions')

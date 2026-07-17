@@ -212,6 +212,25 @@ export function mhdIsFormFileValue(value: unknown): value is MhdFormFileValue {
   return typeof candidate.driveFileId === 'string' && candidate.driveFileId.length > 0 && typeof candidate.fileName === 'string';
 }
 
+/**
+ * Submission value stored for a field flagged `form_fields.field_encryption_required`.
+ * The database stores `{ mhd_encrypted: true, cipher: <armored pgp> }` at rest, but
+ * every read RPC masks the wrapper to `{ mhd_encrypted: true, masked: true }` before
+ * it leaves the database — the ciphertext never reaches the client. Plaintext is only
+ * obtainable through the role-gated, audited `mhd_reveal_submission_field` RPC
+ * (see mhdFormService.revealSubmissionField).
+ */
+export interface MhdFormEncryptedValue {
+  mhd_encrypted: true;
+  masked?: boolean;
+  cipher?: string;
+}
+
+export function mhdIsEncryptedFormValue(value: unknown): value is MhdFormEncryptedValue {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  return (value as Record<string, unknown>).mhd_encrypted === true;
+}
+
 export interface MhdCreateFormInput {
   name: string;
   description?: string;
