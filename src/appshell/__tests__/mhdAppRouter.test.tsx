@@ -70,6 +70,18 @@ vi.mock('@/features/dashboard/components/MhdDashboardPage', () => ({
 vi.mock('@/features/tasks/components/MhdTasksPage', () => ({
   MhdTasksPage: () => <div>Tasks Page</div>,
 }));
+vi.mock('@/features/forms/components/MhdFormsPage', () => ({
+  MhdFormsPage: () => <div>Forms Page</div>,
+}));
+vi.mock('@/features/forms/components/MhdFormBuilderPage', () => ({
+  MhdFormBuilderPage: () => <div>Form Builder Page</div>,
+}));
+vi.mock('@/features/forms/components/MhdFormRendererPage', () => ({
+  MhdFormRendererPage: () => <div>Form Renderer Page</div>,
+}));
+vi.mock('@/features/forms/components/MhdFormSubmissionsPage', () => ({
+  MhdFormSubmissionsPage: () => <div>Form Submissions Page</div>,
+}));
 vi.mock('../components/MhdTaskDetailPage', () => ({
   MhdTaskDetailPage: () => <div>Task Detail Page</div>,
 }));
@@ -183,6 +195,15 @@ describe('MhdAppRouter', () => {
     expect(screen.getByTestId('app-shell')).toBeInTheDocument();
   });
 
+  it('renders "/forms" for an authenticated Client User', () => {
+    mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+    setUrl('/forms');
+
+    render(<MhdAppRouter />);
+
+    expect(screen.getByText('Forms Page')).toBeInTheDocument();
+  });
+
   it('shows the loading state instead of redirecting while auth is resolving', () => {
     mockAuth({ isAuthenticated: false, isLoading: true });
     setUrl('/dashboard');
@@ -265,6 +286,17 @@ describe('MhdAppRouter', () => {
       expect(screen.getByText('Task Notes Page')).toBeInTheDocument();
     });
 
+    it('redirects an authenticated Viewer away from "/forms" to "/404"', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl('/forms');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.queryByText('Forms Page')).not.toBeInTheDocument();
+      expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/404');
+    });
+
     it('does not restrict "/tasks", which has no role rule (ALL)', () => {
       mockAuth({ isAuthenticated: true, roles: ['Client User'] });
       setUrl('/tasks');
@@ -295,6 +327,7 @@ describe('MhdSidebar role-based visibility', () => {
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Tasks')).toBeInTheDocument();
+    expect(screen.getByText('Forms')).toBeInTheDocument();
     expect(screen.getByText('People')).toBeInTheDocument();
     expect(screen.queryByText('Companies')).not.toBeInTheDocument();
   });
@@ -310,6 +343,7 @@ describe('MhdSidebar role-based visibility', () => {
       </MemoryRouter>,
     );
 
+    expect(screen.getByText('Forms')).toBeInTheDocument();
     expect(screen.getByText('Companies')).toBeInTheDocument();
   });
 
@@ -325,6 +359,7 @@ describe('MhdSidebar role-based visibility', () => {
     );
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.queryByText('Forms')).not.toBeInTheDocument();
     expect(screen.queryByText('People')).not.toBeInTheDocument();
     expect(screen.queryByText('Companies')).not.toBeInTheDocument();
   });

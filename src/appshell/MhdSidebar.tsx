@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Users, Building2 } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Users, Building2, ClipboardList } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -17,6 +17,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', route: '/dashboard', icon: LayoutDashboard, roles: mhdRouteRoles('/dashboard') },
   { label: 'Tasks',     route: '/tasks',     icon: CheckSquare,     roles: mhdRouteRoles('/tasks') },
+  { label: 'Forms',     route: '/forms',     icon: ClipboardList,   roles: mhdRouteRoles('/forms') },
   { label: 'People',    route: '/people',    icon: Users,           roles: mhdRouteRoles('/people') },
   { label: 'Companies', route: '/companies', icon: Building2,       roles: mhdRouteRoles('/companies') },
 ];

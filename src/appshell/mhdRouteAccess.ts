@@ -14,6 +14,7 @@ export interface MhdRouteAccessRule {
 export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/dashboard', roles: 'ALL' },
   { path: '/tasks', roles: 'ALL' },
+  { path: '/forms', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/people', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/companies', roles: ['Platform Admin', 'HR Partner'] },
 ];
