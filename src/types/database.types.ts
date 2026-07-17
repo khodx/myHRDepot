@@ -709,6 +709,8 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
+          disclosure_text: string
+          disclosure_version: string
           document_drive_file_id: string
           document_generation_id: string
           document_hash: string | null
@@ -728,6 +730,8 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          disclosure_text?: string
+          disclosure_version?: string
           document_drive_file_id: string
           document_generation_id: string
           document_hash?: string | null
@@ -747,6 +751,8 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          disclosure_text?: string
+          disclosure_version?: string
           document_drive_file_id?: string
           document_generation_id?: string
           document_hash?: string | null
@@ -801,6 +807,7 @@ export type Database = {
           ip_address: string | null
           request_id: string
           signed_at: string | null
+          signature_name: string | null
           signer_order: number | null
           signing_token: string
           status: string
@@ -816,6 +823,7 @@ export type Database = {
           ip_address?: string | null
           request_id: string
           signed_at?: string | null
+          signature_name?: string | null
           signer_order?: number | null
           signing_token: string
           status?: string
@@ -831,6 +839,7 @@ export type Database = {
           ip_address?: string | null
           request_id?: string
           signed_at?: string | null
+          signature_name?: string | null
           signer_order?: number | null
           signing_token?: string
           status?: string
@@ -851,6 +860,72 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      esignature_signer_consents: {
+        Row: {
+          acknowledged_hardware_requirements: boolean
+          acknowledged_paper_copy_right: boolean
+          acknowledged_withdrawal_right: boolean
+          agreed_to_use_electronic_signature: boolean
+          consented_at: string
+          consented_to_electronic_records: boolean
+          created_at: string
+          disclosure_text: string
+          disclosure_version: string
+          id: string
+          ip_address: string | null
+          request_id: string
+          signer_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          acknowledged_hardware_requirements: boolean
+          acknowledged_paper_copy_right: boolean
+          acknowledged_withdrawal_right: boolean
+          agreed_to_use_electronic_signature: boolean
+          consented_at?: string
+          consented_to_electronic_records: boolean
+          created_at?: string
+          disclosure_text: string
+          disclosure_version: string
+          id?: string
+          ip_address?: string | null
+          request_id: string
+          signer_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          acknowledged_hardware_requirements?: boolean
+          acknowledged_paper_copy_right?: boolean
+          acknowledged_withdrawal_right?: boolean
+          agreed_to_use_electronic_signature?: boolean
+          consented_at?: string
+          consented_to_electronic_records?: boolean
+          created_at?: string
+          disclosure_text?: string
+          disclosure_version?: string
+          id?: string
+          ip_address?: string | null
+          request_id?: string
+          signer_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "esignature_signer_consents_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "esignature_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "esignature_signer_consents_signer_id_fkey"
+            columns: ["signer_id"]
+            isOneToOne: false
+            referencedRelation: "esignature_signers"
             referencedColumns: ["id"]
           },
         ]
@@ -9580,8 +9655,11 @@ export type Database = {
         Args: {
           p_actor_user_id?: string
           p_company_id: string
+          p_disclosure_text?: string
+          p_disclosure_version?: string
           p_document_drive_file_id: string
           p_document_generation_id: string
+          p_document_hash?: string
           p_document_name: string
           p_expires_at?: string
           p_signers: Json
@@ -9693,6 +9771,23 @@ export type Database = {
         Returns: {
           request_id: string
           request_status: string
+        }[]
+      }
+      mhd_record_signature_consent: {
+        Args: {
+          p_acknowledged_hardware_requirements: boolean
+          p_acknowledged_paper_copy_right: boolean
+          p_acknowledged_withdrawal_right: boolean
+          p_agreed_to_use_electronic_signature: boolean
+          p_consented_to_electronic_records: boolean
+          p_ip_address?: string
+          p_signing_token: string
+          p_user_agent?: string
+        }
+        Returns: {
+          consented_at: string
+          request_id: string
+          signer_id: string
         }[]
       }
       mhd_delete_attachment: {
@@ -9889,12 +9984,16 @@ export type Database = {
           completed_at: string
           created_at: string
           created_by: string
+          disclosure_text: string
+          disclosure_version: string
           document_drive_file_id: string
           document_generation_id: string
+          document_hash: string | null
           document_name: string
           expires_at: string
           id: string
           reference_id: string
+          signed_document_hash: string | null
           signed_drive_file_id: string
           signers: Json
           signing_order: string
@@ -9904,11 +10003,16 @@ export type Database = {
       mhd_get_signature_request_by_token: {
         Args: { p_signing_token: string }
         Returns: {
+          consented_at: string | null
+          disclosure_text: string
+          disclosure_version: string
           document_drive_file_id: string
+          document_hash: string | null
           document_name: string
           reference_id: string
           request_id: string
           request_status: string
+          signed_drive_file_id: string | null
           signer_id: string
           signer_name: string
           signer_order_position: number
@@ -10690,7 +10794,10 @@ export type Database = {
       mhd_sign_via_token: {
         Args: {
           p_ip_address?: string
+          p_intent_to_sign: boolean
+          p_presented_document_hash: string
           p_signing_token: string
+          p_typed_signature_name: string
           p_user_agent?: string
         }
         Returns: {
