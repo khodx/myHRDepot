@@ -14,6 +14,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Mail, Phone, Smartphone, Building2 } from 'lucide-react';
 import { MhdBreadcrumb } from './MhdBreadcrumb';
 import { mhdPersonService } from '@/features/people/Service';
+import { useMhdActivities } from '@/features/activities/Hook';
+import { MhdActivityList } from '@/features/activities/components/MhdActivityList';
 import { useMhdOnboardingPacket } from '@/features/onboarding/Hook';
 import { MhdOnboardingChecklistPage } from '@/features/onboarding/components/MhdOnboardingChecklistPage';
 
@@ -28,6 +30,16 @@ export function MhdPersonDetailPage() {
   });
 
   const onboardingPacket = useMhdOnboardingPacket(person?.id ?? '', person?.companyId ?? '');
+  const activitiesQuery = useMhdActivities({
+    companyId: person?.companyId ?? 'ALL',
+    personId: person?.id ?? 'ALL',
+    taskId: 'ALL',
+    activityType: 'ALL',
+    status: 'ALL',
+    searchTerm: '',
+    from: '',
+    to: '',
+  });
 
   if (isLoading) {
     return (
@@ -129,6 +141,25 @@ export function MhdPersonDetailPage() {
         isLoading={onboardingPacket.isLoading}
         errorMessage={onboardingPacket.errorMessage}
       />
+
+      <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-neutral-900">Activities</h2>
+          <p className="mt-1 text-sm text-neutral-500">
+            Interaction history tied to this person record.
+          </p>
+        </div>
+
+        {activitiesQuery.error ? (
+          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {activitiesQuery.error instanceof Error ? activitiesQuery.error.message : 'Unable to load activities.'}
+          </div>
+        ) : activitiesQuery.isLoading ? (
+          <div className="py-8 text-sm text-neutral-500">Loading activities…</div>
+        ) : (
+          <MhdActivityList activities={activitiesQuery.data ?? []} />
+        )}
+      </section>
     </div>
   );
 }

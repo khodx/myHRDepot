@@ -4,7 +4,7 @@ import { z } from 'zod';
 // `noteRichText` (the editor's JSON document) and `notePlainText` (its plain-text extraction) at
 // the same time, so both are required inputs here rather than derived server-side.
 
-export const mhdNoteEntityTypeSchema = z.enum(['TASK', 'SUBTASK']);
+export const mhdNoteEntityTypeSchema = z.enum(['TASK', 'SUBTASK', 'ACTIVITY']);
 export const mhdNoteVisibilitySchema = z.enum(['PUBLIC', 'ADMIN', 'PRIVATE']);
 
 const notePlainTextSchema = z

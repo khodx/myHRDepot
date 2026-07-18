@@ -15,6 +15,8 @@ import { MhdDashboardPage } from '@/features/dashboard/components/MhdDashboardPa
 import { MhdTasksPage } from '@/features/tasks/components/MhdTasksPage';
 import { MhdTaskDetailPage } from '@/appshell/components/MhdTaskDetailPage';
 import { MhdTaskNotesPage } from '@/features/notes/components/MhdTaskNotesPage';
+import { MhdActivitiesPage } from '@/features/activities/components/MhdActivitiesPage';
+import { MhdActivityDetailPage } from '@/features/activities/components/MhdActivityDetailPage';
 import { MhdFormsPage } from '@/features/forms/components/MhdFormsPage';
 import { MhdFormBuilderPage } from '@/features/forms/components/MhdFormBuilderPage';
 import { MhdFormRendererPage } from '@/features/forms/components/MhdFormRendererPage';
@@ -58,6 +60,8 @@ export function AppRouter() {
               <Route path="/tasks/:taskId" element={<MhdTaskDetailPage />} />
               {/* Inherits the /tasks 'ALL' rule via mhdCanAccessRoute's prefix match. */}
               <Route path="/tasks/:taskId/notes" element={<MhdTaskNotesPage />} />
+              <Route path="/activities" element={<MhdActivitiesPage />} />
+              <Route path="/activities/:activityId" element={<MhdActivityDetailPage />} />
               <Route path="/forms" element={<MhdFormsPage />} />
               <Route path="/forms/new" element={<MhdFormBuilderPage />} />
               <Route path="/forms/:formId/render" element={<MhdFormRendererPage />} />

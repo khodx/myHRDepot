@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Users, Building2, ClipboardList, Package2, Stamp, FileSignature } from 'lucide-react';
+import { Building2, CalendarClock, CheckSquare, ClipboardList, FileSignature, LayoutDashboard, Package2, Stamp, Users } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -11,27 +11,53 @@ interface NavItem {
   roles: MhdAuthRoleName[] | 'ALL';
 }
 
+interface NavSection {
+  label: string;
+  items: NavItem[];
+}
+
 // Roles come from mhdRouteAccess.ts (the same source MhdRoleGuardedRoute
 // enforces against) so the sidebar can never drift from what the router
 // actually allows — see MhdRoleGuardedRoute.tsx.
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', route: '/dashboard', icon: LayoutDashboard, roles: mhdRouteRoles('/dashboard') },
-  { label: 'Tasks',     route: '/tasks',     icon: CheckSquare,     roles: mhdRouteRoles('/tasks') },
-  { label: 'Forms',     route: '/forms',     icon: ClipboardList,   roles: mhdRouteRoles('/forms') },
-  { label: 'Property',  route: '/property',  icon: Package2,        roles: mhdRouteRoles('/property') },
-  { label: 'E-Signature', route: '/esignature', icon: FileSignature, roles: mhdRouteRoles('/esignature') },
-  { label: 'People',    route: '/people',    icon: Users,           roles: mhdRouteRoles('/people') },
-  { label: 'Companies', route: '/companies', icon: Building2,       roles: mhdRouteRoles('/companies') },
-  { label: 'Approvals', route: '/approvals', icon: Stamp,           roles: mhdRouteRoles('/approvals') },
+const NAV_SECTIONS: NavSection[] = [
+  {
+    label: 'Workspace',
+    items: [{ label: 'Dashboard', route: '/dashboard', icon: LayoutDashboard, roles: mhdRouteRoles('/dashboard') }],
+  },
+  {
+    label: 'Productivity',
+    items: [
+      { label: 'Tasks', route: '/tasks', icon: CheckSquare, roles: mhdRouteRoles('/tasks') },
+      { label: 'Activities', route: '/activities', icon: CalendarClock, roles: mhdRouteRoles('/activities') },
+      { label: 'Forms', route: '/forms', icon: ClipboardList, roles: mhdRouteRoles('/forms') },
+      { label: 'Approvals', route: '/approvals', icon: Stamp, roles: mhdRouteRoles('/approvals') },
+    ],
+  },
+  {
+    label: 'Operations',
+    items: [
+      { label: 'Property', route: '/property', icon: Package2, roles: mhdRouteRoles('/property') },
+      { label: 'E-Signature', route: '/esignature', icon: FileSignature, roles: mhdRouteRoles('/esignature') },
+    ],
+  },
+  {
+    label: 'Directory',
+    items: [
+      { label: 'People', route: '/people', icon: Users, roles: mhdRouteRoles('/people') },
+      { label: 'Companies', route: '/companies', icon: Building2, roles: mhdRouteRoles('/companies') },
+    ],
+  },
 ];
 
 export function MhdSidebar() {
   const { roles } = useMhdAuth();
 
-  const visibleItems = NAV_ITEMS.filter(item => {
-    if (item.roles === 'ALL') return true;
-    return item.roles.some(r => roles.includes(r));
-  });
+  const visibleSections = NAV_SECTIONS
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => (item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role)))),
+    }))
+    .filter((section) => section.items.length > 0);
 
   return (
     <aside className="flex h-full w-56 flex-col border-r bg-card">
@@ -41,9 +67,16 @@ export function MhdSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 p-3">
-        {visibleItems.map(item => (
-          <MhdNavItem key={item.route} item={item} />
+      <nav className="flex-1 space-y-4 p-3">
+        {visibleSections.map((section) => (
+          <div key={section.label} className="space-y-1">
+            <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
+              {section.label}
+            </p>
+            {section.items.map((item) => (
+              <MhdNavItem key={item.route} item={item} />
+            ))}
+          </div>
         ))}
       </nav>
     </aside>

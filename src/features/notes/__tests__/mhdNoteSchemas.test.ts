@@ -60,4 +60,16 @@ describe('mhd note schemas', () => {
     });
     expect(parsed.visibility).toBe('PRIVATE');
   });
+
+  it('accepts ACTIVITY as a valid note entity type', () => {
+    const parsed = mhdCreateNoteSchema.parse({
+      entityType: 'ACTIVITY',
+      entityId: 'ACTV01',
+      noteRichText: mhdPlainTextToRichText('Activity note'),
+      notePlainText: 'Activity note',
+      visibility: 'ADMIN',
+    });
+
+    expect(parsed.entityType).toBe('ACTIVITY');
+  });
 });

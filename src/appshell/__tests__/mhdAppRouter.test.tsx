@@ -73,6 +73,12 @@ vi.mock('@/features/tasks/components/MhdTasksPage', () => ({
 vi.mock('@/features/forms/components/MhdFormsPage', () => ({
   MhdFormsPage: () => <div>Forms Page</div>,
 }));
+vi.mock('@/features/activities/components/MhdActivitiesPage', () => ({
+  MhdActivitiesPage: () => <div>Activities Page</div>,
+}));
+vi.mock('@/features/activities/components/MhdActivityDetailPage', () => ({
+  MhdActivityDetailPage: () => <div>Activity Detail Page</div>,
+}));
 vi.mock('@/features/forms/components/MhdFormBuilderPage', () => ({
   MhdFormBuilderPage: () => <div>Form Builder Page</div>,
 }));
@@ -346,6 +352,25 @@ describe('MhdAppRouter', () => {
       expect(screen.getByText('Form Submissions Page')).toBeInTheDocument();
     });
 
+    it('renders "/activities" for an authenticated Viewer (read-only activities access)', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl('/activities');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText('Activities Page')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/activities');
+    });
+
+    it('renders "/activities/:activityId" for a Viewer (read-only detail access)', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl('/activities/activity-1');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText('Activity Detail Page')).toBeInTheDocument();
+    });
+
     it('renders "/property" for an authenticated Viewer (read-only property access)', () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/property');
@@ -461,6 +486,10 @@ describe('MhdSidebar role-based visibility', () => {
     );
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Workspace')).toBeInTheDocument();
+    expect(screen.getByText('Productivity')).toBeInTheDocument();
+    expect(screen.getByText('Operations')).toBeInTheDocument();
+    expect(screen.getByText('Activities')).toBeInTheDocument();
     expect(screen.getByText('Forms')).toBeInTheDocument();
     expect(screen.getByText('Property')).toBeInTheDocument();
     expect(screen.queryByText('People')).not.toBeInTheDocument();

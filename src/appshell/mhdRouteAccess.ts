@@ -14,6 +14,7 @@ export interface MhdRouteAccessRule {
 export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/dashboard', roles: 'ALL' },
   { path: '/tasks', roles: 'ALL' },
+  { path: '/activities', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
   { path: '/forms', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
   { path: '/property', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
   { path: '/esignature', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
@@ -93,6 +94,17 @@ export const MHD_WORKFLOW_APPROVAL_MUTATING_ROLES: MhdAuthRoleName[] = [
 
 export function mhdCanMutateWorkflowApprovals(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_WORKFLOW_APPROVAL_MUTATING_ROLES.some((role) => userRoles.includes(role));
+}
+
+export const MHD_ACTIVITY_MUTATING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+  'Client User',
+];
+
+export function mhdCanMutateActivities(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_ACTIVITY_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }
 
 /**
