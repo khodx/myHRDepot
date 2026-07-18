@@ -9,6 +9,183 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      activities: {
+        Row: {
+          activity_type: string
+          company_id: string
+          created_at: string | null
+          created_by: string
+          description_plain_text: string | null
+          description_rich_text: Json | null
+          duration_minutes: number | null
+          follow_up_task_id: string | null
+          id: string
+          is_confidential: boolean
+          location: string | null
+          occurred_at: string | null
+          outcome_summary: string | null
+          parent_task_id: string | null
+          person_id: string | null
+          reference_id: string
+          scheduled_at: string | null
+          status: string
+          title: string
+          updated_at: string | null
+          updated_by: string
+        }
+        Insert: {
+          activity_type: string
+          company_id: string
+          created_at?: string | null
+          created_by: string
+          description_plain_text?: string | null
+          description_rich_text?: Json | null
+          duration_minutes?: number | null
+          follow_up_task_id?: string | null
+          id?: string
+          is_confidential?: boolean
+          location?: string | null
+          occurred_at?: string | null
+          outcome_summary?: string | null
+          parent_task_id?: string | null
+          person_id?: string | null
+          reference_id: string
+          scheduled_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+          updated_by: string
+        }
+        Update: {
+          activity_type?: string
+          company_id?: string
+          created_at?: string | null
+          created_by?: string
+          description_plain_text?: string | null
+          description_rich_text?: Json | null
+          duration_minutes?: number | null
+          follow_up_task_id?: string | null
+          id?: string
+          is_confidential?: boolean
+          location?: string | null
+          occurred_at?: string | null
+          outcome_summary?: string | null
+          parent_task_id?: string | null
+          person_id?: string | null
+          reference_id?: string
+          scheduled_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_follow_up_task_id_fkey"
+            columns: ["follow_up_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_participants: {
+        Row: {
+          activity_id: string
+          created_at: string | null
+          created_by: string
+          id: string
+          participant_role: string
+          person_id: string | null
+          reference_id: string
+          user_id: string | null
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          participant_role: string
+          person_id?: string | null
+          reference_id: string
+          user_id?: string | null
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          participant_role?: string
+          person_id?: string | null
+          reference_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_participants_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_participants_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_participants_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_assignments: {
         Row: {
           approval_id: string
@@ -798,72 +975,6 @@ export type Database = {
           },
         ]
       }
-      esignature_signers: {
-        Row: {
-          declined_reason: string | null
-          external_email: string | null
-          external_name: string | null
-          id: string
-          ip_address: string | null
-          request_id: string
-          signed_at: string | null
-          signature_name: string | null
-          signer_order: number | null
-          signing_token: string
-          status: string
-          token_expires_at: string | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          declined_reason?: string | null
-          external_email?: string | null
-          external_name?: string | null
-          id?: string
-          ip_address?: string | null
-          request_id: string
-          signed_at?: string | null
-          signature_name?: string | null
-          signer_order?: number | null
-          signing_token: string
-          status?: string
-          token_expires_at?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          declined_reason?: string | null
-          external_email?: string | null
-          external_name?: string | null
-          id?: string
-          ip_address?: string | null
-          request_id?: string
-          signed_at?: string | null
-          signature_name?: string | null
-          signer_order?: number | null
-          signing_token?: string
-          status?: string
-          token_expires_at?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "esignature_signers_request_id_fkey"
-            columns: ["request_id"]
-            isOneToOne: false
-            referencedRelation: "esignature_requests"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "esignature_signers_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       esignature_signer_consents: {
         Row: {
           acknowledged_hardware_requirements: boolean
@@ -924,8 +1035,74 @@ export type Database = {
           {
             foreignKeyName: "esignature_signer_consents_signer_id_fkey"
             columns: ["signer_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "esignature_signers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      esignature_signers: {
+        Row: {
+          declined_reason: string | null
+          external_email: string | null
+          external_name: string | null
+          id: string
+          ip_address: string | null
+          request_id: string
+          signature_name: string | null
+          signed_at: string | null
+          signer_order: number | null
+          signing_token: string
+          status: string
+          token_expires_at: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          declined_reason?: string | null
+          external_email?: string | null
+          external_name?: string | null
+          id?: string
+          ip_address?: string | null
+          request_id: string
+          signature_name?: string | null
+          signed_at?: string | null
+          signer_order?: number | null
+          signing_token: string
+          status?: string
+          token_expires_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          declined_reason?: string | null
+          external_email?: string | null
+          external_name?: string | null
+          id?: string
+          ip_address?: string | null
+          request_id?: string
+          signature_name?: string | null
+          signed_at?: string | null
+          signer_order?: number | null
+          signing_token?: string
+          status?: string
+          token_expires_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "esignature_signers_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "esignature_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "esignature_signers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -9024,6 +9201,76 @@ export type Database = {
         }
         Relationships: []
       }
+      sub_activities: {
+        Row: {
+          activity_id: string
+          completed_at: string | null
+          created_at: string | null
+          created_by: string
+          description_plain_text: string | null
+          id: string
+          reference_id: string
+          scheduled_at: string | null
+          sort_order: number
+          status: string
+          title: string
+          updated_at: string | null
+          updated_by: string
+        }
+        Insert: {
+          activity_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          description_plain_text?: string | null
+          id?: string
+          reference_id: string
+          scheduled_at?: string | null
+          sort_order?: number
+          status?: string
+          title: string
+          updated_at?: string | null
+          updated_by: string
+        }
+        Update: {
+          activity_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          description_plain_text?: string | null
+          id?: string
+          reference_id?: string
+          scheduled_at?: string | null
+          sort_order?: number
+          status?: string
+          title?: string
+          updated_at?: string | null
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_activities_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_activities_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subtasks: {
         Row: {
           calculated_progress_percent: number
@@ -9410,6 +9657,18 @@ export type Database = {
       }
     }
     Functions: {
+      mhd_add_activity_participant: {
+        Args: {
+          p_activity_id: string
+          p_person_id?: string
+          p_role?: string
+          p_user_id?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
       mhd_add_approval_comment: {
         Args: {
           p_actor_user_id?: string
@@ -9481,6 +9740,10 @@ export type Database = {
       mhd_assemble_form_fields: { Args: { p_form_id: string }; Returns: Json }
       mhd_assemble_form_logic: { Args: { p_form_id: string }; Returns: Json }
       mhd_assemble_form_pages: { Args: { p_form_id: string }; Returns: Json }
+      mhd_assert_activity_access: {
+        Args: { p_activity_id: string }
+        Returns: undefined
+      }
       mhd_assert_approval_company_access: {
         Args: { p_company_id: string }
         Returns: undefined
@@ -9522,6 +9785,10 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: boolean
       }
+      mhd_can_view_activity: {
+        Args: { p_activity_id: string }
+        Returns: boolean
+      }
       mhd_complete_document_generation: {
         Args: {
           p_actor_user_id?: string
@@ -9534,6 +9801,26 @@ export type Database = {
           id: string
           reference_id: string
           status: string
+        }[]
+      }
+      mhd_create_activity: {
+        Args: {
+          p_activity_type: string
+          p_actor_user_id?: string
+          p_company_id: string
+          p_description_plain_text?: string
+          p_description_rich_text?: Json
+          p_is_confidential?: boolean
+          p_location?: string
+          p_parent_task_id?: string
+          p_participants?: Json
+          p_person_id?: string
+          p_scheduled_at?: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
         }[]
       }
       mhd_create_approval_request: {
@@ -9670,6 +9957,19 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_create_sub_activity: {
+        Args: {
+          p_activity_id: string
+          p_description_plain_text?: string
+          p_scheduled_at?: string
+          p_sort_order?: number
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
       mhd_create_submission: {
         Args: { p_form_id: string; p_task_id?: string }
         Returns: {
@@ -9773,22 +10073,9 @@ export type Database = {
           request_status: string
         }[]
       }
-      mhd_record_signature_consent: {
-        Args: {
-          p_acknowledged_hardware_requirements: boolean
-          p_acknowledged_paper_copy_right: boolean
-          p_acknowledged_withdrawal_right: boolean
-          p_agreed_to_use_electronic_signature: boolean
-          p_consented_to_electronic_records: boolean
-          p_ip_address?: string
-          p_signing_token: string
-          p_user_agent?: string
-        }
-        Returns: {
-          consented_at: string
-          request_id: string
-          signer_id: string
-        }[]
+      mhd_delete_activity: {
+        Args: { p_activity_id: string; p_actor_user_id?: string }
+        Returns: undefined
       }
       mhd_delete_attachment: {
         Args: { p_attachment_id: string }
@@ -9801,6 +10088,10 @@ export type Database = {
       mhd_delete_note: { Args: { p_note_id: string }; Returns: undefined }
       mhd_delete_property_item: {
         Args: { p_item_id: string }
+        Returns: undefined
+      }
+      mhd_delete_sub_activity: {
+        Args: { p_sub_activity_id: string }
         Returns: undefined
       }
       mhd_delete_subtask: {
@@ -9837,6 +10128,39 @@ export type Database = {
           p_reason?: string
         }
         Returns: undefined
+      }
+      mhd_get_activity_by_id: {
+        Args: { p_activity_id: string }
+        Returns: {
+          activity_type: string
+          attachment_count: number
+          company_id: string
+          company_name: string
+          created_at: string
+          created_by: string
+          description_plain_text: string
+          description_rich_text: Json
+          duration_minutes: number
+          follow_up_task_id: string
+          id: string
+          is_confidential: boolean
+          location: string
+          note_count: number
+          occurred_at: string
+          outcome_summary: string
+          parent_task_id: string
+          participant_display_names: string[]
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          scheduled_at: string
+          status: string
+          sub_activity_done_count: number
+          sub_activity_total_count: number
+          title: string
+          updated_at: string
+          updated_by: string
+        }[]
       }
       mhd_get_approval_by_id: {
         Args: { p_approval_id: string }
@@ -9988,12 +10312,12 @@ export type Database = {
           disclosure_version: string
           document_drive_file_id: string
           document_generation_id: string
-          document_hash: string | null
+          document_hash: string
           document_name: string
           expires_at: string
           id: string
           reference_id: string
-          signed_document_hash: string | null
+          signed_document_hash: string
           signed_drive_file_id: string
           signers: Json
           signing_order: string
@@ -10003,16 +10327,16 @@ export type Database = {
       mhd_get_signature_request_by_token: {
         Args: { p_signing_token: string }
         Returns: {
-          consented_at: string | null
+          consented_at: string
           disclosure_text: string
           disclosure_version: string
           document_drive_file_id: string
-          document_hash: string | null
+          document_hash: string
           document_name: string
           reference_id: string
           request_id: string
           request_status: string
-          signed_drive_file_id: string | null
+          signed_drive_file_id: string
           signer_id: string
           signer_name: string
           signer_order_position: number
@@ -10067,6 +10391,10 @@ export type Database = {
           updated_by: string
         }[]
       }
+      mhd_is_activity_facilitator: {
+        Args: { p_activity_id: string }
+        Returns: boolean
+      }
       mhd_is_platform_admin: { Args: never; Returns: boolean }
       mhd_issue_property: {
         Args: {
@@ -10084,6 +10412,62 @@ export type Database = {
         Returns: {
           id: string
           reference_id: string
+        }[]
+      }
+      mhd_list_activity_board: {
+        Args: {
+          p_activity_type?: string
+          p_company_id?: string
+          p_from?: string
+          p_person_id?: string
+          p_search_term?: string
+          p_status?: string
+          p_task_id?: string
+          p_to?: string
+        }
+        Returns: {
+          activity_type: string
+          attachment_count: number
+          company_id: string
+          company_name: string
+          created_at: string
+          created_by: string
+          description_plain_text: string
+          description_rich_text: Json
+          duration_minutes: number
+          follow_up_task_id: string
+          id: string
+          is_confidential: boolean
+          location: string
+          note_count: number
+          occurred_at: string
+          outcome_summary: string
+          parent_task_id: string
+          participant_display_names: string[]
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          scheduled_at: string
+          status: string
+          sub_activity_done_count: number
+          sub_activity_total_count: number
+          title: string
+          updated_at: string
+          updated_by: string
+        }[]
+      }
+      mhd_list_activity_participants: {
+        Args: { p_activity_id: string }
+        Returns: {
+          activity_id: string
+          created_at: string
+          created_by: string
+          display_name: string
+          id: string
+          participant_role: string
+          person_id: string
+          reference_id: string
+          user_id: string
         }[]
       }
       mhd_list_approval_comments: {
@@ -10400,6 +10784,8 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
+          disclosure_text: string
+          disclosure_version: string
           document_drive_file_id: string
           document_generation_id: string
           document_hash: string | null
@@ -10420,6 +10806,24 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      mhd_list_sub_activities: {
+        Args: { p_activity_id: string }
+        Returns: {
+          activity_id: string
+          completed_at: string
+          created_at: string
+          created_by: string
+          description_plain_text: string
+          id: string
+          reference_id: string
+          scheduled_at: string
+          sort_order: number
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string
+        }[]
       }
       mhd_list_submissions_for_form: {
         Args: { p_form_id: string }
@@ -10607,6 +11011,23 @@ export type Database = {
         Args: { p_task_id: string }
         Returns: undefined
       }
+      mhd_record_signature_consent: {
+        Args: {
+          p_acknowledged_hardware_requirements: boolean
+          p_acknowledged_paper_copy_right: boolean
+          p_acknowledged_withdrawal_right: boolean
+          p_agreed_to_use_electronic_signature: boolean
+          p_consented_to_electronic_records: boolean
+          p_ip_address?: string
+          p_signing_token: string
+          p_user_agent?: string
+        }
+        Returns: {
+          consented_at: string
+          request_id: string
+          signer_id: string
+        }[]
+      }
       mhd_reject_approval_step: {
         Args: {
           p_actor_user_id?: string
@@ -10618,6 +11039,10 @@ export type Database = {
           reference_id: string
           status: string
         }[]
+      }
+      mhd_remove_activity_participant: {
+        Args: { p_participant_id: string }
+        Returns: undefined
       }
       mhd_replace_form_definition: {
         Args: { p_definition: Json; p_form_id: string }
@@ -10676,6 +11101,10 @@ export type Database = {
           reference_id: string
           status: string
         }[]
+      }
+      mhd_resolve_activity_company_id: {
+        Args: { p_activity_id: string }
+        Returns: string
       }
       mhd_resolve_attachment_company_id: {
         Args: { p_entity_id: string; p_entity_type: string }
@@ -10793,8 +11222,8 @@ export type Database = {
       }
       mhd_sign_via_token: {
         Args: {
-          p_ip_address?: string
           p_intent_to_sign: boolean
+          p_ip_address?: string
           p_presented_document_hash: string
           p_signing_token: string
           p_typed_signature_name: string
@@ -10822,6 +11251,29 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      mhd_update_activity: {
+        Args: {
+          p_activity_id: string
+          p_activity_type?: string
+          p_description_plain_text?: string
+          p_description_rich_text?: Json
+          p_duration_minutes?: number
+          p_follow_up_task_id?: string
+          p_is_confidential?: boolean
+          p_location?: string
+          p_occurred_at?: string
+          p_outcome_summary?: string
+          p_parent_task_id?: string
+          p_person_id?: string
+          p_scheduled_at?: string
+          p_status?: string
+          p_title?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
       }
       mhd_update_contact_method: {
         Args: {
@@ -10899,6 +11351,17 @@ export type Database = {
           p_item_id: string
           p_name?: string
           p_status?: string
+        }
+        Returns: undefined
+      }
+      mhd_update_sub_activity: {
+        Args: {
+          p_description_plain_text?: string
+          p_scheduled_at?: string
+          p_sort_order?: number
+          p_status?: string
+          p_sub_activity_id: string
+          p_title?: string
         }
         Returns: undefined
       }
