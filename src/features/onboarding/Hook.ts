@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { mhdOnboardingService } from './Service';
-import { MHD_ONBOARDING_PACKET_DEFINITIONS } from './PacketCatalog';
-import type { MhdOnboardingPacketItem } from './Types';
+import { MHD_ONBOARDING_PACKET_DEFINITIONS, type MhdOnboardingPacketItem } from './Types';
 
 export function useMhdOnboardingPacket(personId: string, companyId: string) {
   const checklistQuery = useQuery({

@@ -3,8 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
 import { mhdOnboardingService } from '@/features/onboarding/Service';
-import { MHD_ONBOARDING_PACKET_BY_KEY } from '@/features/onboarding/PacketCatalog';
-import { mhdIsOnboardingDocumentKey } from '@/features/onboarding/Types';
+import { MHD_ONBOARDING_PACKET_BY_KEY, mhdIsOnboardingDocumentKey } from '@/features/onboarding/Types';
 import type { MhdFormSubmission } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormRenderer } from './MhdFormRenderer';

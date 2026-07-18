@@ -1,7 +1,6 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import { mhdFormService } from '@/features/forms/Service';
 import type { MhdForm } from '@/features/forms/Types';
-import { MHD_ONBOARDING_PACKET_BY_KEY, MHD_ONBOARDING_PACKET_DEFINITIONS } from './PacketCatalog';
 import type {
   MhdOnboardingChecklistItem,
   MhdOnboardingChecklistStatus,
@@ -9,6 +8,7 @@ import type {
   MhdOnboardingDocumentKey,
   MhdOnboardingPacketFormRef,
 } from './Types';
+import { MHD_ONBOARDING_PACKET_BY_KEY, MHD_ONBOARDING_PACKET_DEFINITIONS } from './Types';
 
 type MhdOnboardingChecklistRow = {
   id: string;
