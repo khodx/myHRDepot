@@ -567,6 +567,186 @@ export type Database = {
           },
         ]
       }
+      coaching_plan_items: {
+        Row: {
+          activity_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          plan_id: string
+          reference_id: string
+          sort_order: number
+          status: string
+          title: string
+          updated_at: string | null
+          updated_by: string
+        }
+        Insert: {
+          activity_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          plan_id: string
+          reference_id: string
+          sort_order?: number
+          status?: string
+          title: string
+          updated_at?: string | null
+          updated_by: string
+        }
+        Update: {
+          activity_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          plan_id?: string
+          reference_id?: string
+          sort_order?: number
+          status?: string
+          title?: string
+          updated_at?: string | null
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_plan_items_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_plan_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_plan_items_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_plan_items_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaching_plans: {
+        Row: {
+          coach_user_id: string
+          company_id: string
+          created_at: string | null
+          created_by: string
+          id: string
+          objective: string | null
+          outcome_summary: string | null
+          person_id: string
+          reference_id: string
+          source_review_id: string | null
+          start_date: string | null
+          status: string
+          target_date: string | null
+          title: string
+          updated_at: string | null
+          updated_by: string
+        }
+        Insert: {
+          coach_user_id: string
+          company_id: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          objective?: string | null
+          outcome_summary?: string | null
+          person_id: string
+          reference_id: string
+          source_review_id?: string | null
+          start_date?: string | null
+          status?: string
+          target_date?: string | null
+          title: string
+          updated_at?: string | null
+          updated_by: string
+        }
+        Update: {
+          coach_user_id?: string
+          company_id?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          objective?: string | null
+          outcome_summary?: string | null
+          person_id?: string
+          reference_id?: string
+          source_review_id?: string | null
+          start_date?: string | null
+          status?: string
+          target_date?: string | null
+          title?: string
+          updated_at?: string | null
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_plans_coach_user_id_fkey"
+            columns: ["coach_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_plans_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_plans_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_plans_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_plans_source_review_id_fkey"
+            columns: ["source_review_id"]
+            isOneToOne: false
+            referencedRelation: "performance_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_plans_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           company_name: string
@@ -659,6 +839,7 @@ export type Database = {
           generated_at: string | null
           id: string
           merge_data: Json
+          output_document_hash: string | null
           output_drive_file_id: string | null
           output_file_name: string | null
           reference_id: string
@@ -678,6 +859,7 @@ export type Database = {
           generated_at?: string | null
           id?: string
           merge_data?: Json
+          output_document_hash?: string | null
           output_drive_file_id?: string | null
           output_file_name?: string | null
           reference_id: string
@@ -697,6 +879,7 @@ export type Database = {
           generated_at?: string | null
           id?: string
           merge_data?: Json
+          output_document_hash?: string | null
           output_drive_file_id?: string | null
           output_file_name?: string | null
           reference_id?: string
@@ -8855,6 +9038,133 @@ export type Database = {
           },
         ]
       }
+      performance_reviews: {
+        Row: {
+          acknowledged_at: string | null
+          company_id: string
+          created_at: string | null
+          created_by: string
+          document_generation_id: string | null
+          due_date: string | null
+          employee_comments: string | null
+          esignature_request_id: string | null
+          goals_summary: string | null
+          id: string
+          improvement_summary: string | null
+          overall_rating: number | null
+          person_id: string
+          reference_id: string
+          review_activity_id: string | null
+          review_period_end: string
+          review_period_start: string
+          review_type: string
+          reviewer_comments: string | null
+          reviewer_user_id: string
+          status: string
+          strengths_summary: string | null
+          updated_at: string | null
+          updated_by: string
+          waiver_reason: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          company_id: string
+          created_at?: string | null
+          created_by: string
+          document_generation_id?: string | null
+          due_date?: string | null
+          employee_comments?: string | null
+          esignature_request_id?: string | null
+          goals_summary?: string | null
+          id?: string
+          improvement_summary?: string | null
+          overall_rating?: number | null
+          person_id: string
+          reference_id: string
+          review_activity_id?: string | null
+          review_period_end: string
+          review_period_start: string
+          review_type: string
+          reviewer_comments?: string | null
+          reviewer_user_id: string
+          status?: string
+          strengths_summary?: string | null
+          updated_at?: string | null
+          updated_by: string
+          waiver_reason?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          company_id?: string
+          created_at?: string | null
+          created_by?: string
+          document_generation_id?: string | null
+          due_date?: string | null
+          employee_comments?: string | null
+          esignature_request_id?: string | null
+          goals_summary?: string | null
+          id?: string
+          improvement_summary?: string | null
+          overall_rating?: number | null
+          person_id?: string
+          reference_id?: string
+          review_activity_id?: string | null
+          review_period_end?: string
+          review_period_start?: string
+          review_type?: string
+          reviewer_comments?: string | null
+          reviewer_user_id?: string
+          status?: string
+          strengths_summary?: string | null
+          updated_at?: string | null
+          updated_by?: string
+          waiver_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_reviews_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_review_activity_id_fkey"
+            columns: ["review_activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_reviewer_user_id_fkey"
+            columns: ["reviewer_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       priorities: {
         Row: {
           color_token: string | null
@@ -9752,6 +10062,22 @@ export type Database = {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: undefined
       }
+      mhd_assert_coaching_plan_access: {
+        Args: { p_plan_id: string }
+        Returns: undefined
+      }
+      mhd_assert_coaching_plan_mutate: {
+        Args: { p_plan_id: string }
+        Returns: undefined
+      }
+      mhd_assert_performance_review_access: {
+        Args: { p_review_id: string }
+        Returns: undefined
+      }
+      mhd_assert_performance_review_mutate: {
+        Args: { p_review_id: string }
+        Returns: undefined
+      }
       mhd_assert_subtask_access: {
         Args: { p_subtask_id: string }
         Returns: undefined
@@ -9789,10 +10115,19 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: boolean
       }
+      mhd_can_view_coaching_plan: {
+        Args: { p_plan_id: string }
+        Returns: boolean
+      }
+      mhd_can_view_performance_review: {
+        Args: { p_review_id: string }
+        Returns: boolean
+      }
       mhd_complete_document_generation: {
         Args: {
           p_actor_user_id?: string
           p_generation_id: string
+          p_output_document_hash?: string
           p_output_drive_file_id: string
           p_output_file_name: string
         }
@@ -9862,6 +10197,36 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_create_coaching_plan: {
+        Args: {
+          p_coach_user_id: string
+          p_company_id: string
+          p_objective?: string
+          p_person_id: string
+          p_source_review_id?: string
+          p_start_date?: string
+          p_target_date?: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_create_coaching_plan_item: {
+        Args: {
+          p_activity_id?: string
+          p_description?: string
+          p_due_date?: string
+          p_plan_id: string
+          p_sort_order?: number
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
       mhd_create_form: {
         Args: {
           p_company_id: string
@@ -9886,6 +10251,22 @@ export type Database = {
           p_note_plain_text: string
           p_note_rich_text: Json
           p_visibility?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_create_performance_review: {
+        Args: {
+          p_company_id: string
+          p_due_date?: string
+          p_person_id: string
+          p_review_activity_id?: string
+          p_review_period_end: string
+          p_review_period_start: string
+          p_review_type: string
+          p_reviewer_user_id: string
         }
         Returns: {
           id: string
@@ -10081,11 +10462,23 @@ export type Database = {
         Args: { p_attachment_id: string }
         Returns: undefined
       }
+      mhd_delete_coaching_plan: {
+        Args: { p_plan_id: string }
+        Returns: undefined
+      }
+      mhd_delete_coaching_plan_item: {
+        Args: { p_item_id: string }
+        Returns: undefined
+      }
       mhd_delete_contact_method: {
         Args: { p_contact_method_id: string }
         Returns: boolean
       }
       mhd_delete_note: { Args: { p_note_id: string }; Returns: undefined }
+      mhd_delete_performance_review: {
+        Args: { p_review_id: string }
+        Returns: undefined
+      }
       mhd_delete_property_item: {
         Args: { p_item_id: string }
         Returns: undefined
@@ -10223,6 +10616,33 @@ export type Database = {
           user_agent: string
         }[]
       }
+      mhd_get_coaching_plan: {
+        Args: { p_plan_id: string }
+        Returns: {
+          coach_display_name: string
+          coach_user_id: string
+          company_id: string
+          company_name: string
+          created_at: string
+          created_by: string
+          id: string
+          item_done_count: number
+          item_total_count: number
+          objective: string
+          outcome_summary: string
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          source_review_id: string
+          source_review_reference_id: string
+          start_date: string
+          status: string
+          target_date: string
+          title: string
+          updated_at: string
+          updated_by: string
+        }[]
+      }
       mhd_get_default_task_priority_id: { Args: never; Returns: string }
       mhd_get_default_task_status_id: { Args: never; Returns: string }
       mhd_get_field_encryption_key: { Args: never; Returns: string }
@@ -10261,6 +10681,44 @@ export type Database = {
           status: string
         }[]
       }
+      mhd_get_performance_review: {
+        Args: { p_review_id: string }
+        Returns: {
+          acknowledged_at: string
+          company_id: string
+          company_name: string
+          created_at: string
+          created_by: string
+          document_generation_id: string
+          document_generation_reference_id: string
+          document_generation_status: string
+          due_date: string
+          employee_comments: string
+          esignature_request_id: string
+          esignature_request_reference_id: string
+          esignature_request_status: string
+          goals_summary: string
+          id: string
+          improvement_summary: string
+          overall_rating: number
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          review_activity_id: string
+          review_period_end: string
+          review_period_start: string
+          review_type: string
+          reviewer_comments: string
+          reviewer_display_name: string
+          reviewer_user_id: string
+          status: string
+          strengths_summary: string
+          updated_at: string
+          updated_by: string
+          waiver_reason: string
+        }[]
+      }
+      mhd_get_performance_review_template_id: { Args: never; Returns: string }
       mhd_get_person_by_id: {
         Args: { p_person_id: string }
         Returns: {
@@ -10408,6 +10866,17 @@ export type Database = {
           p_person_id: string
           p_property_item_id: string
           p_quantity: number
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_link_review_documents: {
+        Args: {
+          p_document_generation_id?: string
+          p_esignature_request_id?: string
+          p_review_id: string
         }
         Returns: {
           id: string
@@ -10579,6 +11048,60 @@ export type Database = {
           user_agent: string
         }[]
       }
+      mhd_list_coaching_plan_items: {
+        Args: { p_plan_id: string }
+        Returns: {
+          activity_id: string
+          activity_reference_id: string
+          activity_status: string
+          completed_at: string
+          created_at: string
+          created_by: string
+          description: string
+          due_date: string
+          id: string
+          plan_id: string
+          reference_id: string
+          sort_order: number
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string
+        }[]
+      }
+      mhd_list_coaching_plans: {
+        Args: {
+          p_coach_user_id?: string
+          p_company_id?: string
+          p_person_id?: string
+          p_search_term?: string
+          p_status?: string
+        }
+        Returns: {
+          coach_display_name: string
+          coach_user_id: string
+          company_id: string
+          company_name: string
+          created_at: string
+          created_by: string
+          id: string
+          item_done_count: number
+          item_total_count: number
+          objective: string
+          outcome_summary: string
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          source_review_id: string
+          source_review_reference_id: string
+          start_date: string
+          status: string
+          target_date: string
+          title: string
+          updated_at: string
+          updated_by: string
+        }[]
+      }
       mhd_list_contact_methods_for_person: {
         Args: { p_person_id: string }
         Returns: {
@@ -10720,6 +11243,52 @@ export type Database = {
           reference_id: string
           updated_at: string
           updated_by: string
+        }[]
+      }
+      mhd_list_performance_reviews: {
+        Args: {
+          p_company_id?: string
+          p_due_from?: string
+          p_due_to?: string
+          p_person_id?: string
+          p_review_type?: string
+          p_reviewer_user_id?: string
+          p_search_term?: string
+          p_status?: string
+        }
+        Returns: {
+          acknowledged_at: string
+          company_id: string
+          company_name: string
+          created_at: string
+          created_by: string
+          document_generation_id: string
+          document_generation_reference_id: string
+          document_generation_status: string
+          due_date: string
+          employee_comments: string
+          esignature_request_id: string
+          esignature_request_reference_id: string
+          esignature_request_status: string
+          goals_summary: string
+          id: string
+          improvement_summary: string
+          overall_rating: number
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          review_activity_id: string
+          review_period_end: string
+          review_period_start: string
+          review_type: string
+          reviewer_comments: string
+          reviewer_display_name: string
+          reviewer_user_id: string
+          status: string
+          strengths_summary: string
+          updated_at: string
+          updated_by: string
+          waiver_reason: string
         }[]
       }
       mhd_list_property_assignments: {
@@ -11243,6 +11812,30 @@ export type Database = {
         Args: { p_task_id: string }
         Returns: number
       }
+      mhd_transition_coaching_plan: {
+        Args: {
+          p_new_status: string
+          p_outcome_summary?: string
+          p_plan_id: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+          status: string
+        }[]
+      }
+      mhd_transition_performance_review: {
+        Args: {
+          p_new_status: string
+          p_review_id: string
+          p_waiver_reason?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+          status: string
+        }[]
+      }
       mhd_unassign_user_from_entity: {
         Args: {
           p_actor_user_id?: string
@@ -11274,6 +11867,33 @@ export type Database = {
           id: string
           reference_id: string
         }[]
+      }
+      mhd_update_coaching_plan: {
+        Args: {
+          p_coach_user_id?: string
+          p_objective?: string
+          p_outcome_summary?: string
+          p_plan_id: string
+          p_start_date?: string
+          p_target_date?: string
+          p_title?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_update_coaching_plan_item: {
+        Args: {
+          p_activity_id?: string
+          p_description?: string
+          p_due_date?: string
+          p_item_id: string
+          p_sort_order?: number
+          p_status?: string
+          p_title?: string
+        }
+        Returns: undefined
       }
       mhd_update_contact_method: {
         Args: {
@@ -11312,6 +11932,27 @@ export type Database = {
           p_visibility?: string
         }
         Returns: undefined
+      }
+      mhd_update_performance_review: {
+        Args: {
+          p_due_date?: string
+          p_employee_comments?: string
+          p_goals_summary?: string
+          p_improvement_summary?: string
+          p_overall_rating?: number
+          p_review_activity_id?: string
+          p_review_id: string
+          p_review_period_end?: string
+          p_review_period_start?: string
+          p_review_type?: string
+          p_reviewer_comments?: string
+          p_reviewer_user_id?: string
+          p_strengths_summary?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
       }
       mhd_update_person: {
         Args: {
