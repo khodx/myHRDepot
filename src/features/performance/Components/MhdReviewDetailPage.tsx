@@ -165,7 +165,7 @@ export function MhdReviewDetailPage() {
     }
   }
 
-  async function handleTransition(newStatus: 'IN_REVIEW' | 'CANCELLED') {
+  async function handleTransition(newStatus: 'IN_REVIEW' | 'CANCELLED' | 'COMPLETED') {
     if (!review) return;
     if (newStatus === 'CANCELLED' && !window.confirm(`Cancel review ${review.referenceId}? This is terminal and cannot be undone.`)) {
       return;
@@ -289,6 +289,17 @@ export function MhdReviewDetailPage() {
                   >
                     <PenLine className="h-4 w-4" />
                     {isFinalizeInFlight ? 'Finalizing…' : 'Finalize & Send for Signature'}
+                  </button>
+                ) : null}
+
+                {review.status === 'PENDING_SIGNATURE' && review.signatureStatus === 'COMPLETED' ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleTransition('COMPLETED')}
+                    disabled={actions.transitionReview.isPending}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                  >
+                    {actions.transitionReview.isPending ? 'Completing…' : 'Complete Review (Signed)'}
                   </button>
                 ) : null}
 
