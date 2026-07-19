@@ -6207,6 +6207,217 @@ export type Database = {
           },
         ]
       }
+      offboarding_cases: {
+        Row: {
+          cancel_reason: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string | null
+          created_by: string
+          eligible_for_rehire: boolean | null
+          exit_interview_activity_id: string | null
+          id: string
+          initiated_by_user_id: string
+          last_working_day: string | null
+          person_id: string
+          reason_summary: string | null
+          reference_id: string
+          separation_date: string
+          separation_type: string
+          status: string
+          updated_at: string | null
+          updated_by: string
+        }
+        Insert: {
+          cancel_reason?: string | null
+          company_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          eligible_for_rehire?: boolean | null
+          exit_interview_activity_id?: string | null
+          id?: string
+          initiated_by_user_id: string
+          last_working_day?: string | null
+          person_id: string
+          reason_summary?: string | null
+          reference_id: string
+          separation_date: string
+          separation_type: string
+          status?: string
+          updated_at?: string | null
+          updated_by: string
+        }
+        Update: {
+          cancel_reason?: string | null
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          eligible_for_rehire?: boolean | null
+          exit_interview_activity_id?: string | null
+          id?: string
+          initiated_by_user_id?: string
+          last_working_day?: string | null
+          person_id?: string
+          reason_summary?: string | null
+          reference_id?: string
+          separation_date?: string
+          separation_type?: string
+          status?: string
+          updated_at?: string | null
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_cases_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_cases_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_cases_exit_interview_activity_id_fkey"
+            columns: ["exit_interview_activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_cases_initiated_by_user_id_fkey"
+            columns: ["initiated_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_cases_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_cases_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offboarding_checklist_items: {
+        Row: {
+          assigned_user_id: string | null
+          case_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          is_required: boolean
+          item_key: string | null
+          linked_entity_id: string | null
+          linked_entity_type: string | null
+          reference_id: string
+          sort_order: number
+          status: string
+          status_reason: string | null
+          title: string
+          updated_at: string | null
+          updated_by: string
+        }
+        Insert: {
+          assigned_user_id?: string | null
+          case_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_required?: boolean
+          item_key?: string | null
+          linked_entity_id?: string | null
+          linked_entity_type?: string | null
+          reference_id: string
+          sort_order?: number
+          status?: string
+          status_reason?: string | null
+          title: string
+          updated_at?: string | null
+          updated_by: string
+        }
+        Update: {
+          assigned_user_id?: string | null
+          case_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_required?: boolean
+          item_key?: string | null
+          linked_entity_id?: string | null
+          linked_entity_type?: string | null
+          reference_id?: string
+          sort_order?: number
+          status?: string
+          status_reason?: string | null
+          title?: string
+          updated_at?: string | null
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_checklist_items_assigned_user_id_fkey"
+            columns: ["assigned_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_checklist_items_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_checklist_items_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_checklist_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_checklist_items_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_at_will_acknowledgments: {
         Row: {
           acknowledged_flag: boolean
@@ -10070,6 +10281,14 @@ export type Database = {
         Args: { p_plan_id: string }
         Returns: undefined
       }
+      mhd_assert_offboarding_case_access: {
+        Args: { p_case_id: string }
+        Returns: undefined
+      }
+      mhd_assert_offboarding_case_mutate: {
+        Args: { p_case_id: string }
+        Returns: undefined
+      }
       mhd_assert_performance_review_access: {
         Args: { p_review_id: string }
         Returns: undefined
@@ -10117,6 +10336,10 @@ export type Database = {
       }
       mhd_can_view_coaching_plan: {
         Args: { p_plan_id: string }
+        Returns: boolean
+      }
+      mhd_can_view_offboarding_case: {
+        Args: { p_case_id: string }
         Returns: boolean
       }
       mhd_can_view_performance_review: {
@@ -10251,6 +10474,36 @@ export type Database = {
           p_note_plain_text: string
           p_note_rich_text: Json
           p_visibility?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_create_offboarding_case: {
+        Args: {
+          p_actor_user_id?: string
+          p_company_id: string
+          p_last_working_day?: string
+          p_person_id: string
+          p_reason_summary?: string
+          p_separation_date: string
+          p_separation_type: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_create_offboarding_item: {
+        Args: {
+          p_assigned_user_id?: string
+          p_case_id: string
+          p_description?: string
+          p_due_date?: string
+          p_is_required?: boolean
+          p_sort_order?: number
+          p_title: string
         }
         Returns: {
           id: string
@@ -10475,6 +10728,14 @@ export type Database = {
         Returns: boolean
       }
       mhd_delete_note: { Args: { p_note_id: string }; Returns: undefined }
+      mhd_delete_offboarding_case: {
+        Args: { p_case_id: string }
+        Returns: undefined
+      }
+      mhd_delete_offboarding_item: {
+        Args: { p_item_id: string }
+        Returns: undefined
+      }
       mhd_delete_performance_review: {
         Args: { p_review_id: string }
         Returns: undefined
@@ -10645,6 +10906,7 @@ export type Database = {
       }
       mhd_get_default_task_priority_id: { Args: never; Returns: string }
       mhd_get_default_task_status_id: { Args: never; Returns: string }
+      mhd_get_exit_acknowledgment_template_id: { Args: never; Returns: string }
       mhd_get_field_encryption_key: { Args: never; Returns: string }
       mhd_get_form: {
         Args: { p_form_id: string }
@@ -10664,6 +10926,36 @@ export type Database = {
           updated_at: string
           updated_by: string
           version: number
+        }[]
+      }
+      mhd_get_offboarding_case: {
+        Args: { p_case_id: string }
+        Returns: {
+          cancel_reason: string
+          company_id: string
+          company_name: string
+          completed_at: string
+          created_at: string
+          created_by: string
+          eligible_for_rehire: boolean
+          exit_interview_activity_id: string
+          id: string
+          initiated_by_user_id: string
+          initiator_display_name: string
+          last_working_day: string
+          outstanding_property_count: number
+          person_display_name: string
+          person_id: string
+          person_primary_email: string
+          reason_summary: string
+          reference_id: string
+          required_done_count: number
+          required_total_count: number
+          separation_date: string
+          separation_type: string
+          status: string
+          updated_at: string
+          updated_by: string
         }[]
       }
       mhd_get_onboarding_checklist_for_person: {
@@ -11199,6 +11491,72 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      mhd_list_offboarding_cases: {
+        Args: {
+          p_company_id?: string
+          p_from?: string
+          p_person_id?: string
+          p_search?: string
+          p_separation_type?: string
+          p_status?: string
+          p_to?: string
+        }
+        Returns: {
+          cancel_reason: string
+          company_id: string
+          company_name: string
+          completed_at: string
+          created_at: string
+          created_by: string
+          eligible_for_rehire: boolean
+          exit_interview_activity_id: string
+          id: string
+          initiated_by_user_id: string
+          initiator_display_name: string
+          last_working_day: string
+          outstanding_property_count: number
+          person_display_name: string
+          person_id: string
+          person_primary_email: string
+          reason_summary: string
+          reference_id: string
+          required_done_count: number
+          required_total_count: number
+          separation_date: string
+          separation_type: string
+          status: string
+          updated_at: string
+          updated_by: string
+        }[]
+      }
+      mhd_list_offboarding_items: {
+        Args: { p_case_id: string }
+        Returns: {
+          assigned_user_id: string
+          assignee_display_name: string
+          case_id: string
+          completed_at: string
+          completed_by: string
+          created_at: string
+          created_by: string
+          description: string
+          due_date: string
+          id: string
+          is_required: boolean
+          item_key: string
+          linked_drive_file_id: string
+          linked_entity_id: string
+          linked_entity_type: string
+          linked_esignature_status: string
+          reference_id: string
+          sort_order: number
+          status: string
+          status_reason: string
+          title: string
+          updated_at: string
+          updated_by: string
+        }[]
       }
       mhd_list_pending_approvals_for_user: {
         Args: { p_user_id: string }
@@ -11824,6 +12182,18 @@ export type Database = {
           status: string
         }[]
       }
+      mhd_transition_offboarding_case: {
+        Args: {
+          p_cancel_reason?: string
+          p_case_id: string
+          p_new_status: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+          status: string
+        }[]
+      }
       mhd_transition_performance_review: {
         Args: {
           p_new_status: string
@@ -11930,6 +12300,37 @@ export type Database = {
           p_note_plain_text: string
           p_note_rich_text: Json
           p_visibility?: string
+        }
+        Returns: undefined
+      }
+      mhd_update_offboarding_case: {
+        Args: {
+          p_case_id: string
+          p_eligible_for_rehire?: boolean
+          p_exit_interview_activity_id?: string
+          p_last_working_day?: string
+          p_reason_summary?: string
+          p_separation_date?: string
+          p_separation_type?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_update_offboarding_item: {
+        Args: {
+          p_assigned_user_id?: string
+          p_description?: string
+          p_due_date?: string
+          p_is_required?: boolean
+          p_item_id: string
+          p_linked_entity_id?: string
+          p_linked_entity_type?: string
+          p_reason?: string
+          p_sort_order?: number
+          p_status?: string
+          p_title?: string
         }
         Returns: undefined
       }
@@ -12259,4 +12660,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
