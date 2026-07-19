@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Building2, CalendarClock, CheckSquare, ClipboardList, FileSignature, LayoutDashboard, Package2, Stamp, Users } from 'lucide-react';
+import { Building2, CalendarClock, CheckSquare, ClipboardList, FileSignature, LayoutDashboard, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -31,6 +31,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Activities', route: '/activities', icon: CalendarClock, roles: mhdRouteRoles('/activities') },
       { label: 'Forms', route: '/forms', icon: ClipboardList, roles: mhdRouteRoles('/forms') },
       { label: 'Approvals', route: '/approvals', icon: Stamp, roles: mhdRouteRoles('/approvals') },
+      { label: 'Performance', route: '/performance', icon: TrendingUp, roles: mhdRouteRoles('/performance') },
     ],
   },
   {

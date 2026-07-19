@@ -18,6 +18,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/forms', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
   { path: '/property', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
   { path: '/esignature', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
+  { path: '/performance', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/people', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/companies', roles: ['Platform Admin', 'HR Partner'] },
   { path: '/approvals', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
@@ -105,6 +106,11 @@ export const MHD_ACTIVITY_MUTATING_ROLES: MhdAuthRoleName[] = [
 
 export function mhdCanMutateActivities(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_ACTIVITY_MUTATING_ROLES.some((role) => userRoles.includes(role));
+}
+
+export const MHD_PERFORMANCE_MUTATING_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'];
+export function mhdCanMutatePerformance(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_PERFORMANCE_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }
 
 /**

@@ -18,10 +18,15 @@ import { useMhdActivities } from '@/features/activities/Hook';
 import { MhdActivityList } from '@/features/activities/components/MhdActivityList';
 import { useMhdOnboardingPacket } from '@/features/onboarding/Hook';
 import { MhdOnboardingChecklistPage } from '@/features/onboarding/components/MhdOnboardingChecklistPage';
+import { useMhdPerformanceReviews } from '@/features/performance/Hook';
+import { mhdCanAccessRoute } from '@/appshell/mhdRouteAccess';
+import { useMhdAuth } from '@/features/authentication/Hook';
+import { Link } from 'react-router-dom';
 
 export function MhdPersonDetailPage() {
   const { personId } = useParams<{ personId: string }>();
   const navigate = useNavigate();
+  const { roles } = useMhdAuth();
 
   const { data: person, isLoading, error } = useQuery({
     queryKey: ['mhd-person', personId],
@@ -40,6 +45,8 @@ export function MhdPersonDetailPage() {
     from: '',
     to: '',
   });
+  const performanceQuery = useMhdPerformanceReviews({ companyId: person?.companyId ?? '', personId: person?.id ?? 'ALL', reviewerUserId: 'ALL', reviewType: 'ALL', status: 'ALL', searchTerm: '', dueFrom: '', dueTo: '' });
+  const canSeePerformance = mhdCanAccessRoute('/performance', roles);
 
   if (isLoading) {
     return (
@@ -141,6 +148,18 @@ export function MhdPersonDetailPage() {
         isLoading={onboardingPacket.isLoading}
         errorMessage={onboardingPacket.errorMessage}
       />
+
+      {canSeePerformance && (
+        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-neutral-900">Performance</h2>
+          {performanceQuery.isLoading ? <p className="mt-2 text-sm text-neutral-500">Loading performance history…</p> : (
+            <ul className="mt-3 space-y-2 text-sm">
+              {(performanceQuery.data ?? []).map((review) => <li key={review.id}><Link className="text-blue-700 hover:underline" to={`/performance/reviews/${review.id}`}>{review.referenceId} · {review.status}</Link></li>)}
+              {(performanceQuery.data ?? []).length === 0 && <li className="text-neutral-500">No performance reviews.</li>}
+            </ul>
+          )}
+        </section>
+      )}
 
       <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="mb-4">

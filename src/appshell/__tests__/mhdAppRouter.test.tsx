@@ -127,6 +127,15 @@ vi.mock('@/features/approvals/components/MhdApprovalsPage', () => ({
 vi.mock('@/features/approvals/components/MhdApprovalDetailPage', () => ({
   MhdApprovalDetailPage: () => <div>Approval Detail Page</div>,
 }));
+vi.mock('@/features/performance/Components/MhdPerformancePage', () => ({
+  MhdPerformancePage: () => <div>Performance Page</div>,
+}));
+vi.mock('@/features/performance/Components/MhdReviewDetailPage', () => ({
+  MhdReviewDetailPage: () => <div>Performance Review Detail Page</div>,
+}));
+vi.mock('@/features/performance/Components/MhdCoachingPlanDetailPage', () => ({
+  MhdCoachingPlanDetailPage: () => <div>Coaching Plan Detail Page</div>,
+}));
 vi.mock('../components/MhdNotFoundPage', () => ({
   MhdNotFoundPage: () => <div>Page Not Found</div>,
 }));
@@ -421,6 +430,27 @@ describe('MhdAppRouter', () => {
       expect(window.location.pathname).toBe('/404');
     });
 
+    it('renders "/performance" for a Client User', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      setUrl('/performance');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText('Performance Page')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/performance');
+    });
+
+    it('redirects a Viewer away from "/performance" to "/404"', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl('/performance');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.queryByText('Performance Page')).not.toBeInTheDocument();
+      expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/404');
+    });
+
     it('does not restrict "/tasks", which has no role rule (ALL)', () => {
       mockAuth({ isAuthenticated: true, roles: ['Client User'] });
       setUrl('/tasks');
@@ -454,6 +484,7 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.getByText('Forms')).toBeInTheDocument();
     expect(screen.getByText('Property')).toBeInTheDocument();
     expect(screen.getByText('People')).toBeInTheDocument();
+    expect(screen.getByText('Performance')).toBeInTheDocument();
     expect(screen.queryByText('Companies')).not.toBeInTheDocument();
   });
 
@@ -495,6 +526,7 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.queryByText('People')).not.toBeInTheDocument();
     expect(screen.queryByText('Companies')).not.toBeInTheDocument();
     expect(screen.queryByText('Approvals')).not.toBeInTheDocument();
+    expect(screen.queryByText('Performance')).not.toBeInTheDocument();
   });
 });
 
