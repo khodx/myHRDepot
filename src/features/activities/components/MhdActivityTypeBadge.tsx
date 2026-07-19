@@ -8,6 +8,7 @@ const TYPE_STYLES: Record<MhdActivityType, string> = {
   EMAIL: 'bg-sky-100 text-sky-800',
   SITE_VISIT: 'bg-teal-100 text-teal-800',
   COMPANY_EVENT: 'bg-indigo-100 text-indigo-800',
+  EXIT_INTERVIEW: 'bg-rose-100 text-rose-800',
   OTHER: 'bg-neutral-100 text-neutral-600',
 };
 

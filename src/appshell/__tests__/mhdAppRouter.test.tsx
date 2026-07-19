@@ -136,6 +136,12 @@ vi.mock('@/features/performance/Components/MhdReviewDetailPage', () => ({
 vi.mock('@/features/performance/Components/MhdCoachingPlanDetailPage', () => ({
   MhdCoachingPlanDetailPage: () => <div>Coaching Plan Detail Page</div>,
 }));
+vi.mock('@/features/offboarding/components/MhdOffboardingPage', () => ({
+  MhdOffboardingPage: () => <div>Offboarding Page</div>,
+}));
+vi.mock('@/features/offboarding/components/MhdOffboardingCaseDetailPage', () => ({
+  MhdOffboardingCaseDetailPage: () => <div>Offboarding Case Detail Page</div>,
+}));
 vi.mock('../components/MhdNotFoundPage', () => ({
   MhdNotFoundPage: () => <div>Page Not Found</div>,
 }));
@@ -451,6 +457,39 @@ describe('MhdAppRouter', () => {
       expect(window.location.pathname).toBe('/404');
     });
 
+    it('renders "/offboarding" for a Client Admin', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Client Admin'] });
+      setUrl('/offboarding');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText('Offboarding Page')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/offboarding');
+    });
+
+    it.each<MhdAuthRoleName>(['Client User', 'Viewer'])(
+      'redirects an authenticated %s away from "/offboarding" to "/404"',
+      (role) => {
+        mockAuth({ isAuthenticated: true, roles: [role] });
+        setUrl('/offboarding');
+
+        render(<MhdAppRouter />);
+
+        expect(screen.queryByText('Offboarding Page')).not.toBeInTheDocument();
+        expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+        expect(window.location.pathname).toBe('/404');
+      },
+    );
+
+    it('applies the offboarding role rule to case detail routes', () => {
+      mockAuth({ isAuthenticated: true, roles: ['HR Partner'] });
+      setUrl('/offboarding/case-1');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText('Offboarding Case Detail Page')).toBeInTheDocument();
+    });
+
     it('does not restrict "/tasks", which has no role rule (ALL)', () => {
       mockAuth({ isAuthenticated: true, roles: ['Client User'] });
       setUrl('/tasks');
@@ -485,6 +524,7 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.getByText('Property')).toBeInTheDocument();
     expect(screen.getByText('People')).toBeInTheDocument();
     expect(screen.getByText('Performance')).toBeInTheDocument();
+    expect(screen.queryByText('Offboarding')).not.toBeInTheDocument();
     expect(screen.queryByText('Companies')).not.toBeInTheDocument();
   });
 
@@ -503,6 +543,7 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.getByText('Property')).toBeInTheDocument();
     expect(screen.getByText('Companies')).toBeInTheDocument();
     expect(screen.getByText('Approvals')).toBeInTheDocument();
+    expect(screen.getByText('Offboarding')).toBeInTheDocument();
   });
 
   it('shows "Forms" but hides "People" and "Companies" for a Viewer', async () => {
@@ -527,6 +568,7 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.queryByText('Companies')).not.toBeInTheDocument();
     expect(screen.queryByText('Approvals')).not.toBeInTheDocument();
     expect(screen.queryByText('Performance')).not.toBeInTheDocument();
+    expect(screen.queryByText('Offboarding')).not.toBeInTheDocument();
   });
 });
 

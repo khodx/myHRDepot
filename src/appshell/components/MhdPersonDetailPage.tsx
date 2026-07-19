@@ -19,6 +19,7 @@ import { MhdActivityList } from '@/features/activities/components/MhdActivityLis
 import { useMhdOnboardingPacket } from '@/features/onboarding/Hook';
 import { MhdOnboardingChecklistPage } from '@/features/onboarding/components/MhdOnboardingChecklistPage';
 import { useMhdPerformanceReviews } from '@/features/performance/Hook';
+import { useMhdOffboardingCases } from '@/features/offboarding/Hook';
 import { mhdCanAccessRoute } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Link } from 'react-router-dom';
@@ -47,6 +48,16 @@ export function MhdPersonDetailPage() {
   });
   const performanceQuery = useMhdPerformanceReviews({ companyId: person?.companyId ?? '', personId: person?.id ?? 'ALL', reviewerUserId: 'ALL', reviewType: 'ALL', status: 'ALL', searchTerm: '', dueFrom: '', dueTo: '' });
   const canSeePerformance = mhdCanAccessRoute('/performance', roles);
+  const canSeeOffboarding = mhdCanAccessRoute('/offboarding', roles);
+  const offboardingQuery = useMhdOffboardingCases({
+    companyId: canSeeOffboarding ? person?.companyId ?? '' : '',
+    personId: person?.id ?? 'ALL',
+    separationType: 'ALL',
+    status: 'ALL',
+    searchTerm: '',
+    from: '',
+    to: '',
+  });
 
   if (isLoading) {
     return (
@@ -160,6 +171,37 @@ export function MhdPersonDetailPage() {
           )}
         </section>
       )}
+
+      {canSeeOffboarding ? (
+        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-neutral-900">Offboarding</h2>
+          <p className="mt-1 text-sm text-neutral-500">
+            Privileged separation cases for this person.
+          </p>
+          {offboardingQuery.isLoading ? (
+            <p className="mt-2 text-sm text-neutral-500">Loading offboarding history…</p>
+          ) : offboardingQuery.error ? (
+            <p className="mt-2 text-sm text-red-600">
+              {offboardingQuery.error instanceof Error
+                ? offboardingQuery.error.message
+                : 'Unable to load offboarding history.'}
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2 text-sm">
+              {(offboardingQuery.data ?? []).map((offboardingCase) => (
+                <li key={offboardingCase.id}>
+                  <Link className="text-blue-700 hover:underline" to={`/offboarding/${offboardingCase.id}`}>
+                    {offboardingCase.referenceId} · {offboardingCase.status}
+                  </Link>
+                </li>
+              ))}
+              {(offboardingQuery.data ?? []).length === 0 ? (
+                <li className="text-neutral-500">No offboarding cases.</li>
+              ) : null}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="mb-4">

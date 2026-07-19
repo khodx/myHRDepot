@@ -34,6 +34,8 @@ import { MhdApprovalsPage } from '@/features/approvals/components/MhdApprovalsPa
 import { MhdPerformancePage } from '@/features/performance/Components/MhdPerformancePage';
 import { MhdReviewDetailPage } from '@/features/performance/Components/MhdReviewDetailPage';
 import { MhdCoachingPlanDetailPage } from '@/features/performance/Components/MhdCoachingPlanDetailPage';
+import { MhdOffboardingPage } from '@/features/offboarding/components/MhdOffboardingPage';
+import { MhdOffboardingCaseDetailPage } from '@/features/offboarding/components/MhdOffboardingCaseDetailPage';
 import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
 import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
 
@@ -83,6 +85,8 @@ export function AppRouter() {
               <Route path="/performance" element={<MhdPerformancePage />} />
               <Route path="/performance/reviews/:reviewId" element={<MhdReviewDetailPage />} />
               <Route path="/performance/coaching/:planId" element={<MhdCoachingPlanDetailPage />} />
+              <Route path="/offboarding" element={<MhdOffboardingPage />} />
+              <Route path="/offboarding/:caseId" element={<MhdOffboardingCaseDetailPage />} />
             </Route>
           </Route>
         </Route>
