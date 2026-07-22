@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Building2, CalendarClock, CalendarDays, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, LayoutDashboard, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
+import { Briefcase, Building2, CalendarClock, CalendarDays, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, IdCard, LayoutDashboard, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -26,6 +26,10 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Dashboard', route: '/dashboard', icon: LayoutDashboard, roles: mhdRouteRoles('/dashboard') },
       { label: 'Schedule', route: '/schedule', icon: CalendarDays, roles: mhdRouteRoles('/schedule') },
       { label: 'Attendance', route: '/attendance', icon: ClipboardCheck, roles: mhdRouteRoles('/attendance') },
+      // The employee's own published job description. A SEPARATE route from the
+      // privileged /jobs list (Client User only), so the list never has to be
+      // correct for two audiences — see mhdRouteAccess.
+      { label: 'My Job', route: '/my-job', icon: IdCard, roles: mhdRouteRoles('/my-job') },
     ],
   },
   {
@@ -44,6 +48,14 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Property', route: '/property', icon: Package2, roles: mhdRouteRoles('/property') },
       { label: 'E-Signature', route: '/esignature', icon: FileSignature, roles: mhdRouteRoles('/esignature') },
+    ],
+  },
+  {
+    label: 'Organization',
+    items: [
+      // Privileged only (Platform Admin / HR Partner / Client Admin). Employees
+      // reach their own description via "My Job" under Workspace, not here.
+      { label: 'Job Descriptions', route: '/jobs', icon: Briefcase, roles: mhdRouteRoles('/jobs') },
     ],
   },
   {

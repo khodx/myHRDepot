@@ -26,7 +26,8 @@ import {
   useMhdPointLedger,
 } from '@/features/timeattendance/Hook';
 import { MhdPointLedgerPanel } from '@/features/timeattendance/components/MhdPointLedgerPanel';
-import { mhdCanAccessRoute, mhdCanMutateAttendance } from '@/appshell/mhdRouteAccess';
+import { MhdJobAssignmentPanel } from '@/features/jobs/components/MhdJobAssignmentPanel';
+import { mhdCanAccessRoute, mhdCanMutateAttendance, mhdCanMutateJobs } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Link } from 'react-router-dom';
 
@@ -59,6 +60,10 @@ export function MhdPersonDetailPage() {
   // full point ledger, which is administrative context. Client User / Viewer
   // never see it here (an employee reads their own record at /attendance).
   const canSeeAttendance = mhdCanMutateAttendance(roles);
+  // The Job section (assignment history + reassignment) is privileged only —
+  // manager and note fields are administrative. An employee reads their own
+  // published description at /my-job, not here.
+  const canSeeJobs = mhdCanMutateJobs(roles);
   const attendancePersonId = canSeeAttendance ? person?.id ?? null : null;
   const attendanceCompanyId = canSeeAttendance ? person?.companyId ?? null : null;
   const attendanceBalance = useMhdPointBalance(attendancePersonId);
@@ -215,6 +220,16 @@ export function MhdPersonDetailPage() {
               ) : null}
             </ul>
           )}
+        </section>
+      ) : null}
+
+      {canSeeJobs ? (
+        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+          <MhdJobAssignmentPanel
+            companyId={person.companyId}
+            personId={person.id}
+            canAssign
+          />
         </section>
       ) : null}
 

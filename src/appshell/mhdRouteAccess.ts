@@ -32,6 +32,15 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/people', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/companies', roles: ['Platform Admin', 'HR Partner'] },
   { path: '/approvals', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  // Job Descriptions. /jobs (and its sub-routes /jobs/:jobId, /jobs/competencies)
+  // are the privileged Organization surface — Platform Admin / HR Partner /
+  // Client Admin. /my-job is the employee's OWN published description and admits
+  // Client User only; it is a SEPARATE route, never a filtered /jobs, so a bug in
+  // the privileged list can never become a disclosure. Viewer is excluded from
+  // both. Pay is masked server-side in the RPC (null to anyone who is not
+  // Platform Admin / HR Partner, Client Admin included) — see MHD_JOB_PAY_ROLES.
+  { path: '/jobs', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  { path: '/my-job', roles: ['Client User'] },
 ];
 
 export function mhdRouteRoles(path: string): MhdAuthRoleName[] | 'ALL' {
@@ -161,4 +170,36 @@ export const MHD_SENSITIVE_REVEAL_ROLES: MhdAuthRoleName[] = ['Platform Admin', 
 
 export function mhdCanRevealEncryptedFields(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_SENSITIVE_REVEAL_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Roles that may administer Job Descriptions — create and edit jobs, author and
+ * publish description versions, maintain the competency library and assign
+ * people to jobs. This is the same privileged set that renders the /jobs
+ * surface; a Client User reaches only /my-job (their own published description,
+ * read-only) and Viewer is excluded entirely. The RPCs enforce the same set
+ * server-side (42501 on a non-privileged write).
+ */
+export const MHD_JOBS_MUTATING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdCanMutateJobs(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_JOBS_MUTATING_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Roles that may see job pay figures. Narrower than MHD_JOBS_MUTATING_ROLES:
+ * Platform Admin and HR Partner only — Client Admin is deliberately excluded.
+ * This mirrors the RPC's server-side masking (mhd_job_can_see_pay), which nulls
+ * pay_min / pay_max / pay_period for anyone outside this set. The list only
+ * decides how the pay field words itself ("Not available to your role" vs a
+ * range); the data genuinely never reaches an unprivileged client.
+ */
+export const MHD_JOB_PAY_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner'];
+
+export function mhdCanSeeJobPay(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_JOB_PAY_ROLES.some((role) => userRoles.includes(role));
 }

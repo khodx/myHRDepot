@@ -69,6 +69,13 @@ vi.mock('@/features/timeattendance/Hook', () => ({
   useMhdPointLedger: () => ({ data: [], isLoading: false }),
   useMhdAttendancePolicy: () => ({ data: null, isLoading: false }),
 }));
+// Likewise the privileged-only Job section (Job Descriptions wave). Its panel
+// uses react-query mutations this suite's minimal react-query mock does not
+// provide, so it is stubbed to a benign element — unrelated to the Offboarding
+// assertions here.
+vi.mock('@/features/jobs/components/MhdJobAssignmentPanel', () => ({
+  MhdJobAssignmentPanel: () => <div>Job assignment</div>,
+}));
 
 const { MhdPersonDetailPage } = await import('@/appshell/components/MhdPersonDetailPage');
 

@@ -39,6 +39,10 @@ import { MhdOffboardingCaseDetailPage } from '@/features/offboarding/components/
 import { MhdSchedulePage } from '@/features/timeattendance/components/MhdSchedulePage';
 import { MhdAttendancePage } from '@/features/timeattendance/components/MhdAttendancePage';
 import { MhdAttendancePolicyPage } from '@/features/timeattendance/components/MhdAttendancePolicyPage';
+import { MhdJobsPage } from '@/features/jobs/components/MhdJobsPage';
+import { MhdCompetencyLibraryPage } from '@/features/jobs/components/MhdCompetencyLibraryPage';
+import { MhdJobDetailPage } from '@/features/jobs/components/MhdJobDetailPage';
+import { MhdMyJobPage } from '@/features/jobs/components/MhdMyJobPage';
 import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
 import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
 
@@ -96,6 +100,14 @@ export function AppRouter() {
                   inherit the broader /attendance rule. */}
               <Route path="/attendance/policy" element={<MhdAttendancePolicyPage />} />
               <Route path="/attendance" element={<MhdAttendancePage />} />
+              {/* Job Descriptions. /jobs/competencies is a static child and is
+                  ranked ahead of /jobs/:jobId by the router, so "competencies" is
+                  never captured as a jobId. /my-job is a SEPARATE employee route,
+                  never a filtered /jobs — see mhdRouteAccess. */}
+              <Route path="/jobs" element={<MhdJobsPage />} />
+              <Route path="/jobs/competencies" element={<MhdCompetencyLibraryPage />} />
+              <Route path="/jobs/:jobId" element={<MhdJobDetailPage />} />
+              <Route path="/my-job" element={<MhdMyJobPage />} />
             </Route>
           </Route>
         </Route>
