@@ -20,16 +20,6 @@ vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => mockUseMhdAuth(),
 }));
 
-// The sidebar's "Investigations" entry is DATA-gated, not role-gated: it queries
-// the grant-filtered investigation list (react-query) and renders only when it
-// returns >= 1 row. Mock that query so the provider-less MhdSidebar render works
-// and the gate can be driven per test. Default: empty (an ungranted user), so
-// the entry is hidden and existence stays non-disclosed.
-const mockUseMhdInvestigationCases = vi.fn(() => ({ data: [] as Array<{ id: string }> }));
-vi.mock('@/features/investigations/Hook', () => ({
-  useMhdInvestigationCases: () => mockUseMhdInvestigationCases(),
-}));
-
 // MhdProtectedRoute belongs to the scaffold's authentication feature. It is
 // mocked here as a faithful stand-in for its real implementation
 // (src/features/authentication/components/MhdProtectedRoute.tsx: redirect to
@@ -637,35 +627,13 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.queryByText('Offboarding')).not.toBeInTheDocument();
   });
 
-  it('hides "Investigations" when the grant-filtered list is empty (existence non-disclosure)', async () => {
-    // A Platform Admin with no case grants must NOT see the Investigations entry:
-    // the sidebar gates it on the list returning rows, never on a role, and an
-    // empty result must not imply hidden cases exist. The Employee Development
-    // group now ALSO hosts the role-gated Training entry, so the group header and
-    // "Training" render for this admin — proving the two gates are independent:
-    // the role-gated Training entry appearing does NOT drag the data-gated
-    // Investigations entry in with it.
+  it('shows "Investigations" for a privileged admin regardless of case grants', async () => {
+    // Investigations is role-gated like every other admin entry: the link renders
+    // for the privileged set (Platform Admin / HR Partner / Client Admin) whether
+    // or not the user currently holds a case grant. Showing the link is NOT access
+    // control — case visibility stays grant-based server-side, so an ungranted
+    // admin who opens the board simply sees an empty, non-disclosing list.
     mockAuth({ isAuthenticated: true, roles: ['Platform Admin'] });
-    mockUseMhdInvestigationCases.mockReturnValueOnce({ data: [] });
-    const { MhdSidebar } = await import('../MhdSidebar');
-    const { MemoryRouter } = await import('react-router-dom');
-
-    render(
-      <MemoryRouter>
-        <MhdSidebar />
-      </MemoryRouter>,
-    );
-
-    expect(screen.queryByText('Investigations')).not.toBeInTheDocument();
-    // The group header appears for the role-gated Training entry, not for the
-    // (still hidden) Investigations entry.
-    expect(screen.getByText('Employee Development')).toBeInTheDocument();
-    expect(screen.getByText('Training')).toBeInTheDocument();
-  });
-
-  it('shows "Investigations" only once the grant-filtered list returns >= 1 row (data-gated, not role-gated)', async () => {
-    mockAuth({ isAuthenticated: true, roles: ['Client Admin'] });
-    mockUseMhdInvestigationCases.mockReturnValueOnce({ data: [{ id: 'case-1' }] });
     const { MhdSidebar } = await import('../MhdSidebar');
     const { MemoryRouter } = await import('react-router-dom');
 
@@ -677,6 +645,25 @@ describe('MhdSidebar role-based visibility', () => {
 
     expect(screen.getByText('Employee Development')).toBeInTheDocument();
     expect(screen.getByText('Investigations')).toBeInTheDocument();
+    expect(screen.getByText('Training')).toBeInTheDocument();
+  });
+
+  it('hides "Investigations" from a Client User (route-excluded, not a privileged role)', async () => {
+    // Client User and Viewer are excluded from /investigations, so the entry never
+    // renders for them — but a Client User still sees their own Employee
+    // Development surfaces (My Training / My Handbooks).
+    mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+    const { MhdSidebar } = await import('../MhdSidebar');
+    const { MemoryRouter } = await import('react-router-dom');
+
+    render(
+      <MemoryRouter>
+        <MhdSidebar />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText('Investigations')).not.toBeInTheDocument();
+    expect(screen.getByText('My Training')).toBeInTheDocument();
   });
 });
 

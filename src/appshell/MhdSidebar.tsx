@@ -2,7 +2,6 @@ import { NavLink } from 'react-router-dom';
 import { BarChart3, BookMarked, BookOpen, Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, GraduationCap, IdCard, LayoutDashboard, Library, MessageSquare, Package2, ShieldAlert, Stamp, UserSearch, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
-import { useMhdInvestigationCases } from '@/features/investigations/Hook';
 import { mhdRouteRoles } from './mhdRouteAccess';
 
 interface NavItem {
@@ -96,6 +95,25 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Companies', route: '/companies', icon: Building2, roles: mhdRouteRoles('/companies') },
     ],
   },
+  {
+    // Employee Development. Training / My Training and Handbooks / My Handbooks
+    // split admin vs employee into separate routes, each role-gated via its own
+    // mhdRouteRoles(...). Investigations is role-gated too — the entry renders for
+    // the privileged set (Platform Admin / HR Partner / Client Admin) whether or
+    // not the user currently holds a case grant. Showing the link is NOT access
+    // control: case visibility stays grant-based server-side (the list RPC is
+    // grant-filtered and `get` denies an ungranted caller with an identical
+    // non-disclosing error), so an ungranted admin who opens the board simply sees
+    // an empty list — which reveals nothing about cases outside their grants.
+    label: 'Employee Development',
+    items: [
+      { label: 'Training', route: '/training', icon: GraduationCap, roles: mhdRouteRoles('/training') },
+      { label: 'My Training', route: '/my-training', icon: BookOpen, roles: mhdRouteRoles('/my-training') },
+      { label: 'Handbooks', route: '/handbooks', icon: Library, roles: mhdRouteRoles('/handbooks') },
+      { label: 'My Handbooks', route: '/my-handbooks', icon: BookMarked, roles: mhdRouteRoles('/my-handbooks') },
+      { label: 'Investigations', route: '/investigations', icon: ShieldAlert, roles: mhdRouteRoles('/investigations') },
+    ],
+  },
 ];
 
 export function MhdSidebar() {
@@ -129,81 +147,8 @@ export function MhdSidebar() {
             ))}
           </div>
         ))}
-        {/* Employee Development — Investigations is DATA-GATED, not role-gated:
-            the entry renders only when the grant-filtered list returns ≥1 row for
-            the current user, never on a role. See MhdEmployeeDevelopmentSection. */}
-        <MhdEmployeeDevelopmentSection />
       </nav>
     </aside>
-  );
-}
-
-/**
- * The "Employee Development" nav group. It carries two KINDS of entry, gated
- * differently and independently:
- *
- * - Training / My Training and Handbooks / My Handbooks are ROLE-gated like every
- *   other nav item — the admin surfaces (Training, Handbooks) for the privileged
- *   set (Platform Admin / HR Partner / Client Admin), the employee surfaces (My
- *   Training, My Handbooks) for Client User, each via its own mhdRouteRoles(...).
- *   Viewer sees none of them.
- * - Investigations is DATA-gated, not role-gated: it appears solely when the
- *   grant-filtered `mhd_investigation_list` returns ≥1 row for the signed-in
- *   user. A fresh admin with no grants sees no Investigations entry, and the
- *   empty result leaks nothing about cases beyond their grants (existence is
- *   non-disclosure). This is the deliberate exception to the role-driven
- *   sidebar: the strict Investigations model has no role that grants visibility,
- *   so the sidebar cannot gate on one.
- *
- * The two gates are additive and never interfere — adding the role-gated Training
- * entries must not (and does not) change the Investigations data-gate, and vice
- * versa. The group header renders only when at least one entry survives its own
- * gate.
- */
-function MhdEmployeeDevelopmentSection() {
-  const { profile, roles } = useMhdAuth();
-  const companyId = profile?.companyId ?? null;
-  // Grant-filtered list. `enabled` is false without a company, so this fires at
-  // most once per signed-in user with a company; an ungranted caller gets an
-  // empty set and the Investigations entry stays hidden.
-  const cases = useMhdInvestigationCases({ companyId, status: 'ALL' });
-
-  // Role-gated entries — filtered exactly like NAV_SECTIONS items. Training and
-  // Handbooks split admin vs employee into two SEPARATE routes each; both are
-  // gated purely on role, independent of the data-gated Investigations entry.
-  const roleGatedItems: NavItem[] = [
-    { label: 'Training', route: '/training', icon: GraduationCap, roles: mhdRouteRoles('/training') },
-    { label: 'My Training', route: '/my-training', icon: BookOpen, roles: mhdRouteRoles('/my-training') },
-    { label: 'Handbooks', route: '/handbooks', icon: Library, roles: mhdRouteRoles('/handbooks') },
-    { label: 'My Handbooks', route: '/my-handbooks', icon: BookMarked, roles: mhdRouteRoles('/my-handbooks') },
-  ].filter((item) => (item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role))));
-
-  // Data-gated Investigations entry — only when the grant-filtered list is non-empty.
-  const showInvestigations = (cases.data ?? []).length > 0;
-
-  if (roleGatedItems.length === 0 && !showInvestigations) {
-    return null;
-  }
-
-  return (
-    <div className="space-y-1">
-      <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
-        Employee Development
-      </p>
-      {roleGatedItems.map((item) => (
-        <MhdNavItem key={item.route} item={item} />
-      ))}
-      {showInvestigations ? (
-        <MhdNavItem
-          item={{
-            label: 'Investigations',
-            route: '/investigations',
-            icon: ShieldAlert,
-            roles: mhdRouteRoles('/investigations'),
-          }}
-        />
-      ) : null}
-    </div>
   );
 }
 
