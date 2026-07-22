@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { BookMarked, BookOpen, Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, GraduationCap, IdCard, LayoutDashboard, Library, MessageSquare, Package2, ShieldAlert, Stamp, Users, TrendingUp } from 'lucide-react';
+import { BarChart3, BookMarked, BookOpen, Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, GraduationCap, IdCard, LayoutDashboard, Library, MessageSquare, Package2, ShieldAlert, Stamp, UserSearch, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { useMhdInvestigationCases } from '@/features/investigations/Hook';
@@ -74,6 +74,19 @@ const NAV_SECTIONS: NavSection[] = [
       // Privileged only (Platform Admin / HR Partner / Client Admin). Employees
       // reach their own description via "My Job" under Workspace, not here.
       { label: 'Job Descriptions', route: '/jobs', icon: Briefcase, roles: mhdRouteRoles('/jobs') },
+    ],
+  },
+  {
+    // Recruiting / ATS. The Recruiting entry is admin + hiring-manager (Platform
+    // Admin / HR Partner / Client Admin) via mhdRouteRoles('/recruiting'). The EEO
+    // Report entry is Platform-Admin ONLY via mhdRouteRoles('/recruiting/eeo') — it
+    // is the sole read path into the hard-restricted EEO partition, so the link can
+    // never render for any other role. Neither entry exposes EEO data itself; the
+    // report shows aggregate counts only.
+    label: 'Recruiting',
+    items: [
+      { label: 'Recruiting', route: '/recruiting', icon: UserSearch, roles: mhdRouteRoles('/recruiting') },
+      { label: 'EEO Report', route: '/recruiting/eeo', icon: BarChart3, roles: mhdRouteRoles('/recruiting/eeo') },
     ],
   },
   {

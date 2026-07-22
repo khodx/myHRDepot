@@ -116,6 +116,29 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // data-gated Investigations entry and the Training entries.
   { path: '/my-handbooks', roles: ['Client User'] },
   { path: '/handbooks', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  // Recruiting / ATS. Four surfaces, gated at three different widths — the more
+  // specific rules MUST precede the general /recruiting rule because
+  // mhdCanAccessRoute returns the FIRST matching rule via prefix match (the same
+  // ordering discipline as /attendance/policy before /attendance).
+  //
+  // - /recruiting/eeo is the aggregate EEO report and is Platform Admin ONLY. The
+  //   EEO self-identification partition is readable by NO one row-wise (RLS
+  //   using(false)); this aggregate report is the SOLE read path, so it is the
+  //   most tightly gated route in the module. No recruiter/HM/interviewer surface
+  //   ever renders EEO — the public /apply page collects it write-only.
+  // - /recruiting/interviews/:interviewId is the interviewer worksheet. An
+  //   assigned interviewer may be ANY authenticated role, so the route is gated
+  //   only to authenticated non-Viewer; the worksheet RPC gates the actual read
+  //   on mhd_interview_can_access_interview (assigned interviewer OR recruiter),
+  //   so a non-assigned caller who reaches the route simply loads nothing.
+  // - /recruiting (and /recruiting/requisitions, /recruiting/applications,
+  //   /recruiting/questions via the prefix match) is the admin + hiring-manager
+  //   surface: Platform Admin / HR Partner / Client Admin. A hiring manager sees
+  //   only their own requisitions (RLS). Viewer is excluded from every
+  //   authenticated recruiting surface.
+  { path: '/recruiting/eeo', roles: ['Platform Admin'] },
+  { path: '/recruiting/interviews', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  { path: '/recruiting', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
 ];
 
 export function mhdRouteRoles(path: string): MhdAuthRoleName[] | 'ALL' {
@@ -424,4 +447,40 @@ export const MHD_HANDBOOK_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
 
 export function mhdHandbookIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_HANDBOOK_PRIVILEGED_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * The privileged Recruiting set — Platform Admin / HR Partner / Client Admin.
+ * These roles reach the admin `/recruiting` surface: they create and manage
+ * requisitions, invite applicants, build interview guides, schedule interviews,
+ * finalize evaluations, and extend/accept offers. A hiring manager is one of
+ * these roles and sees only their own requisitions (RLS); Viewer is excluded
+ * entirely. Every recruiting RPC re-checks `mhd_recruiting_is_privileged`
+ * server-side (42501 on a non-privileged write); this helper only decides whether
+ * the managing affordances render — it maps to the `canManage` / `canFinalize`
+ * props the package surfaces expose.
+ */
+export const MHD_RECRUITING_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdRecruitingIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_RECRUITING_PRIVILEGED_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Narrower than the privileged set: only Platform Admin may read the aggregate
+ * EEO report. The `recruiting_eeo_self_identification` partition is readable by
+ * NO one row-wise (RLS using(false)); `mhd_recruiting_eeo_report` is the sole
+ * read path and is Platform-Admin-gated server-side, returning aggregate COUNTS
+ * only (never an individual row). This helper only decides whether the report
+ * page even attempts the call, so a non-admin sees the gate message rather than a
+ * thrown error — the data genuinely never reaches a non-Platform-Admin client.
+ */
+export const MHD_RECRUITING_EEO_REPORT_ROLES: MhdAuthRoleName[] = ['Platform Admin'];
+
+export function mhdCanReadEeoReport(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_RECRUITING_EEO_REPORT_ROLES.some((role) => userRoles.includes(role));
 }

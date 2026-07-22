@@ -59,6 +59,13 @@ import { MhdHandbooksPage } from '@/features/handbook/components/MhdHandbooksPag
 import { MhdHandbookDetailPage } from '@/features/handbook/components/MhdHandbookDetailPage';
 import { MhdMyHandbooksRoutePage } from '@/features/handbook/components/MhdMyHandbooksRoutePage';
 import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
+import { MhdRecruitingRoutePage } from '@/features/recruiting/components/MhdRecruitingRoutePage';
+import { MhdRequisitionDetailRoutePage } from '@/features/recruiting/components/MhdRequisitionDetailRoutePage';
+import { MhdApplicationDetailRoutePage } from '@/features/recruiting/components/MhdApplicationDetailRoutePage';
+import { MhdInterviewWorksheetRoutePage } from '@/features/recruiting/components/MhdInterviewWorksheetRoutePage';
+import { MhdQuestionBankRoutePage } from '@/features/recruiting/components/MhdQuestionBankRoutePage';
+import { MhdEeoReportRoutePage } from '@/features/recruiting/components/MhdEeoReportRoutePage';
+import { MhdApplyPage } from '@/features/recruiting/requisitions/components/MhdApplyPage';
 import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
 
 export function AppRouter() {
@@ -72,6 +79,13 @@ export function AppRouter() {
         <Route path="/auth/callback" element={<MhdAuthCallbackPage />} />
         <Route element={<PublicLayout />}>
           <Route path="/sign/:token" element={<MhdPublicSigningPage />} />
+          {/* The public, UNAUTHENTICATED applicant apply page. It sits OUTSIDE the
+              MhdProtectedRoute guard entirely — no session, no role guard — and
+              reads its single-use invite token from the ?token= query string,
+              mirroring the /sign/:token e-signature route. The token is the sole
+              credential; both RPCs it calls are security-definer and token-gated.
+              The voluntary EEO self-identification it collects is write-only. */}
+          <Route path="/apply" element={<MhdApplyPage />} />
         </Route>
 
         {/* Protected app routes */}
@@ -183,6 +197,23 @@ export function AppRouter() {
               <Route path="/handbooks" element={<MhdHandbooksPage />} />
               <Route path="/handbooks/:handbookId" element={<MhdHandbookDetailPage />} />
               <Route path="/my-handbooks" element={<MhdMyHandbooksRoutePage />} />
+              {/* Recruiting / ATS. Static child routes (/recruiting/eeo,
+                  /recruiting/questions, /recruiting/interviews/:id) are ranked
+                  ahead of the parameterised ones by the router. Access is enforced
+                  in mhdRouteAccess: /recruiting/eeo is Platform-Admin only,
+                  /recruiting/interviews/:id admits any authenticated non-Viewer
+                  (server RLS scopes the worksheet), and /recruiting + the
+                  requisition/application detail routes are Platform Admin / HR
+                  Partner / Client Admin. The public /apply page is a SEPARATE
+                  route in the public block above, outside this guard entirely. All
+                  route-entry pages read useMhdAuth themselves. NO EEO renders on
+                  any recruiter/HM/interviewer surface. */}
+              <Route path="/recruiting" element={<MhdRecruitingRoutePage />} />
+              <Route path="/recruiting/eeo" element={<MhdEeoReportRoutePage />} />
+              <Route path="/recruiting/questions" element={<MhdQuestionBankRoutePage />} />
+              <Route path="/recruiting/interviews/:interviewId" element={<MhdInterviewWorksheetRoutePage />} />
+              <Route path="/recruiting/requisitions/:reqId" element={<MhdRequisitionDetailRoutePage />} />
+              <Route path="/recruiting/applications/:appId" element={<MhdApplicationDetailRoutePage />} />
             </Route>
           </Route>
         </Route>
