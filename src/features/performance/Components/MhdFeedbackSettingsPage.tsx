@@ -31,7 +31,7 @@ export function MhdFeedbackSettingsPage() {
             You do not have access to manage feedback settings.
           </p>
         ) : (
-          <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
             <MhdFeedbackSettingsForm companyId={companyId} />
           </section>
         )}

@@ -10,7 +10,7 @@ type MhdCompanyDetailsPanelProps = {
 export function MhdCompanyDetailsPanel({ company, isSubmitting, onUpdateCompany }: MhdCompanyDetailsPanelProps) {
   if (!company) {
     return (
-      <aside className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <aside className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-900">Company details</h2>
         <p className="mt-2 text-sm text-slate-600">Select a company to view and edit its details.</p>
       </aside>
@@ -18,7 +18,7 @@ export function MhdCompanyDetailsPanel({ company, isSubmitting, onUpdateCompany 
   }
 
   return (
-    <aside className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    <aside className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{company.referenceId}</p>
         <h2 className="mt-1 text-lg font-semibold text-slate-900">{company.companyName}</h2>

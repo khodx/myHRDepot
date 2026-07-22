@@ -12,7 +12,7 @@ interface MhdTaskFilterBarProps {
 
 export function MhdTaskFilterBar({ companies, statuses, priorities, assignableUsers, filters, onChange }: MhdTaskFilterBarProps) {
   return (
-    <section className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 md:grid-cols-3 lg:grid-cols-6">
+    <section className="grid gap-3 rounded-lg border border-slate-200 bg-card p-4 md:grid-cols-3 lg:grid-cols-6">
       <label className="text-sm font-medium text-slate-700">
         Company
         <select className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" value={filters.companyId} onChange={(event) => onChange({ ...filters, companyId: event.target.value })}>

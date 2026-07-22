@@ -53,7 +53,7 @@ export function MhdFormResumeDrafts({ drafts, onResume }: MhdFormResumeDraftsPro
   if (drafts.length === 0) return null;
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
+    <div className="rounded-lg border border-slate-200 bg-card p-4">
       <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Resume Saved Draft</h4>
       <ul className="mt-3 space-y-2">
         {drafts.map((draft) => (

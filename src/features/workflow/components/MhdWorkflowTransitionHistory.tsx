@@ -61,7 +61,7 @@ export function MhdWorkflowTransitionHistory({ taskId, className = '' }: MhdWork
         <div className="space-y-4">
           {transitions.map((transition) => (
             <div key={transition.id} className="relative pl-12">
-              <div className="absolute left-0 top-1.5 flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-300 bg-white">
+              <div className="absolute left-0 top-1.5 flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-300 bg-card">
                 <div className="h-2 w-2 rounded-full bg-gray-300" />
               </div>
 

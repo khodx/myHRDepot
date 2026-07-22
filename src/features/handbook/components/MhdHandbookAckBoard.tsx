@@ -89,7 +89,7 @@ export function MhdHandbookAckBoard({ companyId, versionId, onRequestSignature }
             type="button"
             onClick={() => void handleAssign()}
             disabled={!personId || assign.isPending || isRequesting}
-            className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
           >
             {isRequesting ? 'Preparing signature…' : assign.isPending ? 'Assigning…' : 'Assign'}
           </button>

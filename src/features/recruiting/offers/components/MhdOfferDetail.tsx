@@ -252,7 +252,7 @@ export function MhdOfferDetail({
             type="button"
             onClick={() => void handleExtend()}
             disabled={isExtending}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
           >
             {ceremonyStep === 'document'
               ? 'Preparing document…'
@@ -384,7 +384,7 @@ function OfferReasonDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-      <div className="w-full max-w-md overflow-y-auto rounded-lg bg-white p-6">
+      <div className="w-full max-w-md overflow-y-auto rounded-lg bg-card p-6">
         <h2 className="text-base font-semibold text-neutral-900">{title}</h2>
         <p className="mt-1 text-sm text-neutral-600">{subtitle}</p>
 

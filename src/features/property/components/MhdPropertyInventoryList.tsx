@@ -12,7 +12,7 @@ interface MhdPropertyInventoryListProps {
 export function MhdPropertyInventoryList({ items, isLoading, canMutate }: MhdPropertyInventoryListProps) {
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm">
+      <div className="rounded-lg border border-slate-200 bg-card p-6 text-sm text-slate-500 shadow-sm">
         Loading property inventory...
       </div>
     );
@@ -20,7 +20,7 @@ export function MhdPropertyInventoryList({ items, isLoading, canMutate }: MhdPro
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-slate-400 shadow-sm">
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-card px-6 py-12 text-slate-400 shadow-sm">
         <Package className="mb-3 h-10 w-10" />
         <p className="text-sm font-medium text-slate-600">No property items match the current filters.</p>
       </div>
@@ -28,7 +28,7 @@ export function MhdPropertyInventoryList({ items, isLoading, canMutate }: MhdPro
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-card shadow-sm">
       <table className="min-w-full divide-y divide-slate-200 text-sm">
         <thead className="bg-slate-50">
           <tr className="text-left text-slate-500">

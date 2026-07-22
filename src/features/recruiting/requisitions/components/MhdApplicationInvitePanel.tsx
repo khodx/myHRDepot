@@ -145,7 +145,7 @@ export function MhdApplicationInvitePanel({
           <button
             type="submit"
             disabled={invite.isPending}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
           >
             {invite.isPending ? 'Creating link…' : 'Create apply link'}
           </button>
@@ -172,7 +172,7 @@ export function MhdApplicationInvitePanel({
             <button
               type="button"
               onClick={() => void handleCopy()}
-              className="whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700"
+              className="whitespace-nowrap rounded-md border border-neutral-300 bg-card px-3 py-2 text-sm font-medium text-neutral-700"
             >
               {copied ? 'Copied' : 'Copy'}
             </button>

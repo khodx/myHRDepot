@@ -256,7 +256,7 @@ export function MhdTripListPanel({
                               type="button"
                               disabled={isSubmitting}
                               onClick={() => void submitVoid(trip.id)}
-                              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+                              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
                             >
                               {isSubmitting ? 'Voiding…' : 'Void trip'}
                             </button>

@@ -39,7 +39,7 @@ export function MhdPropertyIssueForm({
   });
 
   return (
-    <form className="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 rounded-lg border border-slate-200 bg-card p-6 shadow-sm" onSubmit={handleSubmit(onSubmit)}>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Issue Property</h2>
@@ -131,7 +131,7 @@ export function MhdPropertyIssueForm({
       </div>
 
       <div className="flex justify-end gap-3">
-        <button type="button" onClick={onCancel} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
+        <button type="button" onClick={onCancel} className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700">
           Cancel
         </button>
         <button type="submit" disabled={isSubmitting} className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">

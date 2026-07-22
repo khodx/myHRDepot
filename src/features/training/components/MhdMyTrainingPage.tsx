@@ -216,7 +216,7 @@ function MhdMyTrainingAssignmentRow({ assignment, course, onAttachCertificate }:
           type="button"
           onClick={() => void handleComplete()}
           disabled={complete.isPending}
-          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {complete.isPending
             ? 'Recording…'

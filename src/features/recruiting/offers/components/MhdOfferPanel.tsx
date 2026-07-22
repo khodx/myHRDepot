@@ -108,7 +108,7 @@ export function MhdOfferPanel({
                 setIsCreating(true);
                 setSelectedOfferId(null);
               }}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
             >
               New offer
             </button>

@@ -252,7 +252,7 @@ export function MhdLeaveCaseDetailPage() {
               type="button"
               disabled={transition.isPending}
               onClick={() => void submitTransition()}
-              className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {transition.isPending ? 'Saving…' : 'Update status'}
             </button>
@@ -317,7 +317,7 @@ export function MhdLeaveCaseDetailPage() {
                 type="button"
                 disabled={setBases.isPending}
                 onClick={() => void saveBases()}
-                className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+                className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
               >
                 {setBases.isPending ? 'Saving…' : 'Save bases'}
               </button>
@@ -369,7 +369,7 @@ export function MhdLeaveCaseDetailPage() {
               // has no designated bases, so there is nothing to designate against.
               disabled={designate.isPending || designatedIds.length === 0}
               onClick={() => void submitDesignate()}
-              className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {designate.isPending ? 'Recording…' : 'Designate'}
             </button>

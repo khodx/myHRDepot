@@ -94,7 +94,7 @@ export function MhdFeedbackForm({
                   onClick={() => updateDraft(index, { rating: draft.rating === value ? null : value })}
                   className={`h-8 w-8 rounded-md border text-sm ${
                     draft.rating === value
-                      ? 'border-neutral-900 bg-neutral-900 text-white'
+                      ? 'border-neutral-900 bg-neutral-900 text-neutral-50'
                       : 'border-neutral-300 text-neutral-600'
                   }`}
                 >
@@ -158,7 +158,7 @@ export function MhdFeedbackForm({
             type="button"
             disabled={submit.isPending}
             onClick={() => void handleSubmit()}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
           >
             {submit.isPending ? 'Submitting…' : 'Submit feedback'}
           </button>

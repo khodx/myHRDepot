@@ -81,10 +81,10 @@ export function MhdFormSubmissionsPage() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Link to={`/forms/${formId}`} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
+            <Link to={`/forms/${formId}`} className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700">
               Open Builder
             </Link>
-            <Link to={`/forms/${formId}/render`} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
+            <Link to={`/forms/${formId}/render`} className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700">
               Open Renderer
             </Link>
           </div>
@@ -95,7 +95,7 @@ export function MhdFormSubmissionsPage() {
         ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[24rem_1fr]">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Submission List</h2>
             <div className="mt-3 space-y-2">
               {submissions.map((submission) => (
@@ -106,7 +106,7 @@ export function MhdFormSubmissionsPage() {
                   className={`w-full rounded-md border px-3 py-3 text-left ${
                     selectedSubmissionId === submission.id
                       ? 'border-blue-300 bg-blue-50'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      : 'border-slate-200 bg-card hover:border-slate-300'
                   }`}
                 >
                   <p className="text-sm font-semibold text-slate-900">{submission.referenceId}</p>

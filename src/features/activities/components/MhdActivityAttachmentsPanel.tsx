@@ -61,7 +61,7 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
       ) : (
         <div className="space-y-3">
           {attachments.map((attachment) => (
-            <article key={attachment.id} className="rounded-md border border-slate-200 bg-white p-4">
+            <article key={attachment.id} className="rounded-md border border-slate-200 bg-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-slate-900">{attachment.originalFileName}</p>
@@ -75,7 +75,7 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
                   <button
                     type="button"
                     onClick={() => void downloadAttachment(attachment)}
-                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700"
+                    className="rounded-md border border-slate-300 bg-card px-3 py-1.5 text-sm font-semibold text-slate-700"
                   >
                     Open
                   </button>

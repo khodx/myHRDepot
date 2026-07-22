@@ -34,7 +34,7 @@ export function MhdOnboardingChecklistPage({
   const hasSignatureWorkflow = items.some((item) => item.requiresSignature && item.generatedDocumentRequired);
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-sky-700">Onboarding Packet</p>
@@ -43,7 +43,7 @@ export function MhdOnboardingChecklistPage({
             Packet progress is built from the `03.9` manifest, overlaid with live checklist rows and the seeded Forms Engine corpus for this person&apos;s company.
           </p>
         </div>
-        <div className="rounded-2xl bg-slate-900 px-4 py-3 text-right text-white">
+        <div className="rounded-2xl bg-slate-900 px-4 py-3 text-right text-neutral-50">
           <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Required Complete</p>
           <p className="mt-1 text-2xl font-semibold">{completedCount}/{requiredCount}</p>
           <p className="mt-1 text-xs text-slate-300">{isFullyOnboarded ? 'Packet complete' : 'Packet in progress'}</p>
@@ -83,7 +83,7 @@ export function MhdOnboardingChecklistPage({
                   <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[item.status]}`}>
                     {item.status.replace('_', ' ')}
                   </span>
-                  <span className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-600">
+                  <span className="rounded-full bg-card px-2.5 py-1 text-xs font-medium text-slate-600">
                     {item.accessTier}
                   </span>
                 </div>
@@ -91,23 +91,23 @@ export function MhdOnboardingChecklistPage({
                 <p className="mt-2 text-sm text-slate-600">{item.description}</p>
 
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
-                  <span className="rounded-full bg-white px-2.5 py-1">
+                  <span className="rounded-full bg-card px-2.5 py-1">
                     {item.formReferenceId ? `${item.formReferenceId} · ${item.formName}` : `No seeded form mapped`}
                   </span>
                   {item.requiresSignature ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-card px-2.5 py-1">
                       <FileSignature className="h-3.5 w-3.5" />
                       Signature required
                     </span>
                   ) : null}
                   {item.generatedDocumentRequired ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-card px-2.5 py-1">
                       <Sparkles className="h-3.5 w-3.5" />
                       Final packet artifact required
                     </span>
                   ) : null}
                   {item.accessTier === 'Restricted' ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-card px-2.5 py-1">
                       <ShieldAlert className="h-3.5 w-3.5" />
                       Restricted data
                     </span>
@@ -131,7 +131,7 @@ export function MhdOnboardingChecklistPage({
                     <ChevronRight className="h-4 w-4" />
                   </Link>
                 ) : (
-                  <span className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-500">Unavailable</span>
+                  <span className="rounded-xl border border-slate-300 bg-card px-4 py-2 text-sm text-slate-500">Unavailable</span>
                 )}
               </div>
             </article>

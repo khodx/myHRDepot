@@ -16,7 +16,7 @@ export function MhdFormFieldPalette({ onAddField }: MhdFormFieldPaletteProps) {
             key={fieldType.type}
             type="button"
             onClick={() => onAddField(fieldType.type)}
-            className="rounded-md border border-slate-200 bg-white px-3 py-2 text-left text-sm font-medium text-slate-700 hover:border-blue-300 hover:bg-blue-50"
+            className="rounded-md border border-slate-200 bg-card px-3 py-2 text-left text-sm font-medium text-slate-700 hover:border-blue-300 hover:bg-blue-50"
           >
             {fieldType.label}
           </button>

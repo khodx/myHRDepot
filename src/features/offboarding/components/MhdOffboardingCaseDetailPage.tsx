@@ -165,7 +165,7 @@ function MhdExitInterviewQuickCreateForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {isSubmitting ? 'Creating…' : 'Create & Link Exit Interview'}
         </button>
@@ -431,7 +431,7 @@ export function MhdOffboardingCaseDetailPage() {
           </div>
         ) : null}
 
-        <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-xs text-slate-400">{offboardingCase.referenceId}</p>
@@ -474,7 +474,7 @@ export function MhdOffboardingCaseDetailPage() {
                   <button
                     type="button"
                     onClick={() => setIsEditing((current) => !current)}
-                    className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                    className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
                   >
                     {isEditing ? 'Close Edit' : 'Edit Case'}
                   </button>
@@ -484,7 +484,7 @@ export function MhdOffboardingCaseDetailPage() {
                   <button
                     type="button"
                     onClick={() => setIsCancelling((current) => !current)}
-                    className="rounded-md border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700"
+                    className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700"
                   >
                     {isCancelling ? 'Close Cancel' : 'Cancel Case'}
                   </button>
@@ -572,7 +572,7 @@ export function MhdOffboardingCaseDetailPage() {
         </section>
 
         {isCancelling && canMutate && isActive ? (
-          <section className="rounded-lg border border-rose-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-rose-200 bg-card p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Cancel Case</h2>
             <MhdCancelCaseForm
               referenceId={offboardingCase.referenceId}
@@ -584,7 +584,7 @@ export function MhdOffboardingCaseDetailPage() {
         ) : null}
 
         {isEditing && canMutate && isActive ? (
-          <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Edit Case</h2>
             <MhdOffboardingCaseForm
               mode="edit"
@@ -602,7 +602,7 @@ export function MhdOffboardingCaseDetailPage() {
         ) : null}
 
         {showCeremonyPanel ? (
-          <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">
               Exit Acknowledgment — Generate &amp; Send
             </h2>
@@ -637,7 +637,7 @@ export function MhdOffboardingCaseDetailPage() {
                 <button
                   type="button"
                   onClick={() => ceremony.reset()}
-                  className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                  className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
                 >
                   Dismiss
                 </button>
@@ -648,7 +648,7 @@ export function MhdOffboardingCaseDetailPage() {
 
         <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               {itemsQuery.isLoading ? (
                 <div className="flex h-40 items-center justify-center text-sm text-slate-500">
                   Loading checklist…
@@ -669,7 +669,7 @@ export function MhdOffboardingCaseDetailPage() {
           </div>
 
           <div className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <Package className="h-5 w-5 text-slate-400" />
                 Outstanding Property
@@ -714,7 +714,7 @@ export function MhdOffboardingCaseDetailPage() {
               </Link>
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <PenLine className="h-5 w-5 text-slate-400" />
                 Exit Acknowledgment
@@ -762,7 +762,7 @@ export function MhdOffboardingCaseDetailPage() {
               ) : null}
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <CalendarClock className="h-5 w-5 text-slate-400" />
                 Exit Interview
@@ -807,7 +807,7 @@ export function MhdOffboardingCaseDetailPage() {
                           type="button"
                           onClick={() => void handleLinkInterview()}
                           disabled={!linkInterviewActivityId || actions.linkExitInterview.isPending}
-                          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+                          className="rounded-md border border-slate-300 bg-card px-3 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
                         >
                           Link
                         </button>

@@ -33,7 +33,7 @@ export function MhdInterviewList({ applicationId, onOpenWorksheet }: Props) {
         {(interviews.data ?? []).map((interview) => (
           <li
             key={interview.id}
-            className="flex items-start justify-between gap-3 rounded-md border border-neutral-200 bg-white p-3"
+            className="flex items-start justify-between gap-3 rounded-md border border-neutral-200 bg-card p-3"
           >
             <div>
               <div className="flex items-center gap-2">

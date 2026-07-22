@@ -15,8 +15,8 @@ export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: 
   const [draftText, setDraftText] = useState('');
   const [draftVisibility, setDraftVisibility] = useState<MhdNoteVisibility>('PUBLIC');
 
-  if (isLoading) return <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">Loading notes...</div>;
-  if (notes.length === 0) return <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600">No notes have been added yet.</div>;
+  if (isLoading) return <div className="rounded-xl border border-slate-200 bg-card p-4 text-sm text-slate-600">Loading notes...</div>;
+  if (notes.length === 0) return <div className="rounded-xl border border-dashed border-slate-300 bg-card p-6 text-sm text-slate-600">No notes have been added yet.</div>;
 
   function startEdit(note: MhdNote) {
     setEditingNoteId(note.id);
@@ -35,7 +35,7 @@ export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: 
       {notes.map((note) => {
         const isEditing = editingNoteId === note.id;
         return (
-          <article key={note.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <article key={note.id} className="rounded-xl border border-slate-200 bg-card p-4 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">

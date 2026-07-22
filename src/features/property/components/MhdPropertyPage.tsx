@@ -72,7 +72,7 @@ export function MhdPropertyPage() {
           ) : null}
         </div>
 
-        <section className="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-3">
+        <section className="grid gap-4 rounded-lg border border-slate-200 bg-card p-4 shadow-sm md:grid-cols-3">
           <label className="block text-sm font-medium text-slate-700 md:col-span-1">
             Search inventory
             <input
@@ -135,7 +135,7 @@ export function MhdPropertyPage() {
           />
         ) : null}
 
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Inventory</h2>

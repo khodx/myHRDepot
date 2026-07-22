@@ -171,7 +171,7 @@ export function MhdInvestigationCaseForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {isSubmitting ? 'Opening…' : 'Open investigation'}
         </button>

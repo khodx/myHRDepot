@@ -133,7 +133,7 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
           type="button"
           disabled={invite.isPending}
           onClick={() => void submitInvite()}
-          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {invite.isPending ? 'Inviting…' : 'Invite'}
         </button>
@@ -200,7 +200,7 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
               type="button"
               disabled={close.isPending}
               onClick={() => void submitClose()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {close.isPending ? 'Closing…' : 'Close collection'}
             </button>

@@ -9,14 +9,14 @@ type MhdCompanyListProps = {
 export function MhdCompanyList({ companies, selectedCompanyId, onSelectCompany }: MhdCompanyListProps) {
   if (companies.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">
+      <div className="rounded-lg border border-dashed border-slate-300 bg-card p-8 text-center text-sm text-slate-600">
         No companies found. Create the first company to begin using My HR Depot task management.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-card shadow-sm">
       <table className="min-w-full divide-y divide-slate-200">
         <thead className="bg-slate-50">
           <tr>

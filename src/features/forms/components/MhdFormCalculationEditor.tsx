@@ -75,7 +75,7 @@ export function MhdFormCalculationEditor({
               {fields
                 .filter((field) => field.id !== targetFieldId)
                 .map((field) => (
-                  <label key={field.id} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm">
+                  <label key={field.id} className="flex items-center gap-2 rounded-md border border-slate-200 bg-card px-3 py-2 text-sm">
                     <input
                       type="checkbox"
                       checked={dependencyIds.includes(field.id)}
@@ -113,7 +113,7 @@ export function MhdFormCalculationEditor({
 
       <div className="space-y-2">
         {calculations.map((calculation) => (
-          <div key={calculation.id} className="flex items-start justify-between gap-4 rounded-md border border-slate-200 bg-white p-3 text-sm">
+          <div key={calculation.id} className="flex items-start justify-between gap-4 rounded-md border border-slate-200 bg-card p-3 text-sm">
             <div>
               <strong>{fieldLabel(calculation.targetFieldId)}</strong> ={' '}
               {calculation.op === 'formula'

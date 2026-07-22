@@ -103,7 +103,7 @@ export function MhdJobsPage() {
           <button
             type="button"
             onClick={() => setIsCreating((previous) => !previous)}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
           >
             {isCreating ? 'Cancel' : 'New job'}
           </button>
@@ -198,7 +198,7 @@ export function MhdJobsPage() {
               type="button"
               disabled={createJob.isPending}
               onClick={() => void submitNew()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {createJob.isPending ? 'Creating…' : 'Create job'}
             </button>

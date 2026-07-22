@@ -62,7 +62,7 @@ export function MhdCompanyDetailPage() {
       />
 
       {/* Company card */}
-      <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+      <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs text-neutral-400">{company.referenceId}</p>

@@ -137,7 +137,7 @@ export function MhdPersonDetailPage() {
       />
 
       {/* Profile card */}
-      <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+      <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
         <div className="flex items-start gap-4">
           {/* Avatar initials */}
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-700">
@@ -207,7 +207,7 @@ export function MhdPersonDetailPage() {
       />
 
       {canSeePerformance && (
-        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-neutral-900">Performance</h2>
           {performanceQuery.isLoading ? <p className="mt-2 text-sm text-neutral-500">Loading performance history…</p> : (
             <ul className="mt-3 space-y-2 text-sm">
@@ -219,7 +219,7 @@ export function MhdPersonDetailPage() {
       )}
 
       {canSeeOffboarding ? (
-        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-neutral-900">Offboarding</h2>
           <p className="mt-1 text-sm text-neutral-500">
             Privileged separation cases for this person.
@@ -250,7 +250,7 @@ export function MhdPersonDetailPage() {
       ) : null}
 
       {canSeeConduct ? (
-        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-neutral-900">Conduct</h2>
             <Link className="text-sm text-blue-700 hover:underline" to="/conduct">
@@ -287,7 +287,7 @@ export function MhdPersonDetailPage() {
       ) : null}
 
       {canSeeLeaves ? (
-        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-neutral-900">Leaves of absence</h2>
             <Link className="text-sm text-blue-700 hover:underline" to="/leaves">
@@ -324,7 +324,7 @@ export function MhdPersonDetailPage() {
       ) : null}
 
       {canSeeJobs ? (
-        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
           <MhdJobAssignmentPanel
             companyId={person.companyId}
             personId={person.id}
@@ -334,7 +334,7 @@ export function MhdPersonDetailPage() {
       ) : null}
 
       {canSeeAttendance ? (
-        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-neutral-900">Attendance</h2>
@@ -355,7 +355,7 @@ export function MhdPersonDetailPage() {
         </section>
       ) : null}
 
-      <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+      <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-neutral-900">Activities</h2>
           <p className="mt-1 text-sm text-neutral-500">

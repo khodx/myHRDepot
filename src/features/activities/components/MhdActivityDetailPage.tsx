@@ -108,7 +108,7 @@ function MhdFollowUpTaskForm({
         <textarea className="w-full rounded border px-3 py-2" rows={2} {...register('descriptionPlainText')} />
       </div>
       <div className="flex gap-3">
-        <button type="submit" disabled={isSubmitting} className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+        <button type="submit" disabled={isSubmitting} className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50">
           {isSubmitting ? 'Creating…' : 'Create Follow-up Task'}
         </button>
         <button type="button" onClick={onCancel} className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50">
@@ -314,7 +314,7 @@ export function MhdActivityDetailPage() {
 
         {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
 
-        <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-xs text-slate-400">{activity.referenceId}</p>
@@ -349,7 +349,7 @@ export function MhdActivityDetailPage() {
 
             {canMutate ? (
               <div className="flex flex-wrap gap-3">
-                <button type="button" onClick={() => setIsEditing((current) => !current)} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
+                <button type="button" onClick={() => setIsEditing((current) => !current)} className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700">
                   {isEditing ? 'Close Edit' : 'Edit Activity'}
                 </button>
                 <button type="button" onClick={() => void handleDelete()} className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white">
@@ -392,7 +392,7 @@ export function MhdActivityDetailPage() {
         </section>
 
         {isEditing && canMutate ? (
-          <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Edit Activity</h2>
             <MhdActivityForm
               mode="edit"
@@ -411,7 +411,7 @@ export function MhdActivityDetailPage() {
 
         <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-900">Participants</h2>
               <div className="mt-4">
                 <MhdActivityParticipantChips
@@ -472,7 +472,7 @@ export function MhdActivityDetailPage() {
                   <button
                     type="submit"
                     disabled={actions.addParticipant.isPending || !newParticipantSubjectId}
-                    className="rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                    className="rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
                   >
                     {actions.addParticipant.isPending ? 'Adding…' : 'Add Participant'}
                   </button>
@@ -480,7 +480,7 @@ export function MhdActivityDetailPage() {
               ) : null}
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <ClipboardList className="h-5 w-5 text-slate-400" />
                 Checklist
@@ -498,7 +498,7 @@ export function MhdActivityDetailPage() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <CheckCircle2 className="h-5 w-5 text-slate-400" />
                 Outcome
@@ -549,7 +549,7 @@ export function MhdActivityDetailPage() {
                         setIsCompleting(false);
                         setIsCreatingFollowUp(true);
                       }}
-                      className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                      className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
                     >
                       Create Follow-up Task
                     </button>
@@ -573,7 +573,7 @@ export function MhdActivityDetailPage() {
                 <StickyNote className="h-5 w-5 text-neutral-400" />
                 Notes
               </h2>
-              <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">
                 <MhdActivityNotesPanel activityId={activity.id} readOnly={!canMutate} />
               </div>
             </section>
@@ -583,7 +583,7 @@ export function MhdActivityDetailPage() {
                 <Paperclip className="h-5 w-5 text-neutral-400" />
                 Attachments
               </h2>
-              <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">
                 <MhdActivityAttachmentsPanel activityId={activity.id} readOnly={!canMutate} />
               </div>
             </section>

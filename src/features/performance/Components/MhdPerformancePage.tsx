@@ -213,26 +213,26 @@ export function MhdPerformancePage() {
             ) : null}
 
             <div className="grid gap-4 md:grid-cols-4">
-              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Draft</p>
                 <p className="mt-1 text-2xl font-bold text-slate-900">{counts.draft}</p>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">In Review</p>
                 <p className="mt-1 text-2xl font-bold text-slate-900">{counts.inReview}</p>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Awaiting Acknowledgment</p>
                 <p className="mt-1 text-2xl font-bold text-slate-900">{counts.awaitingAcknowledgment}</p>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Overdue</p>
                 <p className="mt-1 text-2xl font-bold text-red-600">{counts.overdue}</p>
               </div>
             </div>
 
             {isCreatingReview && canMutate && selectedCompanyId ? (
-              <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-semibold text-slate-900">New Review</h2>
                 <MhdReviewForm
                   mode="create"
@@ -247,7 +247,7 @@ export function MhdPerformancePage() {
               </section>
             ) : null}
 
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
               <MhdReviewFilterBar
                 filters={effectiveReviewFilters}
                 onChange={setReviewFilters}
@@ -257,7 +257,7 @@ export function MhdPerformancePage() {
               />
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
               {reviewsQuery.isLoading ? (
                 <div className="flex h-40 items-center justify-center text-sm text-slate-500">Loading reviews…</div>
               ) : (
@@ -276,7 +276,7 @@ export function MhdPerformancePage() {
             ) : null}
 
             {showPlanCreateForm && canMutate && selectedCompanyId ? (
-              <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-semibold text-slate-900">New Coaching Plan</h2>
                 <MhdCoachingPlanForm
                   mode="create"
@@ -292,7 +292,7 @@ export function MhdPerformancePage() {
               </section>
             ) : null}
 
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
               {plansQuery.isLoading ? (
                 <div className="flex h-40 items-center justify-center text-sm text-slate-500">Loading coaching plans…</div>
               ) : (
@@ -303,7 +303,7 @@ export function MhdPerformancePage() {
         ) : null}
 
         {activeTab === 'one-on-ones' && selectedCompanyId ? (
-          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <MhdOneOnOneTab
               companyId={selectedCompanyId}
               currentUserId={profile?.userId ?? ''}

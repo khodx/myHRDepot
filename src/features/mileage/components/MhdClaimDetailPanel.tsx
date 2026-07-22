@@ -254,7 +254,7 @@ export function MhdClaimDetailPanel({
             type="button"
             disabled={isSubmitting || claim.lines.length === 0}
             onClick={() => void onSubmitClaim(claim.id)}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
           >
             Submit for approval
           </button>
@@ -313,7 +313,7 @@ export function MhdClaimDetailPanel({
               type="button"
               disabled={isSubmitting}
               onClick={() => void submitCancel()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {isSubmitting ? 'Cancelling…' : 'Cancel claim'}
             </button>
@@ -371,7 +371,7 @@ export function MhdClaimDetailPanel({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {isSubmitting ? 'Recording…' : 'Record decision'}
             </button>

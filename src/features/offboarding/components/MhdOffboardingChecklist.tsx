@@ -233,7 +233,7 @@ function MhdCustomItemForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {isSubmitting ? 'Adding…' : 'Add Item'}
         </button>
@@ -377,7 +377,7 @@ export function MhdOffboardingChecklist({
           <button
             type="button"
             onClick={() => setIsAddingItem((current) => !current)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700"
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-card px-3 py-1.5 text-sm font-semibold text-slate-700"
           >
             <Plus className="h-4 w-4" />
             {isAddingItem ? 'Close' : 'Add Item'}
@@ -481,7 +481,7 @@ export function MhdOffboardingChecklist({
                           type="button"
                           onClick={() => void handleDelete(item)}
                           disabled={actions.deleteItem.isPending}
-                          className="inline-flex items-center gap-1 rounded-md border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 disabled:opacity-50"
+                          className="inline-flex items-center gap-1 rounded-md border border-rose-300 bg-card px-3 py-1.5 text-xs font-semibold text-rose-700 disabled:opacity-50"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                           Delete

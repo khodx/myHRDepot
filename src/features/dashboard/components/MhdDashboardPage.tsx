@@ -84,12 +84,12 @@ export function MhdDashboardPage() {
 
       {/* Two-column body */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+        <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-neutral-700">My Tasks</h2>
           <MhdDashboardMyTasks tasks={myTasks} />
         </div>
 
-        <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+        <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-neutral-700">Recent Activity</h2>
           <MhdDashboardActivity items={recentActivity} />
         </div>

@@ -162,7 +162,7 @@ export function MhdReassessmentQueuePanel({
                       type="button"
                       disabled={isSubmitting}
                       onClick={() => void submit(event)}
-                      className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+                      className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
                     >
                       {isSubmitting ? 'Saving…' : 'Record decision'}
                     </button>
@@ -173,7 +173,7 @@ export function MhdReassessmentQueuePanel({
                   <button
                     type="button"
                     onClick={() => beginDecision(event.id, 'ASSESSED')}
-                    className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white"
+                    className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50"
                   >
                     Assess points
                   </button>

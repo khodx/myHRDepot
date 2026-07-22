@@ -96,7 +96,7 @@ export function MhdMileageRatesPanel({
           <button
             type="button"
             onClick={() => setIsProposalOpen((open) => !open)}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
           >
             {isProposalOpen ? 'Close' : 'Propose a rate'}
           </button>
@@ -287,7 +287,7 @@ export function MhdMileageRatesPanel({
             <button
               type="submit"
               disabled={isProposing}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {isProposing ? 'Proposing…' : 'Propose rate'}
             </button>

@@ -182,7 +182,7 @@ export function MhdJobDetailPage() {
               type="button"
               disabled={setPay.isPending}
               onClick={() => void savePay()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {setPay.isPending ? 'Saving…' : 'Save range'}
             </button>
@@ -220,7 +220,7 @@ export function MhdJobDetailPage() {
               type="button"
               disabled={createDraft.isPending}
               onClick={() => void startDraft()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {createDraft.isPending ? 'Preparing…' : job.publishedDescriptionId ? 'New version' : 'Write description'}
             </button>

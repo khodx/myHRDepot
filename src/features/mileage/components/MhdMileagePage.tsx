@@ -304,7 +304,7 @@ function MhdMileageBoard({
               setEditingTrip(null);
               setIsRecording(true);
             }}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
           >
             Record trip
           </button>
@@ -402,7 +402,7 @@ function MhdMileageBoard({
             <button
               type="submit"
               disabled={createClaim.isPending}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {createClaim.isPending ? 'Creating…' : 'Create claim'}
             </button>
@@ -534,7 +534,7 @@ function MhdMileageBoard({
 
       {isRecording ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6">
+          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg bg-card p-6">
             <h2 className="mb-4 text-base font-semibold text-neutral-900">
               {editingTrip ? 'Edit trip' : 'Record trip'}
             </h2>

@@ -124,7 +124,7 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
 
       <div className="space-y-2">
         {rules.map((rule) => (
-          <div key={rule.id} className="flex items-start justify-between gap-4 rounded-md border border-slate-200 bg-white p-3 text-sm">
+          <div key={rule.id} className="flex items-start justify-between gap-4 rounded-md border border-slate-200 bg-card p-3 text-sm">
             <div>
               If <strong>{fieldLabel((rule.condition as { field?: string }).field ?? '')}</strong>{' '}
               {MHD_LOGIC_OPERATORS.find((operator) => operator.value === (rule.condition as { operator?: string }).operator)?.label ?? 'matches'}{' '}

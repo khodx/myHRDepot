@@ -159,7 +159,7 @@ export function MhdPublicSigningPage() {
   if (!token) {
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-10">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-rose-200 bg-white p-8 shadow-sm">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-rose-200 bg-card p-8 shadow-sm">
           <div className="flex items-start gap-3">
             <CircleAlert className="mt-1 h-6 w-6 text-rose-600" />
             <div>
@@ -180,7 +180,7 @@ export function MhdPublicSigningPage() {
   if (loadError || !request) {
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-10">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-rose-200 bg-white p-8 shadow-sm">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-rose-200 bg-card p-8 shadow-sm">
           <div className="flex items-start gap-3">
             <CircleAlert className="mt-1 h-6 w-6 text-rose-600" />
             <div>
@@ -198,11 +198,11 @@ export function MhdPublicSigningPage() {
     <main className="min-h-screen bg-slate-50 px-6 py-10">
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-3xl border border-slate-200 bg-card p-6 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-sky-700">My HR Depot Signature Request</p>
             <h1 className="mt-2 text-3xl font-bold text-slate-900">{request.documentName}</h1>
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">{request.referenceId}</span>
+              <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-neutral-50">{request.referenceId}</span>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{request.requestStatus}</span>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Signer {request.signerOrderPosition}</span>
             </div>
@@ -220,7 +220,7 @@ export function MhdPublicSigningPage() {
                 <iframe
                   title="Document preview"
                   src={previewUrl}
-                  className="h-[38rem] w-full bg-white"
+                  className="h-[38rem] w-full bg-card"
                 />
               </div>
             ) : null}
@@ -231,7 +231,7 @@ export function MhdPublicSigningPage() {
                   href={completedCopyUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                  className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
                 >
                   Open Document in Google Drive
                 </a>
@@ -244,7 +244,7 @@ export function MhdPublicSigningPage() {
             {actionError ? <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{actionError}</div> : null}
 
             {terminal ? (
-              <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+              <div className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="mt-1 h-6 w-6 text-emerald-600" />
                   <div>
@@ -266,7 +266,7 @@ export function MhdPublicSigningPage() {
                         href={completedCopyUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-4 inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+                        className="mt-4 inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-neutral-50"
                       >
                         Open Completed Copy
                       </a>
@@ -275,7 +275,7 @@ export function MhdPublicSigningPage() {
                 </div>
               </div>
             ) : !consentRecorded ? (
-              <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+              <div className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-1 h-6 w-6 text-sky-700" />
                   <div>
@@ -293,23 +293,23 @@ export function MhdPublicSigningPage() {
                 </div>
 
                 <div className="mt-6 space-y-3">
-                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-card p-4 text-sm text-slate-700">
                     <input type="checkbox" checked={consent.consentedToElectronicRecords} onChange={(event) => setConsent((current) => ({ ...current, consentedToElectronicRecords: event.target.checked }))} />
                     <span>I consent to receive and keep this record electronically.</span>
                   </label>
-                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-card p-4 text-sm text-slate-700">
                     <input type="checkbox" checked={consent.acknowledgedHardwareRequirements} onChange={(event) => setConsent((current) => ({ ...current, acknowledgedHardwareRequirements: event.target.checked }))} />
                     <span>I can access the required hardware, software, and internet connection to review and retain this record.</span>
                   </label>
-                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-card p-4 text-sm text-slate-700">
                     <input type="checkbox" checked={consent.acknowledgedPaperCopyRight} onChange={(event) => setConsent((current) => ({ ...current, acknowledgedPaperCopyRight: event.target.checked }))} />
                     <span>I understand that I may request a paper copy from the sender.</span>
                   </label>
-                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-card p-4 text-sm text-slate-700">
                     <input type="checkbox" checked={consent.acknowledgedWithdrawalRight} onChange={(event) => setConsent((current) => ({ ...current, acknowledgedWithdrawalRight: event.target.checked }))} />
                     <span>I understand that I may withdraw consent before signing and decline this electronic transaction.</span>
                   </label>
-                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-card p-4 text-sm text-slate-700">
                     <input type="checkbox" checked={consent.agreedToUseElectronicSignature} onChange={(event) => setConsent((current) => ({ ...current, agreedToUseElectronicSignature: event.target.checked }))} />
                     <span>I agree to use an electronic signature for this document.</span>
                   </label>
@@ -326,7 +326,7 @@ export function MhdPublicSigningPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+                <div className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
                   <div className="flex items-start gap-3">
                     <FileSignature className="mt-1 h-6 w-6 text-sky-700" />
                     <div>
@@ -363,14 +363,14 @@ export function MhdPublicSigningPage() {
                       type="button"
                       onClick={() => void handleSign()}
                       disabled={!typedSignatureName.trim() || !intentToSign || !request.documentHash || isSubmittingSignature}
-                      className="inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+                      className="inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-neutral-50 disabled:cursor-not-allowed disabled:bg-slate-400"
                     >
                       {isSubmittingSignature ? 'Recording signature...' : 'Sign Document'}
                     </button>
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+                <div className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
                   <p className="text-sm font-semibold uppercase tracking-[0.22em] text-rose-700">Decline Instead</p>
                   <h2 className="mt-2 text-2xl font-bold text-slate-900">Decline this request</h2>
                   <p className="mt-3 text-sm leading-6 text-slate-600">
@@ -391,7 +391,7 @@ export function MhdPublicSigningPage() {
                     type="button"
                     onClick={() => void handleDecline()}
                     disabled={!declineReason.trim() || isSubmittingDecline}
-                    className="mt-4 inline-flex rounded-md border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700 disabled:cursor-not-allowed disabled:text-slate-400"
+                    className="mt-4 inline-flex rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700 disabled:cursor-not-allowed disabled:text-slate-400"
                   >
                     {isSubmittingDecline ? 'Recording decline...' : 'Decline Request'}
                   </button>

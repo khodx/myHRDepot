@@ -17,7 +17,7 @@ export function MhdAttachmentItem({ attachment, onDownload, onDelete }: Props) {
   });
 
   return (
-    <div className="flex items-center gap-3 rounded-md border border-neutral-200 bg-white p-3">
+    <div className="flex items-center gap-3 rounded-md border border-neutral-200 bg-card p-3">
       <div className="text-neutral-400 shrink-0">
         <MhdAttachmentFileIcon mimeType={attachment.mimeType} />
       </div>

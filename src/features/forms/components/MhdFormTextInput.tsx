@@ -27,7 +27,7 @@ export function MhdFormTextInput({
 }: MhdFormTextInputProps) {
   const className = `w-full rounded-md border px-3 py-2 text-sm ${
     error ? 'border-red-300' : 'border-slate-300'
-  } ${readOnly ? 'bg-slate-100 text-slate-500' : 'bg-white'}`;
+  } ${readOnly ? 'bg-slate-100 text-slate-500' : 'bg-card'}`;
 
   return (
     <div>

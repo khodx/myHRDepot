@@ -213,7 +213,7 @@ export function MhdApplicationDetailPage({
           <button
             type="button"
             onClick={() => setRejecting(true)}
-            className="rounded-md border border-rose-300 bg-white px-4 py-1.5 text-sm font-medium text-rose-700"
+            className="rounded-md border border-rose-300 bg-card px-4 py-1.5 text-sm font-medium text-rose-700"
           >
             Reject
           </button>

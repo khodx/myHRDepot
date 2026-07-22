@@ -42,7 +42,7 @@ export function MhdFormsPage() {
           <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{formState.errorMessage}</div>
         ) : null}
 
-        <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Filter</h2>
             <p className="mt-1 text-sm text-slate-600">The live list comes from `mhd_list_forms` for the authenticated company.</p>
@@ -67,7 +67,7 @@ export function MhdFormsPage() {
         </div>
 
         {formState.drafts.length > 0 ? (
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">My Draft Submissions</h2>
             <div className="mt-3 grid gap-3 lg:grid-cols-2">
               {formState.drafts.map((draft) => (

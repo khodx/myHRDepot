@@ -15,7 +15,7 @@ export function MhdApprovalsPage() {
           </p>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
           {profile?.userId ? <MhdApprovalCenter userId={profile.userId} /> : <p className="text-sm text-slate-500">No current user profile loaded.</p>}
         </div>
       </div>

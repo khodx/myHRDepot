@@ -170,7 +170,7 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
           type="button"
           onClick={() => void handleAssemble()}
           disabled={!guideId || assemble.isPending}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {assemble.isPending ? 'Assembling…' : 'Assemble from standard + job'}
         </button>
@@ -200,7 +200,7 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
                 {group.items.map((item) => (
                   <li
                     key={item.id}
-                    className="rounded-md border border-neutral-200 bg-white p-3"
+                    className="rounded-md border border-neutral-200 bg-card p-3"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
@@ -262,7 +262,7 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
             type="button"
             onClick={() => void handleAddBank()}
             disabled={!bankQuestionId || addQuestion.isPending}
-            className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 disabled:opacity-50"
+            className="rounded-md border border-neutral-300 bg-card px-4 py-2 text-sm font-medium text-neutral-700 disabled:opacity-50"
           >
             {addQuestion.isPending ? 'Adding…' : 'Add'}
           </button>
@@ -350,7 +350,7 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
             <button
               type="submit"
               disabled={addCustom.isPending}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {addCustom.isPending ? 'Adding…' : 'Add custom question'}
             </button>

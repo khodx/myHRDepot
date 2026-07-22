@@ -77,7 +77,7 @@ export function MhdApprovalRequest({
         Request Approval
       </button>
       {isOpen ? (
-        <div className="mt-2 space-y-3 rounded border bg-white p-4">
+        <div className="mt-2 space-y-3 rounded border bg-card p-4">
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
           <div>

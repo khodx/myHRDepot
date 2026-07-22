@@ -23,7 +23,7 @@ function renderLifecycleSummary(assignment: MhdPropertyAssignment): string {
 export function MhdPropertyAssignmentHistory({ assignments }: MhdPropertyAssignmentHistoryProps) {
   if (assignments.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-slate-400 shadow-sm">
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-card px-6 py-12 text-slate-400 shadow-sm">
         <History className="mb-3 h-10 w-10" />
         <p className="text-sm font-medium text-slate-600">No assignment history yet.</p>
       </div>
@@ -33,7 +33,7 @@ export function MhdPropertyAssignmentHistory({ assignments }: MhdPropertyAssignm
   return (
     <ol className="space-y-3">
       {assignments.map((assignment) => (
-        <li key={assignment.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <li key={assignment.id} className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="font-medium text-slate-900">

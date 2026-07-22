@@ -192,7 +192,7 @@ function MhdActionOutcomeForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {isSubmitting
             ? 'Recording…'
@@ -323,7 +323,7 @@ function MhdConductActionRow({
                     <button
                       type="button"
                       onClick={() => setIsConfirmingDelete(false)}
-                      className="rounded border border-rose-300 px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-white"
+                      className="rounded border border-rose-300 px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-card"
                     >
                       Keep
                     </button>
@@ -594,7 +594,7 @@ export function MhdConductCaseDetailPage() {
           </div>
         ) : null}
 
-        <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-xs text-slate-400">{conductCase.referenceId}</p>
@@ -634,7 +634,7 @@ export function MhdConductCaseDetailPage() {
                 <button
                   type="button"
                   onClick={() => setIsRescinding((current) => !current)}
-                  className="rounded-md border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700"
+                  className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700"
                 >
                   {isRescinding ? 'Close Rescind' : 'Rescind Case'}
                 </button>
@@ -658,7 +658,7 @@ export function MhdConductCaseDetailPage() {
         </section>
 
         {isRescinding && canMutate && isOpen ? (
-          <section className="rounded-lg border border-rose-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-rose-200 bg-card p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Rescind Case</h2>
             <MhdRescindCaseForm
               referenceId={conductCase.referenceId}
@@ -669,7 +669,7 @@ export function MhdConductCaseDetailPage() {
           </section>
         ) : null}
 
-        <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">Action Ladder</h2>
             {canMutate && isOpen ? (
@@ -679,7 +679,7 @@ export function MhdConductCaseDetailPage() {
                   setIsAddingAction((current) => !current);
                   setEditingActionId(null);
                 }}
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700"
+                className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-card px-3 py-1.5 text-sm font-semibold text-slate-700"
               >
                 <Plus className="h-4 w-4" />
                 {isAddingAction ? 'Close' : 'Add Action'}

@@ -87,7 +87,7 @@ export function MhdPipelineBoard({
     return (
       <div
         key={application.id}
-        className="space-y-2 rounded-md border border-neutral-200 bg-white p-3 shadow-sm"
+        className="space-y-2 rounded-md border border-neutral-200 bg-card p-3 shadow-sm"
       >
         <div className="flex items-start justify-between gap-2">
           <div>

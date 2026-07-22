@@ -31,14 +31,14 @@ export function MhdNoteComposer({ isSaving, onCreate }: MhdNoteComposerProps) {
   }
 
   return (
-    <form className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm" onSubmit={(event) => void handleSubmit(event)}>
+    <form className="rounded-xl border border-slate-200 bg-card p-4 shadow-sm" onSubmit={(event) => void handleSubmit(event)}>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Add Note</h2>
           <p className="text-sm text-slate-600">Capture comments, updates, and internal context for this task.</p>
         </div>
         <select
-          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+          className="rounded-md border border-slate-300 bg-card px-3 py-2 text-sm"
           value={visibility}
           onChange={(event) => setVisibility(event.target.value as MhdNoteVisibility)}
         >

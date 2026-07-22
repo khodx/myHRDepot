@@ -233,7 +233,7 @@ export function MhdCandidateEvaluationPanel({ applicationId, canFinalize }: Prop
             <button
               type="submit"
               disabled={finalize.isPending}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {finalize.isPending ? 'Saving…' : 'Save recommendation'}
             </button>

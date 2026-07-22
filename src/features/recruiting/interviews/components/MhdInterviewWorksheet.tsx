@@ -124,7 +124,7 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
           return (
             <li
               key={item.guideItemId}
-              className="space-y-3 rounded-md border border-neutral-200 bg-white p-4"
+              className="space-y-3 rounded-md border border-neutral-200 bg-card p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
@@ -157,8 +157,8 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
                       onClick={() => updateAnswer(item.guideItemId, { rating: value })}
                       className={`h-9 w-9 rounded-md border text-sm font-medium disabled:opacity-50 ${
                         answer?.rating === value
-                          ? 'border-neutral-900 bg-neutral-900 text-white'
-                          : 'border-neutral-300 bg-white text-neutral-700'
+                          ? 'border-neutral-900 bg-neutral-900 text-neutral-50'
+                          : 'border-neutral-300 bg-card text-neutral-700'
                       }`}
                     >
                       {value}
@@ -192,8 +192,8 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
                       }
                       className={`rounded-md border px-4 py-1.5 text-sm font-medium disabled:opacity-50 ${
                         answer?.responseBool === option.value
-                          ? 'border-neutral-900 bg-neutral-900 text-white'
-                          : 'border-neutral-300 bg-white text-neutral-700'
+                          ? 'border-neutral-900 bg-neutral-900 text-neutral-50'
+                          : 'border-neutral-300 bg-card text-neutral-700'
                       }`}
                     >
                       {option.label}
@@ -239,7 +239,7 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
             type="button"
             onClick={() => void handleSubmit()}
             disabled={submit.isPending}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
           >
             {submit.isPending ? 'Submitting…' : 'Submit scorecard'}
           </button>

@@ -123,7 +123,7 @@ export function MhdFeedbackSettingsForm({ companyId }: Props) {
         <button
           type="submit"
           disabled={upsertSettings.isPending}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {upsertSettings.isPending ? 'Saving…' : 'Save settings'}
         </button>

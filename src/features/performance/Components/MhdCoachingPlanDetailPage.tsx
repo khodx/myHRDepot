@@ -93,7 +93,7 @@ function MhdCheckpointForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {isSubmitting ? 'Saving…' : initial ? 'Save Checkpoint' : 'Add Checkpoint'}
         </button>
@@ -302,7 +302,7 @@ export function MhdCoachingPlanDetailPage() {
 
         {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
 
-        <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-xs text-slate-400">{plan.referenceId}</p>
@@ -335,7 +335,7 @@ export function MhdCoachingPlanDetailPage() {
                     <button
                       type="button"
                       onClick={() => setIsEditing((current) => !current)}
-                      className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                      className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
                     >
                       {isEditing ? 'Close Edit' : 'Edit Plan'}
                     </button>
@@ -351,7 +351,7 @@ export function MhdCoachingPlanDetailPage() {
                       type="button"
                       onClick={() => void handleTransition('CANCELLED')}
                       disabled={actions.transitionPlan.isPending}
-                      className="rounded-md border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
+                      className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
                     >
                       Cancel Plan
                     </button>
@@ -413,7 +413,7 @@ export function MhdCoachingPlanDetailPage() {
         </section>
 
         {isEditing && canMutate && isPlanActive ? (
-          <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Edit Coaching Plan</h2>
             <MhdCoachingPlanForm
               mode="edit"
@@ -428,7 +428,7 @@ export function MhdCoachingPlanDetailPage() {
           </section>
         ) : null}
 
-        <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
               <ListChecks className="h-5 w-5 text-slate-400" />
@@ -597,7 +597,7 @@ export function MhdCoachingPlanDetailPage() {
                         <button
                           type="submit"
                           disabled={itemMutating || !linkActivityId}
-                          className="rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                          className="rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
                         >
                           Link
                         </button>
@@ -619,7 +619,7 @@ export function MhdCoachingPlanDetailPage() {
                         <button
                           type="submit"
                           disabled={itemMutating || activityActions.createActivity.isPending || quickSessionTitle.trim().length === 0}
-                          className="inline-flex items-center gap-1 rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                          className="inline-flex items-center gap-1 rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
                         >
                           <Plus className="h-4 w-4" />
                           {activityActions.createActivity.isPending ? 'Creating…' : 'Create & Link'}

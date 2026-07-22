@@ -39,7 +39,7 @@ export function MhdNotificationPanel({ onClose }: MhdNotificationPanelProps) {
   return (
     <div
       ref={panelRef}
-      className="absolute right-0 top-full z-50 mt-1 w-80 rounded-lg border border-neutral-200 bg-white shadow-lg"
+      className="absolute right-0 top-full z-50 mt-1 w-80 rounded-lg border border-neutral-200 bg-card shadow-lg"
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3">

@@ -11,11 +11,11 @@ interface MhdTaskListProps {
 }
 
 export function MhdTaskList({ tasks, isLoading, onEdit, onDelete }: MhdTaskListProps) {
-  if (isLoading) return <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600">Loading tasks...</div>;
-  if (tasks.length === 0) return <div className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600">No tasks match the current filters.</div>;
+  if (isLoading) return <div className="rounded-lg border border-slate-200 bg-card p-6 text-sm text-slate-600">Loading tasks...</div>;
+  if (tasks.length === 0) return <div className="rounded-lg border border-dashed border-slate-300 bg-card p-6 text-sm text-slate-600">No tasks match the current filters.</div>;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-card shadow-sm">
       <table className="min-w-full divide-y divide-slate-200">
         <thead className="bg-slate-50">
           <tr>
@@ -28,7 +28,7 @@ export function MhdTaskList({ tasks, isLoading, onEdit, onDelete }: MhdTaskListP
             <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-600">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
+        <tbody className="divide-y divide-slate-100 bg-card">
           {tasks.map((task) => (
             <tr key={task.id}>
               <td className="px-4 py-4 align-top">

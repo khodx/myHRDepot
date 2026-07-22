@@ -34,7 +34,7 @@ export function MhdCompaniesPage() {
   return (
     <main className="min-h-screen bg-slate-50 p-6">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <header className="rounded-xl border border-slate-200 bg-card p-6 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">My HR Depot</p>
           <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
@@ -49,7 +49,7 @@ export function MhdCompaniesPage() {
 
         <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div className="space-y-4">
-            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
               <div className="grid gap-3">
                 <label className="block">
                   <span className="text-sm font-medium text-slate-700">Search companies</span>
@@ -64,7 +64,7 @@ export function MhdCompaniesPage() {
             </div>
 
             {companiesQuery.isLoading ? (
-              <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">Loading companies...</div>
+              <div className="rounded-lg border border-slate-200 bg-card p-8 text-center text-sm text-slate-600">Loading companies...</div>
             ) : companiesQuery.isError ? (
               <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                 {companiesQuery.error instanceof Error ? companiesQuery.error.message : 'Unable to load companies.'}
@@ -79,7 +79,7 @@ export function MhdCompaniesPage() {
           </div>
 
           <div className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-900">Create company</h2>
               <p className="mt-1 text-sm text-slate-600">Create the tenant record before adding people or tasks.</p>
               <div className="mt-5">

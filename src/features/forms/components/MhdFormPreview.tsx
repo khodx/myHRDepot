@@ -12,7 +12,7 @@ interface MhdFormPreviewProps {
 
 export function MhdFormPreview({ form }: MhdFormPreviewProps) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-card shadow-sm">
       <MhdFormRenderer
         formId={form.id}
         previewDefinition={form.definition}

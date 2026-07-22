@@ -8,7 +8,7 @@ interface MhdAuthCardProps {
 
 export function MhdAuthCard({ title, description, children }: MhdAuthCardProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-card p-6 shadow-sm">
       <div className="mb-6">
         <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">My HR Depot</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-900">{title}</h1>

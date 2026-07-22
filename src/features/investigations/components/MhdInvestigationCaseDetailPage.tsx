@@ -233,7 +233,7 @@ export function MhdInvestigationCaseDetailPage() {
             type="button"
             disabled={transition.isPending}
             onClick={() => void submitTransition()}
-            className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
           >
             {transition.isPending ? 'Saving…' : 'Update'}
           </button>

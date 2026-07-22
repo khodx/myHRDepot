@@ -51,7 +51,7 @@ export function MhdFormNumberInput({
           className={`w-full rounded-md border px-3 py-2 text-sm ${
             prefix ? 'pl-8' : ''
           } ${suffix ? 'pr-8' : ''} ${error ? 'border-red-300' : 'border-slate-300'} ${
-            readOnly ? 'bg-slate-100 text-slate-500' : 'bg-white'
+            readOnly ? 'bg-slate-100 text-slate-500' : 'bg-card'
           }`}
         />
         {suffix ? <span className="absolute right-3 top-2 text-sm text-slate-500">{suffix}</span> : null}

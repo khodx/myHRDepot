@@ -147,17 +147,17 @@ export function MhdOffboardingPage() {
         ) : null}
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Active</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{counts.active}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Items Outstanding
             </p>
             <p className="mt-1 text-2xl font-bold text-amber-700">{counts.itemsOutstanding}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Completed
             </p>
@@ -166,7 +166,7 @@ export function MhdOffboardingPage() {
         </div>
 
         {isCreating && canMutate && selectedCompanyId ? (
-          <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">New Offboarding Case</h2>
             <MhdOffboardingCaseForm
               mode="create"
@@ -179,7 +179,7 @@ export function MhdOffboardingPage() {
           </section>
         ) : null}
 
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
           <div className="flex flex-wrap items-end gap-3">
             <div className="min-w-56 flex-1">
               <label
@@ -345,7 +345,7 @@ export function MhdOffboardingPage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
           {casesQuery.isLoading ? (
             <div className="flex h-40 items-center justify-center text-sm text-slate-500">
               Loading offboarding cases…

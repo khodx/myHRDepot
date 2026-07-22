@@ -220,7 +220,7 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
               className={`h-6 w-11 rounded-full transition-colors ${value ? 'bg-blue-600' : 'bg-slate-300'}`}
             >
               <span
-                className={`block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                className={`block h-5 w-5 rounded-full bg-card shadow transition-transform ${
                   value ? 'translate-x-5' : 'translate-x-0.5'
                 }`}
               />

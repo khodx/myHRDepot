@@ -47,7 +47,7 @@ function MhdEncryptedValueCell({ submissionId, fieldId, canReveal }: MhdEncrypte
         <button
           type="button"
           onClick={() => setRevealedValue(null)}
-          className="rounded border border-slate-300 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 hover:border-slate-400"
+          className="rounded border border-slate-300 bg-card px-2 py-0.5 text-xs font-semibold text-slate-600 hover:border-slate-400"
         >
           Hide
         </button>
@@ -79,7 +79,7 @@ export function MhdFormSubmissionReview({ submission }: MhdFormSubmissionReviewP
 
   if (!submission) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-500">
+      <div className="rounded-lg border border-slate-200 bg-card p-6 text-sm text-slate-500">
         Select a submission to review its answers.
       </div>
     );
@@ -88,7 +88,7 @@ export function MhdFormSubmissionReview({ submission }: MhdFormSubmissionReviewP
   const entries = Object.entries(submission.values);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-500">{submission.referenceId}</p>

@@ -95,7 +95,7 @@ function MhdConductCaseCreateForm({ companyId, people, onSubmit, onCancel, isSub
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {isSubmitting ? 'Opening…' : 'Open Conduct Case'}
         </button>
@@ -217,22 +217,22 @@ export function MhdConductPage() {
         ) : null}
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Open</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{counts.open}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Actions Outstanding</p>
             <p className="mt-1 text-2xl font-bold text-amber-700">{counts.actionsOutstanding}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Closed</p>
             <p className="mt-1 text-2xl font-bold text-emerald-700">{counts.closed}</p>
           </div>
         </div>
 
         {isCreating && canMutate && selectedCompanyId ? (
-          <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">New Conduct Case</h2>
             <MhdConductCaseCreateForm
               companyId={selectedCompanyId}
@@ -244,7 +244,7 @@ export function MhdConductPage() {
           </section>
         ) : null}
 
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
           <div className="flex flex-wrap items-end gap-3">
             <div className="min-w-56 flex-1">
               <label htmlFor="mhd-conduct-filter-search" className="mb-1 block text-xs font-medium text-neutral-500">
@@ -356,7 +356,7 @@ export function MhdConductPage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
           {casesQuery.isLoading ? (
             <div className="flex h-40 items-center justify-center text-sm text-slate-500">Loading conduct cases…</div>
           ) : cases.length === 0 ? (

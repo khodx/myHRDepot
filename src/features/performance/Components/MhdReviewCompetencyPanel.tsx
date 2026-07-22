@@ -63,7 +63,7 @@ export function MhdReviewCompetencyPanel({ reviewId, canRate }: Props) {
             type="button"
             disabled={seed.isPending}
             onClick={() => void seed.mutateAsync()}
-            className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
           >
             {seed.isPending ? 'Loading…' : 'Load from job description'}
           </button>
@@ -128,7 +128,7 @@ export function MhdReviewCompetencyPanel({ reviewId, canRate }: Props) {
                         }
                         className={`h-8 w-8 rounded-md border text-sm ${
                           draft.rating === value
-                            ? 'border-neutral-900 bg-neutral-900 text-white'
+                            ? 'border-neutral-900 bg-neutral-900 text-neutral-50'
                             : 'border-neutral-300 text-neutral-600'
                         }`}
                       >

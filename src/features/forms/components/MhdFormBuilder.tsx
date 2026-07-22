@@ -271,7 +271,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-card shadow-sm">
       <div className="border-b border-slate-200 p-6">
         <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
           <div className="space-y-4">
@@ -378,7 +378,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
                   className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-3 ${
                     selectedFieldId === field.id
                       ? 'border-blue-300 bg-blue-50'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      : 'border-slate-200 bg-card hover:border-slate-300'
                   }`}
                 >
                   <button

@@ -22,19 +22,19 @@ function statusBadgeClass(status: MhdForm['status']): string {
 
 export function MhdFormList({ forms, isLoading, canMutate = true }: MhdFormListProps) {
   if (isLoading) {
-    return <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-500">Loading forms...</div>;
+    return <div className="rounded-lg border border-slate-200 bg-card p-6 text-sm text-slate-500">Loading forms...</div>;
   }
 
   if (forms.length === 0) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-500">
+      <div className="rounded-lg border border-slate-200 bg-card p-6 text-sm text-slate-500">
         No forms found for the selected status filter.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-card shadow-sm">
       <table className="min-w-full border-collapse">
         <thead className="bg-slate-50">
           <tr>

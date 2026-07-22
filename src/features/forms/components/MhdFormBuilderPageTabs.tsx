@@ -43,7 +43,7 @@ export function MhdFormBuilderPageTabs({
             className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
               activePage?.id === page.id
                 ? 'border-blue-300 bg-blue-50 text-blue-700'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                : 'border-slate-200 bg-card text-slate-600 hover:border-slate-300'
             }`}
           >
             {page.title || `Page ${index + 1}`}

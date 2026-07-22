@@ -137,7 +137,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
             <button
               type="button"
               onClick={() => setIsCreating(true)}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
             >
               New course
             </button>
@@ -256,7 +256,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
 
       {isCreating && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6">
+          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg bg-card p-6">
             <h2 className="mb-4 text-base font-semibold text-neutral-900">New course</h2>
             <MhdTrainingCourseForm
               companyId={companyId}
@@ -270,7 +270,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
 
       {editing && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6">
+          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg bg-card p-6">
             <h2 className="mb-4 text-base font-semibold text-neutral-900">Edit course</h2>
             <MhdTrainingCourseForm
               companyId={companyId}
@@ -285,7 +285,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
 
       {isAssigning && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-lg bg-white p-6">
+          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-lg bg-card p-6">
             <h2 className="mb-4 text-base font-semibold text-neutral-900">Assign training</h2>
             <MhdAssignTrainingPanel
               companyId={companyId}

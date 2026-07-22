@@ -107,7 +107,7 @@ export function MhdOneOnOneTab({ companyId, currentUserId, canMutate, people }: 
       ) : null}
 
       {isCreating && canMutate ? (
-        <form className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm" onSubmit={handleQuickCreate}>
+        <form className="space-y-3 rounded-lg border border-slate-200 bg-card p-4 shadow-sm" onSubmit={handleQuickCreate}>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
               <label htmlFor="mhd-one-on-one-title" className="mb-1 block text-sm font-medium">
@@ -141,7 +141,7 @@ export function MhdOneOnOneTab({ companyId, currentUserId, canMutate, people }: 
             <button
               type="submit"
               disabled={actions.createActivity.isPending || newTitle.trim().length === 0 || personId === 'ALL'}
-              className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {actions.createActivity.isPending ? 'Creating…' : 'Create One-on-One'}
             </button>

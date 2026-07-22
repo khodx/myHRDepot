@@ -122,15 +122,15 @@ export function MhdFormRendererPage() {
             {onboardingPersonId ? (
               <Link
                 to={`/people/${onboardingPersonId}`}
-                className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
               >
                 Back to Person
               </Link>
             ) : null}
-            <Link to={`/forms/${formId}`} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
+            <Link to={`/forms/${formId}`} className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700">
               {canMutate ? 'Open Builder' : 'View Form'}
             </Link>
-            <Link to={`/forms/${formId}/submissions`} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
+            <Link to={`/forms/${formId}/submissions`} className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700">
               View Submissions
             </Link>
           </div>
@@ -186,7 +186,7 @@ export function MhdFormRendererPage() {
           onResume={(nextSubmissionId) => navigate(`/forms/${formId}/render?submissionId=${nextSubmissionId}`)}
         />
 
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="rounded-lg border border-slate-200 bg-card shadow-sm">
           <MhdFormRenderer
             formId={formId}
             submissionId={submissionId}

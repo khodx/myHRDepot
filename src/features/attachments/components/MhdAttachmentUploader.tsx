@@ -80,7 +80,7 @@ export function MhdAttachmentUploader({ isUploading, onUpload }: Props) {
       {validationError && <p className="text-sm text-red-600">{validationError}</p>}
 
       {pendingFile && (
-        <div className="flex items-center gap-3 rounded-md border border-neutral-200 bg-white p-3">
+        <div className="flex items-center gap-3 rounded-md border border-neutral-200 bg-card p-3">
           <MhdAttachmentFileIcon mimeType={pendingFile.type} className="h-5 w-5 text-neutral-400 shrink-0" />
           <span className="min-w-0 flex-1 truncate text-sm text-neutral-700">{pendingFile.name}</span>
           <button

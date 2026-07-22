@@ -253,7 +253,7 @@ export function MhdReviewDetailPage() {
 
         {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
 
-        <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-xs text-slate-400">{review.referenceId}</p>
@@ -323,7 +323,7 @@ export function MhdReviewDetailPage() {
                   <button
                     type="button"
                     onClick={() => setIsEditing((current) => !current)}
-                    className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                    className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
                   >
                     {isEditing ? 'Close Edit' : 'Edit Review'}
                   </button>
@@ -334,7 +334,7 @@ export function MhdReviewDetailPage() {
                     type="button"
                     onClick={() => void handleTransition('CANCELLED')}
                     disabled={actions.transitionReview.isPending}
-                    className="rounded-md border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
+                    className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
                   >
                     Cancel Review
                   </button>
@@ -400,7 +400,7 @@ export function MhdReviewDetailPage() {
         </section>
 
         {showFinalizePanel ? (
-          <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">Finalize &amp; Send for Signature</h2>
             <p className="mt-1 text-sm text-slate-600">
               Rendering the review document and creating the signature request. Each step reports its own result; if a step
@@ -433,7 +433,7 @@ export function MhdReviewDetailPage() {
                 <button
                   type="button"
                   onClick={() => finalize.reset()}
-                  className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                  className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
                 >
                   Dismiss
                 </button>
@@ -443,7 +443,7 @@ export function MhdReviewDetailPage() {
         ) : null}
 
         {isWaiving && canMutate && review.status === 'PENDING_SIGNATURE' ? (
-          <section className="rounded-lg border border-amber-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-amber-200 bg-card p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Complete via Waiver</h2>
             <MhdWaiverForm
               onSubmit={handleWaiver}
@@ -454,7 +454,7 @@ export function MhdReviewDetailPage() {
         ) : null}
 
         {isEditing && canMutate && isContentEditable ? (
-          <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Edit Review</h2>
             <MhdReviewForm
               mode="edit"
@@ -472,7 +472,7 @@ export function MhdReviewDetailPage() {
 
         <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-900">Review Content</h2>
               <dl className="mt-4 space-y-4 text-sm text-slate-600">
                 {[
@@ -493,7 +493,7 @@ export function MhdReviewDetailPage() {
             </section>
 
             {canMutate && (review.status === 'COMPLETED' || review.status === 'PENDING_SIGNATURE' || review.status === 'IN_REVIEW') ? (
-              <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
                 <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                   <Target className="h-5 w-5 text-slate-400" />
                   Coaching
@@ -503,7 +503,7 @@ export function MhdReviewDetailPage() {
                 </p>
                 <Link
                   to={`/performance?tab=coaching&fromReview=${review.id}`}
-                  className="mt-3 inline-flex rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                  className="mt-3 inline-flex rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
                 >
                   Start Coaching Plan from this Review
                 </Link>
@@ -512,7 +512,7 @@ export function MhdReviewDetailPage() {
           </div>
 
           <div className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <CalendarClock className="h-5 w-5 text-slate-400" />
                 Review Meeting
@@ -528,7 +528,7 @@ export function MhdReviewDetailPage() {
               )}
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <FileText className="h-5 w-5 text-slate-400" />
                 Review Document
@@ -555,7 +555,7 @@ export function MhdReviewDetailPage() {
               )}
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <PenLine className="h-5 w-5 text-slate-400" />
                 Acknowledgment Signature
@@ -597,13 +597,13 @@ export function MhdReviewDetailPage() {
         {canMutate ? (
           <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-6">
-              <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
                 <MhdReviewCompetencyPanel
                   reviewId={review.id}
                   canRate={review.status === 'DRAFT' || review.status === 'IN_REVIEW'}
                 />
               </section>
-              <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
                 <Mhd360FeedbackPanel
                   reviewId={review.id}
                   threshold={feedbackThresholdQuery.data ?? 3}
@@ -611,7 +611,7 @@ export function MhdReviewDetailPage() {
               </section>
             </div>
             <div className="space-y-6">
-              <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
                 <MhdParticipantPanel
                   reviewId={review.id}
                   people={(peopleQuery.data ?? []).map((person) => ({

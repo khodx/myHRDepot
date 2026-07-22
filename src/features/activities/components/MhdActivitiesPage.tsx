@@ -99,22 +99,22 @@ export function MhdActivitiesPage() {
         ) : null}
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Planned</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{counts.planned}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">In Progress</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{counts.inProgress}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Completed</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{counts.completed}</p>
           </div>
         </div>
 
         {isCreating && canMutate && selectedCompanyId ? (
-          <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">New Activity</h2>
             <MhdActivityForm
               mode="create"
@@ -130,7 +130,7 @@ export function MhdActivitiesPage() {
           </section>
         ) : null}
 
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
           <MhdActivityFilterBar
             filters={effectiveFilters}
             onChange={setFilters}
@@ -140,7 +140,7 @@ export function MhdActivitiesPage() {
           />
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
           {activitiesQuery.isLoading ? (
             <div className="flex h-40 items-center justify-center text-sm text-slate-500">Loading activities…</div>
           ) : (

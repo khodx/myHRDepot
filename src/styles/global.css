@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Opt-in dark mode: the `dark:` variant and the .dark overrides below apply only
+   when <html> carries the `dark` class. Light is the default — nothing is driven
+   by prefers-color-scheme, so the OS setting never forces dark. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Semantic color tokens used by the app shell (04.1 - Navigation & App Shell
    components reference bg-background / bg-card / text-primary /
    text-muted-foreground etc.). Mapped onto the scaffold's slate/blue palette. */
@@ -15,6 +20,60 @@
   --color-border: #e2e8f0; /* slate-200 */
 }
 
+/* Dark theme. Tailwind v4 emits every palette utility as var(--color-*), so
+   overriding those variables here flips the whole app without touching the
+   components. Two moves: (1) redefine the semantic shell tokens; (2) invert the
+   neutral scales the light-built components lean on (bg-slate-50, text-slate-900,
+   border-slate-200 …) so a "50" surface becomes dark and a "900" ink becomes
+   light. `bg-white` is migrated to `bg-card` in the components, so --color-white
+   stays white and `text-white` on colored buttons is unaffected. Status tints
+   (-50/-100 backgrounds, -700/-800 text) are darkened / lightened so badges read. */
+.dark {
+  --color-background: #0b0e13;
+  --color-foreground: #eef1f5;
+  --color-card: #151b24;
+  --color-card-foreground: #eef1f5;
+  --color-primary: #3b82f6; /* blue-500 — a touch brighter on dark */
+  --color-primary-foreground: #ffffff;
+  --color-muted: #1b222c;
+  --color-muted-foreground: #97a1b0;
+  --color-border: #262e39;
+
+  /* neutral scales — inverted light↔dark roles (applied to slate/gray/zinc/neutral/stone) */
+  --color-slate-50:#0e131a;  --color-gray-50:#0e131a;  --color-zinc-50:#0e131a;  --color-neutral-50:#0e131a;  --color-stone-50:#0e131a;
+  --color-slate-100:#151b24; --color-gray-100:#151b24; --color-zinc-100:#151b24; --color-neutral-100:#151b24; --color-stone-100:#151b24;
+  --color-slate-200:#222a35; --color-gray-200:#222a35; --color-zinc-200:#222a35; --color-neutral-200:#222a35; --color-stone-200:#222a35;
+  --color-slate-300:#2f3947; --color-gray-300:#2f3947; --color-zinc-300:#2f3947; --color-neutral-300:#2f3947; --color-stone-300:#2f3947;
+  --color-slate-400:#465264; --color-gray-400:#465264; --color-zinc-400:#465264; --color-neutral-400:#465264; --color-stone-400:#465264;
+  --color-slate-500:#8a94a4; --color-gray-500:#8a94a4; --color-zinc-500:#8a94a4; --color-neutral-500:#8a94a4; --color-stone-500:#8a94a4;
+  --color-slate-600:#a7b1bf; --color-gray-600:#a7b1bf; --color-zinc-600:#a7b1bf; --color-neutral-600:#a7b1bf; --color-stone-600:#a7b1bf;
+  --color-slate-700:#c4ccd6; --color-gray-700:#c4ccd6; --color-zinc-700:#c4ccd6; --color-neutral-700:#c4ccd6; --color-stone-700:#c4ccd6;
+  --color-slate-800:#dee3ea; --color-gray-800:#dee3ea; --color-zinc-800:#dee3ea; --color-neutral-800:#dee3ea; --color-stone-800:#dee3ea;
+  --color-slate-900:#eef1f5; --color-gray-900:#eef1f5; --color-zinc-900:#eef1f5; --color-neutral-900:#eef1f5; --color-stone-900:#eef1f5;
+  --color-slate-950:#f8f9fb; --color-gray-950:#f8f9fb; --color-zinc-950:#f8f9fb; --color-neutral-950:#f8f9fb; --color-stone-950:#f8f9fb;
+
+  /* status families — darken ONLY the light tints (50/100) so tinted panels and
+     pill-badge backgrounds (bg-*-50 / bg-*-100) go dark. The saturated shades
+     (500–900) are left at their defaults so colored buttons (bg-blue-600/700,
+     bg-red-600 …) stay solid and their white text keeps its contrast; badge text
+     (text-*-700) then reads as a mid-tone on the dark same-hue tint. */
+  --color-red-50:#2a1416;    --color-red-100:#3a181b;
+  --color-rose-50:#2a1418;   --color-rose-100:#3a181f;
+  --color-orange-50:#2a1a0e; --color-orange-100:#3a2211;
+  --color-amber-50:#2a2009;  --color-amber-100:#3a2b0c;
+  --color-yellow-50:#29230a; --color-yellow-100:#392f0c;
+  --color-green-50:#0d2417;  --color-green-100:#0f301d;
+  --color-emerald-50:#0a2620;--color-emerald-100:#0c322a;
+  --color-teal-50:#0a2422;   --color-teal-100:#0c302d;
+  --color-cyan-50:#0a2328;   --color-cyan-100:#0c2f36;
+  --color-sky-50:#0a212e;    --color-sky-100:#0c2b3c;
+  --color-blue-50:#0d1b33;   --color-blue-100:#102341;
+  --color-indigo-50:#161634; --color-indigo-100:#1c1c44;
+  --color-violet-50:#1d1636; --color-violet-100:#261c47;
+  --color-purple-50:#221634; --color-purple-100:#2c1c45;
+  --color-pink-50:#2a1420;   --color-pink-100:#3a1829;
+}
+
 /* Tailwind v4 defaults bare `border-*` utilities to currentColor; the shell
    components use bare `border-b` / `border-r` expecting a light divider. */
 @layer base {
@@ -28,8 +87,8 @@
 :root {
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #020617;
-  background: #f8fafc;
+  color: var(--color-foreground);
+  background: var(--color-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -44,6 +103,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  color: var(--color-foreground);
+  background: var(--color-background);
 }
 
 button,

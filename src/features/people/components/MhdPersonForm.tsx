@@ -79,7 +79,7 @@ export function MhdPersonForm({ companies, person, defaultCompanyId, onCreate, o
   }
 
   return (
-    <form className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm" onSubmit={handleSubmit}>
+    <form className="rounded-lg border border-slate-200 bg-card p-5 shadow-sm" onSubmit={handleSubmit}>
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">{person ? 'Edit person' : 'New person'}</p>
         <h2 className="mt-1 text-lg font-bold text-slate-900">{person ? person.displayName : 'Create person'}</h2>

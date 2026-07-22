@@ -26,7 +26,7 @@ export function MhdFormFieldGroup({ field, rows, onChange, errors }: MhdFormFiel
       </div>
 
       {nextRows.map((row, rowIndex) => (
-        <div key={`${field.id}-${rowIndex}`} className="space-y-3 rounded-md border border-slate-200 bg-white p-3">
+        <div key={`${field.id}-${rowIndex}`} className="space-y-3 rounded-md border border-slate-200 bg-card p-3">
           {templateFields.map((childField) => (
             <MhdFormFieldControl
               key={childField.id}

@@ -128,7 +128,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
   if (!token) {
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-10">
-        <div className="mx-auto max-w-2xl rounded-3xl border border-rose-200 bg-white p-8 shadow-sm">
+        <div className="mx-auto max-w-2xl rounded-3xl border border-rose-200 bg-card p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-rose-700">
             Apply Link Unavailable
           </p>
@@ -144,7 +144,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10">
       <div className="mx-auto max-w-3xl space-y-6">
-        <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <section className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-sky-700">
             My HR Depot Application
           </p>
@@ -242,7 +242,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
               <button
                 type="submit"
                 disabled={isSubmittingApplication}
-                className="inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+                className="inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-neutral-50 disabled:cursor-not-allowed disabled:bg-slate-400"
               >
                 {isSubmittingApplication ? 'Submitting…' : 'Submit application'}
               </button>
@@ -253,7 +253,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
         {/* Voluntary EEO self-identification. Separate submission; writes ONLY to
             the restricted partition. Available before or after the application
             (the token is not burned by submit). */}
-        <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <section className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
             Voluntary Self-Identification
           </p>
@@ -369,7 +369,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
               <button
                 type="submit"
                 disabled={isSubmittingEeo}
-                className="inline-flex rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:text-slate-400"
+                className="inline-flex rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:text-slate-400"
               >
                 {isSubmittingEeo ? 'Submitting…' : 'Submit self-identification'}
               </button>

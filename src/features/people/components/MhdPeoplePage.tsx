@@ -49,7 +49,7 @@ export function MhdPeoplePage() {
           </button>
         </div>
 
-        <section className="mt-6 grid gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-3">
+        <section className="mt-6 grid gap-4 rounded-lg border border-slate-200 bg-card p-4 shadow-sm md:grid-cols-3">
           <MhdPersonCompanySelect
             companies={activeCompanies}
             includeAllOption

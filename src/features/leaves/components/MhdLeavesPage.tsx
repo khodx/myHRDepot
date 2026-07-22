@@ -78,7 +78,7 @@ export function MhdLeavesPage() {
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
           >
             Open leave case
           </button>
@@ -176,7 +176,7 @@ export function MhdLeavesPage() {
 
       {isCreating && isPrivileged && companyId ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-lg bg-white p-6">
+          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-lg bg-card p-6">
             <h2 className="mb-4 text-base font-semibold text-neutral-900">Open leave case</h2>
             <MhdLeaveCaseForm
               companyId={companyId}

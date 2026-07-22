@@ -281,7 +281,7 @@ export function MhdJobDescriptionEditor({
           type="button"
           disabled={isSaving || !gate.ok}
           onClick={() => void saveAndPublish()}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {publish.isPending ? 'Publishing…' : 'Publish version'}
         </button>
