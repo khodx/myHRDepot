@@ -78,6 +78,19 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // provider_note / drive_file_id to null below Platform Admin / HR Partner
   // (Client Admin included) — see MHD_LEAVES_MEDICAL_ROLES.
   { path: '/leaves', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  // Investigations — the strictest access model in the platform. Route access
+  // does NOT grant case visibility: reaching /investigations (and
+  // /investigations/:caseId via the guard's prefix match) only lets a user
+  // NAVIGATE to the module; what they can actually SEE is decided entirely by
+  // per-case grants server-side (the list RPC is grant-filtered, `get` denies an
+  // ungranted caller with an identical non-disclosing error). The route is
+  // restricted to Platform Admin / HR Partner / Client Admin so those roles can
+  // reach the board — but an ungranted admin sees an empty list and can open
+  // nothing. Client User and Viewer are excluded from the route entirely; there
+  // is deliberately NO subject-facing Investigations route. The sidebar entry is
+  // gated separately, on the grant-filtered list returning ≥1 row (never on a
+  // role) — see MhdSidebar.
+  { path: '/investigations', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
 ];
 
 export function mhdRouteRoles(path: string): MhdAuthRoleName[] | 'ALL' {
@@ -325,4 +338,24 @@ export const MHD_LEAVES_MEDICAL_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'H
 
 export function mhdLeavesCanSeeMedical(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_LEAVES_MEDICAL_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Roles that may OPEN an investigation case — the privileged set that reaches the
+ * /investigations route. This gates ONLY the "New investigation" affordance on
+ * the board; it does NOT, and must not, widen case visibility, which is decided
+ * entirely by per-case grants server-side (the list RPC is grant-filtered, so a
+ * privileged admin with no grants still sees an empty board). The create RPC
+ * re-checks the privileged set server-side; this helper only decides whether the
+ * create button renders. There is deliberately no "can view" role helper — the
+ * whole point of the module is that no role grants visibility.
+ */
+export const MHD_INVESTIGATIONS_OPEN_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdCanOpenInvestigation(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_INVESTIGATIONS_OPEN_ROLES.some((role) => userRoles.includes(role));
 }

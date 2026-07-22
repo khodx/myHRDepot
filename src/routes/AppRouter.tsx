@@ -51,6 +51,8 @@ import { MhdMyJobPage } from '@/features/jobs/components/MhdMyJobPage';
 import { MhdMileagePage } from '@/features/mileage/components/MhdMileagePage';
 import { MhdLeavesPage } from '@/features/leaves/components/MhdLeavesPage';
 import { MhdLeaveCaseDetailPage } from '@/features/leaves/components/MhdLeaveCaseDetailPage';
+import { MhdInvestigationsPage } from '@/features/investigations/components/MhdInvestigationsPage';
+import { MhdInvestigationCaseDetailPage } from '@/features/investigations/components/MhdInvestigationCaseDetailPage';
 import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
 import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
 
@@ -144,6 +146,16 @@ export function AppRouter() {
                   Platform Admin / HR Partner. */}
               <Route path="/leaves" element={<MhdLeavesPage />} />
               <Route path="/leaves/:caseId" element={<MhdLeaveCaseDetailPage />} />
+              {/* Investigations — the strictest access model. The route admits
+                  Platform Admin / HR Partner / Client Admin (see mhdRouteAccess);
+                  /investigations/:caseId inherits that rule via the guard's
+                  prefix match. Route access only lets these roles NAVIGATE — case
+                  visibility is grant-based server-side, so an ungranted admin sees
+                  an empty board and cannot open any case. Client User and Viewer
+                  are excluded; there is deliberately NO subject-facing route. Both
+                  pages read useMhdAuth/useParams themselves. */}
+              <Route path="/investigations" element={<MhdInvestigationsPage />} />
+              <Route path="/investigations/:caseId" element={<MhdInvestigationCaseDetailPage />} />
             </Route>
           </Route>
         </Route>

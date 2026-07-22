@@ -20,6 +20,16 @@ vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => mockUseMhdAuth(),
 }));
 
+// The sidebar's "Investigations" entry is DATA-gated, not role-gated: it queries
+// the grant-filtered investigation list (react-query) and renders only when it
+// returns >= 1 row. Mock that query so the provider-less MhdSidebar render works
+// and the gate can be driven per test. Default: empty (an ungranted user), so
+// the entry is hidden and existence stays non-disclosed.
+const mockUseMhdInvestigationCases = vi.fn(() => ({ data: [] as Array<{ id: string }> }));
+vi.mock('@/features/investigations/Hook', () => ({
+  useMhdInvestigationCases: () => mockUseMhdInvestigationCases(),
+}));
+
 // MhdProtectedRoute belongs to the scaffold's authentication feature. It is
 // mocked here as a faithful stand-in for its real implementation
 // (src/features/authentication/components/MhdProtectedRoute.tsx: redirect to
@@ -625,6 +635,41 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.queryByText('Approvals')).not.toBeInTheDocument();
     expect(screen.queryByText('Performance')).not.toBeInTheDocument();
     expect(screen.queryByText('Offboarding')).not.toBeInTheDocument();
+  });
+
+  it('hides "Investigations" when the grant-filtered list is empty (existence non-disclosure)', async () => {
+    // A Platform Admin with no case grants must NOT see the Investigations entry:
+    // the sidebar gates on the list returning rows, never on a role, and an empty
+    // result must not imply hidden cases exist.
+    mockAuth({ isAuthenticated: true, roles: ['Platform Admin'] });
+    mockUseMhdInvestigationCases.mockReturnValueOnce({ data: [] });
+    const { MhdSidebar } = await import('../MhdSidebar');
+    const { MemoryRouter } = await import('react-router-dom');
+
+    render(
+      <MemoryRouter>
+        <MhdSidebar />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText('Investigations')).not.toBeInTheDocument();
+    expect(screen.queryByText('Employee Development')).not.toBeInTheDocument();
+  });
+
+  it('shows "Investigations" only once the grant-filtered list returns >= 1 row (data-gated, not role-gated)', async () => {
+    mockAuth({ isAuthenticated: true, roles: ['Client Admin'] });
+    mockUseMhdInvestigationCases.mockReturnValueOnce({ data: [{ id: 'case-1' }] });
+    const { MhdSidebar } = await import('../MhdSidebar');
+    const { MemoryRouter } = await import('react-router-dom');
+
+    render(
+      <MemoryRouter>
+        <MhdSidebar />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('Employee Development')).toBeInTheDocument();
+    expect(screen.getByText('Investigations')).toBeInTheDocument();
   });
 });
 

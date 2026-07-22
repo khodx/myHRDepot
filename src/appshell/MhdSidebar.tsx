@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom';
-import { Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, IdCard, LayoutDashboard, MessageSquare, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
+import { Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, IdCard, LayoutDashboard, MessageSquare, Package2, ShieldAlert, Stamp, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
+import { useMhdInvestigationCases } from '@/features/investigations/Hook';
 import { mhdRouteRoles } from './mhdRouteAccess';
 
 interface NavItem {
@@ -113,8 +114,50 @@ export function MhdSidebar() {
             ))}
           </div>
         ))}
+        {/* Employee Development — Investigations is DATA-GATED, not role-gated:
+            the entry renders only when the grant-filtered list returns ≥1 row for
+            the current user, never on a role. See MhdEmployeeDevelopmentSection. */}
+        <MhdEmployeeDevelopmentSection />
       </nav>
     </aside>
+  );
+}
+
+/**
+ * The "Employee Development" nav group. Its only entry — Investigations — is
+ * gated on DATA, not role: it appears solely when the grant-filtered
+ * `mhd_investigation_list` returns ≥1 row for the signed-in user. A fresh admin
+ * with no grants sees nothing here, and the empty result leaks nothing about
+ * cases that may exist beyond their grants (existence is non-disclosure). This is
+ * the deliberate exception to the role-driven sidebar: the strict Investigations
+ * model has no role that grants visibility, so the sidebar cannot gate on one.
+ */
+function MhdEmployeeDevelopmentSection() {
+  const { profile } = useMhdAuth();
+  const companyId = profile?.companyId ?? null;
+  // Grant-filtered list. `enabled` is false without a company, so this fires at
+  // most once per signed-in user with a company; an ungranted caller gets an
+  // empty set and the section stays hidden.
+  const cases = useMhdInvestigationCases({ companyId, status: 'ALL' });
+
+  if ((cases.data ?? []).length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-1">
+      <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
+        Employee Development
+      </p>
+      <MhdNavItem
+        item={{
+          label: 'Investigations',
+          route: '/investigations',
+          icon: ShieldAlert,
+          roles: mhdRouteRoles('/investigations'),
+        }}
+      />
+    </div>
   );
 }
 
