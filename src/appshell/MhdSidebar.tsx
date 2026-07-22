@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Building2, CalendarClock, CheckSquare, ClipboardList, DoorOpen, FileSignature, LayoutDashboard, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
+import { Building2, CalendarClock, CalendarDays, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, LayoutDashboard, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -22,7 +22,11 @@ interface NavSection {
 const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Workspace',
-    items: [{ label: 'Dashboard', route: '/dashboard', icon: LayoutDashboard, roles: mhdRouteRoles('/dashboard') }],
+    items: [
+      { label: 'Dashboard', route: '/dashboard', icon: LayoutDashboard, roles: mhdRouteRoles('/dashboard') },
+      { label: 'Schedule', route: '/schedule', icon: CalendarDays, roles: mhdRouteRoles('/schedule') },
+      { label: 'Attendance', route: '/attendance', icon: ClipboardCheck, roles: mhdRouteRoles('/attendance') },
+    ],
   },
   {
     label: 'Productivity',

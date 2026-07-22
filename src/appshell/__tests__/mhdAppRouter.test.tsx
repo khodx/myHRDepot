@@ -142,6 +142,15 @@ vi.mock('@/features/offboarding/components/MhdOffboardingPage', () => ({
 vi.mock('@/features/offboarding/components/MhdOffboardingCaseDetailPage', () => ({
   MhdOffboardingCaseDetailPage: () => <div>Offboarding Case Detail Page</div>,
 }));
+vi.mock('@/features/timeattendance/components/MhdSchedulePage', () => ({
+  MhdSchedulePage: () => <div>Schedule Page</div>,
+}));
+vi.mock('@/features/timeattendance/components/MhdAttendancePage', () => ({
+  MhdAttendancePage: () => <div>Attendance Page</div>,
+}));
+vi.mock('@/features/timeattendance/components/MhdAttendancePolicyPage', () => ({
+  MhdAttendancePolicyPage: () => <div>Attendance Policy Page</div>,
+}));
 vi.mock('../components/MhdNotFoundPage', () => ({
   MhdNotFoundPage: () => <div>Page Not Found</div>,
 }));
@@ -465,6 +474,53 @@ describe('MhdAppRouter', () => {
 
       expect(screen.getByText('Offboarding Page')).toBeInTheDocument();
       expect(window.location.pathname).toBe('/offboarding');
+    });
+
+    // Time & Attendance — /schedule and /attendance admit Client User (own
+    // record) but exclude Viewer entirely.
+    it.each(['/schedule', '/attendance'])(
+      'renders "%s" for a Client User (own-record surface)',
+      (path) => {
+        mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+        setUrl(path);
+
+        render(<MhdAppRouter />);
+
+        expect(screen.getByText(path === '/schedule' ? 'Schedule Page' : 'Attendance Page')).toBeInTheDocument();
+        expect(window.location.pathname).toBe(path);
+      },
+    );
+
+    it.each(['/schedule', '/attendance'])(
+      'redirects a Viewer away from "%s" to "/404"',
+      (path) => {
+        mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+        setUrl(path);
+
+        render(<MhdAppRouter />);
+
+        expect(screen.queryByText('Schedule Page')).not.toBeInTheDocument();
+        expect(screen.queryByText('Attendance Page')).not.toBeInTheDocument();
+        expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+        expect(window.location.pathname).toBe('/404');
+      },
+    );
+
+    it('renders "/attendance/policy" for a Client Admin but not a Client User', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Client Admin'] });
+      setUrl('/attendance/policy');
+      const { unmount } = render(<MhdAppRouter />);
+      expect(screen.getByText('Attendance Policy Page')).toBeInTheDocument();
+      unmount();
+
+      // Client User reaches /attendance but NOT /attendance/policy — the
+      // privileged-only rule must win the prefix match over the broader
+      // /attendance rule.
+      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      setUrl('/attendance/policy');
+      render(<MhdAppRouter />);
+      expect(screen.queryByText('Attendance Policy Page')).not.toBeInTheDocument();
+      expect(screen.getByText('Page Not Found')).toBeInTheDocument();
     });
 
     it.each<MhdAuthRoleName>(['Client User', 'Viewer'])(

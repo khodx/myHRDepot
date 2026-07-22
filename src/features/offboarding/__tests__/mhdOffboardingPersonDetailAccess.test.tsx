@@ -61,6 +61,14 @@ vi.mock('../Hook', () => ({
     return { data: [], isLoading: false, error: null };
   },
 }));
+// The person-detail page also renders a privileged-only Attendance section
+// (Time & Attendance wave). This suite is about the Offboarding section, so the
+// attendance hooks are stubbed to benign values here.
+vi.mock('@/features/timeattendance/Hook', () => ({
+  useMhdPointBalance: () => ({ data: 0, isLoading: false }),
+  useMhdPointLedger: () => ({ data: [], isLoading: false }),
+  useMhdAttendancePolicy: () => ({ data: null, isLoading: false }),
+}));
 
 const { MhdPersonDetailPage } = await import('@/appshell/components/MhdPersonDetailPage');
 

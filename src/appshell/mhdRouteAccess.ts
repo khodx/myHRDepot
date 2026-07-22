@@ -20,6 +20,15 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/esignature', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
   { path: '/performance', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/offboarding', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  // Time & Attendance. /schedule and /attendance are the platform's first
+  // employee-facing surfaces — Client User reaches them for their own record;
+  // Viewer is excluded. /attendance/policy is privileged-only, so it must
+  // precede /attendance here: mhdCanAccessRoute returns the first matching rule
+  // and /attendance/policy would otherwise inherit the broader /attendance rule
+  // via the prefix match.
+  { path: '/schedule', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  { path: '/attendance/policy', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  { path: '/attendance', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/people', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/companies', roles: ['Platform Admin', 'HR Partner'] },
   { path: '/approvals', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
@@ -122,6 +131,24 @@ export const MHD_OFFBOARDING_MUTATING_ROLES: MhdAuthRoleName[] = [
 
 export function mhdCanMutateOffboarding(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_OFFBOARDING_MUTATING_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Roles that may mutate Time & Attendance — record/void occurrences, adjust
+ * points, edit schedules, publish policy versions, and resolve threshold and
+ * reassessment items. This is the same set that renders the privileged surface;
+ * a Client User reaches /schedule and /attendance for their OWN record only
+ * (read), and threshold/reassessment items are never exposed to them (the RPCs
+ * refuse a non-privileged caller with 42501). Viewer is excluded entirely.
+ */
+export const MHD_ATTENDANCE_MUTATING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdCanMutateAttendance(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_ATTENDANCE_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }
 
 /**

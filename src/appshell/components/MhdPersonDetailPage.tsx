@@ -20,7 +20,13 @@ import { useMhdOnboardingPacket } from '@/features/onboarding/Hook';
 import { MhdOnboardingChecklistPage } from '@/features/onboarding/components/MhdOnboardingChecklistPage';
 import { useMhdPerformanceReviews } from '@/features/performance/Hook';
 import { useMhdOffboardingCases } from '@/features/offboarding/Hook';
-import { mhdCanAccessRoute } from '@/appshell/mhdRouteAccess';
+import {
+  useMhdAttendancePolicy,
+  useMhdPointBalance,
+  useMhdPointLedger,
+} from '@/features/timeattendance/Hook';
+import { MhdPointLedgerPanel } from '@/features/timeattendance/components/MhdPointLedgerPanel';
+import { mhdCanAccessRoute, mhdCanMutateAttendance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Link } from 'react-router-dom';
 
@@ -49,6 +55,15 @@ export function MhdPersonDetailPage() {
   const performanceQuery = useMhdPerformanceReviews({ companyId: person?.companyId ?? '', personId: person?.id ?? 'ALL', reviewerUserId: 'ALL', reviewType: 'ALL', status: 'ALL', searchTerm: '', dueFrom: '', dueTo: '' });
   const canSeePerformance = mhdCanAccessRoute('/performance', roles);
   const canSeeOffboarding = mhdCanAccessRoute('/offboarding', roles);
+  // Attendance on the person profile is a privileged-only view: it exposes the
+  // full point ledger, which is administrative context. Client User / Viewer
+  // never see it here (an employee reads their own record at /attendance).
+  const canSeeAttendance = mhdCanMutateAttendance(roles);
+  const attendancePersonId = canSeeAttendance ? person?.id ?? null : null;
+  const attendanceCompanyId = canSeeAttendance ? person?.companyId ?? null : null;
+  const attendanceBalance = useMhdPointBalance(attendancePersonId);
+  const attendanceLedger = useMhdPointLedger(attendancePersonId);
+  const attendancePolicy = useMhdAttendancePolicy(attendanceCompanyId);
   const offboardingQuery = useMhdOffboardingCases({
     companyId: canSeeOffboarding ? person?.companyId ?? '' : '',
     personId: person?.id ?? 'ALL',
@@ -200,6 +215,28 @@ export function MhdPersonDetailPage() {
               ) : null}
             </ul>
           )}
+        </section>
+      ) : null}
+
+      {canSeeAttendance ? (
+        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-neutral-900">Attendance</h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                Current points and the append-only ledger for this person.
+              </p>
+            </div>
+            <Link className="text-sm text-blue-700 hover:underline" to="/attendance">
+              Open Attendance
+            </Link>
+          </div>
+          <MhdPointLedgerPanel
+            entries={attendanceLedger.data ?? []}
+            balance={attendanceBalance.data ?? 0}
+            thresholds={attendancePolicy.data?.thresholds ?? []}
+            isLoading={attendanceBalance.isLoading || attendanceLedger.isLoading}
+          />
         </section>
       ) : null}
 

@@ -36,6 +36,9 @@ import { MhdReviewDetailPage } from '@/features/performance/Components/MhdReview
 import { MhdCoachingPlanDetailPage } from '@/features/performance/Components/MhdCoachingPlanDetailPage';
 import { MhdOffboardingPage } from '@/features/offboarding/components/MhdOffboardingPage';
 import { MhdOffboardingCaseDetailPage } from '@/features/offboarding/components/MhdOffboardingCaseDetailPage';
+import { MhdSchedulePage } from '@/features/timeattendance/components/MhdSchedulePage';
+import { MhdAttendancePage } from '@/features/timeattendance/components/MhdAttendancePage';
+import { MhdAttendancePolicyPage } from '@/features/timeattendance/components/MhdAttendancePolicyPage';
 import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
 import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
 
@@ -87,6 +90,12 @@ export function AppRouter() {
               <Route path="/performance/coaching/:planId" element={<MhdCoachingPlanDetailPage />} />
               <Route path="/offboarding" element={<MhdOffboardingPage />} />
               <Route path="/offboarding/:caseId" element={<MhdOffboardingCaseDetailPage />} />
+              <Route path="/schedule" element={<MhdSchedulePage />} />
+              {/* /attendance/policy is privileged-only; its rule precedes
+                  /attendance in mhdRouteAccess so the guard does not let it
+                  inherit the broader /attendance rule. */}
+              <Route path="/attendance/policy" element={<MhdAttendancePolicyPage />} />
+              <Route path="/attendance" element={<MhdAttendancePage />} />
             </Route>
           </Route>
         </Route>
