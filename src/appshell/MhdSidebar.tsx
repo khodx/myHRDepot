@@ -115,8 +115,10 @@ export function MhdSidebar() {
         <span className="text-lg font-bold tracking-tight text-primary">My HR Depot</span>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-4 p-3">
+      {/* Navigation — scrolls independently when the item list exceeds the
+          viewport (min-h-0 lets the flex child shrink below its content so
+          overflow-y-auto engages instead of the ancestor clipping it). */}
+      <nav className="flex-1 min-h-0 space-y-4 overflow-y-auto p-3">
         {visibleSections.map((section) => (
           <div key={section.label} className="space-y-1">
             <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
