@@ -103,6 +103,19 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // Investigations entry.
   { path: '/my-training', roles: ['Client User'] },
   { path: '/training', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  // Handbook Engine. Two SEPARATE routes, never one filtered surface — the same
+  // one-route-per-audience discipline as /training vs /my-training. /handbooks is
+  // the admin wizard + acknowledgment board (Platform Admin / HR Partner / Client
+  // Admin); /handbooks/:handbookId inherits that rule via the guard's prefix
+  // match. /my-handbooks is the employee's OWN acknowledgment surface (Client User
+  // only). Viewer is excluded from BOTH; Client User is excluded from the admin
+  // /handbooks. /my-handbooks is listed first and is a DISTINCT prefix from
+  // /handbooks (it does not start with "/handbooks/"), so the first-match prefix
+  // scan never lets the /handbooks rule capture /my-handbooks. Both entries are
+  // ROLE-gated in the sidebar's Employee Development group, independent of the
+  // data-gated Investigations entry and the Training entries.
+  { path: '/my-handbooks', roles: ['Client User'] },
+  { path: '/handbooks', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
 ];
 
 export function mhdRouteRoles(path: string): MhdAuthRoleName[] | 'ALL' {
@@ -391,4 +404,24 @@ export const MHD_TRAINING_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
 
 export function mhdTrainingIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_TRAINING_PRIVILEGED_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * The privileged Handbook set — Platform Admin / HR Partner / Client Admin. These
+ * roles reach the admin `/handbooks` surface, where they create draft handbooks,
+ * toggle optional sections, publish frozen versions, and run the acknowledgment
+ * board. A Client User falls outside this set and reaches only `/my-handbooks`
+ * (their OWN acknowledgments); Viewer is excluded from both routes. The handbook
+ * RPCs re-check `mhd_handbook_is_privileged` server-side (42501 on a
+ * non-privileged write); this helper only decides whether the create / manage
+ * affordances render — it maps to the `canManage` prop on the list page and wizard.
+ */
+export const MHD_HANDBOOK_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdHandbookIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_HANDBOOK_PRIVILEGED_ROLES.some((role) => userRoles.includes(role));
 }

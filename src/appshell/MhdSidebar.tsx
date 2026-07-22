@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { BookOpen, Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, GraduationCap, IdCard, LayoutDashboard, MessageSquare, Package2, ShieldAlert, Stamp, Users, TrendingUp } from 'lucide-react';
+import { BookMarked, BookOpen, Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, GraduationCap, IdCard, LayoutDashboard, Library, MessageSquare, Package2, ShieldAlert, Stamp, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { useMhdInvestigationCases } from '@/features/investigations/Hook';
@@ -127,10 +127,11 @@ export function MhdSidebar() {
  * The "Employee Development" nav group. It carries two KINDS of entry, gated
  * differently and independently:
  *
- * - Training / My Training are ROLE-gated like every other nav item — Training
- *   for the privileged set (Platform Admin / HR Partner / Client Admin) via
- *   mhdRouteRoles('/training'), My Training for Client User via
- *   mhdRouteRoles('/my-training'). Viewer sees neither.
+ * - Training / My Training and Handbooks / My Handbooks are ROLE-gated like every
+ *   other nav item — the admin surfaces (Training, Handbooks) for the privileged
+ *   set (Platform Admin / HR Partner / Client Admin), the employee surfaces (My
+ *   Training, My Handbooks) for Client User, each via its own mhdRouteRoles(...).
+ *   Viewer sees none of them.
  * - Investigations is DATA-gated, not role-gated: it appears solely when the
  *   grant-filtered `mhd_investigation_list` returns ≥1 row for the signed-in
  *   user. A fresh admin with no grants sees no Investigations entry, and the
@@ -152,16 +153,20 @@ function MhdEmployeeDevelopmentSection() {
   // empty set and the Investigations entry stays hidden.
   const cases = useMhdInvestigationCases({ companyId, status: 'ALL' });
 
-  // Role-gated training entries — filtered exactly like NAV_SECTIONS items.
-  const trainingItems: NavItem[] = [
+  // Role-gated entries — filtered exactly like NAV_SECTIONS items. Training and
+  // Handbooks split admin vs employee into two SEPARATE routes each; both are
+  // gated purely on role, independent of the data-gated Investigations entry.
+  const roleGatedItems: NavItem[] = [
     { label: 'Training', route: '/training', icon: GraduationCap, roles: mhdRouteRoles('/training') },
     { label: 'My Training', route: '/my-training', icon: BookOpen, roles: mhdRouteRoles('/my-training') },
+    { label: 'Handbooks', route: '/handbooks', icon: Library, roles: mhdRouteRoles('/handbooks') },
+    { label: 'My Handbooks', route: '/my-handbooks', icon: BookMarked, roles: mhdRouteRoles('/my-handbooks') },
   ].filter((item) => (item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role))));
 
   // Data-gated Investigations entry — only when the grant-filtered list is non-empty.
   const showInvestigations = (cases.data ?? []).length > 0;
 
-  if (trainingItems.length === 0 && !showInvestigations) {
+  if (roleGatedItems.length === 0 && !showInvestigations) {
     return null;
   }
 
@@ -170,7 +175,7 @@ function MhdEmployeeDevelopmentSection() {
       <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
         Employee Development
       </p>
-      {trainingItems.map((item) => (
+      {roleGatedItems.map((item) => (
         <MhdNavItem key={item.route} item={item} />
       ))}
       {showInvestigations ? (

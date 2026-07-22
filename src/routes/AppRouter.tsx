@@ -55,6 +55,9 @@ import { MhdInvestigationsPage } from '@/features/investigations/components/MhdI
 import { MhdInvestigationCaseDetailPage } from '@/features/investigations/components/MhdInvestigationCaseDetailPage';
 import { MhdTrainingPage } from '@/features/training/components/MhdTrainingPage';
 import { MhdMyTrainingRoutePage } from '@/features/training/components/MhdMyTrainingRoutePage';
+import { MhdHandbooksPage } from '@/features/handbook/components/MhdHandbooksPage';
+import { MhdHandbookDetailPage } from '@/features/handbook/components/MhdHandbookDetailPage';
+import { MhdMyHandbooksRoutePage } from '@/features/handbook/components/MhdMyHandbooksRoutePage';
 import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
 import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
 
@@ -168,6 +171,18 @@ export function AppRouter() {
                   courses are read-only to every tenant admin. */}
               <Route path="/training" element={<MhdTrainingPage />} />
               <Route path="/my-training" element={<MhdMyTrainingRoutePage />} />
+              {/* Handbook Engine. Two SEPARATE routes, never one filtered surface:
+                  /handbooks is the admin wizard + acknowledgment board (Platform
+                  Admin / HR Partner / Client Admin), /handbooks/:handbookId is the
+                  per-handbook wizard and inherits that rule via the guard's prefix
+                  match. /my-handbooks is the employee's own acknowledgment surface
+                  (Client User only). Viewer is excluded from all three (see
+                  mhdRouteAccess). Every clause body rendered here carries a visible
+                  attorney-content-pending banner — this is a SHELL wave, content is
+                  attorney-flagged placeholder. All pages read useMhdAuth themselves. */}
+              <Route path="/handbooks" element={<MhdHandbooksPage />} />
+              <Route path="/handbooks/:handbookId" element={<MhdHandbookDetailPage />} />
+              <Route path="/my-handbooks" element={<MhdMyHandbooksRoutePage />} />
             </Route>
           </Route>
         </Route>
