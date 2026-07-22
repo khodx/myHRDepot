@@ -43,6 +43,7 @@ import { MhdJobsPage } from '@/features/jobs/components/MhdJobsPage';
 import { MhdCompetencyLibraryPage } from '@/features/jobs/components/MhdCompetencyLibraryPage';
 import { MhdJobDetailPage } from '@/features/jobs/components/MhdJobDetailPage';
 import { MhdMyJobPage } from '@/features/jobs/components/MhdMyJobPage';
+import { MhdMileagePage } from '@/features/mileage/components/MhdMileagePage';
 import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
 import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
 
@@ -108,6 +109,11 @@ export function AppRouter() {
               <Route path="/jobs/competencies" element={<MhdCompetencyLibraryPage />} />
               <Route path="/jobs/:jobId" element={<MhdJobDetailPage />} />
               <Route path="/my-job" element={<MhdMyJobPage />} />
+              {/* Mileage & Reimbursement. A single tabbed route; the page reads
+                  useMhdAuth and renders the privileged company view or the
+                  employee's own trips/claims. Viewer is excluded via
+                  mhdRouteAccess. */}
+              <Route path="/mileage" element={<MhdMileagePage />} />
             </Route>
           </Route>
         </Route>

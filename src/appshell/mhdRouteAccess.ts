@@ -41,6 +41,14 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // Platform Admin / HR Partner, Client Admin included) — see MHD_JOB_PAY_ROLES.
   { path: '/jobs', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   { path: '/my-job', roles: ['Client User'] },
+  // Mileage & Reimbursement. A single tabbed route: Platform Admin / HR Partner /
+  // Client Admin see the whole company plus the rate registry and company-rate
+  // tabs; a Client User reaches /mileage for their OWN trips and claims only
+  // (the RPCs refuse anybody else's rows), and the registry/policy tabs never
+  // render for them. Viewer is excluded entirely. The rate registry is global
+  // and writable only by Platform Admin (mhdCanManageMileageRates) — enforced
+  // server-side; the helper only decides whether to render the write affordance.
+  { path: '/mileage', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
 ];
 
 export function mhdRouteRoles(path: string): MhdAuthRoleName[] | 'ALL' {
@@ -202,4 +210,36 @@ export const MHD_JOB_PAY_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partn
 
 export function mhdCanSeeJobPay(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_JOB_PAY_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * The privileged Mileage set — the roles that see the whole company's trips and
+ * claims, the rate registry, the company-rate policy tabs, and the claim
+ * decision controls. A Client User falls outside this set and sees only their
+ * own trips and claims (the RPCs enforce that scope with a 42501 on anybody
+ * else's rows); Viewer is excluded from /mileage entirely. Mirrors the
+ * privileged set used across the employee-facing modules.
+ */
+export const MHD_MILEAGE_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdMileageIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_MILEAGE_PRIVILEGED_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Narrower than the privileged set: only Platform Admin may write the IRS rate
+ * registry. The registry is GLOBAL — one authoritative figure per date across
+ * every tenant — so an HR Partner or Client Admin at one customer must not be
+ * able to change a rate every other customer resolves against. The mutation
+ * RPCs assert `mhd_user_has_role('Platform Admin')` server-side; this list only
+ * decides whether the propose/confirm affordances render at all.
+ */
+export const MHD_MILEAGE_RATE_ADMIN_ROLES: MhdAuthRoleName[] = ['Platform Admin'];
+
+export function mhdCanManageMileageRates(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_MILEAGE_RATE_ADMIN_ROLES.some((role) => userRoles.includes(role));
 }

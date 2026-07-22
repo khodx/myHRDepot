@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Briefcase, Building2, CalendarClock, CalendarDays, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, IdCard, LayoutDashboard, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
+import { Briefcase, Building2, CalendarClock, CalendarDays, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, IdCard, LayoutDashboard, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -30,6 +30,10 @@ const NAV_SECTIONS: NavSection[] = [
       // privileged /jobs list (Client User only), so the list never has to be
       // correct for two audiences — see mhdRouteAccess.
       { label: 'My Job', route: '/my-job', icon: IdCard, roles: mhdRouteRoles('/my-job') },
+      // Mileage & Reimbursement. Renders for Client Users (their own trips and
+      // claims); privileged roles see the full company view behind the same
+      // link. Viewer is excluded via mhdRouteAccess('/mileage').
+      { label: 'Mileage', route: '/mileage', icon: Car, roles: mhdRouteRoles('/mileage') },
     ],
   },
   {
