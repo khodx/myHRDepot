@@ -614,9 +614,9 @@ describe('MhdSidebar role-based visibility', () => {
     );
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Workspace')).toBeInTheDocument();
-    expect(screen.getByText('Productivity')).toBeInTheDocument();
-    expect(screen.getByText('Operations')).toBeInTheDocument();
+    // A Viewer's only visible group is Work Tools (Tasks / Activities / Forms /
+    // Property / E-Signature); every other domain group is empty for them.
+    expect(screen.getByText('Work Tools')).toBeInTheDocument();
     expect(screen.getByText('Activities')).toBeInTheDocument();
     expect(screen.getByText('Forms')).toBeInTheDocument();
     expect(screen.getByText('Property')).toBeInTheDocument();
@@ -643,15 +643,16 @@ describe('MhdSidebar role-based visibility', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Employee Development')).toBeInTheDocument();
+    expect(screen.getByText('Employee Relations')).toBeInTheDocument();
     expect(screen.getByText('Investigations')).toBeInTheDocument();
+    // Training lives in the Talent group; both groups render for a privileged admin.
     expect(screen.getByText('Training')).toBeInTheDocument();
   });
 
   it('hides "Investigations" from a Client User (route-excluded, not a privileged role)', async () => {
     // Client User and Viewer are excluded from /investigations, so the entry never
-    // renders for them — but a Client User still sees their own Employee
-    // Development surfaces (My Training / My Handbooks).
+    // renders for them — but a Client User still sees their own self-service
+    // surfaces in the Talent group (My Training / My Handbooks).
     mockAuth({ isAuthenticated: true, roles: ['Client User'] });
     const { MhdSidebar } = await import('../MhdSidebar');
     const { MemoryRouter } = await import('react-router-dom');

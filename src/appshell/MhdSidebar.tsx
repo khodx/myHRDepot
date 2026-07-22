@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { BarChart3, BookMarked, BookOpen, Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, GraduationCap, IdCard, LayoutDashboard, Library, MessageSquare, Package2, ShieldAlert, Stamp, UserSearch, Users, TrendingUp } from 'lucide-react';
+import { BarChart3, BookMarked, BookOpen, Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ChevronDown, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, GraduationCap, IdCard, LayoutDashboard, Library, MessageSquare, Package2, ShieldAlert, Stamp, UserSearch, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -16,114 +17,123 @@ interface NavSection {
   items: NavItem[];
 }
 
-// Roles come from mhdRouteAccess.ts (the same source MhdRoleGuardedRoute
-// enforces against) so the sidebar can never drift from what the router
-// actually allows — see MhdRoleGuardedRoute.tsx.
+// Dashboard sits above the collapsible groups as the app's home — it belongs to
+// no group so it is always one click away.
+const DASHBOARD_ITEM: NavItem = {
+  label: 'Dashboard',
+  route: '/dashboard',
+  icon: LayoutDashboard,
+  roles: mhdRouteRoles('/dashboard'),
+};
+
+// Grouped by HR domain rather than one long flat list. Roles come from
+// mhdRouteAccess.ts (the same source MhdRoleGuardedRoute enforces against) so the
+// sidebar can never drift from what the router actually allows — see
+// MhdRoleGuardedRoute.tsx. Each group is collapsible (state persisted per user in
+// localStorage) so a large module set stays manageable.
 const NAV_SECTIONS: NavSection[] = [
   {
-    label: 'Workspace',
+    label: 'People & Org',
     items: [
-      { label: 'Dashboard', route: '/dashboard', icon: LayoutDashboard, roles: mhdRouteRoles('/dashboard') },
-      { label: 'Schedule', route: '/schedule', icon: CalendarDays, roles: mhdRouteRoles('/schedule') },
-      { label: 'Attendance', route: '/attendance', icon: ClipboardCheck, roles: mhdRouteRoles('/attendance') },
-      // The employee's own published job description. A SEPARATE route from the
+      { label: 'People', route: '/people', icon: Users, roles: mhdRouteRoles('/people') },
+      { label: 'Companies', route: '/companies', icon: Building2, roles: mhdRouteRoles('/companies') },
+      // Privileged only. Employees reach their own description via "My Job".
+      { label: 'Job Descriptions', route: '/jobs', icon: Briefcase, roles: mhdRouteRoles('/jobs') },
+      // The employee's own published job description — a SEPARATE route from the
       // privileged /jobs list (Client User only), so the list never has to be
-      // correct for two audiences — see mhdRouteAccess.
+      // correct for two audiences.
       { label: 'My Job', route: '/my-job', icon: IdCard, roles: mhdRouteRoles('/my-job') },
-      // Mileage & Reimbursement. Renders for Client Users (their own trips and
-      // claims); privileged roles see the full company view behind the same
-      // link. Viewer is excluded via mhdRouteAccess('/mileage').
-      { label: 'Mileage', route: '/mileage', icon: Car, roles: mhdRouteRoles('/mileage') },
-      // Leaves of Absence. Renders for Client Users (their own cases) and the
-      // privileged roles (the full company board) behind the same link; Viewer
-      // is excluded via mhdRouteRoles('/leaves'). The medical-certification
-      // partition is gated separately, deeper in the case detail page.
-      { label: 'Leaves', route: '/leaves', icon: CalendarOff, roles: mhdRouteRoles('/leaves') },
-      // 360 feedback requests addressed to the signed-in user. A SEPARATE route
-      // from /performance because a rater cannot load the review behind their
-      // invitation — see mhdRouteAccess('/performance/invitations').
-      { label: 'Feedback Requests', route: '/performance/invitations', icon: MessageSquare, roles: mhdRouteRoles('/performance/invitations') },
     ],
   },
   {
-    label: 'Productivity',
+    label: 'Time & Leave',
+    items: [
+      { label: 'Schedule', route: '/schedule', icon: CalendarDays, roles: mhdRouteRoles('/schedule') },
+      { label: 'Attendance', route: '/attendance', icon: ClipboardCheck, roles: mhdRouteRoles('/attendance') },
+      // Renders for Client Users (their own cases) and privileged roles (the full
+      // company board) behind the same link; Viewer is excluded. The medical
+      // partition is gated deeper in the case detail page.
+      { label: 'Leaves', route: '/leaves', icon: CalendarOff, roles: mhdRouteRoles('/leaves') },
+      { label: 'Mileage', route: '/mileage', icon: Car, roles: mhdRouteRoles('/mileage') },
+    ],
+  },
+  {
+    label: 'Talent',
+    items: [
+      { label: 'Performance', route: '/performance', icon: TrendingUp, roles: mhdRouteRoles('/performance') },
+      // 360 feedback requests addressed to the signed-in user. A SEPARATE route
+      // from /performance because a rater cannot load the review behind their
+      // invitation.
+      { label: 'Feedback Requests', route: '/performance/invitations', icon: MessageSquare, roles: mhdRouteRoles('/performance/invitations') },
+      { label: 'Recruiting', route: '/recruiting', icon: UserSearch, roles: mhdRouteRoles('/recruiting') },
+      // Platform-Admin ONLY — the sole read path into the hard-restricted EEO
+      // partition, aggregate counts only.
+      { label: 'EEO Report', route: '/recruiting/eeo', icon: BarChart3, roles: mhdRouteRoles('/recruiting/eeo') },
+      { label: 'Training', route: '/training', icon: GraduationCap, roles: mhdRouteRoles('/training') },
+      { label: 'My Training', route: '/my-training', icon: BookOpen, roles: mhdRouteRoles('/my-training') },
+      { label: 'Handbooks', route: '/handbooks', icon: Library, roles: mhdRouteRoles('/handbooks') },
+      { label: 'My Handbooks', route: '/my-handbooks', icon: BookMarked, roles: mhdRouteRoles('/my-handbooks') },
+    ],
+  },
+  {
+    label: 'Employee Relations',
+    items: [
+      // Admin-only (Platform Admin / HR Partner / Client Admin); no subject route.
+      { label: 'Conduct', route: '/conduct', icon: Gavel, roles: mhdRouteRoles('/conduct') },
+      // Role-gated for the privileged set. Showing the link is NOT access control:
+      // case visibility stays grant-based server-side, so an ungranted admin who
+      // opens the board sees an empty, non-disclosing list.
+      { label: 'Investigations', route: '/investigations', icon: ShieldAlert, roles: mhdRouteRoles('/investigations') },
+      { label: 'Offboarding', route: '/offboarding', icon: DoorOpen, roles: mhdRouteRoles('/offboarding') },
+    ],
+  },
+  {
+    label: 'Work Tools',
     items: [
       { label: 'Tasks', route: '/tasks', icon: CheckSquare, roles: mhdRouteRoles('/tasks') },
       { label: 'Activities', route: '/activities', icon: CalendarClock, roles: mhdRouteRoles('/activities') },
       { label: 'Forms', route: '/forms', icon: ClipboardList, roles: mhdRouteRoles('/forms') },
       { label: 'Approvals', route: '/approvals', icon: Stamp, roles: mhdRouteRoles('/approvals') },
-      { label: 'Performance', route: '/performance', icon: TrendingUp, roles: mhdRouteRoles('/performance') },
-      { label: 'Offboarding', route: '/offboarding', icon: DoorOpen, roles: mhdRouteRoles('/offboarding') },
-      // Conduct — admin-only (Platform Admin / HR Partner / Client Admin). The
-      // roles come from mhdRouteRoles('/conduct') so the link can never render
-      // for a role the router guard would refuse. No subject ever sees it.
-      { label: 'Conduct', route: '/conduct', icon: Gavel, roles: mhdRouteRoles('/conduct') },
-    ],
-  },
-  {
-    label: 'Operations',
-    items: [
       { label: 'Property', route: '/property', icon: Package2, roles: mhdRouteRoles('/property') },
       { label: 'E-Signature', route: '/esignature', icon: FileSignature, roles: mhdRouteRoles('/esignature') },
     ],
   },
-  {
-    label: 'Organization',
-    items: [
-      // Privileged only (Platform Admin / HR Partner / Client Admin). Employees
-      // reach their own description via "My Job" under Workspace, not here.
-      { label: 'Job Descriptions', route: '/jobs', icon: Briefcase, roles: mhdRouteRoles('/jobs') },
-    ],
-  },
-  {
-    // Recruiting / ATS. The Recruiting entry is admin + hiring-manager (Platform
-    // Admin / HR Partner / Client Admin) via mhdRouteRoles('/recruiting'). The EEO
-    // Report entry is Platform-Admin ONLY via mhdRouteRoles('/recruiting/eeo') — it
-    // is the sole read path into the hard-restricted EEO partition, so the link can
-    // never render for any other role. Neither entry exposes EEO data itself; the
-    // report shows aggregate counts only.
-    label: 'Recruiting',
-    items: [
-      { label: 'Recruiting', route: '/recruiting', icon: UserSearch, roles: mhdRouteRoles('/recruiting') },
-      { label: 'EEO Report', route: '/recruiting/eeo', icon: BarChart3, roles: mhdRouteRoles('/recruiting/eeo') },
-    ],
-  },
-  {
-    label: 'Directory',
-    items: [
-      { label: 'People', route: '/people', icon: Users, roles: mhdRouteRoles('/people') },
-      { label: 'Companies', route: '/companies', icon: Building2, roles: mhdRouteRoles('/companies') },
-    ],
-  },
-  {
-    // Employee Development. Training / My Training and Handbooks / My Handbooks
-    // split admin vs employee into separate routes, each role-gated via its own
-    // mhdRouteRoles(...). Investigations is role-gated too — the entry renders for
-    // the privileged set (Platform Admin / HR Partner / Client Admin) whether or
-    // not the user currently holds a case grant. Showing the link is NOT access
-    // control: case visibility stays grant-based server-side (the list RPC is
-    // grant-filtered and `get` denies an ungranted caller with an identical
-    // non-disclosing error), so an ungranted admin who opens the board simply sees
-    // an empty list — which reveals nothing about cases outside their grants.
-    label: 'Employee Development',
-    items: [
-      { label: 'Training', route: '/training', icon: GraduationCap, roles: mhdRouteRoles('/training') },
-      { label: 'My Training', route: '/my-training', icon: BookOpen, roles: mhdRouteRoles('/my-training') },
-      { label: 'Handbooks', route: '/handbooks', icon: Library, roles: mhdRouteRoles('/handbooks') },
-      { label: 'My Handbooks', route: '/my-handbooks', icon: BookMarked, roles: mhdRouteRoles('/my-handbooks') },
-      { label: 'Investigations', route: '/investigations', icon: ShieldAlert, roles: mhdRouteRoles('/investigations') },
-    ],
-  },
 ];
+
+const MHD_NAV_COLLAPSE_KEY = 'mhd:nav:collapsed';
+
+function readCollapsedGroups(): string[] {
+  try {
+    const raw = window.localStorage.getItem(MHD_NAV_COLLAPSE_KEY);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    // localStorage unavailable (private mode / non-browser env) — start expanded.
+    return [];
+  }
+}
 
 export function MhdSidebar() {
   const { roles } = useMhdAuth();
+  // Collapsed group labels, remembered per user. Default (empty) = all expanded.
+  const [collapsed, setCollapsed] = useState<string[]>(() => readCollapsedGroups());
+
+  const hasRole = (item: NavItem) =>
+    item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role));
+
+  const toggleGroup = (label: string) => {
+    setCollapsed((prev) => {
+      const next = prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label];
+      try {
+        window.localStorage.setItem(MHD_NAV_COLLAPSE_KEY, JSON.stringify(next));
+      } catch {
+        // localStorage unavailable — collapse state stays in-memory only.
+      }
+      return next;
+    });
+  };
 
   const visibleSections = NAV_SECTIONS
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => (item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role)))),
-    }))
+    .map((section) => ({ ...section, items: section.items.filter(hasRole) }))
     .filter((section) => section.items.length > 0);
 
   return (
@@ -135,18 +145,30 @@ export function MhdSidebar() {
 
       {/* Navigation — scrolls independently when the item list exceeds the
           viewport (min-h-0 lets the flex child shrink below its content so
-          overflow-y-auto engages instead of the ancestor clipping it). */}
-      <nav className="flex-1 min-h-0 space-y-4 overflow-y-auto p-3">
-        {visibleSections.map((section) => (
-          <div key={section.label} className="space-y-1">
-            <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
-              {section.label}
-            </p>
-            {section.items.map((item) => (
-              <MhdNavItem key={item.route} item={item} />
-            ))}
-          </div>
-        ))}
+          overflow-y-auto engages instead of the ancestor clipping it). Each
+          domain group collapses to keep the list short. */}
+      <nav className="flex-1 min-h-0 space-y-3 overflow-y-auto p-3">
+        {hasRole(DASHBOARD_ITEM) ? <MhdNavItem item={DASHBOARD_ITEM} /> : null}
+        {visibleSections.map((section) => {
+          const isCollapsed = collapsed.includes(section.label);
+          return (
+            <div key={section.label} className="space-y-1">
+              <button
+                type="button"
+                onClick={() => toggleGroup(section.label)}
+                aria-expanded={!isCollapsed}
+                className="flex w-full items-center justify-between rounded-md px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80 transition-colors hover:text-foreground"
+              >
+                <span>{section.label}</span>
+                <ChevronDown
+                  className={`h-3.5 w-3.5 shrink-0 transition-transform ${isCollapsed ? '-rotate-90' : ''}`}
+                  aria-hidden
+                />
+              </button>
+              {isCollapsed ? null : section.items.map((item) => <MhdNavItem key={item.route} item={item} />)}
+            </div>
+          );
+        })}
       </nav>
     </aside>
   );
