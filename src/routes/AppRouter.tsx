@@ -34,6 +34,9 @@ import { MhdApprovalsPage } from '@/features/approvals/components/MhdApprovalsPa
 import { MhdPerformancePage } from '@/features/performance/Components/MhdPerformancePage';
 import { MhdReviewDetailPage } from '@/features/performance/Components/MhdReviewDetailPage';
 import { MhdCoachingPlanDetailPage } from '@/features/performance/Components/MhdCoachingPlanDetailPage';
+import { MhdFeedbackInvitationsPage } from '@/features/performance/Components/MhdFeedbackInvitationsPage';
+import { MhdReviewTemplatesPage } from '@/features/performance/Components/MhdReviewTemplatesPage';
+import { MhdFeedbackSettingsPage } from '@/features/performance/Components/MhdFeedbackSettingsPage';
 import { MhdOffboardingPage } from '@/features/offboarding/components/MhdOffboardingPage';
 import { MhdOffboardingCaseDetailPage } from '@/features/offboarding/components/MhdOffboardingCaseDetailPage';
 import { MhdSchedulePage } from '@/features/timeattendance/components/MhdSchedulePage';
@@ -91,6 +94,15 @@ export function AppRouter() {
               <Route path="/approvals" element={<MhdApprovalsPage />} />
               <Route path="/approvals/:approvalId" element={<MhdApprovalDetailPage />} />
               <Route path="/performance" element={<MhdPerformancePage />} />
+              {/* v2 (PRF2) surfaces. /performance/invitations is the rater-facing
+                  route — it never loads the review, only the caller's own
+                  invitations. /templates and /settings are privileged config;
+                  their narrower access rules precede /performance in
+                  mhdRouteAccess. Static paths, so the router matches them ahead of
+                  /performance/reviews/:reviewId regardless of declaration order. */}
+              <Route path="/performance/invitations" element={<MhdFeedbackInvitationsPage />} />
+              <Route path="/performance/templates" element={<MhdReviewTemplatesPage />} />
+              <Route path="/performance/settings" element={<MhdFeedbackSettingsPage />} />
               <Route path="/performance/reviews/:reviewId" element={<MhdReviewDetailPage />} />
               <Route path="/performance/coaching/:planId" element={<MhdCoachingPlanDetailPage />} />
               <Route path="/offboarding" element={<MhdOffboardingPage />} />

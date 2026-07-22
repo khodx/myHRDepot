@@ -18,6 +18,19 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/forms', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
   { path: '/property', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
   { path: '/esignature', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
+  // Performance. The specific /performance/* sub-routes precede the general
+  // /performance rule because mhdCanAccessRoute returns the FIRST matching rule
+  // via prefix match, so /performance would otherwise capture them all (the same
+  // ordering discipline as /attendance/policy before /attendance).
+  // /performance/templates and /performance/settings are privileged config
+  // (no Client User). /performance/invitations is the rater-facing surface — any
+  // employee who can be asked for feedback reaches it, so it carries the same
+  // audience as /performance. The review and coaching detail sub-routes
+  // (/performance/reviews/:id, /performance/coaching/:id) deliberately inherit
+  // the general /performance rule below.
+  { path: '/performance/templates', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  { path: '/performance/settings', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  { path: '/performance/invitations', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/performance', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/offboarding', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   // Time & Attendance. /schedule and /attendance are the platform's first

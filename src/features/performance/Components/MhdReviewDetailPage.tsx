@@ -28,6 +28,10 @@ import {
   useMhdReviewFinalize,
 } from '../Hook';
 import type { MhdReviewFinalizeStepState } from '../Types';
+import { useMhdFeedbackThreshold } from '../Hook-v2';
+import { MhdReviewCompetencyPanel } from './MhdReviewCompetencyPanel';
+import { MhdParticipantPanel } from './MhdParticipantPanel';
+import { Mhd360FeedbackPanel } from './Mhd360FeedbackPanel';
 import { MhdRatingStars } from './MhdRatingStars';
 import { MhdReviewForm } from './MhdReviewForm';
 import { MhdReviewStatusBadge } from './MhdReviewStatusBadge';
@@ -114,6 +118,8 @@ export function MhdReviewDetailPage() {
   const actions = useMhdPerformanceReviewActions();
   const finalize = useMhdReviewFinalize();
 
+  // v2 (PRF2): the company release threshold gates the 360 aggregate panel below.
+  const feedbackThresholdQuery = useMhdFeedbackThreshold(review?.companyId ?? null);
   const peopleQuery = useMhdPerformancePeople(review?.companyId ?? null, Boolean(review?.companyId));
   const usersQuery = useMhdPerformanceUsers(review?.companyId ?? null, Boolean(review?.companyId));
   const generatedDocumentsQuery = useMhdEsignatureGeneratedDocuments(
@@ -579,6 +585,44 @@ export function MhdReviewDetailPage() {
             </section>
           </div>
         </section>
+
+        {/*
+          v2 (PRF2) additive surface — competencies, 360 participants, and the
+          threshold-gated aggregate. Rendered for the reviewer/HR (canMutate); the
+          panels call v2 RPCs that enforce their own access, and the aggregate panel
+          NEVER shows an individual peer or upward response (it renders the withheld
+          message below the release threshold rather than an empty section). This is
+          purely additive to the existing v1 review surface above.
+        */}
+        {canMutate ? (
+          <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-6">
+              <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                <MhdReviewCompetencyPanel
+                  reviewId={review.id}
+                  canRate={review.status === 'DRAFT' || review.status === 'IN_REVIEW'}
+                />
+              </section>
+              <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                <Mhd360FeedbackPanel
+                  reviewId={review.id}
+                  threshold={feedbackThresholdQuery.data ?? 3}
+                />
+              </section>
+            </div>
+            <div className="space-y-6">
+              <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                <MhdParticipantPanel
+                  reviewId={review.id}
+                  people={(peopleQuery.data ?? []).map((person) => ({
+                    id: person.id,
+                    displayName: person.displayName,
+                  }))}
+                />
+              </section>
+            </div>
+          </section>
+        ) : null}
       </div>
     </main>
   );
