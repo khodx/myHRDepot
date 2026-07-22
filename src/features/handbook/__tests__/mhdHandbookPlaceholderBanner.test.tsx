@@ -17,24 +17,24 @@ const ROWS: MhdHandbookPreviewRow[] = [
 ];
 
 /**
- * The placeholder-banner presence test. This is the load-bearing SHELL guard:
+ * The draft-review-banner presence test. This is the load-bearing guard:
  * every surface that renders a clause body must carry the visible
- * "attorney content pending — placeholder" banner so a human can never mistake the
- * placeholder skeleton for real policy. (The frozen version view is covered
+ * "Draft — pending legal review" banner so a reader always sees the content is a
+ * draft pending counsel, not final policy. (The frozen version view is covered
  * separately in mhdHandbookVersionViewFrozen.test.tsx.)
  */
-describe('handbook placeholder banner is present wherever a body renders', () => {
-  it('renders the banner in the DRAFT preview alongside the placeholder body', () => {
+describe('handbook draft-review banner is present wherever a body renders', () => {
+  it('renders the banner in the DRAFT preview alongside the body', () => {
     render(<MhdHandbookPreview rows={ROWS} />);
 
-    expect(screen.getByText(/attorney content pending/i)).toBeInTheDocument();
+    expect(screen.getByText(/pending legal review/i)).toBeInTheDocument();
     expect(screen.getByText(MHD_HANDBOOK_ATTORNEY_PLACEHOLDER)).toBeInTheDocument();
   });
 
-  it('the banner names the shell posture — not legal content, never relied on by an employee', () => {
+  it('the banner names the draft posture — not finalized by counsel, confirm before relying', () => {
     render(<MhdHandbookAttorneyPendingBanner />);
 
-    expect(screen.getByText(/attorney content pending/i)).toBeInTheDocument();
-    expect(screen.getByText(/not legal content/i)).toBeInTheDocument();
+    expect(screen.getByText(/pending legal review/i)).toBeInTheDocument();
+    expect(screen.getByText(/finalized by counsel/i)).toBeInTheDocument();
   });
 });

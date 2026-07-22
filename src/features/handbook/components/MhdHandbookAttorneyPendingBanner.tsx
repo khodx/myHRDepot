@@ -1,9 +1,8 @@
-// The load-bearing SHELL banner. Every clause body in this module is an
-// attorney-flagged placeholder (`[ATTORNEY-DRAFTED CONTENT — PLACEHOLDER]`), never
-// real legal text. Both the draft preview and the frozen version view render this
-// so a human can NEVER mistake the placeholder skeleton for real policy. It must
-// stay prominent — this is the guard the whole module posture depends on: no
-// placeholder text here is legal content or may be shown to a real employee as-is.
+// The persistent draft-review banner. Handbook clause bodies are real DRAFT content
+// authored for review, not yet finalized by counsel. Both the draft preview and the
+// frozen version view render this so a reader always sees the content is pending legal
+// review before it is published to or relied on by an employee. It must stay
+// prominent — this is the disclaimer the module posture depends on until counsel signs off.
 export function MhdHandbookAttorneyPendingBanner() {
   return (
     <div
@@ -14,11 +13,11 @@ export function MhdHandbookAttorneyPendingBanner() {
         ⚠
       </span>
       <div className="text-sm text-amber-900">
-        <p className="font-semibold">Attorney content pending — placeholders shown.</p>
+        <p className="font-semibold">Draft — pending legal review.</p>
         <p className="mt-0.5 text-amber-800">
-          This is a structural shell. Every section body below is an attorney-flagged placeholder,
-          not legal content. Nothing here may be published to or relied on by a real employee until
-          the attorney-drafted clauses are loaded.
+          This handbook content is a draft prepared for review. It has not been finalized by
+          counsel and should be confirmed with your attorney before it is published to or relied
+          on by an employee.
         </p>
       </div>
     </div>

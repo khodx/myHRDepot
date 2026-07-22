@@ -65,13 +65,13 @@ describe('MhdHandbookVersionView — a frozen version renders read-only', () => 
     expect(screen.queryByRole('button')).toBeNull();
   });
 
-  it('leads with the attorney-content-pending banner wherever a clause body shows', () => {
+  it('leads with the draft-review banner wherever a clause body shows', () => {
     versionMock.mockReturnValue({ data: FROZEN, isLoading: false, isError: false, error: null });
 
     render(<MhdHandbookVersionView versionId="ver-1" />);
 
-    // The load-bearing SHELL guard: the banner must render alongside the bodies.
-    expect(screen.getByText(/attorney content pending/i)).toBeInTheDocument();
+    // The load-bearing guard: the draft-review banner must render alongside the bodies.
+    expect(screen.getByText(/pending legal review/i)).toBeInTheDocument();
     // And the bodies themselves are the raw attorney placeholder, never real policy.
     expect(screen.getAllByText(MHD_HANDBOOK_ATTORNEY_PLACEHOLDER).length).toBeGreaterThan(0);
   });
