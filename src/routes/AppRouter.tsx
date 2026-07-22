@@ -49,6 +49,8 @@ import { MhdCompetencyLibraryPage } from '@/features/jobs/components/MhdCompeten
 import { MhdJobDetailPage } from '@/features/jobs/components/MhdJobDetailPage';
 import { MhdMyJobPage } from '@/features/jobs/components/MhdMyJobPage';
 import { MhdMileagePage } from '@/features/mileage/components/MhdMileagePage';
+import { MhdLeavesPage } from '@/features/leaves/components/MhdLeavesPage';
+import { MhdLeaveCaseDetailPage } from '@/features/leaves/components/MhdLeaveCaseDetailPage';
 import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
 import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
 
@@ -134,6 +136,14 @@ export function AppRouter() {
                   employee's own trips/claims. Viewer is excluded via
                   mhdRouteAccess. */}
               <Route path="/mileage" element={<MhdMileagePage />} />
+              {/* Leaves of Absence. /leaves/:caseId inherits the /leaves rule via
+                  the guard's prefix match. Both pages read useMhdAuth themselves:
+                  privileged roles administer the company board, a Client User sees
+                  their OWN cases, Viewer is excluded via mhdRouteAccess. The
+                  medical-certification note is masked server-side to all but
+                  Platform Admin / HR Partner. */}
+              <Route path="/leaves" element={<MhdLeavesPage />} />
+              <Route path="/leaves/:caseId" element={<MhdLeaveCaseDetailPage />} />
             </Route>
           </Route>
         </Route>

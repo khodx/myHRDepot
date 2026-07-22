@@ -1,0 +1,293 @@
+import { useState } from 'react';
+import {
+  MHD_LEAVE_CERTIFICATION_TYPES,
+  mhdFormatLeaveCertificationType,
+  type MhdLeaveCertification,
+  type MhdMarkCertificationInput,
+  type MhdRecordCertificationInput,
+} from '../Types';
+
+interface Props {
+  caseId: string;
+  certifications: MhdLeaveCertification[];
+  /**
+   * Whether this viewer is Platform Admin or HR Partner. Passed from the ROUTE,
+   * not inferred from the rows — the rows cannot answer it, see below.
+   */
+  canSeeMedical: boolean;
+  isLoading?: boolean;
+  isSubmitting?: boolean;
+  onRecord: (input: MhdRecordCertificationInput) => Promise<void>;
+  onMarkSufficient: (input: MhdMarkCertificationInput) => Promise<void>;
+}
+
+/**
+ * The medical-certification partition, rendered.
+ *
+ * 29 CFR 825.500(g) requires certification and medical-history records be kept
+ * apart from the personnel file, so the server keeps them in their own table
+ * behind a tighter gate than general leave administration: Platform Admin and HR
+ * Partner ONLY — never a Client Admin, and never the subject's manager. The
+ * `mhd_leave_cert_list` RPC returns `providerNote` and `driveFileId` as NULL to
+ * anyone below that gate.
+ *
+ * That null is ambiguous on its own — "you may not see this" reads identically
+ * to "no note was recorded" — which is deliberate (the medical content genuinely
+ * never reaches an unprivileged client) but means this component needs
+ * `canSeeMedical` from the route to word itself honestly, exactly as the Jobs
+ * pay-range field does. When the viewer cannot see medical detail, the note
+ * reads "Restricted"; the component never implies content exists that it cannot
+ * show, and never renders provider detail to a Client Admin or the subject.
+ *
+ * Everyone who can view the case still learns THAT a certification exists and
+ * its status (required / received / sufficient / due) — that part is not
+ * medical. Only the content stays behind the gate.
+ */
+export function MhdLeaveCertificationPanel({
+  caseId,
+  certifications,
+  canSeeMedical,
+  isLoading = false,
+  isSubmitting = false,
+  onRecord,
+  onMarkSufficient,
+}: Props) {
+  const [isRecording, setIsRecording] = useState(false);
+  const [certType, setCertType] =
+    useState<(typeof MHD_LEAVE_CERTIFICATION_TYPES)[number]>('INITIAL');
+  const [dueDate, setDueDate] = useState('');
+
+  // Per-row review state (mark sufficient / insufficient + optional note). Only
+  // ever shown to a PA/HRP viewer.
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [note, setNote] = useState('');
+
+  async function submitRecord() {
+    await onRecord({
+      caseId,
+      certificationType: certType,
+      dueDate: dueDate || null,
+    });
+    setIsRecording(false);
+    setDueDate('');
+    setCertType('INITIAL');
+  }
+
+  async function submitReview(certId: string, sufficient: boolean) {
+    await onMarkSufficient({
+      certId,
+      sufficient,
+      // The provider note is restricted medical detail; it is only ever
+      // collected on this PA/HRP-only path and never surfaced elsewhere.
+      providerNote: note.trim() || null,
+    });
+    setReviewingId(null);
+    setNote('');
+  }
+
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-neutral-900">Medical certifications</h2>
+          <p className="mt-0.5 text-xs text-neutral-500">
+            {canSeeMedical
+              ? 'Kept apart from the personnel record. Visible to HR Partner and Platform Admin only.'
+              : 'Whether a certification is required and its status. Medical detail is restricted.'}
+          </p>
+        </div>
+        {/* Recording and reviewing a certification touch the medical table, so
+            those controls exist only for a viewer who can see medical detail —
+            the RPCs re-check the gate regardless. */}
+        {canSeeMedical ? (
+          <button
+            type="button"
+            onClick={() => setIsRecording(true)}
+            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
+          >
+            Record certification
+          </button>
+        ) : null}
+      </div>
+
+      {isRecording && canSeeMedical ? (
+        <div className="space-y-3 rounded-md border border-neutral-200 p-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label htmlFor="certType" className="block text-sm font-medium text-neutral-700">
+                Type
+              </label>
+              <select
+                id="certType"
+                value={certType}
+                onChange={(event) =>
+                  setCertType(event.target.value as (typeof MHD_LEAVE_CERTIFICATION_TYPES)[number])
+                }
+                className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              >
+                {MHD_LEAVE_CERTIFICATION_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {mhdFormatLeaveCertificationType(type)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="certDue" className="block text-sm font-medium text-neutral-700">
+                Due date <span className="font-normal text-neutral-500">(optional)</span>
+              </label>
+              <input
+                id="certDue"
+                type="date"
+                value={dueDate}
+                onChange={(event) => setDueDate(event.target.value)}
+                className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-neutral-500">
+            Statutory timelines (15 days to return, 7 to cure, 30-day recertification cadence) are
+            tracked here as due dates, not enforced automatically.
+          </p>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setIsRecording(false)}
+              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => void submitRecord()}
+              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            >
+              {isSubmitting ? 'Saving…' : 'Record'}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {isLoading ? (
+        <p className="text-sm text-neutral-500">Loading certifications…</p>
+      ) : certifications.length === 0 ? (
+        <p className="text-sm text-neutral-500">No certifications on record for this case.</p>
+      ) : (
+        <ul className="space-y-2">
+          {certifications.map((cert) => (
+            <li key={cert.id} className="rounded-md border border-neutral-200 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-neutral-900">
+                    {mhdFormatLeaveCertificationType(cert.certificationType)}
+                  </p>
+                  <p className="mt-0.5 text-xs text-neutral-600">
+                    {cert.dueDate ? `Due ${cert.dueDate}` : 'No due date'}
+                    {cert.receivedAt ? ` · received ${cert.receivedAt}` : ' · not yet received'}
+                  </p>
+                </div>
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    cert.sufficient == null
+                      ? 'bg-amber-100 text-amber-800'
+                      : cert.sufficient
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-rose-100 text-rose-800'
+                  }`}
+                >
+                  {cert.sufficient == null
+                    ? 'Pending review'
+                    : cert.sufficient
+                      ? 'Sufficient'
+                      : 'Insufficient'}
+                </span>
+              </div>
+
+              {/*
+                The provider note. Masked callers get NULL from the server and a
+                "Restricted" label here — never a hint that content exists.
+                Privileged callers see the note, or an honest "no note recorded"
+                when it is genuinely empty. This is the pay-range masking pattern,
+                applied where the stakes are higher.
+              */}
+              <div className="mt-2 text-xs">
+                <span className="uppercase tracking-wide text-neutral-500">Provider note</span>
+                {!canSeeMedical ? (
+                  <p className="italic text-neutral-500">Restricted — visible to HR only.</p>
+                ) : cert.providerNote ? (
+                  <p className="text-neutral-800">{cert.providerNote}</p>
+                ) : (
+                  <p className="text-neutral-500">No note recorded.</p>
+                )}
+                {canSeeMedical && cert.driveFileId ? (
+                  <p className="mt-1 text-neutral-600">Document on file: {cert.driveFileId}</p>
+                ) : null}
+              </div>
+
+              {canSeeMedical ? (
+                reviewingId === cert.id ? (
+                  <div className="mt-3 space-y-2 border-t border-neutral-200 pt-3">
+                    <label
+                      htmlFor={`note-${cert.id}`}
+                      className="block text-sm font-medium text-neutral-700"
+                    >
+                      Provider note{' '}
+                      <span className="font-normal text-neutral-500">(restricted, optional)</span>
+                    </label>
+                    <textarea
+                      id={`note-${cert.id}`}
+                      rows={2}
+                      value={note}
+                      onChange={(event) => setNote(event.target.value)}
+                      className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReviewingId(null);
+                          setNote('');
+                        }}
+                        className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => void submitReview(cert.id, false)}
+                        className="rounded-md border border-rose-300 px-3 py-1.5 text-sm font-medium text-rose-700 disabled:opacity-50"
+                      >
+                        Mark insufficient
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => void submitReview(cert.id, true)}
+                        className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+                      >
+                        {isSubmitting ? 'Saving…' : 'Mark sufficient'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReviewingId(cert.id);
+                      setNote('');
+                    }}
+                    className="mt-3 text-sm text-neutral-500 underline"
+                  >
+                    Review sufficiency
+                  </button>
+                )
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}

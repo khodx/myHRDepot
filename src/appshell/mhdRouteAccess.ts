@@ -70,6 +70,14 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // and writable only by Platform Admin (mhdCanManageMileageRates) — enforced
   // server-side; the helper only decides whether to render the write affordance.
   { path: '/mileage', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  // Leaves of Absence. /leaves (and /leaves/:caseId via the guard's prefix match)
+  // admits the privileged set plus Client User — the subject reaches their OWN
+  // cases (the RPCs scope reads by mhd_can_view_leave_person, so a Client User
+  // never sees another person's case). Viewer is excluded entirely. The
+  // medical-certification partition is narrower still: mhd_leave_cert_list masks
+  // provider_note / drive_file_id to null below Platform Admin / HR Partner
+  // (Client Admin included) — see MHD_LEAVES_MEDICAL_ROLES.
+  { path: '/leaves', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
 ];
 
 export function mhdRouteRoles(path: string): MhdAuthRoleName[] | 'ALL' {
@@ -282,4 +290,39 @@ export const MHD_MILEAGE_RATE_ADMIN_ROLES: MhdAuthRoleName[] = ['Platform Admin'
 
 export function mhdCanManageMileageRates(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_MILEAGE_RATE_ADMIN_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * The privileged Leaves set — Platform Admin / HR Partner / Client Admin. These
+ * roles administer leave cases (open cases, edit the designation set, designate
+ * hours, adjust a basis, transition status) and see the whole company's board. A
+ * Client User falls outside this set and reaches /leaves for their OWN cases only
+ * (the RPCs enforce that scope); Viewer is excluded from /leaves entirely. The
+ * leave RPCs re-check `mhd_leaves_is_privileged` server-side; this helper only
+ * decides whether the administrative affordances render.
+ */
+export const MHD_LEAVES_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdLeavesIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_LEAVES_PRIVILEGED_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Roles that may see leave medical-certification content. Narrower than
+ * MHD_LEAVES_PRIVILEGED_ROLES: Platform Admin and HR Partner ONLY — Client Admin
+ * is deliberately excluded (29 CFR 825.500(g), the certification confidentiality
+ * partition). This mirrors the RPC's server-side masking (mhd_leave_cert_list via
+ * mhd_leaves_can_see_medical), which nulls provider_note / drive_file_id for
+ * anyone outside this set — the medical content genuinely never reaches an
+ * unprivileged client. The list only decides how the certification panel words
+ * the null ("Restricted" vs a real note); it is not the enforcement.
+ */
+export const MHD_LEAVES_MEDICAL_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner'];
+
+export function mhdLeavesCanSeeMedical(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_LEAVES_MEDICAL_ROLES.some((role) => userRoles.includes(role));
 }

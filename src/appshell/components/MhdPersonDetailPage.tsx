@@ -21,6 +21,7 @@ import { MhdOnboardingChecklistPage } from '@/features/onboarding/components/Mhd
 import { useMhdPerformanceReviews } from '@/features/performance/Hook';
 import { useMhdOffboardingCases } from '@/features/offboarding/Hook';
 import { useMhdConductCases } from '@/features/conduct/Hook';
+import { useMhdLeaveCases } from '@/features/leaves/Hook';
 import {
   useMhdAttendancePolicy,
   useMhdPointBalance,
@@ -28,7 +29,7 @@ import {
 } from '@/features/timeattendance/Hook';
 import { MhdPointLedgerPanel } from '@/features/timeattendance/components/MhdPointLedgerPanel';
 import { MhdJobAssignmentPanel } from '@/features/jobs/components/MhdJobAssignmentPanel';
-import { mhdCanAccessRoute, mhdCanMutateAttendance, mhdCanMutateJobs } from '@/appshell/mhdRouteAccess';
+import { mhdCanAccessRoute, mhdCanMutateAttendance, mhdCanMutateJobs, mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Link } from 'react-router-dom';
 
@@ -71,6 +72,12 @@ export function MhdPersonDetailPage() {
   // manager and note fields are administrative. An employee reads their own
   // published description at /my-job, not here.
   const canSeeJobs = mhdCanMutateJobs(roles);
+  // Leaves on the person profile is a privileged-only view (Platform Admin / HR
+  // Partner / Client Admin). A Client User reaches their own leave cases at
+  // /leaves, not here — and the medical-certification content is never on this
+  // summary regardless (it lives behind the tighter PA/HRP gate on the case
+  // detail page). This section lists only the person's cases and their status.
+  const canSeeLeaves = mhdLeavesIsPrivileged(roles);
   const attendancePersonId = canSeeAttendance ? person?.id ?? null : null;
   const attendanceCompanyId = canSeeAttendance ? person?.companyId ?? null : null;
   const attendanceBalance = useMhdPointBalance(attendancePersonId);
@@ -91,6 +98,11 @@ export function MhdPersonDetailPage() {
     category: 'ALL',
     status: 'ALL',
     searchTerm: '',
+  });
+  const leavesQuery = useMhdLeaveCases({
+    companyId: canSeeLeaves ? person?.companyId ?? null : null,
+    personId: person?.id ?? null,
+    status: 'ALL',
   });
 
   if (isLoading) {
@@ -268,6 +280,43 @@ export function MhdPersonDetailPage() {
               ))}
               {(conductQuery.data ?? []).length === 0 ? (
                 <li className="text-neutral-500">No conduct cases.</li>
+              ) : null}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      {canSeeLeaves ? (
+        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="mb-1 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-neutral-900">Leaves of absence</h2>
+            <Link className="text-sm text-blue-700 hover:underline" to="/leaves">
+              Open Leaves
+            </Link>
+          </div>
+          <p className="mt-1 text-sm text-neutral-500">
+            Protected-leave cases for this person. Per-basis balances and any medical certification
+            live on the case detail page.
+          </p>
+          {leavesQuery.isLoading ? (
+            <p className="mt-2 text-sm text-neutral-500">Loading leave history…</p>
+          ) : leavesQuery.error ? (
+            <p className="mt-2 text-sm text-red-600">
+              {leavesQuery.error instanceof Error
+                ? leavesQuery.error.message
+                : 'Unable to load leave history.'}
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2 text-sm">
+              {(leavesQuery.data ?? []).map((leaveCase) => (
+                <li key={leaveCase.id}>
+                  <Link className="text-blue-700 hover:underline" to={`/leaves/${leaveCase.id}`}>
+                    {leaveCase.referenceId} · {leaveCase.reasonCategory} · {leaveCase.status}
+                  </Link>
+                </li>
+              ))}
+              {(leavesQuery.data ?? []).length === 0 ? (
+                <li className="text-neutral-500">No leave cases.</li>
               ) : null}
             </ul>
           )}

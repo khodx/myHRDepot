@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Briefcase, Building2, CalendarClock, CalendarDays, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, IdCard, LayoutDashboard, MessageSquare, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
+import { Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, IdCard, LayoutDashboard, MessageSquare, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -34,6 +34,11 @@ const NAV_SECTIONS: NavSection[] = [
       // claims); privileged roles see the full company view behind the same
       // link. Viewer is excluded via mhdRouteAccess('/mileage').
       { label: 'Mileage', route: '/mileage', icon: Car, roles: mhdRouteRoles('/mileage') },
+      // Leaves of Absence. Renders for Client Users (their own cases) and the
+      // privileged roles (the full company board) behind the same link; Viewer
+      // is excluded via mhdRouteRoles('/leaves'). The medical-certification
+      // partition is gated separately, deeper in the case detail page.
+      { label: 'Leaves', route: '/leaves', icon: CalendarOff, roles: mhdRouteRoles('/leaves') },
       // 360 feedback requests addressed to the signed-in user. A SEPARATE route
       // from /performance because a rater cannot load the review behind their
       // invitation — see mhdRouteAccess('/performance/invitations').
