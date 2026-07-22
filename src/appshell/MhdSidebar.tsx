@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, IdCard, LayoutDashboard, MessageSquare, Package2, ShieldAlert, Stamp, Users, TrendingUp } from 'lucide-react';
+import { BookOpen, Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, GraduationCap, IdCard, LayoutDashboard, MessageSquare, Package2, ShieldAlert, Stamp, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { useMhdInvestigationCases } from '@/features/investigations/Hook';
@@ -124,23 +124,44 @@ export function MhdSidebar() {
 }
 
 /**
- * The "Employee Development" nav group. Its only entry — Investigations — is
- * gated on DATA, not role: it appears solely when the grant-filtered
- * `mhd_investigation_list` returns ≥1 row for the signed-in user. A fresh admin
- * with no grants sees nothing here, and the empty result leaks nothing about
- * cases that may exist beyond their grants (existence is non-disclosure). This is
- * the deliberate exception to the role-driven sidebar: the strict Investigations
- * model has no role that grants visibility, so the sidebar cannot gate on one.
+ * The "Employee Development" nav group. It carries two KINDS of entry, gated
+ * differently and independently:
+ *
+ * - Training / My Training are ROLE-gated like every other nav item — Training
+ *   for the privileged set (Platform Admin / HR Partner / Client Admin) via
+ *   mhdRouteRoles('/training'), My Training for Client User via
+ *   mhdRouteRoles('/my-training'). Viewer sees neither.
+ * - Investigations is DATA-gated, not role-gated: it appears solely when the
+ *   grant-filtered `mhd_investigation_list` returns ≥1 row for the signed-in
+ *   user. A fresh admin with no grants sees no Investigations entry, and the
+ *   empty result leaks nothing about cases beyond their grants (existence is
+ *   non-disclosure). This is the deliberate exception to the role-driven
+ *   sidebar: the strict Investigations model has no role that grants visibility,
+ *   so the sidebar cannot gate on one.
+ *
+ * The two gates are additive and never interfere — adding the role-gated Training
+ * entries must not (and does not) change the Investigations data-gate, and vice
+ * versa. The group header renders only when at least one entry survives its own
+ * gate.
  */
 function MhdEmployeeDevelopmentSection() {
-  const { profile } = useMhdAuth();
+  const { profile, roles } = useMhdAuth();
   const companyId = profile?.companyId ?? null;
   // Grant-filtered list. `enabled` is false without a company, so this fires at
   // most once per signed-in user with a company; an ungranted caller gets an
-  // empty set and the section stays hidden.
+  // empty set and the Investigations entry stays hidden.
   const cases = useMhdInvestigationCases({ companyId, status: 'ALL' });
 
-  if ((cases.data ?? []).length === 0) {
+  // Role-gated training entries — filtered exactly like NAV_SECTIONS items.
+  const trainingItems: NavItem[] = [
+    { label: 'Training', route: '/training', icon: GraduationCap, roles: mhdRouteRoles('/training') },
+    { label: 'My Training', route: '/my-training', icon: BookOpen, roles: mhdRouteRoles('/my-training') },
+  ].filter((item) => (item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role))));
+
+  // Data-gated Investigations entry — only when the grant-filtered list is non-empty.
+  const showInvestigations = (cases.data ?? []).length > 0;
+
+  if (trainingItems.length === 0 && !showInvestigations) {
     return null;
   }
 
@@ -149,14 +170,19 @@ function MhdEmployeeDevelopmentSection() {
       <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
         Employee Development
       </p>
-      <MhdNavItem
-        item={{
-          label: 'Investigations',
-          route: '/investigations',
-          icon: ShieldAlert,
-          roles: mhdRouteRoles('/investigations'),
-        }}
-      />
+      {trainingItems.map((item) => (
+        <MhdNavItem key={item.route} item={item} />
+      ))}
+      {showInvestigations ? (
+        <MhdNavItem
+          item={{
+            label: 'Investigations',
+            route: '/investigations',
+            icon: ShieldAlert,
+            roles: mhdRouteRoles('/investigations'),
+          }}
+        />
+      ) : null}
     </div>
   );
 }

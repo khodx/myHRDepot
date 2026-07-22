@@ -91,6 +91,18 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // gated separately, on the grant-filtered list returning ≥1 row (never on a
   // role) — see MhdSidebar.
   { path: '/investigations', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  // Training & Development. Two separate routes, never one filtered surface.
+  // /training is the admin catalog + company compliance board — Platform Admin /
+  // HR Partner / Client Admin. /my-training is the employee's OWN assignments and
+  // completion history and admits Client User only (the same one-route-per-audience
+  // discipline as /jobs vs /my-job). Viewer is excluded from BOTH. /my-training is
+  // listed first, and is a distinct prefix from /training (it does not start with
+  // "/training/"), so mhdCanAccessRoute's first-match prefix scan never lets the
+  // /training rule capture /my-training. Both entries are ROLE-gated in the
+  // sidebar's Employee Development group, independent of the data-gated
+  // Investigations entry.
+  { path: '/my-training', roles: ['Client User'] },
+  { path: '/training', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
 ];
 
 export function mhdRouteRoles(path: string): MhdAuthRoleName[] | 'ALL' {
@@ -358,4 +370,25 @@ export const MHD_INVESTIGATIONS_OPEN_ROLES: MhdAuthRoleName[] = [
 
 export function mhdCanOpenInvestigation(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_INVESTIGATIONS_OPEN_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * The privileged Training set — Platform Admin / HR Partner / Client Admin. These
+ * roles reach the admin `/training` surface, where they author and retire company
+ * courses, assign training, and read the company compliance board. A Client User
+ * falls outside this set and reaches only `/my-training` (their OWN assignments
+ * and completions); Viewer is excluded from both routes. The training RPCs
+ * re-check `mhd_training_is_privileged` server-side (and refuse a global course to
+ * any tenant admin regardless); this helper only decides whether the
+ * course-authoring / assign / retire affordances render — it maps to the
+ * `canManage` prop on the catalog page.
+ */
+export const MHD_TRAINING_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdTrainingIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_TRAINING_PRIVILEGED_ROLES.some((role) => userRoles.includes(role));
 }

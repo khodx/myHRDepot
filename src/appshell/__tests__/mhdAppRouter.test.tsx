@@ -639,8 +639,12 @@ describe('MhdSidebar role-based visibility', () => {
 
   it('hides "Investigations" when the grant-filtered list is empty (existence non-disclosure)', async () => {
     // A Platform Admin with no case grants must NOT see the Investigations entry:
-    // the sidebar gates on the list returning rows, never on a role, and an empty
-    // result must not imply hidden cases exist.
+    // the sidebar gates it on the list returning rows, never on a role, and an
+    // empty result must not imply hidden cases exist. The Employee Development
+    // group now ALSO hosts the role-gated Training entry, so the group header and
+    // "Training" render for this admin — proving the two gates are independent:
+    // the role-gated Training entry appearing does NOT drag the data-gated
+    // Investigations entry in with it.
     mockAuth({ isAuthenticated: true, roles: ['Platform Admin'] });
     mockUseMhdInvestigationCases.mockReturnValueOnce({ data: [] });
     const { MhdSidebar } = await import('../MhdSidebar');
@@ -653,7 +657,10 @@ describe('MhdSidebar role-based visibility', () => {
     );
 
     expect(screen.queryByText('Investigations')).not.toBeInTheDocument();
-    expect(screen.queryByText('Employee Development')).not.toBeInTheDocument();
+    // The group header appears for the role-gated Training entry, not for the
+    // (still hidden) Investigations entry.
+    expect(screen.getByText('Employee Development')).toBeInTheDocument();
+    expect(screen.getByText('Training')).toBeInTheDocument();
   });
 
   it('shows "Investigations" only once the grant-filtered list returns >= 1 row (data-gated, not role-gated)', async () => {

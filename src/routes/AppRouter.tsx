@@ -53,6 +53,8 @@ import { MhdLeavesPage } from '@/features/leaves/components/MhdLeavesPage';
 import { MhdLeaveCaseDetailPage } from '@/features/leaves/components/MhdLeaveCaseDetailPage';
 import { MhdInvestigationsPage } from '@/features/investigations/components/MhdInvestigationsPage';
 import { MhdInvestigationCaseDetailPage } from '@/features/investigations/components/MhdInvestigationCaseDetailPage';
+import { MhdTrainingPage } from '@/features/training/components/MhdTrainingPage';
+import { MhdMyTrainingRoutePage } from '@/features/training/components/MhdMyTrainingRoutePage';
 import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
 import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
 
@@ -156,6 +158,16 @@ export function AppRouter() {
                   pages read useMhdAuth/useParams themselves. */}
               <Route path="/investigations" element={<MhdInvestigationsPage />} />
               <Route path="/investigations/:caseId" element={<MhdInvestigationCaseDetailPage />} />
+              {/* Training & Development. Two SEPARATE routes, never one filtered
+                  surface: /training is the admin catalog + compliance board
+                  (Platform Admin / HR Partner / Client Admin), /my-training is the
+                  employee's own assignments and completions (Client User only).
+                  Viewer is excluded from both (see mhdRouteAccess). Both pages read
+                  useMhdAuth themselves. The status badge renders the server-derived
+                  compliance_status; nothing recomputes expiry client-side. Global
+                  courses are read-only to every tenant admin. */}
+              <Route path="/training" element={<MhdTrainingPage />} />
+              <Route path="/my-training" element={<MhdMyTrainingRoutePage />} />
             </Route>
           </Route>
         </Route>
