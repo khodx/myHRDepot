@@ -33,6 +33,14 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/performance/invitations', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/performance', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/offboarding', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  // Conduct — the strictest module. Corrective-action cases carry RESTRICTED-tier
+  // discipline narratives, so only Platform Admin / HR Partner / Client Admin
+  // reach /conduct and /conduct/:caseId (the latter inherits this rule via the
+  // prefix match). There is deliberately NO subject-facing Conduct route: the
+  // subject employee reaches their issued corrective-action document only through
+  // the E-Signature signing link, never a /conduct page. Client User and Viewer
+  // are both excluded.
+  { path: '/conduct', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   // Time & Attendance. /schedule and /attendance are the platform's first
   // employee-facing surfaces — Client User reaches them for their own record;
   // Viewer is excluded. /attendance/policy is privileged-only, so it must
@@ -161,6 +169,25 @@ export const MHD_OFFBOARDING_MUTATING_ROLES: MhdAuthRoleName[] = [
 
 export function mhdCanMutateOffboarding(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_OFFBOARDING_MUTATING_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Roles that may open, edit, issue, and resolve corrective actions — the same
+ * privileged set that reaches the /conduct surface. Conduct is admin-only: there
+ * is no subject-facing route, so this is both the "can reach" and the "can
+ * mutate" set (Client User and Viewer are excluded from the module entirely).
+ * The conduct RPCs re-check `mhd_conduct_is_privileged` server-side (42501 on a
+ * non-privileged write); this helper only decides whether the mutating
+ * affordances render.
+ */
+export const MHD_CONDUCT_MUTATING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdCanMutateConduct(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_CONDUCT_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }
 
 /**

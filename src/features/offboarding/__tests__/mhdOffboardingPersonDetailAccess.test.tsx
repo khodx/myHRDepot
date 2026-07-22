@@ -61,6 +61,12 @@ vi.mock('../Hook', () => ({
     return { data: [], isLoading: false, error: null };
   },
 }));
+// The person-detail page also renders a privileged-only Conduct section (CND
+// wave). This suite is about the Offboarding section, so the conduct cases hook
+// is stubbed to a benign empty result here — unrelated to the assertions below.
+vi.mock('@/features/conduct/Hook', () => ({
+  useMhdConductCases: () => ({ data: [], isLoading: false, error: null }),
+}));
 // The person-detail page also renders a privileged-only Attendance section
 // (Time & Attendance wave). This suite is about the Offboarding section, so the
 // attendance hooks are stubbed to benign values here.

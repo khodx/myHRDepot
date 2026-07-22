@@ -39,6 +39,8 @@ import { MhdReviewTemplatesPage } from '@/features/performance/Components/MhdRev
 import { MhdFeedbackSettingsPage } from '@/features/performance/Components/MhdFeedbackSettingsPage';
 import { MhdOffboardingPage } from '@/features/offboarding/components/MhdOffboardingPage';
 import { MhdOffboardingCaseDetailPage } from '@/features/offboarding/components/MhdOffboardingCaseDetailPage';
+import { MhdConductPage } from '@/features/conduct/components/MhdConductPage';
+import { MhdConductCaseDetailPage } from '@/features/conduct/components/MhdConductCaseDetailPage';
 import { MhdSchedulePage } from '@/features/timeattendance/components/MhdSchedulePage';
 import { MhdAttendancePage } from '@/features/timeattendance/components/MhdAttendancePage';
 import { MhdAttendancePolicyPage } from '@/features/timeattendance/components/MhdAttendancePolicyPage';
@@ -107,6 +109,12 @@ export function AppRouter() {
               <Route path="/performance/coaching/:planId" element={<MhdCoachingPlanDetailPage />} />
               <Route path="/offboarding" element={<MhdOffboardingPage />} />
               <Route path="/offboarding/:caseId" element={<MhdOffboardingCaseDetailPage />} />
+              {/* Conduct. Admin-only (see mhdRouteAccess); /conduct/:caseId
+                  inherits the /conduct rule via the guard's prefix match. There
+                  is no subject-facing Conduct route — the subject reaches their
+                  issued document only through the /sign/:token signing link. */}
+              <Route path="/conduct" element={<MhdConductPage />} />
+              <Route path="/conduct/:caseId" element={<MhdConductCaseDetailPage />} />
               <Route path="/schedule" element={<MhdSchedulePage />} />
               {/* /attendance/policy is privileged-only; its rule precedes
                   /attendance in mhdRouteAccess so the guard does not let it

@@ -20,6 +20,7 @@ import { useMhdOnboardingPacket } from '@/features/onboarding/Hook';
 import { MhdOnboardingChecklistPage } from '@/features/onboarding/components/MhdOnboardingChecklistPage';
 import { useMhdPerformanceReviews } from '@/features/performance/Hook';
 import { useMhdOffboardingCases } from '@/features/offboarding/Hook';
+import { useMhdConductCases } from '@/features/conduct/Hook';
 import {
   useMhdAttendancePolicy,
   useMhdPointBalance,
@@ -56,6 +57,12 @@ export function MhdPersonDetailPage() {
   const performanceQuery = useMhdPerformanceReviews({ companyId: person?.companyId ?? '', personId: person?.id ?? 'ALL', reviewerUserId: 'ALL', reviewType: 'ALL', status: 'ALL', searchTerm: '', dueFrom: '', dueTo: '' });
   const canSeePerformance = mhdCanAccessRoute('/performance', roles);
   const canSeeOffboarding = mhdCanAccessRoute('/offboarding', roles);
+  // Conduct is admin-only and carries RESTRICTED-tier discipline narratives. The
+  // subject-visibility posture mirrors Offboarding: the subject sees their own
+  // case only once it has an ISSUED action, and only through the signing link —
+  // there is no subject Conduct route, and this privileged section never renders
+  // for Client User or Viewer.
+  const canSeeConduct = mhdCanAccessRoute('/conduct', roles);
   // Attendance on the person profile is a privileged-only view: it exposes the
   // full point ledger, which is administrative context. Client User / Viewer
   // never see it here (an employee reads their own record at /attendance).
@@ -77,6 +84,13 @@ export function MhdPersonDetailPage() {
     searchTerm: '',
     from: '',
     to: '',
+  });
+  const conductQuery = useMhdConductCases({
+    companyId: canSeeConduct ? person?.companyId ?? '' : '',
+    personId: person?.id ?? 'ALL',
+    category: 'ALL',
+    status: 'ALL',
+    searchTerm: '',
   });
 
   if (isLoading) {
@@ -217,6 +231,43 @@ export function MhdPersonDetailPage() {
               ))}
               {(offboardingQuery.data ?? []).length === 0 ? (
                 <li className="text-neutral-500">No offboarding cases.</li>
+              ) : null}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      {canSeeConduct ? (
+        <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="mb-1 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-neutral-900">Conduct</h2>
+            <Link className="text-sm text-blue-700 hover:underline" to="/conduct">
+              Open Conduct
+            </Link>
+          </div>
+          <p className="mt-1 text-sm text-neutral-500">
+            Privileged corrective-action cases for this person. Signing a corrective-action document records receipt,
+            never agreement.
+          </p>
+          {conductQuery.isLoading ? (
+            <p className="mt-2 text-sm text-neutral-500">Loading conduct history…</p>
+          ) : conductQuery.error ? (
+            <p className="mt-2 text-sm text-red-600">
+              {conductQuery.error instanceof Error
+                ? conductQuery.error.message
+                : 'Unable to load conduct history.'}
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2 text-sm">
+              {(conductQuery.data ?? []).map((conductCase) => (
+                <li key={conductCase.id}>
+                  <Link className="text-blue-700 hover:underline" to={`/conduct/${conductCase.id}`}>
+                    {conductCase.referenceId} · {conductCase.status}
+                  </Link>
+                </li>
+              ))}
+              {(conductQuery.data ?? []).length === 0 ? (
+                <li className="text-neutral-500">No conduct cases.</li>
               ) : null}
             </ul>
           )}

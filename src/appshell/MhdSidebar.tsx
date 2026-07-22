@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Briefcase, Building2, CalendarClock, CalendarDays, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, IdCard, LayoutDashboard, MessageSquare, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
+import { Briefcase, Building2, CalendarClock, CalendarDays, Car, CheckSquare, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, IdCard, LayoutDashboard, MessageSquare, Package2, Stamp, Users, TrendingUp } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -49,6 +49,10 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Approvals', route: '/approvals', icon: Stamp, roles: mhdRouteRoles('/approvals') },
       { label: 'Performance', route: '/performance', icon: TrendingUp, roles: mhdRouteRoles('/performance') },
       { label: 'Offboarding', route: '/offboarding', icon: DoorOpen, roles: mhdRouteRoles('/offboarding') },
+      // Conduct — admin-only (Platform Admin / HR Partner / Client Admin). The
+      // roles come from mhdRouteRoles('/conduct') so the link can never render
+      // for a role the router guard would refuse. No subject ever sees it.
+      { label: 'Conduct', route: '/conduct', icon: Gavel, roles: mhdRouteRoles('/conduct') },
     ],
   },
   {
