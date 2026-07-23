@@ -182,7 +182,7 @@ function MhdNavItem({ item }: { item: NavItem }) {
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
           isActive
-            ? 'bg-primary text-primary-foreground'
+            ? 'bg-accent text-accent-on'
             : 'text-muted-foreground hover:bg-muted hover:text-foreground'
         }`
       }
