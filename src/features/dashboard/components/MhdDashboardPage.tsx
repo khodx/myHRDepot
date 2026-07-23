@@ -1,6 +1,9 @@
-import { RefreshCw } from 'lucide-react'
+import { AlertTriangle, ListChecks, Loader, RefreshCw, TrendingUp } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard'
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader'
+import { MhdStatCard } from '@/components/ui/MhdStatCard'
 import { useMhdDashboard } from '../Hook'
-import { MhdDashboardKpiCard } from './MhdDashboardKpiCard'
 import { MhdDashboardMyTasks } from './MhdDashboardMyTasks'
 import { MhdDashboardActivity } from './MhdDashboardActivity'
 
@@ -18,7 +21,7 @@ export function MhdDashboardPage() {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <p className="text-sm text-neutral-500">Loading dashboard…</p>
+        <p className="text-sm text-muted-foreground">Loading dashboard…</p>
       </div>
     )
   }
@@ -26,73 +29,58 @@ export function MhdDashboardPage() {
   if (error) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
-        <p className="text-sm text-red-600">{error}</p>
-        <button
-          type="button"
-          onClick={refetch}
-          className="text-sm text-blue-600 hover:underline"
-        >
+        <p className="text-sm text-red-700">{error}</p>
+        <Button variant="secondary" onClick={refetch}>
           Try again
-        </button>
+        </Button>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900">Dashboard</h1>
-        <button
-          type="button"
-          onClick={refetch}
-          title="Refresh dashboard"
-          className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-700 transition-colors"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          {lastRefreshed
-            ? `Updated ${lastRefreshed.toLocaleTimeString()}`
-            : 'Refresh'}
-        </button>
-      </div>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Dashboard"
+        description="Get a real-time overview of your HR operations and key metrics."
+        actions={
+          <button
+            type="button"
+            onClick={refetch}
+            title="Refresh dashboard"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+            {lastRefreshed
+              ? `Updated ${lastRefreshed.toLocaleTimeString()}`
+              : 'Refresh'}
+          </button>
+        }
+      />
 
-      {/* KPI Cards */}
       {taskSummary && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <MhdDashboardKpiCard
-            label="Total Tasks"
-            value={taskSummary.totalTasks}
-          />
-          <MhdDashboardKpiCard
-            label="In Progress"
-            value={taskSummary.inProgress}
-            colorClass="text-blue-600"
-          />
-          <MhdDashboardKpiCard
-            label="Overdue"
-            value={taskSummary.overdueCount}
-            colorClass={taskSummary.overdueCount > 0 ? 'text-red-600' : 'text-neutral-900'}
-          />
-          <MhdDashboardKpiCard
+          <MhdStatCard icon={ListChecks} label="Total Tasks" value={taskSummary.totalTasks} />
+          <MhdStatCard icon={Loader} label="In Progress" value={taskSummary.inProgress} />
+          <MhdStatCard icon={AlertTriangle} label="Overdue" value={taskSummary.overdueCount} />
+          <MhdStatCard
+            icon={TrendingUp}
             label="Completion Rate"
             value={`${taskSummary.completionRate.toFixed(1)}%`}
-            subValue={`${taskSummary.completed} of ${taskSummary.totalTasks} completed`}
-            colorClass="text-green-600"
+            hint={`${taskSummary.completed} of ${taskSummary.totalTasks} completed`}
           />
         </div>
       )}
 
-      {/* Two-column body */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-neutral-700">My Tasks</h2>
+        <MhdCard>
+          <MhdCardHeader title="My Tasks" />
           <MhdDashboardMyTasks tasks={myTasks} />
-        </div>
+        </MhdCard>
 
-        <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-neutral-700">Recent Activity</h2>
+        <MhdCard>
+          <MhdCardHeader title="Recent Activity" />
           <MhdDashboardActivity items={recentActivity} />
-        </div>
+        </MhdCard>
       </div>
     </div>
   )

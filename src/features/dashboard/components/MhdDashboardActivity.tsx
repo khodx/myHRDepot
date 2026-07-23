@@ -19,7 +19,7 @@ function timeAgo(isoDate: string): string {
 export function MhdDashboardActivity({ items }: Props) {
   if (items.length === 0) {
     return (
-      <p className="flex items-center justify-center py-8 text-sm text-neutral-400">
+      <p className="flex items-center justify-center py-8 text-sm text-muted-foreground">
         No recent activity
       </p>
     )
@@ -29,17 +29,17 @@ export function MhdDashboardActivity({ items }: Props) {
     <div className="space-y-3">
       {items.map((item) => (
         <div key={item.eventId} className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-100">
-            <Activity className="h-3 w-3 text-neutral-500" />
+          <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-tint">
+            <Activity className="h-3 w-3 text-accent-hover" aria-hidden />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm text-neutral-700">{item.summary}</p>
-            <p className="text-xs text-neutral-400">
+            <p className="text-sm text-foreground">{item.summary}</p>
+            <p className="text-xs text-muted-foreground">
               {item.performedBy} · {timeAgo(item.performedAt)}
             </p>
           </div>
           {item.referenceId && (
-            <span className="shrink-0 text-xs text-neutral-400">{item.referenceId}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">{item.referenceId}</span>
           )}
         </div>
       ))}

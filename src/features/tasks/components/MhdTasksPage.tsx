@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTaskFilterBar } from '@/features/tasks/components/MhdTaskFilterBar';
 import { MhdTaskForm } from '@/features/tasks/components/MhdTaskForm';
 import { MhdTaskList } from '@/features/tasks/components/MhdTaskList';
@@ -20,50 +20,44 @@ export function MhdTasksPage() {
   const taskState = useMhdTasks(actorContext);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">My HR Depot</p>
-            <h1 className="text-2xl font-bold text-slate-900">Task Management</h1>
-            <p className="mt-1 text-sm text-slate-600">Create, assign, filter, and track client work.</p>
-          </div>
-          <Link className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700" to="/dashboard">Back to Dashboard</Link>
-        </div>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Task Management"
+        description="Create, assign, filter, and track client work."
+      />
 
-        {taskState.errorMessage && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{taskState.errorMessage}</div>}
+      {taskState.errorMessage && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{taskState.errorMessage}</div>}
 
-        <MhdTaskSummaryCards summary={taskState.summary} />
+      <MhdTaskSummaryCards summary={taskState.summary} />
 
-        <MhdTaskFilterBar
+      <MhdTaskFilterBar
+        companies={companies}
+        statuses={taskState.statuses}
+        priorities={taskState.priorities}
+        assignableUsers={taskState.assignableUsers}
+        filters={taskState.filters}
+        onChange={taskState.setFilters}
+      />
+
+      <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
+        <MhdTaskForm
           companies={companies}
           statuses={taskState.statuses}
           priorities={taskState.priorities}
           assignableUsers={taskState.assignableUsers}
-          filters={taskState.filters}
-          onChange={taskState.setFilters}
+          selectedTask={selectedTask}
+          isSaving={taskState.isSaving}
+          onCreate={taskState.createTask}
+          onUpdate={taskState.updateTask}
+          onCancelEdit={() => setSelectedTask(null)}
         />
-
-        <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
-          <MhdTaskForm
-            companies={companies}
-            statuses={taskState.statuses}
-            priorities={taskState.priorities}
-            assignableUsers={taskState.assignableUsers}
-            selectedTask={selectedTask}
-            isSaving={taskState.isSaving}
-            onCreate={taskState.createTask}
-            onUpdate={taskState.updateTask}
-            onCancelEdit={() => setSelectedTask(null)}
-          />
-          <MhdTaskList
-            tasks={taskState.tasks}
-            isLoading={taskState.isLoading}
-            onEdit={setSelectedTask}
-            onDelete={taskState.deleteTask}
-          />
-        </div>
+        <MhdTaskList
+          tasks={taskState.tasks}
+          isLoading={taskState.isLoading}
+          onEdit={setSelectedTask}
+          onDelete={taskState.deleteTask}
+        />
       </div>
-    </main>
+    </div>
   );
 }

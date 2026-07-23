@@ -1,3 +1,6 @@
+import { Button } from '@/components/ui/Button';
+import { MhdAvatar } from '@/components/ui/MhdAvatar';
+import { MhdCard } from '@/components/ui/MhdCard';
 import type { MhdPerson } from '@/features/people/Types';
 import { MhdPersonContactMethods } from './MhdPersonContactMethods';
 
@@ -9,28 +12,30 @@ interface MhdPersonDetailsPanelProps {
 function MhdDetailRow({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div>
-      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
-      <dd className="mt-1 text-sm text-slate-900">{value && value.length > 0 ? value : 'Not provided'}</dd>
+      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dd className="mt-1 text-sm text-foreground">{value && value.length > 0 ? value : 'Not provided'}</dd>
     </div>
   );
 }
 
 export function MhdPersonDetailsPanel({ person, onEdit }: MhdPersonDetailsPanelProps) {
   if (!person) {
-    return <aside className="rounded-lg border border-dashed border-slate-300 bg-card p-5 text-sm text-slate-500">Select a person to view details.</aside>;
+    return <MhdCard className="border-dashed p-5 text-sm text-muted-foreground">Select a person to view details.</MhdCard>;
   }
 
   return (
-    <aside className="rounded-lg border border-slate-200 bg-card p-5 shadow-sm">
+    <MhdCard className="p-5">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Person record</p>
-          <h2 className="mt-1 text-xl font-bold text-slate-900">{person.displayName}</h2>
-          <p className="mt-1 text-xs text-slate-500">{person.referenceId}</p>
+        <div className="flex items-center gap-3">
+          <MhdAvatar name={person.displayName} />
+          <div>
+            <h2 className="text-xl font-bold text-foreground">{person.displayName}</h2>
+            <p className="text-xs text-muted-foreground">{person.referenceId}</p>
+          </div>
         </div>
-        <button type="button" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={onEdit}>
+        <Button variant="secondary" onClick={onEdit}>
           Edit
-        </button>
+        </Button>
       </div>
       <dl className="mt-5 grid gap-4 sm:grid-cols-2">
         <MhdDetailRow label="Company" value={person.companyName} />
@@ -42,11 +47,11 @@ export function MhdPersonDetailsPanel({ person, onEdit }: MhdPersonDetailsPanelP
         <MhdDetailRow label="Phone" value={person.primaryPhone} />
         <MhdDetailRow label="Mobile" value={person.primaryMobile} />
       </dl>
-      <p className="mt-4 text-xs text-slate-500">
+      <p className="mt-4 text-xs text-muted-foreground">
         Showing the primary email/phone/mobile only. A person may have additional contact methods —
         see the contact methods list below to manage all of them.
       </p>
       <MhdPersonContactMethods personId={person.id} />
-    </aside>
+    </MhdCard>
   );
 }

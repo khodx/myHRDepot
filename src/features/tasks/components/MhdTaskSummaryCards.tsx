@@ -1,3 +1,6 @@
+import { AlertTriangle, CheckCircle2, ListChecks, UserX } from 'lucide-react';
+import { MhdStatCard } from '@/components/ui/MhdStatCard';
+
 interface MhdTaskSummaryCardsProps {
   summary: {
     total: number;
@@ -8,20 +11,12 @@ interface MhdTaskSummaryCardsProps {
 }
 
 export function MhdTaskSummaryCards({ summary }: MhdTaskSummaryCardsProps) {
-  const cards = [
-    { label: 'Total Tasks', value: summary.total },
-    { label: 'Overdue', value: summary.overdue },
-    { label: 'Completed', value: summary.completed },
-    { label: 'Unassigned', value: summary.unassigned },
-  ];
   return (
     <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {cards.map((card) => (
-        <div key={card.label} className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-          <div className="text-sm font-medium text-slate-500">{card.label}</div>
-          <div className="mt-2 text-2xl font-bold text-slate-900">{card.value}</div>
-        </div>
-      ))}
+      <MhdStatCard icon={ListChecks} label="Total Tasks" value={summary.total} />
+      <MhdStatCard icon={AlertTriangle} label="Overdue" value={summary.overdue} />
+      <MhdStatCard icon={CheckCircle2} label="Completed" value={summary.completed} />
+      <MhdStatCard icon={UserX} label="Unassigned" value={summary.unassigned} />
     </section>
   );
 }

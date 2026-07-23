@@ -12,6 +12,8 @@ interface MhdStatCardProps {
   /** Whether an increase is good (employees) or bad (overdue tasks). */
   deltaGoodWhen?: 'up' | 'down';
   deltaLabel?: string;
+  /** Muted line under the value when there is no delta (e.g. "312 of 480 completed"). */
+  hint?: string;
   className?: string;
 }
 
@@ -27,6 +29,7 @@ export function MhdStatCard({
   deltaPct,
   deltaGoodWhen = 'up',
   deltaLabel = 'vs last month',
+  hint,
   className,
 }: MhdStatCardProps) {
   const showDelta = typeof deltaPct === 'number';
@@ -55,6 +58,7 @@ export function MhdStatCard({
             <span className="font-normal text-muted-foreground">&nbsp;{deltaLabel}</span>
           </p>
         )}
+        {!showDelta && hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       </div>
     </MhdCard>
   );
