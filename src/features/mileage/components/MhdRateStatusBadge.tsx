@@ -1,9 +1,12 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { mhdFormatRateStatus, type MhdMileageRateStatus } from '../Types';
 
-const STATUS_STYLES: Record<MhdMileageRateStatus, string> = {
-  PROPOSED: 'bg-amber-100 text-amber-800',
-  ACTIVE: 'bg-emerald-100 text-emerald-800',
-  SUPERSEDED: 'bg-neutral-100 text-neutral-700',
+// Semantic mapping (MHD Design System §5): PROPOSED still needs confirmation
+// (warning), ACTIVE is the live rate (success), SUPERSEDED is history (neutral).
+const STATUS_VARIANTS: Record<MhdMileageRateStatus, MhdBadgeVariant> = {
+  PROPOSED: 'warning',
+  ACTIVE: 'success',
+  SUPERSEDED: 'neutral',
 };
 
 interface Props {
@@ -12,10 +15,8 @@ interface Props {
 
 export function MhdRateStatusBadge({ status }: Props) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[status]}`}
-    >
+    <MhdBadge variant={STATUS_VARIANTS[status] ?? 'neutral'}>
       {mhdFormatRateStatus(status)}
-    </span>
+    </MhdBadge>
   );
 }

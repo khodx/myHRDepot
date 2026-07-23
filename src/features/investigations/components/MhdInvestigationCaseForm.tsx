@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/Button';
 import {
   mhdInvestigationCaseFormSchema,
   type MhdInvestigationCaseFormValues,
@@ -62,13 +63,13 @@ export function MhdInvestigationCaseForm({
       <input type="hidden" value={companyId} {...register('companyId')} readOnly />
 
       <div>
-        <label htmlFor="caseType" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="caseType" className="block text-sm font-medium text-foreground">
           Case type
         </label>
         <select
           id="caseType"
           {...register('caseType')}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         >
           {MHD_INVESTIGATION_CASE_TYPES.map((type) => (
             <option key={type} value={type}>
@@ -82,7 +83,7 @@ export function MhdInvestigationCaseForm({
       </div>
 
       <div>
-        <label htmlFor="allegation" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="allegation" className="block text-sm font-medium text-foreground">
           Allegation
         </label>
         <textarea
@@ -90,11 +91,11 @@ export function MhdInvestigationCaseForm({
           rows={5}
           {...register('allegation')}
           placeholder="What is being alleged, in the reporter's words."
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
         {/* This narrative is encrypted at rest and only ever read back through the
             audited reveal path — it is the most sensitive text in the system. */}
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Encrypted at rest. It is read back only through the audited reveal, never shown by default.
         </p>
         {errors.allegation ? (
@@ -106,15 +107,15 @@ export function MhdInvestigationCaseForm({
         <div>
           <label
             htmlFor="assignedInvestigator"
-            className="block text-sm font-medium text-neutral-700"
+            className="block text-sm font-medium text-foreground"
           >
             Assigned investigator{' '}
-            <span className="font-normal text-neutral-500">(optional)</span>
+            <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <select
             id="assignedInvestigator"
             {...register('assignedInvestigator')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
             <option value="">Unassigned</option>
             {investigators.map((user) => (
@@ -124,19 +125,19 @@ export function MhdInvestigationCaseForm({
             ))}
           </select>
           {/* Assigning grants the investigator an implicit view of the case. */}
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             The investigator is granted access on assignment.
           </p>
         </div>
 
         <div>
-          <label htmlFor="confidentiality" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="confidentiality" className="block text-sm font-medium text-foreground">
             Confidentiality
           </label>
           <select
             id="confidentiality"
             {...register('confidentiality')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
             {MHD_INVESTIGATION_CONFIDENTIALITIES.map((level) => (
               <option key={level} value={level}>
@@ -148,15 +149,15 @@ export function MhdInvestigationCaseForm({
       </div>
 
       <div>
-        <label htmlFor="severity" className="block text-sm font-medium text-neutral-700">
-          Severity <span className="font-normal text-neutral-500">(optional)</span>
+        <label htmlFor="severity" className="block text-sm font-medium text-foreground">
+          Severity <span className="font-normal text-muted-foreground">(optional)</span>
         </label>
         <input
           id="severity"
           type="text"
           {...register('severity')}
           placeholder="e.g. Low, Moderate, High"
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
       </div>
 
@@ -164,17 +165,13 @@ export function MhdInvestigationCaseForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+          className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground"
         >
           Cancel
         </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Opening…' : 'Open investigation'}
-        </button>
+        </Button>
       </div>
     </form>
   );

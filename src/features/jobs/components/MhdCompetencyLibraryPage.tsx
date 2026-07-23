@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
 import { mhdCanMutateJobs } from '@/appshell/mhdRouteAccess';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdCompetencyLibraryPanel } from './MhdCompetencyLibraryPanel';
 
@@ -18,16 +18,14 @@ export function MhdCompetencyLibraryPage() {
   if (!companyId) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <p className="text-sm text-neutral-500">Loading competencies…</p>
+        <p className="text-sm text-muted-foreground">Loading competencies…</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <Link to="/jobs" className="text-sm text-neutral-500 underline">
-        ← All jobs
-      </Link>
+    <div className="space-y-6">
+      <MhdPageHeader title="Competency library" backTo="/jobs" backLabel="All jobs" />
       <MhdCompetencyLibraryPanel
         companyId={companyId}
         isPlatformAdmin={isPlatformAdmin}

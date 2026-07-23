@@ -86,7 +86,7 @@ export function MhdReviewForm({
           </label>
           <select
             id="mhd-review-form-person"
-            className="w-full rounded border px-3 py-2 disabled:bg-neutral-100 disabled:text-neutral-500"
+            className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
             disabled={setupLocked}
             {...register('personId')}
           >
@@ -106,7 +106,7 @@ export function MhdReviewForm({
           </label>
           <select
             id="mhd-review-form-reviewer"
-            className="w-full rounded border px-3 py-2 disabled:bg-neutral-100 disabled:text-neutral-500"
+            className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
             disabled={setupLocked}
             {...register('reviewerUserId')}
           >
@@ -128,7 +128,7 @@ export function MhdReviewForm({
           </label>
           <select
             id="mhd-review-form-type"
-            className="w-full rounded border px-3 py-2 disabled:bg-neutral-100 disabled:text-neutral-500"
+            className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
             disabled={setupLocked}
             {...register('reviewType')}
           >
@@ -148,7 +148,7 @@ export function MhdReviewForm({
           <input
             id="mhd-review-form-period-start"
             type="date"
-            className="w-full rounded border px-3 py-2 disabled:bg-neutral-100 disabled:text-neutral-500"
+            className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
             disabled={setupLocked}
             {...register('reviewPeriodStart')}
           />
@@ -162,7 +162,7 @@ export function MhdReviewForm({
           <input
             id="mhd-review-form-period-end"
             type="date"
-            className="w-full rounded border px-3 py-2 disabled:bg-neutral-100 disabled:text-neutral-500"
+            className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
             disabled={setupLocked}
             {...register('reviewPeriodEnd')}
           />
@@ -176,7 +176,7 @@ export function MhdReviewForm({
           <input
             id="mhd-review-form-due-date"
             type="date"
-            className="w-full rounded border px-3 py-2 disabled:bg-neutral-100 disabled:text-neutral-500"
+            className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
             disabled={setupLocked}
             {...register('dueDate')}
           />
@@ -184,7 +184,7 @@ export function MhdReviewForm({
       </div>
 
       {setupLocked ? (
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           Subject, reviewer, type, period, and due date are set at creation and cannot be changed here.
         </p>
       ) : null}
@@ -195,7 +195,7 @@ export function MhdReviewForm({
         </label>
         <select
           id="mhd-review-form-activity"
-          className="w-full rounded border px-3 py-2 disabled:bg-neutral-100 disabled:text-neutral-500"
+          className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
           disabled={contentLocked}
           {...register('reviewActivityId')}
         >
@@ -299,14 +299,14 @@ export function MhdReviewForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
+          className="rounded bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-accent-on disabled:opacity-50"
         >
           {isSubmitting ? 'Saving…' : mode === 'create' ? 'Create Review' : 'Save Changes'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+          className="rounded border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50"
         >
           Cancel
         </button>

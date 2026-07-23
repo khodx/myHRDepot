@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Button } from '@/components/ui/Button';
 import type { MhdCompany } from '@/features/companies/Types';
 import type { MhdCreatePersonInput, MhdPerson, MhdUpdatePersonInput } from '../Types';
 import { mhdPersonFormSchema, type MhdPersonFormValues } from '../Schemas';
@@ -79,53 +80,53 @@ export function MhdPersonForm({ companies, person, defaultCompanyId, onCreate, o
   }
 
   return (
-    <form className="rounded-lg border border-slate-200 bg-card p-5 shadow-sm" onSubmit={handleSubmit}>
+    <form className="rounded-xl border border-border bg-card p-5 shadow-sm" onSubmit={handleSubmit}>
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">{person ? 'Edit person' : 'New person'}</p>
-        <h2 className="mt-1 text-lg font-bold text-slate-900">{person ? person.displayName : 'Create person'}</h2>
+        <p className="text-xs font-semibold uppercase tracking-wide text-accent">{person ? 'Edit person' : 'New person'}</p>
+        <h2 className="mt-1 text-lg font-bold text-foreground">{person ? person.displayName : 'Create person'}</h2>
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <MhdPersonCompanySelect companies={companies} value={values.companyId} onChange={(companyId) => updateField('companyId', companyId)} />
         </div>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-foreground">
           First name
-          <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" value={values.firstName} onChange={(event) => updateField('firstName', event.target.value)} />
+          <input className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.firstName} onChange={(event) => updateField('firstName', event.target.value)} />
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-foreground">
           Middle name
-          <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" value={values.middleName} onChange={(event) => updateField('middleName', event.target.value)} />
+          <input className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.middleName} onChange={(event) => updateField('middleName', event.target.value)} />
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-foreground">
           Last name
-          <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" value={values.lastName} onChange={(event) => updateField('lastName', event.target.value)} />
+          <input className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.lastName} onChange={(event) => updateField('lastName', event.target.value)} />
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-foreground">
           Preferred name
-          <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" value={values.preferredName} onChange={(event) => updateField('preferredName', event.target.value)} />
+          <input className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.preferredName} onChange={(event) => updateField('preferredName', event.target.value)} />
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-foreground">
           Email
-          <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" value={values.email} onChange={(event) => updateField('email', event.target.value)} />
+          <input className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.email} onChange={(event) => updateField('email', event.target.value)} />
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-foreground">
           Phone
-          <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" value={values.phone} onChange={(event) => updateField('phone', event.target.value)} />
+          <input className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.phone} onChange={(event) => updateField('phone', event.target.value)} />
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-foreground">
           Mobile
-          <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" value={values.mobile} onChange={(event) => updateField('mobile', event.target.value)} />
+          <input className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.mobile} onChange={(event) => updateField('mobile', event.target.value)} />
         </label>
       </div>
 
       {formError ? <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p> : null}
 
       <div className="mt-5 flex justify-end gap-3">
-        <button type="button" className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700" onClick={onCancel}>Cancel</button>
-        <button type="submit" className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800" disabled={isSaving}>
+        <Button variant="secondary" onClick={onCancel}>Cancel</Button>
+        <Button type="submit" disabled={isSaving}>
           {isSaving ? 'Saving...' : person ? 'Save changes' : 'Create person'}
-        </button>
+        </Button>
       </div>
     </form>
   );

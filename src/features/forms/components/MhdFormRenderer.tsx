@@ -274,7 +274,7 @@ export function MhdFormRenderer({
   };
 
   if (isLoading) {
-    return <div className="p-6 text-sm text-slate-500">Loading form...</div>;
+    return <div className="p-6 text-sm text-muted-foreground">Loading form...</div>;
   }
 
   if (!definition) {
@@ -293,12 +293,12 @@ export function MhdFormRenderer({
       }}
     >
       <div>
-        <h2 className="text-2xl font-semibold text-slate-900">{displayName}</h2>
-        {displayDescription ? <p className="mt-1 text-sm text-slate-600">{displayDescription}</p> : null}
+        <h2 className="text-2xl font-semibold text-foreground">{displayName}</h2>
+        {displayDescription ? <p className="mt-1 text-sm text-muted-foreground">{displayDescription}</p> : null}
       </div>
 
       {readOnly && !isPreview ? (
-        <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+        <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
           You have read-only access to this form.
         </p>
       ) : null}
@@ -347,7 +347,7 @@ export function MhdFormRenderer({
             }
           }}
           disabled={isSubmitting}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:opacity-50"
         >
           {isSubmitting ? 'Submitting...' : 'Submit'}
         </button>

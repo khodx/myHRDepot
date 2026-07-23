@@ -27,31 +27,31 @@ export function MhdFormFieldConfig({ field, onChange }: MhdFormFieldConfigProps)
   return (
     <div className="space-y-3">
       <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Label</label>
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Label</label>
         <input
           type="text"
           value={field.label}
           onChange={(event) => onChange({ ...field, label: event.target.value })}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="w-full rounded-md border border-border px-3 py-2 text-sm"
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Description</label>
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</label>
         <textarea
           value={field.description ?? ''}
           onChange={(event) => onChange({ ...field, description: event.target.value })}
-          className="min-h-20 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="min-h-20 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Placeholder</label>
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Placeholder</label>
         <input
           type="text"
           value={field.placeholder ?? ''}
           onChange={(event) => onChange({ ...field, placeholder: event.target.value })}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="w-full rounded-md border border-border px-3 py-2 text-sm"
         />
       </div>
 
@@ -77,7 +77,7 @@ export function MhdFormFieldConfig({ field, onChange }: MhdFormFieldConfigProps)
       {isOptionField ? (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Options</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Options</label>
             <button
               type="button"
               onClick={() =>
@@ -86,7 +86,7 @@ export function MhdFormFieldConfig({ field, onChange }: MhdFormFieldConfigProps)
                   options: [...(field.options ?? []), { value: `option-${Date.now()}`, label: 'New option' }],
                 })
               }
-              className="text-xs font-semibold text-blue-700 hover:underline"
+              className="text-xs font-semibold text-accent hover:text-accent-hover"
             >
               Add option
             </button>
@@ -97,7 +97,7 @@ export function MhdFormFieldConfig({ field, onChange }: MhdFormFieldConfigProps)
                 type="text"
                 value={option.label}
                 onChange={(event) => onChange(updateOptionLabel(field, index, event.target.value))}
-                className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="flex-1 rounded-md border border-border px-3 py-2 text-sm"
               />
               <button
                 type="button"

@@ -1,3 +1,8 @@
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -121,32 +126,28 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <header>
-        <h1 className="text-xl font-semibold text-neutral-900">Interview question bank</h1>
-        <p className="mt-1 text-sm text-neutral-600">
-          A categorized library of interview questions. STANDARD questions are asked of every
-          applicant; JOB questions are pulled onto a guide when they match the role&apos;s
-          competencies. Each carries a compliance flag.
-        </p>
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Interview question bank"
+        description="A categorized library of interview questions. STANDARD questions are asked of every applicant; JOB questions are pulled onto a guide when they match the role's competencies. Each carries a compliance flag."
+      />
 
       {/* Author form (privileged only) */}
       {canManage ? (
-        <section className="rounded-lg border border-neutral-200 p-4">
-          <h2 className="text-base font-semibold text-neutral-900">Add a question</h2>
+        <MhdCard>
+          <h2 className="text-base font-semibold text-foreground">Add a question</h2>
           <form onSubmit={handleSubmit(handleCreate)} className="mt-4 space-y-4">
             <input type="hidden" value={companyId} {...register('companyId')} readOnly />
 
             <div>
-              <label htmlFor="questionText" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="questionText" className="block text-sm font-medium text-foreground">
                 Question
               </label>
               <textarea
                 id="questionText"
                 rows={2}
                 {...register('questionText')}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
               />
               {errors.questionText ? (
                 <p className="mt-1 text-xs text-rose-600">{errors.questionText.message}</p>
@@ -155,13 +156,13 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="categoryId" className="block text-sm font-medium text-neutral-700">
+                <label htmlFor="categoryId" className="block text-sm font-medium text-foreground">
                   Category
                 </label>
                 <select
                   id="categoryId"
                   {...register('categoryId')}
-                  className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 >
                   <option value="">Choose a category…</option>
                   {(categories.data ?? []).map((category) => (
@@ -176,7 +177,7 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
               </div>
 
               <div>
-                <label htmlFor="questionKey" className="block text-sm font-medium text-neutral-700">
+                <label htmlFor="questionKey" className="block text-sm font-medium text-foreground">
                   Question key
                 </label>
                 <input
@@ -184,7 +185,7 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
                   type="text"
                   {...register('questionKey')}
                   placeholder="e.g. CONFLICT_RESOLUTION"
-                  className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
                 {errors.questionKey ? (
                   <p className="mt-1 text-xs text-rose-600">{errors.questionKey.message}</p>
@@ -194,13 +195,13 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label htmlFor="scope" className="block text-sm font-medium text-neutral-700">
+                <label htmlFor="scope" className="block text-sm font-medium text-foreground">
                   Scope
                 </label>
                 <select
                   id="scope"
                   {...register('scope')}
-                  className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 >
                   {MHD_INTERVIEW_QUESTION_SCOPES.map((scope) => (
                     <option key={scope} value={scope}>
@@ -211,13 +212,13 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
               </div>
 
               <div>
-                <label htmlFor="responseType" className="block text-sm font-medium text-neutral-700">
+                <label htmlFor="responseType" className="block text-sm font-medium text-foreground">
                   Response type
                 </label>
                 <select
                   id="responseType"
                   {...register('responseType')}
-                  className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 >
                   {MHD_INTERVIEW_RESPONSE_TYPES.map((type) => (
                     <option key={type} value={type}>
@@ -228,14 +229,14 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
               </div>
 
               <div>
-                <label htmlFor="competencyId" className="block text-sm font-medium text-neutral-700">
+                <label htmlFor="competencyId" className="block text-sm font-medium text-foreground">
                   Competency{' '}
-                  <span className="font-normal text-neutral-500">(for JOB scope)</span>
+                  <span className="font-normal text-muted-foreground">(for JOB scope)</span>
                 </label>
                 <select
                   id="competencyId"
                   {...register('competencyId')}
-                  className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 >
                   <option value="">None</option>
                   {competencies.map((competency) => (
@@ -248,16 +249,16 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
             </div>
 
             <div>
-              <label htmlFor="guidance" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="guidance" className="block text-sm font-medium text-foreground">
                 Interviewer guidance{' '}
-                <span className="font-normal text-neutral-500">(optional)</span>
+                <span className="font-normal text-muted-foreground">(optional)</span>
               </label>
               <textarea
                 id="guidance"
                 rows={2}
                 {...register('guidance')}
                 placeholder="What a strong answer looks like."
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
               />
             </div>
 
@@ -265,14 +266,14 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
               <div>
                 <label
                   htmlFor="complianceStatus"
-                  className="block text-sm font-medium text-neutral-700"
+                  className="block text-sm font-medium text-foreground"
                 >
                   Compliance status
                 </label>
                 <select
                   id="complianceStatus"
                   {...register('complianceStatus')}
-                  className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 >
                   {MHD_INTERVIEW_COMPLIANCE_STATUSES.map((status) => (
                     <option key={status} value={status}>
@@ -285,29 +286,25 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
               <div>
                 <label
                   htmlFor="complianceGuidance"
-                  className="block text-sm font-medium text-neutral-700"
+                  className="block text-sm font-medium text-foreground"
                 >
                   Compliance guidance{' '}
-                  <span className="font-normal text-neutral-500">(optional)</span>
+                  <span className="font-normal text-muted-foreground">(optional)</span>
                 </label>
                 <input
                   id="complianceGuidance"
                   type="text"
                   {...register('complianceGuidance')}
                   placeholder="Why to avoid / how to ask legally."
-                  className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </div>
             </div>
 
             <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={createQuestion.isPending}
-                className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-              >
+              <Button type="submit" disabled={createQuestion.isPending}>
                 {createQuestion.isPending ? 'Adding…' : 'Add question'}
-              </button>
+              </Button>
             </div>
             {createQuestion.isError ? (
               <p className="text-xs text-rose-600">
@@ -317,88 +314,78 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
               </p>
             ) : null}
           </form>
-        </section>
+        </MhdCard>
       ) : null}
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-4">
-        <div>
-          <label htmlFor="filterCategory" className="block text-xs font-medium text-neutral-600">
-            Category
-          </label>
-          <select
-            id="filterCategory"
-            value={categoryFilter}
-            onChange={(event) => setCategoryFilter(event.target.value)}
-            className="mt-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
-          >
-            <option value="ALL">All categories</option>
-            {(categories.data ?? []).map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.categoryName}
-              </option>
-            ))}
-          </select>
-        </div>
+      <MhdCard className="grid gap-3 md:grid-cols-3">
+        <MhdFilterSelect
+          label="Category"
+          id="filterCategory"
+          value={categoryFilter}
+          onChange={(event) => setCategoryFilter(event.target.value)}
+        >
+          <option value="ALL">All categories</option>
+          {(categories.data ?? []).map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.categoryName}
+            </option>
+          ))}
+        </MhdFilterSelect>
 
-        <div>
-          <label htmlFor="filterScope" className="block text-xs font-medium text-neutral-600">
-            Scope
-          </label>
-          <select
-            id="filterScope"
-            value={scopeFilter}
-            onChange={(event) =>
-              setScopeFilter(event.target.value as MhdInterviewQuestionScope | 'ALL')
-            }
-            className="mt-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
-          >
-            <option value="ALL">All scopes</option>
-            {MHD_INTERVIEW_QUESTION_SCOPES.map((scope) => (
-              <option key={scope} value={scope}>
-                {mhdFormatQuestionScope(scope)}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+        <MhdFilterSelect
+          label="Scope"
+          id="filterScope"
+          value={scopeFilter}
+          onChange={(event) =>
+            setScopeFilter(event.target.value as MhdInterviewQuestionScope | 'ALL')
+          }
+        >
+          <option value="ALL">All scopes</option>
+          {MHD_INTERVIEW_QUESTION_SCOPES.map((scope) => (
+            <option key={scope} value={scope}>
+              {mhdFormatQuestionScope(scope)}
+            </option>
+          ))}
+        </MhdFilterSelect>
+      </MhdCard>
 
       {/* The bank */}
       {questions.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading questions…</p>
+        <p className="text-sm text-muted-foreground">Loading questions…</p>
       ) : grouped.length === 0 ? (
-        <p className="text-sm text-neutral-500">No questions match this filter.</p>
+        <p className="text-sm text-muted-foreground">No questions match this filter.</p>
       ) : (
         <div className="space-y-6">
           {grouped.map(([categoryName, items]) => (
             <section key={categoryName} className="space-y-3">
-              <h2 className="text-base font-semibold text-neutral-900">{categoryName}</h2>
+              <h2 className="text-base font-semibold text-foreground">{categoryName}</h2>
               <ul className="space-y-3">
                 {items.map((question) => (
                   <li
                     key={question.id}
-                    className="rounded-md border border-neutral-200 bg-card p-3"
+                    className="rounded-md border border-border bg-card p-3"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <p className="text-sm text-neutral-900">{question.questionText}</p>
+                      <p className="text-sm text-foreground">{question.questionText}</p>
                       <MhdComplianceFlag
                         status={question.complianceStatus}
                         guidance={question.complianceGuidance}
                       />
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral-500">
-                      <span className="rounded bg-neutral-100 px-2 py-0.5">
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      <span className="rounded bg-muted px-2 py-0.5">
                         {mhdFormatQuestionScope(question.scope)}
                       </span>
-                      <span className="rounded bg-neutral-100 px-2 py-0.5">
+                      <span className="rounded bg-muted px-2 py-0.5">
                         {mhdFormatResponseType(question.responseType)}
                       </span>
                       {question.isGlobal ? (
-                        <span className="rounded bg-sky-100 px-2 py-0.5 text-sky-700">Global</span>
+                        <MhdBadge variant="info">Global</MhdBadge>
                       ) : null}
                     </div>
                     {question.guidance ? (
-                      <p className="mt-2 text-xs text-neutral-500">{question.guidance}</p>
+                      <p className="mt-2 text-xs text-muted-foreground">{question.guidance}</p>
                     ) : null}
                   </li>
                 ))}

@@ -87,24 +87,24 @@ export function MhdPipelineBoard({
     return (
       <div
         key={application.id}
-        className="space-y-2 rounded-md border border-neutral-200 bg-card p-3 shadow-sm"
+        className="space-y-2 rounded-md border border-border bg-card p-3 shadow-sm"
       >
         <div className="flex items-start justify-between gap-2">
           <div>
             <button
               type="button"
               onClick={() => onOpenApplication?.(application.id)}
-              className="text-left text-sm font-medium text-neutral-900 hover:underline"
+              className="text-left text-sm font-medium text-accent hover:text-accent-hover"
             >
               {application.personDisplayName}
             </button>
-            <div className="font-mono text-xs text-neutral-400">{application.referenceId}</div>
+            <div className="font-mono text-xs text-muted-foreground">{application.referenceId}</div>
           </div>
           <MhdApplicationStatusBadge lifecycle={application.lifecycle} />
         </div>
 
         {application.source ? (
-          <p className="text-xs text-neutral-500">Source: {application.source}</p>
+          <p className="text-xs text-muted-foreground">Source: {application.source}</p>
         ) : null}
 
         {canManage && application.lifecycle === 'ACTIVE' ? (
@@ -113,7 +113,7 @@ export function MhdPipelineBoard({
               value={application.currentStageId ?? ''}
               disabled={moveStage.isPending}
               onChange={(event) => void handleMove(application, event.target.value)}
-              className="w-full rounded-md border border-neutral-300 px-2 py-1 text-xs disabled:opacity-50"
+              className="w-full rounded-md border border-border px-2 py-1 text-xs disabled:opacity-50"
             >
               {stages.map((stage) => (
                 <option key={stage.id} value={stage.id}>
@@ -124,7 +124,7 @@ export function MhdPipelineBoard({
             <button
               type="button"
               onClick={() => setRejecting(application)}
-              className="whitespace-nowrap text-xs text-rose-600 underline"
+              className="whitespace-nowrap text-xs font-medium text-red-700 hover:text-red-800"
             >
               Reject
             </button>
@@ -135,21 +135,21 @@ export function MhdPipelineBoard({
   }
 
   if (stages.isLoading || applications.isLoading) {
-    return <p className="text-sm text-neutral-500">Loading pipeline…</p>;
+    return <p className="text-sm text-muted-foreground">Loading pipeline…</p>;
   }
 
   return (
     <section className="space-y-3">
-      <h2 className="text-base font-semibold text-neutral-900">Pipeline</h2>
+      <h2 className="text-base font-semibold text-foreground">Pipeline</h2>
 
       <div className="flex gap-4 overflow-x-auto pb-2">
         {/* The Invited column: applicants who have been sent a link but have not
             yet submitted (no stage yet). */}
         {byStage.invited.length > 0 ? (
-          <div className="w-72 flex-shrink-0 space-y-2 rounded-lg bg-neutral-50 p-3">
+          <div className="w-72 flex-shrink-0 space-y-2 rounded-lg bg-muted p-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-neutral-700">Invited</h3>
-              <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs text-neutral-600">
+              <h3 className="text-sm font-semibold text-foreground">Invited</h3>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                 {byStage.invited.length}
               </span>
             </div>
@@ -162,16 +162,16 @@ export function MhdPipelineBoard({
           return (
             <div
               key={stage.id}
-              className="w-72 flex-shrink-0 space-y-2 rounded-lg bg-neutral-50 p-3"
+              className="w-72 flex-shrink-0 space-y-2 rounded-lg bg-muted p-3"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-neutral-700">{stage.stageName}</h3>
-                <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs text-neutral-600">
+                <h3 className="text-sm font-semibold text-foreground">{stage.stageName}</h3>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                   {cards.length}
                 </span>
               </div>
               {cards.length === 0 ? (
-                <p className="text-xs text-neutral-400">Empty</p>
+                <p className="text-xs text-muted-foreground">Empty</p>
               ) : (
                 cards.map((application) => renderCard(application, stageList))
               )}

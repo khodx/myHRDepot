@@ -1,5 +1,9 @@
 import { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdLeavesCanSeeMedical, mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
 import {
@@ -31,6 +35,9 @@ import { MhdLeaveStatusBadge } from './MhdLeaveStatusBadge';
 
 const REQUIRE_REASON: readonly MhdLeaveCaseStatus[] = ['DENIED', 'CANCELLED'];
 
+const INPUT_CLASSES =
+  'rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
+
 /**
  * `/leaves/:caseId` (route entry).
  *
@@ -47,15 +54,12 @@ const REQUIRE_REASON: readonly MhdLeaveCaseStatus[] = ['DENIED', 'CANCELLED'];
  * list; the designated bases come from the `mhd_leave_case_get_bases` contract.
  */
 export function MhdLeaveCaseDetailPage() {
-  const navigate = useNavigate();
   const { caseId = '' } = useParams<{ caseId: string }>();
   const { profile, roles } = useMhdAuth();
   const companyId = profile?.companyId ?? '';
   const isPrivileged = mhdLeavesIsPrivileged(roles);
   const canSeeMedical = mhdLeavesCanSeeMedical(roles);
   const selfPersonId = profile?.personId ?? null;
-
-  const onBack = () => navigate('/leaves');
 
   const cases = useMhdLeaveCases({
     companyId,
@@ -187,42 +191,40 @@ export function MhdLeaveCaseDetailPage() {
     setAdjustReason('');
   }
 
-  if (cases.isLoading) return <p className="p-6 text-sm text-neutral-500">Loading…</p>;
-  if (!leaveCase) return <p className="p-6 text-sm text-neutral-500">Leave case not found.</p>;
+  if (cases.isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (!leaveCase) return <p className="text-sm text-muted-foreground">Leave case not found.</p>;
 
   return (
-    <div className="space-y-8 p-6">
-      <button type="button" onClick={onBack} className="text-sm text-neutral-500 underline">
-        ← All leaves
-      </button>
-
+    <div className="space-y-6">
       {/* ----- Case facts ----- */}
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">{leaveCase.personDisplayName}</h1>
-          <p className="mt-0.5 text-xs text-neutral-500">
+      <MhdPageHeader
+        backTo="/leaves"
+        backLabel="all leaves"
+        title={leaveCase.personDisplayName}
+        chips={<MhdLeaveStatusBadge status={leaveCase.status} />}
+        description={
+          <>
             <span className="font-mono">{leaveCase.referenceId}</span> · {leaveCase.reasonCategory}
             {leaveCase.requestedStart ? ` · ${leaveCase.requestedStart}` : ''}
             {leaveCase.requestedEnd ? ` → ${leaveCase.requestedEnd}` : ''}
-          </p>
-        </div>
-        <MhdLeaveStatusBadge status={leaveCase.status} />
-      </header>
+          </>
+        }
+      />
 
       {/* ----- Status transition (privileged) ----- */}
       {isPrivileged ? (
-        <section className="space-y-3 rounded-md border border-neutral-200 p-4">
-          <h2 className="text-base font-semibold text-neutral-900">Status</h2>
+        <MhdCard className="space-y-3">
+          <MhdCardHeader title="Status" className="mb-0" />
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label htmlFor="newStatus" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="newStatus" className="block text-sm font-medium text-foreground">
                 Move to
               </label>
               <select
                 id="newStatus"
                 value={newStatus}
                 onChange={(event) => setNewStatus(event.target.value as MhdLeaveCaseStatus)}
-                className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className={`mt-1 ${INPUT_CLASSES}`}
               >
                 {MHD_LEAVE_CASE_STATUSES.map((status) => (
                   <option key={status} value={status}>
@@ -235,37 +237,32 @@ export function MhdLeaveCaseDetailPage() {
               <div className="flex-1">
                 <label
                   htmlFor="decisionReason"
-                  className="block text-sm font-medium text-neutral-700"
+                  className="block text-sm font-medium text-foreground"
                 >
-                  Reason <span className="font-normal text-neutral-500">(required)</span>
+                  Reason <span className="font-normal text-muted-foreground">(required)</span>
                 </label>
                 <input
                   id="decisionReason"
                   type="text"
                   value={decisionReason}
                   onChange={(event) => setDecisionReason(event.target.value)}
-                  className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                  className={`mt-1 w-full ${INPUT_CLASSES}`}
                 />
               </div>
             ) : null}
-            <button
-              type="button"
-              disabled={transition.isPending}
-              onClick={() => void submitTransition()}
-              className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-            >
+            <Button disabled={transition.isPending} onClick={() => void submitTransition()}>
               {transition.isPending ? 'Saving…' : 'Update status'}
-            </button>
+            </Button>
           </div>
           {transitionError ? <p className="text-xs text-rose-600">{transitionError}</p> : null}
-        </section>
+        </MhdCard>
       ) : null}
 
       {/* ----- Designation set (where concurrency lives) ----- */}
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-neutral-900">Designated legal bases</h2>
+            <h2 className="text-base font-semibold text-foreground">Designated legal bases</h2>
             {/*
               THE concurrency control. A leave interval can be covered by several
               laws at once (FMLA + PDL concurrent, CFRA sequential); each is a
@@ -275,36 +272,32 @@ export function MhdLeaveCaseDetailPage() {
               set at once. The set is the human's legal judgement, made once and
               recorded, before any hours move.
             */}
-            <p className="mt-0.5 text-xs text-neutral-500">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               The laws this leave counts against. Each is decremented independently when hours are
               designated.
             </p>
           </div>
           {isPrivileged ? (
-            <button
-              type="button"
-              onClick={toggleEditingBases}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
-            >
+            <Button variant="secondary" onClick={toggleEditingBases}>
               {isEditingBases ? 'Cancel' : 'Edit bases'}
-            </button>
+            </Button>
           ) : null}
         </div>
 
         {isEditingBases && isPrivileged ? (
-          <div className="space-y-3 rounded-md border border-neutral-200 p-4">
+          <MhdCard className="space-y-3">
             <ul className="space-y-1">
               {(leaveTypes.data ?? []).map((type) => (
                 <li key={type.id}>
-                  <label className="flex items-center gap-2 text-sm text-neutral-800">
+                  <label className="flex items-center gap-2 text-sm text-foreground">
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(type.id)}
                       onChange={() => toggleSelected(type.id)}
-                      className="rounded border-neutral-300"
+                      className="rounded border-border"
                     />
                     <span className="font-medium">{type.typeName}</span>
-                    <span className="text-xs text-neutral-500">
+                    <span className="text-xs text-muted-foreground">
                       {mhdFormatLeaveJurisdiction(type.jurisdiction)} ·{' '}
                       {mhdFormatLeaveHours(type.entitlementHours)}
                     </span>
@@ -313,33 +306,30 @@ export function MhdLeaveCaseDetailPage() {
               ))}
             </ul>
             <div className="flex justify-end">
-              <button
-                type="button"
-                disabled={setBases.isPending}
-                onClick={() => void saveBases()}
-                className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
-              >
+              <Button disabled={setBases.isPending} onClick={() => void saveBases()}>
                 {setBases.isPending ? 'Saving…' : 'Save bases'}
-              </button>
+              </Button>
             </div>
-          </div>
+          </MhdCard>
         ) : null}
       </section>
 
       {/* ----- Per-basis balances (the point of the module) ----- */}
-      <MhdLeaveBalancePanel rows={balanceRows} isLoading={balancesLoading} />
+      <MhdCard>
+        <MhdLeaveBalancePanel rows={balanceRows} isLoading={balancesLoading} />
+      </MhdCard>
 
       {/* ----- Designate hours ----- */}
       {isPrivileged ? (
-        <section className="space-y-3 rounded-md border border-neutral-200 p-4">
-          <h2 className="text-base font-semibold text-neutral-900">Designate hours</h2>
-          <p className="text-xs text-neutral-500">
+        <MhdCard className="space-y-3">
+          <MhdCardHeader title="Designate hours" className="mb-0" />
+          <p className="text-xs text-muted-foreground">
             Records hours taken against the whole basis set at once — one ledger row per basis. This
             is the manual v1 decrement.
           </p>
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label htmlFor="designateHours" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="designateHours" className="block text-sm font-medium text-foreground">
                 Hours
               </label>
               <input
@@ -348,11 +338,11 @@ export function MhdLeaveCaseDetailPage() {
                 min={0}
                 value={designateHours}
                 onChange={(event) => setDesignateHours(event.target.value)}
-                className="mt-1 w-32 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className={`mt-1 w-32 ${INPUT_CLASSES}`}
               />
             </div>
             <div>
-              <label htmlFor="designateDate" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="designateDate" className="block text-sm font-medium text-foreground">
                 Effective date
               </label>
               <input
@@ -360,19 +350,17 @@ export function MhdLeaveCaseDetailPage() {
                 type="date"
                 value={designateDate}
                 onChange={(event) => setDesignateDate(event.target.value)}
-                className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className={`mt-1 ${INPUT_CLASSES}`}
               />
             </div>
-            <button
-              type="button"
+            <Button
               // Disabled with no bases: the RPC refuses to decrement a case that
               // has no designated bases, so there is nothing to designate against.
               disabled={designate.isPending || designatedIds.length === 0}
               onClick={() => void submitDesignate()}
-              className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {designate.isPending ? 'Recording…' : 'Designate'}
-            </button>
+            </Button>
           </div>
           {designatedIds.length === 0 ? (
             <p className="text-xs text-amber-700">
@@ -380,66 +368,66 @@ export function MhdLeaveCaseDetailPage() {
             </p>
           ) : null}
           {designateError ? <p className="text-xs text-rose-600">{designateError}</p> : null}
-        </section>
+        </MhdCard>
       ) : null}
 
       {/* ----- Ledger (append-only, per basis) ----- */}
       <section className="space-y-2">
-        <h2 className="text-base font-semibold text-neutral-900">Ledger</h2>
+        <h2 className="text-base font-semibold text-foreground">Ledger</h2>
         {ledger.isLoading ? (
-          <p className="text-sm text-neutral-500">Loading ledger…</p>
+          <p className="text-sm text-muted-foreground">Loading ledger…</p>
         ) : (ledger.data ?? []).length === 0 ? (
-          <p className="text-sm text-neutral-500">No ledger activity for this person yet.</p>
+          <p className="text-sm text-muted-foreground">No ledger activity for this person yet.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
+          <MhdCard className="overflow-hidden p-0">
+            <MhdTable>
               <thead>
-                <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                  <th className="py-2 pr-4 font-medium">Effective</th>
-                  <th className="py-2 pr-4 font-medium">Basis</th>
-                  <th className="py-2 pr-4 font-medium">Entry</th>
-                  <th className="py-2 pr-4 text-right font-medium">Hours</th>
-                  <th className="py-2 font-medium">Reason</th>
+                <tr>
+                  <MhdTh>Effective</MhdTh>
+                  <MhdTh>Basis</MhdTh>
+                  <MhdTh>Entry</MhdTh>
+                  <MhdTh className="text-right">Hours</MhdTh>
+                  <MhdTh>Reason</MhdTh>
                 </tr>
               </thead>
               <tbody>
                 {(ledger.data ?? []).map((entry) => (
-                  <tr key={entry.id} className="border-b border-neutral-100 text-neutral-800">
-                    <td className="py-2 pr-4 whitespace-nowrap">{entry.effectiveDate}</td>
-                    <td className="py-2 pr-4 whitespace-nowrap">{entry.typeName}</td>
-                    <td className="py-2 pr-4 whitespace-nowrap">
+                  <MhdTr key={entry.id}>
+                    <MhdTd className="whitespace-nowrap">{entry.effectiveDate}</MhdTd>
+                    <MhdTd className="whitespace-nowrap">{entry.typeName}</MhdTd>
+                    <MhdTd className="whitespace-nowrap">
                       {mhdFormatLeaveLedgerEntryType(entry.entryType)}
-                    </td>
-                    <td
-                      className={`py-2 pr-4 text-right tabular-nums ${
+                    </MhdTd>
+                    <MhdTd
+                      className={`text-right tabular-nums ${
                         entry.hoursDelta < 0 ? 'text-rose-700' : 'text-emerald-700'
                       }`}
                     >
                       {entry.hoursDelta > 0 ? `+${entry.hoursDelta}` : entry.hoursDelta}
-                    </td>
-                    <td className="py-2">
-                      {entry.reason ?? <span className="text-neutral-400">—</span>}
-                    </td>
-                  </tr>
+                    </MhdTd>
+                    <MhdTd>
+                      {entry.reason ?? <span className="text-muted-foreground">—</span>}
+                    </MhdTd>
+                  </MhdTr>
                 ))}
               </tbody>
-            </table>
-          </div>
+            </MhdTable>
+          </MhdCard>
         )}
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           Append-only: corrections appear as reversing or adjustment entries rather than edits, so
           the history stays intact for FMLA recordkeeping.
         </p>
 
         {/* Manual adjustment — every adjustment requires a reason at the RPC. */}
         {isPrivileged ? (
-          <div className="mt-3 space-y-2 rounded-md border border-neutral-200 p-4">
-            <h3 className="text-sm font-medium text-neutral-700">Adjust a basis</h3>
+          <MhdCard className="mt-3 space-y-2">
+            <h3 className="text-sm font-medium text-foreground">Adjust a basis</h3>
             <div className="flex flex-wrap items-end gap-3">
               <select
                 value={adjustTypeId}
                 onChange={(event) => setAdjustTypeId(event.target.value)}
-                className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className={INPUT_CLASSES}
               >
                 <option value="">Legal basis…</option>
                 {(leaveTypes.data ?? []).map((type) => (
@@ -453,26 +441,25 @@ export function MhdLeaveCaseDetailPage() {
                 value={adjustHours}
                 placeholder="± hours"
                 onChange={(event) => setAdjustHours(event.target.value)}
-                className="w-28 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className={`w-28 ${INPUT_CLASSES}`}
               />
               <input
                 type="text"
                 value={adjustReason}
                 placeholder="Reason (required)"
                 onChange={(event) => setAdjustReason(event.target.value)}
-                className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className={`flex-1 ${INPUT_CLASSES}`}
               />
-              <button
-                type="button"
+              <Button
+                variant="secondary"
                 disabled={adjust.isPending}
                 onClick={() => void submitAdjust()}
-                className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 disabled:opacity-50"
               >
                 {adjust.isPending ? 'Saving…' : 'Adjust'}
-              </button>
+              </Button>
             </div>
             {adjustError ? <p className="text-xs text-rose-600">{adjustError}</p> : null}
-          </div>
+          </MhdCard>
         ) : null}
       </section>
 

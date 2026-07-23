@@ -19,7 +19,7 @@ export function MhdMyFeedbackInvitations({ onOpen }: Props) {
   const invitations = useMhdMyInvitations();
 
   if (invitations.isLoading) {
-    return <p className="p-6 text-sm text-neutral-500">Loading your invitations…</p>;
+    return <p className="p-6 text-sm text-muted-foreground">Loading your invitations…</p>;
   }
 
   const open = (invitations.data ?? []).filter((invitation) => invitation.status === 'INVITED');
@@ -28,25 +28,25 @@ export function MhdMyFeedbackInvitations({ onOpen }: Props) {
   return (
     <div className="space-y-6 p-6">
       <header>
-        <h1 className="text-xl font-semibold text-neutral-900">Feedback requests</h1>
-        <p className="mt-1 text-sm text-neutral-600">
+        <h1 className="text-xl font-semibold text-foreground">Feedback requests</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           You have been asked to give feedback on these colleagues. Your responses are combined
           with others and shown only in aggregate.
         </p>
       </header>
 
       {open.length === 0 ? (
-        <p className="text-sm text-neutral-500">Nothing awaiting your feedback.</p>
+        <p className="text-sm text-muted-foreground">Nothing awaiting your feedback.</p>
       ) : (
         <ul className="space-y-2">
           {open.map((invitation) => (
             <li
               key={invitation.participantId}
-              className="flex items-center justify-between rounded-md border border-neutral-200 p-4"
+              className="flex items-center justify-between rounded-md border border-border p-4"
             >
               <div>
-                <p className="text-sm font-medium text-neutral-900">{invitation.subjectName}</p>
-                <p className="mt-0.5 text-xs text-neutral-500">
+                <p className="text-sm font-medium text-foreground">{invitation.subjectName}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   {mhdFormatParticipantType(invitation.participantType)} feedback · period ending{' '}
                   {invitation.reviewPeriodEnd}
                 </p>
@@ -54,7 +54,7 @@ export function MhdMyFeedbackInvitations({ onOpen }: Props) {
               <button
                 type="button"
                 onClick={() => onOpen(invitation.participantId)}
-                className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50"
+                className="rounded-md bg-accent hover:bg-accent-hover px-3 py-1.5 text-sm font-medium text-accent-on"
               >
                 Give feedback
               </button>
@@ -65,8 +65,8 @@ export function MhdMyFeedbackInvitations({ onOpen }: Props) {
 
       {done.length > 0 ? (
         <div>
-          <h2 className="text-sm font-medium text-neutral-700">Submitted</h2>
-          <ul className="mt-2 space-y-1 text-sm text-neutral-500">
+          <h2 className="text-sm font-medium text-foreground">Submitted</h2>
+          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
             {done.map((invitation) => (
               <li key={invitation.participantId}>
                 {invitation.subjectName} —{' '}

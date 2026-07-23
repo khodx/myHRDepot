@@ -47,14 +47,14 @@ export function MhdApplicationDetailRoutePage() {
 
   if (!companyId || !appId) {
     return (
-      <div className="p-6 text-sm text-neutral-600">
+      <div className="text-sm text-muted-foreground">
         This application could not be resolved for your account.
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       <MhdApplicationDetailPage
         companyId={companyId}
         applicationId={appId}
@@ -62,7 +62,7 @@ export function MhdApplicationDetailRoutePage() {
         onBack={() => navigate(-1)}
       />
 
-      <div className="space-y-8 px-6 pb-10">
+      <div className="space-y-6">
         <MhdInterviewList
           applicationId={appId}
           onOpenWorksheet={(interviewId) => navigate(`/recruiting/interviews/${interviewId}`)}

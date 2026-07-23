@@ -77,8 +77,8 @@ export function MhdStatusTransitionButton({
         disabled={disabled || isTerminal || isLoading}
         className={`flex items-center gap-2 rounded-md px-3 py-2 font-medium transition-colors ${
           isTerminal
-            ? 'cursor-not-allowed bg-gray-100 text-gray-500'
-            : 'bg-blue-100 text-blue-800 hover:opacity-80 disabled:opacity-50'
+            ? 'cursor-not-allowed bg-muted text-muted-foreground'
+            : 'bg-accent-tint text-accent-hover hover:opacity-80 disabled:opacity-50'
         }`}
       >
         <span>{currentStatusName}</span>
@@ -93,9 +93,9 @@ export function MhdStatusTransitionButton({
       ) : null}
 
       {isOpen && !isTerminal ? (
-        <div className="absolute left-0 top-full z-50 mt-2 min-w-max rounded-md border border-gray-200 bg-card shadow-lg">
+        <div className="absolute left-0 top-full z-50 mt-2 min-w-max rounded-md border border-border bg-card shadow-lg">
           {availableTransitions.length === 0 ? (
-            <div className="px-4 py-2 text-sm text-gray-500">No transitions available</div>
+            <div className="px-4 py-2 text-sm text-muted-foreground">No transitions available</div>
           ) : (
             availableTransitions.map((transition) => (
               <button
@@ -103,7 +103,7 @@ export function MhdStatusTransitionButton({
                 type="button"
                 onClick={() => void handleTransition(transition.statusId)}
                 disabled={isLoading}
-                className="block w-full px-4 py-2 text-left hover:bg-gray-100 disabled:opacity-50"
+                className="block w-full px-4 py-2 text-left hover:bg-muted disabled:opacity-50"
               >
                 {transition.statusName}
               </button>

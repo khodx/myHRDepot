@@ -152,7 +152,7 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
     case 'time_field':
       return (
         <div>
-          <label htmlFor={field.id} className="mb-1 block text-sm font-medium text-slate-900">
+          <label htmlFor={field.id} className="mb-1 block text-sm font-medium text-foreground">
             {field.label}
             {isRequired ? <span className="ml-1 text-red-500">*</span> : null}
           </label>
@@ -161,7 +161,7 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
             type="time"
             value={String(value ?? '')}
             onChange={(event) => onChange(event.target.value)}
-            className={`w-full rounded-md border px-3 py-2 text-sm ${error ? 'border-red-300' : 'border-slate-300'}`}
+            className={`w-full rounded-md border px-3 py-2 text-sm ${error ? 'border-red-300' : 'border-border'}`}
           />
           <MhdFormFieldError message={error} />
         </div>
@@ -171,7 +171,7 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
     case 'phone_field':
       return (
         <div>
-          <label htmlFor={field.id} className="mb-1 block text-sm font-medium text-slate-900">
+          <label htmlFor={field.id} className="mb-1 block text-sm font-medium text-foreground">
             {field.label}
             {isRequired ? <span className="ml-1 text-red-500">*</span> : null}
           </label>
@@ -181,7 +181,7 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
             value={String(value ?? '')}
             onChange={(event) => onChange(event.target.value)}
             placeholder={field.placeholder ?? '(555) 555-5555'}
-            className={`w-full rounded-md border px-3 py-2 text-sm ${error ? 'border-red-300' : 'border-slate-300'}`}
+            className={`w-full rounded-md border px-3 py-2 text-sm ${error ? 'border-red-300' : 'border-border'}`}
           />
           <MhdFormFieldError message={error} />
         </div>
@@ -190,7 +190,7 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
     case 'checkbox':
       return (
         <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-slate-900">
+          <label className="flex items-center gap-2 text-sm font-medium text-foreground">
             <input
               type="checkbox"
               checked={Boolean(value)}
@@ -207,7 +207,7 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
     case 'toggle':
       return (
         <div>
-          <label className="mb-1 flex items-center justify-between text-sm font-medium text-slate-900">
+          <label className="mb-1 flex items-center justify-between text-sm font-medium text-foreground">
             <span>
               {field.label}
               {isRequired ? <span className="ml-1 text-red-500">*</span> : null}
@@ -217,7 +217,7 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
               role="switch"
               aria-checked={Boolean(value)}
               onClick={() => onChange(!value)}
-              className={`h-6 w-11 rounded-full transition-colors ${value ? 'bg-blue-600' : 'bg-slate-300'}`}
+              className={`h-6 w-11 rounded-full transition-colors ${value ? 'bg-accent' : 'bg-border'}`}
             >
               <span
                 className={`block h-5 w-5 rounded-full bg-card shadow transition-transform ${
@@ -233,7 +233,7 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
     case 'radio':
       return (
         <fieldset>
-          <legend className="mb-1 block text-sm font-medium text-slate-900">
+          <legend className="mb-1 block text-sm font-medium text-foreground">
             {field.label}
             {isRequired ? <span className="ml-1 text-red-500">*</span> : null}
           </legend>
@@ -259,7 +259,7 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
       const current = Number(value) || 0;
       return (
         <div>
-          <span className="mb-1 block text-sm font-medium text-slate-900">
+          <span className="mb-1 block text-sm font-medium text-foreground">
             {field.label}
             {isRequired ? <span className="ml-1 text-red-500">*</span> : null}
           </span>
@@ -270,7 +270,7 @@ export function MhdFormField({ field, value, onChange, required, error, readOnly
                 type="button"
                 aria-label={`${star} star${star > 1 ? 's' : ''}`}
                 onClick={() => onChange(star)}
-                className={`text-2xl ${star <= current ? 'text-amber-500' : 'text-slate-300'}`}
+                className={`text-2xl ${star <= current ? 'text-amber-500' : 'text-border'}`}
               >
                 ★
               </button>

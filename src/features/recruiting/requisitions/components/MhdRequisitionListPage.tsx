@@ -1,4 +1,11 @@
 import { useMemo, useState } from 'react';
+import { Briefcase } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdCreateRequisition, useMhdRecruitingPeople, useMhdRecruitingRequisitions } from '../Hook';
 import type { MhdRequisitionFormValues } from '../Schemas';
 import {
@@ -66,31 +73,20 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">Recruiting</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            Requisitions for this company. Open a requisition to invite applicants and work the
-            pipeline.
-          </p>
-        </div>
-        {canManage ? (
-          <button
-            type="button"
-            onClick={() => setIsCreating(true)}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
-          >
-            New requisition
-          </button>
-        ) : null}
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Recruiting"
+        description="Requisitions for this company. Open a requisition to invite applicants and work the pipeline."
+        actions={
+          canManage ? (
+            <Button onClick={() => setIsCreating(true)}>New requisition</Button>
+          ) : undefined
+        }
+      />
 
-      <div className="flex items-center gap-3">
-        <label htmlFor="statusFilter" className="text-sm text-neutral-600">
-          Status
-        </label>
-        <select
+      <MhdCard className="grid gap-3 md:grid-cols-3">
+        <MhdFilterSelect
+          label="Status"
           id="statusFilter"
           value={filters.status ?? 'ALL'}
           onChange={(event) =>
@@ -99,7 +95,6 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
               status: event.target.value as MhdRequisitionFilters['status'],
             }))
           }
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
         >
           <option value="ALL">All statuses</option>
           {MHD_RECRUITING_REQUISITION_STATUSES.map((status) => (
@@ -107,69 +102,68 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
               {mhdFormatRequisitionStatus(status)}
             </option>
           ))}
-        </select>
-      </div>
+        </MhdFilterSelect>
+      </MhdCard>
 
       {requisitions.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading requisitions…</p>
+        <MhdCard className="p-6 text-sm text-muted-foreground">Loading requisitions…</MhdCard>
       ) : (requisitions.data ?? []).length === 0 ? (
-        <p className="text-sm text-neutral-500">No requisitions in this view.</p>
+        <MhdCard className="border-dashed">
+          <MhdEmptyState icon={Briefcase} title="No requisitions in this view." />
+        </MhdCard>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
             <thead>
-              <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                <th className="py-2 pr-4 font-medium">Reference</th>
-                <th className="py-2 pr-4 font-medium">Title</th>
-                <th className="py-2 pr-4 font-medium">Hiring manager</th>
-                <th className="py-2 pr-4 font-medium">Department</th>
-                <th className="py-2 pr-4 font-medium">Openings</th>
-                <th className="py-2 pr-4 font-medium">Active applicants</th>
-                <th className="py-2 pr-4 font-medium">Status</th>
-                <th className="py-2 font-medium" />
+              <tr>
+                <MhdTh>Reference</MhdTh>
+                <MhdTh>Title</MhdTh>
+                <MhdTh>Hiring manager</MhdTh>
+                <MhdTh>Department</MhdTh>
+                <MhdTh>Openings</MhdTh>
+                <MhdTh>Active applicants</MhdTh>
+                <MhdTh>Status</MhdTh>
+                <MhdTh />
               </tr>
             </thead>
             <tbody>
               {(requisitions.data ?? []).map((requisition) => (
-                <tr
-                  key={requisition.id}
-                  className="border-b border-neutral-100 text-neutral-800"
-                >
-                  <td className="py-2 pr-4 whitespace-nowrap font-mono text-xs text-neutral-400">
+                <MhdTr key={requisition.id}>
+                  <MhdTd className="whitespace-nowrap font-mono text-xs text-muted-foreground">
                     {requisition.referenceId}
-                  </td>
-                  <td className="py-2 pr-4 font-medium text-neutral-900">{requisition.title}</td>
-                  <td className="py-2 pr-4 whitespace-nowrap text-neutral-600">
+                  </MhdTd>
+                  <MhdTd className="font-medium">{requisition.title}</MhdTd>
+                  <MhdTd className="whitespace-nowrap text-muted-foreground">
                     {requisition.hiringManagerName ?? '—'}
-                  </td>
-                  <td className="py-2 pr-4 text-neutral-600">{requisition.department ?? '—'}</td>
-                  <td className="py-2 pr-4 text-neutral-600">{requisition.headcount}</td>
-                  <td className="py-2 pr-4 text-neutral-600">
+                  </MhdTd>
+                  <MhdTd className="text-muted-foreground">{requisition.department ?? '—'}</MhdTd>
+                  <MhdTd className="text-muted-foreground">{requisition.headcount}</MhdTd>
+                  <MhdTd className="text-muted-foreground">
                     {requisition.openApplicationCount}
-                  </td>
-                  <td className="py-2 pr-4">
+                  </MhdTd>
+                  <MhdTd>
                     <MhdRequisitionStatusBadge status={requisition.status} />
-                  </td>
-                  <td className="py-2 text-right">
+                  </MhdTd>
+                  <MhdTd className="text-right">
                     <button
                       type="button"
                       onClick={() => onOpenRequisition(requisition.id)}
-                      className="text-sm text-neutral-500 underline"
+                      className="text-sm font-medium text-accent hover:text-accent-hover"
                     >
                       Open
                     </button>
-                  </td>
-                </tr>
+                  </MhdTd>
+                </MhdTr>
               ))}
             </tbody>
-          </table>
-        </div>
+          </MhdTable>
+        </MhdCard>
       )}
 
       {isCreating && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg bg-card p-6">
-            <h2 className="mb-4 text-base font-semibold text-neutral-900">New requisition</h2>
+          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-semibold text-foreground">New requisition</h2>
             <MhdRequisitionForm
               companyId={companyId}
               hiringManagers={hiringManagerOptions}

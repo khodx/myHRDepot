@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdCompanyDetailsPanel } from '@/features/companies/components/MhdCompanyDetailsPanel';
 import { MhdCompanyForm } from '@/features/companies/components/MhdCompanyForm';
 import { MhdCompanyList } from '@/features/companies/components/MhdCompanyList';
@@ -32,78 +34,69 @@ export function MhdCompaniesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-xl border border-slate-200 bg-card p-6 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">My HR Depot</p>
-          <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Companies</h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-600">
-                Companies are the tenant boundary for people, users, tasks, notes, attachments, and audit history.
-              </p>
-            </div>
-            <div className="text-sm text-slate-600">Signed in as {profile?.displayName ?? 'authorized user'}</div>
-          </div>
-        </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Companies"
+        description="Companies are the tenant boundary for people, users, tasks, notes, attachments, and audit history."
+        actions={<div className="text-sm text-muted-foreground">Signed in as {profile?.displayName ?? 'authorized user'}</div>}
+      />
 
-        <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <div className="space-y-4">
-            <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-              <div className="grid gap-3">
-                <label className="block">
-                  <span className="text-sm font-medium text-slate-700">Search companies</span>
-                  <input
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
-                    value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                    placeholder="Company name"
-                  />
-                </label>
-              </div>
-            </div>
-
-            {companiesQuery.isLoading ? (
-              <div className="rounded-lg border border-slate-200 bg-card p-8 text-center text-sm text-slate-600">Loading companies...</div>
-            ) : companiesQuery.isError ? (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                {companiesQuery.error instanceof Error ? companiesQuery.error.message : 'Unable to load companies.'}
-              </div>
-            ) : (
-              <MhdCompanyList
-                companies={companiesQuery.data ?? []}
-                selectedCompanyId={selectedCompany?.id}
-                onSelectCompany={setSelectedCompany}
-              />
-            )}
-          </div>
-
-          <div className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Create company</h2>
-              <p className="mt-1 text-sm text-slate-600">Create the tenant record before adding people or tasks.</p>
-              <div className="mt-5">
-                <MhdCompanyForm
-                  isSubmitting={createCompanyMutation.isPending}
-                  submitLabel="Create company"
-                  onSubmit={(values) => handleCreateCompany(values as MhdCreateCompanyInput)}
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="space-y-4">
+          <MhdCard>
+            <div className="grid gap-3">
+              <label className="block">
+                <span className="text-sm font-medium text-slate-700">Search companies</span>
+                <input
+                  className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Company name"
                 />
-              </div>
-              {createCompanyMutation.isError ? (
-                <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {createCompanyMutation.error instanceof Error ? createCompanyMutation.error.message : 'Unable to create company.'}
-                </p>
-              ) : null}
-            </section>
+              </label>
+            </div>
+          </MhdCard>
 
-            <MhdCompanyDetailsPanel
-              company={selectedCompany}
-              isSubmitting={updateCompanyMutation.isPending}
-              onUpdateCompany={handleUpdateCompany}
+          {companiesQuery.isLoading ? (
+            <MhdCard className="p-8 text-center text-sm text-muted-foreground">Loading companies...</MhdCard>
+          ) : companiesQuery.isError ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {companiesQuery.error instanceof Error ? companiesQuery.error.message : 'Unable to load companies.'}
+            </div>
+          ) : (
+            <MhdCompanyList
+              companies={companiesQuery.data ?? []}
+              selectedCompanyId={selectedCompany?.id}
+              onSelectCompany={setSelectedCompany}
             />
-          </div>
-        </section>
-      </div>
-    </main>
+          )}
+        </div>
+
+        <div className="space-y-6">
+          <MhdCard className="p-6">
+            <h2 className="text-lg font-semibold text-foreground">Create company</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Create the tenant record before adding people or tasks.</p>
+            <div className="mt-5">
+              <MhdCompanyForm
+                isSubmitting={createCompanyMutation.isPending}
+                submitLabel="Create company"
+                onSubmit={(values) => handleCreateCompany(values as MhdCreateCompanyInput)}
+              />
+            </div>
+            {createCompanyMutation.isError ? (
+              <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+                {createCompanyMutation.error instanceof Error ? createCompanyMutation.error.message : 'Unable to create company.'}
+              </p>
+            ) : null}
+          </MhdCard>
+
+          <MhdCompanyDetailsPanel
+            company={selectedCompany}
+            isSubmitting={updateCompanyMutation.isPending}
+            onUpdateCompany={handleUpdateCompany}
+          />
+        </div>
+      </section>
+    </div>
   );
 }

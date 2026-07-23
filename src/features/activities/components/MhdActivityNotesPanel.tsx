@@ -1,4 +1,8 @@
 import { useState, type FormEvent } from 'react';
+import { MessageSquare } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdNotes } from '@/features/notes/Hook';
 import { mhdPlainTextToRichText, type MhdNote, type MhdNoteVisibility } from '@/features/notes/Types';
@@ -42,25 +46,25 @@ function MhdActivityNoteEditor({
   }
 
   return (
-    <form className="space-y-3 rounded-md border border-slate-200 bg-slate-50 p-4" onSubmit={(event) => void handleSubmit(event)}>
+    <form className="space-y-3 rounded-md border border-border bg-muted p-4" onSubmit={(event) => void handleSubmit(event)}>
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-900">Note</label>
+        <label className="mb-1 block text-sm font-medium text-foreground">Note</label>
         <textarea
           value={notePlainText}
           onChange={(event) => setNotePlainText(event.target.value)}
           rows={3}
-          className="w-full rounded-md border border-slate-300 bg-card px-3 py-2 text-sm"
+          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           placeholder="Add a note to this activity…"
         />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <label className="text-sm text-slate-600">
-          <span className="mr-2 font-medium text-slate-900">Visibility</span>
+        <label className="text-sm text-muted-foreground">
+          <span className="mr-2 font-medium text-foreground">Visibility</span>
           <select
             value={visibility}
             onChange={(event) => setVisibility(event.target.value as MhdNoteVisibility)}
-            className="rounded-md border border-slate-300 bg-card px-2 py-2 text-sm"
+            className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <option value="PUBLIC">Public</option>
             <option value="ADMIN">Admin</option>
@@ -68,22 +72,14 @@ function MhdActivityNoteEditor({
           </select>
         </label>
 
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-neutral-50 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSaving}>
           {isSaving ? 'Saving…' : 'Save Note'}
-        </button>
+        </Button>
 
         {onCancel ? (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
-          >
+          <Button variant="secondary" onClick={onCancel}>
             Cancel
-          </button>
+          </Button>
         ) : null}
       </div>
 
@@ -123,11 +119,11 @@ function MhdActivityNoteItem({
   }
 
   return (
-    <article className="rounded-md border border-slate-200 bg-card p-4">
+    <MhdCard>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-slate-900">{note.createdByDisplayName ?? 'Unknown author'}</p>
-          <p className="text-xs uppercase tracking-wide text-slate-500">
+          <p className="text-sm font-semibold text-foreground">{note.createdByDisplayName ?? 'Unknown author'}</p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
             {note.visibility} • {new Date(note.createdAt).toLocaleString()}
           </p>
         </div>
@@ -135,13 +131,9 @@ function MhdActivityNoteItem({
         {!readOnly && (note.canEdit || note.canDelete) ? (
           <div className="flex gap-2">
             {note.canEdit ? (
-              <button
-                type="button"
-                onClick={() => setIsEditing(true)}
-                className="rounded-md border border-slate-300 bg-card px-3 py-1.5 text-sm font-semibold text-slate-700"
-              >
+              <Button variant="secondary" className="px-3 py-1.5" onClick={() => setIsEditing(true)}>
                 Edit
-              </button>
+              </Button>
             ) : null}
             {note.canDelete ? (
               <button
@@ -156,8 +148,8 @@ function MhdActivityNoteItem({
         ) : null}
       </div>
 
-      <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700">{note.notePlainText}</p>
-    </article>
+      <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{note.notePlainText}</p>
+    </MhdCard>
   );
 }
 
@@ -201,17 +193,17 @@ export function MhdActivityNotesPanel({ activityId, readOnly = false }: Props) {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Comments Timeline</h2>
-          <button className="text-sm font-semibold text-blue-700" onClick={() => void notesState.refresh()}>
+          <h2 className="text-lg font-semibold text-foreground">Comments Timeline</h2>
+          <button className="text-sm font-semibold text-accent hover:text-accent-hover" onClick={() => void notesState.refresh()}>
             Refresh
           </button>
         </div>
 
-        {notesState.isLoading ? <div className="py-8 text-sm text-slate-500">Loading notes…</div> : null}
+        {notesState.isLoading ? <div className="py-8 text-sm text-muted-foreground">Loading notes…</div> : null}
         {!notesState.isLoading && notesState.notes.length === 0 ? (
-          <div className="rounded-md border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
-            No notes yet.
-          </div>
+          <MhdCard className="border-dashed">
+            <MhdEmptyState icon={MessageSquare} title="No notes yet." />
+          </MhdCard>
         ) : null}
         <div className="space-y-3">
           {notesState.notes.map((note) => (

@@ -1,4 +1,5 @@
 import { Paperclip } from 'lucide-react';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import type { MhdAttachment } from '../Types';
 import { MhdAttachmentItem } from './MhdAttachmentItem';
 
@@ -14,12 +15,7 @@ interface Props {
 // different rows in the same list can have different delete permissions.
 export function MhdAttachmentList({ attachments, onDownload, onDelete }: Props) {
   if (attachments.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-10 text-neutral-400">
-        <Paperclip className="mb-2 h-8 w-8" />
-        <p className="text-sm">No attachments yet</p>
-      </div>
-    );
+    return <MhdEmptyState icon={Paperclip} title="No attachments yet" className="py-10" />;
   }
 
   return (

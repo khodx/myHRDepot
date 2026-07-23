@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
 import { useMhdInterviewWorksheet, useMhdSubmitInterviewResponses } from '../Hook';
 import type { MhdInterviewResponseDraft } from '../Types';
 import { MhdComplianceFlag } from './MhdComplianceFlag';
@@ -93,7 +95,7 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
   }
 
   if (worksheet.isLoading) {
-    return <p className="text-sm text-neutral-500">Loading worksheet…</p>;
+    return <p className="text-sm text-muted-foreground">Loading worksheet…</p>;
   }
 
   if (worksheet.isError) {
@@ -108,7 +110,7 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
 
   if ((worksheet.data ?? []).length === 0) {
     return (
-      <p className="text-sm text-neutral-500">
+      <p className="text-sm text-muted-foreground">
         This interview&apos;s guide has no questions yet.
       </p>
     );
@@ -116,7 +118,7 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
 
   return (
     <section className="space-y-4">
-      <h2 className="text-base font-semibold text-neutral-900">Scorecard</h2>
+      <h2 className="text-base font-semibold text-foreground">Scorecard</h2>
 
       <ol className="space-y-4">
         {(worksheet.data ?? []).map((item, index) => {
@@ -124,17 +126,15 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
           return (
             <li
               key={item.guideItemId}
-              className="space-y-3 rounded-md border border-neutral-200 bg-card p-4"
+              className="space-y-3 rounded-md border border-border bg-card p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-neutral-900">
+                  <p className="text-sm font-medium text-foreground">
                     {index + 1}. {item.questionText}
                   </p>
                   {item.competencyName ? (
-                    <span className="inline-flex rounded bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">
-                      {item.competencyName}
-                    </span>
+                    <MhdBadge variant="accent">{item.competencyName}</MhdBadge>
                   ) : null}
                 </div>
                 {/* Compliance flag + guidance, inline with the question (load-bearing).
@@ -157,8 +157,8 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
                       onClick={() => updateAnswer(item.guideItemId, { rating: value })}
                       className={`h-9 w-9 rounded-md border text-sm font-medium disabled:opacity-50 ${
                         answer?.rating === value
-                          ? 'border-neutral-900 bg-neutral-900 text-neutral-50'
-                          : 'border-neutral-300 bg-card text-neutral-700'
+                          ? 'border-accent bg-accent text-accent-on'
+                          : 'border-border bg-card text-foreground'
                       }`}
                     >
                       {value}
@@ -169,7 +169,7 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
                       type="button"
                       disabled={!canSubmit}
                       onClick={() => updateAnswer(item.guideItemId, { rating: null })}
-                      className="ml-2 text-xs text-neutral-500 underline disabled:opacity-50"
+                      className="ml-2 text-xs font-medium text-accent hover:text-accent-hover disabled:opacity-50"
                     >
                       Clear
                     </button>
@@ -192,8 +192,8 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
                       }
                       className={`rounded-md border px-4 py-1.5 text-sm font-medium disabled:opacity-50 ${
                         answer?.responseBool === option.value
-                          ? 'border-neutral-900 bg-neutral-900 text-neutral-50'
-                          : 'border-neutral-300 bg-card text-neutral-700'
+                          ? 'border-accent bg-accent text-accent-on'
+                          : 'border-border bg-card text-foreground'
                       }`}
                     >
                       {option.label}
@@ -204,7 +204,7 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
                       type="button"
                       disabled={!canSubmit}
                       onClick={() => updateAnswer(item.guideItemId, { responseBool: null })}
-                      className="ml-2 text-xs text-neutral-500 underline disabled:opacity-50"
+                      className="ml-2 text-xs font-medium text-accent hover:text-accent-hover disabled:opacity-50"
                     >
                       Clear
                     </button>
@@ -220,7 +220,7 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
                   onChange={(event) =>
                     updateAnswer(item.guideItemId, { responseText: event.target.value })
                   }
-                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:opacity-50"
+                  className="w-full rounded-md border border-border px-3 py-2 text-sm disabled:opacity-50"
                 />
               ) : null}
             </li>
@@ -235,17 +235,12 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
               {submit.error instanceof Error ? submit.error.message : 'Unable to submit.'}
             </p>
           ) : null}
-          <button
-            type="button"
-            onClick={() => void handleSubmit()}
-            disabled={submit.isPending}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-          >
+          <Button onClick={() => void handleSubmit()} disabled={submit.isPending}>
             {submit.isPending ? 'Submitting…' : 'Submit scorecard'}
-          </button>
+          </Button>
         </div>
       ) : (
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           You are viewing this scorecard read-only. Only the assigned interviewer submits it.
         </p>
       )}

@@ -14,6 +14,8 @@ import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities } from '@/features/activities/Hook';
@@ -69,7 +71,7 @@ function MhdWaiverForm({
         />
         {errors.waiverReason ? <p className="mt-1 text-xs text-red-600">{errors.waiverReason.message}</p> : null}
       </div>
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-muted-foreground">
         Completing via waiver is audited distinctly (ACKNOWLEDGMENT_WAIVED) and closes the review without a signed acknowledgment.
       </p>
       <div className="flex gap-3">
@@ -83,7 +85,7 @@ function MhdWaiverForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+          className="rounded border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50"
         >
           Cancel
         </button>
@@ -94,9 +96,9 @@ function MhdWaiverForm({
 
 function MhdFinalizeStepIcon({ step }: { step: MhdReviewFinalizeStepState }) {
   if (step.status === 'DONE') return <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-label="Done" />;
-  if (step.status === 'RUNNING') return <Loader2 className="h-4 w-4 animate-spin text-blue-600" aria-label="Running" />;
+  if (step.status === 'RUNNING') return <Loader2 className="h-4 w-4 animate-spin text-accent" aria-label="Running" />;
   if (step.status === 'ERROR') return <XCircle className="h-4 w-4 text-red-600" aria-label="Failed" />;
-  return <Circle className="h-4 w-4 text-neutral-300" aria-label="Pending" />;
+  return <Circle className="h-4 w-4 text-muted-foreground" aria-label="Pending" />;
 }
 
 function formatDate(value: string | null): string {
@@ -230,7 +232,7 @@ export function MhdReviewDetailPage() {
   }
 
   if (reviewQuery.isLoading) {
-    return <div className="flex h-64 items-center justify-center text-sm text-slate-500">Loading review…</div>;
+    return <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">Loading review…</div>;
   }
 
   if (reviewQuery.error || !review) {
@@ -239,7 +241,7 @@ export function MhdReviewDetailPage() {
         <p className="text-sm text-red-600">
           {reviewQuery.error instanceof Error ? reviewQuery.error.message : 'Review not found or you do not have access to it.'}
         </p>
-        <button type="button" onClick={() => navigate('/performance')} className="text-sm text-blue-700 hover:underline">
+        <button type="button" onClick={() => navigate('/performance')} className="text-sm font-medium text-accent hover:text-accent-hover">
           Back to Performance
         </button>
       </div>
@@ -247,25 +249,24 @@ export function MhdReviewDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
+    <div className="space-y-6">
         <MhdBreadcrumb items={[{ label: 'Performance', to: '/performance' }, { label: review.referenceId }]} />
 
         {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
 
-        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
+        <MhdCard className="p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <p className="text-xs text-slate-400">{review.referenceId}</p>
-              <h1 className="mt-1 text-3xl font-bold text-slate-900">
+              <p className="text-xs text-muted-foreground">{review.referenceId}</p>
+              <h1 className="mt-1 text-3xl font-bold text-foreground">
                 {review.personDisplayName ?? 'Performance Review'}
               </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-600">
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 <MhdReviewTypeBadge reviewType={review.reviewType} />
                 <MhdReviewStatusBadge status={review.status} />
                 <span>
                   Subject{' '}
-                  <Link to={`/people/${review.personId}`} className="text-blue-700 hover:underline">
+                  <Link to={`/people/${review.personId}`} className="text-accent hover:text-accent-hover">
                     {review.personDisplayName ?? 'View person'}
                   </Link>
                 </span>
@@ -276,26 +277,19 @@ export function MhdReviewDetailPage() {
             {canMutate ? (
               <div className="flex flex-wrap gap-3">
                 {review.status === 'DRAFT' ? (
-                  <button
-                    type="button"
+                  <Button
                     onClick={() => void handleTransition('IN_REVIEW')}
                     disabled={actions.transitionReview.isPending}
-                    className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                   >
                     Begin Review
-                  </button>
+                  </Button>
                 ) : null}
 
                 {review.status === 'IN_REVIEW' ? (
-                  <button
-                    type="button"
-                    onClick={() => void handleFinalize()}
-                    disabled={isFinalizeInFlight}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                  >
+                  <Button onClick={() => void handleFinalize()} disabled={isFinalizeInFlight} className="gap-1.5">
                     <PenLine className="h-4 w-4" />
                     {isFinalizeInFlight ? 'Finalizing…' : 'Finalize & Send for Signature'}
-                  </button>
+                  </Button>
                 ) : null}
 
                 {review.status === 'PENDING_SIGNATURE' && review.signatureStatus === 'COMPLETED' ? (
@@ -323,7 +317,7 @@ export function MhdReviewDetailPage() {
                   <button
                     type="button"
                     onClick={() => setIsEditing((current) => !current)}
-                    className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
+                    className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
                   >
                     {isEditing ? 'Close Edit' : 'Edit Review'}
                   </button>
@@ -354,25 +348,25 @@ export function MhdReviewDetailPage() {
             ) : null}
           </div>
 
-          <div className="mt-6 grid gap-4 text-sm text-slate-600 md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-md bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Review Period</p>
+          <div className="mt-6 grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-md bg-muted p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Review Period</p>
               <p className="mt-2">
                 {formatDate(review.reviewPeriodStart)} – {formatDate(review.reviewPeriodEnd)}
               </p>
             </div>
-            <div className="rounded-md bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Due</p>
+            <div className="rounded-md bg-muted p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Due</p>
               <p className="mt-2">{formatDate(review.dueDate)}</p>
             </div>
-            <div className="rounded-md bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Overall Rating</p>
+            <div className="rounded-md bg-muted p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Overall Rating</p>
               <p className="mt-2">
                 <MhdRatingStars value={review.overallRating} size="sm" />
               </p>
             </div>
-            <div className="rounded-md bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Acknowledged</p>
+            <div className="rounded-md bg-muted p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Acknowledged</p>
               <p className="mt-2">
                 {review.acknowledgedAt
                   ? new Date(review.acknowledgedAt).toLocaleString()
@@ -393,16 +387,16 @@ export function MhdReviewDetailPage() {
             </div>
           ) : null}
 
-          <div className="mt-4 border-t border-slate-100 pt-4 text-xs text-slate-400">
+          <div className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
             <p>Created: {new Date(review.createdAt).toLocaleString()}</p>
             <p>Updated: {new Date(review.updatedAt).toLocaleString()}</p>
           </div>
-        </section>
+        </MhdCard>
 
         {showFinalizePanel ? (
-          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Finalize &amp; Send for Signature</h2>
-            <p className="mt-1 text-sm text-slate-600">
+          <MhdCard className="p-6">
+            <h2 className="text-lg font-semibold text-foreground">Finalize &amp; Send for Signature</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
               Rendering the review document and creating the signature request. Each step reports its own result; if a step
               fails, nothing after it ran.
             </p>
@@ -412,7 +406,7 @@ export function MhdReviewDetailPage() {
                   <span className="mt-0.5">
                     <MhdFinalizeStepIcon step={step} />
                   </span>
-                  <span className={step.status === 'ERROR' ? 'text-red-700' : 'text-slate-700'}>
+                  <span className={step.status === 'ERROR' ? 'text-red-700' : 'text-foreground'}>
                     {step.label}
                     {step.status === 'ERROR' && step.errorMessage ? (
                       <span className="mt-0.5 block text-xs text-red-600">{step.errorMessage}</span>
@@ -423,39 +417,33 @@ export function MhdReviewDetailPage() {
             </ol>
             {finalizeHasError && !isFinalizeInFlight ? (
               <div className="mt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => void handleFinalize()}
-                  className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white"
-                >
-                  Retry Finalize
-                </button>
+                <Button onClick={() => void handleFinalize()}>Retry Finalize</Button>
                 <button
                   type="button"
                   onClick={() => finalize.reset()}
-                  className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
+                  className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
                 >
                   Dismiss
                 </button>
               </div>
             ) : null}
-          </section>
+          </MhdCard>
         ) : null}
 
         {isWaiving && canMutate && review.status === 'PENDING_SIGNATURE' ? (
-          <section className="rounded-lg border border-amber-200 bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">Complete via Waiver</h2>
+          <MhdCard className="border-amber-200 p-6">
+            <h2 className="mb-4 text-lg font-semibold text-foreground">Complete via Waiver</h2>
             <MhdWaiverForm
               onSubmit={handleWaiver}
               onCancel={() => setIsWaiving(false)}
               isSubmitting={actions.transitionReview.isPending}
             />
-          </section>
+          </MhdCard>
         ) : null}
 
         {isEditing && canMutate && isContentEditable ? (
-          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">Edit Review</h2>
+          <MhdCard className="p-6">
+            <h2 className="mb-4 text-lg font-semibold text-foreground">Edit Review</h2>
             <MhdReviewForm
               mode="edit"
               companyId={review.companyId}
@@ -467,14 +455,14 @@ export function MhdReviewDetailPage() {
               onCancel={() => setIsEditing(false)}
               isSubmitting={actions.updateReview.isPending}
             />
-          </section>
+          </MhdCard>
         ) : null}
 
         <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Review Content</h2>
-              <dl className="mt-4 space-y-4 text-sm text-slate-600">
+            <MhdCard className="p-6">
+              <h2 className="text-lg font-semibold text-foreground">Review Content</h2>
+              <dl className="mt-4 space-y-4 text-sm text-muted-foreground">
                 {[
                   ['Strengths', review.strengthsSummary],
                   ['Areas for Improvement', review.improvementSummary],
@@ -482,55 +470,55 @@ export function MhdReviewDetailPage() {
                   ['Reviewer Comments', review.reviewerComments],
                   ['Employee Comments', review.employeeComments],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-md bg-slate-50 p-4">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
+                  <div key={label} className="rounded-md bg-muted p-4">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
                     <dd className="mt-2 whitespace-pre-wrap">
-                      {value || <span className="text-slate-400">Not recorded</span>}
+                      {value || <span className="text-muted-foreground">Not recorded</span>}
                     </dd>
                   </div>
                 ))}
               </dl>
-            </section>
+            </MhdCard>
 
             {canMutate && (review.status === 'COMPLETED' || review.status === 'PENDING_SIGNATURE' || review.status === 'IN_REVIEW') ? (
-              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-                <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                  <Target className="h-5 w-5 text-slate-400" />
+              <MhdCard className="p-6">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                  <Target className="h-5 w-5 text-muted-foreground" />
                   Coaching
                 </h2>
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="mt-2 text-sm text-muted-foreground">
                   Open a coaching plan from this review's improvement areas.
                 </p>
                 <Link
                   to={`/performance?tab=coaching&fromReview=${review.id}`}
-                  className="mt-3 inline-flex rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
+                  className="mt-3 inline-flex rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
                 >
                   Start Coaching Plan from this Review
                 </Link>
-              </section>
+              </MhdCard>
             ) : null}
           </div>
 
           <div className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                <CalendarClock className="h-5 w-5 text-slate-400" />
+            <MhdCard className="p-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <CalendarClock className="h-5 w-5 text-muted-foreground" />
                 Review Meeting
               </h2>
               {review.reviewActivityId ? (
                 <p className="mt-3 text-sm">
-                  <Link to={`/activities/${review.reviewActivityId}`} className="text-blue-700 hover:underline">
+                  <Link to={`/activities/${review.reviewActivityId}`} className="text-accent hover:text-accent-hover">
                     {review.reviewActivityTitle ?? 'View meeting activity'}
                   </Link>
                 </p>
               ) : (
-                <p className="mt-3 text-sm text-slate-400">No meeting activity linked. Link one from Edit Review.</p>
+                <p className="mt-3 text-sm text-muted-foreground">No meeting activity linked. Link one from Edit Review.</p>
               )}
-            </section>
+            </MhdCard>
 
-            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                <FileText className="h-5 w-5 text-slate-400" />
+            <MhdCard className="p-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <FileText className="h-5 w-5 text-muted-foreground" />
                 Review Document
               </h2>
               {review.documentGenerationId ? (
@@ -539,35 +527,35 @@ export function MhdReviewDetailPage() {
                     href={generatedDocumentUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-3 inline-block text-sm text-blue-700 hover:underline"
+                    className="mt-3 inline-block text-sm font-medium text-accent hover:text-accent-hover"
                   >
                     {review.documentGenerationReferenceId ?? 'View generated document'}
                   </a>
                 ) : (
-                  <Link to="/esignature" className="mt-3 inline-block text-sm text-blue-700 hover:underline">
+                  <Link to="/esignature" className="mt-3 inline-block text-sm font-medium text-accent hover:text-accent-hover">
                     {review.documentGenerationReferenceId ?? 'Generated document'}
                   </Link>
                 )
               ) : (
-                <p className="mt-3 text-sm text-slate-400">
+                <p className="mt-3 text-sm text-muted-foreground">
                   Generated when the review is finalized and sent for signature.
                 </p>
               )}
-            </section>
+            </MhdCard>
 
-            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                <PenLine className="h-5 w-5 text-slate-400" />
+            <MhdCard className="p-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <PenLine className="h-5 w-5 text-muted-foreground" />
                 Acknowledgment Signature
               </h2>
               {review.esignatureRequestId ? (
                 <div className="mt-3 space-y-2 text-sm">
                   <p>
-                    <Link to={`/esignature/${review.esignatureRequestId}`} className="text-blue-700 hover:underline">
+                    <Link to={`/esignature/${review.esignatureRequestId}`} className="text-accent hover:text-accent-hover">
                       {review.esignatureRequestReferenceId ?? 'View signature request'}
                     </Link>
                   </p>
-                  <p className="text-slate-600">
+                  <p className="text-muted-foreground">
                     Status: <span className="font-medium">{review.signatureStatus ?? 'Unknown'}</span>
                   </p>
                   {review.signatureStatus === 'DECLINED' ? (
@@ -578,11 +566,11 @@ export function MhdReviewDetailPage() {
                   ) : null}
                 </div>
               ) : (
-                <p className="mt-3 text-sm text-slate-400">
+                <p className="mt-3 text-sm text-muted-foreground">
                   Created when the review is finalized. The review completes when the request is signed (or via waiver).
                 </p>
               )}
-            </section>
+            </MhdCard>
           </div>
         </section>
 
@@ -597,21 +585,21 @@ export function MhdReviewDetailPage() {
         {canMutate ? (
           <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-6">
-              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
+              <MhdCard className="p-6">
                 <MhdReviewCompetencyPanel
                   reviewId={review.id}
                   canRate={review.status === 'DRAFT' || review.status === 'IN_REVIEW'}
                 />
-              </section>
-              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
+              </MhdCard>
+              <MhdCard className="p-6">
                 <Mhd360FeedbackPanel
                   reviewId={review.id}
                   threshold={feedbackThresholdQuery.data ?? 3}
                 />
-              </section>
+              </MhdCard>
             </div>
             <div className="space-y-6">
-              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
+              <MhdCard className="p-6">
                 <MhdParticipantPanel
                   reviewId={review.id}
                   people={(peopleQuery.data ?? []).map((person) => ({
@@ -619,11 +607,10 @@ export function MhdReviewDetailPage() {
                     displayName: person.displayName,
                   }))}
                 />
-              </section>
+              </MhdCard>
             </div>
           </section>
         ) : null}
-      </div>
-    </main>
+    </div>
   );
 }

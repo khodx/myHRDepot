@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdInterviewWorksheet } from '../interviews/components/MhdInterviewWorksheet';
 
@@ -18,25 +19,23 @@ export function MhdInterviewWorksheetRoutePage() {
 
   if (!interviewId) {
     return (
-      <div className="p-6 text-sm text-neutral-600">This interview could not be resolved.</div>
+      <div className="text-sm text-muted-foreground">This interview could not be resolved.</div>
     );
   }
 
   return (
-    <div className="space-y-4 p-6">
+    <div className="space-y-6">
       <button
         type="button"
         onClick={() => navigate(-1)}
-        className="text-sm text-neutral-500 underline"
+        className="inline-flex items-center gap-1 text-[13px] font-medium text-accent hover:text-accent-hover"
       >
         ← Back
       </button>
-      <div>
-        <h1 className="text-xl font-semibold text-neutral-900">Interview scorecard</h1>
-        <p className="mt-1 text-sm text-neutral-600">
-          Score each question below. Compliance guidance rides inline with any flagged question.
-        </p>
-      </div>
+      <MhdPageHeader
+        title="Interview scorecard"
+        description="Score each question below. Compliance guidance rides inline with any flagged question."
+      />
       <MhdInterviewWorksheet
         interviewId={interviewId}
         canSubmit={Boolean(profile)}

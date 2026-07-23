@@ -1,12 +1,17 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { mhdFormatOccurrenceType, type MhdOccurrenceType } from '../Types';
 
-const TYPE_STYLES: Record<MhdOccurrenceType, string> = {
-  ABSENCE: 'bg-rose-100 text-rose-800',
-  TARDY: 'bg-amber-100 text-amber-800',
-  EARLY_DEPARTURE: 'bg-orange-100 text-orange-800',
-  PARTIAL_ABSENCE: 'bg-yellow-100 text-yellow-800',
-  NO_CALL_NO_SHOW: 'bg-red-200 text-red-900',
-  LEFT_WITHOUT_NOTICE: 'bg-red-100 text-red-800',
+// Semantic mapping (MHD Design System §5): full absences and walk-offs read as
+// error; the partial-day variances (tardy, early departure, partial absence)
+// read as warning. The former per-type hue gradations collapse into the
+// two-severity set — the label carries the distinction.
+const TYPE_VARIANTS: Record<MhdOccurrenceType, MhdBadgeVariant> = {
+  ABSENCE: 'error',
+  TARDY: 'warning',
+  EARLY_DEPARTURE: 'warning',
+  PARTIAL_ABSENCE: 'warning',
+  NO_CALL_NO_SHOW: 'error',
+  LEFT_WITHOUT_NOTICE: 'error',
 };
 
 interface Props {
@@ -15,10 +20,8 @@ interface Props {
 
 export function MhdOccurrenceTypeBadge({ occurrenceType }: Props) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${TYPE_STYLES[occurrenceType]}`}
-    >
+    <MhdBadge variant={TYPE_VARIANTS[occurrenceType]}>
       {mhdFormatOccurrenceType(occurrenceType)}
-    </span>
+    </MhdBadge>
   );
 }

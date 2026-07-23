@@ -1,3 +1,6 @@
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import {
@@ -72,37 +75,37 @@ export function MhdCandidateEvaluationPanel({ applicationId, canFinalize }: Prop
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-base font-semibold text-neutral-900">Candidate evaluation</h2>
-        <p className="mt-0.5 text-xs text-neutral-500">
+        <h2 className="text-base font-semibold text-foreground">Candidate evaluation</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           A competency-weighted rollup of every completed interview&apos;s scorecard, using the job
           description&apos;s competency weights.
         </p>
       </div>
 
       {/* The prominent, DERIVED overall score. */}
-      <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-5">
-        <p className="text-xs uppercase tracking-wide text-neutral-500">Overall weighted score</p>
+      <div className="rounded-lg border border-border bg-muted p-5">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">Overall weighted score</p>
         {score.isLoading ? (
-          <p className="mt-1 text-sm text-neutral-500">Calculating…</p>
+          <p className="mt-1 text-sm text-muted-foreground">Calculating…</p>
         ) : score.data == null ? (
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             No rated responses yet — the score appears once a scorecard is submitted.
           </p>
         ) : (
-          <p className="mt-1 text-3xl font-semibold text-neutral-900">
+          <p className="mt-1 text-3xl font-semibold text-foreground">
             {score.data.toFixed(2)}
-            <span className="text-base font-normal text-neutral-500"> / {maxRating}</span>
+            <span className="text-base font-normal text-muted-foreground"> / {maxRating}</span>
           </p>
         )}
       </div>
 
       {/* Per-competency weighted bars. */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-neutral-700">By competency</h3>
+        <h3 className="text-sm font-semibold text-foreground">By competency</h3>
         {rollup.isLoading ? (
-          <p className="text-sm text-neutral-500">Loading rollup…</p>
+          <p className="text-sm text-muted-foreground">Loading rollup…</p>
         ) : (rollup.data ?? []).length === 0 ? (
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-muted-foreground">
             No rated responses have been recorded across this application&apos;s interviews yet.
           </p>
         ) : (
@@ -112,21 +115,16 @@ export function MhdCandidateEvaluationPanel({ applicationId, canFinalize }: Prop
               return (
                 <li key={row.competencyId ?? 'unweighted'}>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-neutral-700">
+                    <span className="text-foreground">
                       {row.competencyName ?? 'Unweighted'}
-                      <span className="ml-2 text-xs text-neutral-400">
+                      <span className="ml-2 text-xs text-muted-foreground">
                         weight {row.weight} · {row.responseCount} rating
                         {row.responseCount === 1 ? '' : 's'}
                       </span>
                     </span>
-                    <span className="text-neutral-500">{row.avgRating.toFixed(2)}</span>
+                    <span className="text-muted-foreground">{row.avgRating.toFixed(2)}</span>
                   </div>
-                  <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-neutral-100">
-                    <div
-                      className="h-full rounded-full bg-indigo-500"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
+                  <MhdProgressBar percent={pct} className="mt-1" />
                 </li>
               );
             })}
@@ -136,50 +134,50 @@ export function MhdCandidateEvaluationPanel({ applicationId, canFinalize }: Prop
 
       {/* The finalized decision, if any. */}
       {evaluation.data ? (
-        <div className="rounded-lg border border-neutral-200 p-4">
+        <MhdCard>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-neutral-700">Decision</h3>
+              <h3 className="text-sm font-semibold text-foreground">Decision</h3>
               <MhdRecommendationBadge recommendation={evaluation.data.overallRecommendation} />
-              <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                 {mhdFormatEvaluationStatus(evaluation.data.status)}
               </span>
             </div>
-            <span className="font-mono text-xs text-neutral-400">
+            <span className="font-mono text-xs text-muted-foreground">
               {evaluation.data.referenceId}
             </span>
           </div>
           {evaluation.data.decisionSummary ? (
-            <p className="mt-2 text-sm text-neutral-700">{evaluation.data.decisionSummary}</p>
+            <p className="mt-2 text-sm text-foreground">{evaluation.data.decisionSummary}</p>
           ) : null}
           {evaluation.data.decidedAt ? (
-            <p className="mt-1 text-xs text-neutral-400">
+            <p className="mt-1 text-xs text-muted-foreground">
               Decided {new Date(evaluation.data.decidedAt).toLocaleDateString()}
             </p>
           ) : null}
-        </div>
+        </MhdCard>
       ) : null}
 
       {/* The recommendation form (privileged). */}
       {canFinalize ? (
         <form
           onSubmit={handleSubmit(handleFinalize)}
-          className="space-y-4 rounded-lg border border-neutral-200 p-4"
+          className="space-y-4 rounded-lg border border-border p-4"
         >
-          <h3 className="text-sm font-semibold text-neutral-900">
+          <h3 className="text-sm font-semibold text-foreground">
             {evaluation.data ? 'Update the recommendation' : 'Record a recommendation'}
           </h3>
           <input type="hidden" {...register('applicationId')} readOnly />
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="recommendation" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="recommendation" className="block text-sm font-medium text-foreground">
                 Recommendation
               </label>
               <select
                 id="recommendation"
                 {...register('recommendation')}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
               >
                 {MHD_INTERVIEW_RECOMMENDATIONS.map((recommendation) => (
                   <option key={recommendation} value={recommendation}>
@@ -193,13 +191,13 @@ export function MhdCandidateEvaluationPanel({ applicationId, canFinalize }: Prop
             </div>
 
             <div>
-              <label htmlFor="status" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="status" className="block text-sm font-medium text-foreground">
                 Status
               </label>
               <select
                 id="status"
                 {...register('status')}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
               >
                 {MHD_CANDIDATE_EVALUATION_STATUSES.map((status) => (
                   <option key={status} value={status}>
@@ -211,14 +209,14 @@ export function MhdCandidateEvaluationPanel({ applicationId, canFinalize }: Prop
           </div>
 
           <div>
-            <label htmlFor="summary" className="block text-sm font-medium text-neutral-700">
-              Decision summary <span className="font-normal text-neutral-500">(optional)</span>
+            <label htmlFor="summary" className="block text-sm font-medium text-foreground">
+              Decision summary <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <textarea
               id="summary"
               rows={3}
               {...register('summary')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             />
           </div>
 
@@ -230,13 +228,9 @@ export function MhdCandidateEvaluationPanel({ applicationId, canFinalize }: Prop
                   : 'Unable to save the recommendation.'}
               </p>
             ) : null}
-            <button
-              type="submit"
-              disabled={finalize.isPending}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-            >
+            <Button type="submit" disabled={finalize.isPending}>
               {finalize.isPending ? 'Saving…' : 'Save recommendation'}
-            </button>
+            </Button>
           </div>
         </form>
       ) : null}

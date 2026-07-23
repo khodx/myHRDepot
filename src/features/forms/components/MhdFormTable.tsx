@@ -18,16 +18,16 @@ export function MhdFormTable({
   const safeRows = rows.length > 0 ? rows : [{}];
 
   return (
-    <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+    <div className="space-y-3 rounded-lg border border-border bg-muted p-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-slate-900">{label}</h4>
+        <h4 className="text-sm font-semibold text-foreground">{label}</h4>
         <button
           type="button"
           onClick={() => {
             if (safeRows.length >= maxRows) return;
             onChange([...safeRows, {}]);
           }}
-          className="text-xs font-semibold text-blue-700 hover:underline"
+          className="text-xs font-semibold text-accent hover:text-accent-hover"
         >
           Add Row
         </button>
@@ -38,11 +38,11 @@ export function MhdFormTable({
           <thead>
             <tr>
               {columns.map((column) => (
-                <th key={column.id} className="border-b border-slate-200 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <th key={column.id} className="border-b border-border px-2 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {column.label}
                 </th>
               ))}
-              <th className="border-b border-slate-200 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th className="border-b border-border px-2 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Actions
               </th>
             </tr>
@@ -51,7 +51,7 @@ export function MhdFormTable({
             {safeRows.map((row, rowIndex) => (
               <tr key={`${label}-${rowIndex}`}>
                 {columns.map((column) => (
-                  <td key={column.id} className="border-b border-slate-100 px-2 py-2">
+                  <td key={column.id} className="border-b border-border px-2 py-2">
                     <input
                       type={column.type === 'number' ? 'number' : 'text'}
                       value={String(row[column.id] ?? '')}
@@ -60,11 +60,11 @@ export function MhdFormTable({
                         updatedRows[rowIndex] = { ...updatedRows[rowIndex], [column.id]: event.target.value };
                         onChange(updatedRows);
                       }}
-                      className="w-full rounded-md border border-slate-300 px-2 py-1 text-sm"
+                      className="w-full rounded-md border border-border px-2 py-1 text-sm"
                     />
                   </td>
                 ))}
-                <td className="border-b border-slate-100 px-2 py-2">
+                <td className="border-b border-border px-2 py-2">
                   <button
                     type="button"
                     onClick={() => {

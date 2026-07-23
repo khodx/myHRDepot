@@ -1,3 +1,4 @@
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { mhdCanReadEeoReport } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdEeoReportPage } from '../requisitions/components/MhdEeoReportPage';
@@ -19,11 +20,11 @@ export function MhdEeoReportRoutePage() {
 
   if (!companyId) {
     return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold text-neutral-900">EEO report</h1>
-        <p className="mt-2 text-sm text-neutral-600">
-          No company is associated with your account.
-        </p>
+      <div className="space-y-6">
+        <MhdPageHeader
+          title="EEO report"
+          description="No company is associated with your account."
+        />
       </div>
     );
   }

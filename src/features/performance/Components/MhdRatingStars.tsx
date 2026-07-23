@@ -31,7 +31,7 @@ type Props = DisplayProps | InputProps;
 
 function starClass(filled: boolean, size: 'sm' | 'md'): string {
   const dimension = size === 'sm' ? 'h-4 w-4' : 'h-6 w-6';
-  return `${dimension} ${filled ? 'fill-amber-400 text-amber-400' : 'text-neutral-300'}`;
+  return `${dimension} ${filled ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground'}`;
 }
 
 export function MhdRatingStars(props: Props) {
@@ -39,7 +39,7 @@ export function MhdRatingStars(props: Props) {
 
   if (props.variant !== 'input') {
     if (props.value == null) {
-      return <span className="text-sm text-neutral-400">Not rated</span>;
+      return <span className="text-sm text-muted-foreground">Not rated</span>;
     }
     return (
       <span
@@ -50,7 +50,7 @@ export function MhdRatingStars(props: Props) {
         {RATING_VALUES.map((star) => (
           <Star key={star} aria-hidden="true" className={starClass(star <= (props.value ?? 0), size)} />
         ))}
-        <span className="ml-1.5 text-sm text-neutral-600">{RATING_LABELS[props.value] ?? ''}</span>
+        <span className="ml-1.5 text-sm text-muted-foreground">{RATING_LABELS[props.value] ?? ''}</span>
       </span>
     );
   }
@@ -87,7 +87,7 @@ export function MhdRatingStars(props: Props) {
             </span>
           );
         })}
-        <span className="ml-1.5 text-sm text-neutral-600">
+        <span className="ml-1.5 text-sm text-muted-foreground">
           {value != null ? RATING_LABELS[value] : 'Not rated'}
         </span>
       </div>

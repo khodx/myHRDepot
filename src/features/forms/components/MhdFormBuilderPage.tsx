@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
 import type { MhdForm } from '../Types';
@@ -51,26 +53,21 @@ export function MhdFormBuilderPage() {
   }
 
   if (!isNewForm && isLoading) {
-    return <div className="p-6 text-sm text-slate-500">Loading form builder...</div>;
+    return <div className="p-6 text-sm text-muted-foreground">Loading form builder...</div>;
   }
 
   // Read-only roles (Viewer) never see the editable builder: /forms/:formId
   // renders the form preview instead, and /forms/new offers nothing to edit.
   if (!canMutate) {
     return (
-      <main className="min-h-screen bg-slate-50 p-6">
-        <div className="mx-auto max-w-7xl space-y-6">
-          <div>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Link to="/forms" className="font-semibold text-blue-700 hover:underline">
-                Forms
-              </Link>
-              <span>/</span>
-              <span>{form ? form.referenceId : 'Form'}</span>
-            </div>
-            <h1 className="mt-2 text-2xl font-bold text-slate-900">{form ? form.name : 'Form'} (read-only)</h1>
-            <p className="mt-1 text-sm text-slate-600">You have read-only access to forms.</p>
-          </div>
+      <div className="space-y-6">
+        <MhdPageHeader
+          backTo="/forms"
+          backLabel="Forms"
+          title={`${form ? form.name : 'Form'} (read-only)`}
+          description="You have read-only access to forms."
+        />
+        <div className="space-y-6">
 
           {errorMessage ? (
             <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{errorMessage}</div>
@@ -86,38 +83,24 @@ export function MhdFormBuilderPage() {
               }}
             />
           ) : (
-            <div className="rounded-lg border border-slate-200 bg-card p-6 text-sm text-slate-500">
+            <MhdCard className="p-6 text-sm text-muted-foreground">
               There is no form to preview.
-            </div>
+            </MhdCard>
           )}
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Link to="/forms" className="font-semibold text-blue-700 hover:underline">
-                Forms
-              </Link>
-              <span>/</span>
-              <span>{form ? form.referenceId : 'New Form'}</span>
-            </div>
-            <h1 className="mt-2 text-2xl font-bold text-slate-900">
-              {form ? `Form Builder: ${form.name}` : 'Create Form'}
-            </h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Builder edits save through the live `mhd_create_form`, `mhd_update_form`, and `mhd_publish_form` RPCs.
-            </p>
-          </div>
-          <Link to="/forms" className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700">
-            Back to Forms
-          </Link>
-        </div>
+    <div className="space-y-6">
+      <MhdPageHeader
+        backTo="/forms"
+        backLabel="Forms"
+        title={form ? `Form Builder: ${form.name}` : 'Create Form'}
+        description="Builder edits save through the live `mhd_create_form`, `mhd_update_form`, and `mhd_publish_form` RPCs."
+      />
+      <div className="space-y-6">
 
         {errorMessage ? (
           <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{errorMessage}</div>
@@ -136,6 +119,6 @@ export function MhdFormBuilderPage() {
           }}
         />
       </div>
-    </main>
+    </div>
   );
 }

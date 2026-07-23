@@ -10,16 +10,16 @@ interface MhdFormPropertyPanelProps {
 export function MhdFormPropertyPanel({ selectedField, onChange, onDeleteField }: MhdFormPropertyPanelProps) {
   if (!selectedField) {
     return (
-      <aside className="w-80 border-l border-slate-200 bg-card p-4 text-sm text-slate-500">
+      <aside className="w-80 border-l border-border bg-card p-4 text-sm text-muted-foreground">
         Select a field on the canvas to edit its properties.
       </aside>
     );
   }
 
   return (
-    <aside className="w-80 border-l border-slate-200 bg-card p-4">
+    <aside className="w-80 border-l border-border bg-card p-4">
       <div className="mb-4 flex items-center justify-between">
-        <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Field Properties</h4>
+        <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Field Properties</h4>
         <button
           type="button"
           onClick={() => onDeleteField(selectedField.id)}

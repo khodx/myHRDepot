@@ -58,7 +58,7 @@ export function MhdCoachingPlanForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       {mode === 'create' && sourceReviewId ? (
-        <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+        <div className="rounded-md border border-accent/30 bg-accent-tint p-3 text-sm text-accent-hover">
           This plan will be linked to review {sourceReviewLabel ?? sourceReviewId} as its source.
         </div>
       ) : null}
@@ -70,7 +70,7 @@ export function MhdCoachingPlanForm({
           </label>
           <select
             id="mhd-coaching-form-person"
-            className="w-full rounded border px-3 py-2 disabled:bg-neutral-100 disabled:text-neutral-500"
+            className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
             disabled={mode === 'edit'}
             {...register('personId')}
           >
@@ -160,14 +160,14 @@ export function MhdCoachingPlanForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
+          className="rounded bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-accent-on disabled:opacity-50"
         >
           {isSubmitting ? 'Saving…' : mode === 'create' ? 'Create Coaching Plan' : 'Save Changes'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+          className="rounded border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50"
         >
           Cancel
         </button>

@@ -1,3 +1,4 @@
+import { MhdCard } from '@/components/ui/MhdCard';
 import type { MhdFormDefinition } from '../Types';
 import { MhdFormRenderer } from './MhdFormRenderer';
 
@@ -12,13 +13,13 @@ interface MhdFormPreviewProps {
 
 export function MhdFormPreview({ form }: MhdFormPreviewProps) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-card shadow-sm">
+    <MhdCard className="overflow-hidden p-0">
       <MhdFormRenderer
         formId={form.id}
         previewDefinition={form.definition}
         previewName={form.name}
         previewDescription={form.description}
       />
-    </div>
+    </MhdCard>
   );
 }

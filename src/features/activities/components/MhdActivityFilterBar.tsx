@@ -1,4 +1,5 @@
 import { Search } from 'lucide-react';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import {
   MHD_ACTIVITY_STATUSES,
   MHD_ACTIVITY_TYPES,
@@ -16,6 +17,9 @@ interface Props {
   tasks: MhdActivityOption[];
 }
 
+const DATE_INPUT_CLASSES =
+  'rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
+
 export function MhdActivityFilterBar({ filters, onChange, companies, people, tasks }: Props) {
   function update(patch: Partial<MhdActivityBoardFilters>) {
     onChange({ ...filters, ...patch });
@@ -23,121 +27,112 @@ export function MhdActivityFilterBar({ filters, onChange, companies, people, tas
 
   return (
     <div className="flex flex-wrap items-end gap-3">
-      <div className="min-w-56 flex-1">
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Search</label>
+      <label className="min-w-56 flex-1">
+        <span className="mb-1 block text-xs font-medium text-muted-foreground">Search</span>
         <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
+          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <input
             type="search"
             value={filters.searchTerm}
             onChange={(event) => update({ searchTerm: event.target.value })}
             placeholder="Title, description, or reference…"
-            className="w-full rounded border py-2 pl-8 pr-3 text-sm"
+            className="w-full rounded-md border border-border bg-card py-2 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
         </div>
-      </div>
+      </label>
 
       {companies.length > 0 ? (
-        <div>
-          <label className="mb-1 block text-xs font-medium text-neutral-500">Company</label>
-          <select
-            value={filters.companyId}
-            onChange={(event) => update({ companyId: event.target.value as MhdActivityBoardFilters['companyId'] })}
-            className="rounded border px-3 py-2 text-sm"
-          >
-            <option value="ALL">All companies</option>
-            {companies.map((company) => (
-              <option key={company.id} value={company.id}>
-                {company.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <MhdFilterSelect
+          label="Company"
+          value={filters.companyId}
+          onChange={(event) =>
+            update({ companyId: event.target.value as MhdActivityBoardFilters['companyId'] })
+          }
+        >
+          <option value="ALL">All companies</option>
+          {companies.map((company) => (
+            <option key={company.id} value={company.id}>
+              {company.label}
+            </option>
+          ))}
+        </MhdFilterSelect>
       ) : null}
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Person</label>
-        <select
-          value={filters.personId}
-          onChange={(event) => update({ personId: event.target.value })}
-          className="rounded border px-3 py-2 text-sm"
-        >
-          <option value="ALL">All people</option>
-          {people.map((person) => (
-            <option key={person.id} value={person.id}>
-              {person.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <MhdFilterSelect
+        label="Person"
+        value={filters.personId}
+        onChange={(event) => update({ personId: event.target.value })}
+      >
+        <option value="ALL">All people</option>
+        {people.map((person) => (
+          <option key={person.id} value={person.id}>
+            {person.label}
+          </option>
+        ))}
+      </MhdFilterSelect>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Type</label>
-        <select
-          value={filters.activityType}
-          onChange={(event) => update({ activityType: event.target.value as MhdActivityBoardFilters['activityType'] })}
-          className="rounded border px-3 py-2 text-sm"
-        >
-          <option value="ALL">All types</option>
-          {MHD_ACTIVITY_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {mhdFormatActivityType(type)}
-            </option>
-          ))}
-        </select>
-      </div>
+      <MhdFilterSelect
+        label="Type"
+        value={filters.activityType}
+        onChange={(event) =>
+          update({ activityType: event.target.value as MhdActivityBoardFilters['activityType'] })
+        }
+      >
+        <option value="ALL">All types</option>
+        {MHD_ACTIVITY_TYPES.map((type) => (
+          <option key={type} value={type}>
+            {mhdFormatActivityType(type)}
+          </option>
+        ))}
+      </MhdFilterSelect>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Status</label>
-        <select
-          value={filters.status}
-          onChange={(event) => update({ status: event.target.value as MhdActivityBoardFilters['status'] })}
-          className="rounded border px-3 py-2 text-sm"
-        >
-          <option value="ALL">All statuses</option>
-          {MHD_ACTIVITY_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {mhdFormatActivityStatus(status)}
-            </option>
-          ))}
-        </select>
-      </div>
+      <MhdFilterSelect
+        label="Status"
+        value={filters.status}
+        onChange={(event) =>
+          update({ status: event.target.value as MhdActivityBoardFilters['status'] })
+        }
+      >
+        <option value="ALL">All statuses</option>
+        {MHD_ACTIVITY_STATUSES.map((status) => (
+          <option key={status} value={status}>
+            {mhdFormatActivityStatus(status)}
+          </option>
+        ))}
+      </MhdFilterSelect>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Linked Task</label>
-        <select
-          value={filters.taskId}
-          onChange={(event) => update({ taskId: event.target.value })}
-          className="rounded border px-3 py-2 text-sm"
-        >
-          <option value="ALL">Any / none</option>
-          {tasks.map((task) => (
-            <option key={task.id} value={task.id}>
-              {task.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <MhdFilterSelect
+        label="Linked Task"
+        value={filters.taskId}
+        onChange={(event) => update({ taskId: event.target.value })}
+      >
+        <option value="ALL">Any / none</option>
+        {tasks.map((task) => (
+          <option key={task.id} value={task.id}>
+            {task.label}
+          </option>
+        ))}
+      </MhdFilterSelect>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">From</label>
+      <label className="flex flex-col gap-1">
+        <span className="text-xs font-medium text-muted-foreground">From</span>
         <input
           type="date"
           value={filters.from}
           onChange={(event) => update({ from: event.target.value })}
-          className="rounded border px-3 py-2 text-sm"
+          className={DATE_INPUT_CLASSES}
         />
-      </div>
+      </label>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">To</label>
+      <label className="flex flex-col gap-1">
+        <span className="text-xs font-medium text-muted-foreground">To</span>
         <input
           type="date"
           value={filters.to}
           onChange={(event) => update({ to: event.target.value })}
-          className="rounded border px-3 py-2 text-sm"
+          className={DATE_INPUT_CLASSES}
         />
-      </div>
+      </label>
 
       <button
         type="button"
@@ -153,7 +148,7 @@ export function MhdActivityFilterBar({ filters, onChange, companies, people, tas
             to: '',
           })
         }
-        className="rounded border px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50"
+        className="pb-2 text-[13px] font-medium text-accent hover:text-accent-hover"
       >
         Clear
       </button>

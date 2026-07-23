@@ -1,4 +1,12 @@
 import { useMemo, useState } from 'react';
+import { CalendarClock } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import { MhdTabs } from '@/components/ui/MhdTabs';
 import { mhdCanMutateAttendance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
@@ -59,7 +67,7 @@ export function MhdAttendancePage() {
   if (!companyId) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <p className="text-sm text-neutral-500">Loading attendance…</p>
+        <p className="text-sm text-muted-foreground">Loading attendance…</p>
       </div>
     );
   }
@@ -150,57 +158,47 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">Attendance</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            {isPrivileged
-              ? 'Occurrences, points and progressive discipline.'
-              : 'Your attendance record and current points.'}
-          </p>
-        </div>
-        {isPrivileged ? (
-          <button
-            type="button"
-            onClick={() => setIsRecording(true)}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
-          >
-            Record occurrence
-          </button>
-        ) : null}
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Attendance"
+        description={
+          isPrivileged
+            ? 'Occurrences, points and progressive discipline.'
+            : 'Your attendance record and current points.'
+        }
+        actions={
+          isPrivileged ? (
+            <Button onClick={() => setIsRecording(true)}>Record occurrence</Button>
+          ) : undefined
+        }
+      />
 
       {isPrivileged ? (
-        <nav className="flex gap-1 border-b border-neutral-200 text-sm">
-          {(
-            [
-              ['occurrences', 'Occurrences'],
-              ['thresholds', `Threshold reviews${openThresholds.length ? ` (${openThresholds.length})` : ''}`],
-              ['reassessments', `Reassessments${openReassessments.length ? ` (${openReassessments.length})` : ''}`],
-            ] as Array<[Tab, string]>
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setTab(value)}
-              className={`-mb-px border-b-2 px-3 py-2 font-medium ${
-                tab === value
-                  ? 'border-neutral-900 text-neutral-900'
-                  : 'border-transparent text-neutral-500'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
+        <MhdTabs
+          tabs={[
+            { value: 'occurrences' as Tab, label: 'Occurrences' },
+            {
+              value: 'thresholds' as Tab,
+              label: 'Threshold reviews',
+              count: openThresholds.length || undefined,
+            },
+            {
+              value: 'reassessments' as Tab,
+              label: 'Reassessments',
+              count: openReassessments.length || undefined,
+            },
+          ]}
+          value={tab}
+          onChange={setTab}
+        />
       ) : null}
 
       {tab === 'occurrences' || !isPrivileged ? (
         <div className="space-y-6">
           {isPrivileged ? (
-            <div className="flex flex-wrap gap-3">
-              <select
+            <MhdCard className="grid gap-3 md:grid-cols-3">
+              <MhdFilterSelect
+                label="Employee"
                 value={filters.personId ?? ''}
                 onChange={(event) =>
                   setFilters((previous) => ({
@@ -208,7 +206,6 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                     personId: event.target.value || null,
                   }))
                 }
-                className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
               >
                 <option value="">All employees</option>
                 {peopleOptions.map((person) => (
@@ -216,9 +213,10 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                     {person.displayName}
                   </option>
                 ))}
-              </select>
+              </MhdFilterSelect>
 
-              <select
+              <MhdFilterSelect
+                label="Type"
                 value={filters.occurrenceType ?? 'ALL'}
                 onChange={(event) =>
                   setFilters((previous) => ({
@@ -226,7 +224,6 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                     occurrenceType: event.target.value as MhdAttendanceOccurrenceFilters['occurrenceType'],
                   }))
                 }
-                className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
               >
                 <option value="ALL">All types</option>
                 {MHD_OCCURRENCE_TYPES.map((type) => (
@@ -234,9 +231,10 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                     {mhdFormatOccurrenceType(type)}
                   </option>
                 ))}
-              </select>
+              </MhdFilterSelect>
 
-              <select
+              <MhdFilterSelect
+                label="Classification"
                 value={filters.classification ?? 'ALL'}
                 onChange={(event) =>
                   setFilters((previous) => ({
@@ -245,7 +243,6 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                       .value as MhdAttendanceOccurrenceFilters['classification'],
                   }))
                 }
-                className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
               >
                 <option value="ALL">All classifications</option>
                 {MHD_ATTENDANCE_CLASSIFICATIONS.map((value) => (
@@ -253,8 +250,8 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                     {mhdFormatClassification(value)}
                   </option>
                 ))}
-              </select>
-            </div>
+              </MhdFilterSelect>
+            </MhdCard>
           ) : null}
 
           {focusPersonId ? (
@@ -273,49 +270,51 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
             <button
               type="button"
               onClick={() => setIsAdjusting(true)}
-              className="text-sm text-neutral-500 underline"
+              className="text-sm font-medium text-accent hover:text-accent-hover"
             >
               Adjust points for the selected employee
             </button>
           ) : null}
 
-          <section>
-            <h2 className="text-base font-semibold text-neutral-900">Occurrences</h2>
+          <section className="space-y-2">
+            <h2 className="text-base font-semibold text-foreground">Occurrences</h2>
             {occurrences.isLoading ? (
-              <p className="mt-2 text-sm text-neutral-500">Loading…</p>
+              <p className="text-sm text-muted-foreground">Loading…</p>
             ) : (occurrences.data ?? []).length === 0 ? (
-              <p className="mt-2 text-sm text-neutral-500">No occurrences on record.</p>
+              <MhdCard className="border-dashed">
+                <MhdEmptyState icon={CalendarClock} title="No occurrences on record." />
+              </MhdCard>
             ) : (
-              <div className="mt-2 overflow-x-auto">
-                <table className="min-w-full text-sm">
+              <MhdCard className="overflow-hidden p-0">
+                <MhdTable>
                   <thead>
-                    <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                      <th className="py-2 pr-4 font-medium">Date</th>
-                      {isPrivileged ? <th className="py-2 pr-4 font-medium">Employee</th> : null}
-                      <th className="py-2 pr-4 font-medium">Type</th>
-                      <th className="py-2 pr-4 font-medium">Classification</th>
-                      <th className="py-2 pr-4 text-right font-medium">Points</th>
-                      {isPrivileged ? <th className="py-2 font-medium" /> : null}
+                    <tr>
+                      <MhdTh>Date</MhdTh>
+                      {isPrivileged ? <MhdTh>Employee</MhdTh> : null}
+                      <MhdTh>Type</MhdTh>
+                      <MhdTh>Classification</MhdTh>
+                      <MhdTh className="text-right">Points</MhdTh>
+                      {isPrivileged ? <MhdTh /> : null}
                     </tr>
                   </thead>
                   <tbody>
                     {(occurrences.data ?? []).map((occurrence) => (
-                      <tr
+                      <MhdTr
                         key={occurrence.id}
-                        className={`border-b border-neutral-100 ${
-                          occurrence.voidedAt ? 'text-neutral-400 line-through' : 'text-neutral-800'
-                        }`}
+                        className={
+                          occurrence.voidedAt ? 'text-muted-foreground line-through' : undefined
+                        }
                       >
-                        <td className="py-2 pr-4 whitespace-nowrap">{occurrence.occurrenceDate}</td>
+                        <MhdTd className="whitespace-nowrap">{occurrence.occurrenceDate}</MhdTd>
                         {isPrivileged ? (
-                          <td className="py-2 pr-4 whitespace-nowrap">
+                          <MhdTd className="whitespace-nowrap">
                             {occurrence.personDisplayName}
-                          </td>
+                          </MhdTd>
                         ) : null}
-                        <td className="py-2 pr-4">
+                        <MhdTd>
                           <MhdOccurrenceTypeBadge occurrenceType={occurrence.occurrenceType} />
-                        </td>
-                        <td className="py-2 pr-4">
+                        </MhdTd>
+                        <MhdTd>
                           {/*
                             showCategory stays off in the roster: the specific
                             protected category can be sensitive (safe-time
@@ -323,28 +322,28 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                             that gets scanned or screen-shared.
                           */}
                           <MhdClassificationBadge classification={occurrence.classification} />
-                        </td>
-                        <td className="py-2 pr-4 text-right tabular-nums">
+                        </MhdTd>
+                        <MhdTd className="text-right tabular-nums">
                           {occurrence.pointsAssessed}
-                        </td>
+                        </MhdTd>
                         {isPrivileged ? (
-                          <td className="py-2 text-right">
+                          <MhdTd className="text-right">
                             {!occurrence.voidedAt ? (
                               <button
                                 type="button"
                                 onClick={() => setVoidTarget(occurrence)}
-                                className="text-sm text-neutral-500"
+                                className="text-sm font-medium text-accent hover:text-accent-hover"
                               >
                                 Void
                               </button>
                             ) : null}
-                          </td>
+                          </MhdTd>
                         ) : null}
-                      </tr>
+                      </MhdTr>
                     ))}
                   </tbody>
-                </table>
-              </div>
+                </MhdTable>
+              </MhdCard>
             )}
           </section>
         </div>
@@ -372,8 +371,8 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
 
       {isRecording && isPrivileged ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-lg bg-card p-6">
-            <h2 className="mb-4 text-base font-semibold text-neutral-900">Record occurrence</h2>
+          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-semibold text-foreground">Record occurrence</h2>
             <MhdOccurrenceForm
               companyId={companyId}
               people={peopleOptions}

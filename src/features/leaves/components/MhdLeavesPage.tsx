@@ -1,5 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CalendarOff } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdCreateLeaveCase, useMhdLeaveCases, useMhdLeavePeople } from '../Hook';
@@ -64,35 +71,29 @@ export function MhdLeavesPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">Leaves of absence</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            {isPrivileged
-              ? 'Leave cases, legal bases and per-basis balances.'
-              : 'Your leave cases and their status.'}
-          </p>
-        </div>
-        {isPrivileged ? (
-          <button
-            type="button"
-            onClick={() => setIsCreating(true)}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
-          >
-            Open leave case
-          </button>
-        ) : null}
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Leaves of absence"
+        description={
+          isPrivileged
+            ? 'Leave cases, legal bases and per-basis balances.'
+            : 'Your leave cases and their status.'
+        }
+        actions={
+          isPrivileged ? (
+            <Button onClick={() => setIsCreating(true)}>Open leave case</Button>
+          ) : undefined
+        }
+      />
 
-      <div className="flex flex-wrap gap-3">
+      <MhdCard className="grid gap-3 md:grid-cols-3">
         {isPrivileged ? (
-          <select
+          <MhdFilterSelect
+            label="Employee"
             value={filters.personId ?? ''}
             onChange={(event) =>
               setFilters((previous) => ({ ...previous, personId: event.target.value || null }))
             }
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
           >
             <option value="">All employees</option>
             {peopleOptions.map((person) => (
@@ -100,10 +101,11 @@ export function MhdLeavesPage() {
                 {person.displayName}
               </option>
             ))}
-          </select>
+          </MhdFilterSelect>
         ) : null}
 
-        <select
+        <MhdFilterSelect
+          label="Status"
           value={filters.status ?? 'ALL'}
           onChange={(event) =>
             setFilters((previous) => ({
@@ -111,7 +113,6 @@ export function MhdLeavesPage() {
               status: event.target.value as MhdLeaveCaseFilters['status'],
             }))
           }
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
         >
           <option value="ALL">All statuses</option>
           {MHD_LEAVE_CASE_STATUSES.map((status) => (
@@ -119,65 +120,67 @@ export function MhdLeavesPage() {
               {mhdFormatLeaveCaseStatus(status)}
             </option>
           ))}
-        </select>
-      </div>
+        </MhdFilterSelect>
+      </MhdCard>
 
       {cases.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading…</p>
+        <MhdCard className="p-6 text-sm text-muted-foreground">Loading…</MhdCard>
       ) : (cases.data ?? []).length === 0 ? (
-        <p className="text-sm text-neutral-500">No leave cases on record.</p>
+        <MhdCard className="border-dashed">
+          <MhdEmptyState icon={CalendarOff} title="No leave cases on record." />
+        </MhdCard>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
             <thead>
-              <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                <th className="py-2 pr-4 font-medium">Reference</th>
-                {isPrivileged ? <th className="py-2 pr-4 font-medium">Employee</th> : null}
-                <th className="py-2 pr-4 font-medium">Reason</th>
-                <th className="py-2 pr-4 font-medium">Dates</th>
-                <th className="py-2 pr-4 text-right font-medium">Bases</th>
-                <th className="py-2 pr-4 font-medium">Status</th>
-                <th className="py-2 font-medium" />
+              <tr>
+                <MhdTh>Reference</MhdTh>
+                {isPrivileged ? <MhdTh>Employee</MhdTh> : null}
+                <MhdTh>Reason</MhdTh>
+                <MhdTh>Dates</MhdTh>
+                <MhdTh className="text-right">Bases</MhdTh>
+                <MhdTh>Status</MhdTh>
+                <MhdTh />
               </tr>
             </thead>
             <tbody>
               {(cases.data ?? []).map((leaveCase) => (
-                <tr key={leaveCase.id} className="border-b border-neutral-100 text-neutral-800">
-                  <td className="py-2 pr-4 whitespace-nowrap font-mono text-xs">
+                <MhdTr key={leaveCase.id}>
+                  <MhdTd className="whitespace-nowrap font-mono text-xs">
                     {leaveCase.referenceId}
-                  </td>
+                  </MhdTd>
                   {isPrivileged ? (
-                    <td className="py-2 pr-4 whitespace-nowrap">{leaveCase.personDisplayName}</td>
+                    <MhdTd className="whitespace-nowrap">{leaveCase.personDisplayName}</MhdTd>
                   ) : null}
-                  <td className="py-2 pr-4">{leaveCase.reasonCategory}</td>
-                  <td className="py-2 pr-4 whitespace-nowrap text-neutral-600">
+                  <MhdTd>{leaveCase.reasonCategory}</MhdTd>
+                  <MhdTd className="whitespace-nowrap text-muted-foreground">
                     {leaveCase.requestedStart ?? '—'}
                     {leaveCase.requestedEnd ? ` → ${leaveCase.requestedEnd}` : ''}
-                  </td>
-                  <td className="py-2 pr-4 text-right tabular-nums">{leaveCase.basisCount}</td>
-                  <td className="py-2 pr-4">
+                  </MhdTd>
+                  <MhdTd className="text-right tabular-nums">{leaveCase.basisCount}</MhdTd>
+                  <MhdTd>
                     <MhdLeaveStatusBadge status={leaveCase.status} />
-                  </td>
-                  <td className="py-2 text-right">
+                  </MhdTd>
+                  <MhdTd className="text-right">
                     <button
                       type="button"
                       onClick={() => navigate(`/leaves/${leaveCase.id}`)}
-                      className="text-sm text-neutral-500 underline"
+                      className="text-sm font-medium text-accent hover:text-accent-hover"
                     >
                       Open
                     </button>
-                  </td>
-                </tr>
+                  </MhdTd>
+                </MhdTr>
               ))}
             </tbody>
-          </table>
-        </div>
+          </MhdTable>
+        </MhdCard>
       )}
 
       {isCreating && isPrivileged && companyId ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-lg bg-card p-6">
-            <h2 className="mb-4 text-base font-semibold text-neutral-900">Open leave case</h2>
+          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-semibold text-foreground">Open leave case</h2>
             <MhdLeaveCaseForm
               companyId={companyId}
               people={peopleOptions}

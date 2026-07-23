@@ -19,14 +19,14 @@ export function MhdRequisitionDetailRoutePage() {
 
   if (!companyId || !reqId) {
     return (
-      <div className="p-6 text-sm text-neutral-600">
+      <div className="text-sm text-muted-foreground">
         This requisition could not be resolved for your account.
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       <MhdRequisitionDetailPage
         companyId={companyId}
         requisitionId={reqId}
@@ -37,13 +37,11 @@ export function MhdRequisitionDetailRoutePage() {
         }
       />
       {canManage ? (
-        <div className="px-6 pb-8">
-          <MhdInterviewGuideBuilder
-            companyId={companyId}
-            requisitionId={reqId}
-            canManage={canManage}
-          />
-        </div>
+        <MhdInterviewGuideBuilder
+          companyId={companyId}
+          requisitionId={reqId}
+          canManage={canManage}
+        />
       ) : null}
     </div>
   );

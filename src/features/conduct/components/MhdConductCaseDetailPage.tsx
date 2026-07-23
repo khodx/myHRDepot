@@ -3,6 +3,10 @@ import { CheckCircle2, Circle, FileSignature, Loader2, Plus, XCircle } from 'luc
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { mhdCanMutateConduct } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -37,7 +41,7 @@ function MhdCeremonyStepIcon({ step }: { step: MhdConductCeremonyStepState }) {
   if (step.status === 'DONE') return <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-label="Done" />;
   if (step.status === 'RUNNING') return <Loader2 className="h-4 w-4 animate-spin text-blue-600" aria-label="Running" />;
   if (step.status === 'ERROR') return <XCircle className="h-4 w-4 text-red-600" aria-label="Failed" />;
-  return <Circle className="h-4 w-4 text-neutral-300" aria-label="Pending" />;
+  return <Circle className="h-4 w-4 text-muted-foreground" aria-label="Pending" />;
 }
 
 /** Rescind dialog — a discipline decision reversed. A reason is required (CHECK-mirrored). */
@@ -76,7 +80,7 @@ function MhdRescindCaseForm({
         />
         {errors.rescindReason ? <p className="mt-1 text-xs text-red-600">{errors.rescindReason.message}</p> : null}
       </div>
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-muted-foreground">
         Rescinding {referenceId} is terminal: the case and its actions become immutable. The change is audited.
       </p>
       <div className="flex gap-3">
@@ -90,7 +94,7 @@ function MhdRescindCaseForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+          className="rounded border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
         >
           Keep Case Open
         </button>
@@ -138,11 +142,11 @@ function MhdActionOutcomeForm({
   const needsReason = outcome === 'REFUSED' || outcome === 'WAIVED';
 
   return (
-    <form className="mt-3 space-y-3 rounded-md border border-slate-200 bg-slate-50 p-4" onSubmit={handleSubmit(onSubmit)}>
+    <form className="mt-3 space-y-3 rounded-md border border-border bg-muted p-4" onSubmit={handleSubmit(onSubmit)}>
       <input type="hidden" value={outcome} {...register('outcome')} />
 
       {outcome === 'ACKNOWLEDGED' ? (
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-foreground">
           Record that the employee <strong>acknowledged receipt</strong> of this document. This is receipt, not
           agreement — it does not record that the employee agrees with the corrective action. Only available once the
           signature request has completed.
@@ -182,18 +186,14 @@ function MhdActionOutcomeForm({
               </option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             A witnessed refusal is a complete record — the discipline stands even though the employee declined to sign.
           </p>
         </div>
       ) : null}
 
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
             ? 'Recording…'
             : outcome === 'ACKNOWLEDGED'
@@ -201,11 +201,11 @@ function MhdActionOutcomeForm({
               : outcome === 'REFUSED'
                 ? 'Record Refusal'
                 : 'Record Waiver'}
-        </button>
+        </Button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+          className="rounded border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
         >
           Cancel
         </button>
@@ -265,30 +265,30 @@ function MhdConductActionRow({
   }
 
   return (
-    <li className="rounded-lg border border-slate-200 p-4">
+    <li className="rounded-lg border border-border p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-neutral-400">#{action.sortOrder}</span>
+            <span className="text-xs text-muted-foreground">#{action.sortOrder}</span>
             <MhdSeverityBadge severity={action.severity} />
             <MhdActionOutcomeBadge status={action.status} />
-            <span className="text-xs text-neutral-400">{action.referenceId}</span>
+            <span className="text-xs text-muted-foreground">{action.referenceId}</span>
           </div>
           {action.actionSummary ? (
-            <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{action.actionSummary}</p>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{action.actionSummary}</p>
           ) : null}
 
           {action.esignatureRequestId ? (
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-muted-foreground">
               Signature request:{' '}
-              <Link to={`/esignature/${action.esignatureRequestId}`} className="text-blue-700 hover:underline">
+              <Link to={`/esignature/${action.esignatureRequestId}`} className="text-accent hover:text-accent-hover">
                 {action.esignatureStatus ?? 'Unknown'}
               </Link>
             </p>
           ) : null}
 
           {action.outcomeReason ? (
-            <p className="mt-2 rounded-md bg-slate-50 p-2 text-xs text-slate-600">
+            <p className="mt-2 rounded-md bg-muted p-2 text-xs text-muted-foreground">
               <span className="font-medium">{mhdFormatConductActionStatus(action.status)} reason:</span>{' '}
               {action.outcomeReason}
             </p>
@@ -302,7 +302,7 @@ function MhdConductActionRow({
                 <button
                   type="button"
                   onClick={onEdit}
-                  className="rounded border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  className="rounded border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
                 >
                   Edit
                 </button>
@@ -338,15 +338,15 @@ function MhdConductActionRow({
                     Delete
                   </button>
                 )}
-                <button
+                <Button
                   type="button"
                   onClick={onIssue}
                   disabled={isIssuing}
-                  className="inline-flex items-center gap-1.5 rounded bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                  className="gap-1.5 px-3 py-1.5 text-xs font-semibold"
                 >
                   <FileSignature className="h-3.5 w-3.5" />
                   {isIssuing && isCeremonyTarget ? 'Issuing…' : action.requiresDocument ? 'Issue & Send' : 'Issue'}
-                </button>
+                </Button>
               </>
             ) : null}
 
@@ -386,13 +386,13 @@ function MhdConductActionRow({
       </div>
 
       {isCeremonyTarget && ceremonySteps.length > 0 ? (
-        <ol className="mt-3 space-y-1.5 border-t border-slate-100 pt-3">
+        <ol className="mt-3 space-y-1.5 border-t border-border pt-3">
           {ceremonySteps.map((step) => (
             <li key={step.key} className="flex items-start gap-2 text-xs">
               <span className="mt-0.5">
                 <MhdCeremonyStepIcon step={step} />
               </span>
-              <span className={step.status === 'ERROR' ? 'text-red-700' : 'text-slate-600'}>
+              <span className={step.status === 'ERROR' ? 'text-red-700' : 'text-muted-foreground'}>
                 {step.label}
                 {step.status === 'ERROR' && step.errorMessage ? (
                   <span className="mt-0.5 block text-red-600">{step.errorMessage}</span>
@@ -566,7 +566,7 @@ export function MhdConductCaseDetailPage() {
   }
 
   if (caseQuery.isLoading) {
-    return <div className="flex h-64 items-center justify-center text-sm text-slate-500">Loading conduct case…</div>;
+    return <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">Loading conduct case…</div>;
   }
 
   if (caseQuery.error || !conductCase) {
@@ -575,7 +575,7 @@ export function MhdConductCaseDetailPage() {
         <p className="text-sm text-red-600">
           {caseQuery.error instanceof Error ? caseQuery.error.message : 'Case not found or you do not have access to it.'}
         </p>
-        <button type="button" onClick={() => navigate('/conduct')} className="text-sm text-blue-700 hover:underline">
+        <button type="button" onClick={() => navigate('/conduct')} className="text-sm text-accent hover:text-accent-hover">
           Back to Conduct
         </button>
       </div>
@@ -583,173 +583,175 @@ export function MhdConductCaseDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <MhdBreadcrumb items={[{ label: 'Conduct', to: '/conduct' }, { label: conductCase.referenceId }]} />
+    <div className="space-y-6">
+      <MhdBreadcrumb items={[{ label: 'Conduct', to: '/conduct' }, { label: conductCase.referenceId }]} />
 
-        {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
-        {actionsQuery.error ? (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {actionsQuery.error instanceof Error ? actionsQuery.error.message : 'Unable to load the action ladder.'}
-          </div>
-        ) : null}
+      {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
+      {actionsQuery.error ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionsQuery.error instanceof Error ? actionsQuery.error.message : 'Unable to load the action ladder.'}
+        </div>
+      ) : null}
 
-        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <p className="text-xs text-slate-400">{conductCase.referenceId}</p>
-              <h1 className="mt-1 text-3xl font-bold text-slate-900">
-                {conductCase.personDisplayName ?? 'Conduct Case'}
-              </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-600">
-                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                  {mhdFormatConductCategory(conductCase.category)}
-                </span>
-                <MhdConductCaseStatusBadge status={conductCase.status} />
-                <span>
-                  Person{' '}
-                  <Link to={`/people/${conductCase.personId}`} className="text-blue-700 hover:underline">
-                    {conductCase.personDisplayName ?? 'View person'}
-                  </Link>
-                </span>
-                <span>
-                  {conductCase.terminalCount} / {conductCase.actionCount} actions terminal
-                </span>
-              </div>
-            </div>
-
-            {canMutate && isOpen ? (
-              <div className="flex flex-wrap gap-3">
-                <span title={closeable ? undefined : `Cannot close: ${nonTerminalCount} action(s) not yet terminal.`}>
-                  <button
-                    type="button"
-                    onClick={() => void handleClose()}
-                    disabled={!closeable || mutations.transitionCase.isPending}
-                    aria-disabled={!closeable}
-                    className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                  >
-                    {mutations.transitionCase.isPending ? 'Working…' : 'Close Case'}
-                  </button>
-                </span>
+      <MhdPageHeader
+        title={conductCase.personDisplayName ?? 'Conduct Case'}
+        chips={
+          <>
+            <MhdBadge variant="accent">{mhdFormatConductCategory(conductCase.category)}</MhdBadge>
+            <MhdConductCaseStatusBadge status={conductCase.status} />
+          </>
+        }
+        actions={
+          canMutate && isOpen ? (
+            <>
+              <span title={closeable ? undefined : `Cannot close: ${nonTerminalCount} action(s) not yet terminal.`}>
                 <button
                   type="button"
-                  onClick={() => setIsRescinding((current) => !current)}
-                  className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700"
+                  onClick={() => void handleClose()}
+                  disabled={!closeable || mutations.transitionCase.isPending}
+                  aria-disabled={!closeable}
+                  className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
-                  {isRescinding ? 'Close Rescind' : 'Rescind Case'}
+                  {mutations.transitionCase.isPending ? 'Working…' : 'Close Case'}
                 </button>
-              </div>
-            ) : null}
-          </div>
-
-          {isOpen && !closeable ? (
-            <p className="mt-3 text-xs text-slate-500">
-              Close is unavailable while {nonTerminalCount} action{nonTerminalCount === 1 ? ' is' : 's are'} not yet
-              terminal. Acknowledge, refuse, or waive each issued action first.
-            </p>
-          ) : null}
-
-          {conductCase.status === 'RESCINDED' ? (
-            <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-              <p className="text-xs font-semibold uppercase tracking-wide">Rescinded</p>
-              <p className="mt-2">This case was withdrawn. Its actions are immutable.</p>
-            </div>
-          ) : null}
-        </section>
-
-        {isRescinding && canMutate && isOpen ? (
-          <section className="rounded-lg border border-rose-200 bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">Rescind Case</h2>
-            <MhdRescindCaseForm
-              referenceId={conductCase.referenceId}
-              onSubmit={handleRescind}
-              onCancel={() => setIsRescinding(false)}
-              isSubmitting={mutations.transitionCase.isPending}
-            />
-          </section>
-        ) : null}
-
-        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Action Ladder</h2>
-            {canMutate && isOpen ? (
+              </span>
               <button
+                type="button"
+                onClick={() => setIsRescinding((current) => !current)}
+                className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700"
+              >
+                {isRescinding ? 'Close Rescind' : 'Rescind Case'}
+              </button>
+            </>
+          ) : undefined
+        }
+        description={
+          <>
+            <span>{conductCase.referenceId}</span>
+            <span className="mx-2">·</span>
+            <span>
+              Person{' '}
+              <Link to={`/people/${conductCase.personId}`} className="text-accent hover:text-accent-hover">
+                {conductCase.personDisplayName ?? 'View person'}
+              </Link>
+            </span>
+            <span className="mx-2">·</span>
+            <span>
+              {conductCase.terminalCount} / {conductCase.actionCount} actions terminal
+            </span>
+          </>
+        }
+      />
+
+      {isOpen && !closeable ? (
+        <p className="text-xs text-muted-foreground">
+          Close is unavailable while {nonTerminalCount} action{nonTerminalCount === 1 ? ' is' : 's are'} not yet
+          terminal. Acknowledge, refuse, or waive each issued action first.
+        </p>
+      ) : null}
+
+      {conductCase.status === 'RESCINDED' ? (
+        <div className="rounded-md border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          <p className="text-xs font-semibold uppercase tracking-wide">Rescinded</p>
+          <p className="mt-2">This case was withdrawn. Its actions are immutable.</p>
+        </div>
+      ) : null}
+
+      {isRescinding && canMutate && isOpen ? (
+        <MhdCard className="border-rose-200">
+          <MhdCardHeader title="Rescind Case" />
+          <MhdRescindCaseForm
+            referenceId={conductCase.referenceId}
+            onSubmit={handleRescind}
+            onCancel={() => setIsRescinding(false)}
+            isSubmitting={mutations.transitionCase.isPending}
+          />
+        </MhdCard>
+      ) : null}
+
+      <MhdCard>
+        <MhdCardHeader
+          title="Action Ladder"
+          action={
+            canMutate && isOpen ? (
+              <Button
+                variant="secondary"
                 type="button"
                 onClick={() => {
                   setIsAddingAction((current) => !current);
                   setEditingActionId(null);
                 }}
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-card px-3 py-1.5 text-sm font-semibold text-slate-700"
+                className="gap-1.5 px-3 py-1.5"
               >
                 <Plus className="h-4 w-4" />
                 {isAddingAction ? 'Close' : 'Add Action'}
-              </button>
-            ) : null}
+              </Button>
+            ) : undefined
+          }
+        />
+
+        <p className="mt-1 text-sm text-muted-foreground">
+          Each rung is a corrective action. Issuing an action that generates a document renders it and routes it to
+          the employee for <strong>acknowledgment of receipt</strong> — signing records that the employee received
+          the document, never that they agree with it. An employee may instead refuse (witnessed) or the signature
+          may be waived; both are complete outcomes.
+        </p>
+
+        {isAddingAction && canMutate && isOpen ? (
+          <div className="mt-4 rounded-lg border border-border p-4">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">New Action</h3>
+            <MhdConductActionForm
+              mode="create"
+              onSubmit={handleAddAction}
+              onCancel={() => setIsAddingAction(false)}
+              isSubmitting={mutations.createAction.isPending}
+            />
           </div>
+        ) : null}
 
-          <p className="mt-1 text-sm text-slate-600">
-            Each rung is a corrective action. Issuing an action that generates a document renders it and routes it to
-            the employee for <strong>acknowledgment of receipt</strong> — signing records that the employee received
-            the document, never that they agree with it. An employee may instead refuse (witnessed) or the signature
-            may be waived; both are complete outcomes.
-          </p>
-
-          {isAddingAction && canMutate && isOpen ? (
-            <div className="mt-4 rounded-lg border border-slate-200 p-4">
-              <h3 className="mb-3 text-sm font-semibold text-slate-900">New Action</h3>
-              <MhdConductActionForm
-                mode="create"
-                onSubmit={handleAddAction}
-                onCancel={() => setIsAddingAction(false)}
-                isSubmitting={mutations.createAction.isPending}
-              />
-            </div>
-          ) : null}
-
-          {actionsQuery.isLoading ? (
-            <div className="mt-4 flex h-24 items-center justify-center text-sm text-slate-500">Loading actions…</div>
-          ) : actions.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-400">No actions yet. Add the first rung of the ladder.</p>
-          ) : (
-            <ul className="mt-4 space-y-3">
-              {actions.map((action) =>
-                editingActionId === action.id && editingAction ? (
-                  <li key={action.id} className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                    <h3 className="mb-3 text-sm font-semibold text-slate-900">Edit Draft Action</h3>
-                    <MhdConductActionForm
-                      mode="edit"
-                      initial={editingAction}
-                      onSubmit={handleEditAction}
-                      onCancel={() => setEditingActionId(null)}
-                      isSubmitting={mutations.updateAction.isPending}
-                    />
-                  </li>
-                ) : (
-                  <MhdConductActionRow
-                    key={action.id}
-                    action={action}
-                    canMutate={canMutate}
-                    caseIsOpen={isOpen}
-                    witnesses={witnesses}
-                    isCeremonyTarget={ceremonyActionId === action.id}
-                    ceremonySteps={ceremonyActionId === action.id ? ceremony.steps : []}
-                    onEdit={() => {
-                      setEditingActionId(action.id);
-                      setIsAddingAction(false);
-                    }}
-                    onDelete={() => void handleDeleteAction(action)}
-                    onIssue={() => void handleIssueAction(action)}
-                    onRecordOutcome={(outcome, input) => handleRecordOutcome(action, outcome, input)}
-                    isIssuing={ceremony.isIssuing}
-                    isRecording={mutations.recordOutcome.isPending}
-                    isDeleting={mutations.deleteAction.isPending}
+        {actionsQuery.isLoading ? (
+          <div className="mt-4 flex h-24 items-center justify-center text-sm text-muted-foreground">Loading actions…</div>
+        ) : actions.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">No actions yet. Add the first rung of the ladder.</p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {actions.map((action) =>
+              editingActionId === action.id && editingAction ? (
+                <li key={action.id} className="rounded-lg border border-accent/30 bg-accent-tint p-4">
+                  <h3 className="mb-3 text-sm font-semibold text-foreground">Edit Draft Action</h3>
+                  <MhdConductActionForm
+                    mode="edit"
+                    initial={editingAction}
+                    onSubmit={handleEditAction}
+                    onCancel={() => setEditingActionId(null)}
+                    isSubmitting={mutations.updateAction.isPending}
                   />
-                ),
-              )}
-            </ul>
-          )}
-        </section>
-      </div>
-    </main>
+                </li>
+              ) : (
+                <MhdConductActionRow
+                  key={action.id}
+                  action={action}
+                  canMutate={canMutate}
+                  caseIsOpen={isOpen}
+                  witnesses={witnesses}
+                  isCeremonyTarget={ceremonyActionId === action.id}
+                  ceremonySteps={ceremonyActionId === action.id ? ceremony.steps : []}
+                  onEdit={() => {
+                    setEditingActionId(action.id);
+                    setIsAddingAction(false);
+                  }}
+                  onDelete={() => void handleDeleteAction(action)}
+                  onIssue={() => void handleIssueAction(action)}
+                  onRecordOutcome={(outcome, input) => handleRecordOutcome(action, outcome, input)}
+                  isIssuing={ceremony.isIssuing}
+                  isRecording={mutations.recordOutcome.isPending}
+                  isDeleting={mutations.deleteAction.isPending}
+                />
+              ),
+            )}
+          </ul>
+        )}
+      </MhdCard>
+    </div>
   );
 }

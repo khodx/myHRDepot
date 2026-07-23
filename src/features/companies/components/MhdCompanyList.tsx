@@ -1,3 +1,7 @@
+import { Building2 } from 'lucide-react';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import type { MhdCompany } from '@/features/companies/Types';
 
 type MhdCompanyListProps = {
@@ -9,45 +13,49 @@ type MhdCompanyListProps = {
 export function MhdCompanyList({ companies, selectedCompanyId, onSelectCompany }: MhdCompanyListProps) {
   if (companies.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-card p-8 text-center text-sm text-slate-600">
-        No companies found. Create the first company to begin using My HR Depot task management.
-      </div>
+      <MhdCard className="border-dashed">
+        <MhdEmptyState
+          icon={Building2}
+          title="No companies found"
+          description="Create the first company to begin using My HR Depot task management."
+        />
+      </MhdCard>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-card shadow-sm">
-      <table className="min-w-full divide-y divide-slate-200">
-        <thead className="bg-slate-50">
+    <MhdCard className="overflow-hidden p-0">
+      <MhdTable>
+        <thead>
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Reference</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Company</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Industry</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Updated</th>
+            <MhdTh>Reference</MhdTh>
+            <MhdTh>Company</MhdTh>
+            <MhdTh>Industry</MhdTh>
+            <MhdTh>Updated</MhdTh>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody>
           {companies.map((company) => (
-            <tr
+            <MhdTr
               key={company.id}
-              className={selectedCompanyId === company.id ? 'bg-blue-50' : 'hover:bg-slate-50'}
+              className={selectedCompanyId === company.id ? 'bg-accent-tint hover:bg-accent-tint/60' : undefined}
             >
-              <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-slate-700">{company.referenceId}</td>
-              <td className="px-4 py-3">
+              <MhdTd className="whitespace-nowrap text-sm font-medium">{company.referenceId}</MhdTd>
+              <MhdTd>
                 <button
                   type="button"
-                  className="text-left text-sm font-semibold text-blue-700 hover:text-blue-900"
+                  className="text-left text-sm font-semibold text-accent hover:text-accent-hover"
                   onClick={() => onSelectCompany(company)}
                 >
                   {company.companyName}
                 </button>
-              </td>
-              <td className="px-4 py-3 text-sm text-slate-600">{company.industry ?? '—'}</td>
-              <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">{new Date(company.updatedAt).toLocaleDateString()}</td>
-            </tr>
+              </MhdTd>
+              <MhdTd className="text-sm text-muted-foreground">{company.industry ?? '—'}</MhdTd>
+              <MhdTd className="whitespace-nowrap text-sm text-muted-foreground">{new Date(company.updatedAt).toLocaleDateString()}</MhdTd>
+            </MhdTr>
           ))}
         </tbody>
-      </table>
-    </div>
+      </MhdTable>
+    </MhdCard>
   );
 }

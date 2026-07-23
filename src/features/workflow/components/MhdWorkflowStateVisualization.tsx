@@ -7,7 +7,7 @@ export interface MhdWorkflowStateVisualizationProps {
   className?: string;
 }
 
-const STATUS_COLOR_FALLBACK = 'bg-gray-200';
+const STATUS_COLOR_FALLBACK = 'bg-muted';
 
 export function MhdWorkflowStateVisualization({
   currentStatusName,
@@ -16,14 +16,14 @@ export function MhdWorkflowStateVisualization({
 }: MhdWorkflowStateVisualizationProps) {
   return (
     <div className={`space-y-4 ${className}`}>
-      <h3 className="font-semibold text-gray-900">Workflow State</h3>
+      <h3 className="font-semibold text-foreground">Workflow State</h3>
 
       <div className="flex flex-wrap items-center gap-4">
         <div className={`${STATUS_COLOR_FALLBACK} rounded-lg px-4 py-2 font-semibold`}>{currentStatusName}</div>
 
         {availableTransitions.length > 0 ? (
           <>
-            <ArrowRight className="h-5 w-5 text-gray-400" />
+            <ArrowRight className="h-5 w-5 text-muted-foreground" />
             <div className="flex flex-wrap gap-2">
               {availableTransitions.map((transition) => (
                 <div
@@ -36,7 +36,7 @@ export function MhdWorkflowStateVisualization({
             </div>
           </>
         ) : (
-          <span className="text-sm italic text-gray-500">(No more transitions available)</span>
+          <span className="text-sm italic text-muted-foreground">(No more transitions available)</span>
         )}
       </div>
     </div>

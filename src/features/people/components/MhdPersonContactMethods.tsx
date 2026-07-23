@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
 import type { MhdContactMethod, MhdContactType } from '@/features/people/Types';
 import { mhdPersonService } from '@/features/people/Service';
 
@@ -78,25 +80,25 @@ export function MhdPersonContactMethods({ personId }: MhdPersonContactMethodsPro
   }
 
   return (
-    <div className="mt-5 border-t border-slate-200 pt-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Contact methods</p>
+    <div className="mt-5 border-t border-border pt-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contact methods</p>
 
       {isLoading ? (
-        <p className="mt-2 text-sm text-slate-500">Loading contact methods...</p>
+        <p className="mt-2 text-sm text-muted-foreground">Loading contact methods...</p>
       ) : methods.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-500">No contact methods yet.</p>
+        <p className="mt-2 text-sm text-muted-foreground">No contact methods yet.</p>
       ) : (
         <ul className="mt-2 space-y-2">
           {methods.map((method) => (
-            <li key={method.id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm">
+            <li key={method.id} className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-sm">
               <div>
-                <span className="font-medium text-slate-900">{method.contactType}</span>{' '}
-                <span className="text-slate-700">{method.contactValue}</span>{' '}
-                {method.isPrimary ? <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Primary</span> : null}
+                <span className="font-medium text-foreground">{method.contactType}</span>{' '}
+                <span className="text-foreground">{method.contactValue}</span>{' '}
+                {method.isPrimary ? <MhdBadge variant="accent" className="ml-1">Primary</MhdBadge> : null}
               </div>
               <div className="flex gap-2">
                 {!method.isPrimary ? (
-                  <button type="button" className="text-xs font-medium text-blue-700 hover:underline" disabled={isSaving} onClick={() => handleMakePrimary(method.id)}>
+                  <button type="button" className="text-xs font-medium text-accent hover:text-accent-hover" disabled={isSaving} onClick={() => handleMakePrimary(method.id)}>
                     Make primary
                   </button>
                 ) : null}
@@ -112,7 +114,7 @@ export function MhdPersonContactMethods({ personId }: MhdPersonContactMethodsPro
       {error ? <p className="mt-2 text-xs text-red-700">{error}</p> : null}
 
       <div className="mt-3 flex items-center gap-2">
-        <select className="rounded-md border border-slate-300 px-2 py-1.5 text-sm" value={newType} onChange={(event) => setNewType(event.target.value as MhdContactType)}>
+        <select className="rounded-md border border-border bg-card px-2 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={newType} onChange={(event) => setNewType(event.target.value as MhdContactType)}>
           {CONTACT_TYPES.map((type) => (
             <option key={type} value={type}>
               {type}
@@ -120,14 +122,14 @@ export function MhdPersonContactMethods({ personId }: MhdPersonContactMethodsPro
           ))}
         </select>
         <input
-          className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+          className="flex-1 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           placeholder="New contact value"
           value={newValue}
           onChange={(event) => setNewValue(event.target.value)}
         />
-        <button type="button" className="rounded-md bg-blue-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-800" disabled={isSaving} onClick={handleAdd}>
+        <Button className="px-3 py-1.5" disabled={isSaving} onClick={handleAdd}>
           Add
-        </button>
+        </Button>
       </div>
     </div>
   );

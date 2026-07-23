@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/Button';
 import { mhdConductActionFormSchema, type MhdConductActionFormSchemaInput } from '../Schemas';
 import {
   MHD_CONDUCT_SEVERITIES,
@@ -60,7 +61,7 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
             </option>
           ))}
         </select>
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           The rung on the escalation ladder. It selects the corrective-action document template.
         </p>
         {errors.severity ? <p className="mt-1 text-xs text-red-600">{errors.severity.message}</p> : null}
@@ -91,7 +92,7 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
           />
           <label htmlFor="mhd-conduct-action-requires-document" className="text-sm">
             Generate a signable document
-            <span className="mt-0.5 block text-xs text-neutral-500">
+            <span className="mt-0.5 block text-xs text-muted-foreground">
               When on, issuing renders the template and routes it to the employee for acknowledgment of receipt.
               When off, the action is recorded without a document.
             </span>
@@ -100,7 +101,7 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
       ) : (
         // requiresDocument is fixed after creation — the immutability trigger freezes
         // it once issued, and changing it on a draft would desync the ceremony intent.
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           {initial?.requiresDocument
             ? 'This action generates a signable document when issued.'
             : 'This action is recorded without a document.'}
@@ -108,17 +109,13 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
       )}
 
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving…' : mode === 'create' ? 'Add Action' : 'Save Changes'}
-        </button>
+        </Button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+          className="rounded border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
         >
           Cancel
         </button>

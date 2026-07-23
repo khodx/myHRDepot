@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   useMhdArchiveHandbook,
   useMhdHandbookPreview,
@@ -54,17 +57,19 @@ export function MhdHandbookWizard({
   const isDraft = handbook.status === 'DRAFT';
 
   return (
-    <div className="space-y-6 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold text-neutral-900">{handbook.title}</h1>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title={handbook.title}
+        backTo="/handbooks"
+        backLabel="Handbooks"
+        chips={
+          <>
             <MhdHandbookTypeBadge handbookType={handbook.handbookType} />
             <MhdHandbookStatusBadge status={handbook.status} />
-          </div>
-          <p className="mt-1 font-mono text-xs text-neutral-400">{handbook.referenceId}</p>
-        </div>
-      </header>
+          </>
+        }
+        description={<span className="font-mono text-xs">{handbook.referenceId}</span>}
+      />
 
       {isDraft ? (
         <MhdHandbookDraftEditor
@@ -144,9 +149,9 @@ function MhdHandbookDraftEditor({ handbook, canManage, onGenerateDocument }: Dra
   return (
     <div className="grid gap-8 lg:grid-cols-2">
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-neutral-900">Sections</h2>
+        <h2 className="text-base font-semibold text-foreground">Sections</h2>
         {sections.isLoading ? (
-          <p className="text-sm text-neutral-500">Loading sections…</p>
+          <p className="text-sm text-muted-foreground">Loading sections…</p>
         ) : (
           <MhdHandbookSectionPicker
             sections={candidateSections}
@@ -163,44 +168,43 @@ function MhdHandbookDraftEditor({ handbook, canManage, onGenerateDocument }: Dra
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-neutral-900">Preview</h2>
+        <h2 className="text-base font-semibold text-foreground">Preview</h2>
         <MhdHandbookPreview rows={preview.data ?? []} isLoading={preview.isLoading} />
 
         {canManage ? (
-          <div className="space-y-2 rounded-md border border-neutral-200 p-4">
-            <label htmlFor="effectiveDate" className="block text-sm font-medium text-neutral-700">
-              Effective date <span className="font-normal text-neutral-500">(optional)</span>
+          <MhdCard className="space-y-2">
+            <label htmlFor="effectiveDate" className="block text-sm font-medium text-foreground">
+              Effective date <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <input
               id="effectiveDate"
               type="date"
               value={effectiveDate}
               onChange={(event) => setEffectiveDate(event.target.value)}
-              className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm"
             />
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-muted-foreground">
               Publishing freezes an immutable version with a content hash. A later change is a new
               version, not an edit.
             </p>
-            <button
-              type="button"
+            <Button
+              className="w-full"
               onClick={() => void handlePublish()}
               disabled={publish.isPending || isPreparingDocument}
-              className="w-full rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {isPreparingDocument
                 ? 'Preparing document…'
                 : publish.isPending
                   ? 'Publishing…'
                   : 'Publish handbook'}
-            </button>
+            </Button>
             {/* Surface the server's publish error (e.g. "no included sections"). */}
             {publish.isError ? (
               <p className="text-xs text-rose-600">
                 {publish.error instanceof Error ? publish.error.message : 'Could not publish.'}
               </p>
             ) : null}
-          </div>
+          </MhdCard>
         ) : null}
       </section>
     </div>
@@ -235,28 +239,28 @@ function MhdHandbookPublishedView({ handbook, companyId, onRequestSignature }: P
           ) : null}
         </>
       ) : (
-        <p className="text-sm text-neutral-500">This handbook has no published version.</p>
+        <p className="text-sm text-muted-foreground">This handbook has no published version.</p>
       )}
 
       {handbook.status === 'PUBLISHED' ? (
-        <div className="rounded-md border border-neutral-200 p-4">
-          <p className="text-sm text-neutral-600">
+        <MhdCard>
+          <p className="text-sm text-muted-foreground">
             Archiving retires this handbook. A company keeps one live handbook per type at a time.
           </p>
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            className="mt-2"
             onClick={() => void archive.mutateAsync(handbook.id)}
             disabled={archive.isPending}
-            className="mt-2 rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 disabled:opacity-50"
           >
             {archive.isPending ? 'Archiving…' : 'Archive handbook'}
-          </button>
+          </Button>
           {archive.isError ? (
             <p className="mt-1 text-xs text-rose-600">
               {archive.error instanceof Error ? archive.error.message : 'Could not archive.'}
             </p>
           ) : null}
-        </div>
+        </MhdCard>
       ) : null}
     </div>
   );

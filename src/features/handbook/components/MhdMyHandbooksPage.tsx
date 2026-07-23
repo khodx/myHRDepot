@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAcknowledgeHandbook, useMhdMyAcknowledgments } from '../Hook';
 import {
   mhdFormatHandbookAckStatus,
@@ -37,20 +40,18 @@ export function MhdMyHandbooksPage({ onSign }: Props) {
   const done = (acknowledgments.data ?? []).filter((item) => item.status === 'ACKNOWLEDGED');
 
   return (
-    <div className="space-y-8 p-6">
-      <header>
-        <h1 className="text-xl font-semibold text-neutral-900">My handbooks</h1>
-        <p className="mt-1 text-sm text-neutral-600">
-          Handbooks assigned to you to review and acknowledge, and your acknowledgment history.
-        </p>
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="My handbooks"
+        description="Handbooks assigned to you to review and acknowledge, and your acknowledgment history."
+      />
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-neutral-900">To acknowledge</h2>
+        <h2 className="text-base font-semibold text-foreground">To acknowledge</h2>
         {acknowledgments.isLoading ? (
-          <p className="text-sm text-neutral-500">Loading…</p>
+          <p className="text-sm text-muted-foreground">Loading…</p>
         ) : pending.length === 0 ? (
-          <p className="text-sm text-neutral-500">You have nothing to acknowledge.</p>
+          <p className="text-sm text-muted-foreground">You have nothing to acknowledge.</p>
         ) : (
           <ul className="space-y-3">
             {pending.map((item) => (
@@ -62,28 +63,26 @@ export function MhdMyHandbooksPage({ onSign }: Props) {
 
       {done.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="text-base font-semibold text-neutral-900">Acknowledged</h2>
+          <h2 className="text-base font-semibold text-foreground">Acknowledged</h2>
           <ul className="space-y-2">
             {done.map((item) => (
               <li
                 key={item.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-neutral-200 p-4"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
               >
                 <div>
-                  <p className="text-sm font-medium text-neutral-900">
+                  <p className="text-sm font-medium text-foreground">
                     {item.handbookTitle}{' '}
-                    <span className="text-neutral-500">v{item.versionNumber}</span>
+                    <span className="text-muted-foreground">v{item.versionNumber}</span>
                   </p>
-                  <p className="mt-0.5 text-xs text-neutral-600">
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {mhdFormatHandbookType(item.handbookType)}
                     {item.acknowledgedAt
                       ? ` · acknowledged ${new Date(item.acknowledgedAt).toLocaleDateString()}`
                       : ''}
                   </p>
                 </div>
-                <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
-                  {mhdFormatHandbookAckStatus(item.status)}
-                </span>
+                <MhdBadge variant="success">{mhdFormatHandbookAckStatus(item.status)}</MhdBadge>
               </li>
             ))}
           </ul>
@@ -125,37 +124,29 @@ function MhdMyHandbookRow({ item, onSign }: RowProps) {
   }
 
   return (
-    <li className="space-y-3 rounded-md border border-neutral-200 p-4">
+    <li className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-neutral-900">
-            {item.handbookTitle} <span className="text-neutral-500">v{item.versionNumber}</span>
+          <p className="text-sm font-medium text-foreground">
+            {item.handbookTitle} <span className="text-muted-foreground">v{item.versionNumber}</span>
           </p>
-          <p className="mt-0.5 text-xs text-neutral-600">{mhdFormatHandbookType(item.handbookType)}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{mhdFormatHandbookType(item.handbookType)}</p>
           {item.esignatureRequestId ? (
             <p className="mt-1 text-xs text-amber-700">
               A signature is required — acknowledgment records only once signing is complete.
             </p>
           ) : null}
         </div>
-        <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-          {mhdFormatHandbookAckStatus(item.status)}
-        </span>
+        <MhdBadge variant="warning">{mhdFormatHandbookAckStatus(item.status)}</MhdBadge>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setIsViewing((previous) => !previous)}
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
-        >
+        <Button variant="secondary" onClick={() => setIsViewing((previous) => !previous)}>
           {isViewing ? 'Hide handbook' : 'Review handbook'}
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
           onClick={() => void handleAcknowledge()}
           disabled={acknowledge.isPending || isSigning}
-          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
         >
           {isSigning
             ? 'Signing…'
@@ -164,7 +155,7 @@ function MhdMyHandbookRow({ item, onSign }: RowProps) {
               : onSign
                 ? 'Sign & acknowledge'
                 : 'Acknowledge'}
-        </button>
+        </Button>
       </div>
 
       {/* Surface the server's error — notably the signature gate refusal — verbatim. */}
@@ -177,7 +168,7 @@ function MhdMyHandbookRow({ item, onSign }: RowProps) {
       ) : null}
 
       {isViewing ? (
-        <div className="border-t border-neutral-200 pt-3">
+        <div className="border-t border-border pt-3">
           {/* The frozen version, read-only. This is what the acknowledgment attests to. */}
           <MhdHandbookVersionView versionId={item.handbookVersionId} />
         </div>

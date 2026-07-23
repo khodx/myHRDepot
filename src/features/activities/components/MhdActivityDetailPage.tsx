@@ -1,5 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckCircle2, ClipboardList, Lock, Paperclip, StickyNote } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useState, type FormEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -49,31 +53,31 @@ function MhdCompleteActivityForm({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium">Occurred Date &amp; Time</label>
-          <input type="datetime-local" className="w-full rounded border px-3 py-2" {...register('occurredAt')} />
+          <input type="datetime-local" className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('occurredAt')} />
           {errors.occurredAt ? <p className="mt-1 text-xs text-red-600">{errors.occurredAt.message}</p> : null}
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Duration (minutes)</label>
-          <input type="number" min={1} className="w-full rounded border px-3 py-2" {...register('durationMinutes', { valueAsNumber: true })} />
+          <input type="number" min={1} className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('durationMinutes', { valueAsNumber: true })} />
           {errors.durationMinutes ? <p className="mt-1 text-xs text-red-600">{errors.durationMinutes.message}</p> : null}
         </div>
       </div>
       <div>
         <label className="mb-1 block text-sm font-medium">Outcome Summary</label>
         <textarea
-          className="w-full rounded border px-3 py-2"
+          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           rows={3}
           placeholder="What was the result of this interaction?"
           {...register('outcomeSummary')}
         />
       </div>
       <div className="flex gap-3">
-        <button type="submit" disabled={isSubmitting} className="rounded bg-emerald-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Completing…' : 'Mark Completed'}
-        </button>
-        <button type="button" onClick={onCancel} className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50">
+        </Button>
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -100,20 +104,20 @@ function MhdFollowUpTaskForm({
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <div>
         <label className="mb-1 block text-sm font-medium">Follow-up Task Title</label>
-        <input className="w-full rounded border px-3 py-2" {...register('title')} />
+        <input className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('title')} />
         {errors.title ? <p className="mt-1 text-xs text-red-600">{errors.title.message}</p> : null}
       </div>
       <div>
         <label className="mb-1 block text-sm font-medium">Description (optional)</label>
-        <textarea className="w-full rounded border px-3 py-2" rows={2} {...register('descriptionPlainText')} />
+        <textarea className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" rows={2} {...register('descriptionPlainText')} />
       </div>
       <div className="flex gap-3">
-        <button type="submit" disabled={isSubmitting} className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50">
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Creating…' : 'Create Follow-up Task'}
-        </button>
-        <button type="button" onClick={onCancel} className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50">
+        </Button>
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -289,7 +293,7 @@ export function MhdActivityDetailPage() {
   }
 
   if (activityQuery.isLoading) {
-    return <div className="flex h-64 items-center justify-center text-sm text-slate-500">Loading activity…</div>;
+    return <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">Loading activity…</div>;
   }
 
   if (activityQuery.error || !activity) {
@@ -298,7 +302,7 @@ export function MhdActivityDetailPage() {
         <p className="text-sm text-red-600">
           {activityQuery.error instanceof Error ? activityQuery.error.message : 'Activity not found or you do not have access to it.'}
         </p>
-        <button type="button" onClick={() => navigate('/activities')} className="text-sm text-blue-700 hover:underline">
+        <button type="button" onClick={() => navigate('/activities')} className="text-sm font-medium text-accent hover:text-accent-hover">
           Back to Activities
         </button>
       </div>
@@ -308,92 +312,95 @@ export function MhdActivityDetailPage() {
   const subActivityMutating = actions.createSubActivity.isPending || actions.updateSubActivity.isPending || actions.deleteSubActivity.isPending;
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
+    <div className="space-y-6">
         <MhdBreadcrumb items={[{ label: 'Activities', to: '/activities' }, { label: activity.referenceId }]} />
 
         {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
 
-        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <p className="text-xs text-slate-400">{activity.referenceId}</p>
-              <h1 className="mt-1 text-3xl font-bold text-slate-900">{activity.title}</h1>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-600">
-                <MhdActivityTypeBadge activityType={activity.activityType} />
-                <MhdActivityStatusBadge status={activity.status} />
-                {activity.isConfidential ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                    <Lock className="h-3 w-3" />
-                    Confidential
-                  </span>
-                ) : null}
-                {activity.personId ? (
-                  <span>
-                    About{' '}
-                    <Link to={`/people/${activity.personId}`} className="text-blue-700 hover:underline">
-                      {activity.personDisplayName ?? 'View person'}
-                    </Link>
-                  </span>
-                ) : null}
-                {activity.parentTaskId ? (
-                  <span>
-                    Supports task{' '}
-                    <Link to={`/tasks/${activity.parentTaskId}`} className="text-blue-700 hover:underline">
-                      View task
-                    </Link>
-                  </span>
-                ) : null}
-              </div>
-            </div>
-
-            {canMutate ? (
-              <div className="flex flex-wrap gap-3">
-                <button type="button" onClick={() => setIsEditing((current) => !current)} className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700">
+        <MhdPageHeader
+          title={activity.title}
+          description={activity.referenceId}
+          chips={
+            <>
+              <MhdActivityTypeBadge activityType={activity.activityType} />
+              <MhdActivityStatusBadge status={activity.status} />
+              {activity.isConfidential ? (
+                <MhdBadge variant="warning" hideIcon>
+                  <Lock className="h-3 w-3" />
+                  Confidential
+                </MhdBadge>
+              ) : null}
+            </>
+          }
+          actions={
+            canMutate ? (
+              <>
+                <Button variant="secondary" onClick={() => setIsEditing((current) => !current)}>
                   {isEditing ? 'Close Edit' : 'Edit Activity'}
-                </button>
+                </Button>
                 <button type="button" onClick={() => void handleDelete()} className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white">
                   Delete
                 </button>
-              </div>
+              </>
+            ) : undefined
+          }
+        />
+
+        <MhdCard className="p-6">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            {activity.personId ? (
+              <span>
+                About{' '}
+                <Link to={`/people/${activity.personId}`} className="text-accent hover:text-accent-hover">
+                  {activity.personDisplayName ?? 'View person'}
+                </Link>
+              </span>
+            ) : null}
+            {activity.parentTaskId ? (
+              <span>
+                Supports task{' '}
+                <Link to={`/tasks/${activity.parentTaskId}`} className="text-accent hover:text-accent-hover">
+                  View task
+                </Link>
+              </span>
             ) : null}
           </div>
 
-          <div className="mt-6 grid gap-4 text-sm text-slate-600 md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-md bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Scheduled</p>
+          <div className="mt-4 grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-md bg-muted p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Scheduled</p>
               <p className="mt-2">{activity.scheduledAt ? new Date(activity.scheduledAt).toLocaleString() : 'Not scheduled'}</p>
             </div>
-            <div className="rounded-md bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Occurred</p>
+            <div className="rounded-md bg-muted p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Occurred</p>
               <p className="mt-2">{activity.occurredAt ? new Date(activity.occurredAt).toLocaleString() : 'Not yet recorded'}</p>
             </div>
-            <div className="rounded-md bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Duration</p>
+            <div className="rounded-md bg-muted p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Duration</p>
               <p className="mt-2">{activity.durationMinutes != null ? `${activity.durationMinutes} minutes` : 'Not recorded'}</p>
             </div>
-            <div className="rounded-md bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Location</p>
+            <div className="rounded-md bg-muted p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Location</p>
               <p className="mt-2">{activity.location || 'Not recorded'}</p>
             </div>
           </div>
 
           {activity.descriptionPlainText ? (
-            <div className="mt-4 rounded-md bg-slate-50 p-4 text-sm text-slate-600">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Description</p>
+            <div className="mt-4 rounded-md bg-muted p-4 text-sm text-muted-foreground">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</p>
               <p className="mt-2 whitespace-pre-wrap">{activity.descriptionPlainText}</p>
             </div>
           ) : null}
 
-          <div className="mt-4 border-t border-slate-100 pt-4 text-xs text-slate-400">
+          <div className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
             <p>Created: {new Date(activity.createdAt).toLocaleString()}</p>
             <p>Updated: {new Date(activity.updatedAt).toLocaleString()}</p>
           </div>
-        </section>
+        </MhdCard>
 
         {isEditing && canMutate ? (
-          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">Edit Activity</h2>
+          <MhdCard className="p-6">
+            <h2 className="mb-4 text-lg font-semibold text-foreground">Edit Activity</h2>
             <MhdActivityForm
               mode="edit"
               companyId={activity.companyId}
@@ -406,13 +413,13 @@ export function MhdActivityDetailPage() {
               onCancel={() => setIsEditing(false)}
               isSubmitting={actions.updateActivity.isPending}
             />
-          </section>
+          </MhdCard>
         ) : null}
 
         <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Participants</h2>
+            <MhdCard className="p-6">
+              <h2 className="text-lg font-semibold text-foreground">Participants</h2>
               <div className="mt-4">
                 <MhdActivityParticipantChips
                   participants={participants.map((participant) => ({
@@ -432,7 +439,7 @@ export function MhdActivityDetailPage() {
                       setNewParticipantKind(event.target.value as ParticipantKind);
                       setNewParticipantSubjectId('');
                     }}
-                    className="rounded border px-2 py-2 text-sm"
+                    className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     aria-label="Participant kind"
                   >
                     <option value="USER">Internal user</option>
@@ -442,7 +449,7 @@ export function MhdActivityDetailPage() {
                   <select
                     value={newParticipantSubjectId}
                     onChange={(event) => setNewParticipantSubjectId(event.target.value)}
-                    className="min-w-48 rounded border px-2 py-2 text-sm"
+                    className="min-w-48 rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     aria-label={newParticipantKind === 'USER' ? 'Participant user' : 'Participant person'}
                   >
                     <option value="">{newParticipantKind === 'USER' ? 'Select user…' : 'Select person…'}</option>
@@ -459,7 +466,7 @@ export function MhdActivityDetailPage() {
                   <select
                     value={newParticipantRole}
                     onChange={(event) => setNewParticipantRole(event.target.value as MhdActivityParticipantRole)}
-                    className="rounded border px-2 py-2 text-sm"
+                    className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     aria-label="Participant role"
                   >
                     {MHD_ACTIVITY_PARTICIPANT_ROLES.map((role) => (
@@ -469,20 +476,20 @@ export function MhdActivityDetailPage() {
                     ))}
                   </select>
 
-                  <button
+                  <Button
                     type="submit"
+                    className="px-3"
                     disabled={actions.addParticipant.isPending || !newParticipantSubjectId}
-                    className="rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
                   >
                     {actions.addParticipant.isPending ? 'Adding…' : 'Add Participant'}
-                  </button>
+                  </Button>
                 </form>
               ) : null}
-            </section>
+            </MhdCard>
 
-            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                <ClipboardList className="h-5 w-5 text-slate-400" />
+            <MhdCard className="p-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <ClipboardList className="h-5 w-5 text-muted-foreground" />
                 Checklist
               </h2>
               <div className="mt-4">
@@ -496,24 +503,24 @@ export function MhdActivityDetailPage() {
                   onReorder={handleReorderSubActivity}
                 />
               </div>
-            </section>
+            </MhdCard>
 
-            <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                <CheckCircle2 className="h-5 w-5 text-slate-400" />
+            <MhdCard className="p-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
                 Outcome
               </h2>
 
               {activity.outcomeSummary ? (
-                <p className="mt-3 whitespace-pre-wrap text-sm text-slate-600">{activity.outcomeSummary}</p>
+                <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">{activity.outcomeSummary}</p>
               ) : (
-                <p className="mt-3 text-sm text-slate-400">No outcome recorded yet.</p>
+                <p className="mt-3 text-sm text-muted-foreground">No outcome recorded yet.</p>
               )}
 
               {activity.followUpTaskId ? (
                 <p className="mt-3 text-sm">
                   Follow-up task:{' '}
-                  <Link to={`/tasks/${activity.followUpTaskId}`} className="text-blue-700 hover:underline">
+                  <Link to={`/tasks/${activity.followUpTaskId}`} className="text-accent hover:text-accent-hover">
                     View task
                   </Link>
                 </p>
@@ -522,16 +529,14 @@ export function MhdActivityDetailPage() {
               {canMutate ? (
                 <div className="mt-4 space-y-4">
                   {!isTerminal && !isCompleting ? (
-                    <button
-                      type="button"
+                    <Button
                       onClick={() => {
                         setIsCreatingFollowUp(false);
                         setIsCompleting(true);
                       }}
-                      className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white"
                     >
                       Mark Completed
-                    </button>
+                    </Button>
                   ) : null}
 
                   {isCompleting ? (
@@ -543,16 +548,15 @@ export function MhdActivityDetailPage() {
                   ) : null}
 
                   {!activity.followUpTaskId && !isCreatingFollowUp ? (
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
                       onClick={() => {
                         setIsCompleting(false);
                         setIsCreatingFollowUp(true);
                       }}
-                      className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
                     >
                       Create Follow-up Task
-                    </button>
+                    </Button>
                   ) : null}
 
                   {isCreatingFollowUp ? (
@@ -564,32 +568,31 @@ export function MhdActivityDetailPage() {
                   ) : null}
                 </div>
               ) : null}
-            </section>
+            </MhdCard>
           </div>
 
           <div className="space-y-6">
             <section className="space-y-3">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-neutral-900">
-                <StickyNote className="h-5 w-5 text-neutral-400" />
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <StickyNote className="h-5 w-5 text-muted-foreground" />
                 Notes
               </h2>
-              <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">
+              <MhdCard>
                 <MhdActivityNotesPanel activityId={activity.id} readOnly={!canMutate} />
-              </div>
+              </MhdCard>
             </section>
 
             <section className="space-y-3">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-neutral-900">
-                <Paperclip className="h-5 w-5 text-neutral-400" />
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <Paperclip className="h-5 w-5 text-muted-foreground" />
                 Attachments
               </h2>
-              <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">
+              <MhdCard>
                 <MhdActivityAttachmentsPanel activityId={activity.id} readOnly={!canMutate} />
-              </div>
+              </MhdCard>
             </section>
           </div>
         </section>
-      </div>
-    </main>
+    </div>
   );
 }

@@ -37,12 +37,12 @@ export function MhdFormPageManager({
   };
 
   return (
-    <div className="flex items-center justify-between border-t border-slate-200 pt-4">
+    <div className="flex items-center justify-between border-t border-border pt-4">
       <button
         type="button"
         onClick={() => onNavigate(Math.max(0, currentPageIndex - 1))}
         disabled={currentPageIndex === 0}
-        className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
+        className="rounded-md border border-border px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
       >
         Previous
       </button>
@@ -59,7 +59,7 @@ export function MhdFormPageManager({
             onNavigate(resolveNextPageIndex());
           }}
           disabled={isSubmitting}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:opacity-50"
         >
           {isLastPage ? (isSubmitting ? 'Submitting...' : 'Submit') : 'Next'}
         </button>

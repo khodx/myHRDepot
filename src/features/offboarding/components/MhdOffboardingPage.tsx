@@ -1,6 +1,12 @@
 import { AlarmClock, DoorOpen, Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { mhdCanMutateOffboarding } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
@@ -110,325 +116,269 @@ export function MhdOffboardingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Offboarding</h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Separation cases with an evidence-backed exit checklist: property, exit
-              acknowledgment, access, final pay.
-            </p>
-          </div>
-
-          {canMutate ? (
-            <button
-              type="button"
-              onClick={() => setIsCreating((current) => !current)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white"
-            >
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Offboarding"
+        description="Separation cases with an evidence-backed exit checklist: property, exit acknowledgment, access, final pay."
+        actions={
+          canMutate ? (
+            <Button type="button" onClick={() => setIsCreating((current) => !current)} className="gap-1.5">
               <Plus className="h-4 w-4" />
               {isCreating ? 'Close Form' : 'New Case'}
-            </button>
-          ) : null}
+            </Button>
+          ) : undefined
+        }
+      />
+
+      {actionError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionError}
         </div>
-
-        {actionError ? (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {actionError}
-          </div>
-        ) : null}
-        {casesQuery.error ? (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {casesQuery.error instanceof Error
-              ? casesQuery.error.message
-              : 'Unable to load offboarding cases.'}
-          </div>
-        ) : null}
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Active</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{counts.active}</p>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Items Outstanding
-            </p>
-            <p className="mt-1 text-2xl font-bold text-amber-700">{counts.itemsOutstanding}</p>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Completed
-            </p>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">{counts.completed}</p>
-          </div>
+      ) : null}
+      {casesQuery.error ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {casesQuery.error instanceof Error
+            ? casesQuery.error.message
+            : 'Unable to load offboarding cases.'}
         </div>
+      ) : null}
 
-        {isCreating && canMutate && selectedCompanyId ? (
-          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">New Offboarding Case</h2>
-            <MhdOffboardingCaseForm
-              mode="create"
-              companyId={selectedCompanyId}
-              people={peopleOptions}
-              onSubmit={handleCreateCase}
-              onCancel={() => setIsCreating(false)}
-              isSubmitting={actions.createCase.isPending}
-            />
-          </section>
-        ) : null}
-
-        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="min-w-56 flex-1">
-              <label
-                htmlFor="mhd-offboarding-filter-search"
-                className="mb-1 block text-xs font-medium text-neutral-500"
-              >
-                Search
-              </label>
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
-                <input
-                  id="mhd-offboarding-filter-search"
-                  type="search"
-                  value={filters.searchTerm}
-                  onChange={(event) => update({ searchTerm: event.target.value })}
-                  placeholder="Person or reference…"
-                  className="w-full rounded border py-2 pl-8 pr-3 text-sm"
-                />
-              </div>
-            </div>
-
-            {companyOptions.length > 0 ? (
-              <div>
-                <label
-                  htmlFor="mhd-offboarding-filter-company"
-                  className="mb-1 block text-xs font-medium text-neutral-500"
-                >
-                  Company
-                </label>
-                <select
-                  id="mhd-offboarding-filter-company"
-                  value={filters.companyId}
-                  onChange={(event) => update({ companyId: event.target.value })}
-                  className="rounded border px-3 py-2 text-sm"
-                >
-                  <option value="ALL">All companies</option>
-                  {companyOptions.map((company) => (
-                    <option key={company.id} value={company.id}>
-                      {company.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : null}
-
-            <div>
-              <label
-                htmlFor="mhd-offboarding-filter-person"
-                className="mb-1 block text-xs font-medium text-neutral-500"
-              >
-                Person
-              </label>
-              <select
-                id="mhd-offboarding-filter-person"
-                value={filters.personId}
-                onChange={(event) => update({ personId: event.target.value })}
-                className="rounded border px-3 py-2 text-sm"
-              >
-                <option value="ALL">All people</option>
-                {peopleOptions.map((person) => (
-                  <option key={person.id} value={person.id}>
-                    {person.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="mhd-offboarding-filter-type"
-                className="mb-1 block text-xs font-medium text-neutral-500"
-              >
-                Type
-              </label>
-              <select
-                id="mhd-offboarding-filter-type"
-                value={filters.separationType}
-                onChange={(event) =>
-                  update({
-                    separationType: event.target
-                      .value as MhdOffboardingCaseBoardFilters['separationType'],
-                  })
-                }
-                className="rounded border px-3 py-2 text-sm"
-              >
-                <option value="ALL">All types</option>
-                {MHD_SEPARATION_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {mhdFormatSeparationType(type)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="mhd-offboarding-filter-status"
-                className="mb-1 block text-xs font-medium text-neutral-500"
-              >
-                Status
-              </label>
-              <select
-                id="mhd-offboarding-filter-status"
-                value={filters.status}
-                onChange={(event) =>
-                  update({ status: event.target.value as MhdOffboardingCaseBoardFilters['status'] })
-                }
-                className="rounded border px-3 py-2 text-sm"
-              >
-                <option value="ALL">All statuses</option>
-                {MHD_CASE_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {mhdFormatCaseStatus(status)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="mhd-offboarding-filter-from"
-                className="mb-1 block text-xs font-medium text-neutral-500"
-              >
-                Separation From
-              </label>
-              <input
-                id="mhd-offboarding-filter-from"
-                type="date"
-                value={filters.from}
-                onChange={(event) => update({ from: event.target.value })}
-                className="rounded border px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="mhd-offboarding-filter-to"
-                className="mb-1 block text-xs font-medium text-neutral-500"
-              >
-                Separation To
-              </label>
-              <input
-                id="mhd-offboarding-filter-to"
-                type="date"
-                value={filters.to}
-                onChange={(event) => update({ to: event.target.value })}
-                className="rounded border px-3 py-2 text-sm"
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                setFilters({
-                  ...DEFAULT_FILTERS,
-                  companyId: companyOptions.length > 0 ? 'ALL' : filters.companyId,
-                })
-              }
-              className="rounded border px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50"
-            >
-              Clear
-            </button>
-          </div>
-        </section>
-
-        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-          {casesQuery.isLoading ? (
-            <div className="flex h-40 items-center justify-center text-sm text-slate-500">
-              Loading offboarding cases…
-            </div>
-          ) : cases.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-neutral-400">
-              <DoorOpen className="mb-2 h-8 w-8" />
-              <p className="text-sm">No offboarding cases match the current filters.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-neutral-500">
-                    <th className="py-2 pr-4">Case</th>
-                    <th className="py-2 pr-4">Type</th>
-                    <th className="py-2 pr-4">Status</th>
-                    <th className="py-2 pr-4">Separation Date</th>
-                    <th className="py-2 pr-4">Last Working Day</th>
-                    <th className="py-2 pr-4">Required Items</th>
-                    <th className="py-2 pr-4">Outstanding Property</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cases.map((offboardingCase) => {
-                    const isOverdue = mhdIsOffboardingCaseOverdue(offboardingCase);
-                    return (
-                      <tr
-                        key={offboardingCase.id}
-                        className="border-b last:border-0 hover:bg-neutral-50"
-                      >
-                        <td className="py-2 pr-4">
-                          <Link
-                            to={`/offboarding/${offboardingCase.id}`}
-                            className="font-medium hover:underline"
-                          >
-                            {offboardingCase.personDisplayName ?? 'Unknown person'}
-                          </Link>
-                          <div className="text-xs text-neutral-400">
-                            {offboardingCase.referenceId}
-                          </div>
-                        </td>
-                        <td className="py-2 pr-4">
-                          <MhdSeparationTypeBadge separationType={offboardingCase.separationType} />
-                        </td>
-                        <td className="py-2 pr-4">
-                          <MhdCaseStatusBadge status={offboardingCase.status} />
-                        </td>
-                        <td className="py-2 pr-4 text-neutral-600">
-                          {formatDate(offboardingCase.separationDate)}
-                        </td>
-                        <td className="py-2 pr-4">
-                          <span
-                            className={`inline-flex items-center gap-1 ${isOverdue ? 'font-medium text-red-600' : 'text-neutral-600'}`}
-                          >
-                            {isOverdue ? (
-                              <AlarmClock className="h-4 w-4" aria-label="Past last working day" />
-                            ) : null}
-                            {formatDate(offboardingCase.lastWorkingDay)}
-                          </span>
-                        </td>
-                        <td className="py-2 pr-4 text-neutral-600">
-                          {offboardingCase.requiredDoneCount} / {offboardingCase.requiredTotalCount}{' '}
-                          done
-                        </td>
-                        <td className="py-2 pr-4">
-                          {offboardingCase.outstandingPropertyCount > 0 ? (
-                            <span className="font-medium text-amber-700">
-                              {offboardingCase.outstandingPropertyCount} issued
-                            </span>
-                          ) : (
-                            <span className="text-neutral-400">None</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+      <div className="grid gap-4 md:grid-cols-3">
+        <MhdCard>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Active</p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{counts.active}</p>
+        </MhdCard>
+        <MhdCard>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Items Outstanding
+          </p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-amber-700">{counts.itemsOutstanding}</p>
+        </MhdCard>
+        <MhdCard>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Completed
+          </p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-700">{counts.completed}</p>
+        </MhdCard>
       </div>
-    </main>
+
+      {isCreating && canMutate && selectedCompanyId ? (
+        <MhdCard>
+          <MhdCardHeader title="New Offboarding Case" />
+          <MhdOffboardingCaseForm
+            mode="create"
+            companyId={selectedCompanyId}
+            people={peopleOptions}
+            onSubmit={handleCreateCase}
+            onCancel={() => setIsCreating(false)}
+            isSubmitting={actions.createCase.isPending}
+          />
+        </MhdCard>
+      ) : null}
+
+      <MhdCard className="flex flex-wrap items-end gap-3">
+        <div className="min-w-56 flex-1">
+          <label
+            htmlFor="mhd-offboarding-filter-search"
+            className="mb-1 block text-xs font-medium text-muted-foreground"
+          >
+            Search
+          </label>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <input
+              id="mhd-offboarding-filter-search"
+              type="search"
+              value={filters.searchTerm}
+              onChange={(event) => update({ searchTerm: event.target.value })}
+              placeholder="Person or reference…"
+              className="w-full rounded-md border border-border bg-card py-2 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            />
+          </div>
+        </div>
+
+        {companyOptions.length > 0 ? (
+          <MhdFilterSelect
+            label="Company"
+            id="mhd-offboarding-filter-company"
+            value={filters.companyId}
+            onChange={(event) => update({ companyId: event.target.value })}
+          >
+            <option value="ALL">All companies</option>
+            {companyOptions.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.label}
+              </option>
+            ))}
+          </MhdFilterSelect>
+        ) : null}
+
+        <MhdFilterSelect
+          label="Person"
+          id="mhd-offboarding-filter-person"
+          value={filters.personId}
+          onChange={(event) => update({ personId: event.target.value })}
+        >
+          <option value="ALL">All people</option>
+          {peopleOptions.map((person) => (
+            <option key={person.id} value={person.id}>
+              {person.label}
+            </option>
+          ))}
+        </MhdFilterSelect>
+
+        <MhdFilterSelect
+          label="Type"
+          id="mhd-offboarding-filter-type"
+          value={filters.separationType}
+          onChange={(event) =>
+            update({
+              separationType: event.target
+                .value as MhdOffboardingCaseBoardFilters['separationType'],
+            })
+          }
+        >
+          <option value="ALL">All types</option>
+          {MHD_SEPARATION_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {mhdFormatSeparationType(type)}
+            </option>
+          ))}
+        </MhdFilterSelect>
+
+        <MhdFilterSelect
+          label="Status"
+          id="mhd-offboarding-filter-status"
+          value={filters.status}
+          onChange={(event) =>
+            update({ status: event.target.value as MhdOffboardingCaseBoardFilters['status'] })
+          }
+        >
+          <option value="ALL">All statuses</option>
+          {MHD_CASE_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {mhdFormatCaseStatus(status)}
+            </option>
+          ))}
+        </MhdFilterSelect>
+
+        <label className="flex min-w-36 flex-col gap-1" htmlFor="mhd-offboarding-filter-from">
+          <span className="text-xs font-medium text-muted-foreground">Separation From</span>
+          <input
+            id="mhd-offboarding-filter-from"
+            type="date"
+            value={filters.from}
+            onChange={(event) => update({ from: event.target.value })}
+            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          />
+        </label>
+
+        <label className="flex min-w-36 flex-col gap-1" htmlFor="mhd-offboarding-filter-to">
+          <span className="text-xs font-medium text-muted-foreground">Separation To</span>
+          <input
+            id="mhd-offboarding-filter-to"
+            type="date"
+            value={filters.to}
+            onChange={(event) => update({ to: event.target.value })}
+            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          />
+        </label>
+
+        <button
+          type="button"
+          onClick={() =>
+            setFilters({
+              ...DEFAULT_FILTERS,
+              companyId: companyOptions.length > 0 ? 'ALL' : filters.companyId,
+            })
+          }
+          className="pb-2 text-[13px] font-medium text-accent hover:text-accent-hover"
+        >
+          Clear
+        </button>
+      </MhdCard>
+
+      {casesQuery.isLoading ? (
+        <MhdCard className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+          Loading offboarding cases…
+        </MhdCard>
+      ) : cases.length === 0 ? (
+        <MhdCard className="border-dashed">
+          <MhdEmptyState
+            icon={DoorOpen}
+            title="No offboarding cases found"
+            description="No offboarding cases match the current filters."
+          />
+        </MhdCard>
+      ) : (
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
+            <thead>
+              <tr>
+                <MhdTh>Case</MhdTh>
+                <MhdTh>Type</MhdTh>
+                <MhdTh>Status</MhdTh>
+                <MhdTh>Separation Date</MhdTh>
+                <MhdTh>Last Working Day</MhdTh>
+                <MhdTh>Required Items</MhdTh>
+                <MhdTh>Outstanding Property</MhdTh>
+              </tr>
+            </thead>
+            <tbody>
+              {cases.map((offboardingCase) => {
+                const isOverdue = mhdIsOffboardingCaseOverdue(offboardingCase);
+                return (
+                  <MhdTr key={offboardingCase.id}>
+                    <MhdTd>
+                      <Link
+                        to={`/offboarding/${offboardingCase.id}`}
+                        className="font-medium text-accent hover:text-accent-hover"
+                      >
+                        {offboardingCase.personDisplayName ?? 'Unknown person'}
+                      </Link>
+                      <div className="text-xs text-muted-foreground">
+                        {offboardingCase.referenceId}
+                      </div>
+                    </MhdTd>
+                    <MhdTd>
+                      <MhdSeparationTypeBadge separationType={offboardingCase.separationType} />
+                    </MhdTd>
+                    <MhdTd>
+                      <MhdCaseStatusBadge status={offboardingCase.status} />
+                    </MhdTd>
+                    <MhdTd className="text-muted-foreground">
+                      {formatDate(offboardingCase.separationDate)}
+                    </MhdTd>
+                    <MhdTd>
+                      <span
+                        className={`inline-flex items-center gap-1 ${isOverdue ? 'font-medium text-red-600' : 'text-muted-foreground'}`}
+                      >
+                        {isOverdue ? (
+                          <AlarmClock className="h-4 w-4" aria-label="Past last working day" />
+                        ) : null}
+                        {formatDate(offboardingCase.lastWorkingDay)}
+                      </span>
+                    </MhdTd>
+                    <MhdTd className="text-muted-foreground">
+                      {offboardingCase.requiredDoneCount} / {offboardingCase.requiredTotalCount}{' '}
+                      done
+                    </MhdTd>
+                    <MhdTd>
+                      {offboardingCase.outstandingPropertyCount > 0 ? (
+                        <span className="font-medium text-amber-700">
+                          {offboardingCase.outstandingPropertyCount} issued
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">None</span>
+                      )}
+                    </MhdTd>
+                  </MhdTr>
+                );
+              })}
+            </tbody>
+          </MhdTable>
+        </MhdCard>
+      )}
+    </div>
   );
 }

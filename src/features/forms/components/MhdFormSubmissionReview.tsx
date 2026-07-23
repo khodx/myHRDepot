@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanRevealEncryptedFields } from '@/appshell/mhdRouteAccess';
 import type { MhdFormSubmission } from '../Types';
@@ -47,7 +48,7 @@ function MhdEncryptedValueCell({ submissionId, fieldId, canReveal }: MhdEncrypte
         <button
           type="button"
           onClick={() => setRevealedValue(null)}
-          className="rounded border border-slate-300 bg-card px-2 py-0.5 text-xs font-semibold text-slate-600 hover:border-slate-400"
+          className="rounded border border-border bg-card px-2 py-0.5 text-xs font-semibold text-muted-foreground hover:border-accent"
         >
           Hide
         </button>
@@ -57,13 +58,13 @@ function MhdEncryptedValueCell({ submissionId, fieldId, canReveal }: MhdEncrypte
 
   return (
     <span className="inline-flex flex-wrap items-center gap-2">
-      <span className="text-slate-500">&#8226;&#8226;&#8226;&#8226;&#8226;&#8226; (encrypted)</span>
+      <span className="text-muted-foreground">&#8226;&#8226;&#8226;&#8226;&#8226;&#8226; (encrypted)</span>
       {canReveal ? (
         <button
           type="button"
           onClick={() => void handleReveal()}
           disabled={isRevealing}
-          className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 hover:border-blue-400 disabled:opacity-50"
+          className="rounded border border-accent bg-accent-tint px-2 py-0.5 text-xs font-semibold text-accent-hover hover:border-accent-hover disabled:opacity-50"
         >
           {isRevealing ? 'Revealing...' : 'Reveal'}
         </button>
@@ -79,35 +80,35 @@ export function MhdFormSubmissionReview({ submission }: MhdFormSubmissionReviewP
 
   if (!submission) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-card p-6 text-sm text-slate-500">
+      <MhdCard className="p-6 text-sm text-muted-foreground">
         Select a submission to review its answers.
-      </div>
+      </MhdCard>
     );
   }
 
   const entries = Object.entries(submission.values);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
+    <MhdCard className="p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-wide text-slate-500">{submission.referenceId}</p>
-          <h3 className="mt-1 text-lg font-semibold text-slate-900">{submission.status}</h3>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">{submission.referenceId}</p>
+          <h3 className="mt-1 text-lg font-semibold text-foreground">{submission.status}</h3>
         </div>
-        <div className="text-right text-xs text-slate-500">
+        <div className="text-right text-xs text-muted-foreground">
           <p>Created {new Date(submission.createdAt).toLocaleString()}</p>
           {submission.submittedAt ? <p>Submitted {new Date(submission.submittedAt).toLocaleString()}</p> : null}
         </div>
       </div>
 
-      <div className="mt-4 border-t border-slate-100 pt-4">
+      <div className="mt-4 border-t border-border pt-4">
         {entries.length === 0 ? (
-          <p className="text-sm text-slate-500">No submission values were recorded.</p>
+          <p className="text-sm text-muted-foreground">No submission values were recorded.</p>
         ) : (
           <dl className="grid gap-3">
             {entries.map(([fieldId, value]) => (
-              <div key={fieldId} className="rounded-md border border-slate-100 bg-slate-50 p-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{fieldId}</dt>
+              <div key={fieldId} className="rounded-md border border-border bg-muted p-3">
+                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{fieldId}</dt>
                 <dd className="mt-1 text-sm text-slate-800 whitespace-pre-wrap">
                   {mhdIsEncryptedFormValue(value) ? (
                     // Keyed on submission+field so switching submissions remounts the
@@ -124,7 +125,7 @@ export function MhdFormSubmissionReview({ submission }: MhdFormSubmissionReviewP
                         href={value.driveWebViewLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-medium text-blue-700 hover:underline"
+                        className="font-medium text-accent hover:text-accent-hover"
                       >
                         {value.fileName}
                       </a>
@@ -142,6 +143,6 @@ export function MhdFormSubmissionReview({ submission }: MhdFormSubmissionReviewP
           </dl>
         )}
       </div>
-    </div>
+    </MhdCard>
   );
 }

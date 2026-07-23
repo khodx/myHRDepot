@@ -1,4 +1,5 @@
 import { Link, Navigate, useParams } from 'react-router-dom';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTaskNotesPanel } from './MhdTaskNotesPanel';
 
 /**
@@ -13,18 +14,17 @@ export function MhdTaskNotesPage() {
   if (!taskId) return <Navigate to="/tasks" replace />;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Task Notes & Comments</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            <Link className="text-blue-700 hover:underline" to={`/tasks/${taskId}`}>View task</Link>
-          </p>
-        </div>
-        <Link className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700" to="/tasks">
-          Back to Tasks
-        </Link>
-      </div>
+    <div className="space-y-6">
+      <MhdPageHeader
+        backTo="/tasks"
+        backLabel="Tasks"
+        title="Task Notes & Comments"
+        description={
+          <Link className="text-accent hover:text-accent-hover" to={`/tasks/${taskId}`}>
+            View task
+          </Link>
+        }
+      />
 
       <MhdTaskNotesPanel taskId={taskId} />
     </div>

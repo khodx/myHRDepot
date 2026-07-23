@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MhdBadge } from '@/components/ui/MhdBadge';
 import { useMhdRateCompetency, useMhdReviewCompetencies, useMhdSeedCompetencies } from '../Hook-v2';
 import { mhdUnratedCompetencies } from '../Types-v2';
 
@@ -47,14 +48,14 @@ export function MhdReviewCompetencyPanel({ reviewId, canRate }: Props) {
   }
 
   if (competencies.isLoading) {
-    return <p className="text-sm text-neutral-500">Loading competencies…</p>;
+    return <p className="text-sm text-muted-foreground">Loading competencies…</p>;
   }
 
   if (rows.length === 0) {
     return (
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-neutral-900">Competencies</h2>
-        <p className="text-sm text-neutral-500">
+        <h2 className="text-base font-semibold text-foreground">Competencies</h2>
+        <p className="text-sm text-muted-foreground">
           No competencies loaded yet. They come from the employee's published job description as it
           stood at the end of the review period.
         </p>
@@ -63,7 +64,7 @@ export function MhdReviewCompetencyPanel({ reviewId, canRate }: Props) {
             type="button"
             disabled={seed.isPending}
             onClick={() => void seed.mutateAsync()}
-            className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
+            className="rounded-md bg-accent hover:bg-accent-hover px-3 py-1.5 text-sm font-medium text-accent-on disabled:opacity-50"
           >
             {seed.isPending ? 'Loading…' : 'Load from job description'}
           </button>
@@ -75,7 +76,7 @@ export function MhdReviewCompetencyPanel({ reviewId, canRate }: Props) {
   return (
     <section className="space-y-4">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-base font-semibold text-neutral-900">Competencies</h2>
+        <h2 className="text-base font-semibold text-foreground">Competencies</h2>
         {canRate && unrated.length > 0 ? (
           <span className="text-xs text-amber-700">{unrated.length} still to rate</span>
         ) : null}
@@ -85,24 +86,24 @@ export function MhdReviewCompetencyPanel({ reviewId, canRate }: Props) {
         {rows.map((competency) => {
           const draft = draftFor(competency.id, competency.rating, competency.comments);
           return (
-            <li key={competency.id} className="rounded-md border border-neutral-200 p-4">
+            <li key={competency.id} className="rounded-md border border-border p-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm font-medium text-neutral-900">
+                  <p className="text-sm font-medium text-foreground">
                     {competency.competencyName}
                     {competency.isRegulated ? (
-                      <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
+                      <MhdBadge variant="warning" hideIcon className="ml-2">
                         Regulated
-                      </span>
+                      </MhdBadge>
                     ) : null}
                     {!competency.isInherited ? (
-                      <span className="ml-2 rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
+                      <MhdBadge variant="neutral" className="ml-2">
                         Added for this review
-                      </span>
+                      </MhdBadge>
                     ) : null}
                   </p>
                   {competency.category ? (
-                    <p className="mt-0.5 text-xs text-neutral-500">{competency.category}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{competency.category}</p>
                   ) : null}
                 </div>
                 {/* No delete control on inherited rows — the database refuses removal, so the UI
@@ -128,8 +129,8 @@ export function MhdReviewCompetencyPanel({ reviewId, canRate }: Props) {
                         }
                         className={`h-8 w-8 rounded-md border text-sm ${
                           draft.rating === value
-                            ? 'border-neutral-900 bg-neutral-900 text-neutral-50'
-                            : 'border-neutral-300 text-neutral-600'
+                            ? 'border-accent bg-accent text-accent-on'
+                            : 'border-border text-muted-foreground'
                         }`}
                       >
                         {value}
@@ -146,21 +147,21 @@ export function MhdReviewCompetencyPanel({ reviewId, canRate }: Props) {
                       }))
                     }
                     placeholder="Comment (optional)"
-                    className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                    className="w-full rounded-md border border-border px-3 py-2 text-sm"
                   />
                   <div className="flex justify-end">
                     <button
                       type="button"
                       disabled={rate.isPending || draft.rating === null}
                       onClick={() => void saveRating(competency.id)}
-                      className="rounded-md border border-neutral-300 px-3 py-1 text-sm text-neutral-700 disabled:opacity-50"
+                      className="rounded-md border border-border px-3 py-1 text-sm text-foreground disabled:opacity-50"
                     >
                       Save
                     </button>
                   </div>
                 </div>
               ) : (
-                <p className="mt-2 text-sm text-neutral-700">
+                <p className="mt-2 text-sm text-foreground">
                   {competency.rating !== null ? `Rated ${competency.rating} / 5` : 'Not yet rated'}
                   {competency.comments ? ` — ${competency.comments}` : ''}
                 </p>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MhdCard } from '@/components/ui/MhdCard';
 import {
   useMhdMoveApplicationStage,
   useMhdRecruitingApplication,
@@ -77,18 +78,18 @@ export function MhdApplicationDetailPage({
   }
 
   if (application.isLoading) {
-    return <p className="p-6 text-sm text-neutral-500">Loading application…</p>;
+    return <p className="text-sm text-muted-foreground">Loading application…</p>;
   }
 
   if (application.isError || !detail) {
     return (
-      <div className="p-6">
+      <div>
         {onBack ? (
-          <button type="button" onClick={onBack} className="text-sm text-neutral-500 underline">
+          <button type="button" onClick={onBack} className="text-sm font-medium text-accent hover:text-accent-hover">
             ← Back to pipeline
           </button>
         ) : null}
-        <p className="mt-4 text-sm text-neutral-500">
+        <p className="mt-4 text-sm text-muted-foreground">
           This application could not be found, or you do not have access to it.
         </p>
       </div>
@@ -98,61 +99,63 @@ export function MhdApplicationDetailPage({
   const canAct = canManage && detail.lifecycle === 'ACTIVE';
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {onBack ? (
-        <button type="button" onClick={onBack} className="text-sm text-neutral-500 underline">
+        <button type="button" onClick={onBack} className="text-sm font-medium text-accent hover:text-accent-hover">
           ← Back to pipeline
         </button>
       ) : null}
 
       <header className="space-y-2">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-neutral-900">{detail.personDisplayName}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{detail.personDisplayName}</h1>
           <MhdApplicationStatusBadge lifecycle={detail.lifecycle} />
         </div>
-        <p className="font-mono text-xs text-neutral-400">{detail.referenceId}</p>
-        <p className="text-sm text-neutral-600">Requisition: {detail.requisitionTitle}</p>
+        <p className="font-mono text-xs text-muted-foreground">{detail.referenceId}</p>
+        <p className="text-sm text-muted-foreground">Requisition: {detail.requisitionTitle}</p>
       </header>
 
+      <MhdCard>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm md:grid-cols-3">
         <div>
-          <dt className="text-xs uppercase tracking-wide text-neutral-500">Current stage</dt>
-          <dd className="text-neutral-800">{detail.stageName ?? 'Not yet in a stage'}</dd>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Current stage</dt>
+          <dd className="text-foreground">{detail.stageName ?? 'Not yet in a stage'}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-neutral-500">Lifecycle</dt>
-          <dd className="text-neutral-800">{mhdFormatApplicationLifecycle(detail.lifecycle)}</dd>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Lifecycle</dt>
+          <dd className="text-foreground">{mhdFormatApplicationLifecycle(detail.lifecycle)}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-neutral-500">Source</dt>
-          <dd className="text-neutral-800">{detail.source ?? '—'}</dd>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Source</dt>
+          <dd className="text-foreground">{detail.source ?? '—'}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-neutral-500">Desired pay rate</dt>
-          <dd className="text-neutral-800">{formatPayRate(detail.desiredPayRate)}</dd>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Desired pay rate</dt>
+          <dd className="text-foreground">{formatPayRate(detail.desiredPayRate)}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-neutral-500">Available from</dt>
-          <dd className="text-neutral-800">{formatDate(detail.availabilityDate)}</dd>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Available from</dt>
+          <dd className="text-foreground">{formatDate(detail.availabilityDate)}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-neutral-500">Employment type</dt>
-          <dd className="text-neutral-800">{detail.employmentTypeDesired ?? '—'}</dd>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Employment type</dt>
+          <dd className="text-foreground">{detail.employmentTypeDesired ?? '—'}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-neutral-500">Invited</dt>
-          <dd className="text-neutral-800">{formatDateTime(detail.invitedAt)}</dd>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Invited</dt>
+          <dd className="text-foreground">{formatDateTime(detail.invitedAt)}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-neutral-500">Submitted</dt>
-          <dd className="text-neutral-800">{formatDateTime(detail.submittedAt)}</dd>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Submitted</dt>
+          <dd className="text-foreground">{formatDateTime(detail.submittedAt)}</dd>
         </div>
       </dl>
+      </MhdCard>
 
       {detail.coverNote ? (
         <section>
-          <h2 className="text-sm font-semibold text-neutral-700">Cover note</h2>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-800">{detail.coverNote}</p>
+          <h2 className="text-sm font-semibold text-foreground">Cover note</h2>
+          <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{detail.coverNote}</p>
         </section>
       ) : null}
 
@@ -168,22 +171,22 @@ export function MhdApplicationDetailPage({
 
       {/* The append-only stage timeline from `application_history`. */}
       <section>
-        <h2 className="text-sm font-semibold text-neutral-700">Stage history</h2>
+        <h2 className="text-sm font-semibold text-foreground">Stage history</h2>
         {history.isLoading ? (
-          <p className="mt-1 text-sm text-neutral-500">Loading history…</p>
+          <p className="mt-1 text-sm text-muted-foreground">Loading history…</p>
         ) : (history.data ?? []).length === 0 ? (
-          <p className="mt-1 text-sm text-neutral-500">No stage changes recorded yet.</p>
+          <p className="mt-1 text-sm text-muted-foreground">No stage changes recorded yet.</p>
         ) : (
-          <ol className="mt-2 space-y-2 border-l border-neutral-200 pl-4">
+          <ol className="mt-2 space-y-2 border-l border-border pl-4">
             {(history.data ?? []).map((entry) => (
               <li key={entry.id} className="relative">
-                <span className="absolute -left-[1.3rem] top-1 h-2 w-2 rounded-full bg-neutral-300" />
-                <div className="text-sm text-neutral-800">
+                <span className="absolute -left-[1.3rem] top-1 h-2 w-2 rounded-full bg-border" />
+                <div className="text-sm text-foreground">
                   {entry.fromStageName ? `${entry.fromStageName} → ` : ''}
                   {entry.toStageName ?? '—'}
                 </div>
-                {entry.note ? <div className="text-xs text-neutral-500">{entry.note}</div> : null}
-                <div className="text-xs text-neutral-400">{formatDateTime(entry.movedAt)}</div>
+                {entry.note ? <div className="text-xs text-muted-foreground">{entry.note}</div> : null}
+                <div className="text-xs text-muted-foreground">{formatDateTime(entry.movedAt)}</div>
               </li>
             ))}
           </ol>
@@ -193,7 +196,7 @@ export function MhdApplicationDetailPage({
       {canAct ? (
         <section className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <label htmlFor="appStage" className="text-sm text-neutral-600">
+            <label htmlFor="appStage" className="text-sm text-muted-foreground">
               Move to stage
             </label>
             <select
@@ -201,7 +204,7 @@ export function MhdApplicationDetailPage({
               value={detail.currentStageId ?? ''}
               disabled={moveStage.isPending}
               onChange={(event) => void handleMove(event.target.value)}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-50"
+              className="rounded-md border border-border px-3 py-1.5 text-sm disabled:opacity-50"
             >
               {(stages.data ?? []).map((stage) => (
                 <option key={stage.id} value={stage.id}>

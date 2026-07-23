@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import {
   mhdFormatClassification,
   mhdFormatOccurrenceType,
@@ -63,40 +67,40 @@ export function MhdReassessmentQueuePanel({
   }
 
   if (isLoading) {
-    return <p className="text-sm text-neutral-500">Loading reassessments…</p>;
+    return <p className="text-sm text-muted-foreground">Loading reassessments…</p>;
   }
 
   return (
     <section className="space-y-6">
       <header>
-        <h2 className="text-base font-semibold text-neutral-900">Reassessments</h2>
-        <p className="mt-1 text-sm text-neutral-600">
+        <h2 className="text-base font-semibold text-foreground">Reassessments</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           These absences are no longer protected and currently carry no points. Decide whether the
           policy applies — the decision is recorded either way.
         </p>
       </header>
 
       {open.length === 0 ? (
-        <p className="text-sm text-neutral-500">Nothing awaiting a decision.</p>
+        <p className="text-sm text-muted-foreground">Nothing awaiting a decision.</p>
       ) : (
         <ul className="space-y-3">
           {open.map((event) => (
             <li key={event.id} className="rounded-md border border-amber-200 bg-amber-50 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium text-neutral-900">{event.personDisplayName}</p>
-                  <p className="mt-0.5 text-sm text-neutral-700">
+                  <p className="text-sm font-medium text-foreground">{event.personDisplayName}</p>
+                  <p className="mt-0.5 text-sm text-foreground">
                     {mhdFormatOccurrenceType(event.occurrenceType)} on {event.occurrenceDate} ·{' '}
-                    <span className="text-neutral-500">{event.occurrenceReference}</span>
+                    <span className="text-muted-foreground">{event.occurrenceReference}</span>
                   </p>
-                  <p className="mt-1 text-xs text-neutral-600">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Reclassified from {mhdFormatClassification(event.fromClassification)} to{' '}
                     {mhdFormatClassification(event.toClassification)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Policy would charge</p>
-                  <p className="text-lg font-semibold text-neutral-900">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Policy would charge</p>
+                  <p className="text-lg font-semibold text-foreground">
                     {event.projectedPoints} {event.projectedPoints === 1 ? 'point' : 'points'}
                   </p>
                 </div>
@@ -127,7 +131,7 @@ export function MhdReassessmentQueuePanel({
                   </div>
 
                   {decision === 'ASSESSED' ? (
-                    <p className="text-xs text-neutral-600">
+                    <p className="text-xs text-muted-foreground">
                       Points will be dated {event.occurrenceDate}, the day of the absence, so the
                       roll-off matches every other occurrence. This may cross a threshold.
                     </p>
@@ -136,54 +140,52 @@ export function MhdReassessmentQueuePanel({
                   <div>
                     <label
                       htmlFor={`note-${event.id}`}
-                      className="block text-sm font-medium text-neutral-700"
+                      className="block text-sm font-medium text-foreground"
                     >
-                      Reason <span className="font-normal text-neutral-500">(required)</span>
+                      Reason <span className="font-normal text-muted-foreground">(required)</span>
                     </label>
                     <textarea
                       id={`note-${event.id}`}
                       rows={2}
                       value={note}
                       onChange={(changeEvent) => setNote(changeEvent.target.value)}
-                      className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                      className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     />
                     {error ? <p className="mt-1 text-xs text-rose-600">{error}</p> : null}
                   </div>
 
                   <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
+                      className="px-3 py-1.5"
                       onClick={() => setActiveId(null)}
-                      className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
                     >
                       Cancel
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      className="px-3 py-1.5"
                       disabled={isSubmitting}
                       onClick={() => void submit(event)}
-                      className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
                     >
                       {isSubmitting ? 'Saving…' : 'Record decision'}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
                 <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
+                  <Button
+                    className="px-3 py-1.5"
                     onClick={() => beginDecision(event.id, 'ASSESSED')}
-                    className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50"
                   >
                     Assess points
-                  </button>
-                  <button
-                    type="button"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="px-3 py-1.5"
                     onClick={() => beginDecision(event.id, 'DECLINED')}
-                    className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
                   >
                     Do not assess
-                  </button>
+                  </Button>
                 </div>
               )}
             </li>
@@ -192,49 +194,43 @@ export function MhdReassessmentQueuePanel({
       )}
 
       {resolved.length > 0 ? (
-        <div>
-          <h3 className="text-sm font-medium text-neutral-700">Decisions on record</h3>
-          <p className="mt-0.5 text-xs text-neutral-500">
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-foreground">Decisions on record</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Kept visible on purpose — this is the evidence that the policy was applied consistently.
           </p>
-          <div className="mt-2 overflow-x-auto">
-            <table className="min-w-full text-sm">
+          <MhdCard className="overflow-hidden p-0">
+            <MhdTable>
               <thead>
-                <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                  <th className="py-2 pr-4 font-medium">Employee</th>
-                  <th className="py-2 pr-4 font-medium">Occurrence</th>
-                  <th className="py-2 pr-4 font-medium">Decision</th>
-                  <th className="py-2 pr-4 text-right font-medium">Points</th>
-                  <th className="py-2 font-medium">Reason</th>
+                <tr>
+                  <MhdTh>Employee</MhdTh>
+                  <MhdTh>Occurrence</MhdTh>
+                  <MhdTh>Decision</MhdTh>
+                  <MhdTh className="text-right">Points</MhdTh>
+                  <MhdTh>Reason</MhdTh>
                 </tr>
               </thead>
               <tbody>
                 {resolved.map((event) => (
-                  <tr key={event.id} className="border-b border-neutral-100 text-neutral-800">
-                    <td className="py-2 pr-4 whitespace-nowrap">{event.personDisplayName}</td>
-                    <td className="py-2 pr-4 whitespace-nowrap">
+                  <MhdTr key={event.id}>
+                    <MhdTd className="whitespace-nowrap">{event.personDisplayName}</MhdTd>
+                    <MhdTd className="whitespace-nowrap">
                       {event.occurrenceReference} · {event.occurrenceDate}
-                    </td>
-                    <td className="py-2 pr-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          event.status === 'ASSESSED'
-                            ? 'bg-rose-100 text-rose-800'
-                            : 'bg-neutral-100 text-neutral-700'
-                        }`}
-                      >
+                    </MhdTd>
+                    <MhdTd className="whitespace-nowrap">
+                      <MhdBadge variant={event.status === 'ASSESSED' ? 'error' : 'neutral'} hideIcon>
                         {event.status === 'ASSESSED' ? 'Assessed' : 'Not assessed'}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-4 text-right tabular-nums">
-                      {event.pointsAssessed ?? <span className="text-neutral-400">—</span>}
-                    </td>
-                    <td className="py-2">{event.decisionNote}</td>
-                  </tr>
+                      </MhdBadge>
+                    </MhdTd>
+                    <MhdTd className="text-right tabular-nums">
+                      {event.pointsAssessed ?? <span className="text-muted-foreground">—</span>}
+                    </MhdTd>
+                    <MhdTd>{event.decisionNote}</MhdTd>
+                  </MhdTr>
                 ))}
               </tbody>
-            </table>
-          </div>
+            </MhdTable>
+          </MhdCard>
         </div>
       ) : null}
     </section>

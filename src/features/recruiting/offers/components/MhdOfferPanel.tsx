@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { useMhdCreateOffer, useMhdOffers } from '../Hook';
 import type { MhdOfferFormValues } from '../Schemas';
 import type {
@@ -84,11 +86,11 @@ export function MhdOfferPanel({
   }
 
   return (
-    <section className="space-y-4 rounded-lg border border-neutral-200 p-4">
+    <MhdCard className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-base font-semibold text-neutral-900">Offers</h2>
-          <p className="mt-0.5 text-xs text-neutral-500">
+          <h2 className="text-base font-semibold text-foreground">Offers</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Accepting an offer hires the applicant — it creates the employment record and marks the
             application hired.
           </p>
@@ -97,21 +99,19 @@ export function MhdOfferPanel({
           <button
             type="button"
             onClick={() => setShowHirePreview((prev) => !prev)}
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground"
           >
             {showHirePreview ? 'Hide handoff preview' : 'Preview handoff'}
           </button>
           {!isCreating ? (
-            <button
-              type="button"
+            <Button
               onClick={() => {
                 setIsCreating(true);
                 setSelectedOfferId(null);
               }}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
             >
               New offer
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -121,7 +121,7 @@ export function MhdOfferPanel({
       {showHirePreview ? <MhdHirePreviewPanel applicationId={applicationId} /> : null}
 
       {isCreating ? (
-        <div className="rounded-md border border-neutral-200 p-4">
+        <div className="rounded-md border border-border p-4">
           <MhdOfferForm
             applicationId={applicationId}
             reportingManagers={reportingManagers}
@@ -139,15 +139,15 @@ export function MhdOfferPanel({
       ) : null}
 
       {offers.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading offers…</p>
+        <p className="text-sm text-muted-foreground">Loading offers…</p>
       ) : offers.isError ? (
         <p className="text-sm text-rose-600">
           {offers.error instanceof Error ? offers.error.message : 'Could not load offers.'}
         </p>
       ) : (offers.data ?? []).length === 0 ? (
-        <p className="text-sm text-neutral-500">No offers yet.</p>
+        <p className="text-sm text-muted-foreground">No offers yet.</p>
       ) : (
-        <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
+        <ul className="divide-y divide-border rounded-md border border-border">
           {(offers.data ?? []).map((offer: MhdOfferSummary) => {
             const isSelected = offer.id === selectedOfferId;
             return (
@@ -158,19 +158,19 @@ export function MhdOfferPanel({
                     setSelectedOfferId(isSelected ? null : offer.id);
                     setIsCreating(false);
                   }}
-                  className={`flex w-full items-center justify-between gap-4 px-4 py-3 text-left ${
-                    isSelected ? 'bg-neutral-50' : ''
+                  className={`flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-accent-tint/60 ${
+                    isSelected ? 'bg-accent-tint' : ''
                   }`}
                 >
                   <div>
-                    <p className="text-sm font-medium text-neutral-900">{offer.jobTitle}</p>
-                    <p className="font-mono text-xs text-neutral-400">{offer.referenceId}</p>
+                    <p className="text-sm font-medium text-foreground">{offer.jobTitle}</p>
+                    <p className="font-mono text-xs text-muted-foreground">{offer.referenceId}</p>
                   </div>
                   <MhdOfferStatusBadge status={offer.status} />
                 </button>
 
                 {isSelected ? (
-                  <div className="border-t border-neutral-100 bg-neutral-50 p-4">
+                  <div className="border-t border-border bg-muted p-4">
                     <MhdOfferDetail
                       offerId={offer.id}
                       buildSignatureUrl={buildSignatureUrl}
@@ -185,6 +185,6 @@ export function MhdOfferPanel({
           })}
         </ul>
       )}
-    </section>
+    </MhdCard>
   );
 }

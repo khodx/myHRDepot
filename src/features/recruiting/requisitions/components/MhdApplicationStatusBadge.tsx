@@ -1,3 +1,4 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import {
   mhdFormatApplicationLifecycle,
   type MhdRecruitingApplicationLifecycle,
@@ -7,13 +8,13 @@ import {
 // only RENDERS the server-synced lifecycle — it is mirrored from the current
 // stage's category by `move_stage` / `reject`, never recomputed on the client.
 // INVITED reads neutral (link sent, not yet submitted), ACTIVE green (in the
-// pipeline), HIRED sky (won), REJECTED rose, WITHDRAWN muted.
-const LIFECYCLE_STYLES: Record<MhdRecruitingApplicationLifecycle, string> = {
-  INVITED: 'bg-neutral-100 text-neutral-700',
-  ACTIVE: 'bg-emerald-100 text-emerald-800',
-  HIRED: 'bg-sky-100 text-sky-800',
-  REJECTED: 'bg-rose-100 text-rose-800',
-  WITHDRAWN: 'bg-neutral-200 text-neutral-500',
+// pipeline), HIRED info-blue (won), REJECTED red, WITHDRAWN neutral.
+const LIFECYCLE_VARIANTS: Record<MhdRecruitingApplicationLifecycle, MhdBadgeVariant> = {
+  INVITED: 'neutral',
+  ACTIVE: 'success',
+  HIRED: 'info',
+  REJECTED: 'error',
+  WITHDRAWN: 'neutral',
 };
 
 interface Props {
@@ -22,12 +23,8 @@ interface Props {
 
 export function MhdApplicationStatusBadge({ lifecycle }: Props) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-        LIFECYCLE_STYLES[lifecycle] ?? 'bg-neutral-100 text-neutral-700'
-      }`}
-    >
+    <MhdBadge variant={LIFECYCLE_VARIANTS[lifecycle] ?? 'neutral'} hideIcon>
       {mhdFormatApplicationLifecycle(lifecycle)}
-    </span>
+    </MhdBadge>
   );
 }

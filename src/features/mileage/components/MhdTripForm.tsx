@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/Button';
 import { useForm, useWatch } from 'react-hook-form';
 import { mhdTripFormSchema, type MhdTripFormValues } from '../Schemas';
 import type { MhdMileageTrip } from '../Types';
@@ -98,14 +99,14 @@ export function MhdTripForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="personId" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="personId" className="block text-sm font-medium text-foreground">
             Traveller
           </label>
           <select
             id="personId"
             {...register('personId')}
             disabled={Boolean(presetPersonId) || isLocked}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           >
             <option value="">Select an employee…</option>
             {people.map((person) => (
@@ -120,7 +121,7 @@ export function MhdTripForm({
         </div>
 
         <div>
-          <label htmlFor="tripDate" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="tripDate" className="block text-sm font-medium text-foreground">
             Date
           </label>
           <input
@@ -128,7 +129,7 @@ export function MhdTripForm({
             type="date"
             {...register('tripDate')}
             disabled={isLocked}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
           {errors.tripDate ? (
             <p className="mt-1 text-xs text-rose-600">{errors.tripDate.message}</p>
@@ -138,7 +139,7 @@ export function MhdTripForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="origin" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="origin" className="block text-sm font-medium text-foreground">
             From
           </label>
           <input
@@ -146,7 +147,7 @@ export function MhdTripForm({
             type="text"
             {...register('origin')}
             disabled={isLocked}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
           {errors.origin ? (
             <p className="mt-1 text-xs text-rose-600">{errors.origin.message}</p>
@@ -154,7 +155,7 @@ export function MhdTripForm({
         </div>
 
         <div>
-          <label htmlFor="destination" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="destination" className="block text-sm font-medium text-foreground">
             To
           </label>
           <input
@@ -162,7 +163,7 @@ export function MhdTripForm({
             type="text"
             {...register('destination')}
             disabled={isLocked}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
           {errors.destination ? (
             <p className="mt-1 text-xs text-rose-600">{errors.destination.message}</p>
@@ -172,7 +173,7 @@ export function MhdTripForm({
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
-          <label htmlFor="miles" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="miles" className="block text-sm font-medium text-foreground">
             Miles
           </label>
           <input
@@ -182,7 +183,7 @@ export function MhdTripForm({
             min={0}
             {...register('miles', { valueAsNumber: true })}
             disabled={isLocked}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
           {errors.miles ? (
             <p className="mt-1 text-xs text-rose-600">{errors.miles.message}</p>
@@ -192,9 +193,9 @@ export function MhdTripForm({
         <div>
           <label
             htmlFor="commuteDeductionMiles"
-            className="block text-sm font-medium text-neutral-700"
+            className="block text-sm font-medium text-foreground"
           >
-            Commute deduction <span className="font-normal text-neutral-500">(optional)</span>
+            Commute deduction <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="commuteDeductionMiles"
@@ -203,24 +204,24 @@ export function MhdTripForm({
             min={0}
             {...register('commuteDeductionMiles', { setValueAs: optionalNumber })}
             disabled={isLocked}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
           {errors.commuteDeductionMiles ? (
             <p className="mt-1 text-xs text-rose-600">{errors.commuteDeductionMiles.message}</p>
           ) : null}
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             The commuting portion of the journey, if any. It is subtracted before the trip is
             priced.
           </p>
         </div>
 
         <div className="flex items-end">
-          <label className="flex items-center gap-2 pb-2 text-sm text-neutral-700">
+          <label className="flex items-center gap-2 pb-2 text-sm text-foreground">
             <input
               type="checkbox"
               {...register('isRoundTrip')}
               disabled={isLocked}
-              className="h-4 w-4 rounded border-neutral-300"
+              className="h-4 w-4 rounded border-border"
             />
             Round trip
           </label>
@@ -228,7 +229,7 @@ export function MhdTripForm({
       </div>
 
       <div>
-        <label htmlFor="businessPurpose" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="businessPurpose" className="block text-sm font-medium text-foreground">
           Business purpose
         </label>
         <textarea
@@ -236,12 +237,12 @@ export function MhdTripForm({
           rows={2}
           {...register('businessPurpose')}
           disabled={isLocked}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
         />
         {errors.businessPurpose ? (
           <p className="mt-1 text-xs text-rose-600">{errors.businessPurpose.message}</p>
         ) : null}
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Say what the journey was for, specifically enough to stand on its own later. This is the
           field that substantiates the trip if the log is ever examined.
         </p>
@@ -256,19 +257,19 @@ export function MhdTripForm({
         className={`rounded-md border px-3 py-3 ${
           affirmed
             ? 'border-emerald-200 bg-emerald-50'
-            : 'border-neutral-200 bg-neutral-50'
+            : 'border-border bg-muted'
         }`}
       >
-        <label className="flex items-start gap-3 text-sm text-neutral-800">
+        <label className="flex items-start gap-3 text-sm text-foreground">
           <input
             type="checkbox"
             {...register('notOrdinaryCommuting')}
             disabled={isLocked}
-            className="mt-0.5 h-4 w-4 rounded border-neutral-300"
+            className="mt-0.5 h-4 w-4 rounded border-border"
           />
           <span>
             <strong>This journey was not ordinary commuting.</strong>
-            <span className="mt-1 block text-neutral-600">
+            <span className="mt-1 block text-muted-foreground">
               Travel between home and a regular place of work is commuting, and commuting mileage is
               not reimbursable. Recording it as a business trip would put a cost in the log that
               cannot be defended. The trip cannot be saved without this affirmation.
@@ -282,8 +283,8 @@ export function MhdTripForm({
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
-          <label htmlFor="odometerStart" className="block text-sm font-medium text-neutral-700">
-            Odometer start <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="odometerStart" className="block text-sm font-medium text-foreground">
+            Odometer start <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="odometerStart"
@@ -292,7 +293,7 @@ export function MhdTripForm({
             min={0}
             {...register('odometerStart', { setValueAs: optionalNumber })}
             disabled={isLocked}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
           {errors.odometerStart ? (
             <p className="mt-1 text-xs text-rose-600">{errors.odometerStart.message}</p>
@@ -300,8 +301,8 @@ export function MhdTripForm({
         </div>
 
         <div>
-          <label htmlFor="odometerEnd" className="block text-sm font-medium text-neutral-700">
-            Odometer end <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="odometerEnd" className="block text-sm font-medium text-foreground">
+            Odometer end <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="odometerEnd"
@@ -310,7 +311,7 @@ export function MhdTripForm({
             min={0}
             {...register('odometerEnd', { setValueAs: optionalNumber })}
             disabled={isLocked}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
           {errors.odometerEnd ? (
             <p className="mt-1 text-xs text-rose-600">{errors.odometerEnd.message}</p>
@@ -318,47 +319,39 @@ export function MhdTripForm({
         </div>
 
         <div>
-          <label htmlFor="vehicleDescription" className="block text-sm font-medium text-neutral-700">
-            Vehicle <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="vehicleDescription" className="block text-sm font-medium text-foreground">
+            Vehicle <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="vehicleDescription"
             type="text"
             {...register('vehicleDescription')}
             disabled={isLocked}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-neutral-700">
-          Notes <span className="font-normal text-neutral-500">(optional)</span>
+        <label htmlFor="notes" className="block text-sm font-medium text-foreground">
+          Notes <span className="font-normal text-muted-foreground">(optional)</span>
         </label>
         <textarea
           id="notes"
           rows={2}
           {...register('notes')}
           disabled={isLocked}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
         />
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-        >
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting || isLocked}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        </Button>
+        <Button type="submit" disabled={isSubmitting || isLocked}>
           {isSubmitting ? 'Saving…' : trip ? 'Save trip' : 'Record trip'}
-        </button>
+        </Button>
       </div>
     </form>
   );

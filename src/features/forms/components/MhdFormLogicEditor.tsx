@@ -50,13 +50,13 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Add Rule</h3>
+      <div className="rounded-lg border border-border bg-muted p-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Add Rule</h3>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <select
             value={draftFieldId}
             onChange={(event) => setDraftFieldId(event.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-border px-3 py-2 text-sm"
           >
             {fields.map((field) => (
               <option key={field.id} value={field.id}>
@@ -68,7 +68,7 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
           <select
             value={draftOperator}
             onChange={(event) => setDraftOperator(event.target.value as (typeof MHD_LOGIC_OPERATORS)[number]['value'])}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-border px-3 py-2 text-sm"
           >
             {MHD_LOGIC_OPERATORS.map((operator) => (
               <option key={operator.value} value={operator.value}>
@@ -85,14 +85,14 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
               value={draftValue}
               onChange={(event) => setDraftValue(event.target.value)}
               placeholder="Comparison value"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="rounded-md border border-border px-3 py-2 text-sm"
             />
           )}
 
           <select
             value={draftAction}
             onChange={(event) => setDraftAction(event.target.value as MhdFormLogicRule['action'])}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-border px-3 py-2 text-sm"
           >
             <option value="SHOW">Show</option>
             <option value="HIDE">Hide</option>
@@ -103,7 +103,7 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
           <select
             value={draftTargetFieldId}
             onChange={(event) => setDraftTargetFieldId(event.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-2"
+            className="rounded-md border border-border px-3 py-2 text-sm md:col-span-2"
           >
             {fields.map((field) => (
               <option key={field.id} value={field.id}>
@@ -116,7 +116,7 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
         <button
           type="button"
           onClick={handleAddRule}
-          className="mt-3 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white"
+          className="mt-3 rounded-md bg-accent px-3 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover"
         >
           Add Rule
         </button>
@@ -124,7 +124,7 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
 
       <div className="space-y-2">
         {rules.map((rule) => (
-          <div key={rule.id} className="flex items-start justify-between gap-4 rounded-md border border-slate-200 bg-card p-3 text-sm">
+          <div key={rule.id} className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3 text-sm">
             <div>
               If <strong>{fieldLabel((rule.condition as { field?: string }).field ?? '')}</strong>{' '}
               {MHD_LOGIC_OPERATORS.find((operator) => operator.value === (rule.condition as { operator?: string }).operator)?.label ?? 'matches'}{' '}
@@ -140,7 +140,7 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
             </button>
           </div>
         ))}
-        {rules.length === 0 ? <p className="text-sm text-slate-500">No logic rules defined yet.</p> : null}
+        {rules.length === 0 ? <p className="text-sm text-muted-foreground">No logic rules defined yet.</p> : null}
       </div>
     </div>
   );

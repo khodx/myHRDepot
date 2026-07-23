@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/Button';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { mhdAttendancePolicySchema, type MhdAttendancePolicyFormValues } from '../Schemas';
 import {
@@ -76,14 +77,14 @@ export function MhdAttendancePolicyEditor({
   if (readOnly) {
     return (
       <section className="space-y-4">
-        <h2 className="text-base font-semibold text-neutral-900">Attendance policy</h2>
+        <h2 className="text-base font-semibold text-foreground">Attendance policy</h2>
         {!current ? (
-          <p className="text-sm text-neutral-500">No policy has been published yet.</p>
+          <p className="text-sm text-muted-foreground">No policy has been published yet.</p>
         ) : (
           <>
             <div>
-              <h3 className="text-sm font-medium text-neutral-700">What each occurrence costs</h3>
-              <ul className="mt-1 space-y-0.5 text-sm text-neutral-700">
+              <h3 className="text-sm font-medium text-foreground">What each occurrence costs</h3>
+              <ul className="mt-1 space-y-0.5 text-sm text-foreground">
                 {current.pointRules.map((rule) => (
                   <li key={rule.occurrenceType}>
                     {mhdFormatOccurrenceType(rule.occurrenceType)} — {rule.points}
@@ -92,8 +93,8 @@ export function MhdAttendancePolicyEditor({
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-neutral-700">Escalation</h3>
-              <ul className="mt-1 space-y-0.5 text-sm text-neutral-700">
+              <h3 className="text-sm font-medium text-foreground">Escalation</h3>
+              <ul className="mt-1 space-y-0.5 text-sm text-foreground">
                 {current.thresholds.map((threshold) => (
                   <li key={threshold.id}>
                     {threshold.pointsAt} points — {mhdFormatActionLevel(threshold.actionLevel)}
@@ -101,7 +102,7 @@ export function MhdAttendancePolicyEditor({
                 ))}
               </ul>
             </div>
-            <p className="text-sm text-neutral-600">
+            <p className="text-sm text-muted-foreground">
               Points roll off {current.rollOffMonths} months after the absence. Protected leave
               never accrues points.
             </p>
@@ -120,33 +121,33 @@ export function MhdAttendancePolicyEditor({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="policyName" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="policyName" className="block text-sm font-medium text-foreground">
             Policy name
           </label>
           <input
             id="policyName"
             {...register('policyName')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
           {errors.policyName ? (
             <p className="mt-1 text-xs text-rose-600">{errors.policyName.message}</p>
           ) : null}
         </div>
         <div>
-          <label htmlFor="effectiveFrom" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="effectiveFrom" className="block text-sm font-medium text-foreground">
             Effective from
           </label>
           <input
             id="effectiveFrom"
             type="date"
             {...register('effectiveFrom')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="rollOffMonths" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="rollOffMonths" className="block text-sm font-medium text-foreground">
           Points roll off after (months)
         </label>
         <input
@@ -154,7 +155,7 @@ export function MhdAttendancePolicyEditor({
           type="number"
           min={1}
           {...register('rollOffMonths', { valueAsNumber: true })}
-          className="mt-1 w-32 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-32 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
         {errors.rollOffMonths ? (
           <p className="mt-1 text-xs text-rose-600">{errors.rollOffMonths.message}</p>
@@ -162,11 +163,11 @@ export function MhdAttendancePolicyEditor({
       </div>
 
       <fieldset>
-        <legend className="text-sm font-medium text-neutral-700">Points per occurrence</legend>
+        <legend className="text-sm font-medium text-foreground">Points per occurrence</legend>
         <div className="mt-2 space-y-2">
           {ruleFields.map((field, index) => (
             <div key={field.id} className="flex items-center gap-3">
-              <span className="w-48 text-sm text-neutral-700">
+              <span className="w-48 text-sm text-foreground">
                 {mhdFormatOccurrenceType(field.occurrenceType)}
               </span>
               <input
@@ -174,7 +175,7 @@ export function MhdAttendancePolicyEditor({
                 step="0.25"
                 min={0}
                 {...register(`pointRules.${index}.points` as const, { valueAsNumber: true })}
-                className="w-24 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+                className="w-24 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
               <input
                 type="hidden"
@@ -189,7 +190,7 @@ export function MhdAttendancePolicyEditor({
       </fieldset>
 
       <fieldset>
-        <legend className="text-sm font-medium text-neutral-700">Which absences count</legend>
+        <legend className="text-sm font-medium text-foreground">Which absences count</legend>
         <div className="mt-2 space-y-2 text-sm">
           <label className="flex items-center gap-2">
             <input type="checkbox" {...register('excusedUnpaidAccrues')} />
@@ -211,7 +212,7 @@ export function MhdAttendancePolicyEditor({
       </fieldset>
 
       <fieldset>
-        <legend className="text-sm font-medium text-neutral-700">Escalation ladder</legend>
+        <legend className="text-sm font-medium text-foreground">Escalation ladder</legend>
         <div className="mt-2 space-y-2">
           {thresholdFields.map((field, index) => (
             <div key={field.id} className="flex items-center gap-3">
@@ -221,11 +222,11 @@ export function MhdAttendancePolicyEditor({
                 min={0}
                 placeholder="Points"
                 {...register(`thresholds.${index}.pointsAt` as const, { valueAsNumber: true })}
-                className="w-24 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+                className="w-24 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
               <select
                 {...register(`thresholds.${index}.actionLevel` as const)}
-                className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+                className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {MHD_ATTENDANCE_ACTION_LEVELS.map((level) => (
                   <option key={level} value={level}>
@@ -236,44 +237,36 @@ export function MhdAttendancePolicyEditor({
               <button
                 type="button"
                 onClick={() => removeThreshold(index)}
-                className="text-sm text-neutral-500"
+                className="text-sm font-medium text-accent hover:text-accent-hover"
               >
                 Remove
               </button>
             </div>
           ))}
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            className="px-3 py-1.5"
             onClick={() => appendThreshold({ pointsAt: 0, actionLevel: 'VERBAL_WARNING' })}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
           >
             Add threshold
-          </button>
+          </Button>
         </div>
         {errors.thresholds ? (
           <p className="mt-1 text-xs text-rose-600">{errors.thresholds.message as string}</p>
         ) : null}
-        <p className="mt-2 text-xs text-neutral-500">
+        <p className="mt-2 text-xs text-muted-foreground">
           Reaching a threshold raises a review for a person to act on. Nothing is issued
           automatically.
         </p>
       </fieldset>
 
       <div className="flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-        >
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Publishing…' : 'Publish new version'}
-        </button>
+        </Button>
       </div>
     </form>
   );

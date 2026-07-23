@@ -1,4 +1,9 @@
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { mhdCanMutateAttendance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
@@ -44,7 +49,7 @@ export function MhdSchedulePage() {
   if (!companyId) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <p className="text-sm text-neutral-500">Loading schedule…</p>
+        <p className="text-sm text-muted-foreground">Loading schedule…</p>
       </div>
     );
   }
@@ -106,54 +111,48 @@ function MhdScheduleBoard({ companyId, isPrivileged, selfPersonId }: BoardProps)
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <header>
-        <h1 className="text-xl font-semibold text-neutral-900">Schedule</h1>
-        <p className="mt-1 text-sm text-neutral-600">
-          {isPrivileged
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Schedule"
+        description={
+          isPrivileged
             ? 'Work patterns, assignments and the shift calendar.'
-            : 'Your scheduled shifts.'}
-        </p>
-      </header>
+            : 'Your scheduled shifts.'
+        }
+      />
 
-      <div className="flex flex-wrap items-end gap-3">
+      <MhdCard className="flex flex-wrap items-end gap-3">
         {isPrivileged ? (
-          <div>
-            <label htmlFor="person" className="block text-xs uppercase tracking-wide text-neutral-500">
-              Employee
-            </label>
-            <select
-              id="person"
-              value={personId ?? ''}
-              onChange={(event) => setPersonId(event.target.value || null)}
-              className="mt-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
-            >
-              <option value="">Select an employee…</option>
-              {peopleOptions.map((person) => (
-                <option key={person.id} value={person.id}>
-                  {person.displayName}
-                </option>
-              ))}
-            </select>
-          </div>
+          <MhdFilterSelect
+            label="Employee"
+            id="person"
+            value={personId ?? ''}
+            onChange={(event) => setPersonId(event.target.value || null)}
+          >
+            <option value="">Select an employee…</option>
+            {peopleOptions.map((person) => (
+              <option key={person.id} value={person.id}>
+                {person.displayName}
+              </option>
+            ))}
+          </MhdFilterSelect>
         ) : null}
 
-        <div>
-          <label htmlFor="rangeStart" className="block text-xs uppercase tracking-wide text-neutral-500">
-            From
-          </label>
+        <label htmlFor="rangeStart" className="flex flex-col gap-1">
+          <span className="text-xs font-medium text-muted-foreground">From</span>
           <input
             id="rangeStart"
             type="date"
             value={rangeStart}
             onChange={(event) => setRangeStart(event.target.value)}
-            className="mt-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
-        </div>
+        </label>
 
         {isPrivileged && personId ? (
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            className="px-3 py-1.5"
             disabled={generateShifts.isPending}
             onClick={() =>
               void generateShifts.mutateAsync({
@@ -162,30 +161,29 @@ function MhdScheduleBoard({ companyId, isPrivileged, selfPersonId }: BoardProps)
                 to: addDays(rangeStart, 90),
               })
             }
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700 disabled:opacity-50"
           >
             {generateShifts.isPending ? 'Generating…' : 'Generate 90 days'}
-          </button>
+          </Button>
         ) : null}
-      </div>
+      </MhdCard>
 
       {isPrivileged && personId ? (
-        <section className="rounded-md border border-neutral-200 p-4">
-          <h2 className="text-sm font-medium text-neutral-700">Assigned pattern</h2>
+        <MhdCard>
+          <h2 className="text-sm font-medium text-foreground">Assigned pattern</h2>
           {currentAssignment ? (
-            <p className="mt-1 text-sm text-neutral-800">
+            <p className="mt-1 text-sm text-foreground">
               {currentAssignment.templateName}{' '}
-              <span className="text-neutral-500">since {currentAssignment.effectiveFrom}</span>
+              <span className="text-muted-foreground">since {currentAssignment.effectiveFrom}</span>
             </p>
           ) : (
-            <p className="mt-1 text-sm text-neutral-500">No pattern assigned.</p>
+            <p className="mt-1 text-sm text-muted-foreground">No pattern assigned.</p>
           )}
 
           <div className="mt-3 flex flex-wrap items-end gap-2">
             <select
               id="assignTemplate"
               value=""
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onChange={(event) => {
                 const templateId = event.target.value;
                 if (!templateId) return;
@@ -210,8 +208,8 @@ function MhdScheduleBoard({ companyId, isPrivileged, selfPersonId }: BoardProps)
               the pattern in force when they were made. */}
           {(assignments.data ?? []).length > 1 ? (
             <details className="mt-3">
-              <summary className="cursor-pointer text-xs text-neutral-500">Pattern history</summary>
-              <ul className="mt-1 space-y-0.5 text-xs text-neutral-600">
+              <summary className="cursor-pointer text-xs text-muted-foreground">Pattern history</summary>
+              <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
                 {(assignments.data ?? []).map((assignment) => (
                   <li key={assignment.id}>
                     {assignment.templateName}: {assignment.effectiveFrom} →{' '}
@@ -221,53 +219,53 @@ function MhdScheduleBoard({ companyId, isPrivileged, selfPersonId }: BoardProps)
               </ul>
             </details>
           ) : null}
-        </section>
+        </MhdCard>
       ) : null}
 
-      <section>
-        <h2 className="text-base font-semibold text-neutral-900">
+      <section className="space-y-2">
+        <h2 className="text-base font-semibold text-foreground">
           Shifts {rangeStart} → {rangeEnd}
         </h2>
         {!personId ? (
-          <p className="mt-2 text-sm text-neutral-500">Select an employee to see their calendar.</p>
+          <p className="text-sm text-muted-foreground">Select an employee to see their calendar.</p>
         ) : shifts.isLoading ? (
-          <p className="mt-2 text-sm text-neutral-500">Loading…</p>
+          <p className="text-sm text-muted-foreground">Loading…</p>
         ) : (shifts.data ?? []).length === 0 ? (
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="text-sm text-muted-foreground">
             No shifts in this range. {isPrivileged ? 'Generate them from the assigned pattern.' : ''}
           </p>
         ) : (
-          <div className="mt-2 overflow-x-auto">
-            <table className="min-w-full text-sm">
+          <MhdCard className="overflow-hidden p-0">
+            <MhdTable>
               <thead>
-                <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                  <th className="py-2 pr-4 font-medium">Date</th>
-                  <th className="py-2 pr-4 font-medium">Day</th>
-                  <th className="py-2 pr-4 font-medium">Hours</th>
-                  <th className="py-2 pr-4 font-medium">Source</th>
-                  <th className="py-2 font-medium">Attendance</th>
+                <tr>
+                  <MhdTh>Date</MhdTh>
+                  <MhdTh>Day</MhdTh>
+                  <MhdTh>Hours</MhdTh>
+                  <MhdTh>Source</MhdTh>
+                  <MhdTh>Attendance</MhdTh>
                 </tr>
               </thead>
               <tbody>
                 {(shifts.data ?? []).map((shift) => {
                   const weekday = new Date(`${shift.shiftDate}T00:00:00Z`).getUTCDay();
                   return (
-                    <tr key={shift.id} className="border-b border-neutral-100 text-neutral-800">
-                      <td className="py-2 pr-4 whitespace-nowrap">{shift.shiftDate}</td>
-                      <td className="py-2 pr-4 whitespace-nowrap text-neutral-500">
+                    <MhdTr key={shift.id}>
+                      <MhdTd className="whitespace-nowrap">{shift.shiftDate}</MhdTd>
+                      <MhdTd className="whitespace-nowrap text-muted-foreground">
                         {DAY_NAMES[weekday]}
-                      </td>
-                      <td className="py-2 pr-4 whitespace-nowrap">
+                      </MhdTd>
+                      <MhdTd className="whitespace-nowrap">
                         {shift.startTime}–{shift.endTime}
                         {shift.unpaidBreakMinutes > 0 ? (
-                          <span className="ml-1 text-xs text-neutral-500">
+                          <span className="ml-1 text-xs text-muted-foreground">
                             ({shift.unpaidBreakMinutes}m break)
                           </span>
                         ) : null}
-                      </td>
-                      <td className="py-2 pr-4 whitespace-nowrap">
+                      </MhdTd>
+                      <MhdTd className="whitespace-nowrap">
                         {shift.source === 'GENERATED' ? (
-                          <span className="text-xs text-neutral-500">From pattern</span>
+                          <span className="text-xs text-muted-foreground">From pattern</span>
                         ) : (
                           <span
                             className="text-xs font-medium text-amber-700"
@@ -276,36 +274,36 @@ function MhdScheduleBoard({ companyId, isPrivileged, selfPersonId }: BoardProps)
                             {shift.source === 'OVERRIDE' ? 'Overridden' : 'Manual'}
                           </span>
                         )}
-                      </td>
-                      <td className="py-2">
+                      </MhdTd>
+                      <MhdTd>
                         {shift.occurrenceType && shift.classification ? (
-                          <span className="text-xs text-neutral-700">
+                          <span className="text-xs text-foreground">
                             {mhdFormatOccurrenceType(shift.occurrenceType)} ·{' '}
                             {mhdFormatClassification(shift.classification)}
                           </span>
                         ) : (
-                          <span className="text-xs text-neutral-400">—</span>
+                          <span className="text-xs text-muted-foreground">—</span>
                         )}
-                      </td>
-                    </tr>
+                      </MhdTd>
+                    </MhdTr>
                   );
                 })}
               </tbody>
-            </table>
-          </div>
+            </MhdTable>
+          </MhdCard>
         )}
       </section>
 
       {isPrivileged ? (
         <section>
-          <h2 className="text-base font-semibold text-neutral-900">Company holidays</h2>
+          <h2 className="text-base font-semibold text-foreground">Company holidays</h2>
           {(holidays.data ?? []).length === 0 ? (
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm text-muted-foreground">
               None recorded. Shift generation skips holidays, so an absence cannot be raised against
               one.
             </p>
           ) : (
-            <ul className="mt-1 space-y-0.5 text-sm text-neutral-700">
+            <ul className="mt-1 space-y-0.5 text-sm text-foreground">
               {(holidays.data ?? []).map((holiday) => (
                 <li key={holiday.id}>
                   {holiday.holidayDate} — {holiday.holidayName}

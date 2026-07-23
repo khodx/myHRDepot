@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import {
   mhdFormatActionLevel,
   type MhdResolveThresholdEventInput,
@@ -13,11 +15,13 @@ interface Props {
   onResolve: (input: MhdResolveThresholdEventInput) => Promise<void>;
 }
 
-const ACTION_STYLES: Record<string, string> = {
-  VERBAL_WARNING: 'bg-yellow-100 text-yellow-800',
-  WRITTEN_WARNING: 'bg-orange-100 text-orange-800',
-  FINAL_WARNING: 'bg-rose-100 text-rose-800',
-  TERMINATION_REVIEW: 'bg-red-200 text-red-900',
+// Semantic mapping (§5): the early coaching levels read warning, the terminal
+// levels read error. The label carries the specific level.
+const ACTION_VARIANTS: Record<string, MhdBadgeVariant> = {
+  VERBAL_WARNING: 'warning',
+  WRITTEN_WARNING: 'warning',
+  FINAL_WARNING: 'error',
+  TERMINATION_REVIEW: 'error',
 };
 
 const STATUS_LABELS: Record<MhdThresholdEventStatus, string> = {
@@ -26,6 +30,9 @@ const STATUS_LABELS: Record<MhdThresholdEventStatus, string> = {
   ACTIONED: 'Actioned',
   DISMISSED: 'Dismissed',
 };
+
+const INPUT_CLASSES =
+  'mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 
 /**
  * Threshold crossings awaiting a human.
@@ -67,51 +74,49 @@ export function MhdThresholdEventPanel({
   }
 
   if (isLoading) {
-    return <p className="text-sm text-neutral-500">Loading thresholds…</p>;
+    return <p className="text-sm text-muted-foreground">Loading thresholds…</p>;
   }
 
   return (
     <section className="space-y-6">
       <header>
-        <h2 className="text-base font-semibold text-neutral-900">Threshold reviews</h2>
-        <p className="mt-1 text-sm text-neutral-600">
+        <h2 className="text-base font-semibold text-foreground">Threshold reviews</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           An employee has reached a point total the policy flags. Nothing has been actioned
           automatically.
         </p>
       </header>
 
       {open.length === 0 ? (
-        <p className="text-sm text-neutral-500">No thresholds awaiting review.</p>
+        <p className="text-sm text-muted-foreground">No thresholds awaiting review.</p>
       ) : (
         <ul className="space-y-3">
           {open.map((event) => (
-            <li key={event.id} className="rounded-md border border-neutral-200 p-4">
+            <li key={event.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium text-neutral-900">{event.personDisplayName}</p>
-                  <p className="mt-0.5 text-xs text-neutral-600">
+                  <p className="text-sm font-medium text-foreground">{event.personDisplayName}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     Crossed {event.pointsAt} at {event.pointsAtCrossing} points ·{' '}
                     {new Date(event.crossedAt).toLocaleDateString()}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      ACTION_STYLES[event.actionLevel] ?? 'bg-neutral-100 text-neutral-700'
-                    }`}
-                  >
+                  <MhdBadge variant={ACTION_VARIANTS[event.actionLevel] ?? 'neutral'}>
                     {mhdFormatActionLevel(event.actionLevel)}
+                  </MhdBadge>
+                  <span className="text-xs text-muted-foreground">
+                    {STATUS_LABELS[event.status]}
                   </span>
-                  <span className="text-xs text-neutral-500">{STATUS_LABELS[event.status]}</span>
                 </div>
               </div>
 
               {activeId === event.id ? (
-                <div className="mt-4 space-y-3 border-t border-neutral-200 pt-3">
+                <div className="mt-4 space-y-3 border-t border-border pt-3">
                   <div>
                     <label
                       htmlFor={`status-${event.id}`}
-                      className="block text-sm font-medium text-neutral-700"
+                      className="block text-sm font-medium text-foreground"
                     >
                       Outcome
                     </label>
@@ -123,7 +128,7 @@ export function MhdThresholdEventPanel({
                           changeEvent.target.value as Exclude<MhdThresholdEventStatus, 'RAISED'>,
                         )
                       }
-                      className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                      className={INPUT_CLASSES}
                     >
                       <option value="ACKNOWLEDGED">Acknowledged — reviewing</option>
                       <option value="ACTIONED">Actioned — discipline issued</option>
@@ -134,10 +139,10 @@ export function MhdThresholdEventPanel({
                   <div>
                     <label
                       htmlFor={`resolution-${event.id}`}
-                      className="block text-sm font-medium text-neutral-700"
+                      className="block text-sm font-medium text-foreground"
                     >
                       Note{' '}
-                      <span className="font-normal text-neutral-500">
+                      <span className="font-normal text-muted-foreground">
                         {status === 'DISMISSED' ? '(required)' : '(optional)'}
                       </span>
                     </label>
@@ -146,42 +151,41 @@ export function MhdThresholdEventPanel({
                       rows={2}
                       value={note}
                       onChange={(changeEvent) => setNote(changeEvent.target.value)}
-                      className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                      className={INPUT_CLASSES}
                     />
                     {error ? <p className="mt-1 text-xs text-rose-600">{error}</p> : null}
                   </div>
 
                   <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
+                      className="px-3 py-1.5"
                       onClick={() => setActiveId(null)}
-                      className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
                     >
                       Cancel
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      className="px-3 py-1.5"
                       disabled={isSubmitting}
                       onClick={() => void submit(event.id)}
-                      className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
                     >
                       {isSubmitting ? 'Saving…' : 'Save outcome'}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
+                  className="mt-3 px-3 py-1.5"
                   onClick={() => {
                     setActiveId(event.id);
                     setStatus('ACKNOWLEDGED');
                     setNote('');
                     setError(null);
                   }}
-                  className="mt-3 rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
                 >
                   Review
-                </button>
+                </Button>
               )}
             </li>
           ))}
@@ -190,8 +194,8 @@ export function MhdThresholdEventPanel({
 
       {closed.length > 0 ? (
         <div>
-          <h3 className="text-sm font-medium text-neutral-700">Closed</h3>
-          <ul className="mt-2 space-y-1 text-sm text-neutral-600">
+          <h3 className="text-sm font-medium text-foreground">Closed</h3>
+          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
             {closed.map((event) => (
               <li key={event.id}>
                 {event.personDisplayName} · {mhdFormatActionLevel(event.actionLevel)} ·{' '}

@@ -6,9 +6,9 @@ interface MhdFormFieldPaletteProps {
 
 export function MhdFormFieldPalette({ onAddField }: MhdFormFieldPaletteProps) {
   return (
-    <aside className="w-64 border-r border-slate-200 bg-slate-50 p-4">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Field Palette</h3>
-      <p className="mt-1 text-sm text-slate-600">Click a field type to add it to the current form.</p>
+    <aside className="w-64 border-r border-border bg-muted p-4">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Field Palette</h3>
+      <p className="mt-1 text-sm text-muted-foreground">Click a field type to add it to the current form.</p>
 
       <div className="mt-4 grid gap-2">
         {MHD_FORM_PALETTE_FIELD_TYPES.map((fieldType) => (
@@ -16,7 +16,7 @@ export function MhdFormFieldPalette({ onAddField }: MhdFormFieldPaletteProps) {
             key={fieldType.type}
             type="button"
             onClick={() => onAddField(fieldType.type)}
-            className="rounded-md border border-slate-200 bg-card px-3 py-2 text-left text-sm font-medium text-slate-700 hover:border-blue-300 hover:bg-blue-50"
+            className="rounded-md border border-border bg-card px-3 py-2 text-left text-sm font-medium text-slate-700 hover:border-accent hover:bg-accent-tint"
           >
             {fieldType.label}
           </button>

@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { useMhdCompetencies, useMhdUpsertCompetency } from '../Hook';
 import { MHD_INDUSTRIES, mhdFormatIndustry, type MhdIndustry } from '../Types';
 
@@ -63,8 +66,8 @@ export function MhdCompetencyLibraryPanel({
     <section className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-neutral-900">Competencies</h2>
-          <p className="mt-0.5 text-sm text-neutral-600">
+          <h2 className="text-base font-semibold text-foreground">Competencies</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Seeded libraries by industry, plus any your organisation adds.
           </p>
         </div>
@@ -72,7 +75,7 @@ export function MhdCompetencyLibraryPanel({
           <select
             value={industry}
             onChange={(event) => setIndustry(event.target.value as MhdIndustry | 'ALL')}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <option value="ALL">All industries</option>
             {MHD_INDUSTRIES.map((value) => (
@@ -82,40 +85,36 @@ export function MhdCompetencyLibraryPanel({
             ))}
           </select>
           {canEdit ? (
-            <button
-              type="button"
-              onClick={() => setIsAdding((previous) => !previous)}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
-            >
+            <Button variant="secondary" onClick={() => setIsAdding((previous) => !previous)}>
               {isAdding ? 'Cancel' : 'Add competency'}
-            </button>
+            </Button>
           ) : null}
         </div>
       </header>
 
       {isAdding ? (
-        <div className="space-y-3 rounded-md border border-neutral-200 p-4">
+        <MhdCard className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="competencyName" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="competencyName" className="block text-sm font-medium text-foreground">
                 Name
               </label>
               <input
                 id="competencyName"
                 value={newName}
                 onChange={(event) => setNewName(event.target.value)}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
             </div>
             <div>
-              <label htmlFor="competencyIndustry" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="competencyIndustry" className="block text-sm font-medium text-foreground">
                 Industry
               </label>
               <select
                 id="competencyIndustry"
                 value={newIndustry}
                 onChange={(event) => setNewIndustry(event.target.value as MhdIndustry)}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {MHD_INDUSTRIES.map((value) => (
                   <option key={value} value={value}>
@@ -125,7 +124,7 @@ export function MhdCompetencyLibraryPanel({
               </select>
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex items-center gap-2 text-sm text-foreground">
             <input
               type="checkbox"
               checked={newRegulated}
@@ -135,24 +134,19 @@ export function MhdCompetencyLibraryPanel({
           </label>
           {error ? <p className="text-xs text-rose-600">{error}</p> : null}
           <div className="flex justify-end">
-            <button
-              type="button"
-              disabled={upsert.isPending}
-              onClick={() => void addCompetency()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
-            >
+            <Button disabled={upsert.isPending} onClick={() => void addCompetency()}>
               {upsert.isPending ? 'Saving…' : 'Add'}
-            </button>
+            </Button>
           </div>
-        </div>
+        </MhdCard>
       ) : null}
 
       {competencies.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading…</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (competencies.data ?? []).length === 0 ? (
-        <p className="text-sm text-neutral-500">No competencies in this filter.</p>
+        <p className="text-sm text-muted-foreground">No competencies in this filter.</p>
       ) : (
-        <ul className="divide-y divide-neutral-100">
+        <ul className="divide-y divide-border">
           {(competencies.data ?? []).map((competency) => (
             <li key={competency.id} className="flex items-start gap-3 py-2">
               {isPicker ? (
@@ -164,34 +158,34 @@ export function MhdCompetencyLibraryPanel({
                 />
               ) : null}
               <div className="flex-1">
-                <p className="text-sm font-medium text-neutral-900">
+                <p className="text-sm font-medium text-foreground">
                   {competency.competencyName}
                   {competency.isGlobal ? (
                     <span
-                      className="ml-2 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-normal text-neutral-600"
+                      className="ml-2"
                       title="Seeded and maintained centrally. Editing it would change what every organisation resolves against."
                     >
-                      Standard
+                      <MhdBadge variant="neutral">Standard</MhdBadge>
                     </span>
                   ) : null}
                   {competency.isRegulated ? (
-                    <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-normal text-amber-800">
+                    <MhdBadge variant="warning" className="ml-2">
                       Regulated
-                    </span>
+                    </MhdBadge>
                   ) : null}
                 </p>
                 {competency.description ? (
-                  <p className="mt-0.5 text-sm text-neutral-600">{competency.description}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{competency.description}</p>
                 ) : null}
-                <p className="mt-0.5 text-xs text-neutral-500">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   {mhdFormatIndustry(competency.industry)}
                   {competency.category ? ` · ${competency.category}` : ''}
                 </p>
               </div>
               {canEdit && !competency.isGlobal ? (
-                <span className="text-xs text-neutral-400">Yours</span>
+                <span className="text-xs text-muted-foreground">Yours</span>
               ) : competency.isGlobal && !isPlatformAdmin ? (
-                <span className="text-xs text-neutral-400">Read-only</span>
+                <span className="text-xs text-muted-foreground">Read-only</span>
               ) : null}
             </li>
           ))}
@@ -201,7 +195,7 @@ export function MhdCompetencyLibraryPanel({
       {/*
         Stated plainly rather than left to be discovered when an edit is refused.
       */}
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-muted-foreground">
         Standard competencies are maintained centrally. To diverge from one, add your own instead of
         editing it.
       </p>

@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -93,10 +95,10 @@ export function MhdApplicationInvitePanel({
   }
 
   return (
-    <section className="space-y-4 rounded-lg border border-neutral-200 p-4">
+    <MhdCard className="space-y-4">
       <div>
-        <h2 className="text-base font-semibold text-neutral-900">Invite an applicant</h2>
-        <p className="mt-0.5 text-xs text-neutral-500">
+        <h2 className="text-base font-semibold text-foreground">Invite an applicant</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           Creates a tokenized apply link for a person. The applicant completes it unauthenticated —
           the link is the only credential.
         </p>
@@ -107,13 +109,13 @@ export function MhdApplicationInvitePanel({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="invitePerson" className="block text-sm font-medium text-neutral-700">
+            <label htmlFor="invitePerson" className="block text-sm font-medium text-foreground">
               Person
             </label>
             <select
               id="invitePerson"
               {...register('personId')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             >
               <option value="">Choose a person…</option>
               {peopleOptions.map((person) => (
@@ -128,27 +130,23 @@ export function MhdApplicationInvitePanel({
           </div>
 
           <div>
-            <label htmlFor="inviteSource" className="block text-sm font-medium text-neutral-700">
-              Source <span className="font-normal text-neutral-500">(optional)</span>
+            <label htmlFor="inviteSource" className="block text-sm font-medium text-foreground">
+              Source <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <input
               id="inviteSource"
               type="text"
               {...register('source')}
               placeholder="e.g. Referral, LinkedIn"
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             />
           </div>
         </div>
 
         <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={invite.isPending}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-          >
+          <Button type="submit" disabled={invite.isPending}>
             {invite.isPending ? 'Creating link…' : 'Create apply link'}
-          </button>
+          </Button>
         </div>
       </form>
 
@@ -167,18 +165,18 @@ export function MhdApplicationInvitePanel({
               value={applyUrl}
               readOnly
               onFocus={(event) => event.target.select()}
-              className="w-full rounded-md border border-neutral-300 px-3 py-2 font-mono text-xs"
+              className="w-full rounded-md border border-border px-3 py-2 font-mono text-xs"
             />
             <button
               type="button"
               onClick={() => void handleCopy()}
-              className="whitespace-nowrap rounded-md border border-neutral-300 bg-card px-3 py-2 text-sm font-medium text-neutral-700"
+              className="whitespace-nowrap rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground"
             >
               {copied ? 'Copied' : 'Copy'}
             </button>
           </div>
         </div>
       ) : null}
-    </section>
+    </MhdCard>
   );
 }

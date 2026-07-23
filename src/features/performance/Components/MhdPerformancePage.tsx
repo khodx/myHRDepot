@@ -1,4 +1,8 @@
 import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTabs } from '@/components/ui/MhdTabs';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
@@ -145,62 +149,38 @@ export function MhdPerformancePage() {
   const userOptions = (usersQuery.data ?? []).map((user) => ({ id: user.id, label: user.displayName }));
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Performance</h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Reviews, coaching plans, and one-on-ones: how employees are evaluated and developed.
-            </p>
-          </div>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Performance"
+        description="Reviews, coaching plans, and one-on-ones: how employees are evaluated and developed."
+        actions={
+          <>
+            {canMutate && activeTab === 'reviews' ? (
+              <Button onClick={() => setIsCreatingReview((current) => !current)}>
+                <Plus className="mr-1.5 h-4 w-4" />
+                {isCreatingReview ? 'Close Form' : 'New Review'}
+              </Button>
+            ) : null}
+            {canMutate && activeTab === 'coaching' ? (
+              <Button
+                onClick={() => {
+                  if (showPlanCreateForm) {
+                    handleCancelPlanForm();
+                  } else {
+                    setPlanFormDismissed(false);
+                    setIsCreatingPlan(true);
+                  }
+                }}
+              >
+                <Plus className="mr-1.5 h-4 w-4" />
+                {showPlanCreateForm ? 'Close Form' : 'New Coaching Plan'}
+              </Button>
+            ) : null}
+          </>
+        }
+      />
 
-          {canMutate && activeTab === 'reviews' ? (
-            <button
-              type="button"
-              onClick={() => setIsCreatingReview((current) => !current)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white"
-            >
-              <Plus className="h-4 w-4" />
-              {isCreatingReview ? 'Close Form' : 'New Review'}
-            </button>
-          ) : null}
-          {canMutate && activeTab === 'coaching' ? (
-            <button
-              type="button"
-              onClick={() => {
-                if (showPlanCreateForm) {
-                  handleCancelPlanForm();
-                } else {
-                  setPlanFormDismissed(false);
-                  setIsCreatingPlan(true);
-                }
-              }}
-              className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white"
-            >
-              <Plus className="h-4 w-4" />
-              {showPlanCreateForm ? 'Close Form' : 'New Coaching Plan'}
-            </button>
-          ) : null}
-        </div>
-
-        <nav aria-label="Performance sections" className="flex gap-1 border-b border-slate-200">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => selectTab(tab.key)}
-              aria-current={activeTab === tab.key ? 'page' : undefined}
-              className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
-                activeTab === tab.key
-                  ? 'border-blue-700 text-blue-700'
-                  : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+      <MhdTabs tabs={TABS.map((tab) => ({ value: tab.key, label: tab.label }))} value={activeTab} onChange={selectTab} />
 
         {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
 
@@ -213,27 +193,27 @@ export function MhdPerformancePage() {
             ) : null}
 
             <div className="grid gap-4 md:grid-cols-4">
-              <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Draft</p>
-                <p className="mt-1 text-2xl font-bold text-slate-900">{counts.draft}</p>
-              </div>
-              <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">In Review</p>
-                <p className="mt-1 text-2xl font-bold text-slate-900">{counts.inReview}</p>
-              </div>
-              <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Awaiting Acknowledgment</p>
-                <p className="mt-1 text-2xl font-bold text-slate-900">{counts.awaitingAcknowledgment}</p>
-              </div>
-              <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Overdue</p>
+              <MhdCard>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Draft</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{counts.draft}</p>
+              </MhdCard>
+              <MhdCard>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">In Review</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{counts.inReview}</p>
+              </MhdCard>
+              <MhdCard>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Awaiting Acknowledgment</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{counts.awaitingAcknowledgment}</p>
+              </MhdCard>
+              <MhdCard>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Overdue</p>
                 <p className="mt-1 text-2xl font-bold text-red-600">{counts.overdue}</p>
-              </div>
+              </MhdCard>
             </div>
 
             {isCreatingReview && canMutate && selectedCompanyId ? (
-              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold text-slate-900">New Review</h2>
+              <MhdCard className="p-6">
+                <h2 className="mb-4 text-lg font-semibold text-foreground">New Review</h2>
                 <MhdReviewForm
                   mode="create"
                   companyId={selectedCompanyId}
@@ -244,26 +224,22 @@ export function MhdPerformancePage() {
                   onCancel={() => setIsCreatingReview(false)}
                   isSubmitting={reviewActions.createReview.isPending}
                 />
-              </section>
+              </MhdCard>
             ) : null}
 
-            <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-              <MhdReviewFilterBar
-                filters={effectiveReviewFilters}
-                onChange={setReviewFilters}
-                companies={companyOptions}
-                people={peopleOptions}
-                reviewers={userOptions}
-              />
-            </section>
+            <MhdReviewFilterBar
+              filters={effectiveReviewFilters}
+              onChange={setReviewFilters}
+              companies={companyOptions}
+              people={peopleOptions}
+              reviewers={userOptions}
+            />
 
-            <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-              {reviewsQuery.isLoading ? (
-                <div className="flex h-40 items-center justify-center text-sm text-slate-500">Loading reviews…</div>
-              ) : (
-                <MhdReviewList reviews={reviews} />
-              )}
-            </section>
+            {reviewsQuery.isLoading ? (
+              <MhdCard className="flex h-40 items-center justify-center text-sm text-muted-foreground">Loading reviews…</MhdCard>
+            ) : (
+              <MhdReviewList reviews={reviews} />
+            )}
           </>
         ) : null}
 
@@ -276,8 +252,8 @@ export function MhdPerformancePage() {
             ) : null}
 
             {showPlanCreateForm && canMutate && selectedCompanyId ? (
-              <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold text-slate-900">New Coaching Plan</h2>
+              <MhdCard className="p-6">
+                <h2 className="mb-4 text-lg font-semibold text-foreground">New Coaching Plan</h2>
                 <MhdCoachingPlanForm
                   mode="create"
                   companyId={selectedCompanyId}
@@ -289,30 +265,27 @@ export function MhdPerformancePage() {
                   onCancel={handleCancelPlanForm}
                   isSubmitting={planActions.createPlan.isPending}
                 />
-              </section>
+              </MhdCard>
             ) : null}
 
-            <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-              {plansQuery.isLoading ? (
-                <div className="flex h-40 items-center justify-center text-sm text-slate-500">Loading coaching plans…</div>
-              ) : (
-                <MhdCoachingPlanList plans={plans} />
-              )}
-            </section>
+            {plansQuery.isLoading ? (
+              <MhdCard className="flex h-40 items-center justify-center text-sm text-muted-foreground">Loading coaching plans…</MhdCard>
+            ) : (
+              <MhdCoachingPlanList plans={plans} />
+            )}
           </>
         ) : null}
 
         {activeTab === 'one-on-ones' && selectedCompanyId ? (
-          <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
+          <MhdCard>
             <MhdOneOnOneTab
               companyId={selectedCompanyId}
               currentUserId={profile?.userId ?? ''}
               canMutate={canMutate}
               people={peopleOptions}
             />
-          </section>
+          </MhdCard>
         ) : null}
-      </div>
-    </main>
+    </div>
   );
 }

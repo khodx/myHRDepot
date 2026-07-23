@@ -34,13 +34,12 @@ export function MhdFeedbackInvitationsPage() {
 
   if (openInvitation) {
     return (
-      <main className="min-h-screen bg-slate-50">
-        <div className="mx-auto max-w-3xl">
-          <div className="px-6 pt-6">
+      <div className="mx-auto max-w-3xl">
+          <div>
             <button
               type="button"
               onClick={() => setOpenParticipantId(null)}
-              className="text-sm text-blue-700 hover:underline"
+              className="text-sm font-medium text-accent hover:text-accent-hover"
             >
               ← Back to feedback requests
             </button>
@@ -60,16 +59,13 @@ export function MhdFeedbackInvitationsPage() {
             items={[]}
             onDone={() => setOpenParticipantId(null)}
           />
-        </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-3xl">
-        <MhdMyFeedbackInvitations onOpen={setOpenParticipantId} />
-      </div>
-    </main>
+    <div className="mx-auto max-w-3xl">
+      <MhdMyFeedbackInvitations onOpen={setOpenParticipantId} />
+    </div>
   );
 }

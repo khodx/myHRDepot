@@ -1,12 +1,13 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { mhdFormatFlsa, type MhdFlsaClassification } from '../Types';
 
 // Unclassified is styled as a gap rather than a neutral state, because it is
 // one: Time & Attendance v2 accrual needs this value, and a job without it
 // cannot be processed correctly.
-const FLSA_STYLES: Record<string, string> = {
-  EXEMPT: 'bg-violet-100 text-violet-800',
-  NON_EXEMPT: 'bg-sky-100 text-sky-800',
-  UNCLASSIFIED: 'bg-amber-100 text-amber-800',
+const FLSA_VARIANTS: Record<string, MhdBadgeVariant> = {
+  EXEMPT: 'accent',
+  NON_EXEMPT: 'info',
+  UNCLASSIFIED: 'warning',
 };
 
 interface Props {
@@ -19,17 +20,10 @@ export function MhdFlsaBadge({ flsaClassification, isSafetySensitive = false }: 
   const key = flsaClassification ?? 'UNCLASSIFIED';
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span
-        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${FLSA_STYLES[key]}`}
-      >
-        {mhdFormatFlsa(flsaClassification)}
-      </span>
+      <MhdBadge variant={FLSA_VARIANTS[key]}>{mhdFormatFlsa(flsaClassification)}</MhdBadge>
       {isSafetySensitive ? (
-        <span
-          className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800"
-          title="This role carries a safety-sensitive designation, which affects how it is treated under regulation."
-        >
-          Safety-sensitive
+        <span title="This role carries a safety-sensitive designation, which affects how it is treated under regulation.">
+          <MhdBadge variant="error">Safety-sensitive</MhdBadge>
         </span>
       ) : null}
     </span>

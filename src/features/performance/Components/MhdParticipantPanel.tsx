@@ -81,12 +81,12 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
   return (
     <section className="space-y-4">
       <header className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-neutral-900">Feedback participants</h2>
+        <h2 className="text-base font-semibold text-foreground">Feedback participants</h2>
         {outstanding.length > 0 && !isClosing ? (
           <button
             type="button"
             onClick={() => setIsClosing(true)}
-            className="text-sm text-neutral-500 underline"
+            className="text-sm text-muted-foreground underline"
           >
             Close collection
           </button>
@@ -95,14 +95,14 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
 
       <div className="flex flex-wrap items-end gap-2">
         <div>
-          <label htmlFor="invitePerson" className="block text-xs uppercase tracking-wide text-neutral-500">
+          <label htmlFor="invitePerson" className="block text-xs uppercase tracking-wide text-muted-foreground">
             Invite
           </label>
           <select
             id="invitePerson"
             value={invitePerson}
             onChange={(event) => setInvitePerson(event.target.value)}
-            className="mt-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+            className="mt-1 rounded-md border border-border px-3 py-1.5 text-sm"
           >
             <option value="">Select someone…</option>
             {people.map((person) => (
@@ -113,14 +113,14 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
           </select>
         </div>
         <div>
-          <label htmlFor="inviteType" className="block text-xs uppercase tracking-wide text-neutral-500">
+          <label htmlFor="inviteType" className="block text-xs uppercase tracking-wide text-muted-foreground">
             As
           </label>
           <select
             id="inviteType"
             value={inviteType}
             onChange={(event) => setInviteType(event.target.value as MhdParticipantType)}
-            className="mt-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+            className="mt-1 rounded-md border border-border px-3 py-1.5 text-sm"
           >
             {MHD_PARTICIPANT_TYPES.map((type) => (
               <option key={type} value={type}>
@@ -133,7 +133,7 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
           type="button"
           disabled={invite.isPending}
           onClick={() => void submitInvite()}
-          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
+          className="rounded-md bg-accent hover:bg-accent-hover px-3 py-1.5 text-sm font-medium text-accent-on disabled:opacity-50"
         >
           {invite.isPending ? 'Inviting…' : 'Invite'}
         </button>
@@ -142,16 +142,16 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
       {error ? <p className="text-xs text-rose-600">{error}</p> : null}
 
       {participants.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading…</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-neutral-500">No participants invited yet.</p>
+        <p className="text-sm text-muted-foreground">No participants invited yet.</p>
       ) : (
-        <ul className="divide-y divide-neutral-100">
+        <ul className="divide-y divide-border">
           {rows.map((participant) => (
             <li key={participant.id} className="flex items-center justify-between py-2">
               <div>
-                <p className="text-sm text-neutral-900">{participant.personDisplayName}</p>
-                <p className="text-xs text-neutral-500">
+                <p className="text-sm text-foreground">{participant.personDisplayName}</p>
+                <p className="text-xs text-muted-foreground">
                   {mhdFormatParticipantType(participant.participantType)} ·{' '}
                   {mhdFormatParticipantStatus(participant.status)}
                 </p>
@@ -161,7 +161,7 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
                   type="button"
                   disabled={approve.isPending}
                   onClick={() => void approve.mutateAsync(participant.id)}
-                  className="rounded-md border border-neutral-300 px-3 py-1 text-sm text-neutral-700 disabled:opacity-50"
+                  className="rounded-md border border-border px-3 py-1 text-sm text-foreground disabled:opacity-50"
                 >
                   Approve
                 </button>
@@ -178,7 +178,7 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
             {outstanding.length} {outstanding.length === 1 ? 'person has' : 'people have'} not yet
             responded. Closing ends collection for everyone; their feedback can no longer be added.
           </p>
-          <label htmlFor="closeReason" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="closeReason" className="block text-sm font-medium text-foreground">
             Reason
           </label>
           <textarea
@@ -186,13 +186,13 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
             rows={2}
             value={closeReason}
             onChange={(event) => setCloseReason(event.target.value)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
           />
           <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={() => setIsClosing(false)}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
+              className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
             >
               Cancel
             </button>
@@ -200,7 +200,7 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
               type="button"
               disabled={close.isPending}
               onClick={() => void submitClose()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
+              className="rounded-md bg-accent hover:bg-accent-hover px-3 py-1.5 text-sm font-medium text-accent-on disabled:opacity-50"
             >
               {close.isPending ? 'Closing…' : 'Close collection'}
             </button>

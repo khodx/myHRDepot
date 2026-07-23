@@ -1,6 +1,12 @@
 import { Gavel, Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { mhdCanMutateConduct } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
@@ -92,17 +98,13 @@ function MhdConductCaseCreateForm({ companyId, people, onSubmit, onCancel, isSub
       </div>
 
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Opening…' : 'Open Conduct Case'}
-        </button>
+        </Button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+          className="rounded border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
         >
           Cancel
         </button>
@@ -186,227 +188,194 @@ export function MhdConductPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Conduct</h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Corrective-action records: verbal, written, and final warnings and MOUs, each generated, routed for
-              acknowledgment of receipt, and recorded with refusal as a first-class outcome.
-            </p>
-          </div>
-
-          {canMutate ? (
-            <button
-              type="button"
-              onClick={() => setIsCreating((current) => !current)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white"
-            >
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Conduct"
+        description="Corrective-action records: verbal, written, and final warnings and MOUs, each generated, routed for acknowledgment of receipt, and recorded with refusal as a first-class outcome."
+        actions={
+          canMutate ? (
+            <Button type="button" onClick={() => setIsCreating((current) => !current)} className="gap-1.5">
               <Plus className="h-4 w-4" />
               {isCreating ? 'Close Form' : 'New Case'}
-            </button>
-          ) : null}
+            </Button>
+          ) : undefined
+        }
+      />
+
+      {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
+      {casesQuery.error ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {casesQuery.error instanceof Error ? casesQuery.error.message : 'Unable to load conduct cases.'}
         </div>
+      ) : null}
 
-        {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
-        {casesQuery.error ? (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {casesQuery.error instanceof Error ? casesQuery.error.message : 'Unable to load conduct cases.'}
-          </div>
-        ) : null}
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Open</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{counts.open}</p>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Actions Outstanding</p>
-            <p className="mt-1 text-2xl font-bold text-amber-700">{counts.actionsOutstanding}</p>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Closed</p>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">{counts.closed}</p>
-          </div>
-        </div>
-
-        {isCreating && canMutate && selectedCompanyId ? (
-          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">New Conduct Case</h2>
-            <MhdConductCaseCreateForm
-              companyId={selectedCompanyId}
-              people={peopleOptions}
-              onSubmit={handleCreateCase}
-              onCancel={() => setIsCreating(false)}
-              isSubmitting={actions.createCase.isPending}
-            />
-          </section>
-        ) : null}
-
-        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="min-w-56 flex-1">
-              <label htmlFor="mhd-conduct-filter-search" className="mb-1 block text-xs font-medium text-neutral-500">
-                Search
-              </label>
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
-                <input
-                  id="mhd-conduct-filter-search"
-                  type="search"
-                  value={filters.searchTerm}
-                  onChange={(event) => update({ searchTerm: event.target.value })}
-                  placeholder="Person or reference…"
-                  className="w-full rounded border py-2 pl-8 pr-3 text-sm"
-                />
-              </div>
-            </div>
-
-            {companyOptions.length > 0 ? (
-              <div>
-                <label htmlFor="mhd-conduct-filter-company" className="mb-1 block text-xs font-medium text-neutral-500">
-                  Company
-                </label>
-                <select
-                  id="mhd-conduct-filter-company"
-                  value={filters.companyId}
-                  onChange={(event) => update({ companyId: event.target.value })}
-                  className="rounded border px-3 py-2 text-sm"
-                >
-                  <option value="ALL">All companies</option>
-                  {companyOptions.map((company) => (
-                    <option key={company.id} value={company.id}>
-                      {company.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : null}
-
-            <div>
-              <label htmlFor="mhd-conduct-filter-person" className="mb-1 block text-xs font-medium text-neutral-500">
-                Person
-              </label>
-              <select
-                id="mhd-conduct-filter-person"
-                value={filters.personId}
-                onChange={(event) => update({ personId: event.target.value })}
-                className="rounded border px-3 py-2 text-sm"
-              >
-                <option value="ALL">All people</option>
-                {peopleOptions.map((person) => (
-                  <option key={person.id} value={person.id}>
-                    {person.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="mhd-conduct-filter-category" className="mb-1 block text-xs font-medium text-neutral-500">
-                Category
-              </label>
-              <select
-                id="mhd-conduct-filter-category"
-                value={filters.category}
-                onChange={(event) => update({ category: event.target.value as MhdConductCaseFilters['category'] })}
-                className="rounded border px-3 py-2 text-sm"
-              >
-                <option value="ALL">All categories</option>
-                {MHD_CONDUCT_CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {mhdFormatConductCategory(category)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="mhd-conduct-filter-status" className="mb-1 block text-xs font-medium text-neutral-500">
-                Status
-              </label>
-              <select
-                id="mhd-conduct-filter-status"
-                value={filters.status}
-                onChange={(event) => update({ status: event.target.value as MhdConductCaseFilters['status'] })}
-                className="rounded border px-3 py-2 text-sm"
-              >
-                <option value="ALL">All statuses</option>
-                {MHD_CONDUCT_CASE_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {mhdFormatConductCaseStatus(status)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                setFilters({
-                  ...DEFAULT_FILTERS,
-                  companyId: companyOptions.length > 0 ? 'ALL' : filters.companyId,
-                })
-              }
-              className="rounded border px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50"
-            >
-              Clear
-            </button>
-          </div>
-        </section>
-
-        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-          {casesQuery.isLoading ? (
-            <div className="flex h-40 items-center justify-center text-sm text-slate-500">Loading conduct cases…</div>
-          ) : cases.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-neutral-400">
-              <Gavel className="mb-2 h-8 w-8" />
-              <p className="text-sm">No conduct cases match the current filters.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-neutral-500">
-                    <th className="py-2 pr-4">Case</th>
-                    <th className="py-2 pr-4">Category</th>
-                    <th className="py-2 pr-4">Status</th>
-                    <th className="py-2 pr-4">Actions</th>
-                    <th className="py-2 pr-4">Opened</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cases.map((conductCase) => (
-                    <tr key={conductCase.id} className="border-b last:border-0 hover:bg-neutral-50">
-                      <td className="py-2 pr-4">
-                        <Link
-                          to={`/conduct/${conductCase.id}`}
-                          state={{ companyId: effectiveFilters.companyId }}
-                          className="font-medium hover:underline"
-                        >
-                          {conductCase.personDisplayName ?? 'Unknown person'}
-                        </Link>
-                        <div className="text-xs text-neutral-400">{conductCase.referenceId}</div>
-                      </td>
-                      <td className="py-2 pr-4 text-neutral-600">{mhdFormatConductCategory(conductCase.category)}</td>
-                      <td className="py-2 pr-4">
-                        <MhdConductCaseStatusBadge status={conductCase.status} />
-                      </td>
-                      <td className="py-2 pr-4 text-neutral-600">
-                        {conductCase.terminalCount} / {conductCase.actionCount} terminal
-                      </td>
-                      <td className="py-2 pr-4 text-neutral-600">
-                        {new Date(conductCase.createdAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+      <div className="grid gap-4 md:grid-cols-3">
+        <MhdCard>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Open</p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{counts.open}</p>
+        </MhdCard>
+        <MhdCard>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Actions Outstanding</p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-amber-700">{counts.actionsOutstanding}</p>
+        </MhdCard>
+        <MhdCard>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Closed</p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-700">{counts.closed}</p>
+        </MhdCard>
       </div>
-    </main>
+
+      {isCreating && canMutate && selectedCompanyId ? (
+        <MhdCard>
+          <MhdCardHeader title="New Conduct Case" />
+          <MhdConductCaseCreateForm
+            companyId={selectedCompanyId}
+            people={peopleOptions}
+            onSubmit={handleCreateCase}
+            onCancel={() => setIsCreating(false)}
+            isSubmitting={actions.createCase.isPending}
+          />
+        </MhdCard>
+      ) : null}
+
+      <MhdCard className="flex flex-wrap items-end gap-3">
+        <div className="min-w-56 flex-1">
+          <label htmlFor="mhd-conduct-filter-search" className="mb-1 block text-xs font-medium text-muted-foreground">
+            Search
+          </label>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <input
+              id="mhd-conduct-filter-search"
+              type="search"
+              value={filters.searchTerm}
+              onChange={(event) => update({ searchTerm: event.target.value })}
+              placeholder="Person or reference…"
+              className="w-full rounded-md border border-border bg-card py-2 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            />
+          </div>
+        </div>
+
+        {companyOptions.length > 0 ? (
+          <MhdFilterSelect
+            label="Company"
+            id="mhd-conduct-filter-company"
+            value={filters.companyId}
+            onChange={(event) => update({ companyId: event.target.value })}
+          >
+            <option value="ALL">All companies</option>
+            {companyOptions.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.label}
+              </option>
+            ))}
+          </MhdFilterSelect>
+        ) : null}
+
+        <MhdFilterSelect
+          label="Person"
+          id="mhd-conduct-filter-person"
+          value={filters.personId}
+          onChange={(event) => update({ personId: event.target.value })}
+        >
+          <option value="ALL">All people</option>
+          {peopleOptions.map((person) => (
+            <option key={person.id} value={person.id}>
+              {person.label}
+            </option>
+          ))}
+        </MhdFilterSelect>
+
+        <MhdFilterSelect
+          label="Category"
+          id="mhd-conduct-filter-category"
+          value={filters.category}
+          onChange={(event) => update({ category: event.target.value as MhdConductCaseFilters['category'] })}
+        >
+          <option value="ALL">All categories</option>
+          {MHD_CONDUCT_CATEGORIES.map((category) => (
+            <option key={category} value={category}>
+              {mhdFormatConductCategory(category)}
+            </option>
+          ))}
+        </MhdFilterSelect>
+
+        <MhdFilterSelect
+          label="Status"
+          id="mhd-conduct-filter-status"
+          value={filters.status}
+          onChange={(event) => update({ status: event.target.value as MhdConductCaseFilters['status'] })}
+        >
+          <option value="ALL">All statuses</option>
+          {MHD_CONDUCT_CASE_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {mhdFormatConductCaseStatus(status)}
+            </option>
+          ))}
+        </MhdFilterSelect>
+
+        <button
+          type="button"
+          onClick={() =>
+            setFilters({
+              ...DEFAULT_FILTERS,
+              companyId: companyOptions.length > 0 ? 'ALL' : filters.companyId,
+            })
+          }
+          className="pb-2 text-[13px] font-medium text-accent hover:text-accent-hover"
+        >
+          Clear
+        </button>
+      </MhdCard>
+
+      {casesQuery.isLoading ? (
+        <MhdCard className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+          Loading conduct cases…
+        </MhdCard>
+      ) : cases.length === 0 ? (
+        <MhdCard className="border-dashed">
+          <MhdEmptyState icon={Gavel} title="No conduct cases found" description="No conduct cases match the current filters." />
+        </MhdCard>
+      ) : (
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
+            <thead>
+              <tr>
+                <MhdTh>Case</MhdTh>
+                <MhdTh>Category</MhdTh>
+                <MhdTh>Status</MhdTh>
+                <MhdTh>Actions</MhdTh>
+                <MhdTh>Opened</MhdTh>
+              </tr>
+            </thead>
+            <tbody>
+              {cases.map((conductCase) => (
+                <MhdTr key={conductCase.id}>
+                  <MhdTd>
+                    <Link
+                      to={`/conduct/${conductCase.id}`}
+                      state={{ companyId: effectiveFilters.companyId }}
+                      className="font-medium text-accent hover:text-accent-hover"
+                    >
+                      {conductCase.personDisplayName ?? 'Unknown person'}
+                    </Link>
+                    <div className="text-xs text-muted-foreground">{conductCase.referenceId}</div>
+                  </MhdTd>
+                  <MhdTd className="text-muted-foreground">{mhdFormatConductCategory(conductCase.category)}</MhdTd>
+                  <MhdTd>
+                    <MhdConductCaseStatusBadge status={conductCase.status} />
+                  </MhdTd>
+                  <MhdTd className="text-muted-foreground">
+                    {conductCase.terminalCount} / {conductCase.actionCount} terminal
+                  </MhdTd>
+                  <MhdTd className="text-muted-foreground">
+                    {new Date(conductCase.createdAt).toLocaleDateString()}
+                  </MhdTd>
+                </MhdTr>
+              ))}
+            </tbody>
+          </MhdTable>
+        </MhdCard>
+      )}
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -127,13 +128,13 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
 
   if (!token) {
     return (
-      <main className="min-h-screen bg-slate-50 px-6 py-10">
+      <main className="min-h-screen bg-muted px-6 py-10">
         <div className="mx-auto max-w-2xl rounded-3xl border border-rose-200 bg-card p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-rose-700">
             Apply Link Unavailable
           </p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">This apply link cannot be used</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
+          <h1 className="mt-2 text-3xl font-bold text-foreground">This apply link cannot be used</h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
             No application token was provided. Please use the link from your invitation email.
           </p>
         </div>
@@ -142,14 +143,14 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10">
+    <main className="min-h-screen bg-muted px-6 py-10">
       <div className="mx-auto max-w-3xl space-y-6">
-        <section className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-sky-700">
+        <section className="rounded-3xl border border-border bg-card p-8 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">
             My HR Depot Application
           </p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">Complete your application</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
+          <h1 className="mt-2 text-3xl font-bold text-foreground">Complete your application</h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
             Tell us a little about what you're looking for. All fields are optional.
           </p>
 
@@ -170,7 +171,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                 <div>
                   <label
                     htmlFor="desiredPayRate"
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-foreground"
                   >
                     Desired pay rate
                   </label>
@@ -180,7 +181,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                     min={0}
                     step="0.01"
                     {...applyForm.register('desiredPayRate')}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                   />
                   {applyForm.formState.errors.desiredPayRate ? (
                     <p className="mt-1 text-xs text-rose-600">
@@ -192,7 +193,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                 <div>
                   <label
                     htmlFor="availabilityDate"
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-foreground"
                   >
                     Available from
                   </label>
@@ -200,7 +201,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                     id="availabilityDate"
                     type="date"
                     {...applyForm.register('availabilityDate')}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                   />
                 </div>
               </div>
@@ -208,7 +209,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
               <div>
                 <label
                   htmlFor="employmentTypeDesired"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-foreground"
                 >
                   Employment type desired
                 </label>
@@ -217,19 +218,19 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                   type="text"
                   placeholder="e.g. Full-time"
                   {...applyForm.register('employmentTypeDesired')}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </div>
 
               <div>
-                <label htmlFor="coverNote" className="block text-sm font-medium text-slate-700">
+                <label htmlFor="coverNote" className="block text-sm font-medium text-foreground">
                   Cover note
                 </label>
                 <textarea
                   id="coverNote"
                   rows={5}
                   {...applyForm.register('coverNote')}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </div>
 
@@ -239,13 +240,9 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                 </div>
               ) : null}
 
-              <button
-                type="submit"
-                disabled={isSubmittingApplication}
-                className="inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-neutral-50 disabled:cursor-not-allowed disabled:bg-slate-400"
-              >
+              <Button type="submit" disabled={isSubmittingApplication}>
                 {isSubmittingApplication ? 'Submitting…' : 'Submit application'}
-              </button>
+              </Button>
             </form>
           )}
         </section>
@@ -253,14 +250,14 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
         {/* Voluntary EEO self-identification. Separate submission; writes ONLY to
             the restricted partition. Available before or after the application
             (the token is not burned by submit). */}
-        <section className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
+        <section className="rounded-3xl border border-border bg-card p-8 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-muted-foreground">
             Voluntary Self-Identification
           </p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-900">
+          <h2 className="mt-2 text-2xl font-bold text-foreground">
             Equal employment opportunity (optional)
           </h2>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
             Providing this information is entirely voluntary. It is kept confidential, is used only
             for aggregate reporting, and is <strong>not</strong> shared with the people reviewing
             your application. Declining will not affect you in any way.
@@ -276,14 +273,14 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                 <div>
                   <label
                     htmlFor="raceEthnicity"
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-foreground"
                   >
                     Race / ethnicity
                   </label>
                   <select
                     id="raceEthnicity"
                     {...eeoForm.register('raceEthnicity')}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                   >
                     <option value="">Prefer not to answer</option>
                     {MHD_RECRUITING_EEO_RACE_ETHNICITIES.map((option) => (
@@ -295,13 +292,13 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                 </div>
 
                 <div>
-                  <label htmlFor="gender" className="block text-sm font-medium text-slate-700">
+                  <label htmlFor="gender" className="block text-sm font-medium text-foreground">
                     Gender
                   </label>
                   <select
                     id="gender"
                     {...eeoForm.register('gender')}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                   >
                     <option value="">Prefer not to answer</option>
                     {MHD_RECRUITING_EEO_GENDERS.map((option) => (
@@ -315,14 +312,14 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                 <div>
                   <label
                     htmlFor="veteranStatus"
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-foreground"
                   >
                     Veteran status
                   </label>
                   <select
                     id="veteranStatus"
                     {...eeoForm.register('veteranStatus')}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                   >
                     <option value="">Prefer not to answer</option>
                     {MHD_RECRUITING_EEO_VETERAN_STATUSES.map((option) => (
@@ -336,14 +333,14 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                 <div>
                   <label
                     htmlFor="disabilityStatus"
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-foreground"
                   >
                     Disability status
                   </label>
                   <select
                     id="disabilityStatus"
                     {...eeoForm.register('disabilityStatus')}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                   >
                     <option value="">Prefer not to answer</option>
                     {MHD_RECRUITING_EEO_DISABILITY_STATUSES.map((option) => (
@@ -355,7 +352,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                 </div>
               </div>
 
-              <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+              <label className="flex items-start gap-3 rounded-2xl border border-border bg-muted p-4 text-sm text-foreground">
                 <input type="checkbox" {...eeoForm.register('declined')} className="mt-0.5" />
                 <span>I decline to provide this information.</span>
               </label>
@@ -366,18 +363,14 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                 </div>
               ) : null}
 
-              <button
-                type="submit"
-                disabled={isSubmittingEeo}
-                className="inline-flex rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:text-slate-400"
-              >
+              <Button variant="secondary" type="submit" disabled={isSubmittingEeo}>
                 {isSubmittingEeo ? 'Submitting…' : 'Submit self-identification'}
-              </button>
+              </Button>
             </form>
           )}
         </section>
 
-        <p className="text-center text-xs text-slate-500">
+        <p className="text-center text-xs text-muted-foreground">
           Powered by My HR Depot. This is a secure, invitation-only application link.
         </p>
       </div>

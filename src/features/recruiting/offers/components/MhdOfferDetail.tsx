@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/Button';
 import {
   useMhdAcceptOffer,
   useMhdDeclineOffer,
@@ -56,8 +57,8 @@ function defaultBuildSignatureUrl(esignatureRequestId: string): string {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4 py-1.5">
-      <dt className="text-sm text-neutral-500">{label}</dt>
-      <dd className="text-right text-sm font-medium text-neutral-900">{value}</dd>
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className="text-right text-sm font-medium text-foreground">{value}</dd>
     </div>
   );
 }
@@ -98,7 +99,7 @@ export function MhdOfferDetail({
   const [handoff, setHandoff] = useState<MhdOfferAcceptResult | null>(null);
 
   if (offer.isLoading) {
-    return <p className="text-sm text-neutral-500">Loading offer…</p>;
+    return <p className="text-sm text-muted-foreground">Loading offer…</p>;
   }
   if (offer.isError) {
     return (
@@ -108,7 +109,7 @@ export function MhdOfferDetail({
     );
   }
   if (!offer.data) {
-    return <p className="text-sm text-neutral-500">Offer not found.</p>;
+    return <p className="text-sm text-muted-foreground">Offer not found.</p>;
   }
 
   const o: MhdOfferDetailModel = offer.data;
@@ -163,13 +164,13 @@ export function MhdOfferDetail({
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-neutral-900">{o.jobTitle}</h2>
-          <p className="font-mono text-xs text-neutral-400">{o.referenceId}</p>
+          <h2 className="text-base font-semibold text-foreground">{o.jobTitle}</h2>
+          <p className="font-mono text-xs text-muted-foreground">{o.referenceId}</p>
         </div>
         <MhdOfferStatusBadge status={o.status} />
       </header>
 
-      <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 px-4 py-2">
+      <dl className="divide-y divide-border rounded-md border border-border px-4 py-2">
         <DetailRow label="Start date" value={o.startDate ?? '—'} />
         <DetailRow label="Base salary" value={salaryText} />
         <DetailRow label="Pay frequency" value={o.payFrequency ?? '—'} />
@@ -180,14 +181,14 @@ export function MhdOfferDetail({
 
       {/* EXTENDED: the e-sign link (soft-linked signature request, created app-layer). */}
       {o.status === 'EXTENDED' && o.esignatureRequestId ? (
-        <div className="space-y-1 rounded-md border border-blue-200 bg-blue-50 p-3">
-          <p className="text-sm font-medium text-blue-800">Signature request</p>
-          <p className="text-xs text-blue-700">
+        <div className="space-y-1 rounded-md border border-accent/30 bg-accent-tint p-3">
+          <p className="text-sm font-medium text-accent-hover">Signature request</p>
+          <p className="text-xs text-accent">
             The offer is out for signature. Acceptance is gated on this completing.
           </p>
           <a
             href={signatureUrl}
-            className="break-all font-mono text-xs text-blue-700 underline"
+            className="break-all font-mono text-xs text-accent underline hover:text-accent-hover"
             target="_blank"
             rel="noreferrer"
           >
@@ -237,23 +238,18 @@ export function MhdOfferDetail({
 
       {/* Terminal decline / rescind — show the recorded reason. */}
       {(o.status === 'DECLINED' || o.status === 'RESCINDED') && o.declineReason ? (
-        <div className="rounded-md border border-neutral-200 bg-neutral-50 p-3">
-          <p className="text-sm font-medium text-neutral-700">
+        <div className="rounded-md border border-border bg-muted p-3">
+          <p className="text-sm font-medium text-foreground">
             {o.status === 'DECLINED' ? 'Declined' : 'Rescinded'}
           </p>
-          <p className="mt-0.5 text-sm text-neutral-600">{o.declineReason}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{o.declineReason}</p>
         </div>
       ) : null}
 
       {/* Actions. */}
       <div className="flex flex-wrap gap-2">
         {canExtend ? (
-          <button
-            type="button"
-            onClick={() => void handleExtend()}
-            disabled={isExtending}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-          >
+          <Button onClick={() => void handleExtend()} disabled={isExtending}>
             {ceremonyStep === 'document'
               ? 'Preparing document…'
               : ceremonyStep === 'signature'
@@ -261,7 +257,7 @@ export function MhdOfferDetail({
                 : extend.isPending
                   ? 'Extending…'
                   : 'Extend offer'}
-          </button>
+          </Button>
         ) : null}
 
         {canAccept ? (
@@ -279,7 +275,7 @@ export function MhdOfferDetail({
           <button
             type="button"
             onClick={() => setDialog('decline')}
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground"
           >
             Decline
           </button>
@@ -384,22 +380,22 @@ function OfferReasonDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-      <div className="w-full max-w-md overflow-y-auto rounded-lg bg-card p-6">
-        <h2 className="text-base font-semibold text-neutral-900">{title}</h2>
-        <p className="mt-1 text-sm text-neutral-600">{subtitle}</p>
+      <div className="w-full max-w-md overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
           <input type="hidden" {...register('offerId')} readOnly />
 
           <div>
-            <label htmlFor="offerReason" className="block text-sm font-medium text-neutral-700">
-              Reason <span className="font-normal text-neutral-500">(optional)</span>
+            <label htmlFor="offerReason" className="block text-sm font-medium text-foreground">
+              Reason <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <textarea
               id="offerReason"
               rows={3}
               {...register('reason')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             />
             {errors.reason ? (
               <p className="mt-1 text-xs text-rose-600">{errors.reason.message}</p>
@@ -416,7 +412,7 @@ function OfferReasonDialog({
             <button
               type="button"
               onClick={onCancel}
-              className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground"
             >
               Cancel
             </button>

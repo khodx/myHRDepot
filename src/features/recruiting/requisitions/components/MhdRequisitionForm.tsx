@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { mhdRequisitionFormSchema, type MhdRequisitionFormValues } from '../Schemas';
@@ -70,7 +71,7 @@ export function MhdRequisitionForm({
       <input type="hidden" value={companyId} {...register('companyId')} readOnly />
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="title" className="block text-sm font-medium text-foreground">
           Title
         </label>
         <input
@@ -78,7 +79,7 @@ export function MhdRequisitionForm({
           type="text"
           {...register('title')}
           placeholder="e.g. Senior Payroll Specialist"
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
         {errors.title ? (
           <p className="mt-1 text-xs text-rose-600">{errors.title.message}</p>
@@ -87,13 +88,13 @@ export function MhdRequisitionForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="jobId" className="block text-sm font-medium text-neutral-700">
-            Job <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="jobId" className="block text-sm font-medium text-foreground">
+            Job <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <select
             id="jobId"
             {...register('jobId')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
             <option value="">No job selected</option>
             {(jobs ?? []).map((job) => (
@@ -102,7 +103,7 @@ export function MhdRequisitionForm({
               </option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             Links the JD and its competencies; needed for package-2 interview questions.
           </p>
         </div>
@@ -110,14 +111,14 @@ export function MhdRequisitionForm({
         <div>
           <label
             htmlFor="hiringManagerPersonId"
-            className="block text-sm font-medium text-neutral-700"
+            className="block text-sm font-medium text-foreground"
           >
-            Hiring manager <span className="font-normal text-neutral-500">(optional)</span>
+            Hiring manager <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <select
             id="hiringManagerPersonId"
             {...register('hiringManagerPersonId')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
             <option value="">No hiring manager</option>
             {hiringManagers.map((person) => (
@@ -126,7 +127,7 @@ export function MhdRequisitionForm({
               </option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             Grants that person read access to their own requisition.
           </p>
         </div>
@@ -134,49 +135,49 @@ export function MhdRequisitionForm({
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label htmlFor="department" className="block text-sm font-medium text-neutral-700">
-            Department <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="department" className="block text-sm font-medium text-foreground">
+            Department <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="department"
             type="text"
             {...register('department')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
 
         <div>
-          <label htmlFor="location" className="block text-sm font-medium text-neutral-700">
-            Location <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="location" className="block text-sm font-medium text-foreground">
+            Location <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="location"
             type="text"
             {...register('location')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
 
         <div>
           <label
             htmlFor="employmentType"
-            className="block text-sm font-medium text-neutral-700"
+            className="block text-sm font-medium text-foreground"
           >
-            Employment type <span className="font-normal text-neutral-500">(optional)</span>
+            Employment type <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="employmentType"
             type="text"
             {...register('employmentType')}
             placeholder="e.g. Full-time"
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="headcount" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="headcount" className="block text-sm font-medium text-foreground">
             Headcount
           </label>
           <input
@@ -185,7 +186,7 @@ export function MhdRequisitionForm({
             min={1}
             step={1}
             {...register('headcount')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
           {errors.headcount ? (
             <p className="mt-1 text-xs text-rose-600">{errors.headcount.message}</p>
@@ -197,11 +198,11 @@ export function MhdRequisitionForm({
             id="requiresApproval"
             type="checkbox"
             {...register('requiresApproval')}
-            className="mt-1 h-4 w-4 rounded border-neutral-300"
+            className="mt-1 h-4 w-4 rounded border-border"
           />
-          <label htmlFor="requiresApproval" className="text-sm text-neutral-700">
+          <label htmlFor="requiresApproval" className="text-sm text-foreground">
             Requires approval
-            <span className="block text-xs font-normal text-neutral-500">
+            <span className="block text-xs font-normal text-muted-foreground">
               When set, opening the requisition runs an approval before it can accept applicants.
             </span>
           </label>
@@ -212,17 +213,13 @@ export function MhdRequisitionForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+          className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground"
         >
           Cancel
         </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Creating…' : 'Create requisition'}
-        </button>
+        </Button>
       </div>
     </form>
   );

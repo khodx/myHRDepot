@@ -50,9 +50,9 @@ export function MhdRejectDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-      <div className="w-full max-w-md overflow-y-auto rounded-lg bg-card p-6">
-        <h2 className="text-base font-semibold text-neutral-900">Reject application</h2>
-        <p className="mt-1 text-sm text-neutral-600">
+      <div className="w-full max-w-md overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-foreground">Reject application</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           {application.personDisplayName} · {application.referenceId}
         </p>
 
@@ -60,13 +60,13 @@ export function MhdRejectDialog({
           <input type="hidden" {...register('applicationId')} readOnly />
 
           <div>
-            <label htmlFor="reasonId" className="block text-sm font-medium text-neutral-700">
-              Reason <span className="font-normal text-neutral-500">(optional)</span>
+            <label htmlFor="reasonId" className="block text-sm font-medium text-foreground">
+              Reason <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <select
               id="reasonId"
               {...register('reasonId')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             >
               <option value="">No reason selected</option>
               {reasons.map((reason) => (
@@ -81,14 +81,14 @@ export function MhdRejectDialog({
           </div>
 
           <div>
-            <label htmlFor="note" className="block text-sm font-medium text-neutral-700">
-              Note <span className="font-normal text-neutral-500">(optional)</span>
+            <label htmlFor="note" className="block text-sm font-medium text-foreground">
+              Note <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <textarea
               id="note"
               rows={3}
               {...register('note')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             />
             {errors.note ? (
               <p className="mt-1 text-xs text-rose-600">{errors.note.message}</p>
@@ -99,7 +99,7 @@ export function MhdRejectDialog({
             <button
               type="button"
               onClick={onCancel}
-              className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground"
             >
               Cancel
             </button>

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { useMhdAssignJob, useMhdJobAssignments, useMhdJobs, useMhdJobsPeople } from '../Hook';
 import { MhdFlsaBadge } from './MhdFlsaBadge';
 
@@ -56,24 +58,20 @@ export function MhdJobAssignmentPanel({ companyId, personId, canAssign }: Props)
   return (
     <section className="space-y-4">
       <header className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-neutral-900">Job</h2>
+        <h2 className="text-base font-semibold text-foreground">Job</h2>
         {canAssign ? (
-          <button
-            type="button"
-            onClick={() => setIsAssigning((previous) => !previous)}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
-          >
+          <Button variant="secondary" onClick={() => setIsAssigning((previous) => !previous)}>
             {isAssigning ? 'Cancel' : current ? 'Change job' : 'Assign job'}
-          </button>
+          </Button>
         ) : null}
       </header>
 
       {assignments.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading…</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       ) : current ? (
-        <div className="rounded-md border border-neutral-200 p-4">
-          <p className="text-sm font-medium text-neutral-900">{current.jobTitle}</p>
-          <p className="mt-0.5 text-xs text-neutral-500">
+        <MhdCard>
+          <p className="text-sm font-medium text-foreground">{current.jobTitle}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             {current.jobReference} · since {current.effectiveFrom}
           </p>
           <div className="mt-2">
@@ -82,23 +80,23 @@ export function MhdJobAssignmentPanel({ companyId, personId, canAssign }: Props)
               isSafetySensitive={current.isSafetySensitive}
             />
           </div>
-        </div>
+        </MhdCard>
       ) : (
-        <p className="text-sm text-neutral-500">No job assigned.</p>
+        <p className="text-sm text-muted-foreground">No job assigned.</p>
       )}
 
       {isAssigning && canAssign ? (
-        <div className="space-y-3 rounded-md border border-neutral-200 p-4">
+        <MhdCard className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="assignJob" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="assignJob" className="block text-sm font-medium text-foreground">
                 Job
               </label>
               <select
                 id="assignJob"
                 value={jobId}
                 onChange={(event) => setJobId(event.target.value)}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 <option value="">Select…</option>
                 {(jobs.data ?? [])
@@ -111,7 +109,7 @@ export function MhdJobAssignmentPanel({ companyId, personId, canAssign }: Props)
               </select>
             </div>
             <div>
-              <label htmlFor="assignFrom" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="assignFrom" className="block text-sm font-medium text-foreground">
                 Effective from
               </label>
               <input
@@ -119,20 +117,20 @@ export function MhdJobAssignmentPanel({ companyId, personId, canAssign }: Props)
                 type="date"
                 value={effectiveFrom}
                 onChange={(event) => setEffectiveFrom(event.target.value)}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="assignManager" className="block text-sm font-medium text-neutral-700">
-              Reports to <span className="font-normal text-neutral-500">(optional)</span>
+            <label htmlFor="assignManager" className="block text-sm font-medium text-foreground">
+              Reports to <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <select
               id="assignManager"
               value={managerPersonId}
               onChange={(event) => setManagerPersonId(event.target.value)}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <option value="">Nobody recorded</option>
               {(people.data ?? [])
@@ -146,7 +144,7 @@ export function MhdJobAssignmentPanel({ companyId, personId, canAssign }: Props)
           </div>
 
           {current ? (
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-muted-foreground">
               The current assignment will be closed the day before this date. Nothing already
               recorded against it changes.
             </p>
@@ -154,24 +152,19 @@ export function MhdJobAssignmentPanel({ companyId, personId, canAssign }: Props)
           {error ? <p className="text-xs text-rose-600">{error}</p> : null}
 
           <div className="flex justify-end">
-            <button
-              type="button"
-              disabled={assign.isPending}
-              onClick={() => void submit()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
-            >
+            <Button disabled={assign.isPending} onClick={() => void submit()}>
               {assign.isPending ? 'Saving…' : 'Assign'}
-            </button>
+            </Button>
           </div>
-        </div>
+        </MhdCard>
       ) : null}
 
       {history.length > 0 ? (
         <details>
-          <summary className="cursor-pointer text-xs text-neutral-500">
+          <summary className="cursor-pointer text-xs text-muted-foreground">
             Previous jobs ({history.length})
           </summary>
-          <ul className="mt-2 space-y-1 text-sm text-neutral-600">
+          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
             {history.map((assignment) => (
               <li key={assignment.id}>
                 {assignment.jobTitle}: {assignment.effectiveFrom} → {assignment.effectiveTo}

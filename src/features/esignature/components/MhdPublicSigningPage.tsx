@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CheckCircle2, CircleAlert, FileSignature, ShieldCheck } from 'lucide-react';
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { mhdEsignatureService } from '../Service';
 import {
   mhdBuildGoogleDrivePreviewUrl,
@@ -158,56 +160,56 @@ export function MhdPublicSigningPage() {
 
   if (!token) {
     return (
-      <main className="min-h-screen bg-slate-50 px-6 py-10">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-rose-200 bg-card p-8 shadow-sm">
+      <main className="min-h-screen bg-muted px-6 py-10">
+        <MhdCard className="mx-auto max-w-3xl rounded-3xl border-rose-200 p-8">
           <div className="flex items-start gap-3">
             <CircleAlert className="mt-1 h-6 w-6 text-rose-600" />
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-rose-700">Signing Link Unavailable</p>
-              <h1 className="mt-2 text-3xl font-bold text-slate-900">This signing link cannot be used</h1>
-              <p className="mt-3 text-sm leading-6 text-slate-600">No signing token was provided.</p>
+              <h1 className="mt-2 text-3xl font-bold text-foreground">This signing link cannot be used</h1>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">No signing token was provided.</p>
             </div>
           </div>
-        </div>
+        </MhdCard>
       </main>
     );
   }
 
   if (isLoading) {
-    return <div className="flex min-h-screen items-center justify-center text-sm text-slate-500">Loading signing ceremony...</div>;
+    return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading signing ceremony...</div>;
   }
 
   if (loadError || !request) {
     return (
-      <main className="min-h-screen bg-slate-50 px-6 py-10">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-rose-200 bg-card p-8 shadow-sm">
+      <main className="min-h-screen bg-muted px-6 py-10">
+        <MhdCard className="mx-auto max-w-3xl rounded-3xl border-rose-200 p-8">
           <div className="flex items-start gap-3">
             <CircleAlert className="mt-1 h-6 w-6 text-rose-600" />
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-rose-700">Signing Link Unavailable</p>
-              <h1 className="mt-2 text-3xl font-bold text-slate-900">This signing link cannot be used</h1>
-              <p className="mt-3 text-sm leading-6 text-slate-600">{loadError ?? 'The signing request could not be loaded.'}</p>
+              <h1 className="mt-2 text-3xl font-bold text-foreground">This signing link cannot be used</h1>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{loadError ?? 'The signing request could not be loaded.'}</p>
             </div>
           </div>
-        </div>
+        </MhdCard>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10">
+    <main className="min-h-screen bg-muted px-6 py-10">
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-          <section className="rounded-3xl border border-slate-200 bg-card p-6 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-sky-700">My HR Depot Signature Request</p>
-            <h1 className="mt-2 text-3xl font-bold text-slate-900">{request.documentName}</h1>
+          <MhdCard className="rounded-3xl p-6">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">My HR Depot Signature Request</p>
+            <h1 className="mt-2 text-3xl font-bold text-foreground">{request.documentName}</h1>
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-neutral-50">{request.referenceId}</span>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{request.requestStatus}</span>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Signer {request.signerOrderPosition}</span>
+              <MhdBadge variant="accent">{request.referenceId}</MhdBadge>
+              <MhdBadge variant="neutral">{request.requestStatus}</MhdBadge>
+              <MhdBadge variant="neutral">Signer {request.signerOrderPosition}</MhdBadge>
             </div>
 
-            <div className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+            <div className="mt-5 grid gap-3 rounded-2xl border border-border bg-muted p-4 text-sm text-foreground">
               <p><span className="font-semibold">Signer:</span> {request.signerName}</p>
               <p><span className="font-semibold">Disclosure version:</span> {request.disclosureVersion}</p>
               <p className="break-all font-mono text-xs">
@@ -216,7 +218,7 @@ export function MhdPublicSigningPage() {
             </div>
 
             {previewUrl ? (
-              <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200">
+              <div className="mt-6 overflow-hidden rounded-2xl border border-border">
                 <iframe
                   title="Document preview"
                   src={previewUrl}
@@ -231,32 +233,32 @@ export function MhdPublicSigningPage() {
                   href={completedCopyUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
+                  className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
                 >
                   Open Document in Google Drive
                 </a>
               </div>
             ) : null}
-          </section>
+          </MhdCard>
 
           <section className="space-y-6">
             {actionMessage ? <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{actionMessage}</div> : null}
             {actionError ? <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{actionError}</div> : null}
 
             {terminal ? (
-              <div className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
+              <MhdCard className="rounded-3xl p-8">
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="mt-1 h-6 w-6 text-emerald-600" />
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-700">Signing Ceremony Complete</p>
-                    <h2 className="mt-2 text-2xl font-bold text-slate-900">
+                    <h2 className="mt-2 text-2xl font-bold text-foreground">
                       {request.requestStatus === 'DECLINED' || request.signerStatus === 'DECLINED'
                         ? 'This request was declined'
                         : request.requestStatus === 'COMPLETED'
                           ? 'The signed record is complete'
                           : 'Your signing action has been recorded'}
                     </h2>
-                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
                       {request.requestStatus === 'COMPLETED'
                         ? 'A completed copy is available below.'
                         : 'No further action is required on this token.'}
@@ -266,50 +268,50 @@ export function MhdPublicSigningPage() {
                         href={completedCopyUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-4 inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-neutral-50"
+                        className="mt-4 inline-flex rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover"
                       >
                         Open Completed Copy
                       </a>
                     ) : null}
                   </div>
                 </div>
-              </div>
+              </MhdCard>
             ) : !consentRecorded ? (
-              <div className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
+              <MhdCard className="rounded-3xl p-8">
                 <div className="flex items-start gap-3">
-                  <ShieldCheck className="mt-1 h-6 w-6 text-sky-700" />
+                  <ShieldCheck className="mt-1 h-6 w-6 text-accent" />
                   <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.22em] text-sky-700">Step 1 of 2</p>
-                    <h2 className="mt-2 text-2xl font-bold text-slate-900">Consent to electronic records</h2>
-                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                    <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Step 1 of 2</p>
+                    <h2 className="mt-2 text-2xl font-bold text-foreground">Consent to electronic records</h2>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
                       Review the disclosure below and confirm each acknowledgement before the signing controls are shown.
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Disclosure text</p>
-                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">{request.disclosureText}</p>
+                <div className="mt-6 rounded-2xl border border-border bg-muted p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Disclosure text</p>
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground">{request.disclosureText}</p>
                 </div>
 
                 <div className="mt-6 space-y-3">
-                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-card p-4 text-sm text-slate-700">
+                  <label className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 text-sm text-foreground">
                     <input type="checkbox" checked={consent.consentedToElectronicRecords} onChange={(event) => setConsent((current) => ({ ...current, consentedToElectronicRecords: event.target.checked }))} />
                     <span>I consent to receive and keep this record electronically.</span>
                   </label>
-                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-card p-4 text-sm text-slate-700">
+                  <label className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 text-sm text-foreground">
                     <input type="checkbox" checked={consent.acknowledgedHardwareRequirements} onChange={(event) => setConsent((current) => ({ ...current, acknowledgedHardwareRequirements: event.target.checked }))} />
                     <span>I can access the required hardware, software, and internet connection to review and retain this record.</span>
                   </label>
-                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-card p-4 text-sm text-slate-700">
+                  <label className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 text-sm text-foreground">
                     <input type="checkbox" checked={consent.acknowledgedPaperCopyRight} onChange={(event) => setConsent((current) => ({ ...current, acknowledgedPaperCopyRight: event.target.checked }))} />
                     <span>I understand that I may request a paper copy from the sender.</span>
                   </label>
-                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-card p-4 text-sm text-slate-700">
+                  <label className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 text-sm text-foreground">
                     <input type="checkbox" checked={consent.acknowledgedWithdrawalRight} onChange={(event) => setConsent((current) => ({ ...current, acknowledgedWithdrawalRight: event.target.checked }))} />
                     <span>I understand that I may withdraw consent before signing and decline this electronic transaction.</span>
                   </label>
-                  <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-card p-4 text-sm text-slate-700">
+                  <label className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 text-sm text-foreground">
                     <input type="checkbox" checked={consent.agreedToUseElectronicSignature} onChange={(event) => setConsent((current) => ({ ...current, agreedToUseElectronicSignature: event.target.checked }))} />
                     <span>I agree to use an electronic signature for this document.</span>
                   </label>
@@ -319,36 +321,36 @@ export function MhdPublicSigningPage() {
                   type="button"
                   onClick={() => void handleCaptureConsent()}
                   disabled={!isConsentComplete(consent) || isSubmittingConsent}
-                  className="mt-6 inline-flex rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+                  className="mt-6 inline-flex rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isSubmittingConsent ? 'Recording consent...' : 'Continue to Signing'}
                 </button>
-              </div>
+              </MhdCard>
             ) : (
               <div className="space-y-6">
-                <div className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
+                <MhdCard className="rounded-3xl p-8">
                   <div className="flex items-start gap-3">
-                    <FileSignature className="mt-1 h-6 w-6 text-sky-700" />
+                    <FileSignature className="mt-1 h-6 w-6 text-accent" />
                     <div>
-                      <p className="text-sm font-semibold uppercase tracking-[0.22em] text-sky-700">Step 2 of 2</p>
-                      <h2 className="mt-2 text-2xl font-bold text-slate-900">Type your signature and confirm intent</h2>
-                      <p className="mt-3 text-sm leading-6 text-slate-600">
+                      <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Step 2 of 2</p>
+                      <h2 className="mt-2 text-2xl font-bold text-foreground">Type your signature and confirm intent</h2>
+                      <p className="mt-3 text-sm leading-6 text-muted-foreground">
                         The signing action will verify the locked document fingerprint and record your typed signature name together with the required intent affirmation.
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-6 space-y-4">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-foreground">
                       Typed signature name
                       <input
                         value={typedSignatureName}
                         onChange={(event) => setTypedSignatureName(event.target.value)}
-                        className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                        className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                       />
                     </label>
 
-                    <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                    <label className="flex items-start gap-3 rounded-2xl border border-border bg-muted p-4 text-sm text-foreground">
                       <input type="checkbox" checked={intentToSign} onChange={(event) => setIntentToSign(event.target.checked)} />
                       <span>I intend to sign this document electronically and adopt the typed name above as my electronic signature.</span>
                     </label>
@@ -363,27 +365,27 @@ export function MhdPublicSigningPage() {
                       type="button"
                       onClick={() => void handleSign()}
                       disabled={!typedSignatureName.trim() || !intentToSign || !request.documentHash || isSubmittingSignature}
-                      className="inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-neutral-50 disabled:cursor-not-allowed disabled:bg-slate-400"
+                      className="inline-flex rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {isSubmittingSignature ? 'Recording signature...' : 'Sign Document'}
                     </button>
                   </div>
-                </div>
+                </MhdCard>
 
-                <div className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm">
+                <MhdCard className="rounded-3xl p-8">
                   <p className="text-sm font-semibold uppercase tracking-[0.22em] text-rose-700">Decline Instead</p>
-                  <h2 className="mt-2 text-2xl font-bold text-slate-900">Decline this request</h2>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">
+                  <h2 className="mt-2 text-2xl font-bold text-foreground">Decline this request</h2>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
                     Declining is a terminal action for the request. Provide a reason so the sender has an auditable explanation.
                   </p>
 
-                  <label className="mt-5 block text-sm font-medium text-slate-700">
+                  <label className="mt-5 block text-sm font-medium text-foreground">
                     Decline reason
                     <textarea
                       value={declineReason}
                       onChange={(event) => setDeclineReason(event.target.value)}
                       rows={4}
-                      className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                      className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     />
                   </label>
 
@@ -391,20 +393,20 @@ export function MhdPublicSigningPage() {
                     type="button"
                     onClick={() => void handleDecline()}
                     disabled={!declineReason.trim() || isSubmittingDecline}
-                    className="mt-4 inline-flex rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700 disabled:cursor-not-allowed disabled:text-slate-400"
+                    className="mt-4 inline-flex rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {isSubmittingDecline ? 'Recording decline...' : 'Decline Request'}
                   </button>
-                </div>
+                </MhdCard>
               </div>
             )}
           </section>
         </div>
 
-        <div className="text-center text-xs text-slate-500">
+        <div className="text-center text-xs text-muted-foreground">
           Powered by My HR Depot&apos;s ESIGN/UETA technical workflow. Attorney review remains the legal compliance step.
           <div className="mt-2">
-            <Link to="/login" className="font-semibold text-sky-700 hover:underline">Platform sign-in</Link>
+            <Link to="/login" className="font-semibold text-accent hover:text-accent-hover">Platform sign-in</Link>
           </div>
         </div>
       </div>

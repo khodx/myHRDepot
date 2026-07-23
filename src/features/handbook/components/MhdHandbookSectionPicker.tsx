@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { MhdBadge } from '@/components/ui/MhdBadge';
 import { mhdFormatHandbookJurisdiction, type MhdHandbookSection } from '../Types';
 
 interface Props {
@@ -47,14 +48,14 @@ export function MhdHandbookSectionPicker({
   }, [sections]);
 
   if (sections.length === 0) {
-    return <p className="text-sm text-neutral-500">No sections available for these jurisdictions.</p>;
+    return <p className="text-sm text-muted-foreground">No sections available for these jurisdictions.</p>;
   }
 
   return (
     <div className="space-y-6">
       {byJurisdiction.map(([jurisdiction, list]) => (
         <div key={jurisdiction} className="space-y-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {mhdFormatHandbookJurisdiction(jurisdiction)}
           </h3>
           <ul className="space-y-1">
@@ -63,25 +64,23 @@ export function MhdHandbookSectionPicker({
               return (
                 <li
                   key={section.id}
-                  className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2"
                 >
-                  <label className="flex items-center gap-2 text-sm text-neutral-800">
+                  <label className="flex items-center gap-2 text-sm text-foreground">
                     <input
                       type="checkbox"
                       checked={included}
                       // Required sections are locked on; only optional ones toggle.
                       disabled={disabled || section.isRequired}
                       onChange={(event) => onToggle(section.id, event.target.checked)}
-                      className="h-4 w-4 rounded border-neutral-300 disabled:opacity-50"
+                      className="h-4 w-4 rounded border-border disabled:opacity-50"
                     />
                     <span>{section.title}</span>
                   </label>
                   {section.isRequired ? (
-                    <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
-                      Required
-                    </span>
+                    <MhdBadge variant="neutral">Required</MhdBadge>
                   ) : (
-                    <span className="text-xs text-neutral-400">Optional</span>
+                    <span className="text-xs text-muted-foreground">Optional</span>
                   )}
                 </li>
               );

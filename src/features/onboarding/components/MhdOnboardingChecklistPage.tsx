@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { FileSignature, ShieldAlert, Sparkles, ChevronRight } from 'lucide-react';
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
+import { MhdCard } from '@/components/ui/MhdCard';
 import type { MhdOnboardingPacketItem } from '../Types';
 
 interface MhdOnboardingChecklistPageProps {
@@ -13,12 +15,12 @@ interface MhdOnboardingChecklistPageProps {
   errorMessage: string | null;
 }
 
-const STATUS_STYLES: Record<MhdOnboardingPacketItem['status'], string> = {
-  NOT_STARTED: 'bg-slate-100 text-slate-700',
-  PENDING: 'bg-amber-100 text-amber-800',
-  SUBMITTED: 'bg-blue-100 text-blue-800',
-  SIGNED: 'bg-emerald-100 text-emerald-800',
-  VOIDED: 'bg-rose-100 text-rose-800',
+const STATUS_VARIANTS: Record<MhdOnboardingPacketItem['status'], MhdBadgeVariant> = {
+  NOT_STARTED: 'neutral',
+  PENDING: 'warning',
+  SUBMITTED: 'info',
+  SIGNED: 'success',
+  VOIDED: 'error',
 };
 
 export function MhdOnboardingChecklistPage({
@@ -34,30 +36,30 @@ export function MhdOnboardingChecklistPage({
   const hasSignatureWorkflow = items.some((item) => item.requiresSignature && item.generatedDocumentRequired);
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm">
+    <MhdCard className="p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-sky-700">Onboarding Packet</p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-900">{personDisplayName}</h2>
-          <p className="mt-2 max-w-3xl text-sm text-slate-600">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Onboarding Packet</p>
+          <h2 className="mt-2 text-2xl font-semibold text-foreground">{personDisplayName}</h2>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
             Packet progress is built from the `03.9` manifest, overlaid with live checklist rows and the seeded Forms Engine corpus for this person&apos;s company.
           </p>
         </div>
-        <div className="rounded-2xl bg-slate-900 px-4 py-3 text-right text-neutral-50">
-          <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Required Complete</p>
+        <div className="rounded-2xl bg-foreground px-4 py-3 text-right text-background">
+          <p className="text-xs uppercase tracking-[0.22em] text-background/70">Required Complete</p>
           <p className="mt-1 text-2xl font-semibold">{completedCount}/{requiredCount}</p>
-          <p className="mt-1 text-xs text-slate-300">{isFullyOnboarded ? 'Packet complete' : 'Packet in progress'}</p>
+          <p className="mt-1 text-xs text-background/70">{isFullyOnboarded ? 'Packet complete' : 'Packet in progress'}</p>
         </div>
       </div>
 
       {hasSignatureWorkflow ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent/20 bg-accent-tint p-4 text-sm text-accent-hover">
           <p>
             Signature-required packet items route through the Stage 6 E-Signature Center after document generation.
           </p>
           <Link
             to={`/esignature?personId=${encodeURIComponent(personId)}&personName=${encodeURIComponent(personDisplayName)}`}
-            className="rounded-xl bg-sky-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-sky-800"
+            className="rounded-xl bg-accent px-4 py-2 font-semibold text-accent-on transition-colors hover:bg-accent-hover"
           >
             Open Signature Center
           </Link>
@@ -69,28 +71,28 @@ export function MhdOnboardingChecklistPage({
       ) : null}
 
       {isLoading ? (
-        <p className="mt-6 text-sm text-slate-500">Loading onboarding packet...</p>
+        <p className="mt-6 text-sm text-muted-foreground">Loading onboarding packet...</p>
       ) : (
         <div className="mt-6 grid gap-4">
           {items.map((item) => (
             <article
               key={item.documentKey}
-              className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 lg:grid-cols-[minmax(0,1.35fr)_auto]"
+              className="grid gap-4 rounded-2xl border border-border bg-muted/60 p-4 lg:grid-cols-[minmax(0,1.35fr)_auto]"
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-base font-semibold text-slate-900">{item.label}</h3>
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[item.status]}`}>
+                  <h3 className="text-base font-semibold text-foreground">{item.label}</h3>
+                  <MhdBadge variant={STATUS_VARIANTS[item.status]}>
                     {item.status.replace('_', ' ')}
-                  </span>
-                  <span className="rounded-full bg-card px-2.5 py-1 text-xs font-medium text-slate-600">
+                  </MhdBadge>
+                  <span className="rounded-full bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground">
                     {item.accessTier}
                   </span>
                 </div>
 
-                <p className="mt-2 text-sm text-slate-600">{item.description}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
 
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
+                <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
                   <span className="rounded-full bg-card px-2.5 py-1">
                     {item.formReferenceId ? `${item.formReferenceId} · ${item.formName}` : `No seeded form mapped`}
                   </span>
@@ -114,7 +116,7 @@ export function MhdOnboardingChecklistPage({
                   ) : null}
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-500">
+                <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
                   <span>Checklist Ref: {item.referenceId}</span>
                   {item.documentRecordId ? <span>Record: {item.documentRecordId}</span> : null}
                   {item.completedAt ? <span>Completed: {new Date(item.completedAt).toLocaleString()}</span> : null}
@@ -125,19 +127,19 @@ export function MhdOnboardingChecklistPage({
                 {item.formId ? (
                   <Link
                     to={`/forms/${item.formId}/render?personId=${encodeURIComponent(personId)}&documentKey=${encodeURIComponent(item.documentKey)}&personName=${encodeURIComponent(personDisplayName)}`}
-                    className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-700"
+                    className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-on transition-colors hover:bg-accent-hover"
                   >
                     Open Form
                     <ChevronRight className="h-4 w-4" />
                   </Link>
                 ) : (
-                  <span className="rounded-xl border border-slate-300 bg-card px-4 py-2 text-sm text-slate-500">Unavailable</span>
+                  <span className="rounded-xl border border-border bg-card px-4 py-2 text-sm text-muted-foreground">Unavailable</span>
                 )}
               </div>
             </article>
           ))}
         </div>
       )}
-    </section>
+    </MhdCard>
   );
 }

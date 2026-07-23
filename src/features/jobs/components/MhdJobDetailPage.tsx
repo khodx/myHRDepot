@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { mhdCanSeeJobPay } from '@/appshell/mhdRouteAccess';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
   useMhdCreateDescriptionDraft,
@@ -32,7 +35,6 @@ import { MhdPayRangeField } from './MhdPayRangeField';
  */
 export function MhdJobDetailPage() {
   const { jobId } = useParams<{ jobId: string }>();
-  const navigate = useNavigate();
   const { profile, roles } = useMhdAuth();
   const companyId = profile?.companyId ?? null;
   const canSeePay = mhdCanSeeJobPay(roles);
@@ -82,47 +84,43 @@ export function MhdJobDetailPage() {
   }
 
   if (!companyId || jobs.isLoading) {
-    return <p className="p-6 text-sm text-neutral-500">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
-  if (!job) return <p className="p-6 text-sm text-neutral-500">Job not found.</p>;
+  if (!job) return <p className="text-sm text-muted-foreground">Job not found.</p>;
 
   return (
-    <div className="space-y-6 p-6">
-      <button
-        type="button"
-        onClick={() => navigate('/jobs')}
-        className="text-sm text-neutral-500 underline"
-      >
-        ← All jobs
-      </button>
-
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">{job.jobTitle}</h1>
-          <p className="mt-0.5 text-xs text-neutral-500">
+    <div className="space-y-6">
+      <MhdPageHeader
+        title={job.jobTitle}
+        backTo="/jobs"
+        backLabel="All jobs"
+        chips={
+          <MhdFlsaBadge
+            flsaClassification={job.flsaClassification}
+            isSafetySensitive={job.isSafetySensitive}
+          />
+        }
+        description={
+          <>
             {job.referenceId}
             {job.jobCode ? ` · ${job.jobCode}` : ''} · {mhdFormatEmploymentType(job.employmentType)}{' '}
             · {mhdFormatIndustry(job.industry)}
-          </p>
-          <div className="mt-2">
-            <MhdFlsaBadge
-              flsaClassification={job.flsaClassification}
-              isSafetySensitive={job.isSafetySensitive}
-            />
-          </div>
-        </div>
-        <MhdPayRangeField
-          job={job}
-          canSeePay={canSeePay}
-          onEdit={canSeePay ? () => setIsEditingPay(true) : undefined}
-        />
-      </header>
+          </>
+        }
+        actions={
+          <MhdPayRangeField
+            job={job}
+            canSeePay={canSeePay}
+            onEdit={canSeePay ? () => setIsEditingPay(true) : undefined}
+          />
+        }
+      />
 
       {isEditingPay && canSeePay ? (
-        <div className="space-y-3 rounded-md border border-neutral-200 p-4">
+        <MhdCard className="space-y-3">
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label htmlFor="payMin" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="payMin" className="block text-sm font-medium text-foreground">
                 From
               </label>
               <input
@@ -130,11 +128,11 @@ export function MhdJobDetailPage() {
                 type="number"
                 value={payMin}
                 onChange={(event) => setPayMin(event.target.value)}
-                className="mt-1 w-32 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-32 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
             </div>
             <div>
-              <label htmlFor="payMax" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="payMax" className="block text-sm font-medium text-foreground">
                 To
               </label>
               <input
@@ -142,18 +140,18 @@ export function MhdJobDetailPage() {
                 type="number"
                 value={payMax}
                 onChange={(event) => setPayMax(event.target.value)}
-                className="mt-1 w-32 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-32 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
             </div>
             <div>
-              <label htmlFor="payPeriod" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="payPeriod" className="block text-sm font-medium text-foreground">
                 Per
               </label>
               <select
                 id="payPeriod"
                 value={payPeriod}
                 onChange={(event) => setPayPeriod(event.target.value as MhdPayPeriod)}
-                className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {MHD_PAY_PERIODS.map((value) => (
                   <option key={value} value={value}>
@@ -165,34 +163,25 @@ export function MhdJobDetailPage() {
           </div>
           {/* The statutory standard is what the employer expects to pay, not a
               market figure — so this field is a decision, not a lookup. */}
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted-foreground">
             Record what you reasonably expect to pay on hire. Benchmark data can inform this, but it
             is not a substitute for it.
           </p>
           {payError ? <p className="text-xs text-rose-600">{payError}</p> : null}
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setIsEditingPay(false)}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
-            >
+            <Button variant="secondary" onClick={() => setIsEditingPay(false)}>
               Cancel
-            </button>
-            <button
-              type="button"
-              disabled={setPay.isPending}
-              onClick={() => void savePay()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
-            >
+            </Button>
+            <Button disabled={setPay.isPending} onClick={() => void savePay()}>
               {setPay.isPending ? 'Saving…' : 'Save range'}
-            </button>
+            </Button>
           </div>
-        </div>
+        </MhdCard>
       ) : null}
 
       {draftId ? (
-        <section className="rounded-md border border-neutral-200 p-4">
-          <h2 className="mb-4 text-base font-semibold text-neutral-900">Draft description</h2>
+        <MhdCard>
+          <h2 className="mb-4 text-base font-semibold text-foreground">Draft description</h2>
           <MhdJobDescriptionEditor
             companyId={companyId}
             descriptionId={draftId}
@@ -211,31 +200,26 @@ export function MhdJobDetailPage() {
             onPublished={() => setDraftId(null)}
             onCancel={() => setDraftId(null)}
           />
-        </section>
+        </MhdCard>
       ) : (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-neutral-900">Published description</h2>
-            <button
-              type="button"
-              disabled={createDraft.isPending}
-              onClick={() => void startDraft()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
-            >
+            <h2 className="text-base font-semibold text-foreground">Published description</h2>
+            <Button disabled={createDraft.isPending} onClick={() => void startDraft()}>
               {createDraft.isPending ? 'Preparing…' : job.publishedDescriptionId ? 'New version' : 'Write description'}
-            </button>
+            </Button>
           </div>
 
           {!previewPersonId ? (
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-muted-foreground">
               Assign somebody to this job to preview its description as a review would resolve it.
             </p>
           ) : published.isLoading ? (
-            <p className="text-sm text-neutral-500">Loading…</p>
+            <p className="text-sm text-muted-foreground">Loading…</p>
           ) : published.data ? (
             <>
               {published.data.summary ? (
-                <p className="text-sm text-neutral-800">{published.data.summary}</p>
+                <p className="text-sm text-foreground">{published.data.summary}</p>
               ) : null}
               <MhdEssentialFunctionList
                 essential={published.data.essentialFunctions}
@@ -244,7 +228,7 @@ export function MhdJobDetailPage() {
               />
             </>
           ) : (
-            <p className="text-sm text-neutral-500">Nothing published for this job yet.</p>
+            <p className="text-sm text-muted-foreground">Nothing published for this job yet.</p>
           )}
         </section>
       )}

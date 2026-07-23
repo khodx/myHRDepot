@@ -17,14 +17,14 @@ export function MhdAttachmentItem({ attachment, onDownload, onDelete }: Props) {
   });
 
   return (
-    <div className="flex items-center gap-3 rounded-md border border-neutral-200 bg-card p-3">
-      <div className="text-neutral-400 shrink-0">
+    <div className="flex items-center gap-3 rounded-md border border-border bg-card p-3">
+      <div className="text-muted-foreground shrink-0">
         <MhdAttachmentFileIcon mimeType={attachment.mimeType} />
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-neutral-900">{attachment.originalFileName}</p>
-        <p className="text-xs text-neutral-500">
+        <p className="truncate text-sm font-medium text-foreground">{attachment.originalFileName}</p>
+        <p className="text-xs text-muted-foreground">
           {mhdFormatFileSize(attachment.fileSizeBytes)} · {attachment.uploaderDisplayName} · {uploadedAt}
         </p>
       </div>
@@ -34,7 +34,7 @@ export function MhdAttachmentItem({ attachment, onDownload, onDelete }: Props) {
           type="button"
           onClick={() => onDownload(attachment)}
           title="Download"
-          className="rounded p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 transition-colors"
+          className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <Download className="h-4 w-4" />
         </button>
@@ -44,7 +44,7 @@ export function MhdAttachmentItem({ attachment, onDownload, onDelete }: Props) {
             type="button"
             onClick={() => onDelete(attachment)}
             title="Delete"
-            className="rounded p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
           >
             <Trash2 className="h-4 w-4" />
           </button>

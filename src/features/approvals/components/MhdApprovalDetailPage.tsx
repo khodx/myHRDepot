@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
-import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
+import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdApprovalService } from '../Service';
 import { MhdApprovalChain } from './MhdApprovalChain';
@@ -124,14 +125,14 @@ export function MhdApprovalDetailPage() {
   }
 
   if (isLoading) {
-    return <div className="flex h-64 items-center justify-center text-sm text-slate-500">Loading approval...</div>;
+    return <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">Loading approval...</div>;
   }
 
   if (error || !approval) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-600">{error ?? 'Approval not found'}</p>
-        <button type="button" onClick={() => navigate('/approvals')} className="text-sm text-blue-600 hover:underline">
+        <button type="button" onClick={() => navigate('/approvals')} className="text-sm text-accent hover:text-accent-hover">
           Back to Approvals
         </button>
       </div>
@@ -139,130 +140,125 @@ export function MhdApprovalDetailPage() {
   }
 
   return (
-    <main className="min-h-full bg-slate-50">
-      <div className="mx-auto max-w-5xl space-y-6 p-6">
-        <MhdBreadcrumb items={[{ label: 'Approvals', to: '/approvals' }, { label: approval.referenceId }]} />
+    <div className="space-y-6">
+      <MhdPageHeader
+        backTo="/approvals"
+        backLabel="Approvals"
+        title="Approval Detail"
+        chips={<MhdApprovalStatus status={approval.status} />}
+        description={
+          <>
+            {approval.referenceId} · {approval.entityType} · {approval.entityId}
+            {approval.taskId ? (
+              <>
+                {' '}
+                · <Link to={`/tasks/${approval.taskId}`} className="text-accent hover:text-accent-hover">Open Task</Link>
+              </>
+            ) : null}
+          </>
+        }
+      />
 
-        <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs text-slate-400">{approval.referenceId}</p>
-              <h1 className="mt-1 text-2xl font-semibold text-slate-900">Approval Detail</h1>
-              <p className="mt-2 text-sm text-slate-600">
-                {approval.entityType} · {approval.entityId}
-                {approval.taskId ? (
-                  <>
-                    {' '}
-                    · <Link to={`/tasks/${approval.taskId}`} className="text-blue-700 hover:underline">Open Task</Link>
-                  </>
-                ) : null}
-              </p>
-            </div>
-            <MhdApprovalStatus status={approval.status} />
-          </div>
+      <MhdCard className="p-6">
+        <div className="grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
+          <p>Requester: {approval.requesterName || approval.requesterId}</p>
+          <p>Current level: {approval.currentLevel} of {approval.totalLevels}</p>
+          <p>Created: {format(new Date(approval.createdAt), 'PPp')}</p>
+          <p>Updated: {approval.updatedAt ? format(new Date(approval.updatedAt), 'PPp') : '—'}</p>
+          <p>Type: {approval.approvalType}</p>
+          <p>Viewer: {profile?.displayName || profile?.email || 'Unknown user'}</p>
+        </div>
 
-          <div className="mt-4 grid gap-3 text-sm text-slate-600 md:grid-cols-2">
-            <p>Requester: {approval.requesterName || approval.requesterId}</p>
-            <p>Current level: {approval.currentLevel} of {approval.totalLevels}</p>
-            <p>Created: {format(new Date(approval.createdAt), 'PPp')}</p>
-            <p>Updated: {approval.updatedAt ? format(new Date(approval.updatedAt), 'PPp') : '—'}</p>
-            <p>Type: {approval.approvalType}</p>
-            <p>Viewer: {profile?.displayName || profile?.email || 'Unknown user'}</p>
-          </div>
+        {approval.reason ? <p className="mt-4 rounded-md bg-muted p-3 text-sm text-foreground">{approval.reason}</p> : null}
+        {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+      </MhdCard>
 
-          {approval.reason ? <p className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-700">{approval.reason}</p> : null}
-          {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
-        </section>
+      <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="space-y-6">
+          <MhdCard className="p-6">
+            <MhdCardHeader title="Chain" />
+            <MhdApprovalChain approvalId={approval.id} />
+          </MhdCard>
 
-        <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="space-y-6">
-            <div className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Chain</h2>
-              <div className="mt-4">
-                <MhdApprovalChain approvalId={approval.id} />
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Comments</h2>
-              <div className="mt-4 space-y-3">
-                {comments.length === 0 ? <p className="text-sm text-slate-500">No comments yet.</p> : null}
-                {comments.map((comment) => (
-                  <div key={comment.id} className="rounded-md border border-slate-200 p-3">
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                      <span className="font-medium text-slate-700">{comment.authorName || comment.userId}</span>
-                      <span>{format(new Date(comment.createdAt), 'PPp')}</span>
-                      {comment.isInternal ? <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">Internal</span> : null}
-                    </div>
-                    <p className="mt-2 text-sm text-slate-700">{comment.comment}</p>
+          <MhdCard className="p-6">
+            <MhdCardHeader title="Comments" />
+            <div className="space-y-3">
+              {comments.length === 0 ? <p className="text-sm text-muted-foreground">No comments yet.</p> : null}
+              {comments.map((comment) => (
+                <div key={comment.id} className="rounded-md border border-border p-3">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">{comment.authorName || comment.userId}</span>
+                    <span>{format(new Date(comment.createdAt), 'PPp')}</span>
+                    {comment.isInternal ? <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">Internal</span> : null}
                   </div>
-                ))}
-              </div>
+                  <p className="mt-2 text-sm text-foreground">{comment.comment}</p>
+                </div>
+              ))}
             </div>
-          </div>
+          </MhdCard>
+        </div>
 
-          <div className="space-y-6">
-            <div className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Decision</h2>
-              <div className="mt-4 space-y-3">
-                <textarea
-                  value={approveComment}
-                  onChange={(event) => setApproveComment(event.target.value)}
-                  placeholder="Approval comment (optional)"
-                  className="min-h-24 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => void handleApprove()}
-                  disabled={isActing || approval.status !== 'PENDING'}
-                  className="w-full rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  Approve
-                </button>
+        <div className="space-y-6">
+          <MhdCard className="p-6">
+            <MhdCardHeader title="Decision" />
+            <div className="space-y-3">
+              <textarea
+                value={approveComment}
+                onChange={(event) => setApproveComment(event.target.value)}
+                placeholder="Approval comment (optional)"
+                className="min-h-24 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+              <button
+                type="button"
+                onClick={() => void handleApprove()}
+                disabled={isActing || approval.status !== 'PENDING'}
+                className="w-full rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                Approve
+              </button>
 
-                <textarea
-                  value={rejectReason}
-                  onChange={(event) => setRejectReason(event.target.value)}
-                  placeholder="Rejection reason"
-                  className="min-h-24 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => void handleReject()}
-                  disabled={isActing || approval.status !== 'PENDING'}
-                  className="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  Reject
-                </button>
-              </div>
+              <textarea
+                value={rejectReason}
+                onChange={(event) => setRejectReason(event.target.value)}
+                placeholder="Rejection reason"
+                className="min-h-24 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+              <button
+                type="button"
+                onClick={() => void handleReject()}
+                disabled={isActing || approval.status !== 'PENDING'}
+                className="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                Reject
+              </button>
             </div>
+          </MhdCard>
 
-            <div className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Add Comment</h2>
-              <div className="mt-4 space-y-3">
-                <textarea
-                  value={newComment}
-                  onChange={(event) => setNewComment(event.target.value)}
-                  placeholder="Comment"
-                  className="min-h-24 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                />
-                <label className="flex items-center gap-2 text-sm text-slate-600">
-                  <input type="checkbox" checked={isInternalComment} onChange={(event) => setIsInternalComment(event.target.checked)} />
-                  Internal comment
-                </label>
-                <button
-                  type="button"
-                  onClick={() => void handleAddComment()}
-                  disabled={isActing}
-                  className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-neutral-50 disabled:opacity-50"
-                >
-                  Add Comment
-                </button>
-              </div>
+          <MhdCard className="p-6">
+            <MhdCardHeader title="Add Comment" />
+            <div className="space-y-3">
+              <textarea
+                value={newComment}
+                onChange={(event) => setNewComment(event.target.value)}
+                placeholder="Comment"
+                className="min-h-24 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input type="checkbox" checked={isInternalComment} onChange={(event) => setIsInternalComment(event.target.checked)} />
+                Internal comment
+              </label>
+              <button
+                type="button"
+                onClick={() => void handleAddComment()}
+                disabled={isActing}
+                className="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:opacity-50"
+              >
+                Add Comment
+              </button>
             </div>
-          </div>
-        </section>
-      </div>
-    </main>
+          </MhdCard>
+        </div>
+      </section>
+    </div>
   );
 }

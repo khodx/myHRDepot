@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -146,34 +148,29 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
 
   if (!canManage) {
     return (
-      <p className="text-sm text-neutral-600">
+      <p className="text-sm text-muted-foreground">
         Building the interview guide is limited to recruiters and the hiring manager.
       </p>
     );
   }
 
   if (guideGetOrCreate.isPending && !guideId) {
-    return <p className="text-sm text-neutral-500">Opening the guide…</p>;
+    return <p className="text-sm text-muted-foreground">Opening the guide…</p>;
   }
 
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-neutral-900">Interview guide</h2>
-          <p className="mt-0.5 text-xs text-neutral-500">
+          <h2 className="text-base font-semibold text-foreground">Interview guide</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Assemble pulls the standard questions and the ones matching this role&apos;s
             competencies. Re-run it any time the job description changes.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void handleAssemble()}
-          disabled={!guideId || assemble.isPending}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        <Button onClick={() => void handleAssemble()} disabled={!guideId || assemble.isPending}>
           {assemble.isPending ? 'Assembling…' : 'Assemble from standard + job'}
-        </button>
+        </Button>
       </div>
 
       {assemble.isSuccess ? (
@@ -184,35 +181,33 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
 
       {/* The assembled items, grouped by source, each with its compliance flag. */}
       {items.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading guide…</p>
+        <p className="text-sm text-muted-foreground">Loading guide…</p>
       ) : grouped.length === 0 ? (
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-muted-foreground">
           The guide is empty. Assemble it from the standard + job questions, or add questions below.
         </p>
       ) : (
         <div className="space-y-5">
           {grouped.map((group) => (
             <div key={group.source} className="space-y-2">
-              <h3 className="text-sm font-semibold text-neutral-700">
+              <h3 className="text-sm font-semibold text-foreground">
                 {mhdFormatGuideItemSource(group.source)}
               </h3>
               <ul className="space-y-2">
                 {group.items.map((item) => (
                   <li
                     key={item.id}
-                    className="rounded-md border border-neutral-200 bg-card p-3"
+                    className="rounded-md border border-border bg-card p-3"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
-                        <p className="text-sm text-neutral-900">{item.questionText}</p>
-                        <div className="flex flex-wrap gap-2 text-xs text-neutral-500">
-                          <span className="rounded bg-neutral-100 px-2 py-0.5">
+                        <p className="text-sm text-foreground">{item.questionText}</p>
+                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                          <span className="rounded bg-muted px-2 py-0.5">
                             {mhdFormatResponseType(item.responseType)}
                           </span>
                           {item.competencyName ? (
-                            <span className="rounded bg-indigo-100 px-2 py-0.5 text-indigo-700">
-                              {item.competencyName}
-                            </span>
+                            <MhdBadge variant="accent">{item.competencyName}</MhdBadge>
                           ) : null}
                         </div>
                       </div>
@@ -222,7 +217,7 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
                           type="button"
                           onClick={() => void removeItem.mutateAsync(item.id)}
                           disabled={removeItem.isPending}
-                          className="text-xs text-rose-600 underline disabled:opacity-50"
+                          className="text-xs font-medium text-red-700 hover:text-red-800 disabled:opacity-50"
                         >
                           Remove
                         </button>
@@ -237,18 +232,18 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
       )}
 
       {/* Add from the bank */}
-      <div className="rounded-lg border border-neutral-200 p-4">
-        <h3 className="text-sm font-semibold text-neutral-900">Add from the bank</h3>
+      <div className="rounded-lg border border-border p-4">
+        <h3 className="text-sm font-semibold text-foreground">Add from the bank</h3>
         <div className="mt-3 flex items-end gap-2">
           <div className="flex-1">
-            <label htmlFor="bankQuestion" className="block text-xs font-medium text-neutral-600">
+            <label htmlFor="bankQuestion" className="block text-xs font-medium text-muted-foreground">
               Question
             </label>
             <select
               id="bankQuestion"
               value={bankQuestionId}
               onChange={(event) => setBankQuestionId(event.target.value)}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             >
               <option value="">Choose a bank question…</option>
               {addableBank.map((question) => (
@@ -262,7 +257,7 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
             type="button"
             onClick={() => void handleAddBank()}
             disabled={!bankQuestionId || addQuestion.isPending}
-            className="rounded-md border border-neutral-300 bg-card px-4 py-2 text-sm font-medium text-neutral-700 disabled:opacity-50"
+            className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground disabled:opacity-50"
           >
             {addQuestion.isPending ? 'Adding…' : 'Add'}
           </button>
@@ -270,18 +265,18 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
       </div>
 
       {/* Add a custom question */}
-      <div className="rounded-lg border border-neutral-200 p-4">
-        <h3 className="text-sm font-semibold text-neutral-900">Add a custom question</h3>
+      <div className="rounded-lg border border-border p-4">
+        <h3 className="text-sm font-semibold text-foreground">Add a custom question</h3>
         <form onSubmit={handleSubmit(handleAddCustom)} className="mt-3 space-y-4">
           <div>
-            <label htmlFor="customText" className="block text-sm font-medium text-neutral-700">
+            <label htmlFor="customText" className="block text-sm font-medium text-foreground">
               Question
             </label>
             <textarea
               id="customText"
               rows={2}
               {...register('questionText')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             />
             {errors.questionText ? (
               <p className="mt-1 text-xs text-rose-600">{errors.questionText.message}</p>
@@ -292,14 +287,14 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
             <div>
               <label
                 htmlFor="customResponseType"
-                className="block text-sm font-medium text-neutral-700"
+                className="block text-sm font-medium text-foreground"
               >
                 Response type
               </label>
               <select
                 id="customResponseType"
                 {...register('responseType')}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
               >
                 {MHD_INTERVIEW_RESPONSE_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -314,11 +309,11 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
                 id="saveToBank"
                 type="checkbox"
                 {...register('saveToBank')}
-                className="mt-1 h-4 w-4 rounded border-neutral-300"
+                className="mt-1 h-4 w-4 rounded border-border"
               />
-              <label htmlFor="saveToBank" className="text-sm text-neutral-700">
+              <label htmlFor="saveToBank" className="text-sm text-foreground">
                 Save to bank
-                <span className="block text-xs font-normal text-neutral-500">
+                <span className="block text-xs font-normal text-muted-foreground">
                   Adds this question to the company library (as REVIEW) for reuse.
                 </span>
               </label>
@@ -327,14 +322,14 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
 
           {saveToBank ? (
             <div>
-              <label htmlFor="customCategory" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="customCategory" className="block text-sm font-medium text-foreground">
                 Save under category{' '}
-                <span className="font-normal text-neutral-500">(optional)</span>
+                <span className="font-normal text-muted-foreground">(optional)</span>
               </label>
               <select
                 id="customCategory"
                 {...register('categoryId')}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
               >
                 <option value="">Uncategorized</option>
                 {(categories.data ?? []).map((category) => (
@@ -347,13 +342,9 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
           ) : null}
 
           <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={addCustom.isPending}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-            >
+            <Button type="submit" disabled={addCustom.isPending}>
               {addCustom.isPending ? 'Adding…' : 'Add custom question'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

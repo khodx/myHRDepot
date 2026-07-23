@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Lock, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { Button } from '@/components/ui/Button';
 import { mhdActivityFormSchema, type MhdActivityFormSchemaInput } from '../Schemas';
 import {
   MHD_ACTIVITY_PARTICIPANT_ROLES,
@@ -103,7 +104,7 @@ export function MhdActivityForm({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium">Type</label>
-          <select className="w-full rounded border px-3 py-2" {...register('activityType')}>
+          <select className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('activityType')}>
             {MHD_ACTIVITY_TYPES.map((type) => (
               <option key={type} value={type}>
                 {mhdFormatActivityType(type)}
@@ -115,7 +116,7 @@ export function MhdActivityForm({
 
         <div>
           <label className="mb-1 block text-sm font-medium">Person</label>
-          <select className="w-full rounded border px-3 py-2" {...register('personId')}>
+          <select className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('personId')}>
             <option value="">Company-centered (no person)</option>
             {people.map((person) => (
               <option key={person.id} value={person.id}>
@@ -128,13 +129,13 @@ export function MhdActivityForm({
 
       <div>
         <label className="mb-1 block text-sm font-medium">Title</label>
-        <input className="w-full rounded border px-3 py-2" {...register('title')} />
+        <input className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('title')} />
         {errors.title ? <p className="mt-1 text-xs text-red-600">{errors.title.message}</p> : null}
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium">Supports Task</label>
-        <select className="w-full rounded border px-3 py-2" {...register('parentTaskId')}>
+        <select className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('parentTaskId')}>
           <option value="">Not linked to a task</option>
           {tasks.map((task) => (
             <option key={task.id} value={task.id}>
@@ -147,15 +148,15 @@ export function MhdActivityForm({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium">Scheduled Date &amp; Time</label>
-          <input type="datetime-local" className="w-full rounded border px-3 py-2" {...register('scheduledAt')} />
+          <input type="datetime-local" className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('scheduledAt')} />
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Location</label>
-          <input className="w-full rounded border px-3 py-2" placeholder="Room, phone, or video link…" {...register('location')} />
+          <input className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" placeholder="Room, phone, or video link…" {...register('location')} />
         </div>
       </div>
 
-      <div className="rounded border p-3">
+      <div className="rounded-md border border-border p-3">
         <label className="flex items-start gap-2 text-sm">
           <input type="checkbox" className="mt-1" {...register('isConfidential')} />
           <span>
@@ -163,7 +164,7 @@ export function MhdActivityForm({
               <Lock className="h-3.5 w-3.5 text-amber-600" />
               Confidential
             </span>
-            <span className="mt-0.5 block text-xs text-neutral-500">
+            <span className="mt-0.5 block text-xs text-muted-foreground">
               Visible only to the creator, facilitator participants, Platform Admin, and HR Partner.
             </span>
           </span>
@@ -176,7 +177,7 @@ export function MhdActivityForm({
       <div>
         <label className="mb-1 block text-sm font-medium">Description</label>
         <textarea
-          className="w-full rounded border px-3 py-2"
+          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           rows={4}
           placeholder="What is this interaction about?"
           {...register('descriptionPlainText')}
@@ -184,10 +185,10 @@ export function MhdActivityForm({
       </div>
 
       {mode === 'create' ? (
-        <fieldset className="space-y-2 rounded border p-3">
+        <fieldset className="space-y-2 rounded-md border border-border p-3">
           <legend className="px-1 text-sm font-medium">Participants</legend>
 
-          {fields.length === 0 ? <p className="text-sm text-neutral-400">No participants added.</p> : null}
+          {fields.length === 0 ? <p className="text-sm text-muted-foreground">No participants added.</p> : null}
 
           {fields.map((field, index) => {
             const kind = participantKind(field.id, index);
@@ -196,7 +197,7 @@ export function MhdActivityForm({
                 <select
                   value={kind}
                   onChange={(event) => handleKindChange(field.id, index, event.target.value as ParticipantKind)}
-                  className="rounded border px-2 py-2 text-sm"
+                  className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   aria-label="Participant kind"
                 >
                   <option value="USER">Internal user</option>
@@ -204,7 +205,7 @@ export function MhdActivityForm({
                 </select>
 
                 {kind === 'USER' ? (
-                  <select className="min-w-48 flex-1 rounded border px-2 py-2 text-sm" aria-label="Participant user" {...register(`participants.${index}.userId`)}>
+                  <select className="min-w-48 flex-1 rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Participant user" {...register(`participants.${index}.userId`)}>
                     <option value="">Select user…</option>
                     {users.map((user) => (
                       <option key={user.id} value={user.id}>
@@ -213,7 +214,7 @@ export function MhdActivityForm({
                     ))}
                   </select>
                 ) : (
-                  <select className="min-w-48 flex-1 rounded border px-2 py-2 text-sm" aria-label="Participant person" {...register(`participants.${index}.personId`)}>
+                  <select className="min-w-48 flex-1 rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Participant person" {...register(`participants.${index}.personId`)}>
                     <option value="">Select person…</option>
                     {people.map((person) => (
                       <option key={person.id} value={person.id}>
@@ -223,7 +224,7 @@ export function MhdActivityForm({
                   </select>
                 )}
 
-                <select className="rounded border px-2 py-2 text-sm" aria-label="Participant role" {...register(`participants.${index}.role`)}>
+                <select className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Participant role" {...register(`participants.${index}.role`)}>
                   {MHD_ACTIVITY_PARTICIPANT_ROLES.map((role) => (
                     <option key={role} value={role}>
                       {mhdFormatActivityParticipantRole(role)}
@@ -235,7 +236,7 @@ export function MhdActivityForm({
                   type="button"
                   onClick={() => remove(index)}
                   aria-label="Remove participant row"
-                  className="rounded p-2 text-neutral-400 hover:bg-red-50 hover:text-red-600"
+                  className="rounded p-2 text-muted-foreground hover:bg-red-50 hover:text-red-600"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -254,7 +255,7 @@ export function MhdActivityForm({
           <button
             type="button"
             onClick={() => append({ role: 'PARTICIPANT' })}
-            className="inline-flex items-center gap-1 rounded border px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-50"
+            className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
           >
             <Plus className="h-4 w-4" />
             Add participant
@@ -263,20 +264,12 @@ export function MhdActivityForm({
       ) : null}
 
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving…' : mode === 'create' ? 'Create Activity' : 'Save Changes'}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
-        >
+        </Button>
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

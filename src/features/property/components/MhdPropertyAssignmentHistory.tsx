@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { History } from 'lucide-react';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import type { MhdPropertyAssignment } from '../Types';
 import { MhdPropertyAssignmentBadge } from './MhdPropertyAssignmentBadge';
 
@@ -23,40 +25,39 @@ function renderLifecycleSummary(assignment: MhdPropertyAssignment): string {
 export function MhdPropertyAssignmentHistory({ assignments }: MhdPropertyAssignmentHistoryProps) {
   if (assignments.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-card px-6 py-12 text-slate-400 shadow-sm">
-        <History className="mb-3 h-10 w-10" />
-        <p className="text-sm font-medium text-slate-600">No assignment history yet.</p>
-      </div>
+      <MhdCard className="border-dashed">
+        <MhdEmptyState icon={History} title="No assignment history yet." />
+      </MhdCard>
     );
   }
 
   return (
     <ol className="space-y-3">
       {assignments.map((assignment) => (
-        <li key={assignment.id} className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
+        <li key={assignment.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="font-medium text-slate-900">
-                <Link to={`/people/${assignment.personId}`} className="hover:text-blue-700 hover:underline">
+              <div className="font-medium text-foreground">
+                <Link to={`/people/${assignment.personId}`} className="hover:text-accent-hover">
                   {assignment.personDisplayName}
                 </Link>
                 {' '}· {assignment.quantity} unit{assignment.quantity === 1 ? '' : 's'}
               </div>
-              <div className="mt-1 text-xs text-slate-500">{assignment.referenceId}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{assignment.referenceId}</div>
             </div>
             <MhdPropertyAssignmentBadge status={assignment.status} />
           </div>
 
-          <div className="mt-3 space-y-1 text-sm text-slate-600">
+          <div className="mt-3 space-y-1 text-sm text-muted-foreground">
             <p>Issued {new Date(assignment.issuedAt).toLocaleDateString()} by {assignment.issuerDisplayName ?? assignment.issuedBy}</p>
             <p>{renderLifecycleSummary(assignment)}</p>
           </div>
 
           {assignment.issuanceConditionNotes ? (
-            <p className="mt-3 text-sm text-slate-600">Issued condition: {assignment.issuanceConditionNotes}</p>
+            <p className="mt-3 text-sm text-muted-foreground">Issued condition: {assignment.issuanceConditionNotes}</p>
           ) : null}
           {assignment.returnConditionNotes ? (
-            <p className="mt-1 text-sm text-slate-600">Disposition notes: {assignment.returnConditionNotes}</p>
+            <p className="mt-1 text-sm text-muted-foreground">Disposition notes: {assignment.returnConditionNotes}</p>
           ) : null}
         </li>
       ))}

@@ -1,3 +1,4 @@
+import { MhdBadge } from '@/components/ui/MhdBadge';
 import {
   MHD_HANDBOOK_ATTORNEY_PLACEHOLDER,
   mhdFormatHandbookJurisdiction,
@@ -19,7 +20,7 @@ interface Props {
  */
 export function MhdHandbookPreview({ rows, isLoading = false }: Props) {
   if (isLoading) {
-    return <p className="text-sm text-neutral-500">Assembling preview…</p>;
+    return <p className="text-sm text-muted-foreground">Assembling preview…</p>;
   }
 
   return (
@@ -27,7 +28,7 @@ export function MhdHandbookPreview({ rows, isLoading = false }: Props) {
       <MhdHandbookAttorneyPendingBanner />
 
       {rows.length === 0 ? (
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-muted-foreground">
           No sections are included yet. Add optional sections, or check the required set.
         </p>
       ) : (
@@ -38,18 +39,18 @@ export function MhdHandbookPreview({ rows, isLoading = false }: Props) {
             // for policy.
             const isPlaceholder = row.bodyPlaceholder.trim() === MHD_HANDBOOK_ATTORNEY_PLACEHOLDER;
             return (
-              <li key={row.sectionId} className="rounded-md border border-neutral-200 p-4">
+              <li key={row.sectionId} className="rounded-xl border border-border bg-card p-4 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-neutral-900">{row.title}</h3>
-                  <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
+                  <h3 className="text-sm font-semibold text-foreground">{row.title}</h3>
+                  <MhdBadge variant="neutral">
                     {mhdFormatHandbookJurisdiction(row.jurisdiction)}
-                  </span>
+                  </MhdBadge>
                 </div>
                 <p
                   className={
                     isPlaceholder
-                      ? 'mt-2 text-sm italic text-neutral-400'
-                      : 'mt-2 text-sm text-neutral-700'
+                      ? 'mt-2 text-sm italic text-muted-foreground'
+                      : 'mt-2 text-sm text-foreground'
                   }
                 >
                   {row.bodyPlaceholder}

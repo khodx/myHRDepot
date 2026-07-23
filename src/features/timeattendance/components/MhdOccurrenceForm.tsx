@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/Button';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { mhdOccurrenceFormSchema, type MhdOccurrenceFormValues } from '../Schemas';
@@ -101,14 +102,14 @@ export function MhdOccurrenceForm({
       <input type="hidden" value={companyId} readOnly />
 
       <div>
-        <label htmlFor="personId" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="personId" className="block text-sm font-medium text-foreground">
           Employee
         </label>
         <select
           id="personId"
           {...register('personId')}
           disabled={Boolean(presetPersonId)}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
         >
           <option value="">Select an employee…</option>
           {people.map((person) => (
@@ -124,14 +125,14 @@ export function MhdOccurrenceForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="occurrenceDate" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="occurrenceDate" className="block text-sm font-medium text-foreground">
             Date
           </label>
           <input
             id="occurrenceDate"
             type="date"
             {...register('occurrenceDate')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
           {errors.occurrenceDate ? (
             <p className="mt-1 text-xs text-rose-600">{errors.occurrenceDate.message}</p>
@@ -139,13 +140,13 @@ export function MhdOccurrenceForm({
         </div>
 
         <div>
-          <label htmlFor="occurrenceType" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="occurrenceType" className="block text-sm font-medium text-foreground">
             What happened
           </label>
           <select
             id="occurrenceType"
             {...register('occurrenceType')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             {MHD_OCCURRENCE_TYPES.map((type) => (
               <option key={type} value={type}>
@@ -158,7 +159,7 @@ export function MhdOccurrenceForm({
 
       {showsMinutes ? (
         <div>
-          <label htmlFor="minutesVariance" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="minutesVariance" className="block text-sm font-medium text-foreground">
             Minutes
           </label>
           <input
@@ -166,7 +167,7 @@ export function MhdOccurrenceForm({
             type="number"
             min={0}
             {...register('minutesVariance', { valueAsNumber: true })}
-            className="mt-1 w-40 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-40 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
           {errors.minutesVariance ? (
             <p className="mt-1 text-xs text-rose-600">{errors.minutesVariance.message}</p>
@@ -175,13 +176,13 @@ export function MhdOccurrenceForm({
       ) : null}
 
       <div>
-        <label htmlFor="classification" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="classification" className="block text-sm font-medium text-foreground">
           Classification
         </label>
         <select
           id="classification"
           {...register('classification')}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           {MHD_ATTENDANCE_CLASSIFICATIONS.map((value) => (
             <option key={value} value={value}>
@@ -195,14 +196,14 @@ export function MhdOccurrenceForm({
         <div>
           <label
             htmlFor="protectedLeaveCategory"
-            className="block text-sm font-medium text-neutral-700"
+            className="block text-sm font-medium text-foreground"
           >
             Protected leave category
           </label>
           <select
             id="protectedLeaveCategory"
             {...register('protectedLeaveCategory')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <option value="">Select a category…</option>
             {MHD_PROTECTED_LEAVE_CATEGORIES.map((category) => (
@@ -228,7 +229,7 @@ export function MhdOccurrenceForm({
             ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
             : accrues
               ? 'border-amber-200 bg-amber-50 text-amber-900'
-              : 'border-neutral-200 bg-neutral-50 text-neutral-700'
+              : 'border-border bg-muted text-foreground'
         }`}
       >
         {isProtected ? (
@@ -257,41 +258,33 @@ export function MhdOccurrenceForm({
       </div>
 
       <div>
-        <label htmlFor="reasonNote" className="block text-sm font-medium text-neutral-700">
-          Note <span className="font-normal text-neutral-500">(optional)</span>
+        <label htmlFor="reasonNote" className="block text-sm font-medium text-foreground">
+          Note <span className="font-normal text-muted-foreground">(optional)</span>
         </label>
         <textarea
           id="reasonNote"
           rows={3}
           {...register('reasonNote')}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
         {/*
           Deliberate guidance, not decoration. Medical detail and safe-time
           narrative do not belong in a field the whole privileged role set can
           read; the category column already carries what the record needs.
         */}
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Keep this factual. Do not record medical details or the circumstances behind a protected
           absence.
         </p>
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-        >
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Recording…' : 'Record occurrence'}
-        </button>
+        </Button>
       </div>
     </form>
   );

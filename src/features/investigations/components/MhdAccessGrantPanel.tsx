@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
 import type { MhdInvestigationGrant, MhdInvestigationGrantInput } from '../Types';
 
 interface UserOption {
@@ -58,24 +60,24 @@ export function MhdAccessGrantPanel({
   }
 
   return (
-    <section className="space-y-4">
+    <MhdCard className="space-y-4">
       <div>
-        <h2 className="text-base font-semibold text-neutral-900">Access</h2>
-        <p className="mt-0.5 text-xs text-neutral-500">
+        <h2 className="text-base font-semibold text-foreground">Access</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           Who can see this case. Anyone here can grant or revoke access — access to grant is access.
         </p>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-md border border-neutral-200 p-4">
+      <div className="flex flex-wrap items-end gap-3 rounded-md border border-border p-4">
         <div className="flex-1">
-          <label htmlFor="grantUser" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="grantUser" className="block text-sm font-medium text-foreground">
             Grant access to
           </label>
           <select
             id="grantUser"
             value={selectedUserId}
             onChange={(event) => setSelectedUserId(event.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
             <option value="">Select a user…</option>
             {grantablePeople.map((person) => (
@@ -85,32 +87,32 @@ export function MhdAccessGrantPanel({
             ))}
           </select>
         </div>
-        <button
+        <Button
           type="button"
           disabled={isSubmitting || !selectedUserId}
           onClick={() => void submitGrant()}
-          className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
+          className="px-3 py-2"
         >
           {isSubmitting ? 'Saving…' : 'Grant'}
-        </button>
+        </Button>
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-neutral-500">Loading access list…</p>
+        <p className="text-sm text-muted-foreground">Loading access list…</p>
       ) : grants.length === 0 ? (
-        <p className="text-sm text-neutral-500">No explicit grants on this case yet.</p>
+        <p className="text-sm text-muted-foreground">No explicit grants on this case yet.</p>
       ) : (
         <ul className="space-y-2">
           {grants.map((grant) => (
             <li
               key={grant.userId}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-neutral-200 px-4 py-3"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border px-4 py-3"
             >
               <div>
-                <p className="text-sm font-medium text-neutral-900">
+                <p className="text-sm font-medium text-foreground">
                   {nameById.get(grant.userId) ?? grant.userId}
                 </p>
-                <p className="mt-0.5 text-xs text-neutral-500">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   Granted {grant.grantedAt}
                   {grant.grantedBy
                     ? ` by ${nameById.get(grant.grantedBy) ?? grant.grantedBy}`
@@ -129,6 +131,6 @@ export function MhdAccessGrantPanel({
           ))}
         </ul>
       )}
-    </section>
+    </MhdCard>
   );
 }

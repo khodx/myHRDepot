@@ -1,5 +1,12 @@
+import { ShieldQuestion } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { mhdCanOpenInvestigation } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
@@ -80,27 +87,22 @@ export function MhdInvestigationsPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">Investigations</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            Cases you have been granted access to. Access is per case, by grant — never by role.
-          </p>
-        </div>
-        {canOpenCase && companyId ? (
-          <button
-            type="button"
-            onClick={() => setIsCreating(true)}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
-          >
-            New investigation
-          </button>
-        ) : null}
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Investigations"
+        description="Cases you have been granted access to. Access is per case, by grant — never by role."
+        actions={
+          canOpenCase && companyId ? (
+            <Button type="button" onClick={() => setIsCreating(true)}>
+              New investigation
+            </Button>
+          ) : undefined
+        }
+      />
 
-      <div className="flex flex-wrap gap-3">
-        <select
+      <MhdCard className="flex flex-wrap items-end gap-3">
+        <MhdFilterSelect
+          label="Status"
           value={filters.status ?? 'ALL'}
           onChange={(event) =>
             setFilters((previous) => ({
@@ -108,7 +110,6 @@ export function MhdInvestigationsPage() {
               status: event.target.value as MhdInvestigationCaseFilters['status'],
             }))
           }
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
         >
           <option value="ALL">All statuses</option>
           {MHD_INVESTIGATION_STATUSES.map((status) => (
@@ -116,66 +117,68 @@ export function MhdInvestigationsPage() {
               {mhdFormatInvestigationStatus(status)}
             </option>
           ))}
-        </select>
-      </div>
+        </MhdFilterSelect>
+      </MhdCard>
 
       {cases.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading…</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (cases.data ?? []).length === 0 ? (
         // Honest, non-disclosing empty state. It says only that the viewer has
         // access to nothing — never that hidden cases exist beyond their grants.
-        <p className="text-sm text-neutral-500">No investigations you have access to.</p>
+        <MhdCard className="border-dashed">
+          <MhdEmptyState icon={ShieldQuestion} title="No investigations you have access to." />
+        </MhdCard>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
             <thead>
-              <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                <th className="py-2 pr-4 font-medium">Reference</th>
-                <th className="py-2 pr-4 font-medium">Type</th>
-                <th className="py-2 pr-4 font-medium">Severity</th>
-                <th className="py-2 pr-4 font-medium">Status</th>
-                <th className="py-2 pr-4 font-medium">Disposition</th>
-                <th className="py-2 font-medium" />
+              <tr>
+                <MhdTh>Reference</MhdTh>
+                <MhdTh>Type</MhdTh>
+                <MhdTh>Severity</MhdTh>
+                <MhdTh>Status</MhdTh>
+                <MhdTh>Disposition</MhdTh>
+                <MhdTh />
               </tr>
             </thead>
             <tbody>
               {(cases.data ?? []).map((investigation) => (
-                <tr key={investigation.id} className="border-b border-neutral-100 text-neutral-800">
-                  <td className="py-2 pr-4 whitespace-nowrap font-mono text-xs">
+                <MhdTr key={investigation.id}>
+                  <MhdTd className="whitespace-nowrap font-mono text-xs">
                     {investigation.referenceId}
-                  </td>
-                  <td className="py-2 pr-4">
+                  </MhdTd>
+                  <MhdTd>
                     <MhdCaseTypeBadge caseType={investigation.caseType} />
-                  </td>
-                  <td className="py-2 pr-4 whitespace-nowrap text-neutral-600">
+                  </MhdTd>
+                  <MhdTd className="whitespace-nowrap text-muted-foreground">
                     {investigation.severity ?? '—'}
-                  </td>
-                  <td className="py-2 pr-4">
+                  </MhdTd>
+                  <MhdTd>
                     <MhdInvestigationStatusBadge status={investigation.status} />
-                  </td>
-                  <td className="py-2 pr-4">
+                  </MhdTd>
+                  <MhdTd>
                     <MhdDispositionBadge disposition={investigation.disposition} />
-                  </td>
-                  <td className="py-2 text-right">
+                  </MhdTd>
+                  <MhdTd className="text-right">
                     <button
                       type="button"
                       onClick={() => openCase(investigation.id)}
-                      className="text-sm text-neutral-500 underline"
+                      className="text-sm font-medium text-accent hover:text-accent-hover"
                     >
                       Open
                     </button>
-                  </td>
-                </tr>
+                  </MhdTd>
+                </MhdTr>
               ))}
             </tbody>
-          </table>
-        </div>
+          </MhdTable>
+        </MhdCard>
       )}
 
       {isCreating && canOpenCase && companyId ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
           <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-lg bg-card p-6">
-            <h2 className="mb-4 text-base font-semibold text-neutral-900">Open an investigation</h2>
+            <h2 className="mb-4 text-base font-semibold text-foreground">Open an investigation</h2>
             <MhdInvestigationCaseForm
               companyId={companyId}
               investigators={investigatorOptions}

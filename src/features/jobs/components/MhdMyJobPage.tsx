@@ -1,3 +1,5 @@
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdPublishedJobForPerson } from '../Hook';
 import { mhdFormatIndustry, mhdFormatQualificationType } from '../Types';
@@ -22,43 +24,44 @@ export function MhdMyJobPage() {
   const published = useMhdPublishedJobForPerson(personId);
 
   if (!personId || published.isLoading) {
-    return <p className="p-6 text-sm text-neutral-500">Loading your job description…</p>;
+    return <p className="text-sm text-muted-foreground">Loading your job description…</p>;
   }
 
   const job = published.data;
 
   if (!job) {
     return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold text-neutral-900">My job</h1>
-        <p className="mt-2 text-sm text-neutral-600">
-          No published job description is available for you yet. If you believe this is wrong, speak
-          to your HR contact — it usually means a description has been drafted but not published.
-        </p>
+      <div className="space-y-6">
+        <MhdPageHeader
+          title="My job"
+          description="No published job description is available for you yet. If you believe this is wrong, speak to your HR contact — it usually means a description has been drafted but not published."
+        />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <header>
-        <h1 className="text-xl font-semibold text-neutral-900">{job.jobTitle}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
+    <div className="space-y-6">
+      <MhdPageHeader
+        title={job.jobTitle}
+        chips={
           <MhdFlsaBadge
             flsaClassification={job.flsaClassification}
             isSafetySensitive={job.isSafetySensitive}
           />
-          <span className="text-xs text-neutral-500">{mhdFormatIndustry(job.industry)}</span>
-          <span className="text-xs text-neutral-500">
-            Version {job.versionNumber} · effective {job.effectiveFrom}
-          </span>
-        </div>
-      </header>
+        }
+        description={
+          <>
+            {mhdFormatIndustry(job.industry)} · Version {job.versionNumber} · effective{' '}
+            {job.effectiveFrom}
+          </>
+        }
+      />
 
       {job.summary ? (
         <section>
-          <h2 className="text-sm font-semibold text-neutral-900">Summary</h2>
-          <p className="mt-1 text-sm text-neutral-800">{job.summary}</p>
+          <h2 className="text-sm font-semibold text-foreground">Summary</h2>
+          <p className="mt-1 text-sm text-foreground">{job.summary}</p>
         </section>
       ) : null}
 
@@ -70,12 +73,12 @@ export function MhdMyJobPage() {
 
       {job.qualifications.length > 0 ? (
         <section>
-          <h2 className="text-sm font-semibold text-neutral-900">Qualifications</h2>
-          <ul className="mt-1 space-y-1 text-sm text-neutral-800">
+          <h2 className="text-sm font-semibold text-foreground">Qualifications</h2>
+          <ul className="mt-1 space-y-1 text-sm text-foreground">
             {job.qualifications.map((qual, index) => (
               <li key={`qual-${index}`}>
                 {qual.text}{' '}
-                <span className="text-xs text-neutral-500">
+                <span className="text-xs text-muted-foreground">
                   ({mhdFormatQualificationType(qual.type)} ·{' '}
                   {qual.required ? 'required' : 'preferred'})
                 </span>
@@ -87,18 +90,18 @@ export function MhdMyJobPage() {
 
       {job.competencies.length > 0 ? (
         <section>
-          <h2 className="text-sm font-semibold text-neutral-900">Competencies</h2>
-          <p className="mt-0.5 text-xs text-neutral-500">
+          <h2 className="text-sm font-semibold text-foreground">Competencies</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             These are what a performance review of this role is assessed against.
           </p>
-          <ul className="mt-1 space-y-1 text-sm text-neutral-800">
+          <ul className="mt-1 space-y-1 text-sm text-foreground">
             {job.competencies.map((competency) => (
               <li key={competency.competencyId}>
                 {competency.name}
                 {competency.isRegulated ? (
-                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
+                  <MhdBadge variant="warning" className="ml-2">
                     Regulated
-                  </span>
+                  </MhdBadge>
                 ) : null}
               </li>
             ))}
@@ -106,7 +109,7 @@ export function MhdMyJobPage() {
         </section>
       ) : null}
 
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-muted-foreground">
         This is the published version of your job description. If your role has changed and this no
         longer reflects it, raise it with your HR contact.
       </p>

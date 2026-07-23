@@ -1,5 +1,8 @@
 import { AlarmClock, ClipboardCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import type { MhdPerformanceReview } from '../Types';
 import { mhdIsReviewOverdue } from '../Types';
 import { MhdRatingStars } from './MhdRatingStars';
@@ -17,66 +20,65 @@ function formatDate(value: string | null): string {
 export function MhdReviewList({ reviews }: Props) {
   if (reviews.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-10 text-neutral-400">
-        <ClipboardCheck className="mb-2 h-8 w-8" />
-        <p className="text-sm">No reviews match the current filters.</p>
-      </div>
+      <MhdCard className="border-dashed">
+        <MhdEmptyState icon={ClipboardCheck} title="No reviews found" description="No reviews match the current filters." />
+      </MhdCard>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+    <MhdCard className="overflow-hidden p-0">
+      <MhdTable>
         <thead>
-          <tr className="border-b text-left text-neutral-500">
-            <th className="py-2 pr-4">Review</th>
-            <th className="py-2 pr-4">Type</th>
-            <th className="py-2 pr-4">Status</th>
-            <th className="py-2 pr-4">Rating</th>
-            <th className="py-2 pr-4">Reviewer</th>
-            <th className="py-2 pr-4">Period</th>
-            <th className="py-2 pr-4">Due</th>
+          <tr>
+            <MhdTh>Review</MhdTh>
+            <MhdTh>Type</MhdTh>
+            <MhdTh>Status</MhdTh>
+            <MhdTh>Rating</MhdTh>
+            <MhdTh>Reviewer</MhdTh>
+            <MhdTh>Period</MhdTh>
+            <MhdTh>Due</MhdTh>
           </tr>
         </thead>
         <tbody>
           {reviews.map((review) => {
             const isOverdue = mhdIsReviewOverdue(review);
             return (
-              <tr key={review.id} className="border-b last:border-0 hover:bg-neutral-50">
-                <td className="py-2 pr-4">
-                  <Link to={`/performance/reviews/${review.id}`} className="font-medium hover:underline">
+              <MhdTr key={review.id}>
+                <MhdTd>
+                  <Link to={`/performance/reviews/${review.id}`} className="font-medium text-accent hover:text-accent-hover">
                     {review.personDisplayName ?? 'Unknown person'}
                   </Link>
-                  <div className="text-xs text-neutral-400">{review.referenceId}</div>
-                </td>
-                <td className="py-2 pr-4">
+                  <div className="text-xs text-muted-foreground">{review.referenceId}</div>
+                </MhdTd>
+                <MhdTd>
                   <MhdReviewTypeBadge reviewType={review.reviewType} />
-                </td>
-                <td className="py-2 pr-4">
+                </MhdTd>
+                <MhdTd>
                   <MhdReviewStatusBadge status={review.status} />
-                </td>
-                <td className="py-2 pr-4">
+                </MhdTd>
+                <MhdTd>
                   <MhdRatingStars value={review.overallRating} size="sm" />
-                </td>
-                <td className="py-2 pr-4">{review.reviewerDisplayName ?? '—'}</td>
-                <td className="py-2 pr-4 text-neutral-600">
+                </MhdTd>
+                <MhdTd>{review.reviewerDisplayName ?? '—'}</MhdTd>
+                <MhdTd className="text-muted-foreground">
                   {formatDate(review.reviewPeriodStart)} – {formatDate(review.reviewPeriodEnd)}
-                </td>
-                <td className="py-2 pr-4">
+                </MhdTd>
+                <MhdTd>
                   {review.dueDate ? (
-                    <span className={`inline-flex items-center gap-1 ${isOverdue ? 'font-medium text-red-600' : 'text-neutral-600'}`}>
+                    <span className={`inline-flex items-center gap-1 ${isOverdue ? 'font-medium text-red-600' : 'text-muted-foreground'}`}>
                       {isOverdue ? <AlarmClock className="h-4 w-4" aria-label="Overdue" /> : null}
                       {formatDate(review.dueDate)}
                     </span>
                   ) : (
-                    <span className="text-neutral-400">No due date</span>
+                    <span className="text-muted-foreground">No due date</span>
                   )}
-                </td>
-              </tr>
+                </MhdTd>
+              </MhdTr>
             );
           })}
         </tbody>
-      </table>
-    </div>
+      </MhdTable>
+    </MhdCard>
   );
 }

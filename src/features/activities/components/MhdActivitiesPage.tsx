@@ -1,5 +1,9 @@
-import { Plus } from 'lucide-react';
+import { CalendarRange, CheckCircle2, Loader2, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdStatCard } from '@/components/ui/MhdStatCard';
 import type { Json } from '@/types/database.types';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateActivities } from '@/appshell/mhdRouteAccess';
@@ -69,27 +73,19 @@ export function MhdActivitiesPage() {
     : [];
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Activities</h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Interactions around the work: sessions, calls, visits, and events with participants, notes, and outcomes.
-            </p>
-          </div>
-
-          {canMutate ? (
-            <button
-              type="button"
-              onClick={() => setIsCreating((current) => !current)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white"
-            >
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Activities"
+        description="Interactions around the work: sessions, calls, visits, and events with participants, notes, and outcomes."
+        actions={
+          canMutate ? (
+            <Button onClick={() => setIsCreating((current) => !current)} className="gap-1.5">
               <Plus className="h-4 w-4" />
               {isCreating ? 'Close Form' : 'New Activity'}
-            </button>
-          ) : null}
-        </div>
+            </Button>
+          ) : undefined
+        }
+      />
 
         {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
         {activitiesQuery.error ? (
@@ -99,23 +95,14 @@ export function MhdActivitiesPage() {
         ) : null}
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Planned</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{counts.planned}</p>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">In Progress</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{counts.inProgress}</p>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Completed</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{counts.completed}</p>
-          </div>
+          <MhdStatCard icon={CalendarRange} label="Planned" value={counts.planned} />
+          <MhdStatCard icon={Loader2} label="In Progress" value={counts.inProgress} />
+          <MhdStatCard icon={CheckCircle2} label="Completed" value={counts.completed} />
         </div>
 
         {isCreating && canMutate && selectedCompanyId ? (
-          <section className="rounded-lg border border-slate-200 bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">New Activity</h2>
+          <MhdCard className="p-6">
+            <h2 className="mb-4 text-lg font-semibold text-foreground">New Activity</h2>
             <MhdActivityForm
               mode="create"
               companyId={selectedCompanyId}
@@ -127,10 +114,10 @@ export function MhdActivitiesPage() {
               onCancel={() => setIsCreating(false)}
               isSubmitting={actions.createActivity.isPending}
             />
-          </section>
+          </MhdCard>
         ) : null}
 
-        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
+        <MhdCard>
           <MhdActivityFilterBar
             filters={effectiveFilters}
             onChange={setFilters}
@@ -138,16 +125,15 @@ export function MhdActivitiesPage() {
             people={(peopleQuery.data ?? []).map((person) => ({ id: person.id, label: person.displayName }))}
             tasks={(tasksQuery.data ?? []).map((task) => ({ id: task.id, label: `${task.referenceId} — ${task.title}` }))}
           />
-        </section>
+        </MhdCard>
 
-        <section className="rounded-lg border border-slate-200 bg-card p-4 shadow-sm">
+        <MhdCard className="overflow-hidden p-0">
           {activitiesQuery.isLoading ? (
-            <div className="flex h-40 items-center justify-center text-sm text-slate-500">Loading activities…</div>
+            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">Loading activities…</div>
           ) : (
             <MhdActivityList activities={activities} />
           )}
-        </section>
-      </div>
-    </main>
+        </MhdCard>
+    </div>
   );
 }

@@ -34,11 +34,11 @@ export function MhdFormDraftSave({ submissionId, values, onSaved }: MhdFormDraft
         type="button"
         onClick={handleSave}
         disabled={isSaving}
-        className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
+        className="rounded-md border border-border px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
       >
         {isSaving ? 'Saving...' : 'Save Draft'}
       </button>
-      {lastSavedAt ? <span className="text-xs text-slate-500">Saved at {new Date(lastSavedAt).toLocaleTimeString()}</span> : null}
+      {lastSavedAt ? <span className="text-xs text-muted-foreground">Saved at {new Date(lastSavedAt).toLocaleTimeString()}</span> : null}
       {error ? <span className="text-xs text-red-600">{error}</span> : null}
     </div>
   );
@@ -53,19 +53,19 @@ export function MhdFormResumeDrafts({ drafts, onResume }: MhdFormResumeDraftsPro
   if (drafts.length === 0) return null;
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-card p-4">
-      <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Resume Saved Draft</h4>
+    <div className="rounded-lg border border-border bg-card p-4">
+      <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Resume Saved Draft</h4>
       <ul className="mt-3 space-y-2">
         {drafts.map((draft) => (
-          <li key={draft.id} className="flex items-center justify-between gap-4 rounded-md border border-slate-100 px-3 py-2 text-sm">
+          <li key={draft.id} className="flex items-center justify-between gap-4 rounded-md border border-border px-3 py-2 text-sm">
             <div>
-              <p className="font-medium text-slate-900">{draft.referenceId}</p>
-              {draft.updatedAt ? <p className="text-xs text-slate-500">Updated {new Date(draft.updatedAt).toLocaleString()}</p> : null}
+              <p className="font-medium text-foreground">{draft.referenceId}</p>
+              {draft.updatedAt ? <p className="text-xs text-muted-foreground">Updated {new Date(draft.updatedAt).toLocaleString()}</p> : null}
             </div>
             <button
               type="button"
               onClick={() => onResume(draft.id)}
-              className="text-sm font-semibold text-blue-700 hover:underline"
+              className="text-sm font-semibold text-accent hover:text-accent-hover"
             >
               Resume
             </button>

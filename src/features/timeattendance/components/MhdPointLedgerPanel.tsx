@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { mhdNextThreshold, type MhdAttendanceThreshold, type MhdPointLedgerEntry } from '../Types';
 
 interface Props {
@@ -49,41 +51,41 @@ export function MhdPointLedgerPanel({
   );
 
   if (isLoading) {
-    return <p className="text-sm text-neutral-500">Loading points…</p>;
+    return <p className="text-sm text-muted-foreground">Loading points…</p>;
   }
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+      <MhdCard className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
         <div>
-          <p className="text-xs uppercase tracking-wide text-neutral-500">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
             {selfView ? 'Your current points' : 'Current points'}
           </p>
-          <p className="text-3xl font-semibold text-neutral-900">{balance}</p>
+          <p className="text-3xl font-semibold text-foreground">{balance}</p>
         </div>
         {nextThreshold ? (
-          <p className="text-sm text-neutral-600">
+          <p className="text-sm text-muted-foreground">
             {Math.round((nextThreshold.pointsAt - balance) * 100) / 100} more before{' '}
             <span className="font-medium">{nextThreshold.actionLevel.replace(/_/g, ' ').toLowerCase()}</span>
           </p>
         ) : thresholds.length > 0 ? (
-          <p className="text-sm text-neutral-600">Past the highest configured threshold.</p>
+          <p className="text-sm text-muted-foreground">Past the highest configured threshold.</p>
         ) : null}
-      </div>
+      </MhdCard>
 
       {entries.length === 0 ? (
-        <p className="text-sm text-neutral-500">No point activity on record.</p>
+        <p className="text-sm text-muted-foreground">No point activity on record.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
             <thead>
-              <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                <th className="py-2 pr-4 font-medium">Effective</th>
-                <th className="py-2 pr-4 font-medium">Entry</th>
-                <th className="py-2 pr-4 font-medium">Occurrence</th>
-                <th className="py-2 pr-4 text-right font-medium">Points</th>
-                <th className="py-2 pr-4 font-medium">Rolls off</th>
-                <th className="py-2 font-medium">Reason</th>
+              <tr>
+                <MhdTh>Effective</MhdTh>
+                <MhdTh>Entry</MhdTh>
+                <MhdTh>Occurrence</MhdTh>
+                <MhdTh className="text-right">Points</MhdTh>
+                <MhdTh>Rolls off</MhdTh>
+                <MhdTh>Reason</MhdTh>
               </tr>
             </thead>
             <tbody>
@@ -92,42 +94,42 @@ export function MhdPointLedgerPanel({
                 const expired = isExpired(entry, today);
                 const inactive = superseded || expired;
                 return (
-                  <tr
+                  <MhdTr
                     key={entry.id}
-                    className={`border-b border-neutral-100 ${inactive ? 'text-neutral-400' : 'text-neutral-800'}`}
+                    className={inactive ? 'text-muted-foreground' : undefined}
                   >
-                    <td className="py-2 pr-4 whitespace-nowrap">{entry.effectiveDate}</td>
-                    <td className="py-2 pr-4 whitespace-nowrap">{ENTRY_LABELS[entry.entryType]}</td>
-                    <td className="py-2 pr-4 whitespace-nowrap">
-                      {entry.occurrenceReference ?? <span className="text-neutral-400">—</span>}
-                    </td>
-                    <td
-                      className={`py-2 pr-4 text-right tabular-nums ${
+                    <MhdTd className="whitespace-nowrap">{entry.effectiveDate}</MhdTd>
+                    <MhdTd className="whitespace-nowrap">{ENTRY_LABELS[entry.entryType]}</MhdTd>
+                    <MhdTd className="whitespace-nowrap">
+                      {entry.occurrenceReference ?? <span className="text-muted-foreground">—</span>}
+                    </MhdTd>
+                    <MhdTd
+                      className={`text-right tabular-nums ${
                         inactive ? '' : entry.pointsDelta > 0 ? 'text-rose-700' : 'text-emerald-700'
                       } ${superseded ? 'line-through' : ''}`}
                     >
                       {formatDelta(entry.pointsDelta)}
-                    </td>
-                    <td className="py-2 pr-4 whitespace-nowrap">
+                    </MhdTd>
+                    <MhdTd className="whitespace-nowrap">
                       {entry.expiresOn ? (
                         <>
                           {entry.expiresOn}
                           {expired ? <span className="ml-1 text-xs">(expired)</span> : null}
                         </>
                       ) : (
-                        <span className="text-neutral-400">—</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
-                    </td>
-                    <td className="py-2">{entry.reason ?? <span className="text-neutral-400">—</span>}</td>
-                  </tr>
+                    </MhdTd>
+                    <MhdTd>{entry.reason ?? <span className="text-muted-foreground">—</span>}</MhdTd>
+                  </MhdTr>
                 );
               })}
             </tbody>
-          </table>
-        </div>
+          </MhdTable>
+        </MhdCard>
       )}
 
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-muted-foreground">
         This record is append-only. Corrections appear as reversing entries rather than edits, so
         the history of any decision stays intact.
       </p>

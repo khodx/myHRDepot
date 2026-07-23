@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
 import {
   useMhdPublishDescription,
   useMhdSetDescriptionFunctions,
@@ -106,7 +107,7 @@ export function MhdJobDescriptionEditor({
       </div>
 
       <div>
-        <label htmlFor="summary" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="summary" className="block text-sm font-medium text-foreground">
           Role summary
         </label>
         <textarea
@@ -114,13 +115,13 @@ export function MhdJobDescriptionEditor({
           rows={3}
           value={summary}
           onChange={(event) => setSummary(event.target.value)}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
       </div>
 
       <fieldset>
-        <legend className="text-sm font-medium text-neutral-700">Functions</legend>
-        <p className="mt-0.5 text-xs text-neutral-500">
+        <legend className="text-sm font-medium text-foreground">Functions</legend>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           Mark a function <strong>essential</strong> when the role fundamentally requires it.
           Essential functions are the reference point for any accommodation conversation, so the
           distinction is worth getting right.
@@ -138,9 +139,9 @@ export function MhdJobDescriptionEditor({
                     ),
                   )
                 }
-                className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
-              <label className="mt-2 flex items-center gap-1.5 whitespace-nowrap text-sm">
+              <label className="mt-2 flex items-center gap-1.5 whitespace-nowrap text-sm text-foreground">
                 <input
                   type="checkbox"
                   checked={fn.isEssential}
@@ -157,27 +158,26 @@ export function MhdJobDescriptionEditor({
               <button
                 type="button"
                 onClick={() => setFunctions((previous) => previous.filter((_, i) => i !== index))}
-                className="mt-2 text-sm text-neutral-500"
+                className="mt-2 text-sm text-muted-foreground hover:text-foreground"
               >
                 Remove
               </button>
             </div>
           ))}
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={() =>
               setFunctions((previous) => [...previous, { functionText: '', isEssential: true }])
             }
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
           >
             Add function
-          </button>
+          </Button>
         </div>
       </fieldset>
 
       <fieldset>
-        <legend className="text-sm font-medium text-neutral-700">Qualifications</legend>
-        <p className="mt-0.5 text-xs text-neutral-500">
+        <legend className="text-sm font-medium text-foreground">Qualifications</legend>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           Keep <strong>required</strong> and <strong>preferred</strong> distinct. Marking a
           preference as required narrows the candidate pool unnecessarily.
         </p>
@@ -193,7 +193,7 @@ export function MhdJobDescriptionEditor({
                     ),
                   )
                 }
-                className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
               <select
                 value={qual.qualificationType}
@@ -206,7 +206,7 @@ export function MhdJobDescriptionEditor({
                     ),
                   )
                 }
-                className="rounded-md border border-neutral-300 px-2 py-2 text-sm"
+                className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {MHD_QUALIFICATION_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -214,7 +214,7 @@ export function MhdJobDescriptionEditor({
                   </option>
                 ))}
               </select>
-              <label className="mt-2 flex items-center gap-1.5 whitespace-nowrap text-sm">
+              <label className="mt-2 flex items-center gap-1.5 whitespace-nowrap text-sm text-foreground">
                 <input
                   type="checkbox"
                   checked={qual.isRequired}
@@ -233,24 +233,23 @@ export function MhdJobDescriptionEditor({
                 onClick={() =>
                   setQualifications((previous) => previous.filter((_, i) => i !== index))
                 }
-                className="mt-2 text-sm text-neutral-500"
+                className="mt-2 text-sm text-muted-foreground hover:text-foreground"
               >
                 Remove
               </button>
             </div>
           ))}
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={() =>
               setQualifications((previous) => [
                 ...previous,
                 { qualificationText: '', qualificationType: 'EXPERIENCE', isRequired: true },
               ])
             }
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
           >
             Add qualification
-          </button>
+          </Button>
         </div>
       </fieldset>
 
@@ -262,29 +261,15 @@ export function MhdJobDescriptionEditor({
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
 
       <div className="flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-        >
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="button"
-          disabled={isSaving}
-          onClick={() => void saveDraft()}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 disabled:opacity-50"
-        >
+        </Button>
+        <Button variant="secondary" disabled={isSaving} onClick={() => void saveDraft()}>
           Save draft
-        </button>
-        <button
-          type="button"
-          disabled={isSaving || !gate.ok}
-          onClick={() => void saveAndPublish()}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        </Button>
+        <Button disabled={isSaving || !gate.ok} onClick={() => void saveAndPublish()}>
           {publish.isPending ? 'Publishing…' : 'Publish version'}
-        </button>
+        </Button>
       </div>
     </div>
   );

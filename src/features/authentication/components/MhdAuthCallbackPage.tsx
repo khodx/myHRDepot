@@ -12,5 +12,5 @@ export function MhdAuthCallbackPage() {
       .catch(() => navigate('/login', { replace: true }));
   }, [navigate, refreshProfile]);
 
-  return <div className="flex min-h-screen items-center justify-center text-sm text-slate-600">Completing sign in...</div>;
+  return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Completing sign in...</div>;
 }

@@ -1,11 +1,15 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { mhdFormatActivityStatus, type MhdActivityStatus } from '../Types';
 
-const STATUS_STYLES: Record<MhdActivityStatus, string> = {
-  PLANNED: 'bg-blue-100 text-blue-800',
-  IN_PROGRESS: 'bg-amber-100 text-amber-800',
-  COMPLETED: 'bg-emerald-100 text-emerald-800',
-  CANCELLED: 'bg-neutral-100 text-neutral-600',
-  NO_SHOW: 'bg-red-100 text-red-800',
+// Semantic mapping (MHD Design System §5): PLANNED is informational, IN_PROGRESS
+// is pending (warning), COMPLETED is success, CANCELLED is neutral, NO_SHOW is
+// the failure state (error).
+const STATUS_VARIANTS: Record<MhdActivityStatus, MhdBadgeVariant> = {
+  PLANNED: 'info',
+  IN_PROGRESS: 'warning',
+  COMPLETED: 'success',
+  CANCELLED: 'neutral',
+  NO_SHOW: 'error',
 };
 
 interface Props {
@@ -14,8 +18,8 @@ interface Props {
 
 export function MhdActivityStatusBadge({ status }: Props) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[status]}`}>
+    <MhdBadge variant={STATUS_VARIANTS[status] ?? 'neutral'}>
       {mhdFormatActivityStatus(status)}
-    </span>
+    </MhdBadge>
   );
 }

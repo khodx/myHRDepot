@@ -21,8 +21,8 @@ export function MhdMyTrainingRoutePage() {
 
   if (!companyId || !personId) {
     return (
-      <div className="p-6">
-        <p className="text-sm text-neutral-500">
+      <div className="space-y-6">
+        <p className="text-sm text-muted-foreground">
           Your account is not linked to an employee record, so there is no training to show.
         </p>
       </div>

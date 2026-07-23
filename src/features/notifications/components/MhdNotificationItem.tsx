@@ -21,18 +21,18 @@ export function MhdNotificationItem({ notification, onSelect }: MhdNotificationI
       type="button"
       onClick={() => onSelect(notification)}
       aria-label={notification.isRead ? notification.title : `Unread: ${notification.title}`}
-      className={`w-full px-4 py-3 text-left transition-colors hover:bg-neutral-50 ${
-        !notification.isRead ? 'bg-blue-50/40' : ''
+      className={`w-full px-4 py-3 text-left transition-colors hover:bg-muted/50 ${
+        !notification.isRead ? 'bg-accent-tint/60' : ''
       }`}
     >
       <div className="flex items-start gap-2">
         {!notification.isRead && (
-          <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" aria-hidden="true" />
+          <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-accent" aria-hidden="true" />
         )}
         <div className={`min-w-0 ${notification.isRead ? 'pl-4' : ''}`}>
-          <p className="line-clamp-1 text-sm font-medium text-neutral-900">{notification.title}</p>
-          {notification.body && <p className="mt-0.5 line-clamp-2 text-xs text-neutral-500">{notification.body}</p>}
-          <p className="mt-1 text-xs text-neutral-400">{timeAgo(notification.createdAt)}</p>
+          <p className="line-clamp-1 text-sm font-medium text-foreground">{notification.title}</p>
+          {notification.body && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{notification.body}</p>}
+          <p className="mt-1 text-xs text-muted-foreground">{timeAgo(notification.createdAt)}</p>
         </div>
       </div>
     </button>

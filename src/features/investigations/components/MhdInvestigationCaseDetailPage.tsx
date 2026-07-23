@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
   useMhdAddInvestigationParty,
@@ -46,7 +49,6 @@ import { MhdPartyPanel } from './MhdPartyPanel';
  * grant, never by role.
  */
 export function MhdInvestigationCaseDetailPage() {
-  const navigate = useNavigate();
   const { caseId = '' } = useParams<{ caseId: string }>();
   const { profile } = useMhdAuth();
   const companyId = profile?.companyId ?? '';
@@ -85,10 +87,6 @@ export function MhdInvestigationCaseDetailPage() {
     [people.data],
   );
 
-  function onBack() {
-    navigate('/investigations');
-  }
-
   async function handleReveal() {
     // Deliberate, audited: fired only from the button click, never on load.
     const plain = await revealAllegation.mutateAsync(caseId);
@@ -117,51 +115,47 @@ export function MhdInvestigationCaseDetailPage() {
   }
 
   if (investigation.isLoading) {
-    return <p className="p-6 text-sm text-neutral-500">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
   // A denied/not-found case returns the identical non-disclosing error server-side;
   // to the page it is simply "not available".
   if (!investigation.data) {
-    return <p className="p-6 text-sm text-neutral-500">Investigation not available.</p>;
+    return <p className="text-sm text-muted-foreground">Investigation not available.</p>;
   }
 
   const detail = investigation.data;
 
   return (
-    <div className="space-y-8 p-6">
-      <button type="button" onClick={onBack} className="text-sm text-neutral-500 underline">
-        ← All investigations
-      </button>
-
+    <div className="space-y-6">
       {/* ----- Case facts (everything except the allegation) ----- */}
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-semibold text-neutral-900">
-              {mhdFormatInvestigationCaseType(detail.caseType)}
-            </h1>
+      <MhdPageHeader
+        backTo="/investigations"
+        backLabel="Investigations"
+        title={mhdFormatInvestigationCaseType(detail.caseType)}
+        chips={
+          <>
             <MhdCaseTypeBadge caseType={detail.caseType} />
-          </div>
-          <p className="mt-0.5 text-xs text-neutral-500">
+            <MhdInvestigationStatusBadge status={detail.status} />
+            <MhdDispositionBadge disposition={detail.disposition} />
+          </>
+        }
+        description={
+          <>
             <span className="font-mono">{detail.referenceId}</span>
             {' · '}
             {mhdFormatInvestigationConfidentiality(detail.confidentialityLevel)} confidentiality
             {detail.severity ? ` · severity ${detail.severity}` : ''}
             {detail.closedAt ? ` · closed ${detail.closedAt}` : ''}
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <MhdInvestigationStatusBadge status={detail.status} />
-          <MhdDispositionBadge disposition={detail.disposition} />
-        </div>
-      </header>
+          </>
+        }
+      />
 
       {/* ----- The reveal-gated allegation ----- */}
-      <section className="space-y-3 rounded-md border border-neutral-200 p-4">
+      <MhdCard className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-neutral-900">Allegation</h2>
-            <p className="mt-0.5 text-xs text-neutral-500">
+            <h2 className="text-base font-semibold text-foreground">Allegation</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
               Encrypted at rest. Revealing is audited, so it happens only when you ask for it.
             </p>
           </div>
@@ -170,32 +164,32 @@ export function MhdInvestigationCaseDetailPage() {
               type="button"
               disabled={revealAllegation.isPending}
               onClick={() => void handleReveal()}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700 disabled:opacity-50"
+              className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-muted disabled:opacity-50"
             >
               {revealAllegation.isPending ? 'Revealing…' : 'Reveal allegation'}
             </button>
           ) : null}
         </div>
         {allegation === null ? (
-          <p className="text-sm text-neutral-400">Hidden — click reveal to view (audited).</p>
+          <p className="text-sm text-muted-foreground">Hidden — click reveal to view (audited).</p>
         ) : (
-          <p className="whitespace-pre-wrap text-sm text-neutral-800">{allegation}</p>
+          <p className="whitespace-pre-wrap text-sm text-foreground">{allegation}</p>
         )}
-      </section>
+      </MhdCard>
 
       {/* ----- Status / disposition / findings ----- */}
-      <section className="space-y-3 rounded-md border border-neutral-200 p-4">
-        <h2 className="text-base font-semibold text-neutral-900">Status & findings</h2>
+      <MhdCard className="space-y-3">
+        <h2 className="text-base font-semibold text-foreground">Status & findings</h2>
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label htmlFor="newStatus" className="block text-sm font-medium text-neutral-700">
+            <label htmlFor="newStatus" className="block text-sm font-medium text-foreground">
               Move to
             </label>
             <select
               id="newStatus"
               value={newStatus}
               onChange={(event) => setNewStatus(event.target.value as MhdInvestigationStatus)}
-              className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 rounded-md border border-border px-3 py-2 text-sm"
             >
               {MHD_INVESTIGATION_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -205,12 +199,12 @@ export function MhdInvestigationCaseDetailPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="disposition" className="block text-sm font-medium text-neutral-700">
+            <label htmlFor="disposition" className="block text-sm font-medium text-foreground">
               Disposition{' '}
               {newStatus === 'CLOSED' ? (
-                <span className="font-normal text-neutral-500">(required to close)</span>
+                <span className="font-normal text-muted-foreground">(required to close)</span>
               ) : (
-                <span className="font-normal text-neutral-500">(optional)</span>
+                <span className="font-normal text-muted-foreground">(optional)</span>
               )}
             </label>
             <select
@@ -219,7 +213,7 @@ export function MhdInvestigationCaseDetailPage() {
               onChange={(event) =>
                 setDisposition(event.target.value as MhdInvestigationDisposition | '')
               }
-              className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 rounded-md border border-border px-3 py-2 text-sm"
             >
               <option value="">None</option>
               {MHD_INVESTIGATION_DISPOSITIONS.map((value) => (
@@ -229,18 +223,18 @@ export function MhdInvestigationCaseDetailPage() {
               ))}
             </select>
           </div>
-          <button
+          <Button
             type="button"
             disabled={transition.isPending}
             onClick={() => void submitTransition()}
-            className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
+            className="px-3 py-2"
           >
             {transition.isPending ? 'Saving…' : 'Update'}
-          </button>
+          </Button>
         </div>
         <div>
-          <label htmlFor="finding" className="block text-sm font-medium text-neutral-700">
-            Finding summary <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="finding" className="block text-sm font-medium text-foreground">
+            Finding summary <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <textarea
             id="finding"
@@ -248,28 +242,28 @@ export function MhdInvestigationCaseDetailPage() {
             value={finding}
             onChange={(event) => setFinding(event.target.value)}
             placeholder="The investigation's conclusion, recorded on review or close."
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
         {detail.findingSummary ? (
-          <div className="rounded-md bg-neutral-50 p-3">
-            <p className="text-xs uppercase tracking-wide text-neutral-500">Recorded finding</p>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-800">
+          <div className="rounded-md bg-muted p-3">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Recorded finding</p>
+            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
               {detail.findingSummary}
             </p>
           </div>
         ) : null}
         {transitionError ? <p className="text-xs text-rose-600">{transitionError}</p> : null}
-      </section>
+      </MhdCard>
 
       {/* ----- Assignment ----- */}
-      <section className="space-y-3 rounded-md border border-neutral-200 p-4">
-        <h2 className="text-base font-semibold text-neutral-900">Assigned investigator</h2>
+      <MhdCard className="space-y-3">
+        <h2 className="text-base font-semibold text-foreground">Assigned investigator</h2>
         <div className="flex flex-wrap items-end gap-3">
           <select
             value={investigatorId}
             onChange={(event) => setInvestigatorId(event.target.value)}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="rounded-md border border-border px-3 py-2 text-sm"
           >
             <option value="">Select an investigator…</option>
             {peopleOptions.map((person) => (
@@ -282,15 +276,15 @@ export function MhdInvestigationCaseDetailPage() {
             type="button"
             disabled={assign.isPending || !investigatorId}
             onClick={() => void submitAssign()}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 disabled:opacity-50"
+            className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground disabled:opacity-50"
           >
             {assign.isPending ? 'Saving…' : 'Assign'}
           </button>
         </div>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           Assigning transfers the implicit grant to the new investigator, and is audited.
         </p>
-      </section>
+      </MhdCard>
 
       {/* ----- Parties (identities masked server-side; statements reveal-gated) ----- */}
       <MhdPartyPanel

@@ -1,3 +1,4 @@
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { mhdRecruitingIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdQuestionBankPage } from '../interviews/components/MhdQuestionBankPage';
@@ -15,18 +16,14 @@ export function MhdQuestionBankRoutePage() {
 
   if (!companyId) {
     return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold text-neutral-900">Interview question bank</h1>
-        <p className="mt-2 text-sm text-neutral-600">
-          No company is associated with your account.
-        </p>
+      <div className="space-y-6">
+        <MhdPageHeader
+          title="Interview question bank"
+          description="No company is associated with your account."
+        />
       </div>
     );
   }
 
-  return (
-    <div className="p-6">
-      <MhdQuestionBankPage companyId={companyId} canManage={canManage} />
-    </div>
-  );
+  return <MhdQuestionBankPage companyId={companyId} canManage={canManage} />;
 }

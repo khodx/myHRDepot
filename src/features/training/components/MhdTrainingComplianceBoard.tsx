@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdTrainingComplianceMatrix } from '../Hook';
 import {
   MHD_TRAINING_CATEGORIES,
@@ -40,8 +42,8 @@ export function MhdTrainingComplianceBoard({ companyId }: Props) {
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-neutral-900">Compliance board</h2>
-          <p className="mt-0.5 text-xs text-neutral-500">
+          <h2 className="text-base font-semibold text-foreground">Compliance board</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Who is current, expired, overdue or assigned across the company. Status is derived from
             the frozen completion records — never stored.
           </p>
@@ -54,7 +56,7 @@ export function MhdTrainingComplianceBoard({ companyId }: Props) {
               category: event.target.value as MhdTrainingComplianceMatrixFilters['category'],
             }))
           }
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <option value="ALL">All categories</option>
           {MHD_TRAINING_CATEGORIES.map((category) => (
@@ -66,43 +68,40 @@ export function MhdTrainingComplianceBoard({ companyId }: Props) {
       </div>
 
       {matrix.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading…</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-neutral-500">Nothing assigned in this view.</p>
+        <p className="text-sm text-muted-foreground">Nothing assigned in this view.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
             <thead>
-              <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                <th className="py-2 pr-4 font-medium">Person</th>
-                <th className="py-2 pr-4 font-medium">Course</th>
-                <th className="py-2 pr-4 font-medium">Category</th>
-                <th className="py-2 pr-4 font-medium">Status</th>
-                <th className="py-2 font-medium">Expires</th>
+              <tr>
+                <MhdTh>Person</MhdTh>
+                <MhdTh>Course</MhdTh>
+                <MhdTh>Category</MhdTh>
+                <MhdTh>Status</MhdTh>
+                <MhdTh>Expires</MhdTh>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr
-                  key={`${row.personId}-${row.courseId}`}
-                  className="border-b border-neutral-100 text-neutral-800"
-                >
-                  <td className="py-2 pr-4 whitespace-nowrap">{row.personDisplayName}</td>
-                  <td className="py-2 pr-4">{row.courseTitle}</td>
-                  <td className="py-2 pr-4">
+                <MhdTr key={`${row.personId}-${row.courseId}`}>
+                  <MhdTd className="whitespace-nowrap">{row.personDisplayName}</MhdTd>
+                  <MhdTd>{row.courseTitle}</MhdTd>
+                  <MhdTd>
                     <MhdCourseCategoryBadge category={row.category} />
-                  </td>
-                  <td className="py-2 pr-4">
+                  </MhdTd>
+                  <MhdTd>
                     <MhdTrainingStatusBadge status={row.status} />
-                  </td>
-                  <td className="py-2 whitespace-nowrap text-neutral-600">
+                  </MhdTd>
+                  <MhdTd className="whitespace-nowrap text-muted-foreground">
                     {formatDate(row.expiresAt)}
-                  </td>
-                </tr>
+                  </MhdTd>
+                </MhdTr>
               ))}
             </tbody>
-          </table>
-        </div>
+          </MhdTable>
+        </MhdCard>
       )}
     </section>
   );

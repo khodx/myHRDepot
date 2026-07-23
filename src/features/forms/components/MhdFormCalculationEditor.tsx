@@ -35,13 +35,13 @@ export function MhdFormCalculationEditor({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Add Calculation</h3>
+      <div className="rounded-lg border border-border bg-muted p-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Add Calculation</h3>
         <div className="mt-3 grid gap-3">
           <select
             value={targetFieldId}
             onChange={(event) => setTargetFieldId(event.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-border px-3 py-2 text-sm"
           >
             {fields.map((field) => (
               <option key={field.id} value={field.id}>
@@ -53,7 +53,7 @@ export function MhdFormCalculationEditor({
           <select
             value={op}
             onChange={(event) => setOp(event.target.value as MhdCalculationOp)}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-border px-3 py-2 text-sm"
           >
             {MHD_CALCULATION_OPS.map((entry) => (
               <option key={entry.value} value={entry.value}>
@@ -68,14 +68,14 @@ export function MhdFormCalculationEditor({
               value={formula}
               onChange={(event) => setFormula(event.target.value)}
               placeholder="salary * 0.15"
-              className="rounded-md border border-slate-300 px-3 py-2 font-mono text-sm"
+              className="rounded-md border border-border px-3 py-2 font-mono text-sm"
             />
           ) : (
             <div className="flex flex-wrap gap-2">
               {fields
                 .filter((field) => field.id !== targetFieldId)
                 .map((field) => (
-                  <label key={field.id} className="flex items-center gap-2 rounded-md border border-slate-200 bg-card px-3 py-2 text-sm">
+                  <label key={field.id} className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm">
                     <input
                       type="checkbox"
                       checked={dependencyIds.includes(field.id)}
@@ -105,7 +105,7 @@ export function MhdFormCalculationEditor({
             setDependencyIds([]);
             setFormula('');
           }}
-          className="mt-3 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white"
+          className="mt-3 rounded-md bg-accent px-3 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover"
         >
           Add Calculation
         </button>
@@ -113,7 +113,7 @@ export function MhdFormCalculationEditor({
 
       <div className="space-y-2">
         {calculations.map((calculation) => (
-          <div key={calculation.id} className="flex items-start justify-between gap-4 rounded-md border border-slate-200 bg-card p-3 text-sm">
+          <div key={calculation.id} className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3 text-sm">
             <div>
               <strong>{fieldLabel(calculation.targetFieldId)}</strong> ={' '}
               {calculation.op === 'formula'
@@ -129,7 +129,7 @@ export function MhdFormCalculationEditor({
             </button>
           </div>
         ))}
-        {calculations.length === 0 ? <p className="text-sm text-slate-500">No calculations defined yet.</p> : null}
+        {calculations.length === 0 ? <p className="text-sm text-muted-foreground">No calculations defined yet.</p> : null}
       </div>
     </div>
   );

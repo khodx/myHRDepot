@@ -1,3 +1,4 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import {
   mhdFormatClassification,
   mhdFormatProtectedLeaveCategory,
@@ -5,14 +6,15 @@ import {
   type MhdProtectedLeaveCategory,
 } from '../Types';
 
-// PROTECTED reads green rather than neutral, deliberately: it is the state that
-// shields the employee, and it should be unmistakable at a glance in a list an
-// administrator scans quickly.
-const CLASSIFICATION_STYLES: Record<MhdAttendanceClassification, string> = {
-  UNEXCUSED: 'bg-rose-100 text-rose-800',
-  EXCUSED_UNPAID: 'bg-sky-100 text-sky-800',
-  EXCUSED_PAID: 'bg-blue-100 text-blue-800',
-  PROTECTED: 'bg-emerald-100 text-emerald-800',
+// PROTECTED reads green (success) rather than neutral, deliberately: it is the
+// state that shields the employee, and it should be unmistakable at a glance in
+// a list an administrator scans quickly. UNEXCUSED is the disciplinary state
+// (error); the excused states read neutral/informational.
+const CLASSIFICATION_VARIANTS: Record<MhdAttendanceClassification, MhdBadgeVariant> = {
+  UNEXCUSED: 'error',
+  EXCUSED_UNPAID: 'neutral',
+  EXCUSED_PAID: 'info',
+  PROTECTED: 'success',
 };
 
 interface Props {
@@ -36,13 +38,11 @@ export function MhdClassificationBadge({
 }: Props) {
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span
-        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${CLASSIFICATION_STYLES[classification]}`}
-      >
+      <MhdBadge variant={CLASSIFICATION_VARIANTS[classification]}>
         {mhdFormatClassification(classification)}
-      </span>
+      </MhdBadge>
       {showCategory && protectedLeaveCategory ? (
-        <span className="text-xs text-neutral-600">
+        <span className="text-xs text-muted-foreground">
           {mhdFormatProtectedLeaveCategory(protectedLeaveCategory)}
         </span>
       ) : null}

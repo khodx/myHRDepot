@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { Button } from '@/components/ui/Button';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { mhdClaimDecisionSchema, type MhdClaimDecisionFormValues } from '../Schemas';
 import { type MhdMileageClaimDetail } from '../Types';
 import { MhdClaimStatusBadge } from './MhdClaimStatusBadge';
@@ -32,6 +34,9 @@ const milesFormatter = new Intl.NumberFormat(undefined, {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
 });
+
+const TEXTAREA_CLASSES =
+  'w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 
 /**
  * One claim, line by line.
@@ -100,30 +105,26 @@ export function MhdClaimDetailPanel({
   }
 
   if (isLoading) {
-    return <p className="text-sm text-neutral-500">Loading claim…</p>;
+    return <p className="text-sm text-muted-foreground">Loading claim…</p>;
   }
 
   return (
-    <section className="space-y-6 rounded-md border border-neutral-200 p-4">
+    <section className="space-y-6 rounded-xl border border-border bg-card p-4 shadow-sm">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-neutral-900">
+          <h2 className="text-base font-semibold text-foreground">
             {claim.referenceId}
             <span className="ml-3 align-middle">
               <MhdClaimStatusBadge status={claim.status} />
             </span>
           </h2>
-          <p className="mt-1 text-sm text-neutral-600">
+          <p className="mt-1 text-sm text-muted-foreground">
             {claim.personDisplayName} · {claim.periodStart} — {claim.periodEnd}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
-        >
+        <Button variant="secondary" className="px-3 py-1.5" onClick={onClose}>
           Close
-        </button>
+        </Button>
       </header>
 
       {!isStamped ? (
@@ -134,86 +135,86 @@ export function MhdClaimDetailPanel({
         </div>
       ) : null}
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-              <th className="py-2 pr-4 font-medium">#</th>
-              <th className="py-2 pr-4 font-medium">Trip date</th>
-              <th className="py-2 pr-4 text-right font-medium">Miles</th>
-              <th className="py-2 pr-4 text-right font-medium">IRS rate</th>
-              <th className="py-2 pr-4 text-right font-medium">Company rate</th>
-              <th className="py-2 pr-4 text-right font-medium">Amount</th>
-              <th className="py-2 pr-4 font-medium">Priced from</th>
-            </tr>
-          </thead>
-          <tbody>
-            {claim.lines.map((line) => (
-              <tr key={line.lineNumber} className="border-b border-neutral-100 text-neutral-800">
-                <td className="py-2 pr-4 tabular-nums">{line.lineNumber}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">{line.tripDate}</td>
-                <td className="py-2 pr-4 text-right tabular-nums">
-                  {milesFormatter.format(line.miles)}
-                </td>
-                <td className="py-2 pr-4 text-right tabular-nums">
-                  {line.irsRate == null ? (
-                    <span className="text-xs text-neutral-500">unstamped</span>
-                  ) : (
-                    rateFormatter.format(line.irsRate)
-                  )}
-                </td>
-                <td className="py-2 pr-4 text-right tabular-nums">
-                  {line.companyRate == null ? (
-                    <span className="text-xs text-neutral-500">unstamped</span>
-                  ) : (
-                    <>
-                      {rateFormatter.format(line.companyRate)}
-                      {line.irsRate != null && line.companyRate > line.irsRate ? (
-                        <span className="ml-2 text-xs font-medium text-amber-700">above IRS</span>
-                      ) : null}
-                    </>
-                  )}
-                </td>
-                <td className="py-2 pr-4 text-right tabular-nums">
-                  {line.companyAmount == null ? (
-                    <span className="text-xs text-neutral-500">—</span>
-                  ) : (
-                    currencyFormatter.format(line.companyAmount)
-                  )}
-                </td>
-                <td className="py-2 pr-4 whitespace-nowrap text-neutral-600">
-                  {/*
-                    The citation, on the line rather than in a footnote. Without
-                    the notice number the stamped figure cannot be checked
-                    against anything.
-                  */}
-                  {line.noticeNumber ?? '—'}
-                  {line.rateReference ? (
-                    <span className="ml-2 text-xs text-neutral-500">{line.rateReference}</span>
-                  ) : null}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <MhdTable>
+        <thead>
+          <tr>
+            <MhdTh>#</MhdTh>
+            <MhdTh>Trip date</MhdTh>
+            <MhdTh className="text-right">Miles</MhdTh>
+            <MhdTh className="text-right">IRS rate</MhdTh>
+            <MhdTh className="text-right">Company rate</MhdTh>
+            <MhdTh className="text-right">Amount</MhdTh>
+            <MhdTh>Priced from</MhdTh>
+          </tr>
+        </thead>
+        <tbody>
+          {claim.lines.map((line) => (
+            <MhdTr key={line.lineNumber}>
+              <MhdTd className="tabular-nums">{line.lineNumber}</MhdTd>
+              <MhdTd className="whitespace-nowrap">{line.tripDate}</MhdTd>
+              <MhdTd className="text-right tabular-nums">
+                {milesFormatter.format(line.miles)}
+              </MhdTd>
+              <MhdTd className="text-right tabular-nums">
+                {line.irsRate == null ? (
+                  <span className="text-xs text-muted-foreground">unstamped</span>
+                ) : (
+                  rateFormatter.format(line.irsRate)
+                )}
+              </MhdTd>
+              <MhdTd className="text-right tabular-nums">
+                {line.companyRate == null ? (
+                  <span className="text-xs text-muted-foreground">unstamped</span>
+                ) : (
+                  <>
+                    {rateFormatter.format(line.companyRate)}
+                    {line.irsRate != null && line.companyRate > line.irsRate ? (
+                      <span className="ml-2 text-xs font-medium text-amber-700">above IRS</span>
+                    ) : null}
+                  </>
+                )}
+              </MhdTd>
+              <MhdTd className="text-right tabular-nums">
+                {line.companyAmount == null ? (
+                  <span className="text-xs text-muted-foreground">—</span>
+                ) : (
+                  currencyFormatter.format(line.companyAmount)
+                )}
+              </MhdTd>
+              <MhdTd className="whitespace-nowrap text-muted-foreground">
+                {/*
+                  The citation, on the line rather than in a footnote. Without
+                  the notice number the stamped figure cannot be checked
+                  against anything.
+                */}
+                {line.noticeNumber ?? '—'}
+                {line.rateReference ? (
+                  <span className="ml-2 text-xs text-muted-foreground">{line.rateReference}</span>
+                ) : null}
+              </MhdTd>
+            </MhdTr>
+          ))}
+        </tbody>
+      </MhdTable>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-md border border-neutral-200 px-3 py-2">
-          <p className="text-xs uppercase tracking-wide text-neutral-500">Total miles</p>
-          <p className="mt-1 text-sm tabular-nums text-neutral-900">
+        <div className="rounded-md border border-border px-3 py-2">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Total miles</p>
+          <p className="mt-1 text-sm tabular-nums text-foreground">
             {claim.totalMiles == null ? '—' : milesFormatter.format(claim.totalMiles)}
           </p>
         </div>
-        <div className="rounded-md border border-neutral-200 px-3 py-2">
-          <p className="text-xs uppercase tracking-wide text-neutral-500">At the IRS rate</p>
-          <p className="mt-1 text-sm tabular-nums text-neutral-900">
+        <div className="rounded-md border border-border px-3 py-2">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">At the IRS rate</p>
+          <p className="mt-1 text-sm tabular-nums text-foreground">
             {claim.totalIrsAmount == null ? '—' : currencyFormatter.format(claim.totalIrsAmount)}
           </p>
         </div>
-        <div className="rounded-md border border-neutral-200 px-3 py-2">
-          <p className="text-xs uppercase tracking-wide text-neutral-500">Company reimbursement</p>
-          <p className="mt-1 text-sm tabular-nums text-neutral-900">
+        <div className="rounded-md border border-border px-3 py-2">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Company reimbursement
+          </p>
+          <p className="mt-1 text-sm tabular-nums text-foreground">
             {claim.totalCompanyAmount == null
               ? '—'
               : currencyFormatter.format(claim.totalCompanyAmount)}
@@ -237,59 +238,52 @@ export function MhdClaimDetailPanel({
       ) : null}
 
       {claim.decisionNote ? (
-        <div className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
+        <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
           <span className="font-medium">Decision note:</span> {claim.decisionNote}
         </div>
       ) : null}
 
       {claim.exportedAt ? (
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           Exported {new Date(claim.exportedAt).toLocaleDateString()}.
         </p>
       ) : null}
 
       <div className="flex flex-wrap justify-end gap-2">
         {onSubmitClaim && claim.status === 'DRAFT' ? (
-          <button
-            type="button"
+          <Button
             disabled={isSubmitting || claim.lines.length === 0}
             onClick={() => void onSubmitClaim(claim.id)}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
           >
             Submit for approval
-          </button>
+          </Button>
         ) : null}
 
         {onCancelClaim && (claim.status === 'DRAFT' || claim.status === 'SUBMITTED') ? (
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={() => {
               setIsCancelling((open) => !open);
               setCancelError(null);
             }}
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-700"
           >
             Cancel claim
-          </button>
+          </Button>
         ) : null}
 
         {isPrivileged && onDecide && claim.status === 'SUBMITTED' ? (
-          <button
-            type="button"
-            onClick={() => setIsDeciding((open) => !open)}
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-700"
-          >
+          <Button variant="secondary" onClick={() => setIsDeciding((open) => !open)}>
             Decide
-          </button>
+          </Button>
         ) : null}
       </div>
 
       {isCancelling && onCancelClaim ? (
-        <div className="space-y-2 rounded-md border border-neutral-200 bg-neutral-50 p-3">
-          <label htmlFor="cancel-reason" className="block text-sm font-medium text-neutral-700">
+        <div className="space-y-2 rounded-md border border-border bg-muted p-3">
+          <label htmlFor="cancel-reason" className="block text-sm font-medium text-foreground">
             Reason for cancelling (required)
           </label>
-          <p className="text-xs text-neutral-600">
+          <p className="text-xs text-muted-foreground">
             Cancelling releases every trip on this claim back to the unclaimed pool. Nothing is
             deleted.
           </p>
@@ -298,25 +292,24 @@ export function MhdClaimDetailPanel({
             rows={2}
             value={cancelReason}
             onChange={(event) => setCancelReason(event.target.value)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className={TEXTAREA_CLASSES}
           />
           {cancelError ? <p className="text-xs text-rose-600">{cancelError}</p> : null}
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              className="px-3 py-1.5"
               onClick={() => setIsCancelling(false)}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
             >
               Keep claim
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              className="px-3 py-1.5"
               disabled={isSubmitting}
               onClick={() => void submitCancel()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
             >
               {isSubmitting ? 'Cancelling…' : 'Cancel claim'}
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}
@@ -324,18 +317,18 @@ export function MhdClaimDetailPanel({
       {isDeciding && isPrivileged && onDecide ? (
         <form
           onSubmit={handleSubmit(submitDecision)}
-          className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-3"
+          className="space-y-3 rounded-md border border-border bg-muted p-3"
         >
           <input type="hidden" {...register('claimId')} />
 
           <div>
-            <label htmlFor="decision" className="block text-sm font-medium text-neutral-700">
+            <label htmlFor="decision" className="block text-sm font-medium text-foreground">
               Outcome
             </label>
             <select
               id="decision"
               {...register('decision')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <option value="APPROVED">Approve — price and stamp every line</option>
               <option value="REJECTED">Reject — release the trips to be reclaimed</option>
@@ -343,9 +336,9 @@ export function MhdClaimDetailPanel({
           </div>
 
           <div>
-            <label htmlFor="decisionNote" className="block text-sm font-medium text-neutral-700">
+            <label htmlFor="decisionNote" className="block text-sm font-medium text-foreground">
               Note{' '}
-              <span className="font-normal text-neutral-500">
+              <span className="font-normal text-muted-foreground">
                 {decision === 'REJECTED' ? '(required)' : '(optional)'}
               </span>
             </label>
@@ -353,7 +346,7 @@ export function MhdClaimDetailPanel({
               id="decisionNote"
               rows={2}
               {...register('decisionNote')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className={`mt-1 ${TEXTAREA_CLASSES}`}
             />
             {errors.decisionNote ? (
               <p className="mt-1 text-xs text-rose-600">{errors.decisionNote.message}</p>
@@ -361,20 +354,16 @@ export function MhdClaimDetailPanel({
           </div>
 
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              className="px-3 py-1.5"
               onClick={() => setIsDeciding(false)}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
             >
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" className="px-3 py-1.5" disabled={isSubmitting}>
               {isSubmitting ? 'Recording…' : 'Record decision'}
-            </button>
+            </Button>
           </div>
         </form>
       ) : null}

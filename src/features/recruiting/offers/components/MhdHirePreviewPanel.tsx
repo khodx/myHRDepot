@@ -1,3 +1,5 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { useMhdHirePayload } from '../Hook';
 import {
   mhdFormatOnboardingRecommendation,
@@ -10,19 +12,19 @@ interface Props {
 }
 
 // The mapped 3-way recommendation, coloured by disposition. HIRE reads green,
-// HOLD amber, NO_HIRE rose. This only RENDERS the server-mapped value (the 4->3
+// HOLD amber, NO_HIRE red. This only RENDERS the server-mapped value (the 4->3
 // collapse happens in the RPC); never re-map on the client.
-const RECOMMENDATION_STYLES: Record<MhdOnboardingRecommendation, string> = {
-  HIRE: 'bg-emerald-100 text-emerald-800',
-  HOLD: 'bg-amber-100 text-amber-800',
-  NO_HIRE: 'bg-rose-100 text-rose-800',
+const RECOMMENDATION_VARIANTS: Record<MhdOnboardingRecommendation, MhdBadgeVariant> = {
+  HIRE: 'success',
+  HOLD: 'warning',
+  NO_HIRE: 'error',
 };
 
 function PreviewRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4 py-1.5">
-      <dt className="text-sm text-neutral-500">{label}</dt>
-      <dd className="text-right text-sm font-medium text-neutral-900">{value}</dd>
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className="text-right text-sm font-medium text-foreground">{value}</dd>
     </div>
   );
 }
@@ -38,7 +40,7 @@ export function MhdHirePreviewPanel({ applicationId }: Props) {
   const payload = useMhdHirePayload(applicationId);
 
   if (payload.isLoading) {
-    return <p className="text-sm text-neutral-500">Loading onboarding preview…</p>;
+    return <p className="text-sm text-muted-foreground">Loading onboarding preview…</p>;
   }
   if (payload.isError) {
     return (
@@ -50,7 +52,7 @@ export function MhdHirePreviewPanel({ applicationId }: Props) {
     );
   }
   if (!payload.data) {
-    return <p className="text-sm text-neutral-500">No hire payload yet.</p>;
+    return <p className="text-sm text-muted-foreground">No hire payload yet.</p>;
   }
 
   const p: MhdHirePayload = payload.data;
@@ -60,16 +62,16 @@ export function MhdHirePreviewPanel({ applicationId }: Props) {
       : p.baseSalary.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
   const scoreText = p.overallScore == null ? '—' : p.overallScore.toFixed(2);
   const ratingText = p.onboardingOverallRating == null ? '—' : `${p.onboardingOverallRating} / 5`;
-  const recommendationStyle =
+  const recommendationVariant: MhdBadgeVariant =
     p.onboardingRecommendation == null
-      ? 'bg-neutral-100 text-neutral-700'
-      : RECOMMENDATION_STYLES[p.onboardingRecommendation] ?? 'bg-neutral-100 text-neutral-700';
+      ? 'neutral'
+      : RECOMMENDATION_VARIANTS[p.onboardingRecommendation] ?? 'neutral';
 
   return (
-    <section className="space-y-4 rounded-lg border border-neutral-200 p-4">
+    <MhdCard className="space-y-4">
       <div>
-        <h2 className="text-base font-semibold text-neutral-900">What onboarding will receive</h2>
-        <p className="mt-0.5 text-xs text-neutral-500">
+        <h2 className="text-base font-semibold text-foreground">What onboarding will receive</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           A read-only preview of the offer terms and evaluation the handoff feeds into onboarding —
           the recommendation and score are mapped for the onboarding record.
         </p>
@@ -77,19 +79,17 @@ export function MhdHirePreviewPanel({ applicationId }: Props) {
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-sm font-medium text-neutral-900">{p.personDisplayName}</p>
-          <p className="text-xs text-neutral-500">
+          <p className="text-sm font-medium text-foreground">{p.personDisplayName}</p>
+          <p className="text-xs text-muted-foreground">
             {p.offerJobTitle} · {p.requisitionTitle}
           </p>
         </div>
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${recommendationStyle}`}
-        >
+        <MhdBadge variant={recommendationVariant} hideIcon>
           {mhdFormatOnboardingRecommendation(p.onboardingRecommendation)}
-        </span>
+        </MhdBadge>
       </div>
 
-      <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 px-4 py-2">
+      <dl className="divide-y divide-border rounded-md border border-border px-4 py-2">
         <PreviewRow label="Start date" value={p.startDate ?? '—'} />
         <PreviewRow label="Base salary" value={salaryText} />
         <PreviewRow label="Pay frequency" value={p.payFrequency ?? '—'} />
@@ -105,11 +105,11 @@ export function MhdHirePreviewPanel({ applicationId }: Props) {
       </dl>
 
       {p.evaluationSummary ? (
-        <div className="rounded-md border border-neutral-200 bg-neutral-50 p-3">
-          <p className="text-xs font-medium text-neutral-500">Evaluation summary</p>
-          <p className="mt-0.5 text-sm text-neutral-700">{p.evaluationSummary}</p>
+        <div className="rounded-md border border-border bg-muted p-3">
+          <p className="text-xs font-medium text-muted-foreground">Evaluation summary</p>
+          <p className="mt-0.5 text-sm text-foreground">{p.evaluationSummary}</p>
         </div>
       ) : null}
-    </section>
+    </MhdCard>
   );
 }

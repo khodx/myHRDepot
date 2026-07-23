@@ -41,7 +41,7 @@ export function MhdSLAStatus({ taskId, className = '' }: MhdSLAStatusProps) {
   }, [taskId]);
 
   if (isLoading) {
-    return <div className={`text-sm text-gray-400 ${className}`}>—</div>;
+    return <div className={`text-sm text-muted-foreground ${className}`}>—</div>;
   }
 
   if (error || !slaStatus) {

@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -81,10 +83,10 @@ export function MhdInterviewSchedulePanel({ companyId, applicationId, guideId = 
   }
 
   return (
-    <section className="space-y-4 rounded-lg border border-neutral-200 p-4">
+    <MhdCard className="space-y-4">
       <div>
-        <h2 className="text-base font-semibold text-neutral-900">Schedule an interview</h2>
-        <p className="mt-0.5 text-xs text-neutral-500">
+        <h2 className="text-base font-semibold text-foreground">Schedule an interview</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           Assigns an interviewer to conduct this interview. They are notified and can then complete
           their scorecard.
         </p>
@@ -98,14 +100,14 @@ export function MhdInterviewSchedulePanel({ companyId, applicationId, guideId = 
           <div>
             <label
               htmlFor="interviewerPersonId"
-              className="block text-sm font-medium text-neutral-700"
+              className="block text-sm font-medium text-foreground"
             >
               Interviewer
             </label>
             <select
               id="interviewerPersonId"
               {...register('interviewerPersonId')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             >
               <option value="">Choose a person…</option>
               {peopleOptions.map((person) => (
@@ -120,39 +122,35 @@ export function MhdInterviewSchedulePanel({ companyId, applicationId, guideId = 
           </div>
 
           <div>
-            <label htmlFor="interviewType" className="block text-sm font-medium text-neutral-700">
-              Type <span className="font-normal text-neutral-500">(optional)</span>
+            <label htmlFor="interviewType" className="block text-sm font-medium text-foreground">
+              Type <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <input
               id="interviewType"
               type="text"
               {...register('interviewType')}
               placeholder="e.g. Phone screen, Panel"
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             />
           </div>
 
           <div>
-            <label htmlFor="scheduledDate" className="block text-sm font-medium text-neutral-700">
-              Date <span className="font-normal text-neutral-500">(optional)</span>
+            <label htmlFor="scheduledDate" className="block text-sm font-medium text-foreground">
+              Date <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <input
               id="scheduledDate"
               type="date"
               {...register('scheduledDate')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             />
           </div>
         </div>
 
         <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={createInterview.isPending}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-          >
+          <Button type="submit" disabled={createInterview.isPending}>
             {createInterview.isPending ? 'Scheduling…' : 'Schedule interview'}
-          </button>
+          </Button>
         </div>
         {createInterview.isError ? (
           <p className="text-xs text-rose-600">
@@ -162,6 +160,6 @@ export function MhdInterviewSchedulePanel({ companyId, applicationId, guideId = 
           </p>
         ) : null}
       </form>
-    </section>
+    </MhdCard>
   );
 }

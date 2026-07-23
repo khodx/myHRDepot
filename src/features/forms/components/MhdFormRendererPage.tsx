@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
 import { mhdOnboardingService } from '@/features/onboarding/Service';
@@ -94,53 +96,38 @@ export function MhdFormRendererPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Link to="/forms" className="font-semibold text-blue-700 hover:underline">
-                Forms
-              </Link>
-              {onboardingPersonId ? (
-                <>
-                  <span>/</span>
-                  <Link to={`/people/${onboardingPersonId}`} className="font-semibold text-blue-700 hover:underline">
-                    {onboardingPersonName || 'Person'}
-                  </Link>
-                </>
-              ) : null}
-              <span>/</span>
-              <span>Runtime Renderer</span>
-            </div>
-            <h1 className="mt-2 text-2xl font-bold text-slate-900">Form Renderer</h1>
-            <p className="mt-1 text-sm text-slate-600">
-              This route exercises the same `mhd_get_form`, draft, and submit RPC surface that Stage 3 will verify locally.
-            </p>
-          </div>
-          <div className="flex gap-3">
+    <div className="space-y-6">
+      <MhdPageHeader
+        backTo="/forms"
+        backLabel="Forms"
+        title="Form Renderer"
+        description="This route exercises the same `mhd_get_form`, draft, and submit RPC surface that Stage 3 will verify locally."
+        actions={
+          <>
             {onboardingPersonId ? (
               <Link
                 to={`/people/${onboardingPersonId}`}
-                className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
+                className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
               >
                 Back to Person
               </Link>
             ) : null}
-            <Link to={`/forms/${formId}`} className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700">
+            <Link to={`/forms/${formId}`} className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground">
               {canMutate ? 'Open Builder' : 'View Form'}
             </Link>
-            <Link to={`/forms/${formId}/submissions`} className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700">
+            <Link to={`/forms/${formId}/submissions`} className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground">
               View Submissions
             </Link>
-          </div>
-        </div>
+          </>
+        }
+      />
+      <div className="space-y-6">
 
         {message ? <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{message}</div> : null}
         {syncError ? <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">{syncError}</div> : null}
 
         {onboardingPersonId && onboardingPacket ? (
-          <div className="rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+          <div className="rounded-lg border border-border bg-accent-tint p-4 text-sm text-foreground">
             <p className="font-semibold">Onboarding packet context</p>
             <p className="mt-1">
               Rendering <span className="font-semibold">{onboardingPacket.label}</span>
@@ -151,7 +138,7 @@ export function MhdFormRendererPage() {
                 This packet item also requires a generated document plus a Stage 6 e-signature request. Once the document is generated, route it from the{' '}
                 <Link
                   to={`/esignature?personId=${encodeURIComponent(onboardingPersonId)}&personName=${encodeURIComponent(onboardingPersonName ?? 'Person')}`}
-                  className="font-semibold text-sky-800 underline"
+                  className="font-semibold text-accent underline hover:text-accent-hover"
                 >
                   E-Signature Center
                 </Link>.
@@ -186,7 +173,7 @@ export function MhdFormRendererPage() {
           onResume={(nextSubmissionId) => navigate(`/forms/${formId}/render?submissionId=${nextSubmissionId}`)}
         />
 
-        <div className="rounded-lg border border-slate-200 bg-card shadow-sm">
+        <MhdCard className="p-0">
           <MhdFormRenderer
             formId={formId}
             submissionId={submissionId}
@@ -197,8 +184,8 @@ export function MhdFormRendererPage() {
               void handleSubmissionSuccess(nextSubmissionId);
             }}
           />
-        </div>
+        </MhdCard>
       </div>
-    </main>
+    </div>
   );
 }

@@ -3,6 +3,9 @@ import { AlarmClock, ExternalLink, ListChecks, Plus, Trash2 } from 'lucide-react
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import {
   mhdCustomItemSchema,
   mhdItemWaiverSchema,
@@ -105,7 +108,7 @@ function MhdItemWaiverForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+          className="rounded border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
         >
           Cancel
         </button>
@@ -138,7 +141,7 @@ function MhdCustomItemForm({
 
   return (
     <form
-      className="space-y-4 rounded-md border border-slate-200 bg-slate-50 p-4"
+      className="space-y-4 rounded-md border border-border bg-muted p-4"
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -230,17 +233,13 @@ function MhdCustomItemForm({
       </div>
 
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Adding…' : 'Add Item'}
-        </button>
+        </Button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+          className="rounded border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
         >
           Cancel
         </button>
@@ -255,15 +254,11 @@ function MhdEvidenceChip({ item }: { item: MhdOffboardingChecklistItem }) {
   const label = mhdFormatEvidenceLinkType(item.linkedEntityType);
 
   if (!target) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600">
-        {label}
-      </span>
-    );
+    return <MhdBadge variant="neutral">{label}</MhdBadge>;
   }
 
   const chipClass =
-    'inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-100';
+    'inline-flex items-center gap-1 rounded-full bg-accent-tint px-2.5 py-0.5 text-xs font-medium text-accent-hover hover:bg-accent-tint/60';
 
   return target.external ? (
     <a href={target.href} target="_blank" rel="noreferrer" className={chipClass}>
@@ -369,15 +364,15 @@ export function MhdOffboardingChecklist({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-          <ListChecks className="h-5 w-5 text-slate-400" />
+        <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+          <ListChecks className="h-5 w-5 text-muted-foreground" />
           Exit Checklist
         </h2>
         {canAct ? (
           <button
             type="button"
             onClick={() => setIsAddingItem((current) => !current)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-card px-3 py-1.5 text-sm font-semibold text-slate-700"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-semibold text-foreground"
           >
             <Plus className="h-4 w-4" />
             {isAddingItem ? 'Close' : 'Add Item'}
@@ -402,9 +397,9 @@ export function MhdOffboardingChecklist({
       ) : null}
 
       {orderedItems.length === 0 ? (
-        <p className="py-6 text-center text-sm text-neutral-400">No checklist items.</p>
+        <MhdEmptyState className="py-6" title="No checklist items." />
       ) : (
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-border">
           {orderedItems.map((item) => {
             const isCustom = item.itemKey === null;
             const isTerminal = item.status !== 'PENDING';
@@ -418,24 +413,16 @@ export function MhdOffboardingChecklist({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-slate-900">{item.title}</span>
-                      {item.isRequired ? (
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
-                          Required
-                        </span>
-                      ) : null}
-                      {isCustom ? (
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
-                          Custom
-                        </span>
-                      ) : null}
+                      <span className="font-medium text-foreground">{item.title}</span>
+                      {item.isRequired ? <MhdBadge variant="neutral">Required</MhdBadge> : null}
+                      {isCustom ? <MhdBadge variant="neutral">Custom</MhdBadge> : null}
                       <MhdItemStatusBadge status={item.status} />
                       <MhdEvidenceChip item={item} />
                     </div>
                     {item.description ? (
-                      <p className="mt-1 text-sm text-slate-600">{item.description}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
                     ) : null}
-                    <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       <span>{item.referenceId}</span>
                       <span>Assignee: {item.assigneeDisplayName ?? 'Unassigned'}</span>
                       <span

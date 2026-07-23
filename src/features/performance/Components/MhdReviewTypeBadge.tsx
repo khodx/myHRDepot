@@ -1,8 +1,11 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { mhdFormatReviewType, type MhdReviewType } from '../Types';
 
-const TYPE_STYLES: Record<MhdReviewType, string> = {
-  INTRODUCTORY: 'bg-sky-100 text-sky-800',
-  ANNUAL: 'bg-indigo-100 text-indigo-800',
+// Type/category tags take the module accent and the informational blue —
+// the label carries the distinction.
+const TYPE_VARIANTS: Record<MhdReviewType, MhdBadgeVariant> = {
+  INTRODUCTORY: 'info',
+  ANNUAL: 'accent',
 };
 
 interface Props {
@@ -10,9 +13,5 @@ interface Props {
 }
 
 export function MhdReviewTypeBadge({ reviewType }: Props) {
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${TYPE_STYLES[reviewType]}`}>
-      {mhdFormatReviewType(reviewType)}
-    </span>
-  );
+  return <MhdBadge variant={TYPE_VARIANTS[reviewType]}>{mhdFormatReviewType(reviewType)}</MhdBadge>;
 }

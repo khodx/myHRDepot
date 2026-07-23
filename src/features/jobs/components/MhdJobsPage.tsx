@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { mhdCanMutateJobs, mhdCanSeeJobPay } from '@/appshell/mhdRouteAccess';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCreateJob, useMhdJobs } from '../Hook';
 import {
@@ -50,15 +56,15 @@ export function MhdJobsPage() {
   if (!companyId) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <p className="text-sm text-neutral-500">Loading jobs…</p>
+        <p className="text-sm text-muted-foreground">Loading jobs…</p>
       </div>
     );
   }
 
   if (!isPrivileged) {
     return (
-      <div className="p-6">
-        <p className="text-sm text-neutral-600">
+      <div className="space-y-6">
+        <p className="text-sm text-muted-foreground">
           Job administration is not available to your role.
         </p>
       </div>
@@ -85,54 +91,48 @@ export function MhdJobsPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">Job descriptions</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            Roles, their descriptions, and the competency library they draw from.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            to="/jobs/competencies"
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-          >
-            Competency library
-          </Link>
-          <button
-            type="button"
-            onClick={() => setIsCreating((previous) => !previous)}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
-          >
-            {isCreating ? 'Cancel' : 'New job'}
-          </button>
-        </div>
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Job descriptions"
+        description="Roles, their descriptions, and the competency library they draw from."
+        actions={
+          <>
+            <Link
+              to="/jobs/competencies"
+              className="inline-flex items-center justify-center rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-200"
+            >
+              Competency library
+            </Link>
+            <Button onClick={() => setIsCreating((previous) => !previous)}>
+              {isCreating ? 'Cancel' : 'New job'}
+            </Button>
+          </>
+        }
+      />
 
       {isCreating ? (
-        <div className="space-y-3 rounded-md border border-neutral-200 p-4">
+        <MhdCard className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="newTitle" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="newTitle" className="block text-sm font-medium text-foreground">
                 Job title
               </label>
               <input
                 id="newTitle"
                 value={newTitle}
                 onChange={(event) => setNewTitle(event.target.value)}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
             </div>
             <div>
-              <label htmlFor="newFlsa" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="newFlsa" className="block text-sm font-medium text-foreground">
                 FLSA classification
               </label>
               <select
                 id="newFlsa"
                 value={newFlsa}
                 onChange={(event) => setNewFlsa(event.target.value as MhdFlsaClassification | '')}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 <option value="">Not yet classified</option>
                 {MHD_FLSA_CLASSIFICATIONS.map((value) => (
@@ -143,14 +143,14 @@ export function MhdJobsPage() {
               </select>
             </div>
             <div>
-              <label htmlFor="newType" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="newType" className="block text-sm font-medium text-foreground">
                 Employment type
               </label>
               <select
                 id="newType"
                 value={newType}
                 onChange={(event) => setNewType(event.target.value as MhdEmploymentType)}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {MHD_EMPLOYMENT_TYPES.map((value) => (
                   <option key={value} value={value}>
@@ -160,14 +160,14 @@ export function MhdJobsPage() {
               </select>
             </div>
             <div>
-              <label htmlFor="newIndustry" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="newIndustry" className="block text-sm font-medium text-foreground">
                 Industry
               </label>
               <select
                 id="newIndustry"
                 value={newIndustry}
                 onChange={(event) => setNewIndustry(event.target.value as MhdIndustry)}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {MHD_INDUSTRIES.map((value) => (
                   <option key={value} value={value}>
@@ -177,7 +177,7 @@ export function MhdJobsPage() {
               </select>
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex items-center gap-2 text-sm text-foreground">
             <input
               type="checkbox"
               checked={newSafety}
@@ -188,22 +188,17 @@ export function MhdJobsPage() {
           {/* Not decoration: the designation carries regulatory weight in
               transportation and healthcare and governs how the role is treated
               regardless of how its duties are currently worded. */}
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted-foreground">
             Safety-sensitive designation is a property of the role and follows it across
             description versions.
           </p>
           {error ? <p className="text-xs text-rose-600">{error}</p> : null}
           <div className="flex justify-end">
-            <button
-              type="button"
-              disabled={createJob.isPending}
-              onClick={() => void submitNew()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
-            >
+            <Button disabled={createJob.isPending} onClick={() => void submitNew()}>
               {createJob.isPending ? 'Creating…' : 'Create job'}
-            </button>
+            </Button>
           </div>
-        </div>
+        </MhdCard>
       ) : null}
 
       <div className="flex flex-wrap gap-3">
@@ -211,9 +206,9 @@ export function MhdJobsPage() {
           placeholder="Search title or code…"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
-        <label className="flex items-center gap-2 text-sm text-neutral-700">
+        <label className="flex items-center gap-2 text-sm text-foreground">
           <input
             type="checkbox"
             checked={activeOnly}
@@ -224,64 +219,64 @@ export function MhdJobsPage() {
       </div>
 
       {jobs.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading…</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (jobs.data ?? []).length === 0 ? (
-        <p className="text-sm text-neutral-500">No jobs match.</p>
+        <p className="text-sm text-muted-foreground">No jobs match.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
             <thead>
-              <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                <th className="py-2 pr-4 font-medium">Title</th>
-                <th className="py-2 pr-4 font-medium">Classification</th>
-                <th className="py-2 pr-4 font-medium">Type</th>
-                <th className="py-2 pr-4 text-right font-medium">Incumbents</th>
-                {canSeePay ? <th className="py-2 pr-4 font-medium">Pay range</th> : null}
-                <th className="py-2 font-medium">Description</th>
+              <tr>
+                <MhdTh>Title</MhdTh>
+                <MhdTh>Classification</MhdTh>
+                <MhdTh>Type</MhdTh>
+                <MhdTh className="text-right">Incumbents</MhdTh>
+                {canSeePay ? <MhdTh>Pay range</MhdTh> : null}
+                <MhdTh>Description</MhdTh>
               </tr>
             </thead>
             <tbody>
               {(jobs.data ?? []).map((job) => (
-                <tr
+                <MhdTr
                   key={job.id}
                   onClick={() => navigate(`/jobs/${job.id}`)}
-                  className={`cursor-pointer border-b border-neutral-100 ${
-                    job.isActive ? 'text-neutral-800' : 'text-neutral-400'
-                  }`}
+                  className={cn('cursor-pointer', !job.isActive && 'opacity-60')}
                 >
-                  <td className="py-2 pr-4">
+                  <MhdTd>
                     <span className="font-medium">{job.jobTitle}</span>
                     {job.jobCode ? (
-                      <span className="ml-2 text-xs text-neutral-500">{job.jobCode}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">{job.jobCode}</span>
                     ) : null}
-                  </td>
-                  <td className="py-2 pr-4">
+                  </MhdTd>
+                  <MhdTd>
                     <MhdFlsaBadge
                       flsaClassification={job.flsaClassification}
                       isSafetySensitive={job.isSafetySensitive}
                     />
-                  </td>
-                  <td className="py-2 pr-4 whitespace-nowrap">
+                  </MhdTd>
+                  <MhdTd className="whitespace-nowrap">
                     {mhdFormatEmploymentType(job.employmentType)}
-                  </td>
-                  <td className="py-2 pr-4 text-right tabular-nums">{job.incumbentCount}</td>
+                  </MhdTd>
+                  <MhdTd className="text-right tabular-nums">{job.incumbentCount}</MhdTd>
                   {canSeePay ? (
-                    <td className="py-2 pr-4 whitespace-nowrap">
-                      {mhdFormatPayRange(job) ?? <span className="text-neutral-400">—</span>}
-                    </td>
+                    <MhdTd className="whitespace-nowrap">
+                      {mhdFormatPayRange(job) ?? <span className="text-muted-foreground">—</span>}
+                    </MhdTd>
                   ) : null}
-                  <td className="py-2">
+                  <MhdTd>
                     {job.publishedDescriptionId ? (
-                      <span className="text-xs text-emerald-700">Published</span>
+                      <MhdBadge variant="success">Published</MhdBadge>
                     ) : (
-                      <span className="text-xs text-amber-700">None published</span>
+                      <MhdBadge variant="warning" hideIcon>
+                        None published
+                      </MhdBadge>
                     )}
-                  </td>
-                </tr>
+                  </MhdTd>
+                </MhdTr>
               ))}
             </tbody>
-          </table>
-        </div>
+          </MhdTable>
+        </MhdCard>
       )}
     </div>
   );

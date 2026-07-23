@@ -73,7 +73,7 @@ export function MhdFeedbackForm({
   return (
     <div className="space-y-6 p-6">
       <header>
-        <h1 className="text-xl font-semibold text-neutral-900">Your feedback</h1>
+        <h1 className="text-xl font-semibold text-foreground">Your feedback</h1>
         {/* The notice, before the first field. Anonymous participants learn that
             their comments are released like their ratings; attributed ones learn
             their name is shown. */}
@@ -84,8 +84,8 @@ export function MhdFeedbackForm({
 
       <div className="space-y-4">
         {drafts.map((draft, index) => (
-          <div key={draft.competencyId ?? draft.sectionId ?? index} className="rounded-md border border-neutral-200 p-4">
-            <p className="text-sm font-medium text-neutral-900">{draft.label}</p>
+          <div key={draft.competencyId ?? draft.sectionId ?? index} className="rounded-md border border-border p-4">
+            <p className="text-sm font-medium text-foreground">{draft.label}</p>
             <div className="mt-2 flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
@@ -94,43 +94,43 @@ export function MhdFeedbackForm({
                   onClick={() => updateDraft(index, { rating: draft.rating === value ? null : value })}
                   className={`h-8 w-8 rounded-md border text-sm ${
                     draft.rating === value
-                      ? 'border-neutral-900 bg-neutral-900 text-neutral-50'
-                      : 'border-neutral-300 text-neutral-600'
+                      ? 'border-accent bg-accent text-accent-on'
+                      : 'border-border text-muted-foreground'
                   }`}
                 >
                   {value}
                 </button>
               ))}
-              <span className="ml-2 text-xs text-neutral-500">1 = low, 5 = high</span>
+              <span className="ml-2 text-xs text-muted-foreground">1 = low, 5 = high</span>
             </div>
             <textarea
               rows={2}
               value={draft.comment}
               onChange={(event) => updateDraft(index, { comment: event.target.value })}
               placeholder="Comment (optional)"
-              className="mt-2 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-2 w-full rounded-md border border-border px-3 py-2 text-sm"
             />
           </div>
         ))}
       </div>
 
       {isDeclining ? (
-        <div className="space-y-2 rounded-md border border-neutral-200 p-4">
-          <label htmlFor="declineReason" className="block text-sm font-medium text-neutral-700">
-            Reason for declining <span className="font-normal text-neutral-500">(optional)</span>
+        <div className="space-y-2 rounded-md border border-border p-4">
+          <label htmlFor="declineReason" className="block text-sm font-medium text-foreground">
+            Reason for declining <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <textarea
             id="declineReason"
             rows={2}
             value={declineReason}
             onChange={(event) => setDeclineReason(event.target.value)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
           />
           <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={() => setIsDeclining(false)}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
+              className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
             >
               Back
             </button>
@@ -138,7 +138,7 @@ export function MhdFeedbackForm({
               type="button"
               disabled={decline.isPending}
               onClick={() => void handleDecline()}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700 disabled:opacity-50"
+              className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-50"
             >
               {decline.isPending ? 'Declining…' : 'Confirm decline'}
             </button>
@@ -150,7 +150,7 @@ export function MhdFeedbackForm({
           <button
             type="button"
             onClick={() => setIsDeclining(true)}
-            className="text-sm text-neutral-500 underline"
+            className="text-sm text-muted-foreground underline"
           >
             I would rather not give feedback
           </button>
@@ -158,7 +158,7 @@ export function MhdFeedbackForm({
             type="button"
             disabled={submit.isPending}
             onClick={() => void handleSubmit()}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
+            className="rounded-md bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-accent-on disabled:opacity-50"
           >
             {submit.isPending ? 'Submitting…' : 'Submit feedback'}
           </button>

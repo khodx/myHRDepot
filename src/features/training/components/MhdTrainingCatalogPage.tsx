@@ -1,4 +1,10 @@
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import { cn } from '@/utils/cn';
 import {
   useMhdAssignTraining,
   useMhdCreateTrainingCourse,
@@ -116,103 +122,85 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
   }
 
   return (
-    <div className="space-y-8 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">Training</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            The course catalog and company compliance. Global courses are platform-seeded and
-            read-only.
-          </p>
-        </div>
-        {canManage ? (
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setIsAssigning(true)}
-              className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-            >
-              Assign training
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsCreating(true)}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
-            >
-              New course
-            </button>
-          </div>
-        ) : null}
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Training"
+        description="The course catalog and company compliance. Global courses are platform-seeded and read-only."
+        actions={
+          canManage ? (
+            <>
+              <Button variant="secondary" onClick={() => setIsAssigning(true)}>
+                Assign training
+              </Button>
+              <Button onClick={() => setIsCreating(true)}>New course</Button>
+            </>
+          ) : undefined
+        }
+      />
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-semibold text-neutral-900">Catalog</h2>
-          <label className="flex items-center gap-2 text-sm text-neutral-600">
+          <h2 className="text-base font-semibold text-foreground">Catalog</h2>
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <input
               type="checkbox"
               checked={includeInactive}
               onChange={(event) => setIncludeInactive(event.target.checked)}
-              className="h-4 w-4 rounded border-neutral-300"
+              className="h-4 w-4 rounded border-border"
             />
             Show retired
           </label>
         </div>
 
         {courses.isLoading ? (
-          <p className="text-sm text-neutral-500">Loading catalog…</p>
+          <p className="text-sm text-muted-foreground">Loading catalog…</p>
         ) : (courses.data ?? []).length === 0 ? (
-          <p className="text-sm text-neutral-500">No courses in the catalog yet.</p>
+          <p className="text-sm text-muted-foreground">No courses in the catalog yet.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
+          <MhdCard className="overflow-hidden p-0">
+            <MhdTable>
               <thead>
-                <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                  <th className="py-2 pr-4 font-medium">Course</th>
-                  <th className="py-2 pr-4 font-medium">Category</th>
-                  <th className="py-2 pr-4 font-medium">Delivery</th>
-                  <th className="py-2 pr-4 font-medium">Recurrence</th>
-                  <th className="py-2 pr-4 font-medium">Evidence</th>
-                  <th className="py-2 font-medium" />
+                <tr>
+                  <MhdTh>Course</MhdTh>
+                  <MhdTh>Category</MhdTh>
+                  <MhdTh>Delivery</MhdTh>
+                  <MhdTh>Recurrence</MhdTh>
+                  <MhdTh>Evidence</MhdTh>
+                  <MhdTh />
                 </tr>
               </thead>
               <tbody>
                 {(courses.data ?? []).map((course) => (
-                  <tr
-                    key={course.id}
-                    className={`border-b border-neutral-100 text-neutral-800 ${
-                      course.isActive ? '' : 'opacity-60'
-                    }`}
-                  >
-                    <td className="py-2 pr-4">
-                      <div className="font-medium text-neutral-900">
+                  <MhdTr key={course.id} className={cn(!course.isActive && 'opacity-60')}>
+                    <MhdTd>
+                      <div className="font-medium text-foreground">
                         {course.title}
                         {course.isGlobal ? (
-                          <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800">
+                          <MhdBadge variant="info" className="ml-2">
                             Global
-                          </span>
+                          </MhdBadge>
                         ) : null}
                         {!course.isActive ? (
-                          <span className="ml-2 rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-medium text-neutral-600">
+                          <MhdBadge variant="neutral" className="ml-2">
                             Retired
-                          </span>
+                          </MhdBadge>
                         ) : null}
                       </div>
-                      <div className="font-mono text-xs text-neutral-400">{course.referenceId}</div>
-                    </td>
-                    <td className="py-2 pr-4">
+                      <div className="font-mono text-xs text-muted-foreground">{course.referenceId}</div>
+                    </MhdTd>
+                    <MhdTd>
                       <MhdCourseCategoryBadge category={course.category} />
-                    </td>
-                    <td className="py-2 pr-4 whitespace-nowrap text-neutral-600">
+                    </MhdTd>
+                    <MhdTd className="whitespace-nowrap text-muted-foreground">
                       {mhdFormatTrainingDeliveryMode(course.deliveryMode)}
-                    </td>
-                    <td className="py-2 pr-4 whitespace-nowrap text-neutral-600">
+                    </MhdTd>
+                    <MhdTd className="whitespace-nowrap text-muted-foreground">
                       {mhdFormatTrainingRecurrence(course.recurrenceMonths)}
-                    </td>
-                    <td className="py-2 pr-4 text-neutral-600">
+                    </MhdTd>
+                    <MhdTd className="text-muted-foreground">
                       {course.requiresEvidence ? 'Required' : '—'}
-                    </td>
-                    <td className="py-2 text-right whitespace-nowrap">
+                    </MhdTd>
+                    <MhdTd className="whitespace-nowrap text-right">
                       {/* A global course is platform-owned: no edit / retire here.
                           The RPC refuses those on a global course regardless. */}
                       {canManage && !course.isGlobal ? (
@@ -220,7 +208,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
                           <button
                             type="button"
                             onClick={() => setEditing(course)}
-                            className="text-sm text-neutral-500 underline"
+                            className="text-sm font-medium text-accent hover:text-accent-hover"
                           >
                             Edit
                           </button>
@@ -233,22 +221,22 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
                                 isActive: !course.isActive,
                               })
                             }
-                            className="text-sm text-neutral-500 underline disabled:opacity-50"
+                            className="text-sm font-medium text-accent hover:text-accent-hover disabled:opacity-50"
                           >
                             {course.isActive ? 'Retire' : 'Reactivate'}
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-neutral-400">
+                        <span className="text-xs text-muted-foreground">
                           {course.isGlobal ? 'Read-only' : ''}
                         </span>
                       )}
-                    </td>
-                  </tr>
+                    </MhdTd>
+                  </MhdTr>
                 ))}
               </tbody>
-            </table>
-          </div>
+            </MhdTable>
+          </MhdCard>
         )}
       </section>
 
@@ -256,8 +244,8 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
 
       {isCreating && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg bg-card p-6">
-            <h2 className="mb-4 text-base font-semibold text-neutral-900">New course</h2>
+          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-semibold text-foreground">New course</h2>
             <MhdTrainingCourseForm
               companyId={companyId}
               onSubmit={handleCreate}
@@ -270,8 +258,8 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
 
       {editing && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg bg-card p-6">
-            <h2 className="mb-4 text-base font-semibold text-neutral-900">Edit course</h2>
+          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-semibold text-foreground">Edit course</h2>
             <MhdTrainingCourseForm
               companyId={companyId}
               course={editing}
@@ -285,8 +273,8 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
 
       {isAssigning && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-lg bg-card p-6">
-            <h2 className="mb-4 text-base font-semibold text-neutral-900">Assign training</h2>
+          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-semibold text-foreground">Assign training</h2>
             <MhdAssignTrainingPanel
               companyId={companyId}
               courses={activeCourses}

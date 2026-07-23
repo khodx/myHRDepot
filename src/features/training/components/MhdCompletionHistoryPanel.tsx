@@ -1,3 +1,4 @@
+import { MhdBadge } from '@/components/ui/MhdBadge';
 import {
   mhdFormatTrainingCompletionMethod,
   type MhdTrainingCompletion,
@@ -31,43 +32,37 @@ export function MhdCompletionHistoryPanel({
 }: Props) {
   return (
     <section className="space-y-3">
-      <h2 className="text-base font-semibold text-neutral-900">{title}</h2>
+      <h2 className="text-base font-semibold text-foreground">{title}</h2>
 
       {isLoading ? (
-        <p className="text-sm text-neutral-500">Loading history…</p>
+        <p className="text-sm text-muted-foreground">Loading history…</p>
       ) : completions.length === 0 ? (
-        <p className="text-sm text-neutral-500">No completions on record.</p>
+        <p className="text-sm text-muted-foreground">No completions on record.</p>
       ) : (
         <ul className="space-y-2">
           {completions.map((completion) => (
             <li
               key={completion.id}
-              className="flex flex-wrap items-start justify-between gap-3 rounded-md border border-neutral-200 p-4"
+              className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
             >
               <div>
-                <p className="text-sm font-medium text-neutral-900">{completion.courseTitle}</p>
-                <p className="mt-0.5 text-xs text-neutral-600">
+                <p className="text-sm font-medium text-foreground">{completion.courseTitle}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   Completed {formatDate(completion.completedAt)} ·{' '}
                   {mhdFormatTrainingCompletionMethod(completion.completionMethod)}
                   {completion.attachmentId ? ' · certificate on file' : ''}
                 </p>
-                <p className="mt-0.5 font-mono text-xs text-neutral-400">{completion.referenceId}</p>
+                <p className="mt-0.5 font-mono text-xs text-muted-foreground">{completion.referenceId}</p>
               </div>
 
               <div className="text-right">
                 {/* Render the server's derived is_expired, never a local recompute. */}
                 {completion.expiresAt == null ? (
-                  <span className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600">
-                    No expiry
-                  </span>
+                  <MhdBadge variant="neutral">No expiry</MhdBadge>
                 ) : completion.isExpired ? (
-                  <span className="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-800">
-                    Expired {formatDate(completion.expiresAt)}
-                  </span>
+                  <MhdBadge variant="error">Expired {formatDate(completion.expiresAt)}</MhdBadge>
                 ) : (
-                  <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
-                    Valid to {formatDate(completion.expiresAt)}
-                  </span>
+                  <MhdBadge variant="success">Valid to {formatDate(completion.expiresAt)}</MhdBadge>
                 )}
               </div>
             </li>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
 
 interface Props {
   templateName: string;
@@ -39,55 +40,46 @@ export function MhdAssignTemplateDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-      <div className="w-full max-w-md rounded-lg bg-card p-6">
-        <h2 className="text-base font-semibold text-neutral-900">Assign schedule pattern</h2>
-        <p className="mt-1 text-sm text-neutral-600">
+      <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-foreground">Assign schedule pattern</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Assigning <span className="font-medium">{templateName}</span> closes any current pattern
           rather than rewriting it. Shifts already generated keep the pattern they were made under.
         </p>
         <div className="mt-4 space-y-3">
           <div>
-            <label htmlFor="assign-from" className="block text-sm font-medium text-neutral-700">
-              Effective from <span className="font-normal text-neutral-500">(required)</span>
+            <label htmlFor="assign-from" className="block text-sm font-medium text-foreground">
+              Effective from <span className="font-normal text-muted-foreground">(required)</span>
             </label>
             <input
               id="assign-from"
               type="date"
               value={effectiveFrom}
               onChange={(event) => setEffectiveFrom(event.target.value)}
-              className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             />
           </div>
           <div>
-            <label htmlFor="assign-note" className="block text-sm font-medium text-neutral-700">
-              Note <span className="font-normal text-neutral-500">(optional)</span>
+            <label htmlFor="assign-note" className="block text-sm font-medium text-foreground">
+              Note <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <textarea
               id="assign-note"
               rows={2}
               value={note}
               onChange={(event) => setNote(event.target.value)}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             />
           </div>
           {error ? <p className="text-xs text-rose-600">{error}</p> : null}
         </div>
         <div className="mt-4 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
-          >
+          <Button variant="secondary" className="px-3 py-1.5" onClick={onCancel}>
             Cancel
-          </button>
-          <button
-            type="button"
-            disabled={isSubmitting}
-            onClick={() => void submit()}
-            className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
-          >
+          </Button>
+          <Button className="px-3 py-1.5" disabled={isSubmitting} onClick={() => void submit()}>
             {isSubmitting ? 'Assigning…' : 'Assign pattern'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/Button';
 import { mhdCaseFormSchema, type MhdCaseFormSchemaInput } from '../Schemas';
 import {
   MHD_SEPARATION_TYPES,
@@ -69,7 +70,7 @@ export function MhdOffboardingCaseForm({
           </label>
           <select
             id="mhd-offboarding-form-person"
-            className="w-full rounded border px-3 py-2 disabled:bg-neutral-100 disabled:text-neutral-500"
+            className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
             disabled={personLocked}
             {...register('personId')}
           >
@@ -84,11 +85,11 @@ export function MhdOffboardingCaseForm({
             <p className="mt-1 text-xs text-red-600">{errors.personId.message}</p>
           ) : null}
           {personLocked ? (
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               The person is set at creation and cannot be changed.
             </p>
           ) : (
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               One active case per person — creating a case initiates the separation process and
               seeds the exit checklist.
             </p>
@@ -130,7 +131,7 @@ export function MhdOffboardingCaseForm({
             className="w-full rounded border px-3 py-2"
             {...register('separationDate')}
           />
-          <p className="mt-1 text-xs text-neutral-500">Notice / decision date.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Notice / decision date.</p>
           {errors.separationDate ? (
             <p className="mt-1 text-xs text-red-600">{errors.separationDate.message}</p>
           ) : null}
@@ -149,7 +150,7 @@ export function MhdOffboardingCaseForm({
             className="w-full rounded border px-3 py-2"
             {...register('lastWorkingDay')}
           />
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             Optional; on or after the separation date.
           </p>
           {errors.lastWorkingDay ? (
@@ -193,17 +194,13 @@ export function MhdOffboardingCaseForm({
       </div>
 
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving…' : mode === 'create' ? 'Open Offboarding Case' : 'Save Changes'}
-        </button>
+        </Button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+          className="rounded border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
         >
           Cancel
         </button>

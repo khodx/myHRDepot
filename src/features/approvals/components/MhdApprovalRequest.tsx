@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { mhdApprovalService } from '../Service';
 import type { MhdApprovalChainMode, MhdApprovalEntityType, MhdApprovalType } from '@/types/approval';
 
@@ -73,17 +75,17 @@ export function MhdApprovalRequest({
 
   return (
     <div>
-      <button type="button" onClick={() => setIsOpen((open) => !open)} className="rounded bg-blue-600 px-4 py-2 text-white">
+      <Button onClick={() => setIsOpen((open) => !open)}>
         Request Approval
-      </button>
+      </Button>
       {isOpen ? (
-        <div className="mt-2 space-y-3 rounded border bg-card p-4">
+        <MhdCard className="mt-2 space-y-3">
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
           <div>
             <p className="mb-1 text-sm font-medium">Approvers</p>
             <div className="space-y-1">
-              {approverOptions.length === 0 ? <p className="text-sm text-gray-500">No eligible approvers found.</p> : null}
+              {approverOptions.length === 0 ? <p className="text-sm text-muted-foreground">No eligible approvers found.</p> : null}
               {approverOptions.map((option) => (
                 <label key={option.id} className="flex items-center gap-2 text-sm">
                   <input type="checkbox" checked={approverIds.includes(option.id)} onChange={() => toggleApprover(option.id)} />
@@ -109,7 +111,7 @@ export function MhdApprovalRequest({
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             placeholder="Reason for approval"
-            className="w-full rounded border p-2"
+            className="w-full rounded border border-border bg-card p-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
           <button
             type="button"
@@ -119,7 +121,7 @@ export function MhdApprovalRequest({
           >
             {isLoading ? 'Submitting...' : 'Submit Approval Request'}
           </button>
-        </div>
+        </MhdCard>
       ) : null}
     </div>
   );

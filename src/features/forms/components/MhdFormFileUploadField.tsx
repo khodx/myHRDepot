@@ -62,7 +62,7 @@ export function MhdFormFileUploadField({
 
   return (
     <div>
-      <label htmlFor={field.id} className="mb-1 block text-sm font-medium text-slate-900">
+      <label htmlFor={field.id} className="mb-1 block text-sm font-medium text-foreground">
         {field.label}
         {required ? <span className="ml-1 text-red-500">*</span> : null}
       </label>
@@ -73,19 +73,19 @@ export function MhdFormFileUploadField({
         disabled={isDisabled}
         className="w-full text-sm disabled:opacity-50"
       />
-      {isUploading ? <p className="mt-1 text-xs text-slate-500">Uploading...</p> : null}
+      {isUploading ? <p className="mt-1 text-xs text-muted-foreground">Uploading...</p> : null}
       {!onUploadFile ? (
-        <p className="mt-1 text-xs text-slate-500">File uploads are available when filling out the live form.</p>
+        <p className="mt-1 text-xs text-muted-foreground">File uploads are available when filling out the live form.</p>
       ) : null}
       {fileValue ? (
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Uploaded:{' '}
           {fileValue.driveWebViewLink ? (
             <a
               href={fileValue.driveWebViewLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-blue-700 hover:underline"
+              className="font-medium text-accent hover:text-accent-hover"
             >
               {fileValue.fileName}
             </a>

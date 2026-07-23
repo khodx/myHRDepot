@@ -35,8 +35,8 @@ export function MhdFormPage({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold text-slate-900">{page.title}</h3>
-        {page.description ? <p className="mt-1 text-sm text-slate-600">{page.description}</p> : null}
+        <h3 className="text-xl font-semibold text-foreground">{page.title}</h3>
+        {page.description ? <p className="mt-1 text-sm text-muted-foreground">{page.description}</p> : null}
       </div>
 
       {pageFields.map((field) => {

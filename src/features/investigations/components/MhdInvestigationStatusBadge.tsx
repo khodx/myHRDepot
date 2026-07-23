@@ -1,15 +1,16 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { mhdFormatInvestigationStatus, type MhdInvestigationStatus } from '../Types';
 
 // The lifecycle reads left-to-right as it warms: INTAKE is neutral (nothing
-// decided yet), the active middle states (OPEN, INVESTIGATING) read blue/indigo
-// so a live case stands out on a board, PENDING_REVIEW is amber (it needs a
-// decision), and CLOSED is neutral-grey — done, filed, retained.
-const STATUS_STYLES: Record<MhdInvestigationStatus, string> = {
-  INTAKE: 'bg-neutral-100 text-neutral-700',
-  OPEN: 'bg-sky-100 text-sky-800',
-  INVESTIGATING: 'bg-indigo-100 text-indigo-800',
-  PENDING_REVIEW: 'bg-amber-100 text-amber-800',
-  CLOSED: 'bg-neutral-200 text-neutral-700',
+// decided yet), the active middle states (OPEN, INVESTIGATING) read info-blue
+// so a live case stands out on a board, PENDING_REVIEW is a warning (it needs a
+// decision), and CLOSED is neutral — done, filed, retained.
+const STATUS_VARIANTS: Record<MhdInvestigationStatus, MhdBadgeVariant> = {
+  INTAKE: 'neutral',
+  OPEN: 'info',
+  INVESTIGATING: 'info',
+  PENDING_REVIEW: 'warning',
+  CLOSED: 'neutral',
 };
 
 interface Props {
@@ -17,13 +18,5 @@ interface Props {
 }
 
 export function MhdInvestigationStatusBadge({ status }: Props) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-        STATUS_STYLES[status] ?? 'bg-neutral-100 text-neutral-700'
-      }`}
-    >
-      {mhdFormatInvestigationStatus(status)}
-    </span>
-  );
+  return <MhdBadge variant={STATUS_VARIANTS[status] ?? 'neutral'}>{mhdFormatInvestigationStatus(status)}</MhdBadge>;
 }

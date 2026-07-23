@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/Button';
 import {
   mhdTrainingCourseFormSchema,
   type MhdTrainingCourseFormValues,
@@ -68,7 +69,7 @@ export function MhdTrainingCourseForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="courseKey" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="courseKey" className="block text-sm font-medium text-foreground">
             Course key
           </label>
           <input
@@ -77,12 +78,12 @@ export function MhdTrainingCourseForm({
             {...register('courseKey')}
             readOnly={isEdit}
             placeholder="e.g. ca-harassment-supervisor"
-            className={`mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm ${
-              isEdit ? 'bg-neutral-100 text-neutral-500' : ''
+            className={`mt-1 w-full rounded-md border border-border px-3 py-2 text-sm ${
+              isEdit ? 'bg-muted text-muted-foreground' : ''
             }`}
           />
           {isEdit ? (
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               The key is the course’s stable identity and cannot be changed.
             </p>
           ) : null}
@@ -92,13 +93,13 @@ export function MhdTrainingCourseForm({
         </div>
 
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="category" className="block text-sm font-medium text-foreground">
             Category
           </label>
           <select
             id="category"
             {...register('category')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
             {MHD_TRAINING_CATEGORIES.map((category) => (
               <option key={category} value={category}>
@@ -113,7 +114,7 @@ export function MhdTrainingCourseForm({
       </div>
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="title" className="block text-sm font-medium text-foreground">
           Title
         </label>
         <input
@@ -121,7 +122,7 @@ export function MhdTrainingCourseForm({
           type="text"
           {...register('title')}
           placeholder="e.g. Sexual harassment prevention (supervisors)"
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
         {errors.title ? (
           <p className="mt-1 text-xs text-rose-600">{errors.title.message}</p>
@@ -129,14 +130,14 @@ export function MhdTrainingCourseForm({
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-neutral-700">
-          Description <span className="font-normal text-neutral-500">(optional)</span>
+        <label htmlFor="description" className="block text-sm font-medium text-foreground">
+          Description <span className="font-normal text-muted-foreground">(optional)</span>
         </label>
         <textarea
           id="description"
           rows={3}
           {...register('description')}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
         {errors.description ? (
           <p className="mt-1 text-xs text-rose-600">{errors.description.message}</p>
@@ -145,13 +146,13 @@ export function MhdTrainingCourseForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="deliveryMode" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="deliveryMode" className="block text-sm font-medium text-foreground">
             Delivery mode
           </label>
           <select
             id="deliveryMode"
             {...register('deliveryMode')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
             {MHD_TRAINING_DELIVERY_MODES.map((mode) => (
               <option key={mode} value={mode}>
@@ -165,8 +166,8 @@ export function MhdTrainingCourseForm({
         </div>
 
         <div>
-          <label htmlFor="durationMinutes" className="block text-sm font-medium text-neutral-700">
-            Duration (minutes) <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="durationMinutes" className="block text-sm font-medium text-foreground">
+            Duration (minutes) <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="durationMinutes"
@@ -174,7 +175,7 @@ export function MhdTrainingCourseForm({
             min={1}
             step={1}
             {...register('durationMinutes')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
           {errors.durationMinutes ? (
             <p className="mt-1 text-xs text-rose-600">{errors.durationMinutes.message}</p>
@@ -184,8 +185,8 @@ export function MhdTrainingCourseForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="recurrenceMonths" className="block text-sm font-medium text-neutral-700">
-            Recurrence (months) <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="recurrenceMonths" className="block text-sm font-medium text-foreground">
+            Recurrence (months) <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="recurrenceMonths"
@@ -193,12 +194,12 @@ export function MhdTrainingCourseForm({
             min={1}
             step={1}
             {...register('recurrenceMonths')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
           {/* The one-time-vs-recurring hint. Blank is not "unknown" — it is a
               deliberate one-time course with no expiry. A value becomes the
               interval a completion freezes onto itself. */}
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             Leave blank for a one-time course (no expiry). A value (e.g. 24 for CA harassment) sets
             how often it must be redone.
           </p>
@@ -208,15 +209,15 @@ export function MhdTrainingCourseForm({
         </div>
 
         <div>
-          <label htmlFor="externalUrl" className="block text-sm font-medium text-neutral-700">
-            External URL <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="externalUrl" className="block text-sm font-medium text-foreground">
+            External URL <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="externalUrl"
             type="url"
             {...register('externalUrl')}
             placeholder="https://…"
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
           {errors.externalUrl ? (
             <p className="mt-1 text-xs text-rose-600">{errors.externalUrl.message}</p>
@@ -229,11 +230,11 @@ export function MhdTrainingCourseForm({
           id="requiresEvidence"
           type="checkbox"
           {...register('requiresEvidence')}
-          className="mt-1 h-4 w-4 rounded border-neutral-300"
+          className="mt-1 h-4 w-4 rounded border-border"
         />
-        <label htmlFor="requiresEvidence" className="text-sm text-neutral-700">
+        <label htmlFor="requiresEvidence" className="text-sm text-foreground">
           Requires evidence
-          <span className="block text-xs font-normal text-neutral-500">
+          <span className="block text-xs font-normal text-muted-foreground">
             When set, an employee cannot self-attest — a certificate must be attached (or an admin
             records the completion).
           </span>
@@ -241,20 +242,12 @@ export function MhdTrainingCourseForm({
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-        >
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving…' : isEdit ? 'Save course' : 'Create course'}
-        </button>
+        </Button>
       </div>
     </form>
   );

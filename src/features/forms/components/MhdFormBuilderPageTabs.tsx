@@ -42,18 +42,18 @@ export function MhdFormBuilderPageTabs({
             onClick={() => onSelectPage(page.id)}
             className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
               activePage?.id === page.id
-                ? 'border-blue-300 bg-blue-50 text-blue-700'
-                : 'border-slate-200 bg-card text-slate-600 hover:border-slate-300'
+                ? 'border-accent bg-accent-tint text-accent-hover'
+                : 'border-border bg-card text-muted-foreground hover:border-accent'
             }`}
           >
             {page.title || `Page ${index + 1}`}
-            <span className="ml-2 text-xs text-slate-400">{page.fields.length}</span>
+            <span className="ml-2 text-xs text-muted-foreground">{page.fields.length}</span>
           </button>
         ))}
         <button
           type="button"
           onClick={onAddPage}
-          className="inline-flex items-center gap-1 rounded-md border border-dashed border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 hover:border-slate-400"
+          className="inline-flex items-center gap-1 rounded-md border border-dashed border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:border-accent"
         >
           <Plus className="h-4 w-4" />
           Add Page
@@ -62,7 +62,7 @@ export function MhdFormBuilderPageTabs({
 
       {activePage ? (
         <div className="flex flex-wrap items-center gap-2">
-          <label className="text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="mhd-active-page-title">
+          <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground" htmlFor="mhd-active-page-title">
             Page Title
           </label>
           <input
@@ -70,14 +70,14 @@ export function MhdFormBuilderPageTabs({
             type="text"
             value={activePage.title}
             onChange={(event) => onRenamePage(activePage.id, event.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
           <button
             type="button"
             aria-label="Move page earlier"
             onClick={() => onMovePage(activePage.id, -1)}
             disabled={activeIndex <= 0}
-            className="rounded-md border border-slate-300 p-1.5 text-slate-600 disabled:opacity-40"
+            className="rounded-md border border-border p-1.5 text-muted-foreground disabled:opacity-40"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
@@ -86,7 +86,7 @@ export function MhdFormBuilderPageTabs({
             aria-label="Move page later"
             onClick={() => onMovePage(activePage.id, 1)}
             disabled={activeIndex < 0 || activeIndex >= pages.length - 1}
-            className="rounded-md border border-slate-300 p-1.5 text-slate-600 disabled:opacity-40"
+            className="rounded-md border border-border p-1.5 text-muted-foreground disabled:opacity-40"
           >
             <ArrowRight className="h-4 w-4" />
           </button>

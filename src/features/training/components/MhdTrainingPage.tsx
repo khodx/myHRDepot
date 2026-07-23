@@ -19,8 +19,8 @@ export function MhdTrainingPage() {
 
   if (!companyId) {
     return (
-      <div className="p-6">
-        <p className="text-sm text-neutral-500">No company is associated with your account.</p>
+      <div className="space-y-6">
+        <p className="text-sm text-muted-foreground">No company is associated with your account.</p>
       </div>
     );
   }

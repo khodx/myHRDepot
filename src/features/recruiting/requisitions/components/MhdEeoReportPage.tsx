@@ -1,4 +1,7 @@
 import { useMemo } from 'react';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
 import { useMhdRecruitingEeoReport } from '../Hook';
 import {
   mhdFormatEeoBucket,
@@ -55,45 +58,41 @@ export function MhdEeoReportPage({ companyId, requisitionId = null, isPlatformAd
 
   if (!isPlatformAdmin) {
     return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold text-neutral-900">EEO report</h1>
-        <p className="mt-2 text-sm text-neutral-600">
-          EEO self-identification data is aggregate-only and restricted to Platform Admin. You do
-          not have access to this report.
-        </p>
+      <div className="space-y-6">
+        <MhdPageHeader
+          title="EEO report"
+          description="EEO self-identification data is aggregate-only and restricted to Platform Admin. You do not have access to this report."
+        />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <header>
-        <h1 className="text-xl font-semibold text-neutral-900">EEO report</h1>
-        <p className="mt-1 text-sm text-neutral-600">
-          Voluntary self-identification, shown as aggregate counts only. No individual responses are
-          ever displayed, and nothing here is tied to a person or a hiring decision.
-        </p>
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="EEO report"
+        description="Voluntary self-identification, shown as aggregate counts only. No individual responses are ever displayed, and nothing here is tied to a person or a hiring decision."
+      />
 
       {report.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading report…</p>
+        <p className="text-sm text-muted-foreground">Loading report…</p>
       ) : report.isError ? (
         <p className="text-sm text-rose-600">
           {report.error instanceof Error ? report.error.message : 'Unable to load the EEO report.'}
         </p>
       ) : grouped.length === 0 ? (
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-muted-foreground">
           No self-identification has been submitted for this scope yet.
         </p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {grouped.map(({ dimension, rows, total }) => (
-            <section key={dimension} className="rounded-lg border border-neutral-200 p-4">
+            <MhdCard key={dimension}>
               <div className="flex items-baseline justify-between">
-                <h2 className="text-base font-semibold text-neutral-900">
+                <h2 className="text-base font-semibold text-foreground">
                   {mhdFormatEeoDimension(dimension)}
                 </h2>
-                <span className="text-xs text-neutral-500">{total} total</span>
+                <span className="text-xs text-muted-foreground">{total} total</span>
               </div>
 
               <ul className="mt-3 space-y-2">
@@ -102,22 +101,17 @@ export function MhdEeoReportPage({ companyId, requisitionId = null, isPlatformAd
                   return (
                     <li key={`${dimension}-${row.bucket}`}>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-neutral-700">{mhdFormatEeoBucket(row.bucket)}</span>
-                        <span className="text-neutral-500">
+                        <span className="text-foreground">{mhdFormatEeoBucket(row.bucket)}</span>
+                        <span className="text-muted-foreground">
                           {row.applicantCount} ({pct}%)
                         </span>
                       </div>
-                      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-neutral-100">
-                        <div
-                          className="h-full rounded-full bg-sky-500"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
+                      <MhdProgressBar percent={pct} className="mt-1" />
                     </li>
                   );
                 })}
               </ul>
-            </section>
+            </MhdCard>
           ))}
         </div>
       )}

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { useMhdRecruitingRequisitions, useMhdTransitionRequisition } from '../Hook';
 import {
   MHD_RECRUITING_REQUISITION_STATUSES,
@@ -46,18 +47,18 @@ export function MhdRequisitionDetailPage({
   }
 
   if (requisitions.isLoading) {
-    return <p className="p-6 text-sm text-neutral-500">Loading requisition…</p>;
+    return <p className="text-sm text-muted-foreground">Loading requisition…</p>;
   }
 
   if (!requisition) {
     return (
-      <div className="p-6">
+      <div>
         {onBack ? (
-          <button type="button" onClick={onBack} className="text-sm text-neutral-500 underline">
+          <button type="button" onClick={onBack} className="text-sm font-medium text-accent hover:text-accent-hover">
             ← Back to requisitions
           </button>
         ) : null}
-        <p className="mt-4 text-sm text-neutral-500">
+        <p className="mt-4 text-sm text-muted-foreground">
           This requisition could not be found, or you do not have access to it.
         </p>
       </div>
@@ -65,9 +66,9 @@ export function MhdRequisitionDetailPage({
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {onBack ? (
-        <button type="button" onClick={onBack} className="text-sm text-neutral-500 underline">
+        <button type="button" onClick={onBack} className="text-sm font-medium text-accent hover:text-accent-hover">
           ← Back to requisitions
         </button>
       ) : null}
@@ -76,15 +77,15 @@ export function MhdRequisitionDetailPage({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-semibold text-neutral-900">{requisition.title}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{requisition.title}</h1>
               <MhdRequisitionStatusBadge status={requisition.status} />
             </div>
-            <p className="mt-1 font-mono text-xs text-neutral-400">{requisition.referenceId}</p>
+            <p className="mt-1 font-mono text-xs text-muted-foreground">{requisition.referenceId}</p>
           </div>
 
           {canManage ? (
             <div className="flex items-center gap-2">
-              <label htmlFor="reqStatus" className="text-sm text-neutral-600">
+              <label htmlFor="reqStatus" className="text-sm text-muted-foreground">
                 Set status
               </label>
               <select
@@ -94,7 +95,7 @@ export function MhdRequisitionDetailPage({
                 onChange={(event) =>
                   void handleTransition(event.target.value as MhdRecruitingRequisitionStatus)
                 }
-                className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-50"
+                className="rounded-md border border-border px-3 py-1.5 text-sm disabled:opacity-50"
               >
                 {MHD_RECRUITING_REQUISITION_STATUSES.map((status) => (
                   <option key={status} value={status}>
@@ -106,36 +107,38 @@ export function MhdRequisitionDetailPage({
           ) : null}
         </div>
 
+        <MhdCard>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm md:grid-cols-4">
           <div>
-            <dt className="text-xs uppercase tracking-wide text-neutral-500">Hiring manager</dt>
-            <dd className="text-neutral-800">{requisition.hiringManagerName ?? '—'}</dd>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Hiring manager</dt>
+            <dd className="text-foreground">{requisition.hiringManagerName ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-neutral-500">Department</dt>
-            <dd className="text-neutral-800">{requisition.department ?? '—'}</dd>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Department</dt>
+            <dd className="text-foreground">{requisition.department ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-neutral-500">Location</dt>
-            <dd className="text-neutral-800">{requisition.location ?? '—'}</dd>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Location</dt>
+            <dd className="text-foreground">{requisition.location ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-neutral-500">Employment type</dt>
-            <dd className="text-neutral-800">{requisition.employmentType ?? '—'}</dd>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Employment type</dt>
+            <dd className="text-foreground">{requisition.employmentType ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-neutral-500">Headcount</dt>
-            <dd className="text-neutral-800">{requisition.headcount}</dd>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Headcount</dt>
+            <dd className="text-foreground">{requisition.headcount}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-neutral-500">Active applicants</dt>
-            <dd className="text-neutral-800">{requisition.openApplicationCount}</dd>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Active applicants</dt>
+            <dd className="text-foreground">{requisition.openApplicationCount}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-neutral-500">Requires approval</dt>
-            <dd className="text-neutral-800">{requisition.requiresApproval ? 'Yes' : 'No'}</dd>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Requires approval</dt>
+            <dd className="text-foreground">{requisition.requiresApproval ? 'Yes' : 'No'}</dd>
           </div>
         </dl>
+        </MhdCard>
       </header>
 
       {canManage ? (

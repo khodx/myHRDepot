@@ -20,8 +20,8 @@ export function MhdMyHandbooksRoutePage() {
 
   if (!profile?.personId) {
     return (
-      <div className="p-6">
-        <p className="text-sm text-neutral-500">
+      <div className="space-y-6">
+        <p className="text-sm text-muted-foreground">
           Your account is not linked to an employee record, so there are no handbooks to acknowledge.
         </p>
       </div>

@@ -1,3 +1,6 @@
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import {
   MHD_MILEAGE_CLAIM_STATUSES,
   mhdFormatClaimStatus,
@@ -48,22 +51,22 @@ export function MhdClaimListPanel({
   return (
     <section className="space-y-4">
       <header>
-        <h2 className="text-base font-semibold text-neutral-900">Claims</h2>
-        <p className="mt-1 text-sm text-neutral-600">
+        <h2 className="text-base font-semibold text-foreground">Claims</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           {isPrivileged
             ? 'Batched claims across the company.'
             : 'Your claims and where each one has reached.'}
         </p>
       </header>
 
-      <div className="flex flex-wrap gap-3">
+      <MhdCard className="grid gap-3 md:grid-cols-3">
         {isPrivileged ? (
-          <select
+          <MhdFilterSelect
+            label="Claimant"
             value={filters.personId ?? ''}
             onChange={(event) =>
               onFiltersChange({ ...filters, personId: event.target.value || null })
             }
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
           >
             <option value="">All claimants</option>
             {people.map((person) => (
@@ -71,10 +74,11 @@ export function MhdClaimListPanel({
                 {person.displayName}
               </option>
             ))}
-          </select>
+          </MhdFilterSelect>
         ) : null}
 
-        <select
+        <MhdFilterSelect
+          label="Status"
           value={filters.status ?? 'ALL'}
           onChange={(event) =>
             onFiltersChange({
@@ -82,7 +86,6 @@ export function MhdClaimListPanel({
               status: event.target.value as MhdMileageClaimFilters['status'],
             })
           }
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
         >
           <option value="ALL">All statuses</option>
           {MHD_MILEAGE_CLAIM_STATUSES.map((status) => (
@@ -90,69 +93,65 @@ export function MhdClaimListPanel({
               {mhdFormatClaimStatus(status)}
             </option>
           ))}
-        </select>
-      </div>
+        </MhdFilterSelect>
+      </MhdCard>
 
       {isLoading ? (
-        <p className="text-sm text-neutral-500">Loading claims…</p>
+        <p className="text-sm text-muted-foreground">Loading claims…</p>
       ) : claims.length === 0 ? (
-        <p className="text-sm text-neutral-500">No claims match these filters.</p>
+        <p className="text-sm text-muted-foreground">No claims match these filters.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
             <thead>
-              <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                <th className="py-2 pr-4 font-medium">Reference</th>
-                {isPrivileged ? <th className="py-2 pr-4 font-medium">Claimant</th> : null}
-                <th className="py-2 pr-4 font-medium">Period</th>
-                <th className="py-2 pr-4 font-medium">Status</th>
-                <th className="py-2 pr-4 text-right font-medium">Lines</th>
-                <th className="py-2 pr-4 text-right font-medium">Total</th>
-                <th className="py-2 font-medium" />
+              <tr>
+                <MhdTh>Reference</MhdTh>
+                {isPrivileged ? <MhdTh>Claimant</MhdTh> : null}
+                <MhdTh>Period</MhdTh>
+                <MhdTh>Status</MhdTh>
+                <MhdTh className="text-right">Lines</MhdTh>
+                <MhdTh className="text-right">Total</MhdTh>
+                <MhdTh />
               </tr>
             </thead>
             <tbody>
               {claims.map((claim) => (
-                <tr
+                <MhdTr
                   key={claim.id}
-                  className={`border-b border-neutral-100 ${
-                    selectedClaimId === claim.id ? 'bg-neutral-50' : ''
-                  }`}
+                  className={selectedClaimId === claim.id ? 'bg-accent-tint' : undefined}
                 >
-                  <td className="py-2 pr-4 whitespace-nowrap font-medium text-neutral-900">
-                    {claim.referenceId}
-                  </td>
+                  <MhdTd className="whitespace-nowrap font-medium">{claim.referenceId}</MhdTd>
                   {isPrivileged ? (
-                    <td className="py-2 pr-4 whitespace-nowrap">{claim.personDisplayName}</td>
+                    <MhdTd className="whitespace-nowrap">{claim.personDisplayName}</MhdTd>
                   ) : null}
-                  <td className="py-2 pr-4 whitespace-nowrap">
+                  <MhdTd className="whitespace-nowrap">
                     {claim.periodStart} — {claim.periodEnd}
-                  </td>
-                  <td className="py-2 pr-4">
+                  </MhdTd>
+                  <MhdTd>
                     <MhdClaimStatusBadge status={claim.status} />
-                  </td>
-                  <td className="py-2 pr-4 text-right tabular-nums">{claim.lineCount}</td>
-                  <td className="py-2 pr-4 text-right tabular-nums">
+                  </MhdTd>
+                  <MhdTd className="text-right tabular-nums">{claim.lineCount}</MhdTd>
+                  <MhdTd className="text-right tabular-nums">
                     {claim.totalCompanyAmount == null ? (
-                      <span className="text-xs text-neutral-500">not yet priced</span>
+                      <span className="text-xs text-muted-foreground">not yet priced</span>
                     ) : (
                       currencyFormatter.format(claim.totalCompanyAmount)
                     )}
-                  </td>
-                  <td className="py-2 text-right">
+                  </MhdTd>
+                  <MhdTd className="text-right">
                     <button
                       type="button"
                       onClick={() => onSelect(claim.id)}
-                      className="text-sm text-neutral-500"
+                      className="text-sm font-medium text-accent hover:text-accent-hover"
                     >
                       Open
                     </button>
-                  </td>
-                </tr>
+                  </MhdTd>
+                </MhdTr>
               ))}
             </tbody>
-          </table>
-        </div>
+          </MhdTable>
+        </MhdCard>
       )}
     </section>
   );

@@ -22,9 +22,9 @@ export function MhdEssentialFunctionList({ essential, marginal, readOnly = true,
   return (
     <section className="space-y-4">
       <div className="flex items-baseline justify-between">
-        <h3 className="text-sm font-semibold text-neutral-900">Essential functions</h3>
+        <h3 className="text-sm font-semibold text-foreground">Essential functions</h3>
         {!readOnly && onEdit ? (
-          <button type="button" onClick={onEdit} className="text-xs text-neutral-500 underline">
+          <button type="button" onClick={onEdit} className="text-xs font-medium text-accent hover:text-accent-hover">
             Edit functions
           </button>
         ) : null}
@@ -36,7 +36,7 @@ export function MhdEssentialFunctionList({ essential, marginal, readOnly = true,
           they are the basis of any accommodation analysis.
         </p>
       ) : (
-        <ul className="list-disc space-y-1 pl-5 text-sm text-neutral-800">
+        <ul className="list-disc space-y-1 pl-5 text-sm text-foreground">
           {essential.map((fn, index) => (
             <li key={`essential-${index}`}>{fn.text}</li>
           ))}
@@ -45,11 +45,11 @@ export function MhdEssentialFunctionList({ essential, marginal, readOnly = true,
 
       {marginal.length > 0 ? (
         <div>
-          <h3 className="text-sm font-semibold text-neutral-900">Marginal functions</h3>
-          <p className="mt-0.5 text-xs text-neutral-500">
+          <h3 className="text-sm font-semibold text-foreground">Marginal functions</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Part of the role, but not the basis for evaluating whether it can be performed.
           </p>
-          <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-neutral-700">
+          <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-foreground">
             {marginal.map((fn, index) => (
               <li key={`marginal-${index}`}>{fn.text}</li>
             ))}

@@ -33,20 +33,20 @@ export function MhdResetPasswordPage() {
       <MhdAuthCard title="Create new password" description="Enter and confirm your new password.">
         <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
           <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="password">New password</label>
-            <input id="password" type="password" autoComplete="new-password" className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" {...form.register('password')} />
+            <label className="block text-sm font-medium text-foreground" htmlFor="password">New password</label>
+            <input id="password" type="password" autoComplete="new-password" className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...form.register('password')} />
             {form.formState.errors.password && <p className="mt-1 text-sm text-red-600">{form.formState.errors.password.message}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="confirmPassword">Confirm password</label>
-            <input id="confirmPassword" type="password" autoComplete="new-password" className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" {...form.register('confirmPassword')} />
+            <label className="block text-sm font-medium text-foreground" htmlFor="confirmPassword">Confirm password</label>
+            <input id="confirmPassword" type="password" autoComplete="new-password" className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...form.register('confirmPassword')} />
             {form.formState.errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{form.formState.errors.confirmPassword.message}</p>}
           </div>
           {formError && <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">{formError}</p>}
-          <button type="submit" disabled={form.formState.isSubmitting} className="w-full rounded-md bg-blue-700 px-4 py-2 font-semibold text-white disabled:opacity-60">
+          <button type="submit" disabled={form.formState.isSubmitting} className="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:opacity-60">
             {form.formState.isSubmitting ? 'Updating...' : 'Update password'}
           </button>
-          <div className="text-center text-sm"><Link className="text-blue-700 hover:underline" to="/login">Back to sign in</Link></div>
+          <div className="text-center text-sm"><Link className="text-accent hover:underline" to="/login">Back to sign in</Link></div>
         </form>
       </MhdAuthCard>
     </MhdAuthLayout>

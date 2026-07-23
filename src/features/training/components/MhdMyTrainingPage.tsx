@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   useMhdCompleteTraining,
   useMhdTrainingAssignments,
@@ -65,21 +67,18 @@ export function MhdMyTrainingPage({ companyId, personId, onAttachCertificate }: 
   );
 
   return (
-    <div className="space-y-8 p-6">
-      <header>
-        <h1 className="text-xl font-semibold text-neutral-900">My training</h1>
-        <p className="mt-1 text-sm text-neutral-600">
-          Training assigned to you, and your completion history. Complete a course to record dated
-          evidence.
-        </p>
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="My training"
+        description="Training assigned to you, and your completion history. Complete a course to record dated evidence."
+      />
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-neutral-900">To do</h2>
+        <h2 className="text-base font-semibold text-foreground">To do</h2>
         {assignments.isLoading ? (
-          <p className="text-sm text-neutral-500">Loading assignments…</p>
+          <p className="text-sm text-muted-foreground">Loading assignments…</p>
         ) : openAssignments.length === 0 ? (
-          <p className="text-sm text-neutral-500">You have no outstanding training.</p>
+          <p className="text-sm text-muted-foreground">You have no outstanding training.</p>
         ) : (
           <ul className="space-y-2">
             {openAssignments.map((assignment) => (
@@ -96,16 +95,16 @@ export function MhdMyTrainingPage({ companyId, personId, onAttachCertificate }: 
 
       {otherAssignments.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="text-base font-semibold text-neutral-900">Assigned history</h2>
+          <h2 className="text-base font-semibold text-foreground">Assigned history</h2>
           <ul className="space-y-2">
             {otherAssignments.map((assignment) => (
               <li
                 key={assignment.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-neutral-200 p-4"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
               >
                 <div>
-                  <p className="text-sm font-medium text-neutral-900">{assignment.courseTitle}</p>
-                  <p className="mt-0.5 text-xs text-neutral-600">
+                  <p className="text-sm font-medium text-foreground">{assignment.courseTitle}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     <MhdCourseCategoryBadge category={assignment.category} /> ·{' '}
                     {mhdFormatTrainingComplianceStatus(assignment.complianceStatus)}
                   </p>
@@ -167,11 +166,11 @@ function MhdMyTrainingAssignmentRow({ assignment, course, onAttachCertificate }:
   }
 
   return (
-    <li className="space-y-3 rounded-md border border-neutral-200 p-4">
+    <li className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-neutral-900">{assignment.courseTitle}</p>
-          <p className="mt-0.5 text-xs text-neutral-600">
+          <p className="text-sm font-medium text-foreground">{assignment.courseTitle}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             <MhdCourseCategoryBadge category={assignment.category} />
             {assignment.dueDate ? ` · due ${assignment.dueDate}` : ' · no due date'}
           </p>
@@ -180,7 +179,7 @@ function MhdMyTrainingAssignmentRow({ assignment, course, onAttachCertificate }:
               href={externalUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-1 inline-block text-xs text-sky-700 underline"
+              className="mt-1 inline-block text-xs font-medium text-accent hover:text-accent-hover"
             >
               Open course material
             </a>
@@ -199,31 +198,21 @@ function MhdMyTrainingAssignmentRow({ assignment, course, onAttachCertificate }:
 
       <div className="flex flex-wrap items-center gap-2">
         {onAttachCertificate ? (
-          <button
-            type="button"
-            onClick={() => void handleAttach()}
-            disabled={isAttaching}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700 disabled:opacity-50"
-          >
+          <Button variant="secondary" onClick={() => void handleAttach()} disabled={isAttaching}>
             {isAttaching
               ? 'Attaching…'
               : attachmentId
                 ? 'Certificate attached ✓'
                 : 'Attach certificate'}
-          </button>
+          </Button>
         ) : null}
-        <button
-          type="button"
-          onClick={() => void handleComplete()}
-          disabled={complete.isPending}
-          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        <Button onClick={() => void handleComplete()} disabled={complete.isPending}>
           {complete.isPending
             ? 'Recording…'
             : attachmentId
               ? 'Complete with certificate'
               : 'Attest completion'}
-        </button>
+        </Button>
       </div>
 
       {/* Surface the server's error — notably the evidence-gate refusal — verbatim. */}

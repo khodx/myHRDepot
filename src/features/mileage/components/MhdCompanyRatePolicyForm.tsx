@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/Button';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import {
@@ -85,8 +86,8 @@ export function MhdCompanyRatePolicyForm({
       <input type="hidden" {...register('companyId')} />
 
       <header>
-        <h2 className="text-base font-semibold text-neutral-900">Company mileage rate</h2>
-        <p className="mt-1 text-sm text-neutral-600">
+        <h2 className="text-base font-semibold text-foreground">Company mileage rate</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           {effectiveRate == null
             ? 'No policy is configured, so this company tracks the IRS business rate.'
             : `Currently ${mhdFormatRateMode(effectiveRate.rateMode).toLowerCase()}${
@@ -99,13 +100,13 @@ export function MhdCompanyRatePolicyForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="rateMode" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="rateMode" className="block text-sm font-medium text-foreground">
             Rate mode
           </label>
           <select
             id="rateMode"
             {...register('rateMode')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             {MHD_MILEAGE_RATE_MODES.map((mode) => (
               <option key={mode} value={mode}>
@@ -116,19 +117,19 @@ export function MhdCompanyRatePolicyForm({
         </div>
 
         <div>
-          <label htmlFor="effectiveFrom" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="effectiveFrom" className="block text-sm font-medium text-foreground">
             Effective from
           </label>
           <input
             id="effectiveFrom"
             type="date"
             {...register('effectiveFrom')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
           {errors.effectiveFrom ? (
             <p className="mt-1 text-xs text-rose-600">{errors.effectiveFrom.message}</p>
           ) : null}
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             The open policy version closes the day before this date. Claims already approved keep
             the rate they were stamped against.
           </p>
@@ -142,7 +143,7 @@ export function MhdCompanyRatePolicyForm({
       */}
       {isFixed ? (
         <div>
-          <label htmlFor="fixedRatePerMile" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="fixedRatePerMile" className="block text-sm font-medium text-foreground">
             Fixed rate per mile
           </label>
           <input
@@ -157,13 +158,13 @@ export function MhdCompanyRatePolicyForm({
                 return Number.isFinite(parsed) ? parsed : null;
               },
             })}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm sm:w-48"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:w-48"
           />
           {errors.fixedRatePerMile ? (
             <p className="mt-1 text-xs text-rose-600">{errors.fixedRatePerMile.message}</p>
           ) : null}
           {irsRate != null ? (
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               The IRS business rate in force today is {rateFormatter.format(irsRate)} per mile.
             </p>
           ) : (
@@ -189,32 +190,24 @@ export function MhdCompanyRatePolicyForm({
       ) : null}
 
       <div>
-        <label htmlFor="policyNote" className="block text-sm font-medium text-neutral-700">
-          Policy note <span className="font-normal text-neutral-500">(optional)</span>
+        <label htmlFor="policyNote" className="block text-sm font-medium text-foreground">
+          Policy note <span className="font-normal text-muted-foreground">(optional)</span>
         </label>
         <textarea
           id="policyNote"
           rows={2}
           {...register('policyNote')}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-        >
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving…' : 'Save policy'}
-        </button>
+        </Button>
       </div>
     </form>
   );

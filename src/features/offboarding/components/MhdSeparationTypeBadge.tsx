@@ -1,12 +1,16 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { mhdFormatSeparationType, type MhdSeparationType } from '../Types';
 
-const TYPE_STYLES: Record<MhdSeparationType, string> = {
-  RESIGNATION: 'bg-blue-100 text-blue-800',
-  TERMINATION: 'bg-rose-100 text-rose-800',
-  LAYOFF: 'bg-orange-100 text-orange-800',
-  END_OF_CONTRACT: 'bg-violet-100 text-violet-800',
-  RETIREMENT: 'bg-teal-100 text-teal-800',
-  OTHER: 'bg-neutral-100 text-neutral-600',
+// Separation type is mostly a category tag (module accent), but the charged
+// separations keep their semantic weight: TERMINATION reads as error and
+// LAYOFF as warning.
+const TYPE_VARIANTS: Record<MhdSeparationType, MhdBadgeVariant> = {
+  RESIGNATION: 'accent',
+  TERMINATION: 'error',
+  LAYOFF: 'warning',
+  END_OF_CONTRACT: 'accent',
+  RETIREMENT: 'accent',
+  OTHER: 'neutral',
 };
 
 interface Props {
@@ -14,11 +18,5 @@ interface Props {
 }
 
 export function MhdSeparationTypeBadge({ separationType }: Props) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${TYPE_STYLES[separationType]}`}
-    >
-      {mhdFormatSeparationType(separationType)}
-    </span>
-  );
+  return <MhdBadge variant={TYPE_VARIANTS[separationType]}>{mhdFormatSeparationType(separationType)}</MhdBadge>;
 }

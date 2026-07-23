@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { mhdOfferFormSchema, type MhdOfferFormValues } from '../Schemas';
@@ -64,7 +65,7 @@ export function MhdOfferForm({
       <input type="hidden" {...register('applicationId')} readOnly />
 
       <div>
-        <label htmlFor="jobTitle" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="jobTitle" className="block text-sm font-medium text-foreground">
           Job title
         </label>
         <input
@@ -72,7 +73,7 @@ export function MhdOfferForm({
           type="text"
           {...register('jobTitle')}
           placeholder="e.g. Senior Payroll Specialist"
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
         {errors.jobTitle ? (
           <p className="mt-1 text-xs text-rose-600">{errors.jobTitle.message}</p>
@@ -81,23 +82,23 @@ export function MhdOfferForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-neutral-700">
-            Start date <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="startDate" className="block text-sm font-medium text-foreground">
+            Start date <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="startDate"
             type="date"
             {...register('startDate')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             The employment start — becomes the job assignment's effective date at hire.
           </p>
         </div>
 
         <div>
-          <label htmlFor="baseSalary" className="block text-sm font-medium text-neutral-700">
-            Base salary <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="baseSalary" className="block text-sm font-medium text-foreground">
+            Base salary <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="baseSalary"
@@ -106,7 +107,7 @@ export function MhdOfferForm({
             step="0.01"
             {...register('baseSalary')}
             placeholder="e.g. 72000"
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
           {errors.baseSalary ? (
             <p className="mt-1 text-xs text-rose-600">{errors.baseSalary.message}</p>
@@ -116,28 +117,28 @@ export function MhdOfferForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="payFrequency" className="block text-sm font-medium text-neutral-700">
-            Pay frequency <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="payFrequency" className="block text-sm font-medium text-foreground">
+            Pay frequency <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="payFrequency"
             type="text"
             {...register('payFrequency')}
             placeholder="e.g. Annual, Bi-weekly"
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
 
         <div>
-          <label htmlFor="employmentType" className="block text-sm font-medium text-neutral-700">
-            Employment type <span className="font-normal text-neutral-500">(optional)</span>
+          <label htmlFor="employmentType" className="block text-sm font-medium text-foreground">
+            Employment type <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="employmentType"
             type="text"
             {...register('employmentType')}
             placeholder="e.g. Full-time"
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
       </div>
@@ -146,14 +147,14 @@ export function MhdOfferForm({
         <div>
           <label
             htmlFor="reportingManagerPersonId"
-            className="block text-sm font-medium text-neutral-700"
+            className="block text-sm font-medium text-foreground"
           >
-            Reporting manager <span className="font-normal text-neutral-500">(optional)</span>
+            Reporting manager <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <select
             id="reportingManagerPersonId"
             {...register('reportingManagerPersonId')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
             <option value="">No reporting manager</option>
             {reportingManagers.map((person) => (
@@ -162,7 +163,7 @@ export function MhdOfferForm({
               </option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             Flows into the new hire's job assignment at acceptance.
           </p>
         </div>
@@ -170,15 +171,15 @@ export function MhdOfferForm({
         <div>
           <label
             htmlFor="offerExpirationDate"
-            className="block text-sm font-medium text-neutral-700"
+            className="block text-sm font-medium text-foreground"
           >
-            Expiration date <span className="font-normal text-neutral-500">(optional)</span>
+            Expiration date <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="offerExpirationDate"
             type="date"
             {...register('offerExpirationDate')}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
       </div>
@@ -188,11 +189,11 @@ export function MhdOfferForm({
           id="requiresApproval"
           type="checkbox"
           {...register('requiresApproval')}
-          className="mt-1 h-4 w-4 rounded border-neutral-300"
+          className="mt-1 h-4 w-4 rounded border-border"
         />
-        <label htmlFor="requiresApproval" className="text-sm text-neutral-700">
+        <label htmlFor="requiresApproval" className="text-sm text-foreground">
           Requires approval
-          <span className="block text-xs font-normal text-neutral-500">
+          <span className="block text-xs font-normal text-muted-foreground">
             When set, the offer carries an approval gate before it is extended (orchestrated
             app-layer).
           </span>
@@ -203,17 +204,13 @@ export function MhdOfferForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+          className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground"
         >
           Cancel
         </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Creating…' : 'Create offer'}
-        </button>
+        </Button>
       </div>
     </form>
   );

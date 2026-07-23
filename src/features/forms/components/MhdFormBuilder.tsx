@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Plus, Save, UploadCloud } from 'lucide-react';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { mhdCreateFormInputSchema } from '../Schemas';
 import { mhdFormService } from '../Service';
 import type { MhdFieldType, MhdForm, MhdFormDefinition, MhdFormField, MhdFormPage } from '../Types';
@@ -271,28 +272,28 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-card shadow-sm">
-      <div className="border-b border-slate-200 p-6">
+    <MhdCard className="overflow-hidden p-0">
+      <div className="border-b border-border p-6">
         <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-900">Form Name</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Form Name</label>
               <input
                 type="text"
                 value={formName}
                 onChange={(event) => setFormName(event.target.value)}
                 placeholder="Enter form name"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-900">Description</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Description</label>
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Form description"
-                className="min-h-24 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="min-h-24 w-full rounded-md border border-border px-3 py-2 text-sm"
               />
             </div>
           </div>
@@ -323,14 +324,14 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
           </div>
         </div>
 
-        <div className="mt-6 flex gap-4 border-b border-slate-200">
+        <div className="mt-6 flex gap-4 border-b border-border">
           {(['fields', 'logic', 'calculations', 'preview'] as const).map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
               className={`border-b-2 pb-2 text-sm font-semibold capitalize ${
-                activeTab === tab ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500'
+                activeTab === tab ? 'border-accent text-accent-hover' : 'border-transparent text-muted-foreground'
               }`}
             >
               {tab}
@@ -356,15 +357,15 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
 
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Canvas</h3>
-                <p className="text-sm text-slate-600">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Canvas</h3>
+                <p className="text-sm text-muted-foreground">
                   Fields are ordered top-to-bottom on {activePage ? `"${activePage.title}"` : 'the first page'}.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => addField('text')}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700"
+                className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium text-slate-700"
               >
                 <Plus className="h-4 w-4" />
                 Add Field
@@ -377,8 +378,8 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
                   key={field.id}
                   className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-3 ${
                     selectedFieldId === field.id
-                      ? 'border-blue-300 bg-blue-50'
-                      : 'border-slate-200 bg-card hover:border-slate-300'
+                      ? 'border-accent bg-accent-tint'
+                      : 'border-border bg-card hover:border-accent'
                   }`}
                 >
                   <button
@@ -387,10 +388,10 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
                     className="flex flex-1 items-center justify-between gap-3 text-left"
                   >
                     <div>
-                      <p className="text-sm font-medium text-slate-900">{field.label || 'Untitled field'}</p>
-                      <p className="text-xs uppercase tracking-wide text-slate-500">{field.type}</p>
+                      <p className="text-sm font-medium text-foreground">{field.label || 'Untitled field'}</p>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">{field.type}</p>
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-muted-foreground">
                       {field.required ? 'Required' : 'Optional'}
                     </div>
                   </button>
@@ -399,7 +400,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
                       aria-label={`Page for ${field.label || 'Untitled field'}`}
                       value={activePage?.id ?? sortedPages[0].id}
                       onChange={(event) => assignFieldToPage(field.id, event.target.value)}
-                      className="rounded-md border border-slate-300 px-2 py-1 text-xs"
+                      className="rounded-md border border-border px-2 py-1 text-xs"
                     >
                       {sortedPages.map((page, pageIndex) => (
                         <option key={page.id} value={page.id}>
@@ -411,7 +412,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
                 </div>
               ))}
               {canvasFields.length === 0 ? (
-                <p className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                <p className="rounded-md border border-dashed border-border bg-muted px-4 py-8 text-center text-sm text-muted-foreground">
                   Add a field from the palette to start building {activePage ? `"${activePage.title}"` : 'the form'}.
                 </p>
               ) : null}
@@ -450,6 +451,6 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
           />
         </div>
       ) : null}
-    </div>
+    </MhdCard>
   );
 }

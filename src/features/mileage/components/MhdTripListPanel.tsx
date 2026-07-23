@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import {
   mhdFormatClaimStatus,
   mhdIsTripClaimable,
@@ -30,6 +34,9 @@ const milesFormatter = new Intl.NumberFormat(undefined, {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
 });
+
+const DATE_INPUT_CLASSES =
+  'rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 
 /**
  * The trip log.
@@ -71,22 +78,22 @@ export function MhdTripListPanel({
   return (
     <section className="space-y-4">
       <header>
-        <h2 className="text-base font-semibold text-neutral-900">Trips</h2>
-        <p className="mt-1 text-sm text-neutral-600">
+        <h2 className="text-base font-semibold text-foreground">Trips</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           {isPrivileged
             ? 'Every recorded journey for the company, and whether it is still available to claim.'
             : 'Your recorded journeys, and whether each one is still available to claim.'}
         </p>
       </header>
 
-      <div className="flex flex-wrap items-end gap-3">
+      <MhdCard className="flex flex-wrap items-end gap-3">
         {isPrivileged ? (
-          <select
+          <MhdFilterSelect
+            label="Traveller"
             value={filters.personId ?? ''}
             onChange={(event) =>
               onFiltersChange({ ...filters, personId: event.target.value || null })
             }
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
           >
             <option value="">All travellers</option>
             {people.map((person) => (
@@ -94,122 +101,122 @@ export function MhdTripListPanel({
                 {person.displayName}
               </option>
             ))}
-          </select>
+          </MhdFilterSelect>
         ) : null}
 
-        <label className="text-sm text-neutral-700">
-          From
+        <label className="flex flex-col gap-1">
+          <span className="text-xs font-medium text-muted-foreground">From</span>
           <input
             type="date"
             value={filters.from ?? ''}
             onChange={(event) => onFiltersChange({ ...filters, from: event.target.value || null })}
-            className="ml-2 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+            className={DATE_INPUT_CLASSES}
           />
         </label>
 
-        <label className="text-sm text-neutral-700">
-          To
+        <label className="flex flex-col gap-1">
+          <span className="text-xs font-medium text-muted-foreground">To</span>
           <input
             type="date"
             value={filters.to ?? ''}
             onChange={(event) => onFiltersChange({ ...filters, to: event.target.value || null })}
-            className="ml-2 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+            className={DATE_INPUT_CLASSES}
           />
         </label>
 
-        <label className="flex items-center gap-2 text-sm text-neutral-700">
+        <label className="flex items-center gap-2 pb-1.5 text-sm text-foreground">
           <input
             type="checkbox"
             checked={Boolean(filters.unclaimedOnly)}
             onChange={(event) =>
               onFiltersChange({ ...filters, unclaimedOnly: event.target.checked })
             }
-            className="h-4 w-4 rounded border-neutral-300"
+            className="h-4 w-4 rounded border-border"
           />
           Unclaimed only
         </label>
 
-        <label className="flex items-center gap-2 text-sm text-neutral-700">
+        <label className="flex items-center gap-2 pb-1.5 text-sm text-foreground">
           <input
             type="checkbox"
             checked={Boolean(filters.includeVoided)}
             onChange={(event) =>
               onFiltersChange({ ...filters, includeVoided: event.target.checked })
             }
-            className="h-4 w-4 rounded border-neutral-300"
+            className="h-4 w-4 rounded border-border"
           />
           Include voided
         </label>
-      </div>
+      </MhdCard>
 
       {isLoading ? (
-        <p className="text-sm text-neutral-500">Loading trips…</p>
+        <p className="text-sm text-muted-foreground">Loading trips…</p>
       ) : trips.length === 0 ? (
-        <p className="text-sm text-neutral-500">No trips match these filters.</p>
+        <p className="text-sm text-muted-foreground">No trips match these filters.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
             <thead>
-              <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                <th className="py-2 pr-4 font-medium">Date</th>
-                {isPrivileged ? <th className="py-2 pr-4 font-medium">Traveller</th> : null}
-                <th className="py-2 pr-4 font-medium">Journey</th>
-                <th className="py-2 pr-4 font-medium">Purpose</th>
-                <th className="py-2 pr-4 text-right font-medium">Miles</th>
-                <th className="py-2 pr-4 text-right font-medium">Reimbursable</th>
-                <th className="py-2 pr-4 font-medium">Availability</th>
-                <th className="py-2 font-medium" />
+              <tr>
+                <MhdTh>Date</MhdTh>
+                {isPrivileged ? <MhdTh>Traveller</MhdTh> : null}
+                <MhdTh>Journey</MhdTh>
+                <MhdTh>Purpose</MhdTh>
+                <MhdTh className="text-right">Miles</MhdTh>
+                <MhdTh className="text-right">Reimbursable</MhdTh>
+                <MhdTh>Availability</MhdTh>
+                <MhdTh />
               </tr>
             </thead>
             <tbody>
               {trips.map((trip) => {
                 const claimable = mhdIsTripClaimable(trip);
                 return (
-                  <tr
+                  <MhdTr
                     key={trip.id}
-                    className={`border-b border-neutral-100 align-top ${
-                      trip.voidedAt ? 'text-neutral-400 line-through' : 'text-neutral-800'
-                    }`}
+                    className={trip.voidedAt ? 'text-muted-foreground line-through' : undefined}
                   >
-                    <td className="py-2 pr-4 whitespace-nowrap">{trip.tripDate}</td>
+                    <MhdTd className="whitespace-nowrap align-top">{trip.tripDate}</MhdTd>
                     {isPrivileged ? (
-                      <td className="py-2 pr-4 whitespace-nowrap">
+                      <MhdTd className="whitespace-nowrap align-top">
                         {trip.personDisplayName}
                         {/* Who logged it is part of the record, not a detail. */}
                         {trip.recordedOnBehalf ? (
-                          <span className="ml-2 text-xs text-neutral-500">recorded on behalf</span>
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            recorded on behalf
+                          </span>
                         ) : null}
-                      </td>
+                      </MhdTd>
                     ) : null}
-                    <td className="py-2 pr-4">
+                    <MhdTd className="align-top">
                       {trip.origin} → {trip.destination}
-                    </td>
-                    <td className="py-2 pr-4 max-w-xs">{trip.businessPurpose}</td>
-                    <td className="py-2 pr-4 text-right tabular-nums">
+                    </MhdTd>
+                    <MhdTd className="max-w-xs align-top">{trip.businessPurpose}</MhdTd>
+                    <MhdTd className="text-right align-top tabular-nums">
                       {milesFormatter.format(trip.miles)}
-                    </td>
-                    <td className="py-2 pr-4 text-right tabular-nums">
+                    </MhdTd>
+                    <MhdTd className="text-right align-top tabular-nums">
                       {milesFormatter.format(trip.reimbursableMiles)}
-                    </td>
-                    <td className="py-2 pr-4 whitespace-nowrap">
+                    </MhdTd>
+                    <MhdTd className="whitespace-nowrap align-top">
                       {trip.voidedAt ? (
-                        <span className="text-xs text-neutral-500">Voided</span>
+                        <span className="text-xs text-muted-foreground">Voided</span>
                       ) : claimable ? (
                         <span className="text-xs font-medium text-emerald-700">Available</span>
                       ) : (
-                        <span className="text-xs text-neutral-600">
+                        <span className="text-xs text-muted-foreground">
                           On a {trip.claimStatus ? mhdFormatClaimStatus(trip.claimStatus) : ''} claim
                         </span>
                       )}
-                    </td>
-                    <td className="py-2 text-right whitespace-nowrap">
+                    </MhdTd>
+                    <MhdTd className="whitespace-nowrap text-right align-top">
                       {!trip.voidedAt ? (
                         <div className="flex justify-end gap-3">
                           {onEdit && claimable ? (
                             <button
                               type="button"
                               onClick={() => onEdit(trip)}
-                              className="text-sm text-neutral-500"
+                              className="text-sm font-medium text-accent hover:text-accent-hover"
                             >
                               Edit
                             </button>
@@ -221,7 +228,7 @@ export function MhdTripListPanel({
                               setReason('');
                               setError(null);
                             }}
-                            className="text-sm text-neutral-500"
+                            className="text-sm font-medium text-accent hover:text-accent-hover"
                           >
                             Void
                           </button>
@@ -232,7 +239,7 @@ export function MhdTripListPanel({
                         <div className="mt-2 space-y-2 text-left">
                           <label
                             htmlFor={`void-reason-${trip.id}`}
-                            className="block text-xs font-medium text-neutral-700"
+                            className="block text-xs font-medium text-foreground"
                           >
                             Reason for voiding (required)
                           </label>
@@ -241,35 +248,34 @@ export function MhdTripListPanel({
                             rows={2}
                             value={reason}
                             onChange={(event) => setReason(event.target.value)}
-                            className="w-64 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                            className="w-64 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                           />
                           {error ? <p className="text-xs text-rose-600">{error}</p> : null}
                           <div className="flex justify-end gap-2">
-                            <button
-                              type="button"
+                            <Button
+                              variant="secondary"
+                              className="px-3 py-1.5"
                               onClick={() => setVoidingTripId(null)}
-                              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
                             >
                               Cancel
-                            </button>
-                            <button
-                              type="button"
+                            </Button>
+                            <Button
+                              className="px-3 py-1.5"
                               disabled={isSubmitting}
                               onClick={() => void submitVoid(trip.id)}
-                              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
                             >
                               {isSubmitting ? 'Voiding…' : 'Void trip'}
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       ) : null}
-                    </td>
-                  </tr>
+                    </MhdTd>
+                  </MhdTr>
                 );
               })}
             </tbody>
-          </table>
-        </div>
+          </MhdTable>
+        </MhdCard>
       )}
     </section>
   );

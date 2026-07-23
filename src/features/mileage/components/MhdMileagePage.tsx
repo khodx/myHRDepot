@@ -1,6 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/Button';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTabs } from '@/components/ui/MhdTabs';
 import {
   mhdCanManageMileageRates,
   mhdMileageIsPrivileged,
@@ -79,7 +82,7 @@ export function MhdMileagePage() {
   if (!companyId) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <p className="text-sm text-neutral-500">Loading mileage…</p>
+        <p className="text-sm text-muted-foreground">Loading mileage…</p>
       </div>
     );
   }
@@ -287,68 +290,51 @@ function MhdMileageBoard({
       ];
 
   return (
-    <div className="space-y-6 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">Mileage</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            {isPrivileged
-              ? 'Trips, claims, and the rates they are priced against.'
-              : 'Your business travel and the claims you have made for it.'}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setEditingTrip(null);
-              setIsRecording(true);
-            }}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
-          >
-            Record trip
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsCreatingClaim((open) => !open)}
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-          >
-            New claim
-          </button>
-        </div>
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Mileage"
+        description={
+          isPrivileged
+            ? 'Trips, claims, and the rates they are priced against.'
+            : 'Your business travel and the claims you have made for it.'
+        }
+        actions={
+          <>
+            <Button
+              onClick={() => {
+                setEditingTrip(null);
+                setIsRecording(true);
+              }}
+            >
+              Record trip
+            </Button>
+            <Button variant="secondary" onClick={() => setIsCreatingClaim((open) => !open)}>
+              New claim
+            </Button>
+          </>
+        }
+      />
 
-      <nav className="flex gap-1 border-b border-neutral-200 text-sm">
-        {tabs.map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setTab(value)}
-            className={`-mb-px border-b-2 px-3 py-2 font-medium ${
-              tab === value
-                ? 'border-neutral-900 text-neutral-900'
-                : 'border-transparent text-neutral-500'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
+      <MhdTabs
+        tabs={tabs.map(([value, label]) => ({ value, label }))}
+        value={tab}
+        onChange={setTab}
+      />
 
       {isCreatingClaim ? (
         <form
           onSubmit={claimForm.handleSubmit(handleCreateClaim)}
-          className="grid gap-4 rounded-md border border-neutral-200 bg-neutral-50 p-4 sm:grid-cols-4"
+          className="grid gap-4 rounded-xl border border-border bg-card p-4 shadow-sm sm:grid-cols-4"
         >
           <div>
-            <label htmlFor="claim-person" className="block text-sm font-medium text-neutral-700">
+            <label htmlFor="claim-person" className="block text-sm font-medium text-foreground">
               Claimant
             </label>
             <select
               id="claim-person"
               {...claimForm.register('personId')}
               disabled={!isPrivileged}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100"
+              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
             >
               <option value="">Select an employee…</option>
               {peopleOptions.map((person) => (
@@ -365,14 +351,14 @@ function MhdMileageBoard({
           </div>
 
           <div>
-            <label htmlFor="period-start" className="block text-sm font-medium text-neutral-700">
+            <label htmlFor="period-start" className="block text-sm font-medium text-foreground">
               Period start
             </label>
             <input
               id="period-start"
               type="date"
               {...claimForm.register('periodStart')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             />
             {claimForm.formState.errors.periodStart ? (
               <p className="mt-1 text-xs text-rose-600">
@@ -382,14 +368,14 @@ function MhdMileageBoard({
           </div>
 
           <div>
-            <label htmlFor="period-end" className="block text-sm font-medium text-neutral-700">
+            <label htmlFor="period-end" className="block text-sm font-medium text-foreground">
               Period end
             </label>
             <input
               id="period-end"
               type="date"
               {...claimForm.register('periodEnd')}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             />
             {claimForm.formState.errors.periodEnd ? (
               <p className="mt-1 text-xs text-rose-600">
@@ -399,20 +385,12 @@ function MhdMileageBoard({
           </div>
 
           <div className="flex items-end gap-2">
-            <button
-              type="submit"
-              disabled={createClaim.isPending}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-            >
+            <Button type="submit" disabled={createClaim.isPending}>
               {createClaim.isPending ? 'Creating…' : 'Create claim'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsCreatingClaim(false)}
-              className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-700"
-            >
+            </Button>
+            <Button variant="secondary" onClick={() => setIsCreatingClaim(false)}>
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       ) : null}
@@ -464,23 +442,24 @@ function MhdMileageBoard({
 
               {openClaim.status === 'DRAFT' ? (
                 <section className="space-y-2">
-                  <h3 className="text-sm font-medium text-neutral-700">
+                  <h3 className="text-sm font-medium text-foreground">
                     Trips available for this period
                   </h3>
                   {addableTrips.length === 0 ? (
-                    <p className="text-sm text-neutral-500">
+                    <p className="text-sm text-muted-foreground">
                       No unclaimed trips fall inside this claim's period.
                     </p>
                   ) : (
-                    <ul className="space-y-1 text-sm text-neutral-700">
+                    <ul className="space-y-1 text-sm text-foreground">
                       {addableTrips.map((trip) => (
                         <li key={trip.id} className="flex items-center justify-between gap-3">
                           <span>
                             {trip.tripDate} · {trip.origin} → {trip.destination} ·{' '}
                             {trip.reimbursableMiles} mi
                           </span>
-                          <button
-                            type="button"
+                          <Button
+                            variant="secondary"
+                            className="px-3 py-1"
                             disabled={addTripToClaim.isPending}
                             onClick={() =>
                               void addTripToClaim.mutateAsync({
@@ -488,10 +467,9 @@ function MhdMileageBoard({
                                 tripId: trip.id,
                               })
                             }
-                            className="rounded-md border border-neutral-300 px-3 py-1 text-sm text-neutral-700 disabled:opacity-50"
                           >
                             Add
-                          </button>
+                          </Button>
                         </li>
                       ))}
                     </ul>
@@ -534,8 +512,8 @@ function MhdMileageBoard({
 
       {isRecording ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg bg-card p-6">
-            <h2 className="mb-4 text-base font-semibold text-neutral-900">
+          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-semibold text-foreground">
               {editingTrip ? 'Edit trip' : 'Record trip'}
             </h2>
             <MhdTripForm

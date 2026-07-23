@@ -1,13 +1,20 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { mhdFormatRecommendation, type MhdInterviewRecommendation } from '../Types';
 
-// The hiring recommendation atop the evaluation. The four-point scale runs from a
-// strong hire (deep emerald) to a strong no-hire (deep rose); `null` is a DRAFT
-// evaluation that has not yet recorded a decision. Renders the server value only.
-const RECOMMENDATION_STYLES: Record<MhdInterviewRecommendation, string> = {
-  STRONG_HIRE: 'bg-emerald-600 text-white',
-  HIRE: 'bg-emerald-100 text-emerald-800',
-  NO_HIRE: 'bg-rose-100 text-rose-800',
-  STRONG_NO_HIRE: 'bg-rose-600 text-white',
+// The hiring recommendation atop the evaluation. The four-point scale maps to the
+// semantic set (hire = success, no-hire = error), with the STRONG endpoints
+// deepened via a class override so the scale still reads at a glance; `null` is a
+// DRAFT evaluation that has not yet recorded a decision. Renders the server value only.
+const RECOMMENDATION_VARIANTS: Record<MhdInterviewRecommendation, MhdBadgeVariant> = {
+  STRONG_HIRE: 'success',
+  HIRE: 'success',
+  NO_HIRE: 'error',
+  STRONG_NO_HIRE: 'error',
+};
+
+const STRONG_OVERRIDES: Partial<Record<MhdInterviewRecommendation, string>> = {
+  STRONG_HIRE: 'bg-green-600 text-white',
+  STRONG_NO_HIRE: 'bg-red-600 text-white',
 };
 
 interface Props {
@@ -16,19 +23,15 @@ interface Props {
 
 export function MhdRecommendationBadge({ recommendation }: Props) {
   if (!recommendation) {
-    return (
-      <span className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-500">
-        No recommendation
-      </span>
-    );
+    return <MhdBadge variant="neutral">No recommendation</MhdBadge>;
   }
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-        RECOMMENDATION_STYLES[recommendation] ?? 'bg-neutral-100 text-neutral-700'
-      }`}
+    <MhdBadge
+      variant={RECOMMENDATION_VARIANTS[recommendation] ?? 'neutral'}
+      hideIcon
+      className={STRONG_OVERRIDES[recommendation]}
     >
       {mhdFormatRecommendation(recommendation)}
-    </span>
+    </MhdBadge>
   );
 }

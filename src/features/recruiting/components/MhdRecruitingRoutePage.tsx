@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { mhdRecruitingIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdRequisitionListPage } from '../requisitions/components/MhdRequisitionListPage';
@@ -18,11 +19,11 @@ export function MhdRecruitingRoutePage() {
 
   if (!companyId) {
     return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold text-neutral-900">Recruiting</h1>
-        <p className="mt-2 text-sm text-neutral-600">
-          No company is associated with your account, so there are no requisitions to show.
-        </p>
+      <div className="space-y-6">
+        <MhdPageHeader
+          title="Recruiting"
+          description="No company is associated with your account, so there are no requisitions to show."
+        />
       </div>
     );
   }

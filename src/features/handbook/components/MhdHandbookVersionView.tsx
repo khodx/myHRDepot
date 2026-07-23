@@ -1,3 +1,4 @@
+import { MhdBadge } from '@/components/ui/MhdBadge';
 import { useMhdHandbookVersion } from '../Hook';
 import {
   MHD_HANDBOOK_ATTORNEY_PLACEHOLDER,
@@ -25,7 +26,7 @@ export function MhdHandbookVersionView({ versionId }: Props) {
   const version = useMhdHandbookVersion(versionId);
 
   if (version.isLoading) {
-    return <p className="text-sm text-neutral-500">Loading version…</p>;
+    return <p className="text-sm text-muted-foreground">Loading version…</p>;
   }
   if (version.isError) {
     return (
@@ -35,7 +36,7 @@ export function MhdHandbookVersionView({ versionId }: Props) {
     );
   }
   if (!version.data) {
-    return <p className="text-sm text-neutral-500">Version not found.</p>;
+    return <p className="text-sm text-muted-foreground">Version not found.</p>;
   }
 
   const v = version.data;
@@ -44,15 +45,15 @@ export function MhdHandbookVersionView({ versionId }: Props) {
     <div className="space-y-4">
       <MhdHandbookAttorneyPendingBanner />
 
-      <header className="rounded-md border border-neutral-200 p-4">
+      <header className="rounded-xl border border-border bg-card p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-semibold text-neutral-900">
+            <h2 className="text-base font-semibold text-foreground">
               Version {v.versionNumber}
             </h2>
-            <p className="font-mono text-xs text-neutral-400">{v.referenceId}</p>
+            <p className="font-mono text-xs text-muted-foreground">{v.referenceId}</p>
           </div>
-          <div className="text-right text-xs text-neutral-500">
+          <div className="text-right text-xs text-muted-foreground">
             <p>Published {new Date(v.publishedAt).toLocaleString()}</p>
             {v.effectiveDate ? <p>Effective {v.effectiveDate}</p> : null}
           </div>
@@ -60,20 +61,20 @@ export function MhdHandbookVersionView({ versionId }: Props) {
         {/* The integrity anchor: the sha256 of the frozen content. It is what makes
             "this is the exact text the employee acknowledged" verifiable — the
             reason the version is immutable. */}
-        <p className="mt-3 break-all font-mono text-xs text-neutral-500">
-          <span className="font-medium text-neutral-600">Content hash:</span> {v.contentHash}
+        <p className="mt-3 break-all font-mono text-xs text-muted-foreground">
+          <span className="font-medium text-muted-foreground">Content hash:</span> {v.contentHash}
         </p>
         {/* Soft link to the rendered document (app-layer doc-gen). Present only if
             the host route rendered one and passed its id at publish. */}
         {v.documentGenerationId ? (
-          <p className="mt-1 font-mono text-xs text-neutral-400">
+          <p className="mt-1 font-mono text-xs text-muted-foreground">
             Document generation: {v.documentGenerationId}
           </p>
         ) : null}
       </header>
 
       {v.assembledContent.length === 0 ? (
-        <p className="text-sm text-neutral-500">This version has no sections.</p>
+        <p className="text-sm text-muted-foreground">This version has no sections.</p>
       ) : (
         <ol className="space-y-4">
           {v.assembledContent.map((section, index) => {
@@ -81,20 +82,20 @@ export function MhdHandbookVersionView({ versionId }: Props) {
             return (
               <li
                 key={`${section.sectionKey}-${index}`}
-                className="rounded-md border border-neutral-200 p-4"
+                className="rounded-xl border border-border bg-card p-4 shadow-sm"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-neutral-900">{section.title}</h3>
-                  <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
+                  <h3 className="text-sm font-semibold text-foreground">{section.title}</h3>
+                  <MhdBadge variant="neutral">
                     {mhdFormatHandbookJurisdiction(section.jurisdiction)}
-                  </span>
+                  </MhdBadge>
                 </div>
                 {/* Frozen, read-only — rendered exactly as snapshotted. */}
                 <p
                   className={
                     isPlaceholder
-                      ? 'mt-2 text-sm italic text-neutral-400'
-                      : 'mt-2 text-sm text-neutral-700'
+                      ? 'mt-2 text-sm italic text-muted-foreground'
+                      : 'mt-2 text-sm text-foreground'
                   }
                 >
                   {section.body}

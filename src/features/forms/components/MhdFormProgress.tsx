@@ -1,3 +1,5 @@
+import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
+
 interface MhdFormProgressProps {
   currentPageIndex: number;
   totalPages: number;
@@ -8,13 +10,11 @@ export function MhdFormProgress({ currentPageIndex, totalPages }: MhdFormProgres
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-sm text-slate-600">
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>Page {currentPageIndex + 1}</span>
         <span>{totalPages} total</span>
       </div>
-      <div className="h-2 rounded-full bg-slate-200">
-        <div className="h-2 rounded-full bg-blue-600 transition-all" style={{ width: `${progressPercent}%` }} />
-      </div>
+      <MhdProgressBar percent={progressPercent} />
     </div>
   );
 }

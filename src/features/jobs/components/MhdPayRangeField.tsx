@@ -27,8 +27,8 @@ interface Props {
 export function MhdPayRangeField({ job, canSeePay, onEdit }: Props) {
   if (!canSeePay) {
     return (
-      <div className="text-sm text-neutral-500">
-        <span className="block text-xs uppercase tracking-wide text-neutral-500">Pay range</span>
+      <div className="text-sm text-muted-foreground">
+        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Pay range</span>
         <span className="italic">Not available to your role</span>
       </div>
     );
@@ -38,14 +38,14 @@ export function MhdPayRangeField({ job, canSeePay, onEdit }: Props) {
 
   return (
     <div className="text-sm">
-      <span className="block text-xs uppercase tracking-wide text-neutral-500">Pay range</span>
+      <span className="block text-xs uppercase tracking-wide text-muted-foreground">Pay range</span>
       {formatted ? (
-        <span className="font-medium text-neutral-900">{formatted}</span>
+        <span className="font-medium text-foreground">{formatted}</span>
       ) : (
-        <span className="text-neutral-500">Not set</span>
+        <span className="text-muted-foreground">Not set</span>
       )}
       {onEdit ? (
-        <button type="button" onClick={onEdit} className="ml-3 text-xs text-neutral-500 underline">
+        <button type="button" onClick={onEdit} className="ml-3 text-xs font-medium text-accent hover:text-accent-hover">
           {formatted ? 'Edit' : 'Set range'}
         </button>
       ) : null}
@@ -55,7 +55,7 @@ export function MhdPayRangeField({ job, canSeePay, onEdit }: Props) {
         pay — not market data. Saying so here is cheaper than discovering it
         during a posting.
       */}
-      <p className="mt-1 text-xs text-neutral-500">
+      <p className="mt-1 text-xs text-muted-foreground">
         This is the range you expect to pay on hire. Several states require it in job postings.
       </p>
     </div>

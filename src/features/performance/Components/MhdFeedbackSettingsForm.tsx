@@ -61,7 +61,7 @@ export function MhdFeedbackSettingsForm({ companyId }: Props) {
   });
 
   if (settingsQuery.isLoading) {
-    return <p className="text-sm text-neutral-500">Loading feedback settings…</p>;
+    return <p className="text-sm text-muted-foreground">Loading feedback settings…</p>;
   }
   if (settingsQuery.isError) {
     return <p className="text-sm text-rose-600">Feedback settings could not be loaded.</p>;
@@ -69,12 +69,12 @@ export function MhdFeedbackSettingsForm({ companyId }: Props) {
 
   return (
     <form onSubmit={onSubmit} className="max-w-xl space-y-6">
-      <h2 className="text-base font-semibold text-neutral-900">360 feedback settings</h2>
+      <h2 className="text-base font-semibold text-foreground">360 feedback settings</h2>
 
       <div>
         <label
           htmlFor="minResponsesForRelease"
-          className="block text-sm font-medium text-neutral-700"
+          className="block text-sm font-medium text-foreground"
         >
           Release threshold
         </label>
@@ -84,12 +84,12 @@ export function MhdFeedbackSettingsForm({ companyId }: Props) {
           min={MHD_FEEDBACK_THRESHOLD_FLOOR}
           step={1}
           {...register('minResponsesForRelease', { valueAsNumber: true })}
-          className="mt-1 w-32 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-32 rounded-md border border-border px-3 py-2 text-sm"
         />
         {errors.minResponsesForRelease ? (
           <p className="mt-1 text-xs text-rose-600">{errors.minResponsesForRelease.message}</p>
         ) : null}
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Anonymous peer and upward feedback is shown only once at least this many people have
           answered. <strong>Three is a hard minimum, not a suggestion</strong> — over one or two
           responses an aggregate can be traced back to the individuals by anyone who knows who was
@@ -99,11 +99,11 @@ export function MhdFeedbackSettingsForm({ companyId }: Props) {
       </div>
 
       <div>
-        <label className="flex items-start gap-2 text-sm text-neutral-700">
+        <label className="flex items-start gap-2 text-sm text-foreground">
           <input type="checkbox" className="mt-0.5" {...register('releaseVerbatimComments')} />
           <span>
             Release verbatim comments alongside the aggregate ratings.
-            <span className="mt-1 block text-xs text-neutral-500">
+            <span className="mt-1 block text-xs text-muted-foreground">
               Comments are released under the same threshold as the ratings — turning this off
               withholds them entirely, but it can never release them earlier. Free text identifies
               its author more readily than a number, not less.
@@ -123,7 +123,7 @@ export function MhdFeedbackSettingsForm({ companyId }: Props) {
         <button
           type="submit"
           disabled={upsertSettings.isPending}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
+          className="rounded-md bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-accent-on disabled:opacity-50"
         >
           {upsertSettings.isPending ? 'Saving…' : 'Save settings'}
         </button>

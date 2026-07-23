@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { FileCheck2, FileSignature, Mail, Plus, Send, ShieldCheck } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdStatCard } from '@/components/ui/MhdStatCard';
 import { mhdCanMutateEsignature } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
@@ -26,14 +32,14 @@ interface DraftSignerRow {
   externalName: string;
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  PENDING: 'bg-amber-100 text-amber-800',
-  IN_PROGRESS: 'bg-sky-100 text-sky-800',
-  COMPLETED: 'bg-emerald-100 text-emerald-800',
-  DECLINED: 'bg-rose-100 text-rose-800',
-  VOIDED: 'bg-slate-200 text-slate-700',
-  EXPIRED: 'bg-orange-100 text-orange-800',
-  GENERATED: 'bg-emerald-100 text-emerald-800',
+const STATUS_VARIANTS: Record<string, MhdBadgeVariant> = {
+  PENDING: 'warning',
+  IN_PROGRESS: 'info',
+  COMPLETED: 'success',
+  DECLINED: 'error',
+  VOIDED: 'neutral',
+  EXPIRED: 'error',
+  GENERATED: 'success',
 };
 
 function createSignerRow(kind: DraftSignerRow['kind'] = 'external'): DraftSignerRow {
@@ -184,29 +190,24 @@ export function MhdEsignaturePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <Link className="text-sm font-medium text-blue-700 hover:underline" to="/dashboard">Back to dashboard</Link>
-            <p className="mt-4 text-sm font-semibold uppercase tracking-[0.22em] text-sky-700">E-Signature Center</p>
-            <h1 className="mt-1 text-3xl font-bold text-slate-900">Signature Requests</h1>
-            <p className="mt-2 max-w-3xl text-sm text-slate-600">
-              Route generated documents into the compliance-aware signing ceremony, monitor signer progress, and inspect the full event trail.
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-slate-900 px-4 py-3 text-neutral-50">
-            <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Open Requests</p>
-            <p className="mt-1 text-3xl font-semibold">{requests.filter((request) => ['PENDING', 'IN_PROGRESS'].includes(request.status)).length}</p>
-            <p className="mt-1 text-xs text-slate-300">{requests.length} total request{requests.length === 1 ? '' : 's'}</p>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Signature Requests"
+        description="Route generated documents into the compliance-aware signing ceremony, monitor signer progress, and inspect the full event trail."
+        actions={
+          <MhdStatCard
+            label="Open Requests"
+            value={requests.filter((request) => ['PENDING', 'IN_PROGRESS'].includes(request.status)).length}
+            hint={`${requests.length} total request${requests.length === 1 ? '' : 's'}`}
+          />
+        }
+      />
+      <div className="space-y-6">
 
         {personId ? (
-          <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+          <div className="rounded-2xl border border-border bg-accent-tint p-4 text-sm text-foreground">
             <div className="flex items-start gap-3">
-              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" />
+              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
               <div>
                 <p className="font-semibold">Onboarding handoff</p>
                 <p className="mt-1">
@@ -220,25 +221,21 @@ export function MhdEsignaturePage() {
         {actionMessage ? <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{actionMessage}</div> : null}
         {actionError ? <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{actionError}</div> : null}
 
-        <section className="rounded-2xl border border-slate-200 bg-card p-5 shadow-sm">
+        <MhdCard className="rounded-2xl p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <FileCheck2 className="h-5 w-5 text-sky-700" />
-                <h2 className="text-lg font-semibold text-slate-900">Generated Documents Ready for Signature</h2>
+                <FileCheck2 className="h-5 w-5 text-accent" />
+                <h2 className="text-lg font-semibold text-foreground">Generated Documents Ready for Signature</h2>
               </div>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-muted-foreground">
                 These rows come directly from `document_generations` and are filtered to documents whose template requires signature.
               </p>
             </div>
             {selectedGeneration ? (
-              <button
-                type="button"
-                onClick={() => resetComposer(selectedGeneration)}
-                className="rounded-md border border-slate-300 bg-card px-4 py-2 text-sm font-semibold text-slate-700"
-              >
+              <Button variant="secondary" onClick={() => resetComposer(selectedGeneration)}>
                 Reset Request Composer
-              </button>
+              </Button>
             ) : null}
           </div>
 
@@ -251,9 +248,9 @@ export function MhdEsignaturePage() {
           <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]">
             <div className="space-y-3">
               {generatedDocuments.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500">
-                  No generated, signature-required documents are currently available for routing.
-                </div>
+                <MhdCard className="border-dashed">
+                  <MhdEmptyState icon={FileCheck2} title="No documents ready for signature" description="No generated, signature-required documents are currently available for routing." />
+                </MhdCard>
               ) : null}
 
               {generatedDocuments.map((generation) => {
@@ -264,19 +261,17 @@ export function MhdEsignaturePage() {
                   <article
                     key={generation.id}
                     className={`rounded-2xl border p-4 transition-colors ${
-                      isSelected ? 'border-sky-300 bg-sky-50/70' : 'border-slate-200 bg-slate-50/70'
+                      isSelected ? 'border-accent bg-accent-tint' : 'border-border bg-muted/70'
                     }`}
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-base font-semibold text-slate-900">{generation.outputFileName || generation.templateName}</h3>
-                          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[generation.status] ?? 'bg-slate-100 text-slate-700'}`}>
-                            {generation.status}
-                          </span>
+                          <h3 className="text-base font-semibold text-foreground">{generation.outputFileName || generation.templateName}</h3>
+                          <MhdBadge variant={STATUS_VARIANTS[generation.status] ?? 'neutral'}>{generation.status}</MhdBadge>
                         </div>
-                        <p className="mt-1 text-sm text-slate-600">{generation.referenceId} · {generation.templateName}</p>
-                        <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
+                        <p className="mt-1 text-sm text-muted-foreground">{generation.referenceId} · {generation.templateName}</p>
+                        <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
                           <span className="rounded-full bg-card px-2.5 py-1">Entity: {generation.entityType}</span>
                           {generation.generatedAt ? (
                             <span className="rounded-full bg-card px-2.5 py-1">Generated: {new Date(generation.generatedAt).toLocaleString()}</span>
@@ -293,7 +288,7 @@ export function MhdEsignaturePage() {
                             href={driveUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="rounded-md border border-slate-300 bg-card px-3 py-2 text-sm font-semibold text-slate-700"
+                            className="rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground"
                           >
                             Open Document
                           </a>
@@ -301,7 +296,7 @@ export function MhdEsignaturePage() {
                         {generation.esignatureRequestId ? (
                           <Link
                             to={`/esignature/${generation.esignatureRequestId}`}
-                            className="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-neutral-50"
+                            className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover"
                           >
                             Open Request
                           </Link>
@@ -313,7 +308,7 @@ export function MhdEsignaturePage() {
                               setActionError(null);
                               setActionMessage(null);
                             }}
-                            className="rounded-md bg-sky-700 px-3 py-2 text-sm font-semibold text-white"
+                            className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover"
                           >
                             Use for Request
                           </button>
@@ -325,25 +320,25 @@ export function MhdEsignaturePage() {
               })}
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="rounded-2xl border border-border bg-muted p-4">
               <div className="flex items-center gap-2">
-                <FileSignature className="h-5 w-5 text-sky-700" />
-                <h3 className="text-base font-semibold text-slate-900">Create Signature Request</h3>
+                <FileSignature className="h-5 w-5 text-accent" />
+                <h3 className="text-base font-semibold text-foreground">Create Signature Request</h3>
               </div>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Stage 5 requires a stored SHA-256 document hash before the sign step can succeed, so the request creator must provide the fingerprint here.
               </p>
 
               {!canMutate ? (
-                <div className="mt-4 rounded-xl border border-slate-300 bg-card p-3 text-sm text-slate-600">
+                <div className="mt-4 rounded-xl border border-border bg-card p-3 text-sm text-muted-foreground">
                   You can review request status and event timelines, but your role cannot create or mutate signature requests.
                 </div>
               ) : (
                 <div className="mt-4 space-y-4">
-                  <label className="block text-sm font-medium text-slate-700">
+                  <label className="block text-sm font-medium text-foreground">
                     Selected generated document
                     <select
-                      className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                      className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                       value={effectiveGenerationId ?? ''}
                       onChange={(event) => setSelectedGenerationId(event.target.value || null)}
                     >
@@ -358,20 +353,20 @@ export function MhdEsignaturePage() {
                     </select>
                   </label>
 
-                  <label className="block text-sm font-medium text-slate-700">
+                  <label className="block text-sm font-medium text-foreground">
                     Document SHA-256
                     <input
                       value={documentHash}
                       onChange={(event) => setDocumentHash(event.target.value)}
                       placeholder="64-character hex digest"
-                      className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm shadow-sm"
+                      className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     />
                   </label>
 
-                  <label className="block text-sm font-medium text-slate-700">
+                  <label className="block text-sm font-medium text-foreground">
                     Signing order
                     <select
-                      className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                      className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                       value={signingOrder}
                       onChange={(event) => setSigningOrder(event.target.value as MhdEsignatureSigningOrder)}
                     >
@@ -380,44 +375,44 @@ export function MhdEsignaturePage() {
                     </select>
                   </label>
 
-                  <label className="block text-sm font-medium text-slate-700">
+                  <label className="block text-sm font-medium text-foreground">
                     Expires at
                     <input
                       type="datetime-local"
                       value={expiresAt}
                       onChange={(event) => setExpiresAt(event.target.value)}
-                      className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                      className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     />
                   </label>
 
-                  <label className="block text-sm font-medium text-slate-700">
+                  <label className="block text-sm font-medium text-foreground">
                     Disclosure version
                     <input
                       value={disclosureVersion}
                       onChange={(event) => setDisclosureVersion(event.target.value)}
-                      className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                      className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     />
                   </label>
 
-                  <label className="block text-sm font-medium text-slate-700">
+                  <label className="block text-sm font-medium text-foreground">
                     Custom disclosure text
                     <textarea
                       value={disclosureText}
                       onChange={(event) => setDisclosureText(event.target.value)}
                       rows={4}
                       placeholder="Leave blank to use the backend default disclosure snapshot."
-                      className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                      className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     />
                   </label>
 
                   <div>
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-slate-700">Signers</p>
+                      <p className="text-sm font-medium text-foreground">Signers</p>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => setSigners((current) => [...current, createSignerRow('internal')])}
-                          className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-card px-3 py-1.5 text-xs font-semibold text-slate-700"
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground"
                         >
                           <Plus className="h-3.5 w-3.5" />
                           Internal
@@ -425,7 +420,7 @@ export function MhdEsignaturePage() {
                         <button
                           type="button"
                           onClick={() => setSigners((current) => [...current, createSignerRow('external')])}
-                          className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-card px-3 py-1.5 text-xs font-semibold text-slate-700"
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground"
                         >
                           <Plus className="h-3.5 w-3.5" />
                           External
@@ -435,9 +430,9 @@ export function MhdEsignaturePage() {
 
                     <div className="mt-3 space-y-3">
                       {signers.map((row, index) => (
-                        <div key={row.id} className="rounded-xl border border-slate-200 bg-card p-3">
+                        <div key={row.id} className="rounded-xl border border-border bg-card p-3">
                           <div className="flex items-center justify-between gap-3">
-                            <p className="text-sm font-semibold text-slate-900">Signer {index + 1}</p>
+                            <p className="text-sm font-semibold text-foreground">Signer {index + 1}</p>
                             {signers.length > 1 ? (
                               <button
                                 type="button"
@@ -449,10 +444,10 @@ export function MhdEsignaturePage() {
                             ) : null}
                           </div>
 
-                          <label className="mt-3 block text-xs font-medium uppercase tracking-wide text-slate-500">
+                          <label className="mt-3 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
                             Signer type
                             <select
-                              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                               value={row.kind}
                               onChange={(event) =>
                                 updateSigner(row.id, (current) => ({
@@ -470,10 +465,10 @@ export function MhdEsignaturePage() {
                           </label>
 
                           {row.kind === 'internal' ? (
-                            <label className="mt-3 block text-sm font-medium text-slate-700">
+                            <label className="mt-3 block text-sm font-medium text-foreground">
                               Internal user
                               <select
-                                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                                 value={row.userId}
                                 onChange={(event) => updateSigner(row.id, (current) => ({ ...current, userId: event.target.value }))}
                               >
@@ -487,21 +482,21 @@ export function MhdEsignaturePage() {
                             </label>
                           ) : (
                             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                              <label className="block text-sm font-medium text-slate-700">
+                              <label className="block text-sm font-medium text-foreground">
                                 Signer name
                                 <input
                                   value={row.externalName}
                                   onChange={(event) => updateSigner(row.id, (current) => ({ ...current, externalName: event.target.value }))}
-                                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                                  className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                                 />
                               </label>
-                              <label className="block text-sm font-medium text-slate-700">
+                              <label className="block text-sm font-medium text-foreground">
                                 Signer email
                                 <input
                                   type="email"
                                   value={row.externalEmail}
                                   onChange={(event) => updateSigner(row.id, (current) => ({ ...current, externalEmail: event.target.value }))}
-                                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                                  className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                                 />
                               </label>
                             </div>
@@ -515,7 +510,7 @@ export function MhdEsignaturePage() {
                     type="button"
                     onClick={() => void handleCreateRequest()}
                     disabled={actions.createRequestFromGeneratedDocument.isPending}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Send className="h-4 w-4" />
                     {actions.createRequestFromGeneratedDocument.isPending ? 'Creating Request...' : 'Create Signature Request'}
@@ -524,26 +519,26 @@ export function MhdEsignaturePage() {
               )}
             </div>
           </div>
-        </section>
+        </MhdCard>
 
-        <section className="rounded-2xl border border-slate-200 bg-card p-5 shadow-sm">
+        <MhdCard className="rounded-2xl p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <Mail className="h-5 w-5 text-sky-700" />
-                <h2 className="text-lg font-semibold text-slate-900">Request List</h2>
+                <Mail className="h-5 w-5 text-accent" />
+                <h2 className="text-lg font-semibold text-foreground">Request List</h2>
               </div>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Open any request to inspect the signer chain, consent trail, and chronological event history.
               </p>
             </div>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-foreground">
               Search
               <input
                 value={requestSearchTerm}
                 onChange={(event) => setRequestSearchTerm(event.target.value)}
                 placeholder="Reference, document, or status"
-                className="mt-1 w-full min-w-72 rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                className="mt-1 w-full min-w-72 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
             </label>
           </div>
@@ -559,18 +554,16 @@ export function MhdEsignaturePage() {
               <Link
                 key={request.id}
                 to={`/esignature/${request.id}`}
-                className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition-colors hover:border-sky-300 hover:bg-sky-50/40"
+                className="rounded-2xl border border-border bg-muted/70 p-4 transition-colors hover:border-accent hover:bg-accent-tint/60"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-semibold text-slate-900">{request.documentName}</h3>
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[request.status] ?? 'bg-slate-100 text-slate-700'}`}>
-                        {request.status}
-                      </span>
+                      <h3 className="text-base font-semibold text-foreground">{request.documentName}</h3>
+                      <MhdBadge variant={STATUS_VARIANTS[request.status] ?? 'neutral'}>{request.status}</MhdBadge>
                     </div>
-                    <p className="mt-1 text-sm text-slate-600">{request.referenceId}</p>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
+                    <p className="mt-1 text-sm text-muted-foreground">{request.referenceId}</p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
                       <span className="rounded-full bg-card px-2.5 py-1">Order: {request.signingOrder}</span>
                       {request.completedAt ? (
                         <span className="rounded-full bg-card px-2.5 py-1">Completed: {new Date(request.completedAt).toLocaleString()}</span>
@@ -581,22 +574,22 @@ export function MhdEsignaturePage() {
                     </div>
                   </div>
 
-                  <div className="text-right text-xs text-slate-500">
+                  <div className="text-right text-xs text-muted-foreground">
                     <p>Created {new Date(request.createdAt).toLocaleString()}</p>
-                    <p className="mt-1 font-medium text-sky-700">Open detail</p>
+                    <p className="mt-1 font-medium text-accent">Open detail</p>
                   </div>
                 </div>
               </Link>
             ))}
 
             {!requestsQuery.isLoading && filteredRequests.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500">
-                No signature requests match the current filter.
-              </div>
+              <MhdCard className="border-dashed">
+                <MhdEmptyState icon={Mail} title="No signature requests" description="No signature requests match the current filter." />
+              </MhdCard>
             ) : null}
           </div>
-        </section>
+        </MhdCard>
       </div>
-    </main>
+    </div>
   );
 }

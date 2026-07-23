@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdCreateHandbook, useMhdHandbooks } from '../Hook';
 import type { MhdCreateHandbookFormValues } from '../Schemas';
 import { MhdHandbookCreateForm } from './MhdHandbookCreateForm';
@@ -41,79 +45,68 @@ export function MhdHandbookListPage({ companyId, canManage, onOpenHandbook }: Pr
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">Handbooks</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            Employee and Safety handbooks for this company. Publishing freezes an immutable, hashed
-            version an employee acknowledges.
-          </p>
-        </div>
-        {canManage ? (
-          <button
-            type="button"
-            onClick={() => setIsCreating(true)}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50"
-          >
-            New handbook
-          </button>
-        ) : null}
-      </header>
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Handbooks"
+        description="Employee and Safety handbooks for this company. Publishing freezes an immutable, hashed version an employee acknowledges."
+        actions={
+          canManage ? <Button onClick={() => setIsCreating(true)}>New handbook</Button> : undefined
+        }
+      />
 
       {handbooks.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading…</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (handbooks.data ?? []).length === 0 ? (
-        <p className="text-sm text-neutral-500">No handbooks yet.</p>
+        <p className="text-sm text-muted-foreground">No handbooks yet.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
             <thead>
-              <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                <th className="py-2 pr-4 font-medium">Reference</th>
-                <th className="py-2 pr-4 font-medium">Title</th>
-                <th className="py-2 pr-4 font-medium">Type</th>
-                <th className="py-2 pr-4 font-medium">Status</th>
-                <th className="py-2 pr-4 font-medium">Effective</th>
-                <th className="py-2 font-medium" />
+              <tr>
+                <MhdTh>Reference</MhdTh>
+                <MhdTh>Title</MhdTh>
+                <MhdTh>Type</MhdTh>
+                <MhdTh>Status</MhdTh>
+                <MhdTh>Effective</MhdTh>
+                <MhdTh />
               </tr>
             </thead>
             <tbody>
               {(handbooks.data ?? []).map((handbook) => (
-                <tr key={handbook.id} className="border-b border-neutral-100 text-neutral-800">
-                  <td className="py-2 pr-4 whitespace-nowrap font-mono text-xs">
+                <MhdTr key={handbook.id}>
+                  <MhdTd className="whitespace-nowrap font-mono text-xs">
                     {handbook.referenceId}
-                  </td>
-                  <td className="py-2 pr-4 font-medium text-neutral-900">{handbook.title}</td>
-                  <td className="py-2 pr-4">
+                  </MhdTd>
+                  <MhdTd className="font-medium">{handbook.title}</MhdTd>
+                  <MhdTd>
                     <MhdHandbookTypeBadge handbookType={handbook.handbookType} />
-                  </td>
-                  <td className="py-2 pr-4">
+                  </MhdTd>
+                  <MhdTd>
                     <MhdHandbookStatusBadge status={handbook.status} />
-                  </td>
-                  <td className="py-2 pr-4 whitespace-nowrap text-neutral-600">
+                  </MhdTd>
+                  <MhdTd className="whitespace-nowrap text-muted-foreground">
                     {handbook.effectiveDate ?? '—'}
-                  </td>
-                  <td className="py-2 text-right">
+                  </MhdTd>
+                  <MhdTd className="text-right">
                     <button
                       type="button"
                       onClick={() => onOpenHandbook(handbook.id)}
-                      className="text-sm text-neutral-500 underline"
+                      className="text-sm font-medium text-accent hover:text-accent-hover"
                     >
                       Open
                     </button>
-                  </td>
-                </tr>
+                  </MhdTd>
+                </MhdTr>
               ))}
             </tbody>
-          </table>
-        </div>
+          </MhdTable>
+        </MhdCard>
       )}
 
       {isCreating && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-lg bg-card p-6">
-            <h2 className="mb-4 text-base font-semibold text-neutral-900">New handbook</h2>
+          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-semibold text-foreground">New handbook</h2>
             <MhdHandbookCreateForm
               companyId={companyId}
               onSubmit={handleCreate}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { mhdCanMutateAttendance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdAttendancePolicy, useMhdCreatePolicyVersion } from '../Hook';
@@ -30,7 +30,7 @@ export function MhdAttendancePolicyPage() {
   if (!companyId) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <p className="text-sm text-neutral-500">Loading policy…</p>
+        <p className="text-sm text-muted-foreground">Loading policy…</p>
       </div>
     );
   }
@@ -54,18 +54,13 @@ export function MhdAttendancePolicyPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">Attendance policy</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            Point values, roll-off window and the escalation ladder.
-          </p>
-        </div>
-        <Link to="/attendance" className="text-sm text-blue-700 hover:underline">
-          Back to Attendance
-        </Link>
-      </div>
+    <div className="space-y-6">
+      <MhdPageHeader
+        backTo="/attendance"
+        backLabel="Attendance"
+        title="Attendance policy"
+        description="Point values, roll-off window and the escalation ladder."
+      />
 
       {error ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -74,7 +69,7 @@ export function MhdAttendancePolicyPage() {
       ) : null}
 
       {policy.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading current policy…</p>
+        <p className="text-sm text-muted-foreground">Loading current policy…</p>
       ) : (
         <MhdAttendancePolicyEditor
           companyId={companyId}

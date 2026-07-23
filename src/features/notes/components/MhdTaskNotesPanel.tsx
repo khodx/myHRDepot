@@ -51,8 +51,8 @@ export function MhdTaskNotesPanel({ taskId }: MhdTaskNotesPanelProps) {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Comments Timeline</h2>
-          <button className="text-sm font-semibold text-blue-700" onClick={() => void notesState.refresh()}>Refresh</button>
+          <h2 className="text-lg font-semibold text-foreground">Comments Timeline</h2>
+          <button className="text-sm font-semibold text-accent hover:text-accent-hover" onClick={() => void notesState.refresh()}>Refresh</button>
         </div>
         <MhdNoteList
           notes={notesState.notes}

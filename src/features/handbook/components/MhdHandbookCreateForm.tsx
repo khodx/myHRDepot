@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/Button';
 import { mhdCreateHandbookSchema, type MhdCreateHandbookFormValues } from '../Schemas';
 import {
   MHD_HANDBOOK_JURISDICTIONS_BY_TYPE,
@@ -49,13 +50,13 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
       <input type="hidden" value={companyId} {...register('companyId')} readOnly />
 
       <div>
-        <label htmlFor="handbookType" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="handbookType" className="block text-sm font-medium text-foreground">
           Handbook type
         </label>
         <select
           id="handbookType"
           {...register('handbookType')}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         >
           {MHD_HANDBOOK_TYPES.map((type) => (
             <option key={type} value={type}>
@@ -69,7 +70,7 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
       </div>
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="title" className="block text-sm font-medium text-foreground">
           Title
         </label>
         <input
@@ -77,7 +78,7 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
           type="text"
           {...register('title')}
           placeholder="e.g. 2026 Employee Handbook"
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
         {errors.title ? (
           <p className="mt-1 text-xs text-rose-600">{errors.title.message}</p>
@@ -85,8 +86,8 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
       </div>
 
       <div>
-        <span className="block text-sm font-medium text-neutral-700">Jurisdictions</span>
-        <p className="mt-0.5 text-xs text-neutral-500">
+        <span className="block text-sm font-medium text-foreground">Jurisdictions</span>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           Assembly pulls in each jurisdiction's required sections.
         </p>
         {/* A controlled checkbox group over the pack's jurisdictions — the value is
@@ -101,7 +102,7 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
                 return (
                   <label
                     key={jurisdiction}
-                    className="flex items-center gap-2 rounded-md border border-neutral-200 px-3 py-2 text-sm text-neutral-800"
+                    className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-foreground"
                   >
                     <input
                       type="checkbox"
@@ -113,7 +114,7 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
                             : field.value.filter((value) => value !== jurisdiction),
                         );
                       }}
-                      className="h-4 w-4 rounded border-neutral-300"
+                      className="h-4 w-4 rounded border-border"
                     />
                     {mhdFormatHandbookJurisdiction(jurisdiction)}
                   </label>
@@ -128,20 +129,12 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-        >
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 disabled:opacity-50"
-        >
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Creating…' : 'Create draft'}
-        </button>
+        </Button>
       </div>
     </form>
   );

@@ -1,4 +1,8 @@
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import {
   useMhdAssignAcknowledgment,
   useMhdHandbookAckStatus,
@@ -65,17 +69,17 @@ export function MhdHandbookAckBoard({ companyId, versionId, onRequestSignature }
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 className="text-base font-semibold text-neutral-900">Acknowledgments</h2>
+        <h2 className="text-base font-semibold text-foreground">Acknowledgments</h2>
         <div className="flex items-end gap-2">
           <div>
-            <label htmlFor="ackPerson" className="block text-xs font-medium text-neutral-600">
+            <label htmlFor="ackPerson" className="block text-xs font-medium text-muted-foreground">
               Assign to
             </label>
             <select
               id="ackPerson"
               value={personId}
               onChange={(event) => setPersonId(event.target.value)}
-              className="mt-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+              className="mt-1 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <option value="">Choose a person…</option>
               {peopleOptions.map((person) => (
@@ -85,14 +89,13 @@ export function MhdHandbookAckBoard({ companyId, versionId, onRequestSignature }
               ))}
             </select>
           </div>
-          <button
-            type="button"
+          <Button
             onClick={() => void handleAssign()}
             disabled={!personId || assign.isPending || isRequesting}
-            className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
+            className="py-1.5"
           >
             {isRequesting ? 'Preparing signature…' : assign.isPending ? 'Assigning…' : 'Assign'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -103,42 +106,36 @@ export function MhdHandbookAckBoard({ companyId, versionId, onRequestSignature }
       ) : null}
 
       {board.isLoading ? (
-        <p className="text-sm text-neutral-500">Loading acknowledgments…</p>
+        <p className="text-sm text-muted-foreground">Loading acknowledgments…</p>
       ) : (board.data ?? []).length === 0 ? (
-        <p className="text-sm text-neutral-500">No one has been assigned this version yet.</p>
+        <p className="text-sm text-muted-foreground">No one has been assigned this version yet.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
             <thead>
-              <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
-                <th className="py-2 pr-4 font-medium">Person</th>
-                <th className="py-2 pr-4 font-medium">Status</th>
-                <th className="py-2 font-medium">Acknowledged</th>
+              <tr>
+                <MhdTh>Person</MhdTh>
+                <MhdTh>Status</MhdTh>
+                <MhdTh>Acknowledged</MhdTh>
               </tr>
             </thead>
             <tbody>
               {(board.data ?? []).map((row) => (
-                <tr key={row.id} className="border-b border-neutral-100 text-neutral-800">
-                  <td className="py-2 pr-4">{row.personDisplayName}</td>
-                  <td className="py-2 pr-4">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        row.status === 'ACKNOWLEDGED'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-amber-100 text-amber-800'
-                      }`}
-                    >
+                <MhdTr key={row.id}>
+                  <MhdTd>{row.personDisplayName}</MhdTd>
+                  <MhdTd>
+                    <MhdBadge variant={row.status === 'ACKNOWLEDGED' ? 'success' : 'warning'}>
                       {mhdFormatHandbookAckStatus(row.status)}
-                    </span>
-                  </td>
-                  <td className="py-2 whitespace-nowrap text-neutral-600">
+                    </MhdBadge>
+                  </MhdTd>
+                  <MhdTd className="whitespace-nowrap text-muted-foreground">
                     {row.acknowledgedAt ? new Date(row.acknowledgedAt).toLocaleString() : '—'}
-                  </td>
-                </tr>
+                  </MhdTd>
+                </MhdTr>
               ))}
             </tbody>
-          </table>
-        </div>
+          </MhdTable>
+        </MhdCard>
       )}
     </section>
   );

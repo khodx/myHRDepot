@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
 import {
   MHD_INVESTIGATION_PARTY_ROLES,
   mhdFormatInvestigationPartyRole,
@@ -93,28 +95,28 @@ export function MhdPartyPanel({
   }
 
   return (
-    <section className="space-y-4">
+    <MhdCard className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-neutral-900">Parties</h2>
-          <p className="mt-0.5 text-xs text-neutral-500">
+          <h2 className="text-base font-semibold text-foreground">Parties</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Complainants, respondents and witnesses. Confidential identities are masked for everyone.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setIsAdding((value) => !value)}
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700"
+          className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
         >
           {isAdding ? 'Cancel' : 'Add party'}
         </button>
       </div>
 
       {isAdding ? (
-        <div className="space-y-3 rounded-md border border-neutral-200 p-4">
+        <div className="space-y-3 rounded-md border border-border p-4">
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label htmlFor="partyRole" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="partyRole" className="block text-sm font-medium text-foreground">
                 Role
               </label>
               <select
@@ -123,7 +125,7 @@ export function MhdPartyPanel({
                 onChange={(event) =>
                   setPartyRole(event.target.value as MhdInvestigationPartyRole)
                 }
-                className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 rounded-md border border-border px-3 py-2 text-sm"
               >
                 {MHD_INVESTIGATION_PARTY_ROLES.map((role) => (
                   <option key={role} value={role}>
@@ -133,14 +135,14 @@ export function MhdPartyPanel({
               </select>
             </div>
             <div>
-              <label htmlFor="partyPerson" className="block text-sm font-medium text-neutral-700">
-                Employee <span className="font-normal text-neutral-500">(optional)</span>
+              <label htmlFor="partyPerson" className="block text-sm font-medium text-foreground">
+                Employee <span className="font-normal text-muted-foreground">(optional)</span>
               </label>
               <select
                 id="partyPerson"
                 value={personId}
                 onChange={(event) => setPersonId(event.target.value)}
-                className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-1 rounded-md border border-border px-3 py-2 text-sm"
               >
                 <option value="">Not on roster</option>
                 {people.map((person) => (
@@ -153,8 +155,8 @@ export function MhdPartyPanel({
           </div>
 
           <div>
-            <label htmlFor="externalName" className="block text-sm font-medium text-neutral-700">
-              External name <span className="font-normal text-neutral-500">(optional)</span>
+            <label htmlFor="externalName" className="block text-sm font-medium text-foreground">
+              External name <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <input
               id="externalName"
@@ -162,75 +164,75 @@ export function MhdPartyPanel({
               value={externalName}
               onChange={(event) => setExternalName(event.target.value)}
               placeholder="A party outside the roster. Leave blank for anonymous intake."
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             />
             {/* Both person and external name may be blank — anonymous intake (a
                 hotline complaint with no named source) is a valid party. */}
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               Leave both employee and name blank for an anonymous party.
             </p>
           </div>
 
           <div>
-            <label htmlFor="statement" className="block text-sm font-medium text-neutral-700">
-              Statement <span className="font-normal text-neutral-500">(optional)</span>
+            <label htmlFor="statement" className="block text-sm font-medium text-foreground">
+              Statement <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
             <textarea
               id="statement"
               rows={3}
               value={statement}
               onChange={(event) => setStatement(event.target.value)}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             />
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               Encrypted at rest; read back only through the audited reveal.
             </p>
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-neutral-700">
+          <label className="flex items-center gap-2 text-sm text-foreground">
             <input
               type="checkbox"
               checked={isConfidential}
               onChange={(event) => setIsConfidential(event.target.checked)}
-              className="rounded border-neutral-300"
+              className="rounded border-border"
             />
             Confidential — mask this party&rsquo;s identity from everyone, including the respondent
           </label>
 
           <div className="flex justify-end">
-            <button
+            <Button
               type="button"
               disabled={isSubmitting}
               onClick={() => void submitAdd()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 disabled:opacity-50"
+              className="px-3 py-1.5"
             >
               {isSubmitting ? 'Saving…' : 'Add party'}
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}
 
       {isLoading ? (
-        <p className="text-sm text-neutral-500">Loading parties…</p>
+        <p className="text-sm text-muted-foreground">Loading parties…</p>
       ) : parties.length === 0 ? (
-        <p className="text-sm text-neutral-500">No parties recorded on this case yet.</p>
+        <p className="text-sm text-muted-foreground">No parties recorded on this case yet.</p>
       ) : (
         <ul className="space-y-2">
           {parties.map((party) => (
-            <li key={party.id} className="rounded-md border border-neutral-200 p-4">
+            <li key={party.id} className="rounded-md border border-border p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   {/* displayName is rendered verbatim — it is already '(confidential)'
                       for a masked party. We never look at personId to second-guess it. */}
-                  <p className="text-sm font-medium text-neutral-900">
+                  <p className="text-sm font-medium text-foreground">
                     {party.displayName}
                     {party.isConfidential ? (
-                      <span className="ml-2 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-normal text-neutral-500">
+                      <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">
                         confidential
                       </span>
                     ) : null}
                   </p>
-                  <p className="mt-0.5 text-xs text-neutral-500">
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {mhdFormatInvestigationPartyRole(party.partyRole)}
                   </p>
                 </div>
@@ -239,19 +241,19 @@ export function MhdPartyPanel({
                     type="button"
                     disabled={isRevealing && revealingId === party.id}
                     onClick={() => void revealStatement(party.id)}
-                    className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700 disabled:opacity-50"
+                    className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-50"
                   >
                     {revealingId === party.id ? 'Revealing…' : 'Reveal statement'}
                   </button>
                 ) : (
-                  <span className="text-xs text-neutral-400">No statement</span>
+                  <span className="text-xs text-muted-foreground">No statement</span>
                 )}
               </div>
 
               {revealedStatements[party.id] !== undefined ? (
-                <div className="mt-3 border-t border-neutral-200 pt-3">
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Statement</p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-800">
+                <div className="mt-3 border-t border-border pt-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Statement</p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
                     {revealedStatements[party.id]}
                   </p>
                 </div>
@@ -260,6 +262,6 @@ export function MhdPartyPanel({
           ))}
         </ul>
       )}
-    </section>
+    </MhdCard>
   );
 }

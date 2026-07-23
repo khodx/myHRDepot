@@ -1,11 +1,15 @@
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { mhdFormatConductSeverity, type MhdConductSeverity } from '../Types';
 
-const SEVERITY_STYLES: Record<MhdConductSeverity, string> = {
-  VERBAL_WARNING: 'bg-yellow-100 text-yellow-800',
-  WRITTEN_WARNING: 'bg-orange-100 text-orange-800',
-  FINAL_WARNING: 'bg-rose-100 text-rose-800',
-  MOU: 'bg-violet-100 text-violet-800',
-  OTHER: 'bg-neutral-100 text-neutral-600',
+// Escalation rungs map onto the semantic set: the warning rungs share the amber
+// warning variant (the label carries the rung), the final rung reads as error,
+// and MOU is a category-style tag in the module accent.
+const SEVERITY_VARIANTS: Record<MhdConductSeverity, MhdBadgeVariant> = {
+  VERBAL_WARNING: 'warning',
+  WRITTEN_WARNING: 'warning',
+  FINAL_WARNING: 'error',
+  MOU: 'accent',
+  OTHER: 'neutral',
 };
 
 interface Props {
@@ -13,9 +17,5 @@ interface Props {
 }
 
 export function MhdSeverityBadge({ severity }: Props) {
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${SEVERITY_STYLES[severity]}`}>
-      {mhdFormatConductSeverity(severity)}
-    </span>
-  );
+  return <MhdBadge variant={SEVERITY_VARIANTS[severity]}>{mhdFormatConductSeverity(severity)}</MhdBadge>;
 }

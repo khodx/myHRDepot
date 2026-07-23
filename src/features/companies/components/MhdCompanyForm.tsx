@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Button } from '@/components/ui/Button';
 import type { MhdCompany, MhdCreateCompanyInput, MhdUpdateCompanyInput } from '@/features/companies/Types';
 import { mhdCreateCompanySchema, mhdUpdateCompanySchema } from '@/features/companies/Schemas';
 
@@ -53,7 +54,7 @@ export function MhdCompanyForm({ company, isSubmitting, submitLabel, onSubmit, o
         </label>
         <input
           id="mhd-company-name"
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           value={companyName}
           onChange={(event) => setCompanyName(event.target.value)}
           disabled={isSubmitting}
@@ -67,7 +68,7 @@ export function MhdCompanyForm({ company, isSubmitting, submitLabel, onSubmit, o
         </label>
         <input
           id="mhd-company-industry"
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           value={industry}
           onChange={(event) => setIndustry(event.target.value)}
           disabled={isSubmitting}
@@ -82,7 +83,7 @@ export function MhdCompanyForm({ company, isSubmitting, submitLabel, onSubmit, o
           id="mhd-company-employee-count"
           type="number"
           min={0}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           value={employeeCount ?? ''}
           onChange={(event) => setEmployeeCount(event.target.value === '' ? null : Number(event.target.value))}
           disabled={isSubmitting}
@@ -95,7 +96,7 @@ export function MhdCompanyForm({ company, isSubmitting, submitLabel, onSubmit, o
         </label>
         <input
           id="mhd-company-hq-location"
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           value={headquartersLocation}
           onChange={(event) => setHeadquartersLocation(event.target.value)}
           disabled={isSubmitting}
@@ -106,22 +107,13 @@ export function MhdCompanyForm({ company, isSubmitting, submitLabel, onSubmit, o
 
       <div className="flex justify-end gap-2">
         {onCancel ? (
-          <button
-            type="button"
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
+          <Button variant="secondary" onClick={onCancel} disabled={isSubmitting}>
             Cancel
-          </button>
+          </Button>
         ) : null}
-        <button
-          type="submit"
-          className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-blue-300"
-          disabled={isSubmitting}
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : submitLabel}
-        </button>
+        </Button>
       </div>
     </form>
   );

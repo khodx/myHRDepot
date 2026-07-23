@@ -30,7 +30,7 @@ export function Mhd360FeedbackPanel({ reviewId, threshold }: Props) {
   const participants = useMhdReviewParticipants(reviewId);
 
   if (aggregate.isLoading || participants.isLoading) {
-    return <p className="text-sm text-neutral-500">Loading feedback…</p>;
+    return <p className="text-sm text-muted-foreground">Loading feedback…</p>;
   }
 
   const groups = aggregate.data ?? [];
@@ -47,8 +47,8 @@ export function Mhd360FeedbackPanel({ reviewId, threshold }: Props) {
   return (
     <section className="space-y-6">
       <header>
-        <h2 className="text-base font-semibold text-neutral-900">360 feedback</h2>
-        <p className="mt-1 text-sm text-neutral-600">
+        <h2 className="text-base font-semibold text-foreground">360 feedback</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Peer and upward feedback is shown only in aggregate, and only once enough people have
           answered that no individual response can be identified.
         </p>
@@ -62,8 +62,8 @@ export function Mhd360FeedbackPanel({ reviewId, threshold }: Props) {
         if (state === 'NOT_INVITED') return null;
 
         return (
-          <div key={type} className="rounded-md border border-neutral-200 p-4">
-            <h3 className="text-sm font-semibold text-neutral-900">
+          <div key={type} className="rounded-md border border-border p-4">
+            <h3 className="text-sm font-semibold text-foreground">
               {mhdFormatParticipantType(type)}
             </h3>
 
@@ -75,20 +75,20 @@ export function Mhd360FeedbackPanel({ reviewId, threshold }: Props) {
             ) : (
               <div className="mt-2 space-y-3">
                 {(byType.get(type) ?? []).map((group, index) => (
-                  <div key={`${type}-${index}`} className="border-t border-neutral-100 pt-2 first:border-0 first:pt-0">
-                    <p className="text-sm font-medium text-neutral-800">
+                  <div key={`${type}-${index}`} className="border-t border-border pt-2 first:border-0 first:pt-0">
+                    <p className="text-sm font-medium text-foreground">
                       {group.competencyName ?? group.sectionTitle ?? 'General'}
                     </p>
-                    <p className="text-sm text-neutral-700">
+                    <p className="text-sm text-foreground">
                       {group.meanRating !== null ? (
                         <>
                           Mean {group.meanRating.toFixed(1)} / 5
-                          <span className="ml-2 text-xs text-neutral-500">
+                          <span className="ml-2 text-xs text-muted-foreground">
                             ({group.responseCount} responses)
                           </span>
                         </>
                       ) : (
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-xs text-muted-foreground">
                           {group.responseCount} responses
                         </span>
                       )}
@@ -99,9 +99,9 @@ export function Mhd360FeedbackPanel({ reviewId, threshold }: Props) {
                       The two must not look alike.
                     */}
                     {group.commentsReleased && group.comments.length > 0 ? (
-                      <ul className="mt-1 space-y-1 text-sm text-neutral-600">
+                      <ul className="mt-1 space-y-1 text-sm text-muted-foreground">
                         {group.comments.map((comment, commentIndex) => (
-                          <li key={commentIndex} className="border-l-2 border-neutral-200 pl-2 italic">
+                          <li key={commentIndex} className="border-l-2 border-border pl-2 italic">
                             {comment}
                           </li>
                         ))}

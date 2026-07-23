@@ -1,3 +1,7 @@
+import { Paperclip } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { useMhdAttachments } from '@/features/attachments/Hook';
 import { mhdFormatFileSize, type MhdAttachment } from '@/features/attachments/Types';
 
@@ -26,7 +30,7 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
   }
 
   if (isLoading) {
-    return <p className="py-4 text-center text-sm text-neutral-500">Loading attachments…</p>;
+    return <p className="py-4 text-center text-sm text-muted-foreground">Loading attachments…</p>;
   }
 
   return (
@@ -37,8 +41,8 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
           You have read-only access to activity attachments.
         </div>
       ) : (
-        <label className="block rounded-md border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
-          <span className="font-medium text-slate-900">{isUploading ? 'Uploading…' : 'Upload attachment'}</span>
+        <label className="block rounded-md border border-dashed border-border bg-muted p-4 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">{isUploading ? 'Uploading…' : 'Upload attachment'}</span>
           <input
             type="file"
             className="mt-2 block text-sm"
@@ -55,30 +59,30 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
       )}
 
       {attachments.length === 0 ? (
-        <div className="rounded-md border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
-          No attachments yet.
-        </div>
+        <MhdCard className="border-dashed">
+          <MhdEmptyState icon={Paperclip} title="No attachments yet." />
+        </MhdCard>
       ) : (
         <div className="space-y-3">
           {attachments.map((attachment) => (
-            <article key={attachment.id} className="rounded-md border border-slate-200 bg-card p-4">
+            <MhdCard key={attachment.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{attachment.originalFileName}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-sm font-semibold text-foreground">{attachment.originalFileName}</p>
+                  <p className="text-xs text-muted-foreground">
                     {mhdFormatFileSize(attachment.fileSizeBytes)} • Uploaded {new Date(attachment.uploadedAt).toLocaleString()}
                     {attachment.uploaderDisplayName ? ` by ${attachment.uploaderDisplayName}` : ''}
                   </p>
                 </div>
 
                 <div className="flex gap-2">
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    className="px-3 py-1.5"
                     onClick={() => void downloadAttachment(attachment)}
-                    className="rounded-md border border-slate-300 bg-card px-3 py-1.5 text-sm font-semibold text-slate-700"
                   >
                     Open
-                  </button>
+                  </Button>
                   {!readOnly && attachment.canDelete ? (
                     <button
                       type="button"
@@ -90,7 +94,7 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
                   ) : null}
                 </div>
               </div>
-            </article>
+            </MhdCard>
           ))}
         </div>
       )}

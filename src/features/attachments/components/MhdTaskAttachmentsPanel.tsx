@@ -41,7 +41,7 @@ export function MhdTaskAttachmentsPanel({ taskId }: Props) {
   }
 
   if (isLoading) {
-    return <p className="py-4 text-center text-sm text-neutral-500">Loading attachments…</p>;
+    return <p className="py-4 text-center text-sm text-muted-foreground">Loading attachments…</p>;
   }
 
   return (

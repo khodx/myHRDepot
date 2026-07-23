@@ -28,12 +28,12 @@ interface Props {
  */
 export function MhdLeaveBalancePanel({ rows, isLoading = false }: Props) {
   if (isLoading) {
-    return <p className="text-sm text-neutral-500">Loading balances…</p>;
+    return <p className="text-sm text-muted-foreground">Loading balances…</p>;
   }
 
   if (rows.length === 0) {
     return (
-      <p className="text-sm text-neutral-500">
+      <p className="text-sm text-muted-foreground">
         No legal bases designated yet. Choose the bases this leave counts against to see each
         remaining balance.
       </p>
@@ -43,8 +43,8 @@ export function MhdLeaveBalancePanel({ rows, isLoading = false }: Props) {
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="text-base font-semibold text-neutral-900">Remaining by legal basis</h2>
-        <p className="mt-0.5 text-xs text-neutral-500">
+        <h2 className="text-base font-semibold text-foreground">Remaining by legal basis</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           Each basis is a separate clock. These are shown individually and are never added
           together — exhausting one does not exhaust another.
         </p>
@@ -57,17 +57,17 @@ export function MhdLeaveBalancePanel({ rows, isLoading = false }: Props) {
           return (
             <li
               key={leaveType.id}
-              className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-md border border-neutral-200 px-4 py-3"
+              className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-md border border-border px-4 py-3"
             >
               <div>
-                <p className="text-sm font-medium text-neutral-900">
+                <p className="text-sm font-medium text-foreground">
                   {leaveType.typeName}
-                  <span className="ml-2 text-xs font-normal text-neutral-500">
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">
                     {mhdFormatLeaveJurisdiction(leaveType.jurisdiction)}
                     {leaveType.isGlobal ? ' · standard' : ' · company'}
                   </span>
                 </p>
-                <p className="mt-0.5 text-xs text-neutral-500">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   {mhdFormatLeaveMeasurementMethod(leaveType.measurementMethod)}
                   {entitlement != null ? ` · entitlement ${mhdFormatLeaveHours(entitlement)}` : ''}
                 </p>
@@ -75,12 +75,12 @@ export function MhdLeaveBalancePanel({ rows, isLoading = false }: Props) {
               <div className="text-right">
                 <p
                   className={`text-lg font-semibold tabular-nums ${
-                    overdrawn ? 'text-rose-700' : 'text-neutral-900'
+                    overdrawn ? 'text-rose-700' : 'text-foreground'
                   }`}
                 >
                   {mhdFormatLeaveHours(remainingHours)}
                 </p>
-                <p className="text-xs text-neutral-500">remaining</p>
+                <p className="text-xs text-muted-foreground">remaining</p>
               </div>
             </li>
           );

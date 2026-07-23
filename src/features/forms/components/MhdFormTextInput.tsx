@@ -26,12 +26,12 @@ export function MhdFormTextInput({
   readOnly,
 }: MhdFormTextInputProps) {
   const className = `w-full rounded-md border px-3 py-2 text-sm ${
-    error ? 'border-red-300' : 'border-slate-300'
-  } ${readOnly ? 'bg-slate-100 text-slate-500' : 'bg-card'}`;
+    error ? 'border-red-300' : 'border-border'
+  } ${readOnly ? 'bg-muted text-muted-foreground' : 'bg-card'}`;
 
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-sm font-medium text-slate-900">
+      <label htmlFor={id} className="mb-1 block text-sm font-medium text-foreground">
         {label}
         {required ? <span className="ml-1 text-red-500">*</span> : null}
       </label>
@@ -55,7 +55,7 @@ export function MhdFormTextInput({
           className={className}
         />
       )}
-      {helpText ? <p className="mt-1 text-xs text-slate-500">{helpText}</p> : null}
+      {helpText ? <p className="mt-1 text-xs text-muted-foreground">{helpText}</p> : null}
       <MhdFormFieldError message={error} />
     </div>
   );
