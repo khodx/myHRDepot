@@ -1,6 +1,37 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { BarChart3, BookMarked, BookOpen, Briefcase, Building2, CalendarClock, CalendarDays, CalendarOff, Car, CheckSquare, ChevronDown, ClipboardCheck, ClipboardList, DoorOpen, FileSignature, Gavel, GraduationCap, IdCard, LayoutDashboard, Library, MessageSquare, Package2, PanelLeftClose, PanelLeftOpen, ShieldAlert, Stamp, UserSearch, Users, TrendingUp, X } from 'lucide-react';
+import {
+  BarChart3,
+  BookMarked,
+  BookOpen,
+  Briefcase,
+  Building2,
+  CalendarClock,
+  CalendarDays,
+  CalendarOff,
+  Car,
+  CheckSquare,
+  ChevronDown,
+  ClipboardCheck,
+  ClipboardList,
+  DoorOpen,
+  FileSignature,
+  Gavel,
+  GraduationCap,
+  IdCard,
+  LayoutDashboard,
+  Library,
+  MessageSquare,
+  Package2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ShieldAlert,
+  Stamp,
+  UserSearch,
+  Users,
+  TrendingUp,
+  X,
+} from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles } from './mhdRouteAccess';
@@ -38,7 +69,12 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'People & Org',
     items: [
       { label: 'People', route: '/people', icon: Users, roles: mhdRouteRoles('/people') },
-      { label: 'Companies', route: '/companies', icon: Building2, roles: mhdRouteRoles('/companies') },
+      {
+        label: 'Companies',
+        route: '/companies',
+        icon: Building2,
+        roles: mhdRouteRoles('/companies'),
+      },
       // Privileged only. Employees reach their own description via "My Job".
       { label: 'Job Descriptions', route: '/jobs', icon: Briefcase, roles: mhdRouteRoles('/jobs') },
       // The employee's own published job description — a SEPARATE route from the
@@ -50,8 +86,18 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Time & Leave',
     items: [
-      { label: 'Schedule', route: '/schedule', icon: CalendarDays, roles: mhdRouteRoles('/schedule') },
-      { label: 'Attendance', route: '/attendance', icon: ClipboardCheck, roles: mhdRouteRoles('/attendance') },
+      {
+        label: 'Schedule',
+        route: '/schedule',
+        icon: CalendarDays,
+        roles: mhdRouteRoles('/schedule'),
+      },
+      {
+        label: 'Attendance',
+        route: '/attendance',
+        icon: ClipboardCheck,
+        roles: mhdRouteRoles('/attendance'),
+      },
       // Renders for Client Users (their own cases) and privileged roles (the full
       // company board) behind the same link; Viewer is excluded. The medical
       // partition is gated deeper in the case detail page.
@@ -62,19 +108,59 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Talent',
     items: [
-      { label: 'Performance', route: '/performance', icon: TrendingUp, roles: mhdRouteRoles('/performance') },
+      {
+        label: 'Performance',
+        route: '/performance',
+        icon: TrendingUp,
+        roles: mhdRouteRoles('/performance'),
+      },
       // 360 feedback requests addressed to the signed-in user. A SEPARATE route
       // from /performance because a rater cannot load the review behind their
       // invitation.
-      { label: 'Feedback Requests', route: '/performance/invitations', icon: MessageSquare, roles: mhdRouteRoles('/performance/invitations') },
-      { label: 'Recruiting', route: '/recruiting', icon: UserSearch, roles: mhdRouteRoles('/recruiting') },
+      {
+        label: 'Feedback Requests',
+        route: '/performance/invitations',
+        icon: MessageSquare,
+        roles: mhdRouteRoles('/performance/invitations'),
+      },
+      {
+        label: 'Recruiting',
+        route: '/recruiting',
+        icon: UserSearch,
+        roles: mhdRouteRoles('/recruiting'),
+      },
       // Platform-Admin ONLY — the sole read path into the hard-restricted EEO
       // partition, aggregate counts only.
-      { label: 'EEO Report', route: '/recruiting/eeo', icon: BarChart3, roles: mhdRouteRoles('/recruiting/eeo') },
-      { label: 'Training', route: '/training', icon: GraduationCap, roles: mhdRouteRoles('/training') },
-      { label: 'My Training', route: '/my-training', icon: BookOpen, roles: mhdRouteRoles('/my-training') },
-      { label: 'Handbooks', route: '/handbooks', icon: Library, roles: mhdRouteRoles('/handbooks') },
-      { label: 'My Handbooks', route: '/my-handbooks', icon: BookMarked, roles: mhdRouteRoles('/my-handbooks') },
+      {
+        label: 'EEO Report',
+        route: '/recruiting/eeo',
+        icon: BarChart3,
+        roles: mhdRouteRoles('/recruiting/eeo'),
+      },
+      {
+        label: 'Training',
+        route: '/training',
+        icon: GraduationCap,
+        roles: mhdRouteRoles('/training'),
+      },
+      {
+        label: 'My Training',
+        route: '/my-training',
+        icon: BookOpen,
+        roles: mhdRouteRoles('/my-training'),
+      },
+      {
+        label: 'Handbooks',
+        route: '/handbooks',
+        icon: Library,
+        roles: mhdRouteRoles('/handbooks'),
+      },
+      {
+        label: 'My Handbooks',
+        route: '/my-handbooks',
+        icon: BookMarked,
+        roles: mhdRouteRoles('/my-handbooks'),
+      },
     ],
   },
   {
@@ -85,19 +171,39 @@ const NAV_SECTIONS: NavSection[] = [
       // Role-gated for the privileged set. Showing the link is NOT access control:
       // case visibility stays grant-based server-side, so an ungranted admin who
       // opens the board sees an empty, non-disclosing list.
-      { label: 'Investigations', route: '/investigations', icon: ShieldAlert, roles: mhdRouteRoles('/investigations') },
-      { label: 'Offboarding', route: '/offboarding', icon: DoorOpen, roles: mhdRouteRoles('/offboarding') },
+      {
+        label: 'Investigations',
+        route: '/investigations',
+        icon: ShieldAlert,
+        roles: mhdRouteRoles('/investigations'),
+      },
+      {
+        label: 'Offboarding',
+        route: '/offboarding',
+        icon: DoorOpen,
+        roles: mhdRouteRoles('/offboarding'),
+      },
     ],
   },
   {
     label: 'Work Tools',
     items: [
       { label: 'Tasks', route: '/tasks', icon: CheckSquare, roles: mhdRouteRoles('/tasks') },
-      { label: 'Activities', route: '/activities', icon: CalendarClock, roles: mhdRouteRoles('/activities') },
+      {
+        label: 'Activities',
+        route: '/activities',
+        icon: CalendarClock,
+        roles: mhdRouteRoles('/activities'),
+      },
       { label: 'Forms', route: '/forms', icon: ClipboardList, roles: mhdRouteRoles('/forms') },
       { label: 'Approvals', route: '/approvals', icon: Stamp, roles: mhdRouteRoles('/approvals') },
       { label: 'Property', route: '/property', icon: Package2, roles: mhdRouteRoles('/property') },
-      { label: 'E-Signature', route: '/esignature', icon: FileSignature, roles: mhdRouteRoles('/esignature') },
+      {
+        label: 'E-Signature',
+        route: '/esignature',
+        icon: FileSignature,
+        roles: mhdRouteRoles('/esignature'),
+      },
     ],
   },
 ];
@@ -271,9 +377,10 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
     });
   };
 
-  const visibleSections = NAV_SECTIONS
-    .map((section) => ({ ...section, items: section.items.filter(hasRole) }))
-    .filter((section) => section.items.length > 0);
+  const visibleSections = NAV_SECTIONS.map((section) => ({
+    ...section,
+    items: section.items.filter(hasRole),
+  })).filter((section) => section.items.length > 0);
 
   return (
     <>
@@ -315,7 +422,9 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
           overflow-y-auto engages instead of the ancestor clipping it). Each
           domain group collapses to keep the list short. */}
       <nav className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
-        {hasRole(DASHBOARD_ITEM) ? <MhdNavItem item={DASHBOARD_ITEM} collapsed={collapsed} /> : null}
+        {hasRole(DASHBOARD_ITEM) ? (
+          <MhdNavItem item={DASHBOARD_ITEM} collapsed={collapsed} />
+        ) : null}
         {visibleSections.map((section) => {
           const isCollapsed = collapsedGroups.includes(section.label);
           if (collapsed) {

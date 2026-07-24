@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Opt-in dark mode: the `dark:` variant and the .dark overrides below apply only
    when <html> carries the `dark` class. Light is the default — nothing is driven
@@ -70,73 +70,73 @@
 /* The six category blocks — exact values from the FINAL specification.
    Light and dark mode share these primary and rail HEX values. */
 [data-mhd-theme='dashboard'] {
-  --mhd-accent: #0005E2;
-  --mhd-rail: #0004A4;
-  --mhd-accent-hover: #0004BE;
-  --mhd-accent-pressed: #0004A3;
-  --mhd-accent-tint: #E0E1FC;
-  --mhd-accent-soft: #EBEBFD;
-  --mhd-accent-border: #C2C3F8;
-  --mhd-accent-on: #FFFFFF;
+  --mhd-accent: #0005e2;
+  --mhd-rail: #0004a4;
+  --mhd-accent-hover: #0004be;
+  --mhd-accent-pressed: #0004a3;
+  --mhd-accent-tint: #e0e1fc;
+  --mhd-accent-soft: #ebebfd;
+  --mhd-accent-border: #c2c3f8;
+  --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
 [data-mhd-theme='people-org'] {
-  --mhd-accent: #E20000;
-  --mhd-rail: #A80000;
-  --mhd-accent-hover: #BE0000;
-  --mhd-accent-pressed: #A30000;
-  --mhd-accent-tint: #FCE0E0;
-  --mhd-accent-soft: #FDEBEB;
-  --mhd-accent-border: #F8C2C2;
-  --mhd-accent-on: #FFFFFF;
+  --mhd-accent: #e20000;
+  --mhd-rail: #a80000;
+  --mhd-accent-hover: #be0000;
+  --mhd-accent-pressed: #a30000;
+  --mhd-accent-tint: #fce0e0;
+  --mhd-accent-soft: #fdebeb;
+  --mhd-accent-border: #f8c2c2;
+  --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
 [data-mhd-theme='time-leave'] {
-  --mhd-accent: #24C220;
-  --mhd-rail: #177D15;
-  --mhd-accent-hover: #1EA31B;
-  --mhd-accent-pressed: #1A8C17;
-  --mhd-accent-tint: #E5F8E4;
-  --mhd-accent-soft: #EDFAED;
-  --mhd-accent-border: #CAF0C9;
+  --mhd-accent: #24c220;
+  --mhd-rail: #177d15;
+  --mhd-accent-hover: #1ea31b;
+  --mhd-accent-pressed: #1a8c17;
+  --mhd-accent-tint: #e5f8e4;
+  --mhd-accent-soft: #edfaed;
+  --mhd-accent-border: #caf0c9;
   --mhd-accent-on: #111827;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
 [data-mhd-theme='talent'] {
-  --mhd-accent: #AE40AE;
+  --mhd-accent: #ae40ae;
   --mhd-rail: #682668;
   --mhd-accent-hover: #923692;
-  --mhd-accent-pressed: #7D2E7D;
-  --mhd-accent-tint: #F5E8F5;
-  --mhd-accent-soft: #F9F0F9;
-  --mhd-accent-border: #ECD1EC;
-  --mhd-accent-on: #FFFFFF;
+  --mhd-accent-pressed: #7d2e7d;
+  --mhd-accent-tint: #f5e8f5;
+  --mhd-accent-soft: #f9f0f9;
+  --mhd-accent-border: #ecd1ec;
+  --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
 [data-mhd-theme='employee-relations'] {
   --mhd-accent: #949494;
   --mhd-rail: #494949;
-  --mhd-accent-hover: #7C7C7C;
-  --mhd-accent-pressed: #6B6B6B;
-  --mhd-accent-tint: #F2F2F2;
-  --mhd-accent-soft: #F6F6F6;
-  --mhd-accent-border: #E5E5E5;
+  --mhd-accent-hover: #7c7c7c;
+  --mhd-accent-pressed: #6b6b6b;
+  --mhd-accent-tint: #f2f2f2;
+  --mhd-accent-soft: #f6f6f6;
+  --mhd-accent-border: #e5e5e5;
   --mhd-accent-on: #111827;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
 [data-mhd-theme='work-tools'] {
-  --mhd-accent: #3483BE;
-  --mhd-rail: #22557C;
-  --mhd-accent-hover: #2C6EA0;
-  --mhd-accent-pressed: #255E89;
-  --mhd-accent-tint: #E7F0F7;
-  --mhd-accent-soft: #EFF5FA;
-  --mhd-accent-border: #CEE1EF;
+  --mhd-accent: #3483be;
+  --mhd-rail: #22557c;
+  --mhd-accent-hover: #2c6ea0;
+  --mhd-accent-pressed: #255e89;
+  --mhd-accent-tint: #e7f0f7;
+  --mhd-accent-soft: #eff5fa;
+  --mhd-accent-border: #cee1ef;
   --mhd-accent-on: #111827;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
@@ -146,13 +146,13 @@
    become alpha tints of the same hue so they sit on dark cards. */
 .dark [data-mhd-theme] {
   --mhd-accent-tint: rgb(from var(--mhd-accent) r g b / 0.16);
-  --mhd-accent-soft: rgb(from var(--mhd-accent) r g b / 0.10);
+  --mhd-accent-soft: rgb(from var(--mhd-accent) r g b / 0.1);
   --mhd-accent-border: rgb(from var(--mhd-accent) r g b / 0.32);
 }
 /* Dark fallback (no category) — same alpha-tint treatment on the brand blue. */
 .dark {
   --mhd-accent-tint: rgb(from var(--mhd-accent) r g b / 0.16);
-  --mhd-accent-soft: rgb(from var(--mhd-accent) r g b / 0.10);
+  --mhd-accent-soft: rgb(from var(--mhd-accent) r g b / 0.1);
   --mhd-accent-border: rgb(from var(--mhd-accent) r g b / 0.32);
 }
 
@@ -176,38 +176,97 @@
   --color-border: #262e39;
 
   /* neutral scales — inverted light↔dark roles (applied to slate/gray/zinc/neutral/stone) */
-  --color-slate-50:#0e131a;  --color-gray-50:#0e131a;  --color-zinc-50:#0e131a;  --color-neutral-50:#0e131a;  --color-stone-50:#0e131a;
-  --color-slate-100:#151b24; --color-gray-100:#151b24; --color-zinc-100:#151b24; --color-neutral-100:#151b24; --color-stone-100:#151b24;
-  --color-slate-200:#222a35; --color-gray-200:#222a35; --color-zinc-200:#222a35; --color-neutral-200:#222a35; --color-stone-200:#222a35;
-  --color-slate-300:#2f3947; --color-gray-300:#2f3947; --color-zinc-300:#2f3947; --color-neutral-300:#2f3947; --color-stone-300:#2f3947;
-  --color-slate-400:#465264; --color-gray-400:#465264; --color-zinc-400:#465264; --color-neutral-400:#465264; --color-stone-400:#465264;
-  --color-slate-500:#8a94a4; --color-gray-500:#8a94a4; --color-zinc-500:#8a94a4; --color-neutral-500:#8a94a4; --color-stone-500:#8a94a4;
-  --color-slate-600:#a7b1bf; --color-gray-600:#a7b1bf; --color-zinc-600:#a7b1bf; --color-neutral-600:#a7b1bf; --color-stone-600:#a7b1bf;
-  --color-slate-700:#c4ccd6; --color-gray-700:#c4ccd6; --color-zinc-700:#c4ccd6; --color-neutral-700:#c4ccd6; --color-stone-700:#c4ccd6;
-  --color-slate-800:#dee3ea; --color-gray-800:#dee3ea; --color-zinc-800:#dee3ea; --color-neutral-800:#dee3ea; --color-stone-800:#dee3ea;
-  --color-slate-900:#eef1f5; --color-gray-900:#eef1f5; --color-zinc-900:#eef1f5; --color-neutral-900:#eef1f5; --color-stone-900:#eef1f5;
-  --color-slate-950:#f8f9fb; --color-gray-950:#f8f9fb; --color-zinc-950:#f8f9fb; --color-neutral-950:#f8f9fb; --color-stone-950:#f8f9fb;
+  --color-slate-50: #0e131a;
+  --color-gray-50: #0e131a;
+  --color-zinc-50: #0e131a;
+  --color-neutral-50: #0e131a;
+  --color-stone-50: #0e131a;
+  --color-slate-100: #151b24;
+  --color-gray-100: #151b24;
+  --color-zinc-100: #151b24;
+  --color-neutral-100: #151b24;
+  --color-stone-100: #151b24;
+  --color-slate-200: #222a35;
+  --color-gray-200: #222a35;
+  --color-zinc-200: #222a35;
+  --color-neutral-200: #222a35;
+  --color-stone-200: #222a35;
+  --color-slate-300: #2f3947;
+  --color-gray-300: #2f3947;
+  --color-zinc-300: #2f3947;
+  --color-neutral-300: #2f3947;
+  --color-stone-300: #2f3947;
+  --color-slate-400: #465264;
+  --color-gray-400: #465264;
+  --color-zinc-400: #465264;
+  --color-neutral-400: #465264;
+  --color-stone-400: #465264;
+  --color-slate-500: #8a94a4;
+  --color-gray-500: #8a94a4;
+  --color-zinc-500: #8a94a4;
+  --color-neutral-500: #8a94a4;
+  --color-stone-500: #8a94a4;
+  --color-slate-600: #a7b1bf;
+  --color-gray-600: #a7b1bf;
+  --color-zinc-600: #a7b1bf;
+  --color-neutral-600: #a7b1bf;
+  --color-stone-600: #a7b1bf;
+  --color-slate-700: #c4ccd6;
+  --color-gray-700: #c4ccd6;
+  --color-zinc-700: #c4ccd6;
+  --color-neutral-700: #c4ccd6;
+  --color-stone-700: #c4ccd6;
+  --color-slate-800: #dee3ea;
+  --color-gray-800: #dee3ea;
+  --color-zinc-800: #dee3ea;
+  --color-neutral-800: #dee3ea;
+  --color-stone-800: #dee3ea;
+  --color-slate-900: #eef1f5;
+  --color-gray-900: #eef1f5;
+  --color-zinc-900: #eef1f5;
+  --color-neutral-900: #eef1f5;
+  --color-stone-900: #eef1f5;
+  --color-slate-950: #f8f9fb;
+  --color-gray-950: #f8f9fb;
+  --color-zinc-950: #f8f9fb;
+  --color-neutral-950: #f8f9fb;
+  --color-stone-950: #f8f9fb;
 
   /* status families — darken ONLY the light tints (50/100) so tinted panels and
      pill-badge backgrounds (bg-*-50 / bg-*-100) go dark. The saturated shades
      (500–900) are left at their defaults so colored buttons (bg-blue-600/700,
      bg-red-600 …) stay solid and their white text keeps its contrast; badge text
      (text-*-700) then reads as a mid-tone on the dark same-hue tint. */
-  --color-red-50:#2a1416;    --color-red-100:#3a181b;
-  --color-rose-50:#2a1418;   --color-rose-100:#3a181f;
-  --color-orange-50:#2a1a0e; --color-orange-100:#3a2211;
-  --color-amber-50:#2a2009;  --color-amber-100:#3a2b0c;
-  --color-yellow-50:#29230a; --color-yellow-100:#392f0c;
-  --color-green-50:#0d2417;  --color-green-100:#0f301d;
-  --color-emerald-50:#0a2620;--color-emerald-100:#0c322a;
-  --color-teal-50:#0a2422;   --color-teal-100:#0c302d;
-  --color-cyan-50:#0a2328;   --color-cyan-100:#0c2f36;
-  --color-sky-50:#0a212e;    --color-sky-100:#0c2b3c;
-  --color-blue-50:#0d1b33;   --color-blue-100:#102341;
-  --color-indigo-50:#161634; --color-indigo-100:#1c1c44;
-  --color-violet-50:#1d1636; --color-violet-100:#261c47;
-  --color-purple-50:#221634; --color-purple-100:#2c1c45;
-  --color-pink-50:#2a1420;   --color-pink-100:#3a1829;
+  --color-red-50: #2a1416;
+  --color-red-100: #3a181b;
+  --color-rose-50: #2a1418;
+  --color-rose-100: #3a181f;
+  --color-orange-50: #2a1a0e;
+  --color-orange-100: #3a2211;
+  --color-amber-50: #2a2009;
+  --color-amber-100: #3a2b0c;
+  --color-yellow-50: #29230a;
+  --color-yellow-100: #392f0c;
+  --color-green-50: #0d2417;
+  --color-green-100: #0f301d;
+  --color-emerald-50: #0a2620;
+  --color-emerald-100: #0c322a;
+  --color-teal-50: #0a2422;
+  --color-teal-100: #0c302d;
+  --color-cyan-50: #0a2328;
+  --color-cyan-100: #0c2f36;
+  --color-sky-50: #0a212e;
+  --color-sky-100: #0c2b3c;
+  --color-blue-50: #0d1b33;
+  --color-blue-100: #102341;
+  --color-indigo-50: #161634;
+  --color-indigo-100: #1c1c44;
+  --color-violet-50: #1d1636;
+  --color-violet-100: #261c47;
+  --color-purple-50: #221634;
+  --color-purple-100: #2c1c45;
+  --color-pink-50: #2a1420;
+  --color-pink-100: #3a1829;
 }
 
 /* Tailwind v4 defaults bare `border-*` utilities to currentColor; the shell
@@ -224,7 +283,14 @@
   /* "Inter Variable" is shipped via @fontsource-variable/inter (main.tsx);
      plain "Inter" covers a locally-installed copy, then system fallbacks. */
   font-family:
-    "Inter Variable", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    'Inter Variable',
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   color: var(--color-foreground);
   background: var(--color-background);
   font-synthesis: none;

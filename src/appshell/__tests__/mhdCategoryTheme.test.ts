@@ -209,9 +209,10 @@ describe('category palette contrast', () => {
   it.each(MHD_CATEGORY_THEMES.map((t) => [t] as const))(
     '%s CSS block carries the exact spec primary and rail HEX',
     (theme) => {
-      const block = themeBlock(theme);
-      expect(block).toContain(`--mhd-accent: ${PALETTE[theme].primary}`);
-      expect(block).toContain(`--mhd-rail: ${PALETTE[theme].rail}`);
+      // Case-insensitive: Prettier normalizes hex literals to lowercase.
+      const block = themeBlock(theme).toLowerCase();
+      expect(block).toContain(`--mhd-accent: ${PALETTE[theme].primary.toLowerCase()}`);
+      expect(block).toContain(`--mhd-rail: ${PALETTE[theme].rail.toLowerCase()}`);
     },
   );
 });

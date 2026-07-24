@@ -38,7 +38,9 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
         </div>
         <div className="flex flex-col items-end gap-0.5">
           <span className="text-sm font-medium">{profile?.displayName ?? 'User'}</span>
-          <span className="text-xs text-muted-foreground">{profile?.roleNames.join(', ') ?? ''}</span>
+          <span className="text-xs text-muted-foreground">
+            {profile?.roleNames.join(', ') ?? ''}
+          </span>
         </div>
         <button
           type="button"

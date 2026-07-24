@@ -10,12 +10,7 @@
  * The returned key must match a `[data-mhd-theme='…']` block in global.css.
  */
 export type MhdCategoryTheme =
-  | 'dashboard'
-  | 'people-org'
-  | 'time-leave'
-  | 'talent'
-  | 'employee-relations'
-  | 'work-tools';
+  'dashboard' | 'people-org' | 'time-leave' | 'talent' | 'employee-relations' | 'work-tools';
 
 /** All six theme keys — kept in sync with the CSS blocks by a completeness test. */
 export const MHD_CATEGORY_THEMES: readonly MhdCategoryTheme[] = [

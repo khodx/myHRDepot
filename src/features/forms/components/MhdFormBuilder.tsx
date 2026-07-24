@@ -25,7 +25,10 @@ function createBlankField(type: MhdFieldType): MhdFormField {
     label: '',
     required: false,
     hidden: false,
-    options: type === 'select' || type === 'radio' ? [{ value: 'option-1', label: 'Option 1' }] : undefined,
+    options:
+      type === 'select' || type === 'radio'
+        ? [{ value: 'option-1', label: 'Option 1' }]
+        : undefined,
   };
 }
 
@@ -47,7 +50,9 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
   const [description, setDescription] = useState(initialForm?.description ?? '');
   const [pages, setPages] = useState<MhdFormPage[]>(initialForm?.definition.pages ?? []);
   const [fields, setFields] = useState<MhdFormField[]>(initialForm?.definition.fields ?? []);
-  const [logic, setLogic] = useState<MhdFormDefinition['logic']>(initialForm?.definition.logic ?? []);
+  const [logic, setLogic] = useState<MhdFormDefinition['logic']>(
+    initialForm?.definition.logic ?? [],
+  );
   const [calculations, setCalculations] = useState<MhdFormDefinition['calculations']>(
     initialForm?.definition.calculations ?? [],
   );
@@ -55,7 +60,9 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
   const [activePageId, setActivePageId] = useState<string | null>(
     sortPages(initialForm?.definition.pages ?? [])[0]?.id ?? null,
   );
-  const [activeTab, setActiveTab] = useState<'fields' | 'logic' | 'calculations' | 'preview'>('fields');
+  const [activeTab, setActiveTab] = useState<'fields' | 'logic' | 'calculations' | 'preview'>(
+    'fields',
+  );
   const [savedFormId, setSavedFormId] = useState<string | undefined>(initialForm?.id ?? formId);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -84,7 +91,15 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
   }, [activePage, fields, fieldsById]);
 
   const buildDefinition = (): MhdFormDefinition => {
-    const nextPages = pages.length > 0 ? sortPages(pages) : [createBlankPage(1, fields.map((field) => field.id))];
+    const nextPages =
+      pages.length > 0
+        ? sortPages(pages)
+        : [
+            createBlankPage(
+              1,
+              fields.map((field) => field.id),
+            ),
+          ];
 
     const normalizedPages = nextPages.map((page, pageIndex) => ({
       ...page,
@@ -112,7 +127,8 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
       // authored page count.
       settings: {
         allowDraft: initialForm?.definition.settings.allowDraft ?? true,
-        multiPage: normalizedPages.length > 1 || (initialForm?.definition.settings.multiPage ?? false),
+        multiPage:
+          normalizedPages.length > 1 || (initialForm?.definition.settings.multiPage ?? false),
         progressBar: initialForm?.definition.settings.progressBar ?? true,
       },
     };
@@ -132,14 +148,24 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
     }
     const targetPageId = activePage?.id ?? sortedPages[0].id;
     setPages((current) =>
-      current.map((page) => (page.id === targetPageId ? { ...page, fields: [...page.fields, field.id] } : page)),
+      current.map((page) =>
+        page.id === targetPageId ? { ...page, fields: [...page.fields, field.id] } : page,
+      ),
     );
   };
 
   const addPage = () => {
     // A brand-new form has no explicit page yet: materialize the implicit
     // first page (holding all current fields) before appending the new one.
-    const base = pages.length > 0 ? sortPages(pages) : [createBlankPage(1, fields.map((field) => field.id))];
+    const base =
+      pages.length > 0
+        ? sortPages(pages)
+        : [
+            createBlankPage(
+              1,
+              fields.map((field) => field.id),
+            ),
+          ];
     const nextPage = createBlankPage(base.length + 1);
     setPages([...base, nextPage]);
     setActivePageId(nextPage.id);
@@ -180,7 +206,9 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
         if (page.id === pageId) {
           return { ...page, fields: [...withoutField, fieldId] };
         }
-        return withoutField.length === page.fields.length ? page : { ...page, fields: withoutField };
+        return withoutField.length === page.fields.length
+          ? page
+          : { ...page, fields: withoutField };
       }),
     );
   };
@@ -313,7 +341,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
               type="button"
               onClick={() => void handlePublish()}
               disabled={isPublishing}
-              className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover active:bg-accent-pressed disabled:opacity-50"
             >
               <UploadCloud className="h-4 w-4" />
               {isPublishing ? 'Publishing...' : 'Publish'}
@@ -331,7 +359,9 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
               type="button"
               onClick={() => setActiveTab(tab)}
               className={`border-b-2 pb-2 text-sm font-semibold capitalize ${
-                activeTab === tab ? 'border-accent text-accent-hover' : 'border-transparent text-muted-foreground'
+                activeTab === tab
+                  ? 'border-accent text-accent-hover'
+                  : 'border-transparent text-muted-foreground'
               }`}
             >
               {tab}
@@ -357,9 +387,12 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
 
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Canvas</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Canvas
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  Fields are ordered top-to-bottom on {activePage ? `"${activePage.title}"` : 'the first page'}.
+                  Fields are ordered top-to-bottom on{' '}
+                  {activePage ? `"${activePage.title}"` : 'the first page'}.
                 </p>
               </div>
               <button
@@ -388,8 +421,12 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
                     className="flex flex-1 items-center justify-between gap-3 text-left"
                   >
                     <div>
-                      <p className="text-sm font-medium text-foreground">{field.label || 'Untitled field'}</p>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">{field.type}</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {field.label || 'Untitled field'}
+                      </p>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        {field.type}
+                      </p>
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {field.required ? 'Required' : 'Optional'}
@@ -413,7 +450,8 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
               ))}
               {canvasFields.length === 0 ? (
                 <p className="rounded-md border border-dashed border-border bg-muted px-4 py-8 text-center text-sm text-muted-foreground">
-                  Add a field from the palette to start building {activePage ? `"${activePage.title}"` : 'the form'}.
+                  Add a field from the palette to start building{' '}
+                  {activePage ? `"${activePage.title}"` : 'the form'}.
                 </p>
               ) : null}
             </div>
@@ -435,7 +473,11 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
 
       {activeTab === 'calculations' ? (
         <div className="p-4">
-          <MhdFormCalculationEditor fields={fields} calculations={calculations} onChange={setCalculations} />
+          <MhdFormCalculationEditor
+            fields={fields}
+            calculations={calculations}
+            onChange={setCalculations}
+          />
         </div>
       ) : null}
 

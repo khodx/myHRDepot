@@ -15,8 +15,8 @@ interface MhdTabsProps<T extends string> {
 }
 
 /**
- * Underline tab bar (MHD Design System §3/§6). The active tab's underline and
- * text take the module accent.
+ * Underline tab bar. Neutral text; the active tab takes the category primary
+ * as its text color and a 3px underline (category spec §4 component contract).
  */
 export function MhdTabs<T extends string>({ tabs, value, onChange, className }: MhdTabsProps<T>) {
   return (
@@ -31,7 +31,8 @@ export function MhdTabs<T extends string>({ tabs, value, onChange, className }: 
             aria-selected={isActive}
             onClick={() => onChange(tab.value)}
             className={cn(
-              '-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors',
+              '-mb-px inline-flex items-center gap-1.5 border-b-[3px] px-3 py-2 text-sm font-medium transition-colors',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring',
               isActive
                 ? 'border-accent text-accent-hover'
                 : 'border-transparent text-muted-foreground hover:text-foreground',
