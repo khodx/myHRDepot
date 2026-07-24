@@ -27,8 +27,11 @@ import { MhdReviewFilterBar } from './MhdReviewFilterBar';
 import { MhdReviewForm } from './MhdReviewForm';
 import { MhdReviewList } from './MhdReviewList';
 
+// companyId starts at 'ALL' (matching the Clear button's reset) so the
+// cross-company fallback resolves to the signed-in user's company — an empty
+// string would query an empty company id and render a blank board.
 const DEFAULT_REVIEW_FILTERS: MhdReviewBoardFilters = {
-  companyId: '',
+  companyId: 'ALL',
   personId: 'ALL',
   reviewerUserId: 'ALL',
   reviewType: 'ALL',
@@ -91,12 +94,19 @@ export function MhdPerformancePage() {
   const planFilters = useMemo<MhdCoachingPlanBoardFilters>(
     () => ({
       ...DEFAULT_PLAN_FILTERS,
-      companyId: canCrossCompanyFilter ? 'ALL' : (profile?.companyId ?? 'ALL'),
+      // Same contract as the reviews query: the RPC needs a concrete company.
+      companyId: selectedCompanyId ?? '',
     }),
-    [canCrossCompanyFilter, profile?.companyId],
+    [selectedCompanyId],
   );
 
-  const reviewsQuery = useMhdPerformanceReviews(effectiveReviewFilters);
+  // The list RPC takes a concrete company id — 'ALL' resolves to the signed-in
+  // user's company via selectedCompanyId (the filter bar still displays 'ALL').
+  const reviewQueryFilters = useMemo<MhdReviewBoardFilters>(
+    () => ({ ...effectiveReviewFilters, companyId: selectedCompanyId ?? '' }),
+    [effectiveReviewFilters, selectedCompanyId],
+  );
+  const reviewsQuery = useMhdPerformanceReviews(reviewQueryFilters);
   const plansQuery = useMhdCoachingPlans(planFilters);
   const reviewActions = useMhdPerformanceReviewActions();
   const planActions = useMhdCoachingPlanActions();
