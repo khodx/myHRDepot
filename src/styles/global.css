@@ -20,91 +20,140 @@
   --color-border: #e2e8f0; /* slate-200 */
 }
 
-/* Module accent system (MHD Design System §4). Each module has one hue; all
-   child pages inherit it. The shell stamps data-module on its root from the
+/* Category theme system (myHRDepot Category Theme Specification, FINAL).
+   Exactly six category themes; every route descendant inherits its parent
+   navigation category. The shell stamps data-mhd-theme on its root from the
    route (mhdModuleAccent.ts); components consume ONLY the accent utilities
-   below — never a raw module hex.
+   below — never a raw category hex.
    `@theme inline` keeps the var() reference live so bg-accent etc. re-resolve
-   when data-module or .dark changes. */
+   when data-mhd-theme or .dark changes. */
 @theme inline {
   --color-accent: var(--mhd-accent);
   --color-accent-hover: var(--mhd-accent-hover);
+  --color-accent-pressed: var(--mhd-accent-pressed);
   --color-accent-tint: var(--mhd-accent-tint);
+  --color-accent-soft: var(--mhd-accent-soft);
+  --color-accent-border: var(--mhd-accent-border);
   --color-accent-on: var(--mhd-accent-on);
+  --color-focus-ring: var(--mhd-focus-ring);
+  --color-rail: var(--mhd-rail);
+  --color-rail-surface: var(--mhd-rail-surface);
+  --color-rail-hover: var(--mhd-rail-hover);
+  --color-rail-selected: var(--mhd-rail-selected);
+  --color-rail-border: var(--mhd-rail-border);
+  --color-rail-text: var(--mhd-rail-text);
+  --color-rail-muted: var(--mhd-rail-muted);
 }
 
-/* Fallback (no module context — auth screens, settings): current brand blue. */
+/* Shared rail state scale (identical for every category — only the hue behind
+   it changes) + neutral fallback accent for routes outside any category
+   (auth screens, /404): brand blue, neutral dark rail. */
 :root {
+  --mhd-rail-surface: rgb(255 255 255 / 0.06);
+  --mhd-rail-hover: rgb(255 255 255 / 0.08);
+  --mhd-rail-selected: rgb(255 255 255 / 0.16);
+  --mhd-rail-border: rgb(255 255 255 / 0.18);
+  --mhd-rail-text: rgb(255 255 255 / 0.82);
+  --mhd-rail-muted: rgb(255 255 255 / 0.72);
+
   --mhd-accent: #1d4ed8;
+  --mhd-rail: #1e293b;
   --mhd-accent-hover: #1e40af;
+  --mhd-accent-pressed: #1e3a8a;
   --mhd-accent-tint: #dbeafe;
+  --mhd-accent-soft: #eff6ff;
+  --mhd-accent-border: #bfdbfe;
   --mhd-accent-on: #ffffff;
+  --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
-/* Light ramps. `--mhd-accent-on` is ink (#1c1917) on bright accents — the
-   contrast-verified fix for white-on-yellow illegibility (see design doc). */
-[data-module='dashboard']     { --mhd-accent:#dc2626; --mhd-accent-hover:#b91c1c; --mhd-accent-tint:#fee2e2; --mhd-accent-on:#ffffff; }
-[data-module='tasks']         { --mhd-accent:#ea580c; --mhd-accent-hover:#c2410c; --mhd-accent-tint:#ffedd5; --mhd-accent-on:#1c1917; }
-[data-module='people']        { --mhd-accent:#16a34a; --mhd-accent-hover:#15803d; --mhd-accent-tint:#dcfce7; --mhd-accent-on:#1c1917; }
-[data-module='companies']     { --mhd-accent:#0891b2; --mhd-accent-hover:#0e7490; --mhd-accent-tint:#cffafe; --mhd-accent-on:#1c1917; }
-[data-module='forms']         { --mhd-accent:#1d4ed8; --mhd-accent-hover:#1e40af; --mhd-accent-tint:#dbeafe; --mhd-accent-on:#ffffff; }
-[data-module='schedule']      { --mhd-accent:#d97706; --mhd-accent-hover:#b45309; --mhd-accent-tint:#fef3c7; --mhd-accent-on:#1c1917; }
-[data-module='attendance']    { --mhd-accent:#0d9488; --mhd-accent-hover:#0f766e; --mhd-accent-tint:#ccfbf1; --mhd-accent-on:#1c1917; }
-[data-module='leaves']        { --mhd-accent:#9333ea; --mhd-accent-hover:#7e22ce; --mhd-accent-tint:#f3e8ff; --mhd-accent-on:#ffffff; }
-[data-module='mileage']       { --mhd-accent:#db2777; --mhd-accent-hover:#be185d; --mhd-accent-tint:#fce7f3; --mhd-accent-on:#ffffff; }
-[data-module='feedback']      { --mhd-accent:#e11d48; --mhd-accent-hover:#be123c; --mhd-accent-tint:#ffe4e6; --mhd-accent-on:#ffffff; }
-[data-module='approvals']     { --mhd-accent:#c2410c; --mhd-accent-hover:#9a3412; --mhd-accent-tint:#fed7aa; --mhd-accent-on:#ffffff; }
-[data-module='activities']    { --mhd-accent:#10b981; --mhd-accent-hover:#047857; --mhd-accent-tint:#d1fae5; --mhd-accent-on:#1c1917; }
-[data-module='performance']   { --mhd-accent:#7c3aed; --mhd-accent-hover:#6d28d9; --mhd-accent-tint:#ede9fe; --mhd-accent-on:#ffffff; }
-[data-module='offboarding']   { --mhd-accent:#8e6b80; --mhd-accent-hover:#75566a; --mhd-accent-tint:#f2ebef; --mhd-accent-on:#ffffff; }
-[data-module='conduct']       { --mhd-accent:#9f1239; --mhd-accent-hover:#881337; --mhd-accent-tint:#f9e5ea; --mhd-accent-on:#ffffff; }
-[data-module='property']      { --mhd-accent:#92400e; --mhd-accent-hover:#78350f; --mhd-accent-tint:#f5ead9; --mhd-accent-on:#ffffff; }
-[data-module='esignature']    { --mhd-accent:#4f46e5; --mhd-accent-hover:#4338ca; --mhd-accent-tint:#e0e7ff; --mhd-accent-on:#ffffff; }
-[data-module='jobs']          { --mhd-accent:#65a30d; --mhd-accent-hover:#4d7c0f; --mhd-accent-tint:#ecfccb; --mhd-accent-on:#1c1917; }
-[data-module='recruiting']    { --mhd-accent:#c026d3; --mhd-accent-hover:#a21caf; --mhd-accent-tint:#fae8ff; --mhd-accent-on:#ffffff; }
-[data-module='training']      { --mhd-accent:#047857; --mhd-accent-hover:#065f46; --mhd-accent-tint:#ccf1e3; --mhd-accent-on:#ffffff; }
-[data-module='handbooks']     { --mhd-accent:#ca8a04; --mhd-accent-hover:#a16207; --mhd-accent-tint:#fef9c3; --mhd-accent-on:#1c1917; }
-[data-module='investigations']{ --mhd-accent:#86198f; --mhd-accent-hover:#701a75; --mhd-accent-tint:#f3dcf7; --mhd-accent-on:#ffffff; }
-[data-module='payroll']       { --mhd-accent:#166534; --mhd-accent-hover:#14532d; --mhd-accent-tint:#e2f5e5; --mhd-accent-on:#ffffff; }
-
-/* Dark mode: every dark accent is bright, so on-color is ink for ALL modules;
-   tint and hover derive from the accent generically. Per-module rules below
-   only swap the accent hex. (`.dark [data-module]` outranks the light rules
-   by specificity, so these four lines cover all 23 modules.) */
-.dark [data-module] {
-  --mhd-accent-on: #1c1917;
-  --mhd-accent-tint: color-mix(in srgb, var(--mhd-accent) 18%, transparent);
-  --mhd-accent-hover: color-mix(in srgb, var(--mhd-accent) 82%, white);
+/* The six category blocks — exact values from the FINAL specification.
+   Light and dark mode share these primary and rail HEX values. */
+[data-mhd-theme='dashboard'] {
+  --mhd-accent: #0005E2;
+  --mhd-rail: #0004A4;
+  --mhd-accent-hover: #0004BE;
+  --mhd-accent-pressed: #0004A3;
+  --mhd-accent-tint: #E0E1FC;
+  --mhd-accent-soft: #EBEBFD;
+  --mhd-accent-border: #C2C3F8;
+  --mhd-accent-on: #FFFFFF;
+  --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
-.dark [data-module='dashboard']     { --mhd-accent:#f87171; }
-.dark [data-module='tasks']         { --mhd-accent:#fb923c; }
-.dark [data-module='people']        { --mhd-accent:#4ade80; }
-.dark [data-module='companies']     { --mhd-accent:#22d3ee; }
-.dark [data-module='forms']         { --mhd-accent:#60a5fa; }
-.dark [data-module='schedule']      { --mhd-accent:#fbbf24; }
-.dark [data-module='attendance']    { --mhd-accent:#2dd4bf; }
-.dark [data-module='leaves']        { --mhd-accent:#c084fc; }
-.dark [data-module='mileage']       { --mhd-accent:#f472b6; }
-.dark [data-module='feedback']      { --mhd-accent:#fb7185; }
-.dark [data-module='approvals']     { --mhd-accent:#f97316; }
-.dark [data-module='activities']    { --mhd-accent:#34d399; }
-.dark [data-module='performance']   { --mhd-accent:#a78bfa; }
-.dark [data-module='offboarding']   { --mhd-accent:#b596a8; }
-.dark [data-module='conduct']       { --mhd-accent:#fda4af; }
-.dark [data-module='property']      { --mhd-accent:#d3a26a; }
-.dark [data-module='esignature']    { --mhd-accent:#818cf8; }
-.dark [data-module='jobs']          { --mhd-accent:#a3e635; }
-.dark [data-module='recruiting']    { --mhd-accent:#e879f9; }
-.dark [data-module='training']      { --mhd-accent:#34d399; }
-.dark [data-module='handbooks']     { --mhd-accent:#facc15; }
-.dark [data-module='investigations']{ --mhd-accent:#d946ef; }
-.dark [data-module='payroll']       { --mhd-accent:#4ade80; }
-/* Dark fallback (no module) — brand blue, same treatment. */
+
+[data-mhd-theme='people-org'] {
+  --mhd-accent: #E20000;
+  --mhd-rail: #A80000;
+  --mhd-accent-hover: #BE0000;
+  --mhd-accent-pressed: #A30000;
+  --mhd-accent-tint: #FCE0E0;
+  --mhd-accent-soft: #FDEBEB;
+  --mhd-accent-border: #F8C2C2;
+  --mhd-accent-on: #FFFFFF;
+  --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
+}
+
+[data-mhd-theme='time-leave'] {
+  --mhd-accent: #24C220;
+  --mhd-rail: #177D15;
+  --mhd-accent-hover: #1EA31B;
+  --mhd-accent-pressed: #1A8C17;
+  --mhd-accent-tint: #E5F8E4;
+  --mhd-accent-soft: #EDFAED;
+  --mhd-accent-border: #CAF0C9;
+  --mhd-accent-on: #111827;
+  --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
+}
+
+[data-mhd-theme='talent'] {
+  --mhd-accent: #AE40AE;
+  --mhd-rail: #682668;
+  --mhd-accent-hover: #923692;
+  --mhd-accent-pressed: #7D2E7D;
+  --mhd-accent-tint: #F5E8F5;
+  --mhd-accent-soft: #F9F0F9;
+  --mhd-accent-border: #ECD1EC;
+  --mhd-accent-on: #FFFFFF;
+  --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
+}
+
+[data-mhd-theme='employee-relations'] {
+  --mhd-accent: #949494;
+  --mhd-rail: #494949;
+  --mhd-accent-hover: #7C7C7C;
+  --mhd-accent-pressed: #6B6B6B;
+  --mhd-accent-tint: #F2F2F2;
+  --mhd-accent-soft: #F6F6F6;
+  --mhd-accent-border: #E5E5E5;
+  --mhd-accent-on: #111827;
+  --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
+}
+
+[data-mhd-theme='work-tools'] {
+  --mhd-accent: #3483BE;
+  --mhd-rail: #22557C;
+  --mhd-accent-hover: #2C6EA0;
+  --mhd-accent-pressed: #255E89;
+  --mhd-accent-tint: #E7F0F7;
+  --mhd-accent-soft: #EFF5FA;
+  --mhd-accent-border: #CEE1EF;
+  --mhd-accent-on: #111827;
+  --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
+}
+
+/* Dark mode changes neutral content surfaces only. The category primary, rail,
+   hover, pressed, and on-primary HEX stay exact — only the light-tint surfaces
+   become alpha tints of the same hue so they sit on dark cards. */
+.dark [data-mhd-theme] {
+  --mhd-accent-tint: rgb(from var(--mhd-accent) r g b / 0.16);
+  --mhd-accent-soft: rgb(from var(--mhd-accent) r g b / 0.10);
+  --mhd-accent-border: rgb(from var(--mhd-accent) r g b / 0.32);
+}
+/* Dark fallback (no category) — same alpha-tint treatment on the brand blue. */
 .dark {
-  --mhd-accent: #60a5fa;
-  --mhd-accent-on: #1c1917;
-  --mhd-accent-tint: color-mix(in srgb, #60a5fa 18%, transparent);
-  --mhd-accent-hover: color-mix(in srgb, #60a5fa 82%, white);
+  --mhd-accent-tint: rgb(from var(--mhd-accent) r g b / 0.16);
+  --mhd-accent-soft: rgb(from var(--mhd-accent) r g b / 0.10);
+  --mhd-accent-border: rgb(from var(--mhd-accent) r g b / 0.32);
 }
 
 /* Dark theme. Tailwind v4 emits every palette utility as var(--color-*), so

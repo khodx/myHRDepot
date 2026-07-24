@@ -1,26 +1,40 @@
+import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { MhdSidebar } from './MhdSidebar';
 import { MhdTopBar } from './MhdTopBar';
-import { mhdModuleForPath } from './mhdModuleAccent';
+import { mhdCategoryThemeForPath } from './mhdModuleAccent';
+
+/* Unmapped authenticated routes render with the neutral fallback tokens; warn
+   once per prefix in dev so a new route can't ship without a category. */
+const warnedPaths = new Set<string>();
 
 /**
  * Root layout for all authenticated pages.
  * Renders the sidebar on the left, top bar at the top, and
  * the current route's page component in the main content area.
- * data-module keys the per-module accent variables (global.css) for the
- * whole shell, so the sidebar's active pill and page content share the hue.
+ * data-mhd-theme keys the six category theme variables (global.css) for the
+ * whole shell, so the rail, primary actions, and page content share the hue —
+ * every descendant route inherits its navigation category from this stamp.
  */
 export function MhdAppShell() {
   const { pathname } = useLocation();
+  const theme = mhdCategoryThemeForPath(pathname);
+
+  useEffect(() => {
+    if (import.meta.env.DEV && !theme && !warnedPaths.has(pathname)) {
+      warnedPaths.add(pathname);
+      console.warn(
+        `[mhd] No category theme maps to "${pathname}" — assign the route to one of the six categories in mhdModuleAccent.ts.`,
+      );
+    }
+  }, [pathname, theme]);
+
   return (
-    <div
-      data-module={mhdModuleForPath(pathname)}
-      className="flex h-screen overflow-hidden bg-background"
-    >
+    <div data-mhd-theme={theme} className="flex h-screen overflow-hidden bg-background">
       <MhdSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <MhdTopBar />
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 lg:p-7">
           <Outlet />
         </main>
       </div>
