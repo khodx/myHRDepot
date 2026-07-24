@@ -64,8 +64,10 @@ describe('App foundation', () => {
   it('renders the app shell and redirects "/" to the dashboard', () => {
     render(<App />);
 
-    // Sidebar brand + nav, top bar identity, and the dashboard page all render.
-    expect(screen.getByText('My HR Depot')).toBeInTheDocument();
+    // Rail wordmark + company card, top bar identity, and the dashboard page
+    // all render. ("myHRDepot" is the category-spec wordmark.)
+    expect(screen.getByText('myHRDepot')).toBeInTheDocument();
+    expect(screen.getByText('Acme Co')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
     expect(screen.getByText('Admin User')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/dashboard');

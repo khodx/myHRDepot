@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { MhdSidebar } from './MhdSidebar';
+import { MhdMobileNavDrawer, MhdSidebar } from './MhdSidebar';
 import { MhdTopBar } from './MhdTopBar';
 import { mhdCategoryThemeForPath } from './mhdModuleAccent';
 
@@ -20,6 +20,11 @@ export function MhdAppShell() {
   const { pathname } = useLocation();
   const theme = mhdCategoryThemeForPath(pathname);
 
+  // The drawer records the pathname it was opened on; navigating anywhere else
+  // closes it by derivation — no effect, no cascading render.
+  const [navOpenedAt, setNavOpenedAt] = useState<string | null>(null);
+  const mobileNavOpen = navOpenedAt === pathname;
+
   useEffect(() => {
     if (import.meta.env.DEV && !theme && !warnedPaths.has(pathname)) {
       warnedPaths.add(pathname);
@@ -32,9 +37,10 @@ export function MhdAppShell() {
   return (
     <div data-mhd-theme={theme} className="flex h-screen overflow-hidden bg-background">
       <MhdSidebar />
+      {mobileNavOpen ? <MhdMobileNavDrawer onClose={() => setNavOpenedAt(null)} /> : null}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <MhdTopBar />
-        <main className="flex-1 overflow-y-auto p-6 lg:p-7">
+        <MhdTopBar onOpenNav={() => setNavOpenedAt(pathname)} />
+        <main className="flex-1 overflow-y-auto p-4 md:p-5 lg:p-7">
           <Outlet />
         </main>
       </div>
