@@ -18,5 +18,9 @@ interface Props {
 }
 
 export function MhdInvestigationStatusBadge({ status }: Props) {
-  return <MhdBadge variant={STATUS_VARIANTS[status] ?? 'neutral'}>{mhdFormatInvestigationStatus(status)}</MhdBadge>;
+  return (
+    <MhdBadge variant={STATUS_VARIANTS[status] ?? 'neutral'}>
+      {mhdFormatInvestigationStatus(status)}
+    </MhdBadge>
+  );
 }

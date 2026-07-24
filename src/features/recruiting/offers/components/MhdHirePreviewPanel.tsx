@@ -65,7 +65,7 @@ export function MhdHirePreviewPanel({ applicationId }: Props) {
   const recommendationVariant: MhdBadgeVariant =
     p.onboardingRecommendation == null
       ? 'neutral'
-      : RECOMMENDATION_VARIANTS[p.onboardingRecommendation] ?? 'neutral';
+      : (RECOMMENDATION_VARIANTS[p.onboardingRecommendation] ?? 'neutral');
 
   return (
     <MhdCard className="space-y-4">
@@ -98,10 +98,7 @@ export function MhdHirePreviewPanel({ applicationId }: Props) {
         <PreviewRow label="Offer expires" value={p.offerExpirationDate ?? '—'} />
         <PreviewRow label="Evaluation score" value={scoreText} />
         <PreviewRow label="Onboarding rating" value={ratingText} />
-        <PreviewRow
-          label="Source recommendation"
-          value={p.evaluationRecommendation ?? '—'}
-        />
+        <PreviewRow label="Source recommendation" value={p.evaluationRecommendation ?? '—'} />
       </dl>
 
       {p.evaluationSummary ? (

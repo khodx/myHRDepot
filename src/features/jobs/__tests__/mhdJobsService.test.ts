@@ -106,7 +106,12 @@ describe('mhdJobsService — pay masking (server-side, reflected in the mapper)'
     });
 
     await expect(
-      mhdJobsService.setPayRange({ jobId: 'job-1', payMin: 40000, payMax: 50000, payPeriod: 'ANNUAL' }),
+      mhdJobsService.setPayRange({
+        jobId: 'job-1',
+        payMin: 40000,
+        payMax: 50000,
+        payPeriod: 'ANNUAL',
+      }),
     ).rejects.toMatchObject({ code: '42501' });
   });
 });
@@ -130,7 +135,13 @@ describe('mhdJobsService — the consumer contract', () => {
           marginal_functions: [{ text: 'Occasional prep' }],
           qualifications: [{ text: 'Food handler card', type: 'CERTIFICATION', required: true }],
           competencies: [
-            { competency_id: 'comp-1', name: 'Food Safety', category: 'SAFETY', is_regulated: true, weight: '2.5' },
+            {
+              competency_id: 'comp-1',
+              name: 'Food Safety',
+              category: 'SAFETY',
+              is_regulated: true,
+              weight: '2.5',
+            },
           ],
         },
       ],
@@ -146,7 +157,11 @@ describe('mhdJobsService — the consumer contract', () => {
     expect(published?.descriptionId).toBe('desc-7');
     expect(published?.versionNumber).toBe(2);
     expect(published?.essentialFunctions).toEqual([{ text: 'Cook to order' }]);
-    expect(published?.competencies[0]).toMatchObject({ name: 'Food Safety', isRegulated: true, weight: 2.5 });
+    expect(published?.competencies[0]).toMatchObject({
+      name: 'Food Safety',
+      isRegulated: true,
+      weight: 2.5,
+    });
   });
 
   it('returns null when the person has no published description in force', async () => {

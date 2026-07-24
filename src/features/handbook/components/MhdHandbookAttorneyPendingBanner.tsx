@@ -15,9 +15,9 @@ export function MhdHandbookAttorneyPendingBanner() {
       <div className="text-sm text-amber-900">
         <p className="font-semibold">Draft — pending legal review.</p>
         <p className="mt-0.5 text-amber-800">
-          This handbook content is a draft prepared for review. It has not been finalized by
-          counsel and should be confirmed with your attorney before it is published to or relied
-          on by an employee.
+          This handbook content is a draft prepared for review. It has not been finalized by counsel
+          and should be confirmed with your attorney before it is published to or relied on by an
+          employee.
         </p>
       </div>
     </div>

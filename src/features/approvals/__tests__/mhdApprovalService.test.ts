@@ -50,7 +50,15 @@ describe('mhdApprovalService', () => {
 
   it('calls mhd_approve_approval_step then re-fetches the approval', async () => {
     mockRpc.mockResolvedValueOnce({
-      data: [{ id: 'apr-1', reference_id: 'APRV-000001', status: 'APPROVED', current_level: 2, total_levels: 2 }],
+      data: [
+        {
+          id: 'apr-1',
+          reference_id: 'APRV-000001',
+          status: 'APPROVED',
+          current_level: 2,
+          total_levels: 2,
+        },
+      ],
       error: null,
     });
     mockRpcOnce([
@@ -111,7 +119,15 @@ describe('mhdApprovalService', () => {
           }),
       })
       .mockResolvedValueOnce({
-        data: [{ id: 'apr-1', reference_id: 'APRV-000001', status: 'APPROVED', current_level: 2, total_levels: 2 }],
+        data: [
+          {
+            id: 'apr-1',
+            reference_id: 'APRV-000001',
+            status: 'APPROVED',
+            current_level: 2,
+            total_levels: 2,
+          },
+        ],
         error: null,
       });
     mockRpcOnce([

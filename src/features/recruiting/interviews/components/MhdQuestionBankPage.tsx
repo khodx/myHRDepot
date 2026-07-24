@@ -362,10 +362,7 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
               <h2 className="text-base font-semibold text-foreground">{categoryName}</h2>
               <ul className="space-y-3">
                 {items.map((question) => (
-                  <li
-                    key={question.id}
-                    className="rounded-md border border-border bg-card p-3"
-                  >
+                  <li key={question.id} className="rounded-md border border-border bg-card p-3">
                     <div className="flex items-start justify-between gap-3">
                       <p className="text-sm text-foreground">{question.questionText}</p>
                       <MhdComplianceFlag
@@ -380,9 +377,7 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
                       <span className="rounded bg-muted px-2 py-0.5">
                         {mhdFormatResponseType(question.responseType)}
                       </span>
-                      {question.isGlobal ? (
-                        <MhdBadge variant="info">Global</MhdBadge>
-                      ) : null}
+                      {question.isGlobal ? <MhdBadge variant="info">Global</MhdBadge> : null}
                     </div>
                     {question.guidance ? (
                       <p className="mt-2 text-xs text-muted-foreground">{question.guidance}</p>

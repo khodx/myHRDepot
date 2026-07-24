@@ -50,7 +50,9 @@ export function MhdEeoReportPage({ companyId, requisitionId = null, isPlatformAd
     return order
       .filter((dimension) => map.has(dimension))
       .map((dimension) => {
-        const rows = (map.get(dimension) ?? []).slice().sort((a, b) => b.applicantCount - a.applicantCount);
+        const rows = (map.get(dimension) ?? [])
+          .slice()
+          .sort((a, b) => b.applicantCount - a.applicantCount);
         const total = rows.reduce((sum, row) => sum + row.applicantCount, 0);
         return { dimension, rows, total };
       });

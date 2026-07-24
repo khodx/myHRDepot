@@ -28,37 +28,40 @@ export function MhdFeedbackInvitationsPage() {
   const threshold = thresholdQuery.data ?? MHD_FEEDBACK_THRESHOLD_FLOOR;
 
   const openInvitation = useMemo(
-    () => (invitationsQuery.data ?? []).find((invitation) => invitation.participantId === openParticipantId) ?? null,
+    () =>
+      (invitationsQuery.data ?? []).find(
+        (invitation) => invitation.participantId === openParticipantId,
+      ) ?? null,
     [invitationsQuery.data, openParticipantId],
   );
 
   if (openInvitation) {
     return (
       <div className="mx-auto max-w-3xl">
-          <div>
-            <button
-              type="button"
-              onClick={() => setOpenParticipantId(null)}
-              className="text-sm font-medium text-accent hover:text-accent-hover"
-            >
-              ← Back to feedback requests
-            </button>
-          </div>
-          {/*
+        <div>
+          <button
+            type="button"
+            onClick={() => setOpenParticipantId(null)}
+            className="text-sm font-medium text-accent hover:text-accent-hover"
+          >
+            ← Back to feedback requests
+          </button>
+        </div>
+        {/*
             The rater's questions are attached to the review by the reviewer. They are
             not fetchable here because the rater cannot read the review — so the form
             is opened with no pre-loaded competency cards; the rater can record their
             answer or decline. The specific competency/section items are supplied by
             the review context when that becomes rater-safe to fetch (see report).
           */}
-          <MhdFeedbackForm
-            participantId={openInvitation.participantId}
-            reviewId={openInvitation.reviewId}
-            participantType={openInvitation.participantType}
-            threshold={threshold}
-            items={[]}
-            onDone={() => setOpenParticipantId(null)}
-          />
+        <MhdFeedbackForm
+          participantId={openInvitation.participantId}
+          reviewId={openInvitation.reviewId}
+          participantType={openInvitation.participantType}
+          threshold={threshold}
+          items={[]}
+          onDone={() => setOpenParticipantId(null)}
+        />
       </div>
     );
   }

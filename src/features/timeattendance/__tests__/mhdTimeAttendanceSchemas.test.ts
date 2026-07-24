@@ -59,9 +59,7 @@ describe('occurrence form schema — protected pairing in both directions', () =
   };
 
   it('requires a category when classification is PROTECTED', () => {
-    expect(() =>
-      mhdOccurrenceFormSchema.parse({ ...base, classification: 'PROTECTED' }),
-    ).toThrow();
+    expect(() => mhdOccurrenceFormSchema.parse({ ...base, classification: 'PROTECTED' })).toThrow();
     expect(
       mhdOccurrenceFormSchema.parse({
         ...base,
@@ -88,7 +86,11 @@ describe('reassessment + void schemas require a reason', () => {
       mhdResolveReassessmentSchema.parse({ eventId: 'e1', decision: 'DECLINED', decisionNote: '' }),
     ).toThrow();
     expect(() =>
-      mhdResolveReassessmentSchema.parse({ eventId: 'e1', decision: 'ASSESSED', decisionNote: '  ' }),
+      mhdResolveReassessmentSchema.parse({
+        eventId: 'e1',
+        decision: 'ASSESSED',
+        decisionNote: '  ',
+      }),
     ).toThrow();
     expect(
       mhdResolveReassessmentSchema.parse({

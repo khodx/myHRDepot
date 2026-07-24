@@ -111,7 +111,8 @@ export function useMhdConductActionsMutations() {
   });
 
   const issueAction = useMutation({
-    mutationFn: (input: MhdIssueConductActionInput) => mhdConductService.issueActionWithCeremony(input),
+    mutationFn: (input: MhdIssueConductActionInput) =>
+      mhdConductService.issueActionWithCeremony(input),
     onSuccess: invalidate,
   });
 
@@ -154,7 +155,10 @@ export function useMhdConductActionCeremony() {
               ['wait-for-generation', 'Verify generated document'],
               ['resolve-document-hash', 'Verify document hash'],
               ['create-signature-request', 'Create signature request'],
-              ['issue-action', 'Issue action and notify the employee for acknowledgment of receipt'],
+              [
+                'issue-action',
+                'Issue action and notify the employee for acknowledgment of receipt',
+              ],
             ] as const
           ).map(([key, label]) => ({ key, label, status: 'PENDING' as const }))
         : [{ key: 'issue-action', label: 'Issue action', status: 'PENDING' as const }];

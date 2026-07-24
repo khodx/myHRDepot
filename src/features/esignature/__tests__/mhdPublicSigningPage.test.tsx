@@ -3,17 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const {
-  mockGetRequestByToken,
-  mockRecordConsentViaToken,
-  mockSignViaToken,
-  mockDeclineViaToken,
-} = vi.hoisted(() => ({
-  mockGetRequestByToken: vi.fn(),
-  mockRecordConsentViaToken: vi.fn(),
-  mockSignViaToken: vi.fn(),
-  mockDeclineViaToken: vi.fn(),
-}));
+const { mockGetRequestByToken, mockRecordConsentViaToken, mockSignViaToken, mockDeclineViaToken } =
+  vi.hoisted(() => ({
+    mockGetRequestByToken: vi.fn(),
+    mockRecordConsentViaToken: vi.fn(),
+    mockSignViaToken: vi.fn(),
+    mockDeclineViaToken: vi.fn(),
+  }));
 
 vi.mock('../Service', () => ({
   mhdEsignatureService: {
@@ -117,7 +113,9 @@ describe('MhdPublicSigningPage', () => {
     const signButton = screen.getByRole('button', { name: 'Sign Document' });
     expect(signButton).toBeDisabled();
 
-    await user.click(screen.getByRole('checkbox', { name: /i intend to sign this document electronically/i }));
+    await user.click(
+      screen.getByRole('checkbox', { name: /i intend to sign this document electronically/i }),
+    );
     expect(signButton).toBeEnabled();
     await user.click(signButton);
 

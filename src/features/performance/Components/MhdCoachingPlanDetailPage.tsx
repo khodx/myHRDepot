@@ -1,5 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckCircle2, Circle, ClipboardCheck, Link2, ListChecks, Pencil, Plus, Trash2 } from 'lucide-react';
+import {
+  CheckCircle2,
+  Circle,
+  ClipboardCheck,
+  Link2,
+  ListChecks,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -71,13 +80,20 @@ function MhdCheckpointForm({
             placeholder="Goal or milestone…"
             {...register('title')}
           />
-          {errors.title ? <p className="mt-1 text-xs text-red-600">{errors.title.message}</p> : null}
+          {errors.title ? (
+            <p className="mt-1 text-xs text-red-600">{errors.title.message}</p>
+          ) : null}
         </div>
         <div>
           <label htmlFor={`${idPrefix}-due`} className="mb-1 block text-sm font-medium">
             Due Date
           </label>
-          <input id={`${idPrefix}-due`} type="date" className="rounded border px-3 py-2 text-sm" {...register('dueDate')} />
+          <input
+            id={`${idPrefix}-due`}
+            type="date"
+            className="rounded border px-3 py-2 text-sm"
+            {...register('dueDate')}
+          />
         </div>
       </div>
       <div>
@@ -124,7 +140,10 @@ export function MhdCoachingPlanDetailPage() {
   const planQuery = useMhdCoachingPlan(planId ?? null);
   const plan = planQuery.data ?? null;
   const itemsQuery = useMhdCoachingPlanItems(planId ?? null);
-  const items = useMemo(() => [...(itemsQuery.data ?? [])].sort((a, b) => a.sortOrder - b.sortOrder), [itemsQuery.data]);
+  const items = useMemo(
+    () => [...(itemsQuery.data ?? [])].sort((a, b) => a.sortOrder - b.sortOrder),
+    [itemsQuery.data],
+  );
   const actions = useMhdCoachingPlanActions();
   const activityActions = useMhdActivityActions();
 
@@ -150,7 +169,9 @@ export function MhdCoachingPlanDetailPage() {
   const isPlanActive = plan?.status === 'ACTIVE';
   const completedItemCount = items.filter((item) => item.status === 'COMPLETED').length;
   const itemMutating =
-    actions.createPlanItem.isPending || actions.updatePlanItem.isPending || actions.deletePlanItem.isPending;
+    actions.createPlanItem.isPending ||
+    actions.updatePlanItem.isPending ||
+    actions.deletePlanItem.isPending;
 
   async function handleUpdatePlan(input: MhdCoachingPlanFormSchemaInput) {
     if (!plan) return;
@@ -192,14 +213,20 @@ export function MhdCoachingPlanDetailPage() {
     setActionError(null);
     try {
       const maxSortOrder = items.reduce((max, item) => Math.max(max, item.sortOrder), 0);
-      await actions.createPlanItem.mutateAsync({ planId: plan.id, input: { ...input, sortOrder: maxSortOrder + 1 } });
+      await actions.createPlanItem.mutateAsync({
+        planId: plan.id,
+        input: { ...input, sortOrder: maxSortOrder + 1 },
+      });
       setIsAddingCheckpoint(false);
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to add checkpoint.');
     }
   }
 
-  async function handleEditCheckpoint(item: MhdCoachingPlanItem, input: MhdCoachingPlanItemSchemaInput) {
+  async function handleEditCheckpoint(
+    item: MhdCoachingPlanItem,
+    input: MhdCoachingPlanItemSchemaInput,
+  ) {
     setActionError(null);
     try {
       await actions.updatePlanItem.mutateAsync({ itemId: item.id, input });
@@ -217,7 +244,9 @@ export function MhdCoachingPlanDetailPage() {
         input: { status: item.status === 'COMPLETED' ? 'PLANNED' : 'COMPLETED' },
       });
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'Unable to update checkpoint status.');
+      setActionError(
+        error instanceof Error ? error.message : 'Unable to update checkpoint status.',
+      );
     }
   }
 
@@ -236,7 +265,10 @@ export function MhdCoachingPlanDetailPage() {
     if (!linkActivityId) return;
     setActionError(null);
     try {
-      await actions.updatePlanItem.mutateAsync({ itemId: item.id, input: { activityId: linkActivityId } });
+      await actions.updatePlanItem.mutateAsync({
+        itemId: item.id,
+        input: { activityId: linkActivityId },
+      });
       setLinkingItemId(null);
       setLinkActivityId('');
     } catch (error) {
@@ -259,11 +291,16 @@ export function MhdCoachingPlanDetailPage() {
         status: 'PLANNED',
         participants: profile?.userId ? [{ userId: profile.userId, role: 'FACILITATOR' }] : [],
       });
-      await actions.updatePlanItem.mutateAsync({ itemId: item.id, input: { activityId: created.id } });
+      await actions.updatePlanItem.mutateAsync({
+        itemId: item.id,
+        input: { activityId: created.id },
+      });
       setLinkingItemId(null);
       setQuickSessionTitle('');
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'Unable to create and link coaching session.');
+      setActionError(
+        error instanceof Error ? error.message : 'Unable to create and link coaching session.',
+      );
     }
   }
 
@@ -277,16 +314,26 @@ export function MhdCoachingPlanDetailPage() {
   }
 
   if (planQuery.isLoading) {
-    return <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">Loading coaching plan…</div>;
+    return (
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+        Loading coaching plan…
+      </div>
+    );
   }
 
   if (planQuery.error || !plan) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-600">
-          {planQuery.error instanceof Error ? planQuery.error.message : 'Coaching plan not found or you do not have access to it.'}
+          {planQuery.error instanceof Error
+            ? planQuery.error.message
+            : 'Coaching plan not found or you do not have access to it.'}
         </p>
-        <button type="button" onClick={() => navigate('/performance')} className="text-sm font-medium text-accent hover:text-accent-hover">
+        <button
+          type="button"
+          onClick={() => navigate('/performance')}
+          className="text-sm font-medium text-accent hover:text-accent-hover"
+        >
           Back to Performance
         </button>
       </div>
@@ -295,336 +342,402 @@ export function MhdCoachingPlanDetailPage() {
 
   return (
     <div className="space-y-6">
-        <MhdBreadcrumb items={[{ label: 'Performance', to: '/performance' }, { label: plan.referenceId }]} />
+      <MhdBreadcrumb
+        items={[{ label: 'Performance', to: '/performance' }, { label: plan.referenceId }]}
+      />
 
-        {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
+      {actionError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      ) : null}
 
-        <MhdCard className="p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground">{plan.referenceId}</p>
-              <h1 className="mt-1 text-3xl font-bold text-foreground">{plan.title}</h1>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                <MhdCoachingStatusBadge status={plan.status} />
-                <span>
-                  Coaching{' '}
-                  <Link to={`/people/${plan.personId}`} className="text-accent hover:text-accent-hover">
-                    {plan.personDisplayName ?? 'View person'}
+      <MhdCard className="p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground">{plan.referenceId}</p>
+            <h1 className="mt-1 text-3xl font-bold text-foreground">{plan.title}</h1>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <MhdCoachingStatusBadge status={plan.status} />
+              <span>
+                Coaching{' '}
+                <Link
+                  to={`/people/${plan.personId}`}
+                  className="text-accent hover:text-accent-hover"
+                >
+                  {plan.personDisplayName ?? 'View person'}
+                </Link>
+              </span>
+              <span>Coach: {plan.coachDisplayName ?? '—'}</span>
+              {plan.sourceReviewId ? (
+                <span className="inline-flex items-center gap-1">
+                  <ClipboardCheck className="h-3.5 w-3.5 text-muted-foreground" />
+                  From review{' '}
+                  <Link
+                    to={`/performance/reviews/${plan.sourceReviewId}`}
+                    className="text-accent hover:text-accent-hover"
+                  >
+                    {plan.sourceReviewReferenceId ?? 'View review'}
                   </Link>
                 </span>
-                <span>Coach: {plan.coachDisplayName ?? '—'}</span>
-                {plan.sourceReviewId ? (
-                  <span className="inline-flex items-center gap-1">
-                    <ClipboardCheck className="h-3.5 w-3.5 text-muted-foreground" />
-                    From review{' '}
-                    <Link to={`/performance/reviews/${plan.sourceReviewId}`} className="text-accent hover:text-accent-hover">
-                      {plan.sourceReviewReferenceId ?? 'View review'}
-                    </Link>
-                  </span>
-                ) : null}
-              </div>
-            </div>
-
-            {canMutate ? (
-              <div className="flex flex-wrap gap-3">
-                {isPlanActive ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditing((current) => !current)}
-                      className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
-                    >
-                      {isEditing ? 'Close Edit' : 'Edit Plan'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleTransition('COMPLETED')}
-                      disabled={actions.transitionPlan.isPending}
-                      className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                    >
-                      Complete Plan
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleTransition('CANCELLED')}
-                      disabled={actions.transitionPlan.isPending}
-                      className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
-                    >
-                      Cancel Plan
-                    </button>
-                    {completedItemCount === 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => void handleDeletePlan()}
-                        disabled={actions.deletePlan.isPending}
-                        className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                      >
-                        Delete
-                      </button>
-                    ) : null}
-                  </>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="mt-6 grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-md bg-muted p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Start</p>
-              <p className="mt-2">{formatDate(plan.startDate)}</p>
-            </div>
-            <div className="rounded-md bg-muted p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Target</p>
-              <p className="mt-2">{formatDate(plan.targetDate)}</p>
-            </div>
-            <div className="rounded-md bg-muted p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Checkpoints</p>
-              <p className="mt-2">
-                {items.length > 0 ? `${completedItemCount} of ${items.length} done` : 'None yet'}
-              </p>
-            </div>
-            <div className="rounded-md bg-muted p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Coach</p>
-              <p className="mt-2">{plan.coachDisplayName ?? '—'}</p>
+              ) : null}
             </div>
           </div>
 
-          {plan.objective ? (
-            <div className="mt-4 rounded-md bg-muted p-4 text-sm text-muted-foreground">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Objective</p>
-              <p className="mt-2 whitespace-pre-wrap">{plan.objective}</p>
+          {canMutate ? (
+            <div className="flex flex-wrap gap-3">
+              {isPlanActive ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing((current) => !current)}
+                    className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+                  >
+                    {isEditing ? 'Close Edit' : 'Edit Plan'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleTransition('COMPLETED')}
+                    disabled={actions.transitionPlan.isPending}
+                    className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                  >
+                    Complete Plan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleTransition('CANCELLED')}
+                    disabled={actions.transitionPlan.isPending}
+                    className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
+                  >
+                    Cancel Plan
+                  </button>
+                  {completedItemCount === 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleDeletePlan()}
+                      disabled={actions.deletePlan.isPending}
+                      className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                    >
+                      Delete
+                    </button>
+                  ) : null}
+                </>
+              ) : null}
             </div>
           ) : null}
+        </div>
 
-          {plan.outcomeSummary ? (
-            <div className="mt-4 rounded-md bg-muted p-4 text-sm text-muted-foreground">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Outcome</p>
-              <p className="mt-2 whitespace-pre-wrap">{plan.outcomeSummary}</p>
-            </div>
-          ) : null}
-
-          <div className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
-            <p>Created: {new Date(plan.createdAt).toLocaleString()}</p>
-            <p>Updated: {new Date(plan.updatedAt).toLocaleString()}</p>
+        <div className="mt-6 grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-md bg-muted p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Start
+            </p>
+            <p className="mt-2">{formatDate(plan.startDate)}</p>
           </div>
-        </MhdCard>
+          <div className="rounded-md bg-muted p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Target
+            </p>
+            <p className="mt-2">{formatDate(plan.targetDate)}</p>
+          </div>
+          <div className="rounded-md bg-muted p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Checkpoints
+            </p>
+            <p className="mt-2">
+              {items.length > 0 ? `${completedItemCount} of ${items.length} done` : 'None yet'}
+            </p>
+          </div>
+          <div className="rounded-md bg-muted p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Coach
+            </p>
+            <p className="mt-2">{plan.coachDisplayName ?? '—'}</p>
+          </div>
+        </div>
 
-        {isEditing && canMutate && isPlanActive ? (
-          <MhdCard className="p-6">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Edit Coaching Plan</h2>
-            <MhdCoachingPlanForm
-              mode="edit"
-              companyId={plan.companyId}
-              initial={plan}
-              people={(peopleQuery.data ?? []).map((person) => ({ id: person.id, label: person.displayName }))}
-              coaches={(usersQuery.data ?? []).map((user) => ({ id: user.id, label: user.displayName }))}
-              onSubmit={handleUpdatePlan}
-              onCancel={() => setIsEditing(false)}
-              isSubmitting={actions.updatePlan.isPending}
-            />
-          </MhdCard>
+        {plan.objective ? (
+          <div className="mt-4 rounded-md bg-muted p-4 text-sm text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Objective
+            </p>
+            <p className="mt-2 whitespace-pre-wrap">{plan.objective}</p>
+          </div>
         ) : null}
 
-        <MhdCard className="p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-              <ListChecks className="h-5 w-5 text-muted-foreground" />
-              Checkpoints
-            </h2>
-            {canMutate && isPlanActive && !isAddingCheckpoint ? (
-              <button
-                type="button"
-                onClick={() => setIsAddingCheckpoint(true)}
-                className="inline-flex items-center gap-1 rounded border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted/50"
-              >
-                <Plus className="h-4 w-4" />
-                Add checkpoint
-              </button>
-            ) : null}
+        {plan.outcomeSummary ? (
+          <div className="mt-4 rounded-md bg-muted p-4 text-sm text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Outcome
+            </p>
+            <p className="mt-2 whitespace-pre-wrap">{plan.outcomeSummary}</p>
           </div>
+        ) : null}
 
-          {isAddingCheckpoint && canMutate && isPlanActive ? (
-            <div className="mt-4 rounded border p-4">
-              <MhdCheckpointForm
-                onSubmit={handleAddCheckpoint}
-                onCancel={() => setIsAddingCheckpoint(false)}
-                isSubmitting={actions.createPlanItem.isPending}
-              />
-            </div>
+        <div className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
+          <p>Created: {new Date(plan.createdAt).toLocaleString()}</p>
+          <p>Updated: {new Date(plan.updatedAt).toLocaleString()}</p>
+        </div>
+      </MhdCard>
+
+      {isEditing && canMutate && isPlanActive ? (
+        <MhdCard className="p-6">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Edit Coaching Plan</h2>
+          <MhdCoachingPlanForm
+            mode="edit"
+            companyId={plan.companyId}
+            initial={plan}
+            people={(peopleQuery.data ?? []).map((person) => ({
+              id: person.id,
+              label: person.displayName,
+            }))}
+            coaches={(usersQuery.data ?? []).map((user) => ({
+              id: user.id,
+              label: user.displayName,
+            }))}
+            onSubmit={handleUpdatePlan}
+            onCancel={() => setIsEditing(false)}
+            isSubmitting={actions.updatePlan.isPending}
+          />
+        </MhdCard>
+      ) : null}
+
+      <MhdCard className="p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+            <ListChecks className="h-5 w-5 text-muted-foreground" />
+            Checkpoints
+          </h2>
+          {canMutate && isPlanActive && !isAddingCheckpoint ? (
+            <button
+              type="button"
+              onClick={() => setIsAddingCheckpoint(true)}
+              className="inline-flex items-center gap-1 rounded border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted/50"
+            >
+              <Plus className="h-4 w-4" />
+              Add checkpoint
+            </button>
           ) : null}
+        </div>
 
-          {items.length === 0 && !isAddingCheckpoint ? (
-            <p className="mt-4 text-sm text-muted-foreground">No checkpoints yet. Add ordered goals with due dates.</p>
-          ) : null}
+        {isAddingCheckpoint && canMutate && isPlanActive ? (
+          <div className="mt-4 rounded border p-4">
+            <MhdCheckpointForm
+              onSubmit={handleAddCheckpoint}
+              onCancel={() => setIsAddingCheckpoint(false)}
+              isSubmitting={actions.createPlanItem.isPending}
+            />
+          </div>
+        ) : null}
 
-          <ol className="mt-4 space-y-2">
-            {items.map((item) => {
-              const isDone = item.status === 'COMPLETED';
-              const isInactive = item.status === 'CANCELLED';
-              const isEditingItem = editingItemId === item.id;
-              const isLinkingItem = linkingItemId === item.id;
-              return (
-                <li key={item.id} className="rounded border px-3 py-2">
-                  <div className="flex items-start gap-2 text-sm">
-                    {canMutate && isPlanActive ? (
-                      <button
-                        type="button"
-                        onClick={() => void handleToggleCheckpoint(item)}
-                        disabled={itemMutating || isInactive}
-                        aria-label={isDone ? `Reopen ${item.title}` : `Complete ${item.title}`}
-                        className="mt-0.5 text-muted-foreground hover:text-emerald-600 disabled:opacity-50"
-                      >
-                        {isDone ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <Circle className="h-5 w-5" />}
-                      </button>
-                    ) : isDone ? (
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
-                    ) : (
-                      <Circle className="mt-0.5 h-5 w-5 text-muted-foreground" />
-                    )}
+        {items.length === 0 && !isAddingCheckpoint ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            No checkpoints yet. Add ordered goals with due dates.
+          </p>
+        ) : null}
 
-                    <div className="min-w-0 flex-1">
-                      <span className={isDone ? 'text-muted-foreground line-through' : isInactive ? 'text-muted-foreground' : ''}>
-                        {item.title}
-                      </span>
-                      <span className="ml-2 text-xs text-muted-foreground">
-                        {item.referenceId}
-                        {item.status !== 'PLANNED' && item.status !== 'COMPLETED'
-                          ? ` · ${mhdFormatCoachingPlanItemStatus(item.status)}`
-                          : ''}
-                        {item.dueDate ? ` · due ${formatDate(item.dueDate)}` : ''}
-                      </span>
-                      {item.description ? (
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{item.description}</p>
-                      ) : null}
+        <ol className="mt-4 space-y-2">
+          {items.map((item) => {
+            const isDone = item.status === 'COMPLETED';
+            const isInactive = item.status === 'CANCELLED';
+            const isEditingItem = editingItemId === item.id;
+            const isLinkingItem = linkingItemId === item.id;
+            return (
+              <li key={item.id} className="rounded border px-3 py-2">
+                <div className="flex items-start gap-2 text-sm">
+                  {canMutate && isPlanActive ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleToggleCheckpoint(item)}
+                      disabled={itemMutating || isInactive}
+                      aria-label={isDone ? `Reopen ${item.title}` : `Complete ${item.title}`}
+                      className="mt-0.5 text-muted-foreground hover:text-emerald-600 disabled:opacity-50"
+                    >
+                      {isDone ? (
+                        <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                      ) : (
+                        <Circle className="h-5 w-5" />
+                      )}
+                    </button>
+                  ) : isDone ? (
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
+                  ) : (
+                    <Circle className="mt-0.5 h-5 w-5 text-muted-foreground" />
+                  )}
 
-                      <div className="mt-1 text-xs">
-                        {item.activityId ? (
-                          <span className="inline-flex items-center gap-1 text-muted-foreground">
-                            <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
-                            Session:{' '}
-                            <Link to={`/activities/${item.activityId}`} className="text-accent hover:text-accent-hover">
-                              {item.activityTitle ?? 'View session'}
-                            </Link>
-                            {canMutate && isPlanActive ? (
-                              <button
-                                type="button"
-                                onClick={() => void handleUnlinkSession(item)}
-                                disabled={itemMutating}
-                                className="ml-1 text-muted-foreground hover:text-red-600 disabled:opacity-50"
-                              >
-                                Unlink
-                              </button>
-                            ) : null}
-                          </span>
-                        ) : canMutate && isPlanActive ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLinkingItemId(isLinkingItem ? null : item.id);
-                              setLinkActivityId('');
-                              setQuickSessionTitle('');
-                            }}
-                            className="inline-flex items-center gap-1 text-accent hover:text-accent-hover"
-                          >
-                            <Link2 className="h-3.5 w-3.5" />
-                            {isLinkingItem ? 'Close link form' : 'Link coaching session'}
-                          </button>
-                        ) : (
-                          <span className="text-muted-foreground">No session linked</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {canMutate && isPlanActive ? (
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => setEditingItemId(isEditingItem ? null : item.id)}
-                          disabled={itemMutating}
-                          aria-label={`Edit ${item.title}`}
-                          className="rounded p-1 text-muted-foreground hover:bg-muted disabled:opacity-30"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void handleDeleteCheckpoint(item)}
-                          disabled={itemMutating}
-                          aria-label={`Delete ${item.title}`}
-                          className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
+                  <div className="min-w-0 flex-1">
+                    <span
+                      className={
+                        isDone
+                          ? 'text-muted-foreground line-through'
+                          : isInactive
+                            ? 'text-muted-foreground'
+                            : ''
+                      }
+                    >
+                      {item.title}
+                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {item.referenceId}
+                      {item.status !== 'PLANNED' && item.status !== 'COMPLETED'
+                        ? ` · ${mhdFormatCoachingPlanItemStatus(item.status)}`
+                        : ''}
+                      {item.dueDate ? ` · due ${formatDate(item.dueDate)}` : ''}
+                    </span>
+                    {item.description ? (
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {item.description}
+                      </p>
                     ) : null}
+
+                    <div className="mt-1 text-xs">
+                      {item.activityId ? (
+                        <span className="inline-flex items-center gap-1 text-muted-foreground">
+                          <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
+                          Session:{' '}
+                          <Link
+                            to={`/activities/${item.activityId}`}
+                            className="text-accent hover:text-accent-hover"
+                          >
+                            {item.activityTitle ?? 'View session'}
+                          </Link>
+                          {canMutate && isPlanActive ? (
+                            <button
+                              type="button"
+                              onClick={() => void handleUnlinkSession(item)}
+                              disabled={itemMutating}
+                              className="ml-1 text-muted-foreground hover:text-red-600 disabled:opacity-50"
+                            >
+                              Unlink
+                            </button>
+                          ) : null}
+                        </span>
+                      ) : canMutate && isPlanActive ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLinkingItemId(isLinkingItem ? null : item.id);
+                            setLinkActivityId('');
+                            setQuickSessionTitle('');
+                          }}
+                          className="inline-flex items-center gap-1 text-accent hover:text-accent-hover"
+                        >
+                          <Link2 className="h-3.5 w-3.5" />
+                          {isLinkingItem ? 'Close link form' : 'Link coaching session'}
+                        </button>
+                      ) : (
+                        <span className="text-muted-foreground">No session linked</span>
+                      )}
+                    </div>
                   </div>
 
-                  {isEditingItem && canMutate && isPlanActive ? (
-                    <div className="mt-3 border-t pt-3">
-                      <MhdCheckpointForm
-                        initial={item}
-                        onSubmit={(input) => handleEditCheckpoint(item, input)}
-                        onCancel={() => setEditingItemId(null)}
-                        isSubmitting={actions.updatePlanItem.isPending}
-                      />
+                  {canMutate && isPlanActive ? (
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setEditingItemId(isEditingItem ? null : item.id)}
+                        disabled={itemMutating}
+                        aria-label={`Edit ${item.title}`}
+                        className="rounded p-1 text-muted-foreground hover:bg-muted disabled:opacity-30"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteCheckpoint(item)}
+                        disabled={itemMutating}
+                        aria-label={`Delete ${item.title}`}
+                        className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   ) : null}
+                </div>
 
-                  {isLinkingItem && canMutate && isPlanActive ? (
-                    <div className="mt-3 space-y-3 border-t pt-3">
-                      <form className="flex flex-wrap items-end gap-2" onSubmit={(event) => void handleLinkExistingSession(event, item)}>
-                        <div className="min-w-64 flex-1">
-                          <label htmlFor={`mhd-checkpoint-link-${item.id}`} className="mb-1 block text-xs font-medium text-muted-foreground">
-                            Link an existing coaching session
-                          </label>
-                          <select
-                            id={`mhd-checkpoint-link-${item.id}`}
-                            value={linkActivityId}
-                            onChange={(event) => setLinkActivityId(event.target.value)}
-                            className="w-full rounded border px-2 py-2 text-sm"
-                          >
-                            <option value="">Select session…</option>
-                            {sessionOptions.map((option) => (
-                              <option key={option.id} value={option.id}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <Button type="submit" disabled={itemMutating || !linkActivityId}>
-                          Link
-                        </Button>
-                      </form>
+                {isEditingItem && canMutate && isPlanActive ? (
+                  <div className="mt-3 border-t pt-3">
+                    <MhdCheckpointForm
+                      initial={item}
+                      onSubmit={(input) => handleEditCheckpoint(item, input)}
+                      onCancel={() => setEditingItemId(null)}
+                      isSubmitting={actions.updatePlanItem.isPending}
+                    />
+                  </div>
+                ) : null}
 
-                      <form className="flex flex-wrap items-end gap-2" onSubmit={(event) => void handleQuickCreateSession(event, item)}>
-                        <div className="min-w-64 flex-1">
-                          <label htmlFor={`mhd-checkpoint-quick-${item.id}`} className="mb-1 block text-xs font-medium text-muted-foreground">
-                            Or quick-create a new session for {plan.personDisplayName ?? 'this person'}
-                          </label>
-                          <input
-                            id={`mhd-checkpoint-quick-${item.id}`}
-                            value={quickSessionTitle}
-                            onChange={(event) => setQuickSessionTitle(event.target.value)}
-                            placeholder="Session title…"
-                            className="w-full rounded border px-2 py-2 text-sm"
-                          />
-                        </div>
-                        <Button
-                          type="submit"
-                          disabled={itemMutating || activityActions.createActivity.isPending || quickSessionTitle.trim().length === 0}
-                          className="gap-1"
+                {isLinkingItem && canMutate && isPlanActive ? (
+                  <div className="mt-3 space-y-3 border-t pt-3">
+                    <form
+                      className="flex flex-wrap items-end gap-2"
+                      onSubmit={(event) => void handleLinkExistingSession(event, item)}
+                    >
+                      <div className="min-w-64 flex-1">
+                        <label
+                          htmlFor={`mhd-checkpoint-link-${item.id}`}
+                          className="mb-1 block text-xs font-medium text-muted-foreground"
                         >
-                          <Plus className="h-4 w-4" />
-                          {activityActions.createActivity.isPending ? 'Creating…' : 'Create & Link'}
-                        </Button>
-                      </form>
-                    </div>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ol>
-        </MhdCard>
+                          Link an existing coaching session
+                        </label>
+                        <select
+                          id={`mhd-checkpoint-link-${item.id}`}
+                          value={linkActivityId}
+                          onChange={(event) => setLinkActivityId(event.target.value)}
+                          className="w-full rounded border px-2 py-2 text-sm"
+                        >
+                          <option value="">Select session…</option>
+                          {sessionOptions.map((option) => (
+                            <option key={option.id} value={option.id}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <Button type="submit" disabled={itemMutating || !linkActivityId}>
+                        Link
+                      </Button>
+                    </form>
+
+                    <form
+                      className="flex flex-wrap items-end gap-2"
+                      onSubmit={(event) => void handleQuickCreateSession(event, item)}
+                    >
+                      <div className="min-w-64 flex-1">
+                        <label
+                          htmlFor={`mhd-checkpoint-quick-${item.id}`}
+                          className="mb-1 block text-xs font-medium text-muted-foreground"
+                        >
+                          Or quick-create a new session for{' '}
+                          {plan.personDisplayName ?? 'this person'}
+                        </label>
+                        <input
+                          id={`mhd-checkpoint-quick-${item.id}`}
+                          value={quickSessionTitle}
+                          onChange={(event) => setQuickSessionTitle(event.target.value)}
+                          placeholder="Session title…"
+                          className="w-full rounded border px-2 py-2 text-sm"
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        disabled={
+                          itemMutating ||
+                          activityActions.createActivity.isPending ||
+                          quickSessionTitle.trim().length === 0
+                        }
+                        className="gap-1"
+                      >
+                        <Plus className="h-4 w-4" />
+                        {activityActions.createActivity.isPending ? 'Creating…' : 'Create & Link'}
+                      </Button>
+                    </form>
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
+        </ol>
+      </MhdCard>
     </div>
   );
 }

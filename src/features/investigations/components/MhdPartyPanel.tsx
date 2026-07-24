@@ -100,7 +100,8 @@ export function MhdPartyPanel({
         <div>
           <h2 className="text-base font-semibold text-foreground">Parties</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Complainants, respondents and witnesses. Confidential identities are masked for everyone.
+            Complainants, respondents and witnesses. Confidential identities are masked for
+            everyone.
           </p>
         </div>
         <button
@@ -122,9 +123,7 @@ export function MhdPartyPanel({
               <select
                 id="partyRole"
                 value={partyRole}
-                onChange={(event) =>
-                  setPartyRole(event.target.value as MhdInvestigationPartyRole)
-                }
+                onChange={(event) => setPartyRole(event.target.value as MhdInvestigationPartyRole)}
                 className="mt-1 rounded-md border border-border px-3 py-2 text-sm"
               >
                 {MHD_INVESTIGATION_PARTY_ROLES.map((role) => (

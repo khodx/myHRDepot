@@ -8,7 +8,10 @@ export interface MhdWorkflowTransitionHistoryProps {
   className?: string;
 }
 
-export function MhdWorkflowTransitionHistory({ taskId, className = '' }: MhdWorkflowTransitionHistoryProps) {
+export function MhdWorkflowTransitionHistory({
+  taskId,
+  className = '',
+}: MhdWorkflowTransitionHistoryProps) {
   const [transitions, setTransitions] = useState<MhdWorkflowTransition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +44,11 @@ export function MhdWorkflowTransitionHistory({ taskId, className = '' }: MhdWork
   }, [taskId]);
 
   if (isLoading) {
-    return <div className={`text-sm text-muted-foreground ${className}`}>Loading transition history...</div>;
+    return (
+      <div className={`text-sm text-muted-foreground ${className}`}>
+        Loading transition history...
+      </div>
+    );
   }
 
   if (error) {
@@ -85,7 +92,8 @@ export function MhdWorkflowTransitionHistory({ taskId, className = '' }: MhdWork
                 </div>
 
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {transition.createdByName} on {format(new Date(transition.createdAt), 'MMM d, yyyy h:mm a')}
+                  {transition.createdByName} on{' '}
+                  {format(new Date(transition.createdAt), 'MMM d, yyyy h:mm a')}
                 </p>
 
                 {transition.reason ? (

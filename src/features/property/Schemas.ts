@@ -1,8 +1,5 @@
 import { z } from 'zod';
-import {
-  MHD_PROPERTY_CATEGORIES,
-  MHD_PROPERTY_ITEM_STATUSES,
-} from './Types';
+import { MHD_PROPERTY_CATEGORIES, MHD_PROPERTY_ITEM_STATUSES } from './Types';
 
 export const mhdCreatePropertyItemSchema = z.object({
   companyId: z.string().min(1, 'Company ID is required'),
@@ -61,7 +58,9 @@ export const mhdReturnPropertySchema = z.object({
   returnAckLiability: z.boolean().refine((value) => value, {
     message: 'Employee must acknowledge the liability terms',
   }),
-  employeeReturnSignatureName: z.string().min(1, 'Employee signature (typed full name) is required'),
+  employeeReturnSignatureName: z
+    .string()
+    .min(1, 'Employee signature (typed full name) is required'),
 });
 
 export type MhdReturnPropertySchemaInput = z.infer<typeof mhdReturnPropertySchema>;

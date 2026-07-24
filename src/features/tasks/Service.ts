@@ -155,7 +155,9 @@ export const mhdTaskService = {
   },
 
   async listStatusOptions(): Promise<MhdTaskStatusOption[]> {
-    const { data, error } = await supabaseClient.rpc('mhd_list_task_status_options').returns<MhdStatusOptionRow[]>();
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_task_status_options')
+      .returns<MhdStatusOptionRow[]>();
 
     if (error) {
       throw new Error(`Unable to load task statuses: ${error.message}`);
@@ -171,7 +173,9 @@ export const mhdTaskService = {
   },
 
   async listPriorityOptions(): Promise<MhdTaskPriorityOption[]> {
-    const { data, error } = await supabaseClient.rpc('mhd_list_task_priority_options').returns<MhdPriorityOptionRow[]>();
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_task_priority_options')
+      .returns<MhdPriorityOptionRow[]>();
 
     if (error) {
       throw new Error(`Unable to load task priorities: ${error.message}`);
@@ -187,7 +191,9 @@ export const mhdTaskService = {
 
   async listAssignableUsers(companyId: string | 'ALL'): Promise<MhdTaskAssignableUser[]> {
     const { data, error } = await supabaseClient
-      .rpc('mhd_list_task_assignable_users', { p_company_id: companyId === 'ALL' ? undefined : companyId })
+      .rpc('mhd_list_task_assignable_users', {
+        p_company_id: companyId === 'ALL' ? undefined : companyId,
+      })
       .returns<MhdAssignableUserRow[]>();
 
     if (error) {
@@ -203,7 +209,10 @@ export const mhdTaskService = {
     }));
   },
 
-  async createTask(input: MhdCreateTaskInput, context: MhdTaskMutationContext): Promise<MhdTaskMutationResultRow> {
+  async createTask(
+    input: MhdCreateTaskInput,
+    context: MhdTaskMutationContext,
+  ): Promise<MhdTaskMutationResultRow> {
     const { data, error } = await supabaseClient
       .rpc('mhd_create_task', {
         p_company_id: input.companyId,
@@ -231,7 +240,10 @@ export const mhdTaskService = {
     return row;
   },
 
-  async updateTask(input: MhdUpdateTaskInput, context: MhdTaskMutationContext): Promise<MhdTaskMutationResultRow> {
+  async updateTask(
+    input: MhdUpdateTaskInput,
+    context: MhdTaskMutationContext,
+  ): Promise<MhdTaskMutationResultRow> {
     const { data, error } = await supabaseClient
       .rpc('mhd_update_task', {
         p_task_id: input.taskId,

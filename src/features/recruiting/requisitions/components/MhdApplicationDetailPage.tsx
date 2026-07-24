@@ -46,12 +46,7 @@ function formatPayRate(value: number | null): string {
  * `application_get` nor `application_history` carries it — that partition is
  * write-only from the app's perspective (the aggregate report aside).
  */
-export function MhdApplicationDetailPage({
-  companyId,
-  applicationId,
-  canManage,
-  onBack,
-}: Props) {
+export function MhdApplicationDetailPage({ companyId, applicationId, canManage, onBack }: Props) {
   const [rejecting, setRejecting] = useState(false);
 
   const application = useMhdRecruitingApplication(applicationId);
@@ -85,7 +80,11 @@ export function MhdApplicationDetailPage({
     return (
       <div>
         {onBack ? (
-          <button type="button" onClick={onBack} className="text-sm font-medium text-accent hover:text-accent-hover">
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-sm font-medium text-accent hover:text-accent-hover"
+          >
             ← Back to pipeline
           </button>
         ) : null}
@@ -101,7 +100,11 @@ export function MhdApplicationDetailPage({
   return (
     <div className="space-y-6">
       {onBack ? (
-        <button type="button" onClick={onBack} className="text-sm font-medium text-accent hover:text-accent-hover">
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-sm font-medium text-accent hover:text-accent-hover"
+        >
           ← Back to pipeline
         </button>
       ) : null}
@@ -116,40 +119,46 @@ export function MhdApplicationDetailPage({
       </header>
 
       <MhdCard>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm md:grid-cols-3">
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Current stage</dt>
-          <dd className="text-foreground">{detail.stageName ?? 'Not yet in a stage'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Lifecycle</dt>
-          <dd className="text-foreground">{mhdFormatApplicationLifecycle(detail.lifecycle)}</dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Source</dt>
-          <dd className="text-foreground">{detail.source ?? '—'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Desired pay rate</dt>
-          <dd className="text-foreground">{formatPayRate(detail.desiredPayRate)}</dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Available from</dt>
-          <dd className="text-foreground">{formatDate(detail.availabilityDate)}</dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Employment type</dt>
-          <dd className="text-foreground">{detail.employmentTypeDesired ?? '—'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Invited</dt>
-          <dd className="text-foreground">{formatDateTime(detail.invitedAt)}</dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Submitted</dt>
-          <dd className="text-foreground">{formatDateTime(detail.submittedAt)}</dd>
-        </div>
-      </dl>
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm md:grid-cols-3">
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Current stage</dt>
+            <dd className="text-foreground">{detail.stageName ?? 'Not yet in a stage'}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Lifecycle</dt>
+            <dd className="text-foreground">{mhdFormatApplicationLifecycle(detail.lifecycle)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Source</dt>
+            <dd className="text-foreground">{detail.source ?? '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+              Desired pay rate
+            </dt>
+            <dd className="text-foreground">{formatPayRate(detail.desiredPayRate)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+              Available from
+            </dt>
+            <dd className="text-foreground">{formatDate(detail.availabilityDate)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+              Employment type
+            </dt>
+            <dd className="text-foreground">{detail.employmentTypeDesired ?? '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Invited</dt>
+            <dd className="text-foreground">{formatDateTime(detail.invitedAt)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Submitted</dt>
+            <dd className="text-foreground">{formatDateTime(detail.submittedAt)}</dd>
+          </div>
+        </dl>
       </MhdCard>
 
       {detail.coverNote ? (
@@ -185,7 +194,9 @@ export function MhdApplicationDetailPage({
                   {entry.fromStageName ? `${entry.fromStageName} → ` : ''}
                   {entry.toStageName ?? '—'}
                 </div>
-                {entry.note ? <div className="text-xs text-muted-foreground">{entry.note}</div> : null}
+                {entry.note ? (
+                  <div className="text-xs text-muted-foreground">{entry.note}</div>
+                ) : null}
                 <div className="text-xs text-muted-foreground">{formatDateTime(entry.movedAt)}</div>
               </li>
             ))}

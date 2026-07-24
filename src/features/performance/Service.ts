@@ -214,7 +214,9 @@ async function fetchGenerationUntilGenerated(
       return data;
     }
     if (data.status === 'FAILED') {
-      throw new Error('Document generation failed — see the generation record for the failure reason.');
+      throw new Error(
+        'Document generation failed — see the generation record for the failure reason.',
+      );
     }
 
     lastStatus = data.status;
@@ -233,12 +235,20 @@ export const mhdPerformanceService = {
   async listReviews(filters: MhdPerformanceReviewFilters): Promise<MhdPerformanceReview[]> {
     const { data, error } = await performanceRpc('mhd_list_performance_reviews', {
       p_company_id: filters.companyId,
-      ...(filterValueOrUndefined(filters.personId) ? { p_person_id: filterValueOrUndefined(filters.personId) } : {}),
-      ...(filterValueOrUndefined(filters.reviewerUserId) ? { p_reviewer_user_id: filterValueOrUndefined(filters.reviewerUserId) } : {}),
+      ...(filterValueOrUndefined(filters.personId)
+        ? { p_person_id: filterValueOrUndefined(filters.personId) }
+        : {}),
+      ...(filterValueOrUndefined(filters.reviewerUserId)
+        ? { p_reviewer_user_id: filterValueOrUndefined(filters.reviewerUserId) }
+        : {}),
       ...(filters.reviewType !== 'ALL' ? { p_review_type: filters.reviewType } : {}),
       ...(filters.status !== 'ALL' ? { p_status: filters.status } : {}),
-      ...(trimmedOrUndefined(filters.searchTerm) ? { p_search_term: trimmedOrUndefined(filters.searchTerm) } : {}),
-      ...(trimmedOrUndefined(filters.dueFrom) ? { p_due_from: trimmedOrUndefined(filters.dueFrom) } : {}),
+      ...(trimmedOrUndefined(filters.searchTerm)
+        ? { p_search_term: trimmedOrUndefined(filters.searchTerm) }
+        : {}),
+      ...(trimmedOrUndefined(filters.dueFrom)
+        ? { p_due_from: trimmedOrUndefined(filters.dueFrom) }
+        : {}),
       ...(trimmedOrUndefined(filters.dueTo) ? { p_due_to: trimmedOrUndefined(filters.dueTo) } : {}),
     }).returns<MhdPerformanceReviewRpcRow[]>();
 
@@ -274,7 +284,9 @@ export const mhdPerformanceService = {
       p_review_type: input.reviewType,
       p_review_period_start: input.reviewPeriodStart,
       p_review_period_end: input.reviewPeriodEnd,
-      ...(trimmedOrUndefined(input.dueDate) ? { p_due_date: trimmedOrUndefined(input.dueDate) } : {}),
+      ...(trimmedOrUndefined(input.dueDate)
+        ? { p_due_date: trimmedOrUndefined(input.dueDate) }
+        : {}),
       ...(input.reviewActivityId ? { p_review_activity_id: input.reviewActivityId } : {}),
     }).returns<MhdPerformanceMutationRpcRow[]>();
 
@@ -295,15 +307,31 @@ export const mhdPerformanceService = {
       p_review_id: reviewId,
       ...(input.reviewType ? { p_review_type: input.reviewType } : {}),
       ...(input.reviewerUserId ? { p_reviewer_user_id: input.reviewerUserId } : {}),
-      ...(trimmedOrUndefined(input.reviewPeriodStart) ? { p_review_period_start: trimmedOrUndefined(input.reviewPeriodStart) } : {}),
-      ...(trimmedOrUndefined(input.reviewPeriodEnd) ? { p_review_period_end: trimmedOrUndefined(input.reviewPeriodEnd) } : {}),
-      ...(trimmedOrUndefined(input.dueDate) ? { p_due_date: trimmedOrUndefined(input.dueDate) } : {}),
+      ...(trimmedOrUndefined(input.reviewPeriodStart)
+        ? { p_review_period_start: trimmedOrUndefined(input.reviewPeriodStart) }
+        : {}),
+      ...(trimmedOrUndefined(input.reviewPeriodEnd)
+        ? { p_review_period_end: trimmedOrUndefined(input.reviewPeriodEnd) }
+        : {}),
+      ...(trimmedOrUndefined(input.dueDate)
+        ? { p_due_date: trimmedOrUndefined(input.dueDate) }
+        : {}),
       ...(input.overallRating != null ? { p_overall_rating: input.overallRating } : {}),
-      ...(trimmedOrUndefined(input.strengthsSummary) ? { p_strengths_summary: trimmedOrUndefined(input.strengthsSummary) } : {}),
-      ...(trimmedOrUndefined(input.improvementSummary) ? { p_improvement_summary: trimmedOrUndefined(input.improvementSummary) } : {}),
-      ...(trimmedOrUndefined(input.goalsSummary) ? { p_goals_summary: trimmedOrUndefined(input.goalsSummary) } : {}),
-      ...(trimmedOrUndefined(input.reviewerComments) ? { p_reviewer_comments: trimmedOrUndefined(input.reviewerComments) } : {}),
-      ...(trimmedOrUndefined(input.employeeComments) ? { p_employee_comments: trimmedOrUndefined(input.employeeComments) } : {}),
+      ...(trimmedOrUndefined(input.strengthsSummary)
+        ? { p_strengths_summary: trimmedOrUndefined(input.strengthsSummary) }
+        : {}),
+      ...(trimmedOrUndefined(input.improvementSummary)
+        ? { p_improvement_summary: trimmedOrUndefined(input.improvementSummary) }
+        : {}),
+      ...(trimmedOrUndefined(input.goalsSummary)
+        ? { p_goals_summary: trimmedOrUndefined(input.goalsSummary) }
+        : {}),
+      ...(trimmedOrUndefined(input.reviewerComments)
+        ? { p_reviewer_comments: trimmedOrUndefined(input.reviewerComments) }
+        : {}),
+      ...(trimmedOrUndefined(input.employeeComments)
+        ? { p_employee_comments: trimmedOrUndefined(input.employeeComments) }
+        : {}),
       ...(input.reviewActivityId ? { p_review_activity_id: input.reviewActivityId } : {}),
     });
 
@@ -312,11 +340,16 @@ export const mhdPerformanceService = {
     }
   },
 
-  async transitionReview(reviewId: string, input: MhdTransitionPerformanceReviewInput): Promise<void> {
+  async transitionReview(
+    reviewId: string,
+    input: MhdTransitionPerformanceReviewInput,
+  ): Promise<void> {
     const { error } = await performanceRpc('mhd_transition_performance_review', {
       p_review_id: reviewId,
       p_new_status: input.newStatus,
-      ...(trimmedOrUndefined(input.waiverReason) ? { p_waiver_reason: trimmedOrUndefined(input.waiverReason) } : {}),
+      ...(trimmedOrUndefined(input.waiverReason)
+        ? { p_waiver_reason: trimmedOrUndefined(input.waiverReason) }
+        : {}),
     });
 
     if (error) {
@@ -327,7 +360,9 @@ export const mhdPerformanceService = {
   async linkReviewDocuments(reviewId: string, input: MhdLinkReviewDocumentsInput): Promise<void> {
     const { error } = await performanceRpc('mhd_link_review_documents', {
       p_review_id: reviewId,
-      ...(input.documentGenerationId ? { p_document_generation_id: input.documentGenerationId } : {}),
+      ...(input.documentGenerationId
+        ? { p_document_generation_id: input.documentGenerationId }
+        : {}),
       ...(input.esignatureRequestId ? { p_esignature_request_id: input.esignatureRequestId } : {}),
     });
 
@@ -415,12 +450,16 @@ export const mhdPerformanceService = {
       .returns<Array<{ id: string; reference_id: string; status: string }>>();
 
     if (generationError) {
-      throw new Error(`Finalize step 1 (request document generation) failed: ${generationError.message}`);
+      throw new Error(
+        `Finalize step 1 (request document generation) failed: ${generationError.message}`,
+      );
     }
 
     const generationId = generationData?.[0]?.id;
     if (!generationId) {
-      throw new Error('Finalize step 1 (request document generation) failed: no generation id returned.');
+      throw new Error(
+        'Finalize step 1 (request document generation) failed: no generation id returned.',
+      );
     }
 
     input.onStep?.(2);
@@ -434,7 +473,9 @@ export const mhdPerformanceService = {
       throw new Error(`Finalize step 2 (render document) failed: ${renderError.message}`);
     }
     if (renderData?.success === false) {
-      throw new Error(`Finalize step 2 (render document) failed: ${renderData.error ?? 'unknown render error.'}`);
+      throw new Error(
+        `Finalize step 2 (render document) failed: ${renderData.error ?? 'unknown render error.'}`,
+      );
     }
 
     input.onStep?.(3);
@@ -448,7 +489,8 @@ export const mhdPerformanceService = {
     input.onStep?.(4);
     // Step 4 — resolve the document hash (04.8 auto-stamp, manual fallback).
     const documentHash =
-      trimmedOrUndefined(generation.output_document_hash) ?? trimmedOrUndefined(input.manualDocumentHash);
+      trimmedOrUndefined(generation.output_document_hash) ??
+      trimmedOrUndefined(input.manualDocumentHash);
 
     if (!documentHash) {
       throw new Error(
@@ -473,7 +515,8 @@ export const mhdPerformanceService = {
       invitationErrors = result.invitationErrors;
     } catch (cause) {
       throw new Error(
-        `Finalize step 5 (create signature request) failed: ${cause instanceof Error ? cause.message : String(cause)}`, { cause },
+        `Finalize step 5 (create signature request) failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+        { cause },
       );
     }
 
@@ -486,7 +529,8 @@ export const mhdPerformanceService = {
       });
     } catch (cause) {
       throw new Error(
-        `Finalize step 6 (link review documents) failed: ${cause instanceof Error ? cause.message : String(cause)}`, { cause },
+        `Finalize step 6 (link review documents) failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+        { cause },
       );
     }
 
@@ -496,7 +540,8 @@ export const mhdPerformanceService = {
       await mhdPerformanceService.transitionReview(review.id, { newStatus: 'PENDING_SIGNATURE' });
     } catch (cause) {
       throw new Error(
-        `Finalize step 7 (transition to PENDING_SIGNATURE) failed: ${cause instanceof Error ? cause.message : String(cause)}`, { cause },
+        `Finalize step 7 (transition to PENDING_SIGNATURE) failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+        { cause },
       );
     }
 
@@ -516,10 +561,16 @@ export const mhdPerformanceService = {
   async listCoachingPlans(filters: MhdCoachingPlanFilters): Promise<MhdCoachingPlan[]> {
     const { data, error } = await performanceRpc('mhd_list_coaching_plans', {
       p_company_id: filters.companyId,
-      ...(filterValueOrUndefined(filters.personId) ? { p_person_id: filterValueOrUndefined(filters.personId) } : {}),
-      ...(filterValueOrUndefined(filters.coachUserId) ? { p_coach_user_id: filterValueOrUndefined(filters.coachUserId) } : {}),
+      ...(filterValueOrUndefined(filters.personId)
+        ? { p_person_id: filterValueOrUndefined(filters.personId) }
+        : {}),
+      ...(filterValueOrUndefined(filters.coachUserId)
+        ? { p_coach_user_id: filterValueOrUndefined(filters.coachUserId) }
+        : {}),
       ...(filters.status !== 'ALL' ? { p_status: filters.status } : {}),
-      ...(trimmedOrUndefined(filters.searchTerm) ? { p_search_term: trimmedOrUndefined(filters.searchTerm) } : {}),
+      ...(trimmedOrUndefined(filters.searchTerm)
+        ? { p_search_term: trimmedOrUndefined(filters.searchTerm) }
+        : {}),
     }).returns<MhdCoachingPlanRpcRow[]>();
 
     if (error) {
@@ -552,9 +603,15 @@ export const mhdPerformanceService = {
       p_person_id: input.personId,
       p_coach_user_id: input.coachUserId,
       p_title: input.title.trim(),
-      ...(trimmedOrUndefined(input.objective) ? { p_objective: trimmedOrUndefined(input.objective) } : {}),
-      ...(trimmedOrUndefined(input.startDate) ? { p_start_date: trimmedOrUndefined(input.startDate) } : {}),
-      ...(trimmedOrUndefined(input.targetDate) ? { p_target_date: trimmedOrUndefined(input.targetDate) } : {}),
+      ...(trimmedOrUndefined(input.objective)
+        ? { p_objective: trimmedOrUndefined(input.objective) }
+        : {}),
+      ...(trimmedOrUndefined(input.startDate)
+        ? { p_start_date: trimmedOrUndefined(input.startDate) }
+        : {}),
+      ...(trimmedOrUndefined(input.targetDate)
+        ? { p_target_date: trimmedOrUndefined(input.targetDate) }
+        : {}),
       ...(input.sourceReviewId ? { p_source_review_id: input.sourceReviewId } : {}),
     }).returns<MhdPerformanceMutationRpcRow[]>();
 
@@ -574,10 +631,18 @@ export const mhdPerformanceService = {
     const { error } = await performanceRpc('mhd_update_coaching_plan', {
       p_plan_id: planId,
       ...(trimmedOrUndefined(input.title) ? { p_title: trimmedOrUndefined(input.title) } : {}),
-      ...(trimmedOrUndefined(input.objective) ? { p_objective: trimmedOrUndefined(input.objective) } : {}),
-      ...(trimmedOrUndefined(input.startDate) ? { p_start_date: trimmedOrUndefined(input.startDate) } : {}),
-      ...(trimmedOrUndefined(input.targetDate) ? { p_target_date: trimmedOrUndefined(input.targetDate) } : {}),
-      ...(trimmedOrUndefined(input.outcomeSummary) ? { p_outcome_summary: trimmedOrUndefined(input.outcomeSummary) } : {}),
+      ...(trimmedOrUndefined(input.objective)
+        ? { p_objective: trimmedOrUndefined(input.objective) }
+        : {}),
+      ...(trimmedOrUndefined(input.startDate)
+        ? { p_start_date: trimmedOrUndefined(input.startDate) }
+        : {}),
+      ...(trimmedOrUndefined(input.targetDate)
+        ? { p_target_date: trimmedOrUndefined(input.targetDate) }
+        : {}),
+      ...(trimmedOrUndefined(input.outcomeSummary)
+        ? { p_outcome_summary: trimmedOrUndefined(input.outcomeSummary) }
+        : {}),
       ...(input.coachUserId ? { p_coach_user_id: input.coachUserId } : {}),
     });
 
@@ -586,11 +651,16 @@ export const mhdPerformanceService = {
     }
   },
 
-  async transitionCoachingPlan(planId: string, input: MhdTransitionCoachingPlanInput): Promise<void> {
+  async transitionCoachingPlan(
+    planId: string,
+    input: MhdTransitionCoachingPlanInput,
+  ): Promise<void> {
     const { error } = await performanceRpc('mhd_transition_coaching_plan', {
       p_plan_id: planId,
       p_new_status: input.newStatus,
-      ...(trimmedOrUndefined(input.outcomeSummary) ? { p_outcome_summary: trimmedOrUndefined(input.outcomeSummary) } : {}),
+      ...(trimmedOrUndefined(input.outcomeSummary)
+        ? { p_outcome_summary: trimmedOrUndefined(input.outcomeSummary) }
+        : {}),
     });
 
     if (error) {
@@ -624,8 +694,12 @@ export const mhdPerformanceService = {
     const { error } = await performanceRpc('mhd_create_coaching_plan_item', {
       p_plan_id: input.planId,
       p_title: input.title.trim(),
-      ...(trimmedOrUndefined(input.description) ? { p_description: trimmedOrUndefined(input.description) } : {}),
-      ...(trimmedOrUndefined(input.dueDate) ? { p_due_date: trimmedOrUndefined(input.dueDate) } : {}),
+      ...(trimmedOrUndefined(input.description)
+        ? { p_description: trimmedOrUndefined(input.description) }
+        : {}),
+      ...(trimmedOrUndefined(input.dueDate)
+        ? { p_due_date: trimmedOrUndefined(input.dueDate) }
+        : {}),
       ...(input.activityId ? { p_activity_id: input.activityId } : {}),
       ...(input.sortOrder !== undefined ? { p_sort_order: input.sortOrder } : {}),
     });
@@ -635,12 +709,19 @@ export const mhdPerformanceService = {
     }
   },
 
-  async updateCoachingPlanItem(itemId: string, input: MhdUpdateCoachingPlanItemInput): Promise<void> {
+  async updateCoachingPlanItem(
+    itemId: string,
+    input: MhdUpdateCoachingPlanItemInput,
+  ): Promise<void> {
     const { error } = await performanceRpc('mhd_update_coaching_plan_item', {
       p_item_id: itemId,
       ...(trimmedOrUndefined(input.title) ? { p_title: trimmedOrUndefined(input.title) } : {}),
-      ...(trimmedOrUndefined(input.description) ? { p_description: trimmedOrUndefined(input.description) } : {}),
-      ...(trimmedOrUndefined(input.dueDate) ? { p_due_date: trimmedOrUndefined(input.dueDate) } : {}),
+      ...(trimmedOrUndefined(input.description)
+        ? { p_description: trimmedOrUndefined(input.description) }
+        : {}),
+      ...(trimmedOrUndefined(input.dueDate)
+        ? { p_due_date: trimmedOrUndefined(input.dueDate) }
+        : {}),
       ...(input.status ? { p_status: input.status } : {}),
       ...(input.activityId ? { p_activity_id: input.activityId } : {}),
       ...(input.sortOrder !== undefined ? { p_sort_order: input.sortOrder } : {}),
@@ -685,7 +766,9 @@ export const mhdPerformanceService = {
 
   async createPersonActivity(input: MhdUpdateActivityInput): Promise<MhdActivity> {
     if (input.activityType !== 'ONE_ON_ONE' && input.activityType !== 'COACHING_SESSION') {
-      throw new Error('The Performance module only creates ONE_ON_ONE or COACHING_SESSION activities.');
+      throw new Error(
+        'The Performance module only creates ONE_ON_ONE or COACHING_SESSION activities.',
+      );
     }
 
     return mhdActivityService.createActivity(input);

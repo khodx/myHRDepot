@@ -34,7 +34,9 @@ export function MhdEsignatureDetailPage() {
 
   const request = requestQuery.data ?? null;
   const events = eventsQuery.data ?? [];
-  const driveUrl = mhdBuildGoogleDriveViewUrl(request?.signedDriveFileId ?? request?.documentDriveFileId);
+  const driveUrl = mhdBuildGoogleDriveViewUrl(
+    request?.signedDriveFileId ?? request?.documentDriveFileId,
+  );
 
   async function handleReminder(signerId: string) {
     setActionError(null);
@@ -70,9 +72,15 @@ export function MhdEsignatureDetailPage() {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 p-6">
         <p className="text-sm text-rose-700">
-          {requestQuery.error instanceof Error ? requestQuery.error.message : 'Signature request not found.'}
+          {requestQuery.error instanceof Error
+            ? requestQuery.error.message
+            : 'Signature request not found.'}
         </p>
-        <button type="button" onClick={() => navigate('/esignature')} className="text-sm font-semibold text-accent hover:text-accent-hover">
+        <button
+          type="button"
+          onClick={() => navigate('/esignature')}
+          className="text-sm font-semibold text-accent hover:text-accent-hover"
+        >
           Back to E-Signature Center
         </button>
       </div>
@@ -88,7 +96,9 @@ export function MhdEsignatureDetailPage() {
         description={request.referenceId}
         chips={
           <>
-            <MhdBadge variant={STATUS_VARIANTS[request.status] ?? 'neutral'}>{request.status}</MhdBadge>
+            <MhdBadge variant={STATUS_VARIANTS[request.status] ?? 'neutral'}>
+              {request.status}
+            </MhdBadge>
             <MhdBadge variant="accent">{request.signingOrder}</MhdBadge>
           </>
         }
@@ -105,7 +115,10 @@ export function MhdEsignatureDetailPage() {
               </a>
             ) : null}
             {canMutate && ['PENDING', 'IN_PROGRESS'].includes(request.status) ? (
-              <Button onClick={() => void handleVoidRequest()} disabled={actions.voidRequest.isPending}>
+              <Button
+                onClick={() => void handleVoidRequest()}
+                disabled={actions.voidRequest.isPending}
+              >
                 {actions.voidRequest.isPending ? 'Voiding...' : 'Void Request'}
               </Button>
             ) : null}
@@ -113,26 +126,47 @@ export function MhdEsignatureDetailPage() {
         }
       />
       <div className="space-y-6">
-
-        {actionMessage ? <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{actionMessage}</div> : null}
-        {actionError ? <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{actionError}</div> : null}
+        {actionMessage ? (
+          <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+            {actionMessage}
+          </div>
+        ) : null}
+        {actionError ? (
+          <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+            {actionError}
+          </div>
+        ) : null}
 
         <MhdCard className="grid gap-4 rounded-2xl p-5 lg:grid-cols-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Request ID</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              Request ID
+            </p>
             <p className="mt-2 text-sm text-foreground">{request.referenceId}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Created</p>
-            <p className="mt-2 text-sm text-foreground">{new Date(request.createdAt).toLocaleString()}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              Created
+            </p>
+            <p className="mt-2 text-sm text-foreground">
+              {new Date(request.createdAt).toLocaleString()}
+            </p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Document Hash</p>
-            <p className="mt-2 break-all font-mono text-xs text-foreground">{request.documentHash ?? 'Missing'}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              Document Hash
+            </p>
+            <p className="mt-2 break-all font-mono text-xs text-foreground">
+              {request.documentHash ?? 'Missing'}
+            </p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Signed Hash</p>
-            <p className="mt-2 break-all font-mono text-xs text-foreground">{request.signedDocumentHash ?? 'Pending completion'}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              Signed Hash
+            </p>
+            <p className="mt-2 break-all font-mono text-xs text-foreground">
+              {request.signedDocumentHash ?? 'Pending completion'}
+            </p>
           </div>
         </MhdCard>
 
@@ -149,13 +183,32 @@ export function MhdEsignatureDetailPage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold text-foreground">{signer.externalName || signer.externalEmail || signer.userId || signer.id}</p>
-                          <MhdBadge variant={STATUS_VARIANTS[signer.status] ?? 'neutral'}>{signer.status}</MhdBadge>
+                          <p className="text-sm font-semibold text-foreground">
+                            {signer.externalName ||
+                              signer.externalEmail ||
+                              signer.userId ||
+                              signer.id}
+                          </p>
+                          <MhdBadge variant={STATUS_VARIANTS[signer.status] ?? 'neutral'}>
+                            {signer.status}
+                          </MhdBadge>
                         </div>
-                        <p className="mt-1 text-xs text-muted-foreground">Order position {signer.signerOrder}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Order position {signer.signerOrder}
+                        </p>
                         <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
-                          <p>Consent: {signer.consentedAt ? new Date(signer.consentedAt).toLocaleString() : 'Not yet recorded'}</p>
-                          <p>Signed: {signer.signedAt ? new Date(signer.signedAt).toLocaleString() : 'Pending'}</p>
+                          <p>
+                            Consent:{' '}
+                            {signer.consentedAt
+                              ? new Date(signer.consentedAt).toLocaleString()
+                              : 'Not yet recorded'}
+                          </p>
+                          <p>
+                            Signed:{' '}
+                            {signer.signedAt
+                              ? new Date(signer.signedAt).toLocaleString()
+                              : 'Pending'}
+                          </p>
                           <p>Typed name: {signer.signatureName ?? 'Pending'}</p>
                           <p>Decline reason: {signer.declinedReason ?? '—'}</p>
                         </div>
@@ -183,8 +236,12 @@ export function MhdEsignatureDetailPage() {
                 <FileClock className="h-5 w-5 text-accent" />
                 <h2 className="text-lg font-semibold text-foreground">Disclosure Snapshot</h2>
               </div>
-              <p className="mt-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">Version {request.disclosureVersion}</p>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground">{request.disclosureText}</p>
+              <p className="mt-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                Version {request.disclosureVersion}
+              </p>
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground">
+                {request.disclosureText}
+              </p>
             </MhdCard>
           </div>
 
@@ -195,7 +252,9 @@ export function MhdEsignatureDetailPage() {
             </div>
             {eventsQuery.error ? (
               <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-                {eventsQuery.error instanceof Error ? eventsQuery.error.message : 'Unable to load events.'}
+                {eventsQuery.error instanceof Error
+                  ? eventsQuery.error.message
+                  : 'Unable to load events.'}
               </div>
             ) : null}
             <div className="mt-4 space-y-3">
@@ -204,8 +263,12 @@ export function MhdEsignatureDetailPage() {
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <MhdBadge variant={STATUS_VARIANTS[event.eventType] ?? 'neutral'}>{event.eventType}</MhdBadge>
-                        <span className="text-xs text-muted-foreground">{new Date(event.eventAt).toLocaleString()}</span>
+                        <MhdBadge variant={STATUS_VARIANTS[event.eventType] ?? 'neutral'}>
+                          {event.eventType}
+                        </MhdBadge>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(event.eventAt).toLocaleString()}
+                        </span>
                       </div>
                       <div className="mt-2 grid gap-1 text-xs text-muted-foreground">
                         <p>Signer: {event.signerId ?? 'System'}</p>

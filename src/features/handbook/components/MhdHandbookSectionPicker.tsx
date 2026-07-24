@@ -48,7 +48,11 @@ export function MhdHandbookSectionPicker({
   }, [sections]);
 
   if (sections.length === 0) {
-    return <p className="text-sm text-muted-foreground">No sections available for these jurisdictions.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        No sections available for these jurisdictions.
+      </p>
+    );
   }
 
   return (

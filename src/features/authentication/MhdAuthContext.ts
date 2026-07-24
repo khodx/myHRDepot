@@ -1,5 +1,10 @@
 import { createContext } from 'react';
-import type { MhdAuthState, MhdForgotPasswordInput, MhdLoginInput, MhdResetPasswordInput } from './Types';
+import type {
+  MhdAuthState,
+  MhdForgotPasswordInput,
+  MhdLoginInput,
+  MhdResetPasswordInput,
+} from './Types';
 
 export interface MhdAuthContextValue extends MhdAuthState {
   refreshProfile: () => Promise<void>;

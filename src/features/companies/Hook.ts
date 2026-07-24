@@ -43,7 +43,8 @@ export function useMhdUpdateCompany(companyId: string, context: MhdCompanyMutati
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: MhdUpdateCompanyInput) => mhdCompanyService.updateCompany(companyId, input, context),
+    mutationFn: (input: MhdUpdateCompanyInput) =>
+      mhdCompanyService.updateCompany(companyId, input, context),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: mhdCompanyQueryKeys.all });
     },

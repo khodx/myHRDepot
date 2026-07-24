@@ -48,10 +48,15 @@ function mapCompanyRow(row: MhdCompanyRow): MhdCompany {
   };
 }
 
-async function insertCompanyAuditEvent(company: MhdCompany, actionType: 'CREATE' | 'UPDATE', actorUserId: string) {
-  const summary = actionType === 'CREATE'
-    ? `Company created: ${company.companyName}`
-    : `Company updated: ${company.companyName}`;
+async function insertCompanyAuditEvent(
+  company: MhdCompany,
+  actionType: 'CREATE' | 'UPDATE',
+  actorUserId: string,
+) {
+  const summary =
+    actionType === 'CREATE'
+      ? `Company created: ${company.companyName}`
+      : `Company updated: ${company.companyName}`;
 
   const { error } = await supabaseClient.from('audit_events').insert({
     company_id: company.id,
@@ -78,7 +83,10 @@ async function insertCompanyAuditEvent(company: MhdCompany, actionType: 'CREATE'
 
 export const mhdCompanyService = {
   async listCompanies(filters: MhdCompanyListFilters): Promise<MhdCompany[]> {
-    let query = supabaseClient.from('companies').select('*').order('company_name', { ascending: true });
+    let query = supabaseClient
+      .from('companies')
+      .select('*')
+      .order('company_name', { ascending: true });
 
     if (filters.searchTerm.trim().length > 0) {
       const searchTerm = filters.searchTerm.trim().replaceAll('%', '').replaceAll('_', '');
@@ -108,7 +116,10 @@ export const mhdCompanyService = {
     return mapCompanyRow(data);
   },
 
-  async createCompany(input: MhdCreateCompanyInput, context: MhdCompanyMutationContext): Promise<MhdCompany> {
+  async createCompany(
+    input: MhdCreateCompanyInput,
+    context: MhdCompanyMutationContext,
+  ): Promise<MhdCompany> {
     // `reference_id` is required in the generated Insert type but is
     // populated by a database trigger, so it is intentionally omitted here
     // (hence the double assertion) — see Database.sql for the trigger.
@@ -136,7 +147,11 @@ export const mhdCompanyService = {
     return company;
   },
 
-  async updateCompany(companyId: string, input: MhdUpdateCompanyInput, context: MhdCompanyMutationContext): Promise<MhdCompany> {
+  async updateCompany(
+    companyId: string,
+    input: MhdUpdateCompanyInput,
+    context: MhdCompanyMutationContext,
+  ): Promise<MhdCompany> {
     const { data, error } = await supabaseClient
       .from('companies')
       .update({

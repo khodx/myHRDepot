@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { mhdPersonService } from './Service';
-import type { MhdCreatePersonInput, MhdPeopleListFilters, MhdPerson, MhdPersonMutationContext, MhdUpdatePersonInput } from './Types';
+import type {
+  MhdCreatePersonInput,
+  MhdPeopleListFilters,
+  MhdPerson,
+  MhdPersonMutationContext,
+  MhdUpdatePersonInput,
+} from './Types';
 
 export function useMhdPeople(initialFilters: MhdPeopleListFilters) {
   const [filters, setFilters] = useState<MhdPeopleListFilters>(initialFilters);
@@ -15,7 +21,11 @@ export function useMhdPeople(initialFilters: MhdPeopleListFilters) {
     try {
       const records = await mhdPersonService.listPeople(filters);
       setPeople(records);
-      setSelectedPersonId((current) => (current && records.some((person) => person.id === current) ? current : records[0]?.id ?? null));
+      setSelectedPersonId((current) =>
+        current && records.some((person) => person.id === current)
+          ? current
+          : (records[0]?.id ?? null),
+      );
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to load people.');
     } finally {
@@ -28,21 +38,30 @@ export function useMhdPeople(initialFilters: MhdPeopleListFilters) {
     void loadPeople();
   }, [loadPeople]);
 
-  const selectedPerson = useMemo(() => people.find((person) => person.id === selectedPersonId) ?? null, [people, selectedPersonId]);
+  const selectedPerson = useMemo(
+    () => people.find((person) => person.id === selectedPersonId) ?? null,
+    [people, selectedPersonId],
+  );
 
-  const createPerson = useCallback(async (input: MhdCreatePersonInput, context: MhdPersonMutationContext) => {
-    const person = await mhdPersonService.createPerson(input, context);
-    await loadPeople();
-    setSelectedPersonId(person.id);
-    return person;
-  }, [loadPeople]);
+  const createPerson = useCallback(
+    async (input: MhdCreatePersonInput, context: MhdPersonMutationContext) => {
+      const person = await mhdPersonService.createPerson(input, context);
+      await loadPeople();
+      setSelectedPersonId(person.id);
+      return person;
+    },
+    [loadPeople],
+  );
 
-  const updatePerson = useCallback(async (input: MhdUpdatePersonInput, context: MhdPersonMutationContext) => {
-    const person = await mhdPersonService.updatePerson(input, context);
-    await loadPeople();
-    setSelectedPersonId(person.id);
-    return person;
-  }, [loadPeople]);
+  const updatePerson = useCallback(
+    async (input: MhdUpdatePersonInput, context: MhdPersonMutationContext) => {
+      const person = await mhdPersonService.updatePerson(input, context);
+      await loadPeople();
+      setSelectedPersonId(person.id);
+      return person;
+    },
+    [loadPeople],
+  );
 
   return {
     filters,

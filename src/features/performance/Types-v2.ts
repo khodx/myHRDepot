@@ -146,11 +146,7 @@ export type MhdReviewTemplateStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 export type MhdSectionResponseType = 'RATING' | 'TEXT' | 'RATING_AND_TEXT';
 
 /** Extended by 0035; `QUARTERLY` and `PROBATIONARY` are the new values. */
-export type MhdPerformanceReviewTypeV2 =
-  | 'INTRODUCTORY'
-  | 'ANNUAL'
-  | 'QUARTERLY'
-  | 'PROBATIONARY';
+export type MhdPerformanceReviewTypeV2 = 'INTRODUCTORY' | 'ANNUAL' | 'QUARTERLY' | 'PROBATIONARY';
 
 export const MHD_PARTICIPANT_TYPES = [
   'SELF',

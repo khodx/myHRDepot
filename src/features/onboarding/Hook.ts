@@ -20,7 +20,9 @@ export function useMhdOnboardingPacket(personId: string, companyId: string) {
     const checklistByKey = new Map(
       (checklistQuery.data ?? []).map((item) => [item.documentKey, item] as const),
     );
-    const formByName = new Map((formsQuery.data ?? []).map((form) => [form.formName, form] as const));
+    const formByName = new Map(
+      (formsQuery.data ?? []).map((form) => [form.formName, form] as const),
+    );
 
     return MHD_ONBOARDING_PACKET_DEFINITIONS.map((packet) => {
       const checklistItem = checklistByKey.get(packet.documentKey);
@@ -53,7 +55,9 @@ export function useMhdOnboardingPacket(personId: string, companyId: string) {
 
   const requiredItems = useMemo(() => items.filter((item) => item.isRequired), [items]);
   const completedCount = useMemo(
-    () => requiredItems.filter((item) => item.status === 'SUBMITTED' || item.status === 'SIGNED').length,
+    () =>
+      requiredItems.filter((item) => item.status === 'SUBMITTED' || item.status === 'SIGNED')
+        .length,
     [requiredItems],
   );
 

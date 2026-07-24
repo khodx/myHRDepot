@@ -45,7 +45,12 @@ export function MhdPersonContactMethods({ personId }: MhdPersonContactMethodsPro
     if (newValue.trim().length === 0) return;
     setIsSaving(true);
     try {
-      await mhdPersonService.addContactMethod({ personId, contactType: newType, contactValue: newValue, isPrimary: false });
+      await mhdPersonService.addContactMethod({
+        personId,
+        contactType: newType,
+        contactValue: newValue,
+        isPrimary: false,
+      });
       setNewValue('');
       await reload();
     } catch (err) {
@@ -81,7 +86,9 @@ export function MhdPersonContactMethods({ personId }: MhdPersonContactMethodsPro
 
   return (
     <div className="mt-5 border-t border-border pt-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contact methods</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Contact methods
+      </p>
 
       {isLoading ? (
         <p className="mt-2 text-sm text-muted-foreground">Loading contact methods...</p>
@@ -90,19 +97,36 @@ export function MhdPersonContactMethods({ personId }: MhdPersonContactMethodsPro
       ) : (
         <ul className="mt-2 space-y-2">
           {methods.map((method) => (
-            <li key={method.id} className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-sm">
+            <li
+              key={method.id}
+              className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-sm"
+            >
               <div>
                 <span className="font-medium text-foreground">{method.contactType}</span>{' '}
                 <span className="text-foreground">{method.contactValue}</span>{' '}
-                {method.isPrimary ? <MhdBadge variant="accent" className="ml-1">Primary</MhdBadge> : null}
+                {method.isPrimary ? (
+                  <MhdBadge variant="accent" className="ml-1">
+                    Primary
+                  </MhdBadge>
+                ) : null}
               </div>
               <div className="flex gap-2">
                 {!method.isPrimary ? (
-                  <button type="button" className="text-xs font-medium text-accent hover:text-accent-hover" disabled={isSaving} onClick={() => handleMakePrimary(method.id)}>
+                  <button
+                    type="button"
+                    className="text-xs font-medium text-accent hover:text-accent-hover"
+                    disabled={isSaving}
+                    onClick={() => handleMakePrimary(method.id)}
+                  >
                     Make primary
                   </button>
                 ) : null}
-                <button type="button" className="text-xs font-medium text-red-700 hover:underline" disabled={isSaving} onClick={() => handleDelete(method.id)}>
+                <button
+                  type="button"
+                  className="text-xs font-medium text-red-700 hover:underline"
+                  disabled={isSaving}
+                  onClick={() => handleDelete(method.id)}
+                >
                   Remove
                 </button>
               </div>
@@ -114,7 +138,11 @@ export function MhdPersonContactMethods({ personId }: MhdPersonContactMethodsPro
       {error ? <p className="mt-2 text-xs text-red-700">{error}</p> : null}
 
       <div className="mt-3 flex items-center gap-2">
-        <select className="rounded-md border border-border bg-card px-2 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={newType} onChange={(event) => setNewType(event.target.value as MhdContactType)}>
+        <select
+          className="rounded-md border border-border bg-card px-2 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          value={newType}
+          onChange={(event) => setNewType(event.target.value as MhdContactType)}
+        >
           {CONTACT_TYPES.map((type) => (
             <option key={type} value={type}>
               {type}

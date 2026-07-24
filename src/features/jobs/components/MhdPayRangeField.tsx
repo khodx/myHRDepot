@@ -28,7 +28,9 @@ export function MhdPayRangeField({ job, canSeePay, onEdit }: Props) {
   if (!canSeePay) {
     return (
       <div className="text-sm text-muted-foreground">
-        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Pay range</span>
+        <span className="block text-xs uppercase tracking-wide text-muted-foreground">
+          Pay range
+        </span>
         <span className="italic">Not available to your role</span>
       </div>
     );
@@ -45,7 +47,11 @@ export function MhdPayRangeField({ job, canSeePay, onEdit }: Props) {
         <span className="text-muted-foreground">Not set</span>
       )}
       {onEdit ? (
-        <button type="button" onClick={onEdit} className="ml-3 text-xs font-medium text-accent hover:text-accent-hover">
+        <button
+          type="button"
+          onClick={onEdit}
+          className="ml-3 text-xs font-medium text-accent hover:text-accent-hover"
+        >
           {formatted ? 'Edit' : 'Set range'}
         </button>
       ) : null}

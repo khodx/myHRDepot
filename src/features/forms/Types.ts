@@ -208,7 +208,11 @@ export interface MhdFormFileValue {
 export function mhdIsFormFileValue(value: unknown): value is MhdFormFileValue {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
   const candidate = value as Record<string, unknown>;
-  return typeof candidate.driveFileId === 'string' && candidate.driveFileId.length > 0 && typeof candidate.fileName === 'string';
+  return (
+    typeof candidate.driveFileId === 'string' &&
+    candidate.driveFileId.length > 0 &&
+    typeof candidate.fileName === 'string'
+  );
 }
 
 /**
@@ -249,8 +253,10 @@ export interface MhdFormsIndexFilters {
 export type MhdRpcFormRow = DbFunctions['mhd_get_form']['Returns'][number];
 export type MhdRpcFormsListRow = DbFunctions['mhd_list_forms']['Returns'][number];
 export type MhdRpcSubmissionRow = DbFunctions['mhd_get_submission']['Returns'][number];
-export type MhdRpcDraftSubmissionRow = DbFunctions['mhd_list_my_draft_submissions']['Returns'][number];
-export type MhdRpcSubmissionListRow = DbFunctions['mhd_list_submissions_for_form']['Returns'][number];
+export type MhdRpcDraftSubmissionRow =
+  DbFunctions['mhd_list_my_draft_submissions']['Returns'][number];
+export type MhdRpcSubmissionListRow =
+  DbFunctions['mhd_list_submissions_for_form']['Returns'][number];
 
 export function mhdNormalizeFieldType(type: string | null | undefined): MhdFieldType {
   switch (type) {

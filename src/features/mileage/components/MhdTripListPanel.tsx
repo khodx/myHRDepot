@@ -205,7 +205,8 @@ export function MhdTripListPanel({
                         <span className="text-xs font-medium text-emerald-700">Available</span>
                       ) : (
                         <span className="text-xs text-muted-foreground">
-                          On a {trip.claimStatus ? mhdFormatClaimStatus(trip.claimStatus) : ''} claim
+                          On a {trip.claimStatus ? mhdFormatClaimStatus(trip.claimStatus) : ''}{' '}
+                          claim
                         </span>
                       )}
                     </MhdTd>

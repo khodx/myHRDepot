@@ -58,7 +58,11 @@ describe('mhdTrainingService — catalog mapping', () => {
       p_company_id: 'company-1',
       p_include_inactive: false,
     });
-    expect(courses[0]).toMatchObject({ durationMinutes: 120, recurrenceMonths: 24, isGlobal: true });
+    expect(courses[0]).toMatchObject({
+      durationMinutes: 120,
+      recurrenceMonths: 24,
+      isGlobal: true,
+    });
     // The one-time course keeps its null recurrence — collapsing to 0 would invent an expiry.
     expect(courses[1].recurrenceMonths).toBeNull();
     expect(courses[1].durationMinutes).toBeNull();

@@ -255,9 +255,7 @@ export function MhdTripForm({
       */}
       <div
         className={`rounded-md border px-3 py-3 ${
-          affirmed
-            ? 'border-emerald-200 bg-emerald-50'
-            : 'border-border bg-muted'
+          affirmed ? 'border-emerald-200 bg-emerald-50' : 'border-border bg-muted'
         }`}
       >
         <label className="flex items-start gap-3 text-sm text-foreground">

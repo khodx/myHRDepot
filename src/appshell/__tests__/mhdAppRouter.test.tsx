@@ -46,13 +46,23 @@ vi.mock('@/features/authentication/components/MhdProtectedRoute', async () => {
 
 vi.mock('../MhdAppShell', async () => {
   const { Outlet } = await import('react-router-dom');
-  return { MhdAppShell: () => <div data-testid="app-shell"><Outlet /></div> };
+  return {
+    MhdAppShell: () => (
+      <div data-testid="app-shell">
+        <Outlet />
+      </div>
+    ),
+  };
 });
 
 // The real MhdLoginPage renders inside MhdAuthLayout; the mock keeps that
 // structural contract visible via the auth-layout test id.
 vi.mock('@/features/authentication/components/MhdLoginPage', () => ({
-  MhdLoginPage: () => <div data-testid="auth-layout"><div>Login Page</div></div>,
+  MhdLoginPage: () => (
+    <div data-testid="auth-layout">
+      <div>Login Page</div>
+    </div>
+  ),
 }));
 vi.mock('@/features/authentication/components/MhdForgotPasswordPage', () => ({
   MhdForgotPasswordPage: () => <div>Forgot Password Page</div>,
@@ -486,25 +496,24 @@ describe('MhdAppRouter', () => {
 
         render(<MhdAppRouter />);
 
-        expect(screen.getByText(path === '/schedule' ? 'Schedule Page' : 'Attendance Page')).toBeInTheDocument();
+        expect(
+          screen.getByText(path === '/schedule' ? 'Schedule Page' : 'Attendance Page'),
+        ).toBeInTheDocument();
         expect(window.location.pathname).toBe(path);
       },
     );
 
-    it.each(['/schedule', '/attendance'])(
-      'redirects a Viewer away from "%s" to "/404"',
-      (path) => {
-        mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
-        setUrl(path);
+    it.each(['/schedule', '/attendance'])('redirects a Viewer away from "%s" to "/404"', (path) => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl(path);
 
-        render(<MhdAppRouter />);
+      render(<MhdAppRouter />);
 
-        expect(screen.queryByText('Schedule Page')).not.toBeInTheDocument();
-        expect(screen.queryByText('Attendance Page')).not.toBeInTheDocument();
-        expect(screen.getByText('Page Not Found')).toBeInTheDocument();
-        expect(window.location.pathname).toBe('/404');
-      },
-    );
+      expect(screen.queryByText('Schedule Page')).not.toBeInTheDocument();
+      expect(screen.queryByText('Attendance Page')).not.toBeInTheDocument();
+      expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/404');
+    });
 
     it('renders "/attendance/policy" for a Client Admin but not a Client User', () => {
       mockAuth({ isAuthenticated: true, roles: ['Client Admin'] });
@@ -560,7 +569,6 @@ describe('MhdAppRouter', () => {
 // ---------------------------------------------------------------------------
 // MhdSidebar — the actual enforcement point for role-based menu visibility
 // ---------------------------------------------------------------------------
-
 
 describe('MhdSidebar role-based visibility', () => {
   it('hides "Companies" for a Client User', async () => {
@@ -676,8 +684,9 @@ describe('MhdNotFoundPage', () => {
   it('navigates to "/dashboard" when "Go to Dashboard" is clicked', async () => {
     // importActual: the module is mocked above for the router tests, but this
     // describe block exercises the real component.
-    const { MhdNotFoundPage } =
-      await vi.importActual<typeof import('../components/MhdNotFoundPage')>('../components/MhdNotFoundPage');
+    const { MhdNotFoundPage } = await vi.importActual<
+      typeof import('../components/MhdNotFoundPage')
+    >('../components/MhdNotFoundPage');
     const { MemoryRouter } = await import('react-router-dom');
 
     render(

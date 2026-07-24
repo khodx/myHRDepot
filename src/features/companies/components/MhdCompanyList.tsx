@@ -10,7 +10,11 @@ type MhdCompanyListProps = {
   onSelectCompany: (company: MhdCompany) => void;
 };
 
-export function MhdCompanyList({ companies, selectedCompanyId, onSelectCompany }: MhdCompanyListProps) {
+export function MhdCompanyList({
+  companies,
+  selectedCompanyId,
+  onSelectCompany,
+}: MhdCompanyListProps) {
   if (companies.length === 0) {
     return (
       <MhdCard className="border-dashed">
@@ -38,7 +42,11 @@ export function MhdCompanyList({ companies, selectedCompanyId, onSelectCompany }
           {companies.map((company) => (
             <MhdTr
               key={company.id}
-              className={selectedCompanyId === company.id ? 'bg-accent-tint hover:bg-accent-tint/60' : undefined}
+              className={
+                selectedCompanyId === company.id
+                  ? 'bg-accent-tint hover:bg-accent-tint/60'
+                  : undefined
+              }
             >
               <MhdTd className="whitespace-nowrap text-sm font-medium">{company.referenceId}</MhdTd>
               <MhdTd>
@@ -51,7 +59,9 @@ export function MhdCompanyList({ companies, selectedCompanyId, onSelectCompany }
                 </button>
               </MhdTd>
               <MhdTd className="text-sm text-muted-foreground">{company.industry ?? '—'}</MhdTd>
-              <MhdTd className="whitespace-nowrap text-sm text-muted-foreground">{new Date(company.updatedAt).toLocaleDateString()}</MhdTd>
+              <MhdTd className="whitespace-nowrap text-sm text-muted-foreground">
+                {new Date(company.updatedAt).toLocaleDateString()}
+              </MhdTd>
             </MhdTr>
           ))}
         </tbody>

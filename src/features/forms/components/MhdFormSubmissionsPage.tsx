@@ -72,24 +72,33 @@ export function MhdFormSubmissionsPage() {
         description="Review runtime submissions returned by `mhd_list_submissions_for_form` and `mhd_get_submission`."
         actions={
           <>
-            <Link to={`/forms/${formId}`} className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground">
+            <Link
+              to={`/forms/${formId}`}
+              className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+            >
               Open Builder
             </Link>
-            <Link to={`/forms/${formId}/render`} className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground">
+            <Link
+              to={`/forms/${formId}/render`}
+              className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+            >
               Open Renderer
             </Link>
           </>
         }
       />
       <div className="space-y-6">
-
         {errorMessage ? (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{errorMessage}</div>
+          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {errorMessage}
+          </div>
         ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[24rem_1fr]">
           <MhdCard>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Submission List</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Submission List
+            </h2>
             <div className="mt-3 space-y-2">
               {submissions.map((submission) => (
                 <button
@@ -103,11 +112,17 @@ export function MhdFormSubmissionsPage() {
                   }`}
                 >
                   <p className="text-sm font-semibold text-foreground">{submission.referenceId}</p>
-                  <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">{submission.status}</p>
-                  <p className="mt-2 text-xs text-muted-foreground">{new Date(submission.createdAt).toLocaleString()}</p>
+                  <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+                    {submission.status}
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {new Date(submission.createdAt).toLocaleString()}
+                  </p>
                 </button>
               ))}
-              {submissions.length === 0 ? <p className="text-sm text-muted-foreground">No submissions recorded yet.</p> : null}
+              {submissions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No submissions recorded yet.</p>
+              ) : null}
             </div>
           </MhdCard>
 

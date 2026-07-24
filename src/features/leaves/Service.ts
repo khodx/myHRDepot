@@ -213,11 +213,7 @@ export const mhdLeavesService = {
    * calling it per designated basis (never summing the results) is what keeps
    * FMLA, CFRA and PDL on separate clocks.
    */
-  async balance(
-    personId: string,
-    leaveTypeId: string,
-    asOf?: string | null,
-  ): Promise<number> {
+  async balance(personId: string, leaveTypeId: string, asOf?: string | null): Promise<number> {
     const { data, error } = await leavesRpc('mhd_leave_balance', {
       p_person_id: personId,
       p_leave_type_id: leaveTypeId,

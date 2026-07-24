@@ -11,8 +11,14 @@ import {
 const ratingSchema = z
   .number()
   .int('Rating must be a whole number.')
-  .min(MHD_PERFORMANCE_RATING_MIN, `Rating must be between ${MHD_PERFORMANCE_RATING_MIN} and ${MHD_PERFORMANCE_RATING_MAX}.`)
-  .max(MHD_PERFORMANCE_RATING_MAX, `Rating must be between ${MHD_PERFORMANCE_RATING_MIN} and ${MHD_PERFORMANCE_RATING_MAX}.`);
+  .min(
+    MHD_PERFORMANCE_RATING_MIN,
+    `Rating must be between ${MHD_PERFORMANCE_RATING_MIN} and ${MHD_PERFORMANCE_RATING_MAX}.`,
+  )
+  .max(
+    MHD_PERFORMANCE_RATING_MAX,
+    `Rating must be between ${MHD_PERFORMANCE_RATING_MIN} and ${MHD_PERFORMANCE_RATING_MAX}.`,
+  );
 
 /** Create form: subject, reviewer, type, period, due date, optional meeting link. */
 export const mhdPerformanceReviewFormSchema = z
@@ -87,22 +93,23 @@ export const mhdCoachingPlanFormSchema = z
     companyId: z.string().trim().min(1, 'Company is required.'),
     personId: z.string().trim().min(1, 'Coached employee is required.'),
     coachUserId: z.string().trim().min(1, 'Coach is required.'),
-    title: z.string().min(1, 'Title is required.').max(200, 'Title must be 200 characters or fewer.').refine((value) => value.trim().length > 0, {
-      message: 'Title cannot be blank.',
-    }),
+    title: z
+      .string()
+      .min(1, 'Title is required.')
+      .max(200, 'Title must be 200 characters or fewer.')
+      .refine((value) => value.trim().length > 0, {
+        message: 'Title cannot be blank.',
+      }),
     objective: z.string().max(10000).optional().nullable(),
     startDate: z.string().optional().nullable(),
     targetDate: z.string().optional().nullable(),
     sourceReviewId: z.string().optional().nullable(),
     outcomeSummary: z.string().max(10000).optional().nullable(),
   })
-  .refine(
-    (form) => !form.startDate || !form.targetDate || form.targetDate >= form.startDate,
-    {
-      message: 'Target date must be on or after the start date.',
-      path: ['targetDate'],
-    },
-  );
+  .refine((form) => !form.startDate || !form.targetDate || form.targetDate >= form.startDate, {
+    message: 'Target date must be on or after the start date.',
+    path: ['targetDate'],
+  });
 
 export const mhdCoachingPlanTransitionSchema = z.object({
   newStatus: z.enum(MHD_COACHING_PLAN_STATUSES),
@@ -110,9 +117,13 @@ export const mhdCoachingPlanTransitionSchema = z.object({
 });
 
 export const mhdCoachingPlanItemSchema = z.object({
-  title: z.string().min(1, 'Title is required.').max(200, 'Title must be 200 characters or fewer.').refine((value) => value.trim().length > 0, {
-    message: 'Title cannot be blank.',
-  }),
+  title: z
+    .string()
+    .min(1, 'Title is required.')
+    .max(200, 'Title must be 200 characters or fewer.')
+    .refine((value) => value.trim().length > 0, {
+      message: 'Title cannot be blank.',
+    }),
   description: z.string().max(10000).optional().nullable(),
   dueDate: z.string().optional().nullable(),
   status: z.enum(MHD_COACHING_PLAN_ITEM_STATUSES).default('PLANNED'),
@@ -129,9 +140,15 @@ export const mhdCoachingPlanFilterSchema = z.object({
 });
 
 export type MhdPerformanceReviewFormSchemaInput = z.infer<typeof mhdPerformanceReviewFormSchema>;
-export type MhdPerformanceReviewContentSchemaInput = z.infer<typeof mhdPerformanceReviewContentSchema>;
-export type MhdPerformanceReviewTransitionSchemaInput = z.infer<typeof mhdPerformanceReviewTransitionSchema>;
-export type MhdPerformanceReviewFilterSchemaInput = z.infer<typeof mhdPerformanceReviewFilterSchema>;
+export type MhdPerformanceReviewContentSchemaInput = z.infer<
+  typeof mhdPerformanceReviewContentSchema
+>;
+export type MhdPerformanceReviewTransitionSchemaInput = z.infer<
+  typeof mhdPerformanceReviewTransitionSchema
+>;
+export type MhdPerformanceReviewFilterSchemaInput = z.infer<
+  typeof mhdPerformanceReviewFilterSchema
+>;
 export type MhdCoachingPlanFormSchemaInput = z.infer<typeof mhdCoachingPlanFormSchema>;
 export type MhdCoachingPlanTransitionSchemaInput = z.infer<typeof mhdCoachingPlanTransitionSchema>;
 export type MhdCoachingPlanItemSchemaInput = z.infer<typeof mhdCoachingPlanItemSchema>;

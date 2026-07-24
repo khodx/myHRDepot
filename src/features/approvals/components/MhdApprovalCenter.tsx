@@ -68,17 +68,25 @@ export function MhdApprovalCenter({ userId }: MhdApprovalCenterProps) {
           <div key={approval.id} className="space-y-2 rounded border border-border p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <Link to={`/approvals/${approval.id}`} className="font-semibold text-accent hover:text-accent-hover">
+                <Link
+                  to={`/approvals/${approval.id}`}
+                  className="font-semibold text-accent hover:text-accent-hover"
+                >
                   {approval.referenceId}
                 </Link>
                 <p className="text-xs text-muted-foreground">
-                  {approval.entityType} · {approval.entityId} · Level {approval.currentLevel} of {approval.totalLevels}
+                  {approval.entityType} · {approval.entityId} · Level {approval.currentLevel} of{' '}
+                  {approval.totalLevels}
                 </p>
               </div>
               <MhdApprovalStatus status={approval.status} />
             </div>
-            {approval.reason ? <p className="text-sm text-muted-foreground">{approval.reason}</p> : null}
-            <p className="text-xs text-muted-foreground">Requested by {approval.requesterName || approval.requesterId}</p>
+            {approval.reason ? (
+              <p className="text-sm text-muted-foreground">{approval.reason}</p>
+            ) : null}
+            <p className="text-xs text-muted-foreground">
+              Requested by {approval.requesterName || approval.requesterId}
+            </p>
 
             <div className="flex items-center gap-2">
               <button
@@ -92,7 +100,12 @@ export function MhdApprovalCenter({ userId }: MhdApprovalCenterProps) {
               <input
                 type="text"
                 value={rejectReasonById[approval.id] ?? ''}
-                onChange={(event) => setRejectReasonById((current) => ({ ...current, [approval.id]: event.target.value }))}
+                onChange={(event) =>
+                  setRejectReasonById((current) => ({
+                    ...current,
+                    [approval.id]: event.target.value,
+                  }))
+                }
                 placeholder="Rejection reason"
                 className="flex-1 rounded border border-border bg-card px-2 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />

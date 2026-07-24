@@ -115,19 +115,28 @@ export function MhdFormRenderer({
       }
     };
 
-        void load();
+    void load();
 
     return () => {
       isCancelled = true;
     };
-  }, [formId, initialSubmissionId, isPreview, readOnly, taskId, taskPrefillValues, userPrefillValues]);
+  }, [
+    formId,
+    initialSubmissionId,
+    isPreview,
+    readOnly,
+    taskId,
+    taskPrefillValues,
+    userPrefillValues,
+  ]);
 
   const definition = previewDefinition ?? form?.definition ?? null;
   const displayName = previewName ?? form?.name ?? '';
   const displayDescription = previewDescription ?? form?.description ?? '';
 
   const defaultHiddenFieldIds = useMemo(
-    () => (definition ? definition.fields.filter((field) => field.hidden).map((field) => field.id) : []),
+    () =>
+      definition ? definition.fields.filter((field) => field.hidden).map((field) => field.id) : [],
     [definition],
   );
 
@@ -136,7 +145,10 @@ export function MhdFormRenderer({
     return mhdFormCalculationEngine.evaluateAllCalculations(definition.calculations, values);
   }, [definition, values]);
 
-  const effectiveValues = useMemo(() => ({ ...values, ...calculatedValues }), [calculatedValues, values]);
+  const effectiveValues = useMemo(
+    () => ({ ...values, ...calculatedValues }),
+    [calculatedValues, values],
+  );
 
   // Encrypted-resumed fields left empty (untouched) are omitted from outbound
   // draft saves and submits so the stored ciphertext row is never overwritten;
@@ -145,7 +157,10 @@ export function MhdFormRenderer({
     if (encryptedDraftFieldIds.size === 0) return effectiveValues;
     const next: Record<string, unknown> = {};
     for (const [fieldId, fieldValue] of Object.entries(effectiveValues)) {
-      if (encryptedDraftFieldIds.has(fieldId) && (fieldValue === '' || fieldValue === null || fieldValue === undefined)) {
+      if (
+        encryptedDraftFieldIds.has(fieldId) &&
+        (fieldValue === '' || fieldValue === null || fieldValue === undefined)
+      ) {
         continue;
       }
       next[fieldId] = fieldValue;
@@ -158,7 +173,11 @@ export function MhdFormRenderer({
       return { hiddenFields: new Set<string>(), requiredFields: new Set<string>() };
     }
 
-    const result = mhdFormLogicEngine.evaluateAllLogic(definition.logic, effectiveValues, defaultHiddenFieldIds);
+    const result = mhdFormLogicEngine.evaluateAllLogic(
+      definition.logic,
+      effectiveValues,
+      defaultHiddenFieldIds,
+    );
     return { hiddenFields: result.hiddenFields, requiredFields: result.requiredFields };
   }, [defaultHiddenFieldIds, definition, effectiveValues]);
 
@@ -220,7 +239,9 @@ export function MhdFormRenderer({
           (field.required || logicResult.requiredFields.has(field.id)) &&
           !(
             encryptedDraftFieldIds.has(field.id) &&
-            (effectiveValues[field.id] === '' || effectiveValues[field.id] === null || effectiveValues[field.id] === undefined)
+            (effectiveValues[field.id] === '' ||
+              effectiveValues[field.id] === null ||
+              effectiveValues[field.id] === undefined)
           ),
       }));
 
@@ -278,7 +299,9 @@ export function MhdFormRenderer({
   }
 
   if (!definition) {
-    return <div className="p-6 text-sm text-red-600">{submitError ?? 'Form could not be loaded.'}</div>;
+    return (
+      <div className="p-6 text-sm text-red-600">{submitError ?? 'Form could not be loaded.'}</div>
+    );
   }
 
   const currentPage = pages[currentPageIndex];
@@ -294,7 +317,9 @@ export function MhdFormRenderer({
     >
       <div>
         <h2 className="text-2xl font-semibold text-foreground">{displayName}</h2>
-        {displayDescription ? <p className="mt-1 text-sm text-muted-foreground">{displayDescription}</p> : null}
+        {displayDescription ? (
+          <p className="mt-1 text-sm text-muted-foreground">{displayDescription}</p>
+        ) : null}
       </div>
 
       {readOnly && !isPreview ? (

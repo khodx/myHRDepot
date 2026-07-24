@@ -48,7 +48,9 @@ export function MhdReviewFilterBar({ filters, onChange, companies, people, revie
           label="Company"
           id="mhd-review-filter-company"
           value={filters.companyId}
-          onChange={(event) => update({ companyId: event.target.value as MhdReviewBoardFilters['companyId'] })}
+          onChange={(event) =>
+            update({ companyId: event.target.value as MhdReviewBoardFilters['companyId'] })
+          }
         >
           <option value="ALL">All companies</option>
           {companies.map((company) => (
@@ -91,7 +93,9 @@ export function MhdReviewFilterBar({ filters, onChange, companies, people, revie
         label="Type"
         id="mhd-review-filter-type"
         value={filters.reviewType}
-        onChange={(event) => update({ reviewType: event.target.value as MhdReviewBoardFilters['reviewType'] })}
+        onChange={(event) =>
+          update({ reviewType: event.target.value as MhdReviewBoardFilters['reviewType'] })
+        }
       >
         <option value="ALL">All types</option>
         {MHD_REVIEW_TYPES.map((type) => (
@@ -105,7 +109,9 @@ export function MhdReviewFilterBar({ filters, onChange, companies, people, revie
         label="Status"
         id="mhd-review-filter-status"
         value={filters.status}
-        onChange={(event) => update({ status: event.target.value as MhdReviewBoardFilters['status'] })}
+        onChange={(event) =>
+          update({ status: event.target.value as MhdReviewBoardFilters['status'] })
+        }
       >
         <option value="ALL">All statuses</option>
         {MHD_REVIEW_STATUSES.map((status) => (

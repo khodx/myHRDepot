@@ -12,7 +12,10 @@ import type { MhdTask } from '@/features/tasks/Types';
 export function MhdTasksPage() {
   const { profile } = useMhdAuth();
   const [selectedTask, setSelectedTask] = useState<MhdTask | null>(null);
-  const actorContext = useMemo(() => (profile?.userId ? { actorUserId: profile.userId } : null), [profile]);
+  const actorContext = useMemo(
+    () => (profile?.userId ? { actorUserId: profile.userId } : null),
+    [profile],
+  );
   // The companies feature exposes a react-query hook keyed by list filters
   // (not the actor-context state hook this page originally assumed).
   const companiesQuery = useMhdCompanies({ searchTerm: '' });
@@ -26,7 +29,11 @@ export function MhdTasksPage() {
         description="Create, assign, filter, and track client work."
       />
 
-      {taskState.errorMessage && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{taskState.errorMessage}</div>}
+      {taskState.errorMessage && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {taskState.errorMessage}
+        </div>
+      )}
 
       <MhdTaskSummaryCards summary={taskState.summary} />
 

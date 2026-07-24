@@ -152,9 +152,7 @@ export function MhdClaimDetailPanel({
             <MhdTr key={line.lineNumber}>
               <MhdTd className="tabular-nums">{line.lineNumber}</MhdTd>
               <MhdTd className="whitespace-nowrap">{line.tripDate}</MhdTd>
-              <MhdTd className="text-right tabular-nums">
-                {milesFormatter.format(line.miles)}
-              </MhdTd>
+              <MhdTd className="text-right tabular-nums">{milesFormatter.format(line.miles)}</MhdTd>
               <MhdTd className="text-right tabular-nums">
                 {line.irsRate == null ? (
                   <span className="text-xs text-muted-foreground">unstamped</span>
@@ -229,11 +227,9 @@ export function MhdClaimDetailPanel({
       */}
       {hasExcess ? (
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          <strong>
-            Taxable excess {currencyFormatter.format(claim.taxableExcess)}.
-          </strong>{' '}
-          The company rate exceeds the IRS rate on this claim, and reimbursement above the IRS rate
-          is reportable wages.
+          <strong>Taxable excess {currencyFormatter.format(claim.taxableExcess)}.</strong> The
+          company rate exceeds the IRS rate on this claim, and reimbursement above the IRS rate is
+          reportable wages.
         </div>
       ) : null}
 

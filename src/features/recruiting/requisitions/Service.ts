@@ -229,9 +229,7 @@ export const mhdRecruitingService = {
    * `(id, reference_id)`. Ids (`jobId`, `hiringManagerPersonId`) are passed
    * through untrimmed when set, omitted when blank.
    */
-  async createRequisition(
-    input: MhdCreateRequisitionInput,
-  ): Promise<MhdRecruitingMutationResult> {
+  async createRequisition(input: MhdCreateRequisitionInput): Promise<MhdRecruitingMutationResult> {
     const { data, error } = await recruitingRpc('mhd_recruiting_requisition_create', {
       p_company_id: input.companyId,
       p_title: input.title.trim(),
@@ -284,9 +282,7 @@ export const mhdRecruitingService = {
    * token, returned ONCE. Admin-only at the RPC. The app layer emails the link;
    * the recruiter UI shows/copies it and never re-lists the token.
    */
-  async inviteApplication(
-    input: MhdInviteApplicationInput,
-  ): Promise<MhdRecruitingInviteResult> {
+  async inviteApplication(input: MhdInviteApplicationInput): Promise<MhdRecruitingInviteResult> {
     const { data, error } = await recruitingRpc('mhd_recruiting_application_invite', {
       p_requisition_id: input.requisitionId,
       p_person_id: input.personId,
@@ -305,9 +301,7 @@ export const mhdRecruitingService = {
    * first history row. The lifecycle guard blocks a second submission; the token
    * is not burned (EEO may follow). Called directly by the public apply page.
    */
-  async submitApplication(
-    input: MhdSubmitApplicationInput,
-  ): Promise<MhdRecruitingMutationResult> {
+  async submitApplication(input: MhdSubmitApplicationInput): Promise<MhdRecruitingMutationResult> {
     const { data, error } = await recruitingRpc('mhd_recruiting_application_submit', {
       p_invite_token: input.inviteToken,
       p_desired_pay_rate: input.desiredPayRate ?? undefined,

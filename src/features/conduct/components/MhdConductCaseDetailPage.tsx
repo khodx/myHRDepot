@@ -38,9 +38,12 @@ import { MhdConductCaseStatusBadge } from './MhdConductCaseStatusBadge';
 import { MhdSeverityBadge } from './MhdSeverityBadge';
 
 function MhdCeremonyStepIcon({ step }: { step: MhdConductCeremonyStepState }) {
-  if (step.status === 'DONE') return <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-label="Done" />;
-  if (step.status === 'RUNNING') return <Loader2 className="h-4 w-4 animate-spin text-blue-600" aria-label="Running" />;
-  if (step.status === 'ERROR') return <XCircle className="h-4 w-4 text-red-600" aria-label="Failed" />;
+  if (step.status === 'DONE')
+    return <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-label="Done" />;
+  if (step.status === 'RUNNING')
+    return <Loader2 className="h-4 w-4 animate-spin text-blue-600" aria-label="Running" />;
+  if (step.status === 'ERROR')
+    return <XCircle className="h-4 w-4 text-red-600" aria-label="Failed" />;
   return <Circle className="h-4 w-4 text-muted-foreground" aria-label="Pending" />;
 }
 
@@ -78,10 +81,13 @@ function MhdRescindCaseForm({
           placeholder="e.g. Investigation cleared the employee — the corrective action is withdrawn."
           {...register('rescindReason')}
         />
-        {errors.rescindReason ? <p className="mt-1 text-xs text-red-600">{errors.rescindReason.message}</p> : null}
+        {errors.rescindReason ? (
+          <p className="mt-1 text-xs text-red-600">{errors.rescindReason.message}</p>
+        ) : null}
       </div>
       <p className="text-xs text-muted-foreground">
-        Rescinding {referenceId} is terminal: the case and its actions become immutable. The change is audited.
+        Rescinding {referenceId} is terminal: the case and its actions become immutable. The change
+        is audited.
       </p>
       <div className="flex gap-3">
         <button
@@ -142,21 +148,26 @@ function MhdActionOutcomeForm({
   const needsReason = outcome === 'REFUSED' || outcome === 'WAIVED';
 
   return (
-    <form className="mt-3 space-y-3 rounded-md border border-border bg-muted p-4" onSubmit={handleSubmit(onSubmit)}>
+    <form
+      className="mt-3 space-y-3 rounded-md border border-border bg-muted p-4"
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <input type="hidden" value={outcome} {...register('outcome')} />
 
       {outcome === 'ACKNOWLEDGED' ? (
         <p className="text-sm text-foreground">
-          Record that the employee <strong>acknowledged receipt</strong> of this document. This is receipt, not
-          agreement — it does not record that the employee agrees with the corrective action. Only available once the
-          signature request has completed.
+          Record that the employee <strong>acknowledged receipt</strong> of this document. This is
+          receipt, not agreement — it does not record that the employee agrees with the corrective
+          action. Only available once the signature request has completed.
         </p>
       ) : null}
 
       {needsReason ? (
         <div>
           <label htmlFor="mhd-conduct-outcome-reason" className="mb-1 block text-sm font-medium">
-            {outcome === 'REFUSED' ? 'Reason for Refusal (required)' : 'Reason for Waiver (required)'}
+            {outcome === 'REFUSED'
+              ? 'Reason for Refusal (required)'
+              : 'Reason for Waiver (required)'}
           </label>
           <textarea
             id="mhd-conduct-outcome-reason"
@@ -169,7 +180,9 @@ function MhdActionOutcomeForm({
             }
             {...register('reason')}
           />
-          {errors.reason ? <p className="mt-1 text-xs text-red-600">{errors.reason.message}</p> : null}
+          {errors.reason ? (
+            <p className="mt-1 text-xs text-red-600">{errors.reason.message}</p>
+          ) : null}
         </div>
       ) : null}
 
@@ -178,7 +191,11 @@ function MhdActionOutcomeForm({
           <label htmlFor="mhd-conduct-outcome-witness" className="mb-1 block text-sm font-medium">
             Witness (optional)
           </label>
-          <select id="mhd-conduct-outcome-witness" className="w-full rounded border px-3 py-2" {...register('witnessUserId')}>
+          <select
+            id="mhd-conduct-outcome-witness"
+            className="w-full rounded border px-3 py-2"
+            {...register('witnessUserId')}
+          >
             <option value="">No witness recorded</option>
             {witnesses.map((witness) => (
               <option key={witness.id} value={witness.id}>
@@ -187,7 +204,8 @@ function MhdActionOutcomeForm({
             ))}
           </select>
           <p className="mt-1 text-xs text-muted-foreground">
-            A witnessed refusal is a complete record — the discipline stands even though the employee declined to sign.
+            A witnessed refusal is a complete record — the discipline stands even though the
+            employee declined to sign.
           </p>
         </div>
       ) : null}
@@ -243,7 +261,10 @@ function MhdConductActionRow({
   onEdit: () => void;
   onDelete: () => void;
   onIssue: () => void;
-  onRecordOutcome: (outcome: MhdConductActionOutcome, input: MhdConductOutcomeSchemaInput) => Promise<void>;
+  onRecordOutcome: (
+    outcome: MhdConductActionOutcome,
+    input: MhdConductOutcomeSchemaInput,
+  ) => Promise<void>;
   isIssuing: boolean;
   isRecording: boolean;
   isDeleting: boolean;
@@ -275,13 +296,18 @@ function MhdConductActionRow({
             <span className="text-xs text-muted-foreground">{action.referenceId}</span>
           </div>
           {action.actionSummary ? (
-            <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{action.actionSummary}</p>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
+              {action.actionSummary}
+            </p>
           ) : null}
 
           {action.esignatureRequestId ? (
             <p className="mt-2 text-xs text-muted-foreground">
               Signature request:{' '}
-              <Link to={`/esignature/${action.esignatureRequestId}`} className="text-accent hover:text-accent-hover">
+              <Link
+                to={`/esignature/${action.esignatureRequestId}`}
+                className="text-accent hover:text-accent-hover"
+              >
                 {action.esignatureStatus ?? 'Unknown'}
               </Link>
             </p>
@@ -289,7 +315,9 @@ function MhdConductActionRow({
 
           {action.outcomeReason ? (
             <p className="mt-2 rounded-md bg-muted p-2 text-xs text-muted-foreground">
-              <span className="font-medium">{mhdFormatConductActionStatus(action.status)} reason:</span>{' '}
+              <span className="font-medium">
+                {mhdFormatConductActionStatus(action.status)} reason:
+              </span>{' '}
               {action.outcomeReason}
             </p>
           ) : null}
@@ -308,7 +336,9 @@ function MhdConductActionRow({
                 </button>
                 {isConfirmingDelete ? (
                   <span className="inline-flex items-center gap-2 rounded border border-rose-300 bg-rose-50 px-2 py-1">
-                    <span className="text-xs font-medium text-rose-700">Delete draft {action.referenceId}?</span>
+                    <span className="text-xs font-medium text-rose-700">
+                      Delete draft {action.referenceId}?
+                    </span>
                     <button
                       type="button"
                       onClick={() => {
@@ -345,7 +375,11 @@ function MhdConductActionRow({
                   className="gap-1.5 px-3 py-1.5 text-xs font-semibold"
                 >
                   <FileSignature className="h-3.5 w-3.5" />
-                  {isIssuing && isCeremonyTarget ? 'Issuing…' : action.requiresDocument ? 'Issue & Send' : 'Issue'}
+                  {isIssuing && isCeremonyTarget
+                    ? 'Issuing…'
+                    : action.requiresDocument
+                      ? 'Issue & Send'
+                      : 'Issue'}
                 </Button>
               </>
             ) : null}
@@ -430,7 +464,8 @@ export function MhdConductCaseDetailPage() {
   const canMutate = mhdCanMutateConduct(roles);
 
   const stateCompanyId = (location.state as { companyId?: string } | null)?.companyId;
-  const companyId = stateCompanyId && stateCompanyId !== 'ALL' ? stateCompanyId : profile?.companyId ?? null;
+  const companyId =
+    stateCompanyId && stateCompanyId !== 'ALL' ? stateCompanyId : (profile?.companyId ?? null);
 
   const [isAddingAction, setIsAddingAction] = useState(false);
   const [editingActionId, setEditingActionId] = useState<string | null>(null);
@@ -445,7 +480,10 @@ export function MhdConductCaseDetailPage() {
   const mutations = useMhdConductActionsMutations();
   const ceremony = useMhdConductActionCeremony();
   const usersQuery = useMhdConductUsers(companyId, Boolean(companyId));
-  const witnesses = (usersQuery.data ?? []).map((user) => ({ id: user.id, label: user.displayName }));
+  const witnesses = (usersQuery.data ?? []).map((user) => ({
+    id: user.id,
+    label: user.displayName,
+  }));
 
   const editingAction = useMemo(
     () => actions.find((action) => action.id === editingActionId) ?? null,
@@ -545,7 +583,10 @@ export function MhdConductCaseDetailPage() {
     if (!conductCase) return;
     setActionError(null);
     try {
-      await mutations.transitionCase.mutateAsync({ caseId: conductCase.id, input: { newStatus: 'CLOSED' } });
+      await mutations.transitionCase.mutateAsync({
+        caseId: conductCase.id,
+        input: { newStatus: 'CLOSED' },
+      });
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to close the case.');
     }
@@ -566,16 +607,26 @@ export function MhdConductCaseDetailPage() {
   }
 
   if (caseQuery.isLoading) {
-    return <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">Loading conduct case…</div>;
+    return (
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+        Loading conduct case…
+      </div>
+    );
   }
 
   if (caseQuery.error || !conductCase) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-600">
-          {caseQuery.error instanceof Error ? caseQuery.error.message : 'Case not found or you do not have access to it.'}
+          {caseQuery.error instanceof Error
+            ? caseQuery.error.message
+            : 'Case not found or you do not have access to it.'}
         </p>
-        <button type="button" onClick={() => navigate('/conduct')} className="text-sm text-accent hover:text-accent-hover">
+        <button
+          type="button"
+          onClick={() => navigate('/conduct')}
+          className="text-sm text-accent hover:text-accent-hover"
+        >
           Back to Conduct
         </button>
       </div>
@@ -584,12 +635,20 @@ export function MhdConductCaseDetailPage() {
 
   return (
     <div className="space-y-6">
-      <MhdBreadcrumb items={[{ label: 'Conduct', to: '/conduct' }, { label: conductCase.referenceId }]} />
+      <MhdBreadcrumb
+        items={[{ label: 'Conduct', to: '/conduct' }, { label: conductCase.referenceId }]}
+      />
 
-      {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
+      {actionError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      ) : null}
       {actionsQuery.error ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {actionsQuery.error instanceof Error ? actionsQuery.error.message : 'Unable to load the action ladder.'}
+          {actionsQuery.error instanceof Error
+            ? actionsQuery.error.message
+            : 'Unable to load the action ladder.'}
         </div>
       ) : null}
 
@@ -604,7 +663,13 @@ export function MhdConductCaseDetailPage() {
         actions={
           canMutate && isOpen ? (
             <>
-              <span title={closeable ? undefined : `Cannot close: ${nonTerminalCount} action(s) not yet terminal.`}>
+              <span
+                title={
+                  closeable
+                    ? undefined
+                    : `Cannot close: ${nonTerminalCount} action(s) not yet terminal.`
+                }
+              >
                 <button
                   type="button"
                   onClick={() => void handleClose()}
@@ -631,7 +696,10 @@ export function MhdConductCaseDetailPage() {
             <span className="mx-2">·</span>
             <span>
               Person{' '}
-              <Link to={`/people/${conductCase.personId}`} className="text-accent hover:text-accent-hover">
+              <Link
+                to={`/people/${conductCase.personId}`}
+                className="text-accent hover:text-accent-hover"
+              >
                 {conductCase.personDisplayName ?? 'View person'}
               </Link>
             </span>
@@ -645,8 +713,9 @@ export function MhdConductCaseDetailPage() {
 
       {isOpen && !closeable ? (
         <p className="text-xs text-muted-foreground">
-          Close is unavailable while {nonTerminalCount} action{nonTerminalCount === 1 ? ' is' : 's are'} not yet
-          terminal. Acknowledge, refuse, or waive each issued action first.
+          Close is unavailable while {nonTerminalCount} action
+          {nonTerminalCount === 1 ? ' is' : 's are'} not yet terminal. Acknowledge, refuse, or waive
+          each issued action first.
         </p>
       ) : null}
 
@@ -691,10 +760,11 @@ export function MhdConductCaseDetailPage() {
         />
 
         <p className="mt-1 text-sm text-muted-foreground">
-          Each rung is a corrective action. Issuing an action that generates a document renders it and routes it to
-          the employee for <strong>acknowledgment of receipt</strong> — signing records that the employee received
-          the document, never that they agree with it. An employee may instead refuse (witnessed) or the signature
-          may be waived; both are complete outcomes.
+          Each rung is a corrective action. Issuing an action that generates a document renders it
+          and routes it to the employee for <strong>acknowledgment of receipt</strong> — signing
+          records that the employee received the document, never that they agree with it. An
+          employee may instead refuse (witnessed) or the signature may be waived; both are complete
+          outcomes.
         </p>
 
         {isAddingAction && canMutate && isOpen ? (
@@ -710,14 +780,21 @@ export function MhdConductCaseDetailPage() {
         ) : null}
 
         {actionsQuery.isLoading ? (
-          <div className="mt-4 flex h-24 items-center justify-center text-sm text-muted-foreground">Loading actions…</div>
+          <div className="mt-4 flex h-24 items-center justify-center text-sm text-muted-foreground">
+            Loading actions…
+          </div>
         ) : actions.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">No actions yet. Add the first rung of the ladder.</p>
+          <p className="mt-4 text-sm text-muted-foreground">
+            No actions yet. Add the first rung of the ladder.
+          </p>
         ) : (
           <ul className="mt-4 space-y-3">
             {actions.map((action) =>
               editingActionId === action.id && editingAction ? (
-                <li key={action.id} className="rounded-lg border border-accent/30 bg-accent-tint p-4">
+                <li
+                  key={action.id}
+                  className="rounded-lg border border-accent/30 bg-accent-tint p-4"
+                >
                   <h3 className="mb-3 text-sm font-semibold text-foreground">Edit Draft Action</h3>
                   <MhdConductActionForm
                     mode="edit"

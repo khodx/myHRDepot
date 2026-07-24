@@ -135,9 +135,7 @@ function mapWorksheetItem(row: MhdInterviewWorksheetItemRpcRow): MhdInterviewWor
   };
 }
 
-function mapRollupRow(
-  row: MhdInterviewEvaluationRollupRpcRow,
-): MhdInterviewEvaluationRollupRow {
+function mapRollupRow(row: MhdInterviewEvaluationRollupRpcRow): MhdInterviewEvaluationRollupRow {
   return {
     competencyId: row.competency_id,
     competencyName: row.competency_name,
@@ -427,9 +425,7 @@ export const mhdInterviewService = {
    * Finalize (upsert) the hiring recommendation for an application. Admin-only at
    * the RPC, which audits the decision. Returns the evaluation `(id, reference_id)`.
    */
-  async finalizeEvaluation(
-    input: MhdFinalizeEvaluationInput,
-  ): Promise<MhdInterviewMutationResult> {
+  async finalizeEvaluation(input: MhdFinalizeEvaluationInput): Promise<MhdInterviewMutationResult> {
     const { data, error } = await interviewRpc('mhd_interview_evaluation_finalize', {
       p_application_id: input.applicationId,
       p_recommendation: input.recommendation,

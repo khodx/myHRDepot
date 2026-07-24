@@ -49,7 +49,10 @@ export function MhdSubActivityChecklist({
             const isDone = item.status === 'COMPLETED';
             const isInactive = item.status === 'CANCELLED';
             return (
-              <li key={item.id} className="flex items-center gap-2 rounded border border-border bg-card px-3 py-2 text-sm">
+              <li
+                key={item.id}
+                className="flex items-center gap-2 rounded border border-border bg-card px-3 py-2 text-sm"
+              >
                 {canMutate ? (
                   <button
                     type="button"
@@ -58,7 +61,11 @@ export function MhdSubActivityChecklist({
                     aria-label={isDone ? `Reopen ${item.title}` : `Complete ${item.title}`}
                     className="text-muted-foreground hover:text-emerald-600 disabled:opacity-50"
                   >
-                    {isDone ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <Circle className="h-5 w-5" />}
+                    {isDone ? (
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                    ) : (
+                      <Circle className="h-5 w-5" />
+                    )}
                   </button>
                 ) : isDone ? (
                   <CheckCircle2 className="h-5 w-5 text-emerald-600" />
@@ -67,13 +74,29 @@ export function MhdSubActivityChecklist({
                 )}
 
                 <div className="min-w-0 flex-1">
-                  <span className={isDone ? 'text-muted-foreground line-through' : isInactive ? 'text-muted-foreground' : ''}>{item.title}</span>
+                  <span
+                    className={
+                      isDone
+                        ? 'text-muted-foreground line-through'
+                        : isInactive
+                          ? 'text-muted-foreground'
+                          : ''
+                    }
+                  >
+                    {item.title}
+                  </span>
                   <span className="ml-2 text-xs text-muted-foreground">
                     {item.referenceId}
-                    {item.status !== 'PLANNED' && item.status !== 'COMPLETED' ? ` · ${mhdFormatSubActivityStatus(item.status)}` : ''}
+                    {item.status !== 'PLANNED' && item.status !== 'COMPLETED'
+                      ? ` · ${mhdFormatSubActivityStatus(item.status)}`
+                      : ''}
                     {item.scheduledAt ? ` · ${new Date(item.scheduledAt).toLocaleString()}` : ''}
                   </span>
-                  {item.descriptionPlainText ? <p className="mt-0.5 truncate text-xs text-muted-foreground">{item.descriptionPlainText}</p> : null}
+                  {item.descriptionPlainText ? (
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      {item.descriptionPlainText}
+                    </p>
+                  ) : null}
                 </div>
 
                 {canMutate ? (

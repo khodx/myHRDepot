@@ -138,14 +138,16 @@ function mapPolicy(row: MhdAttendancePolicyRpcRow): MhdAttendancePolicy {
     excusedUnpaidAccrues: row.excused_unpaid_accrues,
     excusedPaidAccrues: row.excused_paid_accrues,
     pointRules: (row.point_rules ?? []).map((rule) => ({
-      occurrenceType: rule.occurrence_type as MhdAttendancePolicy['pointRules'][number]['occurrenceType'],
+      occurrenceType:
+        rule.occurrence_type as MhdAttendancePolicy['pointRules'][number]['occurrenceType'],
       points: mhdToNumber(rule.points),
     })),
     thresholds: (row.thresholds ?? [])
       .map((threshold) => ({
         id: threshold.id,
         pointsAt: mhdToNumber(threshold.points_at),
-        actionLevel: threshold.action_level as MhdAttendancePolicy['thresholds'][number]['actionLevel'],
+        actionLevel:
+          threshold.action_level as MhdAttendancePolicy['thresholds'][number]['actionLevel'],
       }))
       .sort((a, b) => a.pointsAt - b.pointsAt),
   };
@@ -242,7 +244,9 @@ export const mhdTimeAttendanceService = {
     return mapTemplateDetail((data ?? []) as MhdScheduleTemplateDayRpcRow[]);
   },
 
-  async createTemplate(input: MhdCreateScheduleTemplateInput): Promise<{ id: string; referenceId: string }> {
+  async createTemplate(
+    input: MhdCreateScheduleTemplateInput,
+  ): Promise<{ id: string; referenceId: string }> {
     const { data, error } = await attendanceRpc('mhd_schedule_create_template', {
       p_company_id: input.companyId,
       p_template_name: input.templateName.trim(),
@@ -350,7 +354,11 @@ export const mhdTimeAttendanceService = {
     if (error) throw error;
   },
 
-  async listHolidays(companyId: string, from?: string | null, to?: string | null): Promise<MhdCompanyHoliday[]> {
+  async listHolidays(
+    companyId: string,
+    from?: string | null,
+    to?: string | null,
+  ): Promise<MhdCompanyHoliday[]> {
     const { data, error } = await attendanceRpc('mhd_schedule_list_holidays', {
       p_company_id: companyId,
       p_from: from ?? undefined,
@@ -423,7 +431,9 @@ export const mhdTimeAttendanceService = {
 
   // ----- Occurrences -----
 
-  async listOccurrences(filters: MhdAttendanceOccurrenceFilters): Promise<MhdAttendanceOccurrence[]> {
+  async listOccurrences(
+    filters: MhdAttendanceOccurrenceFilters,
+  ): Promise<MhdAttendanceOccurrence[]> {
     if (!filters.companyId) return [];
     const { data, error } = await attendanceRpc('mhd_attendance_list_occurrences', {
       p_company_id: filters.companyId,
@@ -554,7 +564,10 @@ export const mhdTimeAttendanceService = {
 
   // ----- Threshold events (privileged only — no employee-facing read) -----
 
-  async listThresholdEvents(companyId: string, status?: string | null): Promise<MhdThresholdEvent[]> {
+  async listThresholdEvents(
+    companyId: string,
+    status?: string | null,
+  ): Promise<MhdThresholdEvent[]> {
     const { data, error } = await attendanceRpc('mhd_attendance_list_threshold_events', {
       p_company_id: companyId,
       p_status: filterValueOrUndefined(status),

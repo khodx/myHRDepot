@@ -125,14 +125,22 @@ export function MhdApprovalDetailPage() {
   }
 
   if (isLoading) {
-    return <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">Loading approval...</div>;
+    return (
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+        Loading approval...
+      </div>
+    );
   }
 
   if (error || !approval) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-600">{error ?? 'Approval not found'}</p>
-        <button type="button" onClick={() => navigate('/approvals')} className="text-sm text-accent hover:text-accent-hover">
+        <button
+          type="button"
+          onClick={() => navigate('/approvals')}
+          className="text-sm text-accent hover:text-accent-hover"
+        >
           Back to Approvals
         </button>
       </div>
@@ -152,7 +160,13 @@ export function MhdApprovalDetailPage() {
             {approval.taskId ? (
               <>
                 {' '}
-                · <Link to={`/tasks/${approval.taskId}`} className="text-accent hover:text-accent-hover">Open Task</Link>
+                ·{' '}
+                <Link
+                  to={`/tasks/${approval.taskId}`}
+                  className="text-accent hover:text-accent-hover"
+                >
+                  Open Task
+                </Link>
               </>
             ) : null}
           </>
@@ -162,14 +176,18 @@ export function MhdApprovalDetailPage() {
       <MhdCard className="p-6">
         <div className="grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
           <p>Requester: {approval.requesterName || approval.requesterId}</p>
-          <p>Current level: {approval.currentLevel} of {approval.totalLevels}</p>
+          <p>
+            Current level: {approval.currentLevel} of {approval.totalLevels}
+          </p>
           <p>Created: {format(new Date(approval.createdAt), 'PPp')}</p>
           <p>Updated: {approval.updatedAt ? format(new Date(approval.updatedAt), 'PPp') : '—'}</p>
           <p>Type: {approval.approvalType}</p>
           <p>Viewer: {profile?.displayName || profile?.email || 'Unknown user'}</p>
         </div>
 
-        {approval.reason ? <p className="mt-4 rounded-md bg-muted p-3 text-sm text-foreground">{approval.reason}</p> : null}
+        {approval.reason ? (
+          <p className="mt-4 rounded-md bg-muted p-3 text-sm text-foreground">{approval.reason}</p>
+        ) : null}
         {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
       </MhdCard>
 
@@ -183,13 +201,21 @@ export function MhdApprovalDetailPage() {
           <MhdCard className="p-6">
             <MhdCardHeader title="Comments" />
             <div className="space-y-3">
-              {comments.length === 0 ? <p className="text-sm text-muted-foreground">No comments yet.</p> : null}
+              {comments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No comments yet.</p>
+              ) : null}
               {comments.map((comment) => (
                 <div key={comment.id} className="rounded-md border border-border p-3">
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">{comment.authorName || comment.userId}</span>
+                    <span className="font-medium text-foreground">
+                      {comment.authorName || comment.userId}
+                    </span>
                     <span>{format(new Date(comment.createdAt), 'PPp')}</span>
-                    {comment.isInternal ? <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">Internal</span> : null}
+                    {comment.isInternal ? (
+                      <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">
+                        Internal
+                      </span>
+                    ) : null}
                   </div>
                   <p className="mt-2 text-sm text-foreground">{comment.comment}</p>
                 </div>
@@ -244,7 +270,11 @@ export function MhdApprovalDetailPage() {
                 className="min-h-24 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
               <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                <input type="checkbox" checked={isInternalComment} onChange={(event) => setIsInternalComment(event.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={isInternalComment}
+                  onChange={(event) => setIsInternalComment(event.target.checked)}
+                />
                 Internal comment
               </label>
               <button

@@ -1,4 +1,8 @@
-import type { MhdFormField as MhdFormFieldType, MhdFormFileValue, MhdFormPage as MhdFormPageType } from '../Types';
+import type {
+  MhdFormField as MhdFormFieldType,
+  MhdFormFileValue,
+  MhdFormPage as MhdFormPageType,
+} from '../Types';
 import { MhdFormField } from './MhdFormField';
 import { MhdFormFieldGroup } from './MhdFormFieldGroup';
 import { MhdFormTable } from './MhdFormTable';
@@ -36,14 +40,18 @@ export function MhdFormPage({
     <div className="space-y-4">
       <div>
         <h3 className="text-xl font-semibold text-foreground">{page.title}</h3>
-        {page.description ? <p className="mt-1 text-sm text-muted-foreground">{page.description}</p> : null}
+        {page.description ? (
+          <p className="mt-1 text-sm text-muted-foreground">{page.description}</p>
+        ) : null}
       </div>
 
       {pageFields.map((field) => {
         if (hiddenFieldIds.has(field.id)) return null;
 
         if (field.repeatable?.kind === 'section') {
-          const rows = Array.isArray(values[field.id]) ? (values[field.id] as Array<Record<string, unknown>>) : [];
+          const rows = Array.isArray(values[field.id])
+            ? (values[field.id] as Array<Record<string, unknown>>)
+            : [];
           return (
             <MhdFormFieldGroup
               key={field.id}
@@ -55,7 +63,9 @@ export function MhdFormPage({
         }
 
         if (field.repeatable?.kind === 'table') {
-          const rows = Array.isArray(values[field.id]) ? (values[field.id] as Array<Record<string, unknown>>) : [];
+          const rows = Array.isArray(values[field.id])
+            ? (values[field.id] as Array<Record<string, unknown>>)
+            : [];
           return (
             <MhdFormTable
               key={field.id}
@@ -82,7 +92,9 @@ export function MhdFormPage({
             required={requiredFieldIds.has(field.id) || field.required}
             error={errors[field.id] ?? null}
             readOnly={readOnlyFieldIds?.has(field.id)}
-            onUploadFile={onUploadFieldFile ? (file) => onUploadFieldFile(field.id, file) : undefined}
+            onUploadFile={
+              onUploadFieldFile ? (file) => onUploadFieldFile(field.id, file) : undefined
+            }
           />
         );
       })}

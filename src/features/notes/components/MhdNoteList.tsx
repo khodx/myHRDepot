@@ -19,11 +19,16 @@ export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: 
   const [draftText, setDraftText] = useState('');
   const [draftVisibility, setDraftVisibility] = useState<MhdNoteVisibility>('PUBLIC');
 
-  if (isLoading) return <MhdCard className="text-sm text-muted-foreground">Loading notes...</MhdCard>;
+  if (isLoading)
+    return <MhdCard className="text-sm text-muted-foreground">Loading notes...</MhdCard>;
   if (notes.length === 0) {
     return (
       <MhdCard className="border-dashed">
-        <MhdEmptyState icon={MessageSquare} title="No notes yet" description="No notes have been added yet." />
+        <MhdEmptyState
+          icon={MessageSquare}
+          title="No notes yet"
+          description="No notes have been added yet."
+        />
       </MhdCard>
     );
   }
@@ -52,29 +57,69 @@ export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: 
                   <p className="font-semibold text-foreground">{note.createdByDisplayName}</p>
                   <MhdNoteVisibilityBadge visibility={note.visibility} />
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">{note.referenceId} · {new Date(note.createdAt).toLocaleString()}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {note.referenceId} · {new Date(note.createdAt).toLocaleString()}
+                </p>
               </div>
               <div className="flex gap-2">
-                {note.canEdit && !isEditing && <button className="text-sm font-semibold text-accent hover:text-accent-hover" onClick={() => startEdit(note)}>Edit</button>}
-                {note.canDelete && <button className="text-sm font-semibold text-red-700 hover:text-red-800" disabled={isSaving} onClick={() => void onDelete(note.id)}>Delete</button>}
+                {note.canEdit && !isEditing && (
+                  <button
+                    className="text-sm font-semibold text-accent hover:text-accent-hover"
+                    onClick={() => startEdit(note)}
+                  >
+                    Edit
+                  </button>
+                )}
+                {note.canDelete && (
+                  <button
+                    className="text-sm font-semibold text-red-700 hover:text-red-800"
+                    disabled={isSaving}
+                    onClick={() => void onDelete(note.id)}
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             </div>
 
             {isEditing ? (
               <div className="mt-3 space-y-3">
-                <select className="rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={draftVisibility} onChange={(event) => setDraftVisibility(event.target.value as MhdNoteVisibility)}>
+                <select
+                  className="rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  value={draftVisibility}
+                  onChange={(event) => setDraftVisibility(event.target.value as MhdNoteVisibility)}
+                >
                   <option value="PUBLIC">Public</option>
                   <option value="ADMIN">Admin</option>
                   <option value="PRIVATE">Private</option>
                 </select>
-                <textarea className="min-h-28 w-full rounded-md border border-border bg-card p-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={draftText} onChange={(event) => setDraftText(event.target.value)} />
+                <textarea
+                  className="min-h-28 w-full rounded-md border border-border bg-card p-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  value={draftText}
+                  onChange={(event) => setDraftText(event.target.value)}
+                />
                 <div className="flex justify-end gap-2">
-                  <button className="rounded-md border border-border px-3 py-2 text-sm" type="button" onClick={() => setEditingNoteId(null)}>Cancel</button>
-                  <Button className="px-3 py-2 font-semibold" disabled={isSaving || !draftText.trim()} type="button" onClick={() => void saveEdit(note.id)}>Save</Button>
+                  <button
+                    className="rounded-md border border-border px-3 py-2 text-sm"
+                    type="button"
+                    onClick={() => setEditingNoteId(null)}
+                  >
+                    Cancel
+                  </button>
+                  <Button
+                    className="px-3 py-2 font-semibold"
+                    disabled={isSaving || !draftText.trim()}
+                    type="button"
+                    onClick={() => void saveEdit(note.id)}
+                  >
+                    Save
+                  </Button>
                 </div>
               </div>
             ) : (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground">{note.notePlainText}</p>
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground">
+                {note.notePlainText}
+              </p>
             )}
           </article>
         );

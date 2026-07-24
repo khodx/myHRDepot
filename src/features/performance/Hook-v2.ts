@@ -253,8 +253,13 @@ export function useMhdCreateReviewTemplate(companyId: string | null) {
 export function useMhdPublishReviewTemplate(companyId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ templateId, effectiveFrom }: { templateId: string; effectiveFrom?: string | null }) =>
-      mhdPerformanceV2Service.publishTemplate(templateId, effectiveFrom),
+    mutationFn: ({
+      templateId,
+      effectiveFrom,
+    }: {
+      templateId: string;
+      effectiveFrom?: string | null;
+    }) => mhdPerformanceV2Service.publishTemplate(templateId, effectiveFrom),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: mhdPerformanceV2QueryKeys.templates(companyId),
@@ -291,7 +296,9 @@ export function useMhdUpsertFeedbackSettings(companyId: string | null) {
         queryKey: mhdPerformanceV2QueryKeys.settings(companyId),
       });
       // The threshold changing affects what every aggregate on this company releases.
-      void queryClient.invalidateQueries({ queryKey: ['mhd-performance-v2', 'feedback-aggregate'] });
+      void queryClient.invalidateQueries({
+        queryKey: ['mhd-performance-v2', 'feedback-aggregate'],
+      });
     },
   });
 }

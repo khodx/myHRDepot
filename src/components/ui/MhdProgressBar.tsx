@@ -10,7 +10,12 @@ interface MhdProgressBarProps {
 }
 
 /** Inline progress bar for table cells and progress cards (§6). */
-export function MhdProgressBar({ percent, tone = 'accent', showLabel, className }: MhdProgressBarProps) {
+export function MhdProgressBar({
+  percent,
+  tone = 'accent',
+  showLabel,
+  className,
+}: MhdProgressBarProps) {
   const clamped = Math.min(100, Math.max(0, percent));
   return (
     <div className={cn('flex items-center gap-2', className)}>

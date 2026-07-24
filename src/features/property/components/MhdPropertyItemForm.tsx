@@ -35,27 +35,42 @@ export function MhdPropertyItemForm({
   });
 
   return (
-    <form className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm" onSubmit={handleSubmit(onSubmit)}>
+    <form
+      className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm"
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Add Property Item</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Create the inventory record before issuing it to an employee.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Create the inventory record before issuing it to an employee.
+          </p>
         </div>
-        <button type="button" className="text-sm font-semibold text-muted-foreground hover:text-foreground" onClick={onCancel}>
+        <button
+          type="button"
+          className="text-sm font-semibold text-muted-foreground hover:text-foreground"
+          onClick={onCancel}
+        >
           Cancel
         </button>
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">Item Name</label>
-        <input className="w-full rounded-md border border-border px-3 py-2 text-sm" {...register('name')} />
+        <input
+          className="w-full rounded-md border border-border px-3 py-2 text-sm"
+          {...register('name')}
+        />
         {errors.name ? <p className="mt-1 text-xs text-red-600">{errors.name.message}</p> : null}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Category</label>
-          <select className="w-full rounded-md border border-border px-3 py-2 text-sm" {...register('category')}>
+          <select
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
+            {...register('category')}
+          >
             {MHD_PROPERTY_CATEGORIES.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -65,8 +80,13 @@ export function MhdPropertyItemForm({
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Serial Number</label>
-          <input className="w-full rounded-md border border-border px-3 py-2 text-sm" {...register('serialNumber')} />
-          {errors.serialNumber ? <p className="mt-1 text-xs text-red-600">{errors.serialNumber.message}</p> : null}
+          <input
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
+            {...register('serialNumber')}
+          />
+          {errors.serialNumber ? (
+            <p className="mt-1 text-xs text-red-600">{errors.serialNumber.message}</p>
+          ) : null}
         </div>
       </div>
 
@@ -84,7 +104,9 @@ export function MhdPropertyItemForm({
               },
             })}
           />
-          {errors.quantityTotal ? <p className="mt-1 text-xs text-red-600">{errors.quantityTotal.message}</p> : null}
+          {errors.quantityTotal ? (
+            <p className="mt-1 text-xs text-red-600">{errors.quantityTotal.message}</p>
+          ) : null}
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Unit Cost</label>
@@ -100,22 +122,38 @@ export function MhdPropertyItemForm({
               },
             })}
           />
-          {errors.unitCost ? <p className="mt-1 text-xs text-red-600">{errors.unitCost.message}</p> : null}
+          {errors.unitCost ? (
+            <p className="mt-1 text-xs text-red-600">{errors.unitCost.message}</p>
+          ) : null}
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Acquisition Date</label>
-          <input type="date" className="w-full rounded-md border border-border px-3 py-2 text-sm" {...register('acquisitionDate')} />
+          <input
+            type="date"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
+            {...register('acquisitionDate')}
+          />
         </div>
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">Description</label>
-        <textarea className="w-full rounded-md border border-border px-3 py-2 text-sm" rows={3} {...register('description')} />
-        {errors.description ? <p className="mt-1 text-xs text-red-600">{errors.description.message}</p> : null}
+        <textarea
+          className="w-full rounded-md border border-border px-3 py-2 text-sm"
+          rows={3}
+          {...register('description')}
+        />
+        {errors.description ? (
+          <p className="mt-1 text-xs text-red-600">{errors.description.message}</p>
+        ) : null}
       </div>
 
       <div className="flex justify-end gap-3">
-        <button type="button" onClick={onCancel} className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+        >
           Cancel
         </button>
         <Button type="submit" disabled={isSubmitting} className="font-semibold">

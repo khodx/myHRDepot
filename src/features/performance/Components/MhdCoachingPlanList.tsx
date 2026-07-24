@@ -18,7 +18,11 @@ export function MhdCoachingPlanList({ plans }: Props) {
   if (plans.length === 0) {
     return (
       <MhdCard className="border-dashed">
-        <MhdEmptyState icon={Target} title="No coaching plans found" description="No coaching plans match the current filters." />
+        <MhdEmptyState
+          icon={Target}
+          title="No coaching plans found"
+          description="No coaching plans match the current filters."
+        />
       </MhdCard>
     );
   }
@@ -40,7 +44,10 @@ export function MhdCoachingPlanList({ plans }: Props) {
           {plans.map((plan) => (
             <MhdTr key={plan.id}>
               <MhdTd>
-                <Link to={`/performance/coaching/${plan.id}`} className="font-medium text-accent hover:text-accent-hover">
+                <Link
+                  to={`/performance/coaching/${plan.id}`}
+                  className="font-medium text-accent hover:text-accent-hover"
+                >
                   {plan.title}
                 </Link>
                 <div className="text-xs text-muted-foreground">{plan.referenceId}</div>

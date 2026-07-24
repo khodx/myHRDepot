@@ -1,10 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
-import {
-  mhdInvestigationCaseFormSchema,
-  type MhdInvestigationCaseFormValues,
-} from '../Schemas';
+import { mhdInvestigationCaseFormSchema, type MhdInvestigationCaseFormValues } from '../Schemas';
 import {
   MHD_INVESTIGATION_CASE_TYPES,
   MHD_INVESTIGATION_CONFIDENTIALITIES,
@@ -96,7 +93,8 @@ export function MhdInvestigationCaseForm({
         {/* This narrative is encrypted at rest and only ever read back through the
             audited reveal path — it is the most sensitive text in the system. */}
         <p className="mt-1 text-xs text-muted-foreground">
-          Encrypted at rest. It is read back only through the audited reveal, never shown by default.
+          Encrypted at rest. It is read back only through the audited reveal, never shown by
+          default.
         </p>
         {errors.allegation ? (
           <p className="mt-1 text-xs text-rose-600">{errors.allegation.message}</p>

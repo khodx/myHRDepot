@@ -6,7 +6,11 @@ interface MhdMarkAllReadButtonProps {
   disabled?: boolean;
 }
 
-export function MhdMarkAllReadButton({ unreadCount, onMarkAllRead, disabled = false }: MhdMarkAllReadButtonProps) {
+export function MhdMarkAllReadButton({
+  unreadCount,
+  onMarkAllRead,
+  disabled = false,
+}: MhdMarkAllReadButtonProps) {
   if (unreadCount === 0) {
     return null;
   }

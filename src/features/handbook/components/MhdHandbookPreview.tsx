@@ -39,7 +39,10 @@ export function MhdHandbookPreview({ rows, isLoading = false }: Props) {
             // for policy.
             const isPlaceholder = row.bodyPlaceholder.trim() === MHD_HANDBOOK_ATTORNEY_PLACEHOLDER;
             return (
-              <li key={row.sectionId} className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <li
+                key={row.sectionId}
+                className="rounded-xl border border-border bg-card p-4 shadow-sm"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-foreground">{row.title}</h3>
                   <MhdBadge variant="neutral">

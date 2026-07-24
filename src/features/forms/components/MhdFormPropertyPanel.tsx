@@ -7,7 +7,11 @@ interface MhdFormPropertyPanelProps {
   onDeleteField: (fieldId: string) => void;
 }
 
-export function MhdFormPropertyPanel({ selectedField, onChange, onDeleteField }: MhdFormPropertyPanelProps) {
+export function MhdFormPropertyPanel({
+  selectedField,
+  onChange,
+  onDeleteField,
+}: MhdFormPropertyPanelProps) {
   if (!selectedField) {
     return (
       <aside className="w-80 border-l border-border bg-card p-4 text-sm text-muted-foreground">
@@ -19,7 +23,9 @@ export function MhdFormPropertyPanel({ selectedField, onChange, onDeleteField }:
   return (
     <aside className="w-80 border-l border-border bg-card p-4">
       <div className="mb-4 flex items-center justify-between">
-        <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Field Properties</h4>
+        <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Field Properties
+        </h4>
         <button
           type="button"
           onClick={() => onDeleteField(selectedField.id)}

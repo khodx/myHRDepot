@@ -122,13 +122,7 @@ export type MhdOfferReferenceId = `OFR-${string}`;
  * expiration date. Never computed client-side.
  */
 export type MhdOfferStatus =
-  | 'DRAFT'
-  | 'PENDING_APPROVAL'
-  | 'EXTENDED'
-  | 'ACCEPTED'
-  | 'DECLINED'
-  | 'RESCINDED'
-  | 'EXPIRED';
+  'DRAFT' | 'PENDING_APPROVAL' | 'EXTENDED' | 'ACCEPTED' | 'DECLINED' | 'RESCINDED' | 'EXPIRED';
 
 export const MHD_OFFER_STATUSES = [
   'DRAFT',

@@ -60,9 +60,11 @@ export function MhdAuthProvider({ children }: { children: ReactNode }) {
         if (isMounted) setAuthState({ ...mhdInitialAuthState, isLoading: false });
       });
 
-    const { data } = mhdSupabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
-      void applySession(session);
-    });
+    const { data } = mhdSupabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        void applySession(session);
+      },
+    );
 
     return () => {
       isMounted = false;
@@ -70,20 +72,23 @@ export function MhdAuthProvider({ children }: { children: ReactNode }) {
     };
   }, [applySession]);
 
-  const value = useMemo<MhdAuthContextValue>(() => ({
-    ...authState,
-    refreshProfile,
-    signIn: async (input) => {
-      const { session } = await mhdSignInWithPassword(input);
-      await applySession(session);
-    },
-    signOut: async () => {
-      await mhdSignOut();
-      setAuthState({ ...mhdInitialAuthState, isLoading: false });
-    },
-    sendPasswordReset: mhdSendPasswordReset,
-    updatePassword: mhdUpdatePassword,
-  }), [applySession, authState, refreshProfile]);
+  const value = useMemo<MhdAuthContextValue>(
+    () => ({
+      ...authState,
+      refreshProfile,
+      signIn: async (input) => {
+        const { session } = await mhdSignInWithPassword(input);
+        await applySession(session);
+      },
+      signOut: async () => {
+        await mhdSignOut();
+        setAuthState({ ...mhdInitialAuthState, isLoading: false });
+      },
+      sendPasswordReset: mhdSendPasswordReset,
+      updatePassword: mhdUpdatePassword,
+    }),
+    [applySession, authState, refreshProfile],
+  );
 
   return <MhdAuthContext.Provider value={value}>{children}</MhdAuthContext.Provider>;
 }

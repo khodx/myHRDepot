@@ -15,8 +15,7 @@ import { mhdRecruitingService } from './Service';
 
 export const mhdRecruitingQueryKeys = {
   stages: (companyId: string | null) => ['mhd-recruiting', 'stages', companyId ?? 'ALL'] as const,
-  reasons: (companyId: string | null) =>
-    ['mhd-recruiting', 'reasons', companyId ?? 'ALL'] as const,
+  reasons: (companyId: string | null) => ['mhd-recruiting', 'reasons', companyId ?? 'ALL'] as const,
   requisitions: (filters: MhdRequisitionFilters) =>
     ['mhd-recruiting', 'requisitions', filters] as const,
   applications: (filters: MhdApplicationFilters) =>
@@ -25,8 +24,7 @@ export const mhdRecruitingQueryKeys = {
     ['mhd-recruiting', 'application', applicationId ?? ''] as const,
   applicationHistory: (applicationId: string | null) =>
     ['mhd-recruiting', 'application-history', applicationId ?? ''] as const,
-  eeoReport: (filters: MhdEeoReportFilters) =>
-    ['mhd-recruiting', 'eeo-report', filters] as const,
+  eeoReport: (filters: MhdEeoReportFilters) => ['mhd-recruiting', 'eeo-report', filters] as const,
   people: (companyId: string | null) => ['mhd-recruiting', 'people', companyId ?? 'ALL'] as const,
 };
 
@@ -81,8 +79,7 @@ export function useMhdRecruitingRequisitions(filters: MhdRequisitionFilters) {
 export function useMhdCreateRequisition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: MhdCreateRequisitionInput) =>
-      mhdRecruitingService.createRequisition(input),
+    mutationFn: (input: MhdCreateRequisitionInput) => mhdRecruitingService.createRequisition(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-recruiting', 'requisitions'] });
     },
@@ -135,8 +132,7 @@ export function useMhdRecruitingApplicationHistory(applicationId: string | null)
 export function useMhdInviteApplication() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: MhdInviteApplicationInput) =>
-      mhdRecruitingService.inviteApplication(input),
+    mutationFn: (input: MhdInviteApplicationInput) => mhdRecruitingService.inviteApplication(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-recruiting', 'applications'] });
       void queryClient.invalidateQueries({ queryKey: ['mhd-recruiting', 'requisitions'] });
@@ -167,8 +163,7 @@ export function useMhdMoveApplicationStage() {
 export function useMhdRejectApplication() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: MhdRejectApplicationInput) =>
-      mhdRecruitingService.rejectApplication(input),
+    mutationFn: (input: MhdRejectApplicationInput) => mhdRecruitingService.rejectApplication(input),
     onSuccess: () => {
       // Reject sets REJECTED, records the reason, and writes a history row.
       void queryClient.invalidateQueries({ queryKey: ['mhd-recruiting', 'applications'] });

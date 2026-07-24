@@ -61,7 +61,9 @@ async function findDestinationRecordIdForSubmission(
     .returns<MhdDestinationRecordLookupRow[]>();
 
   if (error) {
-    throw new Error(`Unable to locate onboarding destination record for ${documentKey}: ${error.message}`);
+    throw new Error(
+      `Unable to locate onboarding destination record for ${documentKey}: ${error.message}`,
+    );
   }
 
   return data?.[0]?.id ?? null;
@@ -90,11 +92,15 @@ async function createDestinationRecordPlaceholder(
     .single();
 
   if (error) {
-    throw new Error(`Unable to create onboarding destination record for ${input.documentKey}: ${error.message}`);
+    throw new Error(
+      `Unable to create onboarding destination record for ${input.documentKey}: ${error.message}`,
+    );
   }
 
   if (!data?.id) {
-    throw new Error(`Unable to create onboarding destination record for ${input.documentKey}: no record returned.`);
+    throw new Error(
+      `Unable to create onboarding destination record for ${input.documentKey}: no record returned.`,
+    );
   }
 
   return data.id;
@@ -130,16 +136,21 @@ export const mhdOnboardingService = {
     return (data ?? []).map(mapChecklistRow);
   },
 
-  async upsertChecklistItemFromSubmittedForm(input: MhdOnboardingChecklistUpsertInput): Promise<MhdOnboardingChecklistItem> {
-    let documentRecordId = await findDestinationRecordIdForSubmission(input.documentKey, input.submissionId);
+  async upsertChecklistItemFromSubmittedForm(
+    input: MhdOnboardingChecklistUpsertInput,
+  ): Promise<MhdOnboardingChecklistItem> {
+    let documentRecordId = await findDestinationRecordIdForSubmission(
+      input.documentKey,
+      input.submissionId,
+    );
     if (!documentRecordId) {
       documentRecordId = await createDestinationRecordPlaceholder(input);
     }
 
     documentRecordId =
-      (await applySubmissionToDestination(input.documentKey, input.submissionId))
-      ?? (await findDestinationRecordIdForSubmission(input.documentKey, input.submissionId))
-      ?? documentRecordId;
+      (await applySubmissionToDestination(input.documentKey, input.submissionId)) ??
+      (await findDestinationRecordIdForSubmission(input.documentKey, input.submissionId)) ??
+      documentRecordId;
 
     const { data, error } = await supabaseClient
       .rpc('mhd_upsert_onboarding_checklist_item', {

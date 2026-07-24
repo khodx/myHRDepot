@@ -90,9 +90,7 @@ function mapPreviewRow(row: MhdHandbookPreviewRowRpcRow): MhdHandbookPreviewRow 
   };
 }
 
-function mapAssembledSection(
-  row: MhdHandbookAssembledSectionRpcRow,
-): MhdHandbookAssembledSection {
+function mapAssembledSection(row: MhdHandbookAssembledSectionRpcRow): MhdHandbookAssembledSection {
   return {
     jurisdiction: row.jurisdiction as MhdHandbookAssembledSection['jurisdiction'],
     sectionKey: row.section_key,

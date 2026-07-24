@@ -1,11 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdPersonService } from '@/features/people/Service';
-import type { MhdCreatePropertyItemInput, MhdIssuePropertyInput, MhdPropertyDispositionStatus, MhdReturnPropertyInput, MhdUpdatePropertyItemInput } from './Types';
+import type {
+  MhdCreatePropertyItemInput,
+  MhdIssuePropertyInput,
+  MhdPropertyDispositionStatus,
+  MhdReturnPropertyInput,
+  MhdUpdatePropertyItemInput,
+} from './Types';
 import { mhdPropertyService } from './Service';
 
 const propertyKeys = {
   items: (companyId: string | null) => ['property-items', companyId ?? ''] as const,
-  item: (companyId: string | null, itemId: string | null) => ['property-item', companyId ?? '', itemId ?? ''] as const,
+  item: (companyId: string | null, itemId: string | null) =>
+    ['property-item', companyId ?? '', itemId ?? ''] as const,
   assignments: (propertyItemId?: string | null, personId?: string | null) =>
     ['property-assignments', propertyItemId ?? '', personId ?? ''] as const,
   people: (companyId: string | null) => ['property-people', companyId ?? ''] as const,
@@ -27,7 +34,10 @@ export function useMhdPropertyItem(companyId: string | null, itemId: string | nu
   });
 }
 
-export function useMhdPropertyAssignments(filter: { propertyItemId?: string | null; personId?: string | null }) {
+export function useMhdPropertyAssignments(filter: {
+  propertyItemId?: string | null;
+  personId?: string | null;
+}) {
   return useQuery({
     queryKey: propertyKeys.assignments(filter.propertyItemId, filter.personId),
     queryFn: () =>
@@ -80,8 +90,13 @@ export function useMhdPropertyActions() {
   });
 
   const returnItem = useMutation({
-    mutationFn: ({ assignmentId, input }: { assignmentId: string; input: MhdReturnPropertyInput }) =>
-      mhdPropertyService.returnItem(assignmentId, input),
+    mutationFn: ({
+      assignmentId,
+      input,
+    }: {
+      assignmentId: string;
+      input: MhdReturnPropertyInput;
+    }) => mhdPropertyService.returnItem(assignmentId, input),
     onSuccess: invalidatePropertyQueries,
   });
 

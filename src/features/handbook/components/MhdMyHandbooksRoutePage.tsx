@@ -22,7 +22,8 @@ export function MhdMyHandbooksRoutePage() {
     return (
       <div className="space-y-6">
         <p className="text-sm text-muted-foreground">
-          Your account is not linked to an employee record, so there are no handbooks to acknowledge.
+          Your account is not linked to an employee record, so there are no handbooks to
+          acknowledge.
         </p>
       </div>
     );

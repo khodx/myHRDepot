@@ -18,8 +18,15 @@ interface Props {
  * path itself is intact.
  */
 export function MhdTaskAttachmentsPanel({ taskId }: Props) {
-  const { attachments, isLoading, error, isUploading, uploadAttachment, deleteAttachment, downloadAttachment } =
-    useMhdAttachments('TASK', taskId);
+  const {
+    attachments,
+    isLoading,
+    error,
+    isUploading,
+    uploadAttachment,
+    deleteAttachment,
+    downloadAttachment,
+  } = useMhdAttachments('TASK', taskId);
 
   // Per-row delete permission (uploader, platform admin, or Client Admin) comes from
   // attachment.canDelete, as computed server-side by mhd_list_attachments_for_entity -- there is
@@ -46,7 +53,11 @@ export function MhdTaskAttachmentsPanel({ taskId }: Props) {
 
   return (
     <div className="space-y-4">
-      {error && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
       <MhdAttachmentUploader isUploading={isUploading} onUpload={handleUpload} />
       <MhdAttachmentList
         attachments={attachments}

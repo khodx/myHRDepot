@@ -103,15 +103,24 @@ export function MhdOneOnOneTab({ companyId, currentUserId, canMutate, people }: 
         ) : null}
       </div>
 
-      {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
+      {actionError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      ) : null}
       {activitiesQuery.error ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {activitiesQuery.error instanceof Error ? activitiesQuery.error.message : 'Unable to load one-on-ones.'}
+          {activitiesQuery.error instanceof Error
+            ? activitiesQuery.error.message
+            : 'Unable to load one-on-ones.'}
         </div>
       ) : null}
 
       {isCreating && canMutate ? (
-        <form className="space-y-3 rounded-lg border border-border bg-card p-4 shadow-sm" onSubmit={handleQuickCreate}>
+        <form
+          className="space-y-3 rounded-lg border border-border bg-card p-4 shadow-sm"
+          onSubmit={handleQuickCreate}
+        >
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
               <label htmlFor="mhd-one-on-one-title" className="mb-1 block text-sm font-medium">
@@ -139,12 +148,18 @@ export function MhdOneOnOneTab({ companyId, currentUserId, canMutate, people }: 
             </div>
           </div>
           {personId === 'ALL' ? (
-            <p className="text-xs text-amber-700">Select a person above — one-on-ones are person-centered.</p>
+            <p className="text-xs text-amber-700">
+              Select a person above — one-on-ones are person-centered.
+            </p>
           ) : null}
           <div className="flex gap-3">
             <Button
               type="submit"
-              disabled={actions.createActivity.isPending || newTitle.trim().length === 0 || personId === 'ALL'}
+              disabled={
+                actions.createActivity.isPending ||
+                newTitle.trim().length === 0 ||
+                personId === 'ALL'
+              }
             >
               {actions.createActivity.isPending ? 'Creating…' : 'Create One-on-One'}
             </Button>
@@ -156,7 +171,9 @@ export function MhdOneOnOneTab({ companyId, currentUserId, canMutate, people }: 
       ) : null}
 
       {activitiesQuery.isLoading ? (
-        <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">Loading one-on-ones…</div>
+        <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+          Loading one-on-ones…
+        </div>
       ) : activities.length === 0 ? (
         <MhdEmptyState
           icon={Users}
@@ -178,14 +195,21 @@ export function MhdOneOnOneTab({ companyId, currentUserId, canMutate, people }: 
             {activities.map((activity) => (
               <MhdTr key={activity.id}>
                 <MhdTd>
-                  <Link to={`/activities/${activity.id}`} className="font-medium text-accent hover:text-accent-hover">
+                  <Link
+                    to={`/activities/${activity.id}`}
+                    className="font-medium text-accent hover:text-accent-hover"
+                  >
                     {activity.title}
                   </Link>
                   <div className="text-xs text-muted-foreground">{activity.referenceId}</div>
                 </MhdTd>
-                <MhdTd>{activity.personDisplayName ?? <span className="text-muted-foreground">—</span>}</MhdTd>
                 <MhdTd>
-                  <MhdBadge variant={STATUS_BADGE_VARIANT[activity.status]} hideIcon>{activity.status}</MhdBadge>
+                  {activity.personDisplayName ?? <span className="text-muted-foreground">—</span>}
+                </MhdTd>
+                <MhdTd>
+                  <MhdBadge variant={STATUS_BADGE_VARIANT[activity.status]} hideIcon>
+                    {activity.status}
+                  </MhdBadge>
                 </MhdTd>
                 <MhdTd>
                   {activity.scheduledAt ? (

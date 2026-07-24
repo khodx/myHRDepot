@@ -95,7 +95,10 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
 
       <div className="flex flex-wrap items-end gap-2">
         <div>
-          <label htmlFor="invitePerson" className="block text-xs uppercase tracking-wide text-muted-foreground">
+          <label
+            htmlFor="invitePerson"
+            className="block text-xs uppercase tracking-wide text-muted-foreground"
+          >
             Invite
           </label>
           <select
@@ -113,7 +116,10 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
           </select>
         </div>
         <div>
-          <label htmlFor="inviteType" className="block text-xs uppercase tracking-wide text-muted-foreground">
+          <label
+            htmlFor="inviteType"
+            className="block text-xs uppercase tracking-wide text-muted-foreground"
+          >
             As
           </label>
           <select

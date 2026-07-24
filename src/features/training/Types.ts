@@ -114,12 +114,7 @@ export type MhdTrainingAssignmentReferenceId = `TRA-${string}`;
 export type MhdTrainingCompletionReferenceId = `TRC-${string}`;
 
 export type MhdTrainingCategory =
-  | 'HARASSMENT'
-  | 'SAFETY'
-  | 'COMPLIANCE'
-  | 'SKILLS'
-  | 'ONBOARDING'
-  | 'OTHER';
+  'HARASSMENT' | 'SAFETY' | 'COMPLIANCE' | 'SKILLS' | 'ONBOARDING' | 'OTHER';
 
 export type MhdTrainingDeliveryMode = 'IN_PERSON' | 'ONLINE' | 'DOCUMENT' | 'EXTERNAL';
 
@@ -132,12 +127,7 @@ export type MhdTrainingCompletionMethod = 'ATTESTED' | 'CERTIFICATE' | 'ADMIN_RE
  * computes it from the frozen completion rows and the live assignment. The UI
  * renders whatever the server returned; it does not derive these.
  */
-export type MhdTrainingComplianceStatus =
-  | 'CURRENT'
-  | 'EXPIRED'
-  | 'OVERDUE'
-  | 'ASSIGNED'
-  | 'NONE';
+export type MhdTrainingComplianceStatus = 'CURRENT' | 'EXPIRED' | 'OVERDUE' | 'ASSIGNED' | 'NONE';
 
 export const MHD_TRAINING_CATEGORIES = [
   'HARASSMENT',

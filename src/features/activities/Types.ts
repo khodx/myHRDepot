@@ -1,12 +1,18 @@
 import type { MhdCompanyId } from '@/features/companies/Types';
 import type { Database, Json } from '@/types/database.types';
 
-type MhdActivityBoardRow = Database['public']['Functions']['mhd_list_activity_board']['Returns'][number];
-type MhdActivityDetailRow = Database['public']['Functions']['mhd_get_activity_by_id']['Returns'][number];
-type MhdActivityParticipantRow = Database['public']['Functions']['mhd_list_activity_participants']['Returns'][number];
-type MhdSubActivityRow = Database['public']['Functions']['mhd_list_sub_activities']['Returns'][number];
-type MhdActivityMutationRow = Database['public']['Functions']['mhd_create_activity']['Returns'][number];
-type MhdSubActivityMutationRow = Database['public']['Functions']['mhd_create_sub_activity']['Returns'][number];
+type MhdActivityBoardRow =
+  Database['public']['Functions']['mhd_list_activity_board']['Returns'][number];
+type MhdActivityDetailRow =
+  Database['public']['Functions']['mhd_get_activity_by_id']['Returns'][number];
+type MhdActivityParticipantRow =
+  Database['public']['Functions']['mhd_list_activity_participants']['Returns'][number];
+type MhdSubActivityRow =
+  Database['public']['Functions']['mhd_list_sub_activities']['Returns'][number];
+type MhdActivityMutationRow =
+  Database['public']['Functions']['mhd_create_activity']['Returns'][number];
+type MhdSubActivityMutationRow =
+  Database['public']['Functions']['mhd_create_sub_activity']['Returns'][number];
 
 export type MhdActivityId = string;
 export type MhdActivityReferenceId = `ACTV-${string}`;
@@ -244,7 +250,9 @@ export function mhdFormatActivityParticipantRole(role: MhdActivityParticipantRol
   return labels[role];
 }
 
-export function mhdIsActivityOverdue(activity: Pick<MhdActivity, 'status' | 'scheduledAt'>): boolean {
+export function mhdIsActivityOverdue(
+  activity: Pick<MhdActivity, 'status' | 'scheduledAt'>,
+): boolean {
   return (
     (activity.status === 'PLANNED' || activity.status === 'IN_PROGRESS') &&
     !!activity.scheduledAt &&

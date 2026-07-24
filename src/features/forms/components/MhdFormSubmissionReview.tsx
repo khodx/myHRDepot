@@ -58,7 +58,9 @@ function MhdEncryptedValueCell({ submissionId, fieldId, canReveal }: MhdEncrypte
 
   return (
     <span className="inline-flex flex-wrap items-center gap-2">
-      <span className="text-muted-foreground">&#8226;&#8226;&#8226;&#8226;&#8226;&#8226; (encrypted)</span>
+      <span className="text-muted-foreground">
+        &#8226;&#8226;&#8226;&#8226;&#8226;&#8226; (encrypted)
+      </span>
       {canReveal ? (
         <button
           type="button"
@@ -92,12 +94,16 @@ export function MhdFormSubmissionReview({ submission }: MhdFormSubmissionReviewP
     <MhdCard className="p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">{submission.referenceId}</p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            {submission.referenceId}
+          </p>
           <h3 className="mt-1 text-lg font-semibold text-foreground">{submission.status}</h3>
         </div>
         <div className="text-right text-xs text-muted-foreground">
           <p>Created {new Date(submission.createdAt).toLocaleString()}</p>
-          {submission.submittedAt ? <p>Submitted {new Date(submission.submittedAt).toLocaleString()}</p> : null}
+          {submission.submittedAt ? (
+            <p>Submitted {new Date(submission.submittedAt).toLocaleString()}</p>
+          ) : null}
         </div>
       </div>
 
@@ -108,7 +114,9 @@ export function MhdFormSubmissionReview({ submission }: MhdFormSubmissionReviewP
           <dl className="grid gap-3">
             {entries.map(([fieldId, value]) => (
               <div key={fieldId} className="rounded-md border border-border bg-muted p-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{fieldId}</dt>
+                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {fieldId}
+                </dt>
                 <dd className="mt-1 text-sm text-slate-800 whitespace-pre-wrap">
                   {mhdIsEncryptedFormValue(value) ? (
                     // Keyed on submission+field so switching submissions remounts the

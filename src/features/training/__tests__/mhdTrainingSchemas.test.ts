@@ -98,8 +98,9 @@ describe('training assignment / waiver / admin-completion schemas', () => {
     expect(() => mhdWaiveAssignmentSchema.parse({ assignmentId: 'a', reason: '   ' })).toThrow(
       'A reason is required to waive an assignment.',
     );
-    expect(mhdWaiveAssignmentSchema.parse({ assignmentId: 'a', reason: 'Left the company' }).reason)
-      .toBe('Left the company');
+    expect(
+      mhdWaiveAssignmentSchema.parse({ assignmentId: 'a', reason: 'Left the company' }).reason,
+    ).toBe('Left the company');
   });
 
   it('admin completion requires a completion date (the frozen-expiry basis)', () => {

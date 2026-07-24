@@ -57,7 +57,9 @@ export function useMhdTasks(context: MhdTaskMutationContext | null) {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- package pattern: fetch-on-mount with loading state
-    void loadReferences().catch((error) => setErrorMessage(error instanceof Error ? error.message : 'Unable to load task references.'));
+    void loadReferences().catch((error) =>
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to load task references.'),
+    );
   }, [loadReferences]);
 
   useEffect(() => {
@@ -110,8 +112,15 @@ export function useMhdTasks(context: MhdTaskMutationContext | null) {
   const summary = useMemo(() => {
     return {
       total: tasks.length,
-      overdue: tasks.filter((task) => task.dueDate && !task.completedDate && task.dueDate < new Date().toISOString().slice(0, 10)).length,
-      completed: tasks.filter((task) => task.completedDate !== null || task.statusName === 'Completed').length,
+      overdue: tasks.filter(
+        (task) =>
+          task.dueDate &&
+          !task.completedDate &&
+          task.dueDate < new Date().toISOString().slice(0, 10),
+      ).length,
+      completed: tasks.filter(
+        (task) => task.completedDate !== null || task.statusName === 'Completed',
+      ).length,
       unassigned: tasks.filter((task) => task.assignedUserIds.length === 0).length,
     };
   }, [tasks]);

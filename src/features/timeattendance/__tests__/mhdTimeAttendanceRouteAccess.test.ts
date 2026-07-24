@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
-import {
-  mhdCanAccessRoute,
-  mhdCanMutateAttendance,
-} from '@/appshell/mhdRouteAccess';
+import { mhdCanAccessRoute, mhdCanMutateAttendance } from '@/appshell/mhdRouteAccess';
 
 /**
  * Route-exclusion coverage for the Time & Attendance surfaces. The router guard

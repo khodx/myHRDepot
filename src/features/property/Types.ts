@@ -8,13 +8,7 @@ export type MhdPropertyAssignmentId = string;
 export type MhdPropertyAssignmentReferenceId = `PASN-${string}`;
 
 export type MhdPropertyCategory =
-  | 'EQUIPMENT'
-  | 'ELECTRONICS'
-  | 'VEHICLE'
-  | 'KEY'
-  | 'UNIFORM'
-  | 'TOOL'
-  | 'OTHER';
+  'EQUIPMENT' | 'ELECTRONICS' | 'VEHICLE' | 'KEY' | 'UNIFORM' | 'TOOL' | 'OTHER';
 
 export type MhdPropertyItemStatus = 'IN_STOCK' | 'ASSIGNED' | 'RETIRED' | 'LOST' | 'DAMAGED';
 export type MhdPropertyAssignmentStatus = 'ISSUED' | 'RETURNED' | 'LOST' | 'DAMAGED';
@@ -123,7 +117,8 @@ export interface MhdPropertyListFilters {
 }
 
 export type MhdRpcPropertyItemRow = DbFunctions['mhd_list_property_items']['Returns'][number];
-export type MhdRpcPropertyAssignmentRow = DbFunctions['mhd_list_property_assignments']['Returns'][number];
+export type MhdRpcPropertyAssignmentRow =
+  DbFunctions['mhd_list_property_assignments']['Returns'][number];
 
 export const MHD_PROPERTY_CATEGORIES = [
   'EQUIPMENT',
@@ -133,7 +128,7 @@ export const MHD_PROPERTY_CATEGORIES = [
   'UNIFORM',
   'TOOL',
   'OTHER',
- ] as const satisfies readonly MhdPropertyCategory[];
+] as const satisfies readonly MhdPropertyCategory[];
 
 export const MHD_PROPERTY_ITEM_STATUSES = [
   'IN_STOCK',
@@ -141,14 +136,14 @@ export const MHD_PROPERTY_ITEM_STATUSES = [
   'RETIRED',
   'LOST',
   'DAMAGED',
- ] as const satisfies readonly MhdPropertyItemStatus[];
+] as const satisfies readonly MhdPropertyItemStatus[];
 
 export const MHD_PROPERTY_ASSIGNMENT_STATUSES = [
   'ISSUED',
   'RETURNED',
   'LOST',
   'DAMAGED',
- ] as const satisfies readonly MhdPropertyAssignmentStatus[];
+] as const satisfies readonly MhdPropertyAssignmentStatus[];
 
 export function mhdIsPropertyIssuanceComplete(input: {
   employeeAckReceipt: boolean;

@@ -11,11 +11,13 @@ import type {
 import { mhdInvestigationsService } from './Service';
 
 export const mhdInvestigationsQueryKeys = {
-  cases: (filters: MhdInvestigationCaseFilters) => ['mhd-investigations', 'cases', filters] as const,
+  cases: (filters: MhdInvestigationCaseFilters) =>
+    ['mhd-investigations', 'cases', filters] as const,
   case: (caseId: string | null) => ['mhd-investigations', 'case', caseId ?? ''] as const,
   grants: (caseId: string | null) => ['mhd-investigations', 'grants', caseId ?? ''] as const,
   parties: (caseId: string | null) => ['mhd-investigations', 'parties', caseId ?? ''] as const,
-  people: (companyId: string | null) => ['mhd-investigations', 'people', companyId ?? 'ALL'] as const,
+  people: (companyId: string | null) =>
+    ['mhd-investigations', 'people', companyId ?? 'ALL'] as const,
 };
 
 // ---------------------------------------------------------------------------

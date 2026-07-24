@@ -114,20 +114,12 @@ export type MhdInvestigationCaseType =
  * authority on which transitions are legal.
  */
 export type MhdInvestigationStatus =
-  | 'INTAKE'
-  | 'OPEN'
-  | 'INVESTIGATING'
-  | 'PENDING_REVIEW'
-  | 'CLOSED';
+  'INTAKE' | 'OPEN' | 'INVESTIGATING' | 'PENDING_REVIEW' | 'CLOSED';
 
 export type MhdInvestigationConfidentiality = 'STANDARD' | 'HIGH' | 'RESTRICTED';
 
 export type MhdInvestigationDisposition =
-  | 'SUBSTANTIATED'
-  | 'UNSUBSTANTIATED'
-  | 'INCONCLUSIVE'
-  | 'UNFOUNDED'
-  | 'WITHDRAWN';
+  'SUBSTANTIATED' | 'UNSUBSTANTIATED' | 'INCONCLUSIVE' | 'UNFOUNDED' | 'WITHDRAWN';
 
 export type MhdInvestigationPartyRole = 'COMPLAINANT' | 'RESPONDENT' | 'WITNESS' | 'OTHER';
 

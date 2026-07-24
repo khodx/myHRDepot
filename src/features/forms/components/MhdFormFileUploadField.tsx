@@ -75,7 +75,9 @@ export function MhdFormFileUploadField({
       />
       {isUploading ? <p className="mt-1 text-xs text-muted-foreground">Uploading...</p> : null}
       {!onUploadFile ? (
-        <p className="mt-1 text-xs text-muted-foreground">File uploads are available when filling out the live form.</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          File uploads are available when filling out the live form.
+        </p>
       ) : null}
       {fileValue ? (
         <p className="mt-1 text-xs text-muted-foreground">

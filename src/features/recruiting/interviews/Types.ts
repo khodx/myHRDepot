@@ -154,11 +154,7 @@ export type MhdInterviewGuideItemSource = 'STANDARD' | 'JOB_COMPETENCY' | 'BANK'
 export type MhdInterviewStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
 
 /** The hiring recommendation atop the evaluation rollup. */
-export type MhdInterviewRecommendation =
-  | 'STRONG_HIRE'
-  | 'HIRE'
-  | 'NO_HIRE'
-  | 'STRONG_NO_HIRE';
+export type MhdInterviewRecommendation = 'STRONG_HIRE' | 'HIRE' | 'NO_HIRE' | 'STRONG_NO_HIRE';
 
 /** The evaluation record's status. */
 export type MhdCandidateEvaluationStatus = 'DRAFT' | 'FINAL';

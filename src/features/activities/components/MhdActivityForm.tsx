@@ -104,19 +104,27 @@ export function MhdActivityForm({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium">Type</label>
-          <select className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('activityType')}>
+          <select
+            className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            {...register('activityType')}
+          >
             {MHD_ACTIVITY_TYPES.map((type) => (
               <option key={type} value={type}>
                 {mhdFormatActivityType(type)}
               </option>
             ))}
           </select>
-          {errors.activityType ? <p className="mt-1 text-xs text-red-600">{errors.activityType.message}</p> : null}
+          {errors.activityType ? (
+            <p className="mt-1 text-xs text-red-600">{errors.activityType.message}</p>
+          ) : null}
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium">Person</label>
-          <select className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('personId')}>
+          <select
+            className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            {...register('personId')}
+          >
             <option value="">Company-centered (no person)</option>
             {people.map((person) => (
               <option key={person.id} value={person.id}>
@@ -129,13 +137,19 @@ export function MhdActivityForm({
 
       <div>
         <label className="mb-1 block text-sm font-medium">Title</label>
-        <input className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('title')} />
+        <input
+          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          {...register('title')}
+        />
         {errors.title ? <p className="mt-1 text-xs text-red-600">{errors.title.message}</p> : null}
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium">Supports Task</label>
-        <select className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('parentTaskId')}>
+        <select
+          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          {...register('parentTaskId')}
+        >
           <option value="">Not linked to a task</option>
           {tasks.map((task) => (
             <option key={task.id} value={task.id}>
@@ -148,11 +162,19 @@ export function MhdActivityForm({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium">Scheduled Date &amp; Time</label>
-          <input type="datetime-local" className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...register('scheduledAt')} />
+          <input
+            type="datetime-local"
+            className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            {...register('scheduledAt')}
+          />
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Location</label>
-          <input className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" placeholder="Room, phone, or video link…" {...register('location')} />
+          <input
+            className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            placeholder="Room, phone, or video link…"
+            {...register('location')}
+          />
         </div>
       </div>
 
@@ -170,7 +192,9 @@ export function MhdActivityForm({
           </span>
         </label>
         {isConfidential && !selectedPersonId ? (
-          <p className="mt-2 text-xs text-amber-700">Confidential activities are usually person-centered.</p>
+          <p className="mt-2 text-xs text-amber-700">
+            Confidential activities are usually person-centered.
+          </p>
         ) : null}
       </div>
 
@@ -188,7 +212,9 @@ export function MhdActivityForm({
         <fieldset className="space-y-2 rounded-md border border-border p-3">
           <legend className="px-1 text-sm font-medium">Participants</legend>
 
-          {fields.length === 0 ? <p className="text-sm text-muted-foreground">No participants added.</p> : null}
+          {fields.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No participants added.</p>
+          ) : null}
 
           {fields.map((field, index) => {
             const kind = participantKind(field.id, index);
@@ -196,7 +222,9 @@ export function MhdActivityForm({
               <div key={field.id} className="flex flex-wrap items-center gap-2">
                 <select
                   value={kind}
-                  onChange={(event) => handleKindChange(field.id, index, event.target.value as ParticipantKind)}
+                  onChange={(event) =>
+                    handleKindChange(field.id, index, event.target.value as ParticipantKind)
+                  }
                   className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   aria-label="Participant kind"
                 >
@@ -205,7 +233,11 @@ export function MhdActivityForm({
                 </select>
 
                 {kind === 'USER' ? (
-                  <select className="min-w-48 flex-1 rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Participant user" {...register(`participants.${index}.userId`)}>
+                  <select
+                    className="min-w-48 flex-1 rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    aria-label="Participant user"
+                    {...register(`participants.${index}.userId`)}
+                  >
                     <option value="">Select user…</option>
                     {users.map((user) => (
                       <option key={user.id} value={user.id}>
@@ -214,7 +246,11 @@ export function MhdActivityForm({
                     ))}
                   </select>
                 ) : (
-                  <select className="min-w-48 flex-1 rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Participant person" {...register(`participants.${index}.personId`)}>
+                  <select
+                    className="min-w-48 flex-1 rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    aria-label="Participant person"
+                    {...register(`participants.${index}.personId`)}
+                  >
                     <option value="">Select person…</option>
                     {people.map((person) => (
                       <option key={person.id} value={person.id}>
@@ -224,7 +260,11 @@ export function MhdActivityForm({
                   </select>
                 )}
 
-                <select className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Participant role" {...register(`participants.${index}.role`)}>
+                <select
+                  className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  aria-label="Participant role"
+                  {...register(`participants.${index}.role`)}
+                >
                   {MHD_ACTIVITY_PARTICIPANT_ROLES.map((role) => (
                     <option key={role} value={role}>
                       {mhdFormatActivityParticipantRole(role)}

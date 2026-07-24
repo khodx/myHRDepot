@@ -52,7 +52,10 @@ describe('mhdMileageService — employee scope', () => {
   it('surfaces the 42501 an employee hits requesting another person’s trips', async () => {
     rpcMock.mockResolvedValueOnce({
       data: null,
-      error: { code: '42501', message: 'permission denied: mileage trips are visible to their owner' },
+      error: {
+        code: '42501',
+        message: 'permission denied: mileage trips are visible to their owner',
+      },
     });
 
     await expect(
@@ -86,7 +89,10 @@ describe('mhdMileageService — the global rate registry is Platform-Admin-write
   it('surfaces the 42501 an HR Partner hits writing the global registry', async () => {
     rpcMock.mockResolvedValueOnce({
       data: null,
-      error: { code: '42501', message: 'permission denied: only Platform Admin may write the IRS rate registry' },
+      error: {
+        code: '42501',
+        message: 'permission denied: only Platform Admin may write the IRS rate registry',
+      },
     });
 
     await expect(

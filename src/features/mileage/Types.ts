@@ -177,12 +177,7 @@ export type MhdMileageRateMode = 'TRACK_IRS_BUSINESS' | 'FIXED';
  * neither may hold a trip hostage. EXPORTED is terminal.
  */
 export type MhdMileageClaimStatus =
-  | 'DRAFT'
-  | 'SUBMITTED'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'CANCELLED'
-  | 'EXPORTED';
+  'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'EXPORTED';
 
 /** The two outcomes `mhd_mileage_decide_claim` accepts. */
 export type MhdMileageClaimDecision = 'APPROVED' | 'REJECTED';

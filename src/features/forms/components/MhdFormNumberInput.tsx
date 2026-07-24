@@ -38,12 +38,16 @@ export function MhdFormNumberInput({
         {required ? <span className="ml-1 text-red-500">*</span> : null}
       </label>
       <div className="relative">
-        {prefix ? <span className="absolute left-3 top-2 text-sm text-muted-foreground">{prefix}</span> : null}
+        {prefix ? (
+          <span className="absolute left-3 top-2 text-sm text-muted-foreground">{prefix}</span>
+        ) : null}
         <input
           id={id}
           type="number"
           value={value}
-          onChange={(event) => onChange(event.target.value === '' ? '' : Number(event.target.value))}
+          onChange={(event) =>
+            onChange(event.target.value === '' ? '' : Number(event.target.value))
+          }
           placeholder={placeholder}
           min={min}
           max={max}
@@ -54,7 +58,9 @@ export function MhdFormNumberInput({
             readOnly ? 'bg-muted text-muted-foreground' : 'bg-card'
           }`}
         />
-        {suffix ? <span className="absolute right-3 top-2 text-sm text-muted-foreground">{suffix}</span> : null}
+        {suffix ? (
+          <span className="absolute right-3 top-2 text-sm text-muted-foreground">{suffix}</span>
+        ) : null}
       </div>
       {helpText ? <p className="mt-1 text-xs text-muted-foreground">{helpText}</p> : null}
       <MhdFormFieldError message={error} />

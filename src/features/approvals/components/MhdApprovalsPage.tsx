@@ -14,7 +14,11 @@ export function MhdApprovalsPage() {
       />
 
       <MhdCard className="p-6">
-        {profile?.userId ? <MhdApprovalCenter userId={profile.userId} /> : <p className="text-sm text-muted-foreground">No current user profile loaded.</p>}
+        {profile?.userId ? (
+          <MhdApprovalCenter userId={profile.userId} />
+        ) : (
+          <p className="text-sm text-muted-foreground">No current user profile loaded.</p>
+        )}
       </MhdCard>
     </div>
   );

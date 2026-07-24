@@ -57,7 +57,9 @@ export function MhdReassessmentQueuePanel({
 
   async function submit(event: MhdReassessmentEvent) {
     if (!note.trim()) {
-      setError('A written reason is required either way — it is what evidences consistent application.');
+      setError(
+        'A written reason is required either way — it is what evidences consistent application.',
+      );
       return;
     }
     setError(null);
@@ -99,7 +101,9 @@ export function MhdReassessmentQueuePanel({
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Policy would charge</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Policy would charge
+                  </p>
                   <p className="text-lg font-semibold text-foreground">
                     {event.projectedPoints} {event.projectedPoints === 1 ? 'point' : 'points'}
                   </p>
@@ -218,7 +222,10 @@ export function MhdReassessmentQueuePanel({
                       {event.occurrenceReference} · {event.occurrenceDate}
                     </MhdTd>
                     <MhdTd className="whitespace-nowrap">
-                      <MhdBadge variant={event.status === 'ASSESSED' ? 'error' : 'neutral'} hideIcon>
+                      <MhdBadge
+                        variant={event.status === 'ASSESSED' ? 'error' : 'neutral'}
+                        hideIcon
+                      >
                         {event.status === 'ASSESSED' ? 'Assessed' : 'Not assessed'}
                       </MhdBadge>
                     </MhdTd>

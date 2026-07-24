@@ -29,7 +29,12 @@ import {
 } from '@/features/timeattendance/Hook';
 import { MhdPointLedgerPanel } from '@/features/timeattendance/components/MhdPointLedgerPanel';
 import { MhdJobAssignmentPanel } from '@/features/jobs/components/MhdJobAssignmentPanel';
-import { mhdCanAccessRoute, mhdCanMutateAttendance, mhdCanMutateJobs, mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
+import {
+  mhdCanAccessRoute,
+  mhdCanMutateAttendance,
+  mhdCanMutateJobs,
+  mhdLeavesIsPrivileged,
+} from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Link } from 'react-router-dom';
 
@@ -38,7 +43,11 @@ export function MhdPersonDetailPage() {
   const navigate = useNavigate();
   const { roles } = useMhdAuth();
 
-  const { data: person, isLoading, error } = useQuery({
+  const {
+    data: person,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['mhd-person', personId],
     queryFn: () => mhdPersonService.getPersonById(personId!),
     enabled: !!personId,
@@ -55,7 +64,16 @@ export function MhdPersonDetailPage() {
     from: '',
     to: '',
   });
-  const performanceQuery = useMhdPerformanceReviews({ companyId: person?.companyId ?? '', personId: person?.id ?? 'ALL', reviewerUserId: 'ALL', reviewType: 'ALL', status: 'ALL', searchTerm: '', dueFrom: '', dueTo: '' });
+  const performanceQuery = useMhdPerformanceReviews({
+    companyId: person?.companyId ?? '',
+    personId: person?.id ?? 'ALL',
+    reviewerUserId: 'ALL',
+    reviewType: 'ALL',
+    status: 'ALL',
+    searchTerm: '',
+    dueFrom: '',
+    dueTo: '',
+  });
   const canSeePerformance = mhdCanAccessRoute('/performance', roles);
   const canSeeOffboarding = mhdCanAccessRoute('/offboarding', roles);
   // Conduct is admin-only and carries RESTRICTED-tier discipline narratives. The
@@ -78,13 +96,13 @@ export function MhdPersonDetailPage() {
   // summary regardless (it lives behind the tighter PA/HRP gate on the case
   // detail page). This section lists only the person's cases and their status.
   const canSeeLeaves = mhdLeavesIsPrivileged(roles);
-  const attendancePersonId = canSeeAttendance ? person?.id ?? null : null;
-  const attendanceCompanyId = canSeeAttendance ? person?.companyId ?? null : null;
+  const attendancePersonId = canSeeAttendance ? (person?.id ?? null) : null;
+  const attendanceCompanyId = canSeeAttendance ? (person?.companyId ?? null) : null;
   const attendanceBalance = useMhdPointBalance(attendancePersonId);
   const attendanceLedger = useMhdPointLedger(attendancePersonId);
   const attendancePolicy = useMhdAttendancePolicy(attendanceCompanyId);
   const offboardingQuery = useMhdOffboardingCases({
-    companyId: canSeeOffboarding ? person?.companyId ?? '' : '',
+    companyId: canSeeOffboarding ? (person?.companyId ?? '') : '',
     personId: person?.id ?? 'ALL',
     separationType: 'ALL',
     status: 'ALL',
@@ -93,14 +111,14 @@ export function MhdPersonDetailPage() {
     to: '',
   });
   const conductQuery = useMhdConductCases({
-    companyId: canSeeConduct ? person?.companyId ?? '' : '',
+    companyId: canSeeConduct ? (person?.companyId ?? '') : '',
     personId: person?.id ?? 'ALL',
     category: 'ALL',
     status: 'ALL',
     searchTerm: '',
   });
   const leavesQuery = useMhdLeaveCases({
-    companyId: canSeeLeaves ? person?.companyId ?? null : null,
+    companyId: canSeeLeaves ? (person?.companyId ?? null) : null,
     personId: person?.id ?? null,
     status: 'ALL',
   });
@@ -116,9 +134,7 @@ export function MhdPersonDetailPage() {
   if (error || !person) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
-        <p className="text-sm text-red-600">
-          {(error as Error)?.message ?? 'Person not found'}
-        </p>
+        <p className="text-sm text-red-600">{(error as Error)?.message ?? 'Person not found'}</p>
         <button
           type="button"
           onClick={() => navigate('/people')}
@@ -132,16 +148,15 @@ export function MhdPersonDetailPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <MhdBreadcrumb
-        items={[{ label: 'People', to: '/people' }, { label: person.displayName }]}
-      />
+      <MhdBreadcrumb items={[{ label: 'People', to: '/people' }, { label: person.displayName }]} />
 
       {/* Profile card */}
       <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
         <div className="flex items-start gap-4">
           {/* Avatar initials */}
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-700">
-            {person.firstName?.[0] ?? ''}{person.lastName?.[0] ?? ''}
+            {person.firstName?.[0] ?? ''}
+            {person.lastName?.[0] ?? ''}
           </div>
           <div className="min-w-0">
             <h1 className="text-xl font-semibold text-neutral-900">{person.displayName}</h1>
@@ -165,7 +180,10 @@ export function MhdPersonDetailPage() {
           {person.primaryEmail && (
             <div className="flex items-center gap-2 text-sm text-neutral-600">
               <Mail className="h-4 w-4 text-neutral-400" />
-              <a href={`mailto:${person.primaryEmail}`} className="hover:text-blue-600 hover:underline">
+              <a
+                href={`mailto:${person.primaryEmail}`}
+                className="hover:text-blue-600 hover:underline"
+              >
                 {person.primaryEmail}
               </a>
             </div>
@@ -173,7 +191,10 @@ export function MhdPersonDetailPage() {
           {person.primaryPhone && (
             <div className="flex items-center gap-2 text-sm text-neutral-600">
               <Phone className="h-4 w-4 text-neutral-400" />
-              <a href={`tel:${person.primaryPhone}`} className="hover:text-blue-600 hover:underline">
+              <a
+                href={`tel:${person.primaryPhone}`}
+                className="hover:text-blue-600 hover:underline"
+              >
                 {person.primaryPhone}
               </a>
             </div>
@@ -181,7 +202,10 @@ export function MhdPersonDetailPage() {
           {person.primaryMobile && (
             <div className="flex items-center gap-2 text-sm text-neutral-600">
               <Smartphone className="h-4 w-4 text-neutral-400" />
-              <a href={`tel:${person.primaryMobile}`} className="hover:text-blue-600 hover:underline">
+              <a
+                href={`tel:${person.primaryMobile}`}
+                className="hover:text-blue-600 hover:underline"
+              >
                 {person.primaryMobile}
               </a>
             </div>
@@ -209,10 +233,23 @@ export function MhdPersonDetailPage() {
       {canSeePerformance && (
         <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-neutral-900">Performance</h2>
-          {performanceQuery.isLoading ? <p className="mt-2 text-sm text-neutral-500">Loading performance history…</p> : (
+          {performanceQuery.isLoading ? (
+            <p className="mt-2 text-sm text-neutral-500">Loading performance history…</p>
+          ) : (
             <ul className="mt-3 space-y-2 text-sm">
-              {(performanceQuery.data ?? []).map((review) => <li key={review.id}><Link className="text-blue-700 hover:underline" to={`/performance/reviews/${review.id}`}>{review.referenceId} · {review.status}</Link></li>)}
-              {(performanceQuery.data ?? []).length === 0 && <li className="text-neutral-500">No performance reviews.</li>}
+              {(performanceQuery.data ?? []).map((review) => (
+                <li key={review.id}>
+                  <Link
+                    className="text-blue-700 hover:underline"
+                    to={`/performance/reviews/${review.id}`}
+                  >
+                    {review.referenceId} · {review.status}
+                  </Link>
+                </li>
+              ))}
+              {(performanceQuery.data ?? []).length === 0 && (
+                <li className="text-neutral-500">No performance reviews.</li>
+              )}
             </ul>
           )}
         </section>
@@ -236,7 +273,10 @@ export function MhdPersonDetailPage() {
             <ul className="mt-3 space-y-2 text-sm">
               {(offboardingQuery.data ?? []).map((offboardingCase) => (
                 <li key={offboardingCase.id}>
-                  <Link className="text-blue-700 hover:underline" to={`/offboarding/${offboardingCase.id}`}>
+                  <Link
+                    className="text-blue-700 hover:underline"
+                    to={`/offboarding/${offboardingCase.id}`}
+                  >
                     {offboardingCase.referenceId} · {offboardingCase.status}
                   </Link>
                 </li>
@@ -258,8 +298,8 @@ export function MhdPersonDetailPage() {
             </Link>
           </div>
           <p className="mt-1 text-sm text-neutral-500">
-            Privileged corrective-action cases for this person. Signing a corrective-action document records receipt,
-            never agreement.
+            Privileged corrective-action cases for this person. Signing a corrective-action document
+            records receipt, never agreement.
           </p>
           {conductQuery.isLoading ? (
             <p className="mt-2 text-sm text-neutral-500">Loading conduct history…</p>
@@ -325,11 +365,7 @@ export function MhdPersonDetailPage() {
 
       {canSeeJobs ? (
         <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
-          <MhdJobAssignmentPanel
-            companyId={person.companyId}
-            personId={person.id}
-            canAssign
-          />
+          <MhdJobAssignmentPanel companyId={person.companyId} personId={person.id} canAssign />
         </section>
       ) : null}
 
@@ -365,7 +401,9 @@ export function MhdPersonDetailPage() {
 
         {activitiesQuery.error ? (
           <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {activitiesQuery.error instanceof Error ? activitiesQuery.error.message : 'Unable to load activities.'}
+            {activitiesQuery.error instanceof Error
+              ? activitiesQuery.error.message
+              : 'Unable to load activities.'}
           </div>
         ) : activitiesQuery.isLoading ? (
           <div className="py-8 text-sm text-neutral-500">Loading activities…</div>

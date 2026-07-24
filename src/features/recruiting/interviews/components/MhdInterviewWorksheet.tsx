@@ -187,9 +187,7 @@ export function MhdInterviewWorksheet({ interviewId, canSubmit, onSubmitted }: P
                       key={option.label}
                       type="button"
                       disabled={!canSubmit}
-                      onClick={() =>
-                        updateAnswer(item.guideItemId, { responseBool: option.value })
-                      }
+                      onClick={() => updateAnswer(item.guideItemId, { responseBool: option.value })}
                       className={`rounded-md border px-4 py-1.5 text-sm font-medium disabled:opacity-50 ${
                         answer?.responseBool === option.value
                           ? 'border-accent bg-accent text-accent-on'

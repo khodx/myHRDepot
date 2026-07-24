@@ -128,9 +128,12 @@ function MhdMyHandbookRow({ item, onSign }: RowProps) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-foreground">
-            {item.handbookTitle} <span className="text-muted-foreground">v{item.versionNumber}</span>
+            {item.handbookTitle}{' '}
+            <span className="text-muted-foreground">v{item.versionNumber}</span>
           </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{mhdFormatHandbookType(item.handbookType)}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {mhdFormatHandbookType(item.handbookType)}
+          </p>
           {item.esignatureRequestId ? (
             <p className="mt-1 text-xs text-amber-700">
               A signature is required — acknowledgment records only once signing is complete.

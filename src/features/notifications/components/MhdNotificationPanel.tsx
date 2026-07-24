@@ -14,7 +14,8 @@ interface MhdNotificationPanelProps {
 export function MhdNotificationPanel({ onClose }: MhdNotificationPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { notifications, unreadCount, isLoading, error, markRead, markAllRead } = useMhdNotifications();
+  const { notifications, unreadCount, isLoading, error, markRead, markAllRead } =
+    useMhdNotifications();
 
   // Close panel on outside click
   useEffect(() => {

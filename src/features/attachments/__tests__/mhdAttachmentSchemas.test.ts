@@ -40,7 +40,11 @@ describe('mhdAttachmentUploadSchema', () => {
 
     it('accepts an Excel file', () => {
       const result = mhdAttachmentUploadSchema.safeParse({
-        file: makeFile('data.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 5_000),
+        file: makeFile(
+          'data.xlsx',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          5_000,
+        ),
         entityType: 'TASK',
         entityId: 'task-123',
       });

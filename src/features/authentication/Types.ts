@@ -5,7 +5,8 @@
 // from public.users + public.companies + public.people + the
 // mhd_current_user_roles() RPC, not read from a single view row.
 
-export type MhdAuthRoleName = 'Platform Admin' | 'HR Partner' | 'Client Admin' | 'Client User' | 'Viewer';
+export type MhdAuthRoleName =
+  'Platform Admin' | 'HR Partner' | 'Client Admin' | 'Client User' | 'Viewer';
 
 export interface MhdCurrentUserProfile {
   userId: string;

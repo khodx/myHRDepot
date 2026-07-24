@@ -9,7 +9,13 @@ interface MhdPersonCompanySelectProps {
   label?: string;
 }
 
-export function MhdPersonCompanySelect({ companies, value, onChange, includeAllOption = false, label = 'Company' }: MhdPersonCompanySelectProps) {
+export function MhdPersonCompanySelect({
+  companies,
+  value,
+  onChange,
+  includeAllOption = false,
+  label = 'Company',
+}: MhdPersonCompanySelectProps) {
   function handleChange(event: ChangeEvent<HTMLSelectElement>) {
     onChange(event.target.value);
   }
@@ -22,7 +28,11 @@ export function MhdPersonCompanySelect({ companies, value, onChange, includeAllO
         value={value}
         onChange={handleChange}
       >
-        {includeAllOption ? <option value="ALL">All companies</option> : <option value="">Select company</option>}
+        {includeAllOption ? (
+          <option value="ALL">All companies</option>
+        ) : (
+          <option value="">Select company</option>
+        )}
         {companies.map((company) => (
           <option key={company.id} value={company.id}>
             {company.companyName}

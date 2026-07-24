@@ -6,7 +6,11 @@ import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
-import { useMhdCreateRequisition, useMhdRecruitingPeople, useMhdRecruitingRequisitions } from '../Hook';
+import {
+  useMhdCreateRequisition,
+  useMhdRecruitingPeople,
+  useMhdRecruitingRequisitions,
+} from '../Hook';
 import type { MhdRequisitionFormValues } from '../Schemas';
 import {
   MHD_RECRUITING_REQUISITION_STATUSES,
@@ -46,11 +50,15 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
   const hiringManagerOptions = useMemo(
     () =>
       (people.data ?? []).map(
-        (person: { id: string; firstName?: string | null; lastName?: string | null; preferredName?: string | null }) => ({
+        (person: {
+          id: string;
+          firstName?: string | null;
+          lastName?: string | null;
+          preferredName?: string | null;
+        }) => ({
           id: person.id,
           displayName:
-            person.preferredName ||
-            [person.firstName, person.lastName].filter(Boolean).join(' '),
+            person.preferredName || [person.firstName, person.lastName].filter(Boolean).join(' '),
         }),
       ),
     [people.data],

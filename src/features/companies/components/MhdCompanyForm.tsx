@@ -1,6 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
-import type { MhdCompany, MhdCreateCompanyInput, MhdUpdateCompanyInput } from '@/features/companies/Types';
+import type {
+  MhdCompany,
+  MhdCreateCompanyInput,
+  MhdUpdateCompanyInput,
+} from '@/features/companies/Types';
 import { mhdCreateCompanySchema, mhdUpdateCompanySchema } from '@/features/companies/Schemas';
 
 type MhdCompanyFormProps = {
@@ -11,11 +15,19 @@ type MhdCompanyFormProps = {
   onCancel?: () => void;
 };
 
-export function MhdCompanyForm({ company, isSubmitting, submitLabel, onSubmit, onCancel }: MhdCompanyFormProps) {
+export function MhdCompanyForm({
+  company,
+  isSubmitting,
+  submitLabel,
+  onSubmit,
+  onCancel,
+}: MhdCompanyFormProps) {
   const [companyName, setCompanyName] = useState(company?.companyName ?? '');
   const [industry, setIndustry] = useState(company?.industry ?? '');
   const [employeeCount, setEmployeeCount] = useState(company?.employeeCount ?? null);
-  const [headquartersLocation, setHeadquartersLocation] = useState(company?.headquartersLocation ?? '');
+  const [headquartersLocation, setHeadquartersLocation] = useState(
+    company?.headquartersLocation ?? '',
+  );
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,7 +47,9 @@ export function MhdCompanyForm({ company, isSubmitting, submitLabel, onSubmit, o
       employeeCount,
       headquartersLocation: headquartersLocation.trim().length > 0 ? headquartersLocation : null,
     };
-    const result = company ? mhdUpdateCompanySchema.safeParse(rawValues) : mhdCreateCompanySchema.safeParse(rawValues);
+    const result = company
+      ? mhdUpdateCompanySchema.safeParse(rawValues)
+      : mhdCreateCompanySchema.safeParse(rawValues);
 
     if (!result.success) {
       setFormError(result.error.issues[0]?.message ?? 'Please review the company form.');
@@ -76,7 +90,10 @@ export function MhdCompanyForm({ company, isSubmitting, submitLabel, onSubmit, o
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700" htmlFor="mhd-company-employee-count">
+        <label
+          className="block text-sm font-medium text-slate-700"
+          htmlFor="mhd-company-employee-count"
+        >
           Employee count
         </label>
         <input
@@ -85,13 +102,18 @@ export function MhdCompanyForm({ company, isSubmitting, submitLabel, onSubmit, o
           min={0}
           className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           value={employeeCount ?? ''}
-          onChange={(event) => setEmployeeCount(event.target.value === '' ? null : Number(event.target.value))}
+          onChange={(event) =>
+            setEmployeeCount(event.target.value === '' ? null : Number(event.target.value))
+          }
           disabled={isSubmitting}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700" htmlFor="mhd-company-hq-location">
+        <label
+          className="block text-sm font-medium text-slate-700"
+          htmlFor="mhd-company-hq-location"
+        >
           Headquarters location
         </label>
         <input
@@ -103,7 +125,9 @@ export function MhdCompanyForm({ company, isSubmitting, submitLabel, onSubmit, o
         />
       </div>
 
-      {formError ? <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p> : null}
+      {formError ? (
+        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p>
+      ) : null}
 
       <div className="flex justify-end gap-2">
         {onCancel ? (

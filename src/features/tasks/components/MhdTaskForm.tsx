@@ -2,7 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { mhdTaskFormSchema, type MhdTaskFormValues } from '@/features/tasks/Schemas';
 import type { MhdCompany } from '@/features/companies/Types';
-import type { MhdCreateTaskInput, MhdTask, MhdTaskAssignableUser, MhdTaskPriorityOption, MhdTaskStatusOption, MhdUpdateTaskInput } from '@/features/tasks/Types';
+import type {
+  MhdCreateTaskInput,
+  MhdTask,
+  MhdTaskAssignableUser,
+  MhdTaskPriorityOption,
+  MhdTaskStatusOption,
+  MhdUpdateTaskInput,
+} from '@/features/tasks/Types';
 
 interface MhdTaskFormProps {
   companies: MhdCompany[];
@@ -29,7 +36,17 @@ const EMPTY_VALUES: MhdTaskFormValues = {
   assignedUserIds: [],
 };
 
-export function MhdTaskForm({ companies, statuses, priorities, assignableUsers, selectedTask, isSaving, onCreate, onUpdate, onCancelEdit }: MhdTaskFormProps) {
+export function MhdTaskForm({
+  companies,
+  statuses,
+  priorities,
+  assignableUsers,
+  selectedTask,
+  isSaving,
+  onCreate,
+  onUpdate,
+  onCancelEdit,
+}: MhdTaskFormProps) {
   const [values, setValues] = useState<MhdTaskFormValues>(EMPTY_VALUES);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -49,11 +66,22 @@ export function MhdTaskForm({ companies, statuses, priorities, assignableUsers, 
         assignedUserIds: selectedTask.assignedUserIds,
       });
     } else {
-      setValues({ ...EMPTY_VALUES, companyId: companies[0]?.id ?? '', statusId: statuses[0]?.id ?? '', priorityId: priorities[0]?.id ?? '' });
+      setValues({
+        ...EMPTY_VALUES,
+        companyId: companies[0]?.id ?? '',
+        statusId: statuses[0]?.id ?? '',
+        priorityId: priorities[0]?.id ?? '',
+      });
     }
   }, [companies, priorities, selectedTask, statuses]);
 
-  const filteredAssignableUsers = useMemo(() => assignableUsers.filter((user) => values.companyId === '' || user.companyId === values.companyId), [assignableUsers, values.companyId]);
+  const filteredAssignableUsers = useMemo(
+    () =>
+      assignableUsers.filter(
+        (user) => values.companyId === '' || user.companyId === values.companyId,
+      ),
+    [assignableUsers, values.companyId],
+  );
 
   function updateValue<K extends keyof MhdTaskFormValues>(key: K, value: MhdTaskFormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -74,76 +102,152 @@ export function MhdTaskForm({ companies, statuses, priorities, assignableUsers, 
       } else {
         await onCreate(parsed.data);
       }
-      setValues({ ...EMPTY_VALUES, companyId: companies[0]?.id ?? '', statusId: statuses[0]?.id ?? '', priorityId: priorities[0]?.id ?? '' });
+      setValues({
+        ...EMPTY_VALUES,
+        companyId: companies[0]?.id ?? '',
+        statusId: statuses[0]?.id ?? '',
+        priorityId: priorities[0]?.id ?? '',
+      });
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Unable to save task.');
     }
   }
 
   return (
-    <form className="rounded-xl border border-border bg-card p-4 shadow-sm" onSubmit={(event) => void handleSubmit(event)}>
+    <form
+      className="rounded-xl border border-border bg-card p-4 shadow-sm"
+      onSubmit={(event) => void handleSubmit(event)}
+    >
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-base font-semibold text-foreground">{selectedTask ? 'Edit Task' : 'Create Task'}</h2>
-        {selectedTask && <button type="button" className="text-sm font-medium text-muted-foreground hover:text-foreground" onClick={onCancelEdit}>Cancel edit</button>}
+        <h2 className="text-base font-semibold text-foreground">
+          {selectedTask ? 'Edit Task' : 'Create Task'}
+        </h2>
+        {selectedTask && (
+          <button
+            type="button"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            onClick={onCancelEdit}
+          >
+            Cancel edit
+          </button>
+        )}
       </div>
 
-      {formError && <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{formError}</div>}
+      {formError && (
+        <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {formError}
+        </div>
+      )}
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="text-sm font-medium text-foreground">
           Company
-          <select className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.companyId} onChange={(event) => updateValue('companyId', event.target.value)}>
+          <select
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={values.companyId}
+            onChange={(event) => updateValue('companyId', event.target.value)}
+          >
             <option value="">Select company</option>
-            {companies.map((company) => <option key={company.id} value={company.id}>{company.companyName}</option>)}
+            {companies.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.companyName}
+              </option>
+            ))}
           </select>
         </label>
 
         <label className="text-sm font-medium text-foreground">
           Title
-          <input className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.title} onChange={(event) => updateValue('title', event.target.value)} />
+          <input
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={values.title}
+            onChange={(event) => updateValue('title', event.target.value)}
+          />
         </label>
 
         <label className="text-sm font-medium text-foreground md:col-span-2">
           Description
-          <textarea className="mt-1 min-h-24 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.descriptionPlainText} onChange={(event) => updateValue('descriptionPlainText', event.target.value)} />
+          <textarea
+            className="mt-1 min-h-24 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={values.descriptionPlainText}
+            onChange={(event) => updateValue('descriptionPlainText', event.target.value)}
+          />
         </label>
 
         <label className="text-sm font-medium text-foreground">
           Status
-          <select className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.statusId} onChange={(event) => updateValue('statusId', event.target.value)}>
+          <select
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={values.statusId}
+            onChange={(event) => updateValue('statusId', event.target.value)}
+          >
             <option value="">Select status</option>
-            {statuses.map((status) => <option key={status.id} value={status.id}>{status.statusName}</option>)}
+            {statuses.map((status) => (
+              <option key={status.id} value={status.id}>
+                {status.statusName}
+              </option>
+            ))}
           </select>
         </label>
 
         <label className="text-sm font-medium text-foreground">
           Priority
-          <select className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.priorityId} onChange={(event) => updateValue('priorityId', event.target.value)}>
+          <select
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={values.priorityId}
+            onChange={(event) => updateValue('priorityId', event.target.value)}
+          >
             <option value="">No priority</option>
-            {priorities.map((priority) => <option key={priority.id} value={priority.id}>{priority.priorityName}</option>)}
+            {priorities.map((priority) => (
+              <option key={priority.id} value={priority.id}>
+                {priority.priorityName}
+              </option>
+            ))}
           </select>
         </label>
 
         <label className="text-sm font-medium text-foreground">
           Start Date
-          <input type="date" className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.startDate} onChange={(event) => updateValue('startDate', event.target.value)} />
+          <input
+            type="date"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={values.startDate}
+            onChange={(event) => updateValue('startDate', event.target.value)}
+          />
         </label>
 
         <label className="text-sm font-medium text-foreground">
           Due Date
-          <input type="date" className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.dueDate} onChange={(event) => updateValue('dueDate', event.target.value)} />
+          <input
+            type="date"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={values.dueDate}
+            onChange={(event) => updateValue('dueDate', event.target.value)}
+          />
         </label>
 
         {selectedTask && (
           <label className="text-sm font-medium text-foreground">
             Completed Date
-            <input type="date" className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.completedDate} onChange={(event) => updateValue('completedDate', event.target.value)} />
+            <input
+              type="date"
+              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              value={values.completedDate}
+              onChange={(event) => updateValue('completedDate', event.target.value)}
+            />
           </label>
         )}
 
         <label className="text-sm font-medium text-foreground">
           Progress %
-          <input type="number" min="0" max="100" className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.manualProgressPercent} onChange={(event) => updateValue('manualProgressPercent', Number(event.target.value))} />
+          <input
+            type="number"
+            min="0"
+            max="100"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={values.manualProgressPercent}
+            onChange={(event) => updateValue('manualProgressPercent', Number(event.target.value))}
+          />
           {selectedTask && (
             <span className="mt-1 block text-xs font-normal text-muted-foreground">
               {selectedTask.calculatedProgressPercent !== null
@@ -155,8 +259,23 @@ export function MhdTaskForm({ companies, statuses, priorities, assignableUsers, 
 
         <label className="text-sm font-medium text-foreground md:col-span-2">
           Assigned Users
-          <select multiple className="mt-1 min-h-28 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" value={values.assignedUserIds} onChange={(event) => updateValue('assignedUserIds', Array.from(event.target.selectedOptions).map((option) => option.value))}>
-            {filteredAssignableUsers.map((user) => <option key={user.id} value={user.id}>{user.displayName}{user.email ? ` (${user.email})` : ''}</option>)}
+          <select
+            multiple
+            className="mt-1 min-h-28 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={values.assignedUserIds}
+            onChange={(event) =>
+              updateValue(
+                'assignedUserIds',
+                Array.from(event.target.selectedOptions).map((option) => option.value),
+              )
+            }
+          >
+            {filteredAssignableUsers.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.displayName}
+                {user.email ? ` (${user.email})` : ''}
+              </option>
+            ))}
           </select>
         </label>
       </div>

@@ -4,7 +4,9 @@ import { MHD_ATTACHMENT_ALLOWED_MIME_TYPES, MHD_ATTACHMENT_MAX_SIZE_BYTES } from
 export const mhdAttachmentUploadSchema = z.object({
   file: z
     .instanceof(File)
-    .refine((f) => f.size <= MHD_ATTACHMENT_MAX_SIZE_BYTES, { message: 'File must be 25 MB or smaller' })
+    .refine((f) => f.size <= MHD_ATTACHMENT_MAX_SIZE_BYTES, {
+      message: 'File must be 25 MB or smaller',
+    })
     .refine((f) => (MHD_ATTACHMENT_ALLOWED_MIME_TYPES as readonly string[]).includes(f.type), {
       message: 'File type not allowed. Accepted: PDF, Word, Excel, images, text, CSV, ZIP',
     }),

@@ -57,8 +57,12 @@ export function MhdThresholdEventPanel({
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const open = events.filter((event) => event.status === 'RAISED' || event.status === 'ACKNOWLEDGED');
-  const closed = events.filter((event) => event.status === 'ACTIONED' || event.status === 'DISMISSED');
+  const open = events.filter(
+    (event) => event.status === 'RAISED' || event.status === 'ACKNOWLEDGED',
+  );
+  const closed = events.filter(
+    (event) => event.status === 'ACTIONED' || event.status === 'DISMISSED',
+  );
 
   async function submit(eventId: string) {
     // Dismissing says the crossing should not have counted. That is exactly the

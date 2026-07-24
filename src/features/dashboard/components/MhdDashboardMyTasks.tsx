@@ -1,21 +1,21 @@
-import { useNavigate } from 'react-router-dom'
-import { clsx } from 'clsx'
-import { MhdProgressBar } from '@/components/ui/MhdProgressBar'
-import type { MhdDashboardMyTask } from '../Types'
+import { useNavigate } from 'react-router-dom';
+import { clsx } from 'clsx';
+import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
+import type { MhdDashboardMyTask } from '../Types';
 
 interface Props {
-  tasks: MhdDashboardMyTask[]
+  tasks: MhdDashboardMyTask[];
 }
 
 export function MhdDashboardMyTasks({ tasks }: Props) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   if (tasks.length === 0) {
     return (
       <p className="flex items-center justify-center py-8 text-sm text-muted-foreground">
         No tasks assigned to you
       </p>
-    )
+    );
   }
 
   return (
@@ -50,7 +50,7 @@ export function MhdDashboardMyTasks({ tasks }: Props) {
                 <span
                   className={clsx(
                     'text-xs',
-                    task.isOverdue ? 'font-semibold text-red-700' : 'text-muted-foreground'
+                    task.isOverdue ? 'font-semibold text-red-700' : 'text-muted-foreground',
                   )}
                 >
                   {task.isOverdue ? 'Overdue: ' : 'Due: '}
@@ -69,5 +69,5 @@ export function MhdDashboardMyTasks({ tasks }: Props) {
         </button>
       ))}
     </div>
-  )
+  );
 }

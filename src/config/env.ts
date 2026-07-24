@@ -16,8 +16,10 @@ export const runtimeEnv = runtimeEnvSchema.parse({
   VITE_APP_ENV: import.meta.env.VITE_APP_ENV ?? 'development',
   VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
   VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
-  VITE_ATTACHMENT_UPLOAD_FUNCTION: import.meta.env.VITE_ATTACHMENT_UPLOAD_FUNCTION ?? 'mhd-drive-upload',
-  VITE_SIGNATURE_EMAIL_FUNCTION: import.meta.env.VITE_SIGNATURE_EMAIL_FUNCTION ?? 'send-signature-email',
+  VITE_ATTACHMENT_UPLOAD_FUNCTION:
+    import.meta.env.VITE_ATTACHMENT_UPLOAD_FUNCTION ?? 'mhd-drive-upload',
+  VITE_SIGNATURE_EMAIL_FUNCTION:
+    import.meta.env.VITE_SIGNATURE_EMAIL_FUNCTION ?? 'send-signature-email',
   VITE_APP_VERSION: import.meta.env.VITE_APP_VERSION ?? '0.1.0',
   VITE_APP_URL: import.meta.env.VITE_APP_URL ?? 'http://localhost:5173',
 });

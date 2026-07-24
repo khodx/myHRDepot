@@ -2,15 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/Button';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import {
-  mhdCompanyRatePolicySchema,
-  type MhdCompanyRatePolicyFormValues,
-} from '../Schemas';
-import {
-  MHD_MILEAGE_RATE_MODES,
-  mhdFormatRateMode,
-  type MhdMileageEffectiveRate,
-} from '../Types';
+import { mhdCompanyRatePolicySchema, type MhdCompanyRatePolicyFormValues } from '../Schemas';
+import { MHD_MILEAGE_RATE_MODES, mhdFormatRateMode, type MhdMileageEffectiveRate } from '../Types';
 
 interface Props {
   companyId: string;

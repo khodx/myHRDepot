@@ -64,7 +64,9 @@ describe('mhdRateProposalSchema', () => {
   });
 
   it('refuses a proposal whose source URL is not a URL', () => {
-    expect(mhdRateProposalSchema.safeParse({ ...validRate, sourceUrl: 'not-a-url' }).success).toBe(false);
+    expect(mhdRateProposalSchema.safeParse({ ...validRate, sourceUrl: 'not-a-url' }).success).toBe(
+      false,
+    );
   });
 
   it('refuses a proposal with no notice number', () => {

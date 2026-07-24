@@ -11,36 +11,38 @@
  * Visible to: Platform Admin, HR Partner only (enforced by MhdSidebar NAV_ITEMS + RLS)
  */
 
-import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { Users, ClipboardList } from 'lucide-react'
-import { MhdBreadcrumb } from './MhdBreadcrumb'
-import { mhdCompanyService } from '@/features/companies/Service'
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { Users, ClipboardList } from 'lucide-react';
+import { MhdBreadcrumb } from './MhdBreadcrumb';
+import { mhdCompanyService } from '@/features/companies/Service';
 
 export function MhdCompanyDetailPage() {
-  const { companyId } = useParams<{ companyId: string }>()
-  const navigate = useNavigate()
+  const { companyId } = useParams<{ companyId: string }>();
+  const navigate = useNavigate();
 
-  const { data: company, isLoading, error } = useQuery({
+  const {
+    data: company,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['mhd-company', companyId],
     queryFn: () => mhdCompanyService.getCompanyById(companyId!),
     enabled: !!companyId,
-  })
+  });
 
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <p className="text-sm text-neutral-500">Loading company…</p>
       </div>
-    )
+    );
   }
 
   if (error || !company) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
-        <p className="text-sm text-red-600">
-          {(error as Error)?.message ?? 'Company not found'}
-        </p>
+        <p className="text-sm text-red-600">{(error as Error)?.message ?? 'Company not found'}</p>
         <button
           type="button"
           onClick={() => navigate('/companies')}
@@ -49,16 +51,13 @@ export function MhdCompanyDetailPage() {
           Back to Companies
         </button>
       </div>
-    )
+    );
   }
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 p-6">
       <MhdBreadcrumb
-        items={[
-          { label: 'Companies', to: '/companies' },
-          { label: company.companyName },
-        ]}
+        items={[{ label: 'Companies', to: '/companies' }, { label: company.companyName }]}
       />
 
       {/* Company card */}
@@ -97,5 +96,5 @@ export function MhdCompanyDetailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

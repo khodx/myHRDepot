@@ -64,7 +64,9 @@ export async function mhdUpdatePassword(input: MhdResetPasswordInput): Promise<v
  * (typically `session.user.id`) since there is no view already scoped to
  * `auth.uid()`.
  */
-export async function mhdLoadCurrentUserProfile(authUserId: string): Promise<MhdCurrentUserProfile | null> {
+export async function mhdLoadCurrentUserProfile(
+  authUserId: string,
+): Promise<MhdCurrentUserProfile | null> {
   const { data: userRow, error: userError } = await mhdSupabase
     .from('users')
     .select(

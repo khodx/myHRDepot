@@ -247,7 +247,9 @@ export function MhdInvestigationCaseDetailPage() {
         </div>
         {detail.findingSummary ? (
           <div className="rounded-md bg-muted p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Recorded finding</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Recorded finding
+            </p>
             <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
               {detail.findingSummary}
             </p>

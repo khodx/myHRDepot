@@ -38,7 +38,10 @@ export function MhdFormTable({
           <thead>
             <tr>
               {columns.map((column) => (
-                <th key={column.id} className="border-b border-border px-2 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th
+                  key={column.id}
+                  className="border-b border-border px-2 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                >
                   {column.label}
                 </th>
               ))}
@@ -57,7 +60,10 @@ export function MhdFormTable({
                       value={String(row[column.id] ?? '')}
                       onChange={(event) => {
                         const updatedRows = [...safeRows];
-                        updatedRows[rowIndex] = { ...updatedRows[rowIndex], [column.id]: event.target.value };
+                        updatedRows[rowIndex] = {
+                          ...updatedRows[rowIndex],
+                          [column.id]: event.target.value,
+                        };
                         onChange(updatedRows);
                       }}
                       className="w-full rounded-md border border-border px-2 py-1 text-sm"

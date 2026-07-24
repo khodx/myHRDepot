@@ -60,13 +60,7 @@ export interface MhdDashboardState {
 // this as documentation of known values rather than a strict union so
 // unexpected values don't fail to type-check.
 export type MhdDashboardActionType =
-  | 'CREATE'
-  | 'UPDATE'
-  | 'DELETE'
-  | 'ATTACHMENT_ADD'
-  | 'ATTACHMENT_REMOVE'
-  | 'NOTIFY'
-  | string;
+  'CREATE' | 'UPDATE' | 'DELETE' | 'ATTACHMENT_ADD' | 'ATTACHMENT_REMOVE' | 'NOTIFY' | string;
 
 export function mhdGetActionLabel(actionType: string): string {
   const labels: Record<string, string> = {

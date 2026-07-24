@@ -5,7 +5,11 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdNotes } from '@/features/notes/Hook';
-import { mhdPlainTextToRichText, type MhdNote, type MhdNoteVisibility } from '@/features/notes/Types';
+import {
+  mhdPlainTextToRichText,
+  type MhdNote,
+  type MhdNoteVisibility,
+} from '@/features/notes/Types';
 
 interface Props {
   activityId: string;
@@ -46,7 +50,10 @@ function MhdActivityNoteEditor({
   }
 
   return (
-    <form className="space-y-3 rounded-md border border-border bg-muted p-4" onSubmit={(event) => void handleSubmit(event)}>
+    <form
+      className="space-y-3 rounded-md border border-border bg-muted p-4"
+      onSubmit={(event) => void handleSubmit(event)}
+    >
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">Note</label>
         <textarea
@@ -122,7 +129,9 @@ function MhdActivityNoteItem({
     <MhdCard>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-foreground">{note.createdByDisplayName ?? 'Unknown author'}</p>
+          <p className="text-sm font-semibold text-foreground">
+            {note.createdByDisplayName ?? 'Unknown author'}
+          </p>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
             {note.visibility} • {new Date(note.createdAt).toLocaleString()}
           </p>
@@ -131,7 +140,11 @@ function MhdActivityNoteItem({
         {!readOnly && (note.canEdit || note.canDelete) ? (
           <div className="flex gap-2">
             {note.canEdit ? (
-              <Button variant="secondary" className="px-3 py-1.5" onClick={() => setIsEditing(true)}>
+              <Button
+                variant="secondary"
+                className="px-3 py-1.5"
+                onClick={() => setIsEditing(true)}
+              >
                 Edit
               </Button>
             ) : null}
@@ -161,9 +174,18 @@ export function MhdActivityNotesPanel({ activityId, readOnly = false }: Props) {
     await notesState.createNote(mhdPlainTextToRichText(notePlainText), notePlainText, visibility);
   }
 
-  async function handleUpdate(noteId: string, notePlainText: string, visibility: MhdNoteVisibility) {
+  async function handleUpdate(
+    noteId: string,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) {
     try {
-      await notesState.updateNote(noteId, mhdPlainTextToRichText(notePlainText), notePlainText, visibility);
+      await notesState.updateNote(
+        noteId,
+        mhdPlainTextToRichText(notePlainText),
+        notePlainText,
+        visibility,
+      );
     } catch {
       // Surfaced through notesState.errorMessage.
     }
@@ -180,7 +202,9 @@ export function MhdActivityNotesPanel({ activityId, readOnly = false }: Props) {
   return (
     <div className="space-y-4">
       {notesState.errorMessage ? (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{notesState.errorMessage}</div>
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {notesState.errorMessage}
+        </div>
       ) : null}
 
       {readOnly ? (
@@ -194,12 +218,17 @@ export function MhdActivityNotesPanel({ activityId, readOnly = false }: Props) {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">Comments Timeline</h2>
-          <button className="text-sm font-semibold text-accent hover:text-accent-hover" onClick={() => void notesState.refresh()}>
+          <button
+            className="text-sm font-semibold text-accent hover:text-accent-hover"
+            onClick={() => void notesState.refresh()}
+          >
             Refresh
           </button>
         </div>
 
-        {notesState.isLoading ? <div className="py-8 text-sm text-muted-foreground">Loading notes…</div> : null}
+        {notesState.isLoading ? (
+          <div className="py-8 text-sm text-muted-foreground">Loading notes…</div>
+        ) : null}
         {!notesState.isLoading && notesState.notes.length === 0 ? (
           <MhdCard className="border-dashed">
             <MhdEmptyState icon={MessageSquare} title="No notes yet." />

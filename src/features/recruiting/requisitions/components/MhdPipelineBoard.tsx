@@ -160,10 +160,7 @@ export function MhdPipelineBoard({
         {stageList.map((stage) => {
           const cards = byStage.groups.get(stage.id) ?? [];
           return (
-            <div
-              key={stage.id}
-              className="w-72 flex-shrink-0 space-y-2 rounded-lg bg-muted p-3"
-            >
+            <div key={stage.id} className="w-72 flex-shrink-0 space-y-2 rounded-lg bg-muted p-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground">{stage.stageName}</h3>
                 <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">

@@ -49,7 +49,9 @@ export function MhdFeedbackForm({
   const decline = useMhdDeclineParticipation(reviewId);
 
   function updateDraft(index: number, patch: Partial<FeedbackItemDraft>) {
-    setDrafts((previous) => previous.map((item, i) => (i === index ? { ...item, ...patch } : item)));
+    setDrafts((previous) =>
+      previous.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+    );
   }
 
   async function handleSubmit() {
@@ -84,14 +86,19 @@ export function MhdFeedbackForm({
 
       <div className="space-y-4">
         {drafts.map((draft, index) => (
-          <div key={draft.competencyId ?? draft.sectionId ?? index} className="rounded-md border border-border p-4">
+          <div
+            key={draft.competencyId ?? draft.sectionId ?? index}
+            className="rounded-md border border-border p-4"
+          >
             <p className="text-sm font-medium text-foreground">{draft.label}</p>
             <div className="mt-2 flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
                   key={value}
                   type="button"
-                  onClick={() => updateDraft(index, { rating: draft.rating === value ? null : value })}
+                  onClick={() =>
+                    updateDraft(index, { rating: draft.rating === value ? null : value })
+                  }
                   className={`h-8 w-8 rounded-md border text-sm ${
                     draft.rating === value
                       ? 'border-accent bg-accent text-accent-on'
@@ -117,7 +124,8 @@ export function MhdFeedbackForm({
       {isDeclining ? (
         <div className="space-y-2 rounded-md border border-border p-4">
           <label htmlFor="declineReason" className="block text-sm font-medium text-foreground">
-            Reason for declining <span className="font-normal text-muted-foreground">(optional)</span>
+            Reason for declining{' '}
+            <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <textarea
             id="declineReason"

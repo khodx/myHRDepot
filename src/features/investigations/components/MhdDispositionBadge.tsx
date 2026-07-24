@@ -20,6 +20,7 @@ interface Props {
 }
 
 export function MhdDispositionBadge({ disposition }: Props) {
-  const variant = disposition == null ? 'neutral' : (DISPOSITION_VARIANTS[disposition] ?? 'neutral');
+  const variant =
+    disposition == null ? 'neutral' : (DISPOSITION_VARIANTS[disposition] ?? 'neutral');
   return <MhdBadge variant={variant}>{mhdFormatInvestigationDisposition(disposition)}</MhdBadge>;
 }

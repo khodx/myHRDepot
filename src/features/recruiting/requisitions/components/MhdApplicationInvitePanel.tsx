@@ -49,11 +49,15 @@ export function MhdApplicationInvitePanel({
   const peopleOptions = useMemo(
     () =>
       (people.data ?? []).map(
-        (person: { id: string; firstName?: string | null; lastName?: string | null; preferredName?: string | null }) => ({
+        (person: {
+          id: string;
+          firstName?: string | null;
+          lastName?: string | null;
+          preferredName?: string | null;
+        }) => ({
           id: person.id,
           displayName:
-            person.preferredName ||
-            [person.firstName, person.lastName].filter(Boolean).join(' '),
+            person.preferredName || [person.firstName, person.lastName].filter(Boolean).join(' '),
         }),
       ),
     [people.data],

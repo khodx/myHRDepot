@@ -119,8 +119,7 @@ export function useMhdEffectiveRate(companyId: string | null, onDate: string | n
 export function useMhdSetCompanyRatePolicy() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: MhdSetCompanyRatePolicyInput) =>
-      mhdMileageService.setCompanyPolicy(input),
+    mutationFn: (input: MhdSetCompanyRatePolicyInput) => mhdMileageService.setCompanyPolicy(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-mileage', 'effective-rate'] });
       // A new policy changes what unapproved claims are worth, but never

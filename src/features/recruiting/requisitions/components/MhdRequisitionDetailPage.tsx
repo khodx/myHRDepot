@@ -54,7 +54,11 @@ export function MhdRequisitionDetailPage({
     return (
       <div>
         {onBack ? (
-          <button type="button" onClick={onBack} className="text-sm font-medium text-accent hover:text-accent-hover">
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-sm font-medium text-accent hover:text-accent-hover"
+          >
             ← Back to requisitions
           </button>
         ) : null}
@@ -68,7 +72,11 @@ export function MhdRequisitionDetailPage({
   return (
     <div className="space-y-6">
       {onBack ? (
-        <button type="button" onClick={onBack} className="text-sm font-medium text-accent hover:text-accent-hover">
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-sm font-medium text-accent hover:text-accent-hover"
+        >
           ← Back to requisitions
         </button>
       ) : null}
@@ -80,7 +88,9 @@ export function MhdRequisitionDetailPage({
               <h1 className="text-2xl font-bold text-foreground">{requisition.title}</h1>
               <MhdRequisitionStatusBadge status={requisition.status} />
             </div>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">{requisition.referenceId}</p>
+            <p className="mt-1 font-mono text-xs text-muted-foreground">
+              {requisition.referenceId}
+            </p>
           </div>
 
           {canManage ? (
@@ -108,36 +118,44 @@ export function MhdRequisitionDetailPage({
         </div>
 
         <MhdCard>
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm md:grid-cols-4">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Hiring manager</dt>
-            <dd className="text-foreground">{requisition.hiringManagerName ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Department</dt>
-            <dd className="text-foreground">{requisition.department ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Location</dt>
-            <dd className="text-foreground">{requisition.location ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Employment type</dt>
-            <dd className="text-foreground">{requisition.employmentType ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Headcount</dt>
-            <dd className="text-foreground">{requisition.headcount}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Active applicants</dt>
-            <dd className="text-foreground">{requisition.openApplicationCount}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Requires approval</dt>
-            <dd className="text-foreground">{requisition.requiresApproval ? 'Yes' : 'No'}</dd>
-          </div>
-        </dl>
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm md:grid-cols-4">
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                Hiring manager
+              </dt>
+              <dd className="text-foreground">{requisition.hiringManagerName ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Department</dt>
+              <dd className="text-foreground">{requisition.department ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Location</dt>
+              <dd className="text-foreground">{requisition.location ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                Employment type
+              </dt>
+              <dd className="text-foreground">{requisition.employmentType ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Headcount</dt>
+              <dd className="text-foreground">{requisition.headcount}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                Active applicants
+              </dt>
+              <dd className="text-foreground">{requisition.openApplicationCount}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                Requires approval
+              </dt>
+              <dd className="text-foreground">{requisition.requiresApproval ? 'Yes' : 'No'}</dd>
+            </div>
+          </dl>
         </MhdCard>
       </header>
 

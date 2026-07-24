@@ -12,5 +12,7 @@ interface Props {
 }
 
 export function MhdCoachingStatusBadge({ status }: Props) {
-  return <MhdBadge variant={STATUS_VARIANTS[status]}>{mhdFormatCoachingPlanStatus(status)}</MhdBadge>;
+  return (
+    <MhdBadge variant={STATUS_VARIANTS[status]}>{mhdFormatCoachingPlanStatus(status)}</MhdBadge>
+  );
 }

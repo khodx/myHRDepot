@@ -152,7 +152,10 @@ function mapCalculation(value: unknown): MhdFormCalculation | null {
   };
 }
 
-function mapDefinition(rawDefinition: Json | null, meta: { id: string; name: string; description?: string | null }): MhdFormDefinition {
+function mapDefinition(
+  rawDefinition: Json | null,
+  meta: { id: string; name: string; description?: string | null },
+): MhdFormDefinition {
   const definition = isObject(rawDefinition) ? rawDefinition : {};
   const fields = (Array.isArray(definition.fields) ? definition.fields : [])
     .map((field) => mapField(field))
@@ -188,9 +191,13 @@ function mapDefinition(rawDefinition: Json | null, meta: { id: string; name: str
     logic,
     calculations,
     settings: {
-      allowDraft: isObject(definition.settings) ? asBoolean(definition.settings.allowDraft, true) : true,
+      allowDraft: isObject(definition.settings)
+        ? asBoolean(definition.settings.allowDraft, true)
+        : true,
       multiPage: isObject(definition.settings) ? asBoolean(definition.settings.multiPage) : false,
-      progressBar: isObject(definition.settings) ? asBoolean(definition.settings.progressBar, true) : true,
+      progressBar: isObject(definition.settings)
+        ? asBoolean(definition.settings.progressBar, true)
+        : true,
     },
   };
 }
@@ -203,7 +210,11 @@ function mapFormRow(row: MhdRpcFormRow | MhdRpcFormsListRow): MhdForm {
     name: row.name,
     description: row.description ?? undefined,
     status: row.status as MhdFormStatus,
-    definition: mapDefinition(row.definition, { id: row.id, name: row.name, description: row.description }),
+    definition: mapDefinition(row.definition, {
+      id: row.id,
+      name: row.name,
+      description: row.description,
+    }),
     version: row.version,
     previousVersionId: row.previous_version_id ?? null,
     createdAt: row.created_at,
@@ -374,7 +385,10 @@ export const mhdFormService = {
     return this.getSubmissionById(row.id);
   },
 
-  async saveDraft(submissionId: string, values: Record<string, unknown>): Promise<MhdFormSubmission> {
+  async saveDraft(
+    submissionId: string,
+    values: Record<string, unknown>,
+  ): Promise<MhdFormSubmission> {
     const { error } = await supabaseClient.rpc('mhd_save_form_draft', {
       p_submission_id: submissionId,
       p_values: toJsonValue(values),
@@ -387,11 +401,17 @@ export const mhdFormService = {
     return this.getSubmissionById(submissionId);
   },
 
-  async updateSubmission(submissionId: string, values: Record<string, unknown>): Promise<MhdFormSubmission> {
+  async updateSubmission(
+    submissionId: string,
+    values: Record<string, unknown>,
+  ): Promise<MhdFormSubmission> {
     return this.saveDraft(submissionId, values);
   },
 
-  async submitForm(submissionId: string, values?: Record<string, unknown>): Promise<MhdFormSubmission> {
+  async submitForm(
+    submissionId: string,
+    values?: Record<string, unknown>,
+  ): Promise<MhdFormSubmission> {
     const jsonValues = values ? toJsonValue(values) : undefined;
     const { error } = await supabaseClient.rpc('mhd_submit_form_response', {
       p_submission_id: submissionId,
@@ -402,9 +422,12 @@ export const mhdFormService = {
       throw new Error(`Unable to submit form: ${error.message}`);
     }
 
-    const { error: applyError } = await supabaseClient.rpc('mhd_apply_form_submission_to_destination', {
-      p_submission_id: submissionId,
-    });
+    const { error: applyError } = await supabaseClient.rpc(
+      'mhd_apply_form_submission_to_destination',
+      {
+        p_submission_id: submissionId,
+      },
+    );
 
     if (applyError) {
       throw new Error(`Unable to apply submitted form to its destination: ${applyError.message}`);
@@ -454,7 +477,11 @@ export const mhdFormService = {
    * which is guaranteed because this is only called during the draft/submit
    * flow against a submission created by mhd_create_submission.
    */
-  async uploadSubmissionFile(submissionId: string, fieldId: string, file: File): Promise<MhdFormFileValue> {
+  async uploadSubmissionFile(
+    submissionId: string,
+    fieldId: string,
+    file: File,
+  ): Promise<MhdFormFileValue> {
     const validation = mhdValidateAttachment(file);
     if (!validation.valid) {
       throw new Error(validation.error);
@@ -618,13 +645,22 @@ function mhdToNumber(value: unknown): number {
 }
 
 export const mhdFormCalculationEngine = {
-  evaluateCalculation(calculation: MhdFormCalculation, formValues: Record<string, unknown>): unknown {
+  evaluateCalculation(
+    calculation: MhdFormCalculation,
+    formValues: Record<string, unknown>,
+  ): unknown {
     switch (calculation.op) {
       case 'sum':
-        return calculation.dependencies.reduce((total, fieldId) => total + mhdToNumber(formValues[fieldId]), 0);
+        return calculation.dependencies.reduce(
+          (total, fieldId) => total + mhdToNumber(formValues[fieldId]),
+          0,
+        );
       case 'average': {
         if (calculation.dependencies.length === 0) return 0;
-        const total = calculation.dependencies.reduce((sum, fieldId) => sum + mhdToNumber(formValues[fieldId]), 0);
+        const total = calculation.dependencies.reduce(
+          (sum, fieldId) => sum + mhdToNumber(formValues[fieldId]),
+          0,
+        );
         return total / calculation.dependencies.length;
       }
       case 'count':
@@ -641,10 +677,13 @@ export const mhdFormCalculationEngine = {
       default: {
         if (!calculation.formula) return null;
         try {
-          const safeVars = Object.entries(formValues).reduce<Record<string, number>>((acc, [key, value]) => {
-            acc[key] = mhdToNumber(value);
-            return acc;
-          }, {});
+          const safeVars = Object.entries(formValues).reduce<Record<string, number>>(
+            (acc, [key, value]) => {
+              acc[key] = mhdToNumber(value);
+              return acc;
+            },
+            {},
+          );
           const evaluator = new Function(
             ...Object.keys(safeVars),
             `"use strict"; return (${calculation.formula});`,

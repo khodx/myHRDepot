@@ -24,8 +24,8 @@ export const mhdOfferFormSchema = z.object({
   startDate: z.string().trim().optional().nullable().or(z.literal('')),
   baseSalary: z.preprocess(
     (value) => (value === '' || value == null ? null : value),
-    z
-      .coerce.number({ error: 'Enter a salary as a number.' })
+    z.coerce
+      .number({ error: 'Enter a salary as a number.' })
       .min(0, 'Salary cannot be negative.')
       .nullable(),
   ),

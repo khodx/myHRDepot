@@ -49,7 +49,9 @@ export function MhdBadge({ variant, children, hideIcon, className }: MhdBadgePro
 }
 
 /** Priority pills reuse the semantic set (§5): High=error, Medium=warning, Low=success. */
-export function mhdPriorityBadgeVariant(priority: 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE'): MhdBadgeVariant {
+export function mhdPriorityBadgeVariant(
+  priority: 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE',
+): MhdBadgeVariant {
   switch (priority) {
     case 'HIGH':
       return 'error';

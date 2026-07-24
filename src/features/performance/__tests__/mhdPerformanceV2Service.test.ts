@@ -10,7 +10,9 @@ import {
 // (`supabaseClient.rpc.bind(supabaseClient)`), so the mock must be in place
 // before the dynamic import below. Every v2 read goes through a single RPC — no
 // direct table selects — which is itself part of the anonymity guarantee.
-const { rpcMock } = vi.hoisted(() => ({ rpcMock: vi.fn<(name: string, args?: unknown) => unknown>() }));
+const { rpcMock } = vi.hoisted(() => ({
+  rpcMock: vi.fn<(name: string, args?: unknown) => unknown>(),
+}));
 
 vi.mock('@/lib/supabase/supabaseClient', () => ({
   supabaseClient: { rpc: rpcMock },
@@ -67,7 +69,9 @@ describe('mhdPerformanceV2Service — 360 anonymity', () => {
 
     const groups = await mhdPerformanceV2Service.feedbackAggregate('review-1');
 
-    expect(rpcMock).toHaveBeenCalledWith('mhd_performance_feedback_aggregate', { p_review_id: 'review-1' });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_performance_feedback_aggregate', {
+      p_review_id: 'review-1',
+    });
     expect(groups).toHaveLength(1);
     const [group] = groups;
     expect(group.participantType).toBe('PEER');
@@ -121,8 +125,22 @@ describe('mhdPerformanceV2Service — threshold gating', () => {
 
   it('distinguishes WITHHELD (invited, below threshold) from RELEASED and NOT_INVITED', () => {
     const invitedPeers: MhdReviewParticipant[] = [
-      { id: 'p1', personId: 'x1', personDisplayName: 'X1', participantType: 'PEER', status: 'RESPONDED', respondedAt: null },
-      { id: 'p2', personId: 'x2', personDisplayName: 'X2', participantType: 'PEER', status: 'INVITED', respondedAt: null },
+      {
+        id: 'p1',
+        personId: 'x1',
+        personDisplayName: 'X1',
+        participantType: 'PEER',
+        status: 'RESPONDED',
+        respondedAt: null,
+      },
+      {
+        id: 'p2',
+        personId: 'x2',
+        personDisplayName: 'X2',
+        participantType: 'PEER',
+        status: 'INVITED',
+        respondedAt: null,
+      },
     ];
     const releasedGroups: MhdFeedbackAggregateGroup[] = [
       {
@@ -220,7 +238,11 @@ describe('mhdPerformanceV2Service — nomination vs invitation', () => {
 
     expect(id).toBe('participant-1');
     const args = rpcArgsFor('mhd_performance_invite_participant');
-    expect(args).toEqual({ p_review_id: 'review-1', p_person_id: 'person-9', p_participant_type: 'PEER' });
+    expect(args).toEqual({
+      p_review_id: 'review-1',
+      p_person_id: 'person-9',
+      p_participant_type: 'PEER',
+    });
     expect(args).not.toHaveProperty('p_status');
   });
 
@@ -236,10 +258,38 @@ describe('mhdPerformanceV2Service — nomination vs invitation', () => {
 
   it('counts both NOMINATED and INVITED as outstanding, and neither RESPONDED nor DECLINED', () => {
     const participants: MhdReviewParticipant[] = [
-      { id: 'p1', personId: 'x1', personDisplayName: 'Nominee', participantType: 'PEER', status: 'NOMINATED', respondedAt: null },
-      { id: 'p2', personId: 'x2', personDisplayName: 'Invitee', participantType: 'PEER', status: 'INVITED', respondedAt: null },
-      { id: 'p3', personId: 'x3', personDisplayName: 'Answered', participantType: 'PEER', status: 'RESPONDED', respondedAt: '2026-07-20' },
-      { id: 'p4', personId: 'x4', personDisplayName: 'Declined', participantType: 'UPWARD', status: 'DECLINED', respondedAt: null },
+      {
+        id: 'p1',
+        personId: 'x1',
+        personDisplayName: 'Nominee',
+        participantType: 'PEER',
+        status: 'NOMINATED',
+        respondedAt: null,
+      },
+      {
+        id: 'p2',
+        personId: 'x2',
+        personDisplayName: 'Invitee',
+        participantType: 'PEER',
+        status: 'INVITED',
+        respondedAt: null,
+      },
+      {
+        id: 'p3',
+        personId: 'x3',
+        personDisplayName: 'Answered',
+        participantType: 'PEER',
+        status: 'RESPONDED',
+        respondedAt: '2026-07-20',
+      },
+      {
+        id: 'p4',
+        personId: 'x4',
+        personDisplayName: 'Declined',
+        participantType: 'UPWARD',
+        status: 'DECLINED',
+        respondedAt: null,
+      },
     ];
 
     const outstanding = mhdOutstandingParticipants(participants);

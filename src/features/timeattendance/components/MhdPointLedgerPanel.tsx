@@ -66,7 +66,9 @@ export function MhdPointLedgerPanel({
         {nextThreshold ? (
           <p className="text-sm text-muted-foreground">
             {Math.round((nextThreshold.pointsAt - balance) * 100) / 100} more before{' '}
-            <span className="font-medium">{nextThreshold.actionLevel.replace(/_/g, ' ').toLowerCase()}</span>
+            <span className="font-medium">
+              {nextThreshold.actionLevel.replace(/_/g, ' ').toLowerCase()}
+            </span>
           </p>
         ) : thresholds.length > 0 ? (
           <p className="text-sm text-muted-foreground">Past the highest configured threshold.</p>
@@ -94,14 +96,13 @@ export function MhdPointLedgerPanel({
                 const expired = isExpired(entry, today);
                 const inactive = superseded || expired;
                 return (
-                  <MhdTr
-                    key={entry.id}
-                    className={inactive ? 'text-muted-foreground' : undefined}
-                  >
+                  <MhdTr key={entry.id} className={inactive ? 'text-muted-foreground' : undefined}>
                     <MhdTd className="whitespace-nowrap">{entry.effectiveDate}</MhdTd>
                     <MhdTd className="whitespace-nowrap">{ENTRY_LABELS[entry.entryType]}</MhdTd>
                     <MhdTd className="whitespace-nowrap">
-                      {entry.occurrenceReference ?? <span className="text-muted-foreground">—</span>}
+                      {entry.occurrenceReference ?? (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </MhdTd>
                     <MhdTd
                       className={`text-right tabular-nums ${
@@ -120,7 +121,9 @@ export function MhdPointLedgerPanel({
                         <span className="text-muted-foreground">—</span>
                       )}
                     </MhdTd>
-                    <MhdTd>{entry.reason ?? <span className="text-muted-foreground">—</span>}</MhdTd>
+                    <MhdTd>
+                      {entry.reason ?? <span className="text-muted-foreground">—</span>}
+                    </MhdTd>
                   </MhdTr>
                 );
               })}

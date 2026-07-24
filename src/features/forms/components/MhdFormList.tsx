@@ -33,7 +33,11 @@ export function MhdFormList({ forms, isLoading, canMutate = true }: MhdFormListP
   if (forms.length === 0) {
     return (
       <MhdCard className="border-dashed">
-        <MhdEmptyState icon={FileText} title="No forms found" description="No forms found for the selected status filter." />
+        <MhdEmptyState
+          icon={FileText}
+          title="No forms found"
+          description="No forms found for the selected status filter."
+        />
       </MhdCard>
     );
   }
@@ -57,23 +61,33 @@ export function MhdFormList({ forms, isLoading, canMutate = true }: MhdFormListP
                 <div>
                   <p className="font-medium text-foreground">{form.name}</p>
                   <p className="text-xs text-muted-foreground">{form.referenceId}</p>
-                  {form.description ? <p className="mt-1 text-sm text-muted-foreground">{form.description}</p> : null}
+                  {form.description ? (
+                    <p className="mt-1 text-sm text-muted-foreground">{form.description}</p>
+                  ) : null}
                 </div>
               </MhdTd>
               <MhdTd>
                 <MhdBadge variant={statusBadgeVariant(form.status)}>{form.status}</MhdBadge>
               </MhdTd>
               <MhdTd className="text-sm text-muted-foreground">{form.version}</MhdTd>
-              <MhdTd className="text-sm text-muted-foreground">{new Date(form.updatedAt).toLocaleString()}</MhdTd>
+              <MhdTd className="text-sm text-muted-foreground">
+                {new Date(form.updatedAt).toLocaleString()}
+              </MhdTd>
               <MhdTd>
                 <div className="flex justify-end gap-3 text-sm font-semibold">
                   <Link to={`/forms/${form.id}`} className="text-accent hover:text-accent-hover">
                     {canMutate ? 'Builder' : 'View'}
                   </Link>
-                  <Link to={`/forms/${form.id}/render`} className="text-accent hover:text-accent-hover">
+                  <Link
+                    to={`/forms/${form.id}/render`}
+                    className="text-accent hover:text-accent-hover"
+                  >
                     Render
                   </Link>
-                  <Link to={`/forms/${form.id}/submissions`} className="text-accent hover:text-accent-hover">
+                  <Link
+                    to={`/forms/${form.id}/submissions`}
+                    className="text-accent hover:text-accent-hover"
+                  >
                     Submissions
                   </Link>
                 </div>

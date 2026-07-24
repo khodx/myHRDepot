@@ -6,7 +6,11 @@ export function MhdProtectedRoute() {
   const { isAuthenticated, isLoading } = useMhdAuth();
 
   if (isLoading) {
-    return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading My HR Depot...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Loading My HR Depot...
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

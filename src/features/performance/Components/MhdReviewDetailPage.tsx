@@ -21,7 +21,11 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities } from '@/features/activities/Hook';
 import { useMhdEsignatureGeneratedDocuments } from '@/features/esignature/Hook';
 import { mhdBuildGoogleDriveViewUrl } from '@/features/esignature/Types';
-import { mhdReviewWaiverSchema, type MhdReviewFormSchemaInput, type MhdReviewWaiverSchemaInput } from '../Schemas';
+import {
+  mhdReviewWaiverSchema,
+  type MhdReviewFormSchemaInput,
+  type MhdReviewWaiverSchemaInput,
+} from '../Schemas';
 import {
   useMhdPerformancePeople,
   useMhdPerformanceReview,
@@ -69,10 +73,13 @@ function MhdWaiverForm({
           placeholder="e.g. Employee declined to sign; acknowledgment discussed in person on…"
           {...register('waiverReason')}
         />
-        {errors.waiverReason ? <p className="mt-1 text-xs text-red-600">{errors.waiverReason.message}</p> : null}
+        {errors.waiverReason ? (
+          <p className="mt-1 text-xs text-red-600">{errors.waiverReason.message}</p>
+        ) : null}
       </div>
       <p className="text-xs text-muted-foreground">
-        Completing via waiver is audited distinctly (ACKNOWLEDGMENT_WAIVED) and closes the review without a signed acknowledgment.
+        Completing via waiver is audited distinctly (ACKNOWLEDGMENT_WAIVED) and closes the review
+        without a signed acknowledgment.
       </p>
       <div className="flex gap-3">
         <button
@@ -95,9 +102,12 @@ function MhdWaiverForm({
 }
 
 function MhdFinalizeStepIcon({ step }: { step: MhdReviewFinalizeStepState }) {
-  if (step.status === 'DONE') return <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-label="Done" />;
-  if (step.status === 'RUNNING') return <Loader2 className="h-4 w-4 animate-spin text-accent" aria-label="Running" />;
-  if (step.status === 'ERROR') return <XCircle className="h-4 w-4 text-red-600" aria-label="Failed" />;
+  if (step.status === 'DONE')
+    return <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-label="Done" />;
+  if (step.status === 'RUNNING')
+    return <Loader2 className="h-4 w-4 animate-spin text-accent" aria-label="Running" />;
+  if (step.status === 'ERROR')
+    return <XCircle className="h-4 w-4 text-red-600" aria-label="Failed" />;
   return <Circle className="h-4 w-4 text-muted-foreground" aria-label="Pending" />;
 }
 
@@ -122,7 +132,10 @@ export function MhdReviewDetailPage() {
 
   // v2 (PRF2): the company release threshold gates the 360 aggregate panel below.
   const feedbackThresholdQuery = useMhdFeedbackThreshold(review?.companyId ?? null);
-  const peopleQuery = useMhdPerformancePeople(review?.companyId ?? null, Boolean(review?.companyId));
+  const peopleQuery = useMhdPerformancePeople(
+    review?.companyId ?? null,
+    Boolean(review?.companyId),
+  );
   const usersQuery = useMhdPerformanceUsers(review?.companyId ?? null, Boolean(review?.companyId));
   const generatedDocumentsQuery = useMhdEsignatureGeneratedDocuments(
     review?.companyId ?? null,
@@ -133,7 +146,10 @@ export function MhdReviewDetailPage() {
     [review?.personId, usersQuery.data],
   );
   const generatedDocument = useMemo(
-    () => (generatedDocumentsQuery.data ?? []).find((document) => document.id === review?.documentGenerationId) ?? null,
+    () =>
+      (generatedDocumentsQuery.data ?? []).find(
+        (document) => document.id === review?.documentGenerationId,
+      ) ?? null,
     [generatedDocumentsQuery.data, review?.documentGenerationId],
   );
   const generatedDocumentUrl = mhdBuildGoogleDriveViewUrl(generatedDocument?.outputDriveFileId);
@@ -152,8 +168,14 @@ export function MhdReviewDetailPage() {
   const meetingActivities = useMemo(
     () =>
       (activitiesQuery.data ?? [])
-        .filter((activity) => activity.activityType === 'ONE_ON_ONE' || activity.activityType === 'MEETING')
-        .map((activity) => ({ id: activity.id, label: `${activity.referenceId} — ${activity.title}` })),
+        .filter(
+          (activity) =>
+            activity.activityType === 'ONE_ON_ONE' || activity.activityType === 'MEETING',
+        )
+        .map((activity) => ({
+          id: activity.id,
+          label: `${activity.referenceId} — ${activity.title}`,
+        })),
     [activitiesQuery.data],
   );
 
@@ -175,7 +197,10 @@ export function MhdReviewDetailPage() {
 
   async function handleTransition(newStatus: 'IN_REVIEW' | 'CANCELLED' | 'COMPLETED') {
     if (!review) return;
-    if (newStatus === 'CANCELLED' && !window.confirm(`Cancel review ${review.referenceId}? This is terminal and cannot be undone.`)) {
+    if (
+      newStatus === 'CANCELLED' &&
+      !window.confirm(`Cancel review ${review.referenceId}? This is terminal and cannot be undone.`)
+    ) {
       return;
     }
     setActionError(null);
@@ -189,7 +214,9 @@ export function MhdReviewDetailPage() {
   async function handleFinalize() {
     if (!review) return;
     if (!subjectSigner) {
-      setActionError('The review subject does not have an active internal user account, so an acknowledgment cannot be sent.');
+      setActionError(
+        'The review subject does not have an active internal user account, so an acknowledgment cannot be sent.',
+      );
       return;
     }
     setActionError(null);
@@ -200,7 +227,11 @@ export function MhdReviewDetailPage() {
       // Step progress and per-step errors surface via finalize.steps below.
       await finalize.finalize(review.id, subjectSigner.id);
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'Finalize did not complete. Review the step progress below — no signature request was sent unless that step shows done.');
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : 'Finalize did not complete. Review the step progress below — no signature request was sent unless that step shows done.',
+      );
     }
   }
 
@@ -215,13 +246,16 @@ export function MhdReviewDetailPage() {
       });
       setIsWaiving(false);
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'Unable to complete review via waiver.');
+      setActionError(
+        error instanceof Error ? error.message : 'Unable to complete review via waiver.',
+      );
     }
   }
 
   async function handleDelete() {
     if (!review) return;
-    if (!window.confirm(`Delete draft review ${review.referenceId}? This cannot be undone.`)) return;
+    if (!window.confirm(`Delete draft review ${review.referenceId}? This cannot be undone.`))
+      return;
     setActionError(null);
     try {
       await actions.deleteReview.mutateAsync({ reviewId: review.id });
@@ -232,16 +266,26 @@ export function MhdReviewDetailPage() {
   }
 
   if (reviewQuery.isLoading) {
-    return <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">Loading review…</div>;
+    return (
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+        Loading review…
+      </div>
+    );
   }
 
   if (reviewQuery.error || !review) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-600">
-          {reviewQuery.error instanceof Error ? reviewQuery.error.message : 'Review not found or you do not have access to it.'}
+          {reviewQuery.error instanceof Error
+            ? reviewQuery.error.message
+            : 'Review not found or you do not have access to it.'}
         </p>
-        <button type="button" onClick={() => navigate('/performance')} className="text-sm font-medium text-accent hover:text-accent-hover">
+        <button
+          type="button"
+          onClick={() => navigate('/performance')}
+          className="text-sm font-medium text-accent hover:text-accent-hover"
+        >
           Back to Performance
         </button>
       </div>
@@ -250,331 +294,378 @@ export function MhdReviewDetailPage() {
 
   return (
     <div className="space-y-6">
-        <MhdBreadcrumb items={[{ label: 'Performance', to: '/performance' }, { label: review.referenceId }]} />
+      <MhdBreadcrumb
+        items={[{ label: 'Performance', to: '/performance' }, { label: review.referenceId }]}
+      />
 
-        {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
+      {actionError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      ) : null}
 
-        <MhdCard className="p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground">{review.referenceId}</p>
-              <h1 className="mt-1 text-3xl font-bold text-foreground">
-                {review.personDisplayName ?? 'Performance Review'}
-              </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                <MhdReviewTypeBadge reviewType={review.reviewType} />
-                <MhdReviewStatusBadge status={review.status} />
-                <span>
-                  Subject{' '}
-                  <Link to={`/people/${review.personId}`} className="text-accent hover:text-accent-hover">
-                    {review.personDisplayName ?? 'View person'}
-                  </Link>
-                </span>
-                <span>Reviewer: {review.reviewerDisplayName ?? '—'}</span>
-              </div>
-            </div>
-
-            {canMutate ? (
-              <div className="flex flex-wrap gap-3">
-                {review.status === 'DRAFT' ? (
-                  <Button
-                    onClick={() => void handleTransition('IN_REVIEW')}
-                    disabled={actions.transitionReview.isPending}
-                  >
-                    Begin Review
-                  </Button>
-                ) : null}
-
-                {review.status === 'IN_REVIEW' ? (
-                  <Button onClick={() => void handleFinalize()} disabled={isFinalizeInFlight} className="gap-1.5">
-                    <PenLine className="h-4 w-4" />
-                    {isFinalizeInFlight ? 'Finalizing…' : 'Finalize & Send for Signature'}
-                  </Button>
-                ) : null}
-
-                {review.status === 'PENDING_SIGNATURE' && review.signatureStatus === 'COMPLETED' ? (
-                  <button
-                    type="button"
-                    onClick={() => void handleTransition('COMPLETED')}
-                    disabled={actions.transitionReview.isPending}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                  >
-                    {actions.transitionReview.isPending ? 'Completing…' : 'Complete Review (Signed)'}
-                  </button>
-                ) : null}
-
-                {review.status === 'PENDING_SIGNATURE' ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsWaiving((current) => !current)}
-                    className="rounded-md border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800"
-                  >
-                    {isWaiving ? 'Close Waiver' : 'Complete via Waiver'}
-                  </button>
-                ) : null}
-
-                {isContentEditable ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing((current) => !current)}
-                    className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
-                  >
-                    {isEditing ? 'Close Edit' : 'Edit Review'}
-                  </button>
-                ) : null}
-
-                {review.status !== 'COMPLETED' && review.status !== 'CANCELLED' ? (
-                  <button
-                    type="button"
-                    onClick={() => void handleTransition('CANCELLED')}
-                    disabled={actions.transitionReview.isPending}
-                    className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
-                  >
-                    Cancel Review
-                  </button>
-                ) : null}
-
-                {review.status === 'DRAFT' ? (
-                  <button
-                    type="button"
-                    onClick={() => void handleDelete()}
-                    disabled={actions.deleteReview.isPending}
-                    className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                  >
-                    Delete Draft
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="mt-6 grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-md bg-muted p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Review Period</p>
-              <p className="mt-2">
-                {formatDate(review.reviewPeriodStart)} – {formatDate(review.reviewPeriodEnd)}
-              </p>
-            </div>
-            <div className="rounded-md bg-muted p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Due</p>
-              <p className="mt-2">{formatDate(review.dueDate)}</p>
-            </div>
-            <div className="rounded-md bg-muted p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Overall Rating</p>
-              <p className="mt-2">
-                <MhdRatingStars value={review.overallRating} size="sm" />
-              </p>
-            </div>
-            <div className="rounded-md bg-muted p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Acknowledged</p>
-              <p className="mt-2">
-                {review.acknowledgedAt
-                  ? new Date(review.acknowledgedAt).toLocaleString()
-                  : review.waiverReason
-                    ? 'Waived'
-                    : 'Not yet acknowledged'}
-              </p>
+      <MhdCard className="p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground">{review.referenceId}</p>
+            <h1 className="mt-1 text-3xl font-bold text-foreground">
+              {review.personDisplayName ?? 'Performance Review'}
+            </h1>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <MhdReviewTypeBadge reviewType={review.reviewType} />
+              <MhdReviewStatusBadge status={review.status} />
+              <span>
+                Subject{' '}
+                <Link
+                  to={`/people/${review.personId}`}
+                  className="text-accent hover:text-accent-hover"
+                >
+                  {review.personDisplayName ?? 'View person'}
+                </Link>
+              </span>
+              <span>Reviewer: {review.reviewerDisplayName ?? '—'}</span>
             </div>
           </div>
 
-          {review.waiverReason ? (
-            <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide">
-                <AlertTriangle className="h-3.5 w-3.5" />
-                Acknowledgment Waived
-              </p>
-              <p className="mt-2 whitespace-pre-wrap">{review.waiverReason}</p>
-            </div>
-          ) : null}
+          {canMutate ? (
+            <div className="flex flex-wrap gap-3">
+              {review.status === 'DRAFT' ? (
+                <Button
+                  onClick={() => void handleTransition('IN_REVIEW')}
+                  disabled={actions.transitionReview.isPending}
+                >
+                  Begin Review
+                </Button>
+              ) : null}
 
-          <div className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
-            <p>Created: {new Date(review.createdAt).toLocaleString()}</p>
-            <p>Updated: {new Date(review.updatedAt).toLocaleString()}</p>
-          </div>
-        </MhdCard>
+              {review.status === 'IN_REVIEW' ? (
+                <Button
+                  onClick={() => void handleFinalize()}
+                  disabled={isFinalizeInFlight}
+                  className="gap-1.5"
+                >
+                  <PenLine className="h-4 w-4" />
+                  {isFinalizeInFlight ? 'Finalizing…' : 'Finalize & Send for Signature'}
+                </Button>
+              ) : null}
 
-        {showFinalizePanel ? (
-          <MhdCard className="p-6">
-            <h2 className="text-lg font-semibold text-foreground">Finalize &amp; Send for Signature</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Rendering the review document and creating the signature request. Each step reports its own result; if a step
-              fails, nothing after it ran.
-            </p>
-            <ol className="mt-4 space-y-2">
-              {finalize.steps.map((step) => (
-                <li key={step.key} className="flex items-start gap-2 text-sm">
-                  <span className="mt-0.5">
-                    <MhdFinalizeStepIcon step={step} />
-                  </span>
-                  <span className={step.status === 'ERROR' ? 'text-red-700' : 'text-foreground'}>
-                    {step.label}
-                    {step.status === 'ERROR' && step.errorMessage ? (
-                      <span className="mt-0.5 block text-xs text-red-600">{step.errorMessage}</span>
-                    ) : null}
-                  </span>
-                </li>
-              ))}
-            </ol>
-            {finalizeHasError && !isFinalizeInFlight ? (
-              <div className="mt-4 flex gap-3">
-                <Button onClick={() => void handleFinalize()}>Retry Finalize</Button>
+              {review.status === 'PENDING_SIGNATURE' && review.signatureStatus === 'COMPLETED' ? (
                 <button
                   type="button"
-                  onClick={() => finalize.reset()}
+                  onClick={() => void handleTransition('COMPLETED')}
+                  disabled={actions.transitionReview.isPending}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                >
+                  {actions.transitionReview.isPending ? 'Completing…' : 'Complete Review (Signed)'}
+                </button>
+              ) : null}
+
+              {review.status === 'PENDING_SIGNATURE' ? (
+                <button
+                  type="button"
+                  onClick={() => setIsWaiving((current) => !current)}
+                  className="rounded-md border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800"
+                >
+                  {isWaiving ? 'Close Waiver' : 'Complete via Waiver'}
+                </button>
+              ) : null}
+
+              {isContentEditable ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing((current) => !current)}
                   className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
                 >
-                  Dismiss
+                  {isEditing ? 'Close Edit' : 'Edit Review'}
                 </button>
-              </div>
-            ) : null}
-          </MhdCard>
-        ) : null}
+              ) : null}
 
-        {isWaiving && canMutate && review.status === 'PENDING_SIGNATURE' ? (
-          <MhdCard className="border-amber-200 p-6">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Complete via Waiver</h2>
-            <MhdWaiverForm
-              onSubmit={handleWaiver}
-              onCancel={() => setIsWaiving(false)}
-              isSubmitting={actions.transitionReview.isPending}
-            />
-          </MhdCard>
-        ) : null}
-
-        {isEditing && canMutate && isContentEditable ? (
-          <MhdCard className="p-6">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Edit Review</h2>
-            <MhdReviewForm
-              mode="edit"
-              companyId={review.companyId}
-              initial={review}
-              people={(peopleQuery.data ?? []).map((person) => ({ id: person.id, label: person.displayName }))}
-              reviewers={(usersQuery.data ?? []).map((user) => ({ id: user.id, label: user.displayName }))}
-              meetingActivities={meetingActivities}
-              onSubmit={handleUpdate}
-              onCancel={() => setIsEditing(false)}
-              isSubmitting={actions.updateReview.isPending}
-            />
-          </MhdCard>
-        ) : null}
-
-        <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-6">
-            <MhdCard className="p-6">
-              <h2 className="text-lg font-semibold text-foreground">Review Content</h2>
-              <dl className="mt-4 space-y-4 text-sm text-muted-foreground">
-                {[
-                  ['Strengths', review.strengthsSummary],
-                  ['Areas for Improvement', review.improvementSummary],
-                  ['Goals', review.goalsSummary],
-                  ['Reviewer Comments', review.reviewerComments],
-                  ['Employee Comments', review.employeeComments],
-                ].map(([label, value]) => (
-                  <div key={label} className="rounded-md bg-muted p-4">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
-                    <dd className="mt-2 whitespace-pre-wrap">
-                      {value || <span className="text-muted-foreground">Not recorded</span>}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </MhdCard>
-
-            {canMutate && (review.status === 'COMPLETED' || review.status === 'PENDING_SIGNATURE' || review.status === 'IN_REVIEW') ? (
-              <MhdCard className="p-6">
-                <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                  <Target className="h-5 w-5 text-muted-foreground" />
-                  Coaching
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Open a coaching plan from this review's improvement areas.
-                </p>
-                <Link
-                  to={`/performance?tab=coaching&fromReview=${review.id}`}
-                  className="mt-3 inline-flex rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+              {review.status !== 'COMPLETED' && review.status !== 'CANCELLED' ? (
+                <button
+                  type="button"
+                  onClick={() => void handleTransition('CANCELLED')}
+                  disabled={actions.transitionReview.isPending}
+                  className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
                 >
-                  Start Coaching Plan from this Review
-                </Link>
-              </MhdCard>
-            ) : null}
+                  Cancel Review
+                </button>
+              ) : null}
+
+              {review.status === 'DRAFT' ? (
+                <button
+                  type="button"
+                  onClick={() => void handleDelete()}
+                  disabled={actions.deleteReview.isPending}
+                  className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                >
+                  Delete Draft
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="mt-6 grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-md bg-muted p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Review Period
+            </p>
+            <p className="mt-2">
+              {formatDate(review.reviewPeriodStart)} – {formatDate(review.reviewPeriodEnd)}
+            </p>
           </div>
+          <div className="rounded-md bg-muted p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Due
+            </p>
+            <p className="mt-2">{formatDate(review.dueDate)}</p>
+          </div>
+          <div className="rounded-md bg-muted p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Overall Rating
+            </p>
+            <p className="mt-2">
+              <MhdRatingStars value={review.overallRating} size="sm" />
+            </p>
+          </div>
+          <div className="rounded-md bg-muted p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Acknowledged
+            </p>
+            <p className="mt-2">
+              {review.acknowledgedAt
+                ? new Date(review.acknowledgedAt).toLocaleString()
+                : review.waiverReason
+                  ? 'Waived'
+                  : 'Not yet acknowledged'}
+            </p>
+          </div>
+        </div>
 
-          <div className="space-y-6">
-            <MhdCard className="p-6">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                <CalendarClock className="h-5 w-5 text-muted-foreground" />
-                Review Meeting
-              </h2>
-              {review.reviewActivityId ? (
-                <p className="mt-3 text-sm">
-                  <Link to={`/activities/${review.reviewActivityId}`} className="text-accent hover:text-accent-hover">
-                    {review.reviewActivityTitle ?? 'View meeting activity'}
-                  </Link>
-                </p>
-              ) : (
-                <p className="mt-3 text-sm text-muted-foreground">No meeting activity linked. Link one from Edit Review.</p>
-              )}
-            </MhdCard>
+        {review.waiverReason ? (
+          <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Acknowledgment Waived
+            </p>
+            <p className="mt-2 whitespace-pre-wrap">{review.waiverReason}</p>
+          </div>
+        ) : null}
 
-            <MhdCard className="p-6">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                <FileText className="h-5 w-5 text-muted-foreground" />
-                Review Document
-              </h2>
-              {review.documentGenerationId ? (
-                generatedDocumentUrl ? (
-                  <a
-                    href={generatedDocumentUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-3 inline-block text-sm font-medium text-accent hover:text-accent-hover"
-                  >
-                    {review.documentGenerationReferenceId ?? 'View generated document'}
-                  </a>
-                ) : (
-                  <Link to="/esignature" className="mt-3 inline-block text-sm font-medium text-accent hover:text-accent-hover">
-                    {review.documentGenerationReferenceId ?? 'Generated document'}
-                  </Link>
-                )
-              ) : (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Generated when the review is finalized and sent for signature.
-                </p>
-              )}
-            </MhdCard>
+        <div className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
+          <p>Created: {new Date(review.createdAt).toLocaleString()}</p>
+          <p>Updated: {new Date(review.updatedAt).toLocaleString()}</p>
+        </div>
+      </MhdCard>
 
-            <MhdCard className="p-6">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                <PenLine className="h-5 w-5 text-muted-foreground" />
-                Acknowledgment Signature
-              </h2>
-              {review.esignatureRequestId ? (
-                <div className="mt-3 space-y-2 text-sm">
-                  <p>
-                    <Link to={`/esignature/${review.esignatureRequestId}`} className="text-accent hover:text-accent-hover">
-                      {review.esignatureRequestReferenceId ?? 'View signature request'}
-                    </Link>
-                  </p>
-                  <p className="text-muted-foreground">
-                    Status: <span className="font-medium">{review.signatureStatus ?? 'Unknown'}</span>
-                  </p>
-                  {review.signatureStatus === 'DECLINED' ? (
-                    <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-800">
-                      The employee declined the acknowledgment. A declined acknowledgment does not cancel the review — it can
-                      still be completed via waiver with a documented reason.
-                    </p>
+      {showFinalizePanel ? (
+        <MhdCard className="p-6">
+          <h2 className="text-lg font-semibold text-foreground">
+            Finalize &amp; Send for Signature
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Rendering the review document and creating the signature request. Each step reports its
+            own result; if a step fails, nothing after it ran.
+          </p>
+          <ol className="mt-4 space-y-2">
+            {finalize.steps.map((step) => (
+              <li key={step.key} className="flex items-start gap-2 text-sm">
+                <span className="mt-0.5">
+                  <MhdFinalizeStepIcon step={step} />
+                </span>
+                <span className={step.status === 'ERROR' ? 'text-red-700' : 'text-foreground'}>
+                  {step.label}
+                  {step.status === 'ERROR' && step.errorMessage ? (
+                    <span className="mt-0.5 block text-xs text-red-600">{step.errorMessage}</span>
                   ) : null}
-                </div>
-              ) : (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Created when the review is finalized. The review completes when the request is signed (or via waiver).
-                </p>
-              )}
-            </MhdCard>
-          </div>
-        </section>
+                </span>
+              </li>
+            ))}
+          </ol>
+          {finalizeHasError && !isFinalizeInFlight ? (
+            <div className="mt-4 flex gap-3">
+              <Button onClick={() => void handleFinalize()}>Retry Finalize</Button>
+              <button
+                type="button"
+                onClick={() => finalize.reset()}
+                className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+              >
+                Dismiss
+              </button>
+            </div>
+          ) : null}
+        </MhdCard>
+      ) : null}
 
-        {/*
+      {isWaiving && canMutate && review.status === 'PENDING_SIGNATURE' ? (
+        <MhdCard className="border-amber-200 p-6">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Complete via Waiver</h2>
+          <MhdWaiverForm
+            onSubmit={handleWaiver}
+            onCancel={() => setIsWaiving(false)}
+            isSubmitting={actions.transitionReview.isPending}
+          />
+        </MhdCard>
+      ) : null}
+
+      {isEditing && canMutate && isContentEditable ? (
+        <MhdCard className="p-6">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Edit Review</h2>
+          <MhdReviewForm
+            mode="edit"
+            companyId={review.companyId}
+            initial={review}
+            people={(peopleQuery.data ?? []).map((person) => ({
+              id: person.id,
+              label: person.displayName,
+            }))}
+            reviewers={(usersQuery.data ?? []).map((user) => ({
+              id: user.id,
+              label: user.displayName,
+            }))}
+            meetingActivities={meetingActivities}
+            onSubmit={handleUpdate}
+            onCancel={() => setIsEditing(false)}
+            isSubmitting={actions.updateReview.isPending}
+          />
+        </MhdCard>
+      ) : null}
+
+      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="space-y-6">
+          <MhdCard className="p-6">
+            <h2 className="text-lg font-semibold text-foreground">Review Content</h2>
+            <dl className="mt-4 space-y-4 text-sm text-muted-foreground">
+              {[
+                ['Strengths', review.strengthsSummary],
+                ['Areas for Improvement', review.improvementSummary],
+                ['Goals', review.goalsSummary],
+                ['Reviewer Comments', review.reviewerComments],
+                ['Employee Comments', review.employeeComments],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-md bg-muted p-4">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {label}
+                  </dt>
+                  <dd className="mt-2 whitespace-pre-wrap">
+                    {value || <span className="text-muted-foreground">Not recorded</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </MhdCard>
+
+          {canMutate &&
+          (review.status === 'COMPLETED' ||
+            review.status === 'PENDING_SIGNATURE' ||
+            review.status === 'IN_REVIEW') ? (
+            <MhdCard className="p-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <Target className="h-5 w-5 text-muted-foreground" />
+                Coaching
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Open a coaching plan from this review's improvement areas.
+              </p>
+              <Link
+                to={`/performance?tab=coaching&fromReview=${review.id}`}
+                className="mt-3 inline-flex rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+              >
+                Start Coaching Plan from this Review
+              </Link>
+            </MhdCard>
+          ) : null}
+        </div>
+
+        <div className="space-y-6">
+          <MhdCard className="p-6">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+              <CalendarClock className="h-5 w-5 text-muted-foreground" />
+              Review Meeting
+            </h2>
+            {review.reviewActivityId ? (
+              <p className="mt-3 text-sm">
+                <Link
+                  to={`/activities/${review.reviewActivityId}`}
+                  className="text-accent hover:text-accent-hover"
+                >
+                  {review.reviewActivityTitle ?? 'View meeting activity'}
+                </Link>
+              </p>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">
+                No meeting activity linked. Link one from Edit Review.
+              </p>
+            )}
+          </MhdCard>
+
+          <MhdCard className="p-6">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              Review Document
+            </h2>
+            {review.documentGenerationId ? (
+              generatedDocumentUrl ? (
+                <a
+                  href={generatedDocumentUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-block text-sm font-medium text-accent hover:text-accent-hover"
+                >
+                  {review.documentGenerationReferenceId ?? 'View generated document'}
+                </a>
+              ) : (
+                <Link
+                  to="/esignature"
+                  className="mt-3 inline-block text-sm font-medium text-accent hover:text-accent-hover"
+                >
+                  {review.documentGenerationReferenceId ?? 'Generated document'}
+                </Link>
+              )
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">
+                Generated when the review is finalized and sent for signature.
+              </p>
+            )}
+          </MhdCard>
+
+          <MhdCard className="p-6">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+              <PenLine className="h-5 w-5 text-muted-foreground" />
+              Acknowledgment Signature
+            </h2>
+            {review.esignatureRequestId ? (
+              <div className="mt-3 space-y-2 text-sm">
+                <p>
+                  <Link
+                    to={`/esignature/${review.esignatureRequestId}`}
+                    className="text-accent hover:text-accent-hover"
+                  >
+                    {review.esignatureRequestReferenceId ?? 'View signature request'}
+                  </Link>
+                </p>
+                <p className="text-muted-foreground">
+                  Status: <span className="font-medium">{review.signatureStatus ?? 'Unknown'}</span>
+                </p>
+                {review.signatureStatus === 'DECLINED' ? (
+                  <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-800">
+                    The employee declined the acknowledgment. A declined acknowledgment does not
+                    cancel the review — it can still be completed via waiver with a documented
+                    reason.
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">
+                Created when the review is finalized. The review completes when the request is
+                signed (or via waiver).
+              </p>
+            )}
+          </MhdCard>
+        </div>
+      </section>
+
+      {/*
           v2 (PRF2) additive surface — competencies, 360 participants, and the
           threshold-gated aggregate. Rendered for the reviewer/HR (canMutate); the
           panels call v2 RPCs that enforce their own access, and the aggregate panel
@@ -582,35 +673,35 @@ export function MhdReviewDetailPage() {
           message below the release threshold rather than an empty section). This is
           purely additive to the existing v1 review surface above.
         */}
-        {canMutate ? (
-          <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-6">
-              <MhdCard className="p-6">
-                <MhdReviewCompetencyPanel
-                  reviewId={review.id}
-                  canRate={review.status === 'DRAFT' || review.status === 'IN_REVIEW'}
-                />
-              </MhdCard>
-              <MhdCard className="p-6">
-                <Mhd360FeedbackPanel
-                  reviewId={review.id}
-                  threshold={feedbackThresholdQuery.data ?? 3}
-                />
-              </MhdCard>
-            </div>
-            <div className="space-y-6">
-              <MhdCard className="p-6">
-                <MhdParticipantPanel
-                  reviewId={review.id}
-                  people={(peopleQuery.data ?? []).map((person) => ({
-                    id: person.id,
-                    displayName: person.displayName,
-                  }))}
-                />
-              </MhdCard>
-            </div>
-          </section>
-        ) : null}
+      {canMutate ? (
+        <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-6">
+            <MhdCard className="p-6">
+              <MhdReviewCompetencyPanel
+                reviewId={review.id}
+                canRate={review.status === 'DRAFT' || review.status === 'IN_REVIEW'}
+              />
+            </MhdCard>
+            <MhdCard className="p-6">
+              <Mhd360FeedbackPanel
+                reviewId={review.id}
+                threshold={feedbackThresholdQuery.data ?? 3}
+              />
+            </MhdCard>
+          </div>
+          <div className="space-y-6">
+            <MhdCard className="p-6">
+              <MhdParticipantPanel
+                reviewId={review.id}
+                people={(peopleQuery.data ?? []).map((person) => ({
+                  id: person.id,
+                  displayName: person.displayName,
+                }))}
+              />
+            </MhdCard>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

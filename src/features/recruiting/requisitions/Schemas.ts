@@ -36,8 +36,8 @@ export const mhdRequisitionFormSchema = z.object({
   // integer/positive checks so a blank field is a valid 1 rather than a coerced 0.
   headcount: z.preprocess(
     (value) => (value === '' || value == null ? 1 : value),
-    z
-      .coerce.number({ error: 'Enter a whole number of openings.' })
+    z.coerce
+      .number({ error: 'Enter a whole number of openings.' })
       .int('Headcount must be a whole number.')
       .min(1, 'Headcount must be at least 1.'),
   ),
@@ -118,8 +118,8 @@ export const mhdRejectApplicationSchema = z.object({
 export const mhdApplySchema = z.object({
   desiredPayRate: z.preprocess(
     (value) => (value === '' || value == null ? null : value),
-    z
-      .coerce.number({ error: 'Enter a pay rate as a number.' })
+    z.coerce
+      .number({ error: 'Enter a pay rate as a number.' })
       .positive('Pay rate must be greater than zero.')
       .nullable(),
   ),

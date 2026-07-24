@@ -64,7 +64,10 @@ function mapNoteRow(row: MhdNoteRow): MhdNote {
   };
 }
 
-export async function mhdListNotesForEntity(entityType: MhdNoteEntityType, entityId: string): Promise<MhdNote[]> {
+export async function mhdListNotesForEntity(
+  entityType: MhdNoteEntityType,
+  entityId: string,
+): Promise<MhdNote[]> {
   const { data, error } = await supabaseClient
     .rpc('mhd_list_notes_for_entity', {
       p_entity_type: entityType,

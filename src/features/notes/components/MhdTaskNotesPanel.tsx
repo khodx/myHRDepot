@@ -25,9 +25,18 @@ export function MhdTaskNotesPanel({ taskId }: MhdTaskNotesPanelProps) {
     await notesState.createNote(mhdPlainTextToRichText(notePlainText), notePlainText, visibility);
   }
 
-  async function handleUpdate(noteId: string, notePlainText: string, visibility: MhdNoteVisibility) {
+  async function handleUpdate(
+    noteId: string,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) {
     try {
-      await notesState.updateNote(noteId, mhdPlainTextToRichText(notePlainText), notePlainText, visibility);
+      await notesState.updateNote(
+        noteId,
+        mhdPlainTextToRichText(notePlainText),
+        notePlainText,
+        visibility,
+      );
     } catch {
       // Surfaced via notesState.errorMessage.
     }
@@ -44,7 +53,9 @@ export function MhdTaskNotesPanel({ taskId }: MhdTaskNotesPanelProps) {
   return (
     <div className="space-y-4">
       {notesState.errorMessage && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{notesState.errorMessage}</div>
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {notesState.errorMessage}
+        </div>
       )}
 
       <MhdNoteComposer isSaving={notesState.isSaving} onCreate={handleCreate} />
@@ -52,7 +63,12 @@ export function MhdTaskNotesPanel({ taskId }: MhdTaskNotesPanelProps) {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">Comments Timeline</h2>
-          <button className="text-sm font-semibold text-accent hover:text-accent-hover" onClick={() => void notesState.refresh()}>Refresh</button>
+          <button
+            className="text-sm font-semibold text-accent hover:text-accent-hover"
+            onClick={() => void notesState.refresh()}
+          >
+            Refresh
+          </button>
         </div>
         <MhdNoteList
           notes={notesState.notes}

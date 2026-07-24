@@ -128,7 +128,10 @@ export const mhdPersonService = {
     return (data ?? []).map(mapPersonRow);
   },
 
-  async createPerson(input: MhdCreatePersonInput, context: MhdPersonMutationContext): Promise<MhdPerson> {
+  async createPerson(
+    input: MhdCreatePersonInput,
+    context: MhdPersonMutationContext,
+  ): Promise<MhdPerson> {
     // `people` has no email/phone/mobile columns (locked TBL-004 spec).
     // p_email/p_phone/p_mobile are an ergonomic convenience on
     // mhd_create_person: when non-blank, the function writes them through to
@@ -161,7 +164,10 @@ export const mhdPersonService = {
     return mapPersonRow(row);
   },
 
-  async updatePerson(input: MhdUpdatePersonInput, context: MhdPersonMutationContext): Promise<MhdPerson> {
+  async updatePerson(
+    input: MhdUpdatePersonInput,
+    context: MhdPersonMutationContext,
+  ): Promise<MhdPerson> {
     // Same convenience semantics as createPerson, plus: on update, passing an
     // explicit empty string for email/phone/mobile DELETES the existing
     // primary contact method of that type (rather than leaving it

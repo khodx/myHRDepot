@@ -221,7 +221,8 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                 onChange={(event) =>
                   setFilters((previous) => ({
                     ...previous,
-                    occurrenceType: event.target.value as MhdAttendanceOccurrenceFilters['occurrenceType'],
+                    occurrenceType: event.target
+                      .value as MhdAttendanceOccurrenceFilters['occurrenceType'],
                   }))
                 }
               >

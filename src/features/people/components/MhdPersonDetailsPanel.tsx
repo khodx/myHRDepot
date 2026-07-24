@@ -13,14 +13,20 @@ function MhdDetailRow({ label, value }: { label: string; value: string | null | 
   return (
     <div>
       <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-sm text-foreground">{value && value.length > 0 ? value : 'Not provided'}</dd>
+      <dd className="mt-1 text-sm text-foreground">
+        {value && value.length > 0 ? value : 'Not provided'}
+      </dd>
     </div>
   );
 }
 
 export function MhdPersonDetailsPanel({ person, onEdit }: MhdPersonDetailsPanelProps) {
   if (!person) {
-    return <MhdCard className="border-dashed p-5 text-sm text-muted-foreground">Select a person to view details.</MhdCard>;
+    return (
+      <MhdCard className="border-dashed p-5 text-sm text-muted-foreground">
+        Select a person to view details.
+      </MhdCard>
+    );
   }
 
   return (

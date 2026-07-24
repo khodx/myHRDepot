@@ -40,7 +40,13 @@ interface CaseCreateFormProps {
 }
 
 /** Inline open-a-case form. The subject and category are fixed at creation. */
-function MhdConductCaseCreateForm({ companyId, people, onSubmit, onCancel, isSubmitting }: CaseCreateFormProps) {
+function MhdConductCaseCreateForm({
+  companyId,
+  people,
+  onSubmit,
+  onCancel,
+  isSubmitting,
+}: CaseCreateFormProps) {
   const {
     register,
     handleSubmit,
@@ -57,7 +63,11 @@ function MhdConductCaseCreateForm({ companyId, people, onSubmit, onCancel, isSub
           <label htmlFor="mhd-conduct-form-person" className="mb-1 block text-sm font-medium">
             Subject Employee
           </label>
-          <select id="mhd-conduct-form-person" className="w-full rounded border px-3 py-2" {...register('personId')}>
+          <select
+            id="mhd-conduct-form-person"
+            className="w-full rounded border px-3 py-2"
+            {...register('personId')}
+          >
             <option value="">Select person…</option>
             {people.map((person) => (
               <option key={person.id} value={person.id}>
@@ -65,21 +75,29 @@ function MhdConductCaseCreateForm({ companyId, people, onSubmit, onCancel, isSub
               </option>
             ))}
           </select>
-          {errors.personId ? <p className="mt-1 text-xs text-red-600">{errors.personId.message}</p> : null}
+          {errors.personId ? (
+            <p className="mt-1 text-xs text-red-600">{errors.personId.message}</p>
+          ) : null}
         </div>
 
         <div>
           <label htmlFor="mhd-conduct-form-category" className="mb-1 block text-sm font-medium">
             Category
           </label>
-          <select id="mhd-conduct-form-category" className="w-full rounded border px-3 py-2" {...register('category')}>
+          <select
+            id="mhd-conduct-form-category"
+            className="w-full rounded border px-3 py-2"
+            {...register('category')}
+          >
             {MHD_CONDUCT_CATEGORIES.map((category) => (
               <option key={category} value={category}>
                 {mhdFormatConductCategory(category)}
               </option>
             ))}
           </select>
-          {errors.category ? <p className="mt-1 text-xs text-red-600">{errors.category.message}</p> : null}
+          {errors.category ? (
+            <p className="mt-1 text-xs text-red-600">{errors.category.message}</p>
+          ) : null}
         </div>
       </div>
 
@@ -94,7 +112,9 @@ function MhdConductCaseCreateForm({ companyId, people, onSubmit, onCancel, isSub
           placeholder="Why the case exists — sensitive. The subject sees this only once an action is issued."
           {...register('concernSummary')}
         />
-        {errors.concernSummary ? <p className="mt-1 text-xs text-red-600">{errors.concernSummary.message}</p> : null}
+        {errors.concernSummary ? (
+          <p className="mt-1 text-xs text-red-600">{errors.concernSummary.message}</p>
+        ) : null}
       </div>
 
       <div className="flex gap-3">
@@ -133,13 +153,13 @@ export function MhdConductPage() {
   const selectedCompanyId = canCrossCompanyFilter
     ? filters.companyId !== '' && filters.companyId !== 'ALL'
       ? filters.companyId
-      : profile?.companyId ?? null
-    : profile?.companyId ?? null;
+      : (profile?.companyId ?? null)
+    : (profile?.companyId ?? null);
 
   const effectiveFilters = useMemo<MhdConductCaseFilters>(
     () => ({
       ...filters,
-      companyId: canCrossCompanyFilter ? (selectedCompanyId ?? '') : profile?.companyId ?? '',
+      companyId: canCrossCompanyFilter ? (selectedCompanyId ?? '') : (profile?.companyId ?? ''),
     }),
     [canCrossCompanyFilter, filters, profile?.companyId, selectedCompanyId],
   );
@@ -156,7 +176,8 @@ export function MhdConductPage() {
     return {
       open: open.length,
       actionsOutstanding: open.reduce(
-        (total, conductCase) => total + Math.max(conductCase.actionCount - conductCase.terminalCount, 0),
+        (total, conductCase) =>
+          total + Math.max(conductCase.actionCount - conductCase.terminalCount, 0),
         0,
       ),
       closed: cases.filter((conductCase) => conductCase.status === 'CLOSED').length,
@@ -166,7 +187,10 @@ export function MhdConductPage() {
   const companyOptions = canCrossCompanyFilter
     ? (companiesQuery.data ?? []).map((company) => ({ id: company.id, label: company.companyName }))
     : [];
-  const peopleOptions = (peopleQuery.data ?? []).map((person) => ({ id: person.id, label: person.displayName }));
+  const peopleOptions = (peopleQuery.data ?? []).map((person) => ({
+    id: person.id,
+    label: person.displayName,
+  }));
 
   function update(patch: Partial<MhdConductCaseFilters>) {
     setFilters((current) => ({ ...current, ...patch }));
@@ -194,7 +218,11 @@ export function MhdConductPage() {
         description="Corrective-action records: verbal, written, and final warnings and MOUs, each generated, routed for acknowledgment of receipt, and recorded with refusal as a first-class outcome."
         actions={
           canMutate ? (
-            <Button type="button" onClick={() => setIsCreating((current) => !current)} className="gap-1.5">
+            <Button
+              type="button"
+              onClick={() => setIsCreating((current) => !current)}
+              className="gap-1.5"
+            >
               <Plus className="h-4 w-4" />
               {isCreating ? 'Close Form' : 'New Case'}
             </Button>
@@ -202,24 +230,38 @@ export function MhdConductPage() {
         }
       />
 
-      {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
+      {actionError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      ) : null}
       {casesQuery.error ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {casesQuery.error instanceof Error ? casesQuery.error.message : 'Unable to load conduct cases.'}
+          {casesQuery.error instanceof Error
+            ? casesQuery.error.message
+            : 'Unable to load conduct cases.'}
         </div>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">
         <MhdCard>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Open</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Open
+          </p>
           <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{counts.open}</p>
         </MhdCard>
         <MhdCard>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Actions Outstanding</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-amber-700">{counts.actionsOutstanding}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Actions Outstanding
+          </p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-amber-700">
+            {counts.actionsOutstanding}
+          </p>
         </MhdCard>
         <MhdCard>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Closed</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Closed
+          </p>
           <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-700">{counts.closed}</p>
         </MhdCard>
       </div>
@@ -239,7 +281,10 @@ export function MhdConductPage() {
 
       <MhdCard className="flex flex-wrap items-end gap-3">
         <div className="min-w-56 flex-1">
-          <label htmlFor="mhd-conduct-filter-search" className="mb-1 block text-xs font-medium text-muted-foreground">
+          <label
+            htmlFor="mhd-conduct-filter-search"
+            className="mb-1 block text-xs font-medium text-muted-foreground"
+          >
             Search
           </label>
           <div className="relative">
@@ -289,7 +334,9 @@ export function MhdConductPage() {
           label="Category"
           id="mhd-conduct-filter-category"
           value={filters.category}
-          onChange={(event) => update({ category: event.target.value as MhdConductCaseFilters['category'] })}
+          onChange={(event) =>
+            update({ category: event.target.value as MhdConductCaseFilters['category'] })
+          }
         >
           <option value="ALL">All categories</option>
           {MHD_CONDUCT_CATEGORIES.map((category) => (
@@ -303,7 +350,9 @@ export function MhdConductPage() {
           label="Status"
           id="mhd-conduct-filter-status"
           value={filters.status}
-          onChange={(event) => update({ status: event.target.value as MhdConductCaseFilters['status'] })}
+          onChange={(event) =>
+            update({ status: event.target.value as MhdConductCaseFilters['status'] })
+          }
         >
           <option value="ALL">All statuses</option>
           {MHD_CONDUCT_CASE_STATUSES.map((status) => (
@@ -333,7 +382,11 @@ export function MhdConductPage() {
         </MhdCard>
       ) : cases.length === 0 ? (
         <MhdCard className="border-dashed">
-          <MhdEmptyState icon={Gavel} title="No conduct cases found" description="No conduct cases match the current filters." />
+          <MhdEmptyState
+            icon={Gavel}
+            title="No conduct cases found"
+            description="No conduct cases match the current filters."
+          />
         </MhdCard>
       ) : (
         <MhdCard className="overflow-hidden p-0">
@@ -360,7 +413,9 @@ export function MhdConductPage() {
                     </Link>
                     <div className="text-xs text-muted-foreground">{conductCase.referenceId}</div>
                   </MhdTd>
-                  <MhdTd className="text-muted-foreground">{mhdFormatConductCategory(conductCase.category)}</MhdTd>
+                  <MhdTd className="text-muted-foreground">
+                    {mhdFormatConductCategory(conductCase.category)}
+                  </MhdTd>
                   <MhdTd>
                     <MhdConductCaseStatusBadge status={conductCase.status} />
                   </MhdTd>

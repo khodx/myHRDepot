@@ -70,7 +70,10 @@ export function MhdSLAStatus({ taskId, className = '' }: MhdSLAStatusProps) {
       text: 'text-red-700',
       label: 'Overdue',
     },
-  } satisfies Record<MhdWorkflowSLAStatus['slaStatus'], { icon: typeof CheckCircle2; bg: string; border: string; text: string; label: string }>;
+  } satisfies Record<
+    MhdWorkflowSLAStatus['slaStatus'],
+    { icon: typeof CheckCircle2; bg: string; border: string; text: string; label: string }
+  >;
 
   const config = statusConfig[slaStatus.slaStatus];
   const Icon = config.icon;

@@ -25,18 +25,23 @@ export function MhdFormCalculationEditor({
   const [dependencyIds, setDependencyIds] = useState<string[]>([]);
   const [formula, setFormula] = useState('');
 
-  const fieldLabel = (fieldId: string) => fields.find((field) => field.id === fieldId)?.label ?? fieldId;
+  const fieldLabel = (fieldId: string) =>
+    fields.find((field) => field.id === fieldId)?.label ?? fieldId;
 
   const toggleDependency = (fieldId: string) => {
     setDependencyIds((current) =>
-      current.includes(fieldId) ? current.filter((entry) => entry !== fieldId) : [...current, fieldId],
+      current.includes(fieldId)
+        ? current.filter((entry) => entry !== fieldId)
+        : [...current, fieldId],
     );
   };
 
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-border bg-muted p-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Add Calculation</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Add Calculation
+        </h3>
         <div className="mt-3 grid gap-3">
           <select
             value={targetFieldId}
@@ -75,7 +80,10 @@ export function MhdFormCalculationEditor({
               {fields
                 .filter((field) => field.id !== targetFieldId)
                 .map((field) => (
-                  <label key={field.id} className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm">
+                  <label
+                    key={field.id}
+                    className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm"
+                  >
                     <input
                       type="checkbox"
                       checked={dependencyIds.includes(field.id)}
@@ -113,7 +121,10 @@ export function MhdFormCalculationEditor({
 
       <div className="space-y-2">
         {calculations.map((calculation) => (
-          <div key={calculation.id} className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3 text-sm">
+          <div
+            key={calculation.id}
+            className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3 text-sm"
+          >
             <div>
               <strong>{fieldLabel(calculation.targetFieldId)}</strong> ={' '}
               {calculation.op === 'formula'
@@ -129,7 +140,9 @@ export function MhdFormCalculationEditor({
             </button>
           </div>
         ))}
-        {calculations.length === 0 ? <p className="text-sm text-muted-foreground">No calculations defined yet.</p> : null}
+        {calculations.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No calculations defined yet.</p>
+        ) : null}
       </div>
     </div>
   );

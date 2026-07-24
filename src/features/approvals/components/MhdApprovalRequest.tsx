@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { mhdApprovalService } from '../Service';
-import type { MhdApprovalChainMode, MhdApprovalEntityType, MhdApprovalType } from '@/types/approval';
+import type {
+  MhdApprovalChainMode,
+  MhdApprovalEntityType,
+  MhdApprovalType,
+} from '@/types/approval';
 
 export interface MhdApprovalRequestApproverOption {
   id: string;
@@ -37,7 +41,9 @@ export function MhdApprovalRequest({
 
   function toggleApprover(approverId: string) {
     setApproverIds((current) =>
-      current.includes(approverId) ? current.filter((id) => id !== approverId) : [...current, approverId],
+      current.includes(approverId)
+        ? current.filter((id) => id !== approverId)
+        : [...current, approverId],
     );
   }
 
@@ -75,9 +81,7 @@ export function MhdApprovalRequest({
 
   return (
     <div>
-      <Button onClick={() => setIsOpen((open) => !open)}>
-        Request Approval
-      </Button>
+      <Button onClick={() => setIsOpen((open) => !open)}>Request Approval</Button>
       {isOpen ? (
         <MhdCard className="mt-2 space-y-3">
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
@@ -85,10 +89,16 @@ export function MhdApprovalRequest({
           <div>
             <p className="mb-1 text-sm font-medium">Approvers</p>
             <div className="space-y-1">
-              {approverOptions.length === 0 ? <p className="text-sm text-muted-foreground">No eligible approvers found.</p> : null}
+              {approverOptions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No eligible approvers found.</p>
+              ) : null}
               {approverOptions.map((option) => (
                 <label key={option.id} className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={approverIds.includes(option.id)} onChange={() => toggleApprover(option.id)} />
+                  <input
+                    type="checkbox"
+                    checked={approverIds.includes(option.id)}
+                    onChange={() => toggleApprover(option.id)}
+                  />
                   {option.displayName}
                 </label>
               ))}
@@ -98,11 +108,21 @@ export function MhdApprovalRequest({
           <div>
             <p className="mb-1 text-sm font-medium">Chain type</p>
             <label className="flex items-center gap-2 text-sm">
-              <input type="radio" name="chainMode" checked={chainMode === 'SEQUENTIAL'} onChange={() => setChainMode('SEQUENTIAL')} />
+              <input
+                type="radio"
+                name="chainMode"
+                checked={chainMode === 'SEQUENTIAL'}
+                onChange={() => setChainMode('SEQUENTIAL')}
+              />
               Sequential (approve in order)
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input type="radio" name="chainMode" checked={chainMode === 'PARALLEL'} onChange={() => setChainMode('PARALLEL')} />
+              <input
+                type="radio"
+                name="chainMode"
+                checked={chainMode === 'PARALLEL'}
+                onChange={() => setChainMode('PARALLEL')}
+              />
               Parallel (all must approve)
             </label>
           </div>

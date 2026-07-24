@@ -11,8 +11,15 @@ interface Props {
 }
 
 export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Props) {
-  const { attachments, isLoading, error, isUploading, uploadAttachment, deleteAttachment, downloadAttachment } =
-    useMhdAttachments('ACTIVITY', activityId);
+  const {
+    attachments,
+    isLoading,
+    error,
+    isUploading,
+    uploadAttachment,
+    deleteAttachment,
+    downloadAttachment,
+  } = useMhdAttachments('ACTIVITY', activityId);
 
   async function handleDelete(attachment: MhdAttachment) {
     if (!window.confirm(`Delete "${attachment.originalFileName}"? This cannot be undone.`)) return;
@@ -35,14 +42,20 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
 
   return (
     <div className="space-y-4">
-      {error ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div> : null}
+      {error ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
       {readOnly ? (
         <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
           You have read-only access to activity attachments.
         </div>
       ) : (
         <label className="block rounded-md border border-dashed border-border bg-muted p-4 text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">{isUploading ? 'Uploading…' : 'Upload attachment'}</span>
+          <span className="font-medium text-foreground">
+            {isUploading ? 'Uploading…' : 'Upload attachment'}
+          </span>
           <input
             type="file"
             className="mt-2 block text-sm"
@@ -68,9 +81,12 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
             <MhdCard key={attachment.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{attachment.originalFileName}</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {attachment.originalFileName}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    {mhdFormatFileSize(attachment.fileSizeBytes)} • Uploaded {new Date(attachment.uploadedAt).toLocaleString()}
+                    {mhdFormatFileSize(attachment.fileSizeBytes)} • Uploaded{' '}
+                    {new Date(attachment.uploadedAt).toLocaleString()}
                     {attachment.uploaderDisplayName ? ` by ${attachment.uploaderDisplayName}` : ''}
                   </p>
                 </div>

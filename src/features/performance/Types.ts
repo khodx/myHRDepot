@@ -2,10 +2,14 @@ import type { MhdCompanyId } from '@/features/companies/Types';
 import type { Database } from '@/types/database.types';
 
 type MhdPerformanceFunctions = Database['public']['Functions'];
-export type MhdPerformanceReviewRpcRow = MhdPerformanceFunctions['mhd_list_performance_reviews']['Returns'][number];
-export type MhdCoachingPlanRpcRow = MhdPerformanceFunctions['mhd_list_coaching_plans']['Returns'][number];
-export type MhdCoachingPlanItemRpcRow = MhdPerformanceFunctions['mhd_list_coaching_plan_items']['Returns'][number];
-export type MhdPerformanceMutationRpcRow = MhdPerformanceFunctions['mhd_create_performance_review']['Returns'][number];
+export type MhdPerformanceReviewRpcRow =
+  MhdPerformanceFunctions['mhd_list_performance_reviews']['Returns'][number];
+export type MhdCoachingPlanRpcRow =
+  MhdPerformanceFunctions['mhd_list_coaching_plans']['Returns'][number];
+export type MhdCoachingPlanItemRpcRow =
+  MhdPerformanceFunctions['mhd_list_coaching_plan_items']['Returns'][number];
+export type MhdPerformanceMutationRpcRow =
+  MhdPerformanceFunctions['mhd_create_performance_review']['Returns'][number];
 
 // ---------------------------------------------------------------------------
 // Ids and vocabularies
@@ -21,11 +25,7 @@ export type MhdCoachingPlanItemReferenceId = `COPI-${string}`;
 export type MhdPerformanceReviewType = 'INTRODUCTORY' | 'ANNUAL';
 
 export type MhdPerformanceReviewStatus =
-  | 'DRAFT'
-  | 'IN_REVIEW'
-  | 'PENDING_SIGNATURE'
-  | 'COMPLETED'
-  | 'CANCELLED';
+  'DRAFT' | 'IN_REVIEW' | 'PENDING_SIGNATURE' | 'COMPLETED' | 'CANCELLED';
 
 export type MhdCoachingPlanStatus = 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
 
@@ -336,7 +336,9 @@ export function mhdIsPerformanceReviewOverdue(
   review: Pick<MhdPerformanceReview, 'status' | 'dueDate'>,
 ): boolean {
   return (
-    (review.status === 'DRAFT' || review.status === 'IN_REVIEW' || review.status === 'PENDING_SIGNATURE') &&
+    (review.status === 'DRAFT' ||
+      review.status === 'IN_REVIEW' ||
+      review.status === 'PENDING_SIGNATURE') &&
     !!review.dueDate &&
     new Date(`${review.dueDate}T23:59:59.999Z`).getTime() < Date.now()
   );
@@ -347,7 +349,12 @@ export type MhdPerformanceOption = { id: string; label: string };
 export type MhdReviewType = MhdPerformanceReviewType;
 export type MhdReviewStatus = MhdPerformanceReviewStatus;
 export type MhdReviewBoardFilters = MhdPerformanceReviewFilters;
-export interface MhdReviewFinalizeStepState { key: string; label: string; status: 'PENDING' | 'RUNNING' | 'DONE' | 'ERROR'; errorMessage?: string; }
+export interface MhdReviewFinalizeStepState {
+  key: string;
+  label: string;
+  status: 'PENDING' | 'RUNNING' | 'DONE' | 'ERROR';
+  errorMessage?: string;
+}
 export type MhdCoachingPlanBoardFilters = MhdCoachingPlanFilters;
 export const MHD_REVIEW_TYPES = MHD_PERFORMANCE_REVIEW_TYPES;
 export const MHD_REVIEW_STATUSES = MHD_PERFORMANCE_REVIEW_STATUSES;

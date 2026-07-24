@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import {
-  MHD_LEAVE_CASE_STATUSES,
-  MHD_LEAVE_CERTIFICATION_TYPES,
-} from './Types';
+import { MHD_LEAVE_CASE_STATUSES, MHD_LEAVE_CERTIFICATION_TYPES } from './Types';
 
-const isoDate = z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a YYYY-MM-DD date.');
+const isoDate = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a YYYY-MM-DD date.');
 
 // ---------------------------------------------------------------------------
 // Cases
@@ -25,7 +25,8 @@ export const mhdLeaveCaseFormSchema = z
     isIntermittent: z.boolean().default(false),
   })
   .refine(
-    (form) => !form.requestedStart || !form.requestedEnd || form.requestedEnd >= form.requestedStart,
+    (form) =>
+      !form.requestedStart || !form.requestedEnd || form.requestedEnd >= form.requestedStart,
     {
       message: 'The end date must be on or after the start date.',
       path: ['requestedEnd'],

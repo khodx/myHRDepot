@@ -19,8 +19,7 @@ export const mhdOfferQueryKeys = {
   all: ['mhd-recruiting-offer'] as const,
   offers: (applicationId: string | null) =>
     ['mhd-recruiting-offer', 'list', applicationId ?? ''] as const,
-  offer: (offerId: string | null) =>
-    ['mhd-recruiting-offer', 'detail', offerId ?? ''] as const,
+  offer: (offerId: string | null) => ['mhd-recruiting-offer', 'detail', offerId ?? ''] as const,
   // The onboarding-feed preview, keyed by application. The accept mutation seeds
   // the onboarding records, so it also invalidates this key below.
   hirePayload: (applicationId: string | null) =>

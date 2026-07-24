@@ -1,8 +1,5 @@
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
-import {
-  mhdFormatTrainingComplianceStatus,
-  type MhdTrainingComplianceStatus,
-} from '../Types';
+import { mhdFormatTrainingComplianceStatus, type MhdTrainingComplianceStatus } from '../Types';
 
 // The DERIVED compliance status, coloured by what it means for the person. This
 // badge only ever RENDERS a status the server computed — it never recomputes

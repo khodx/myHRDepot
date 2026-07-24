@@ -30,9 +30,7 @@ function filterValueOrUndefined(value?: string | null): string | undefined {
 }
 
 function dateFilterBoundary(value: string, boundary: 'start' | 'end'): string {
-  return boundary === 'start'
-    ? `${value}T00:00:00.000Z`
-    : `${value}T23:59:59.999Z`;
+  return boundary === 'start' ? `${value}T00:00:00.000Z` : `${value}T23:59:59.999Z`;
 }
 
 function formatDateOnly(isoLike: string | null | undefined): string {
@@ -136,13 +134,23 @@ export const mhdActivityService = {
   async listActivities(filters: MhdActivityBoardFilters): Promise<MhdActivity[]> {
     const { data, error } = await supabaseClient
       .rpc('mhd_list_activity_board', {
-        ...(filterValueOrUndefined(filters.companyId) ? { p_company_id: filterValueOrUndefined(filters.companyId) } : {}),
-        ...(filterValueOrUndefined(filters.personId) ? { p_person_id: filterValueOrUndefined(filters.personId) } : {}),
-        ...(filterValueOrUndefined(filters.taskId) ? { p_task_id: filterValueOrUndefined(filters.taskId) } : {}),
+        ...(filterValueOrUndefined(filters.companyId)
+          ? { p_company_id: filterValueOrUndefined(filters.companyId) }
+          : {}),
+        ...(filterValueOrUndefined(filters.personId)
+          ? { p_person_id: filterValueOrUndefined(filters.personId) }
+          : {}),
+        ...(filterValueOrUndefined(filters.taskId)
+          ? { p_task_id: filterValueOrUndefined(filters.taskId) }
+          : {}),
         ...(filters.activityType !== 'ALL' ? { p_activity_type: filters.activityType } : {}),
         ...(filters.status !== 'ALL' ? { p_status: filters.status } : {}),
-        ...(trimmedOrUndefined(filters.searchTerm) ? { p_search_term: trimmedOrUndefined(filters.searchTerm) } : {}),
-        ...(trimmedOrUndefined(filters.from) ? { p_from: dateFilterBoundary(filters.from, 'start') } : {}),
+        ...(trimmedOrUndefined(filters.searchTerm)
+          ? { p_search_term: trimmedOrUndefined(filters.searchTerm) }
+          : {}),
+        ...(trimmedOrUndefined(filters.from)
+          ? { p_from: dateFilterBoundary(filters.from, 'start') }
+          : {}),
         ...(trimmedOrUndefined(filters.to) ? { p_to: dateFilterBoundary(filters.to, 'end') } : {}),
       })
       .returns<MhdActivityListRow[]>();
@@ -179,12 +187,22 @@ export const mhdActivityService = {
         p_title: input.title.trim(),
         ...(input.personId ? { p_person_id: input.personId } : {}),
         ...(input.parentTaskId ? { p_parent_task_id: input.parentTaskId } : {}),
-        ...(trimmedOrUndefined(input.descriptionPlainText) ? { p_description_plain_text: trimmedOrUndefined(input.descriptionPlainText) } : {}),
-        ...(input.descriptionRichText != null ? { p_description_rich_text: input.descriptionRichText } : {}),
-        ...(trimmedOrUndefined(input.scheduledAt) ? { p_scheduled_at: trimmedOrUndefined(input.scheduledAt) } : {}),
-        ...(trimmedOrUndefined(input.location) ? { p_location: trimmedOrUndefined(input.location) } : {}),
+        ...(trimmedOrUndefined(input.descriptionPlainText)
+          ? { p_description_plain_text: trimmedOrUndefined(input.descriptionPlainText) }
+          : {}),
+        ...(input.descriptionRichText != null
+          ? { p_description_rich_text: input.descriptionRichText }
+          : {}),
+        ...(trimmedOrUndefined(input.scheduledAt)
+          ? { p_scheduled_at: trimmedOrUndefined(input.scheduledAt) }
+          : {}),
+        ...(trimmedOrUndefined(input.location)
+          ? { p_location: trimmedOrUndefined(input.location) }
+          : {}),
         ...(input.isConfidential !== undefined ? { p_is_confidential: input.isConfidential } : {}),
-        ...(input.participants && input.participants.length > 0 ? { p_participants: input.participants.map(mapParticipantInput) } : {}),
+        ...(input.participants && input.participants.length > 0
+          ? { p_participants: input.participants.map(mapParticipantInput) }
+          : {}),
         ...(input.actorUserId ? { p_actor_user_id: input.actorUserId } : {}),
       })
       .returns<MhdActivityMutationResultRow[]>();
@@ -208,15 +226,27 @@ export const mhdActivityService = {
       p_title: input.title.trim(),
       ...(input.personId ? { p_person_id: input.personId } : {}),
       ...(input.parentTaskId ? { p_parent_task_id: input.parentTaskId } : {}),
-      ...(trimmedOrUndefined(input.descriptionPlainText) ? { p_description_plain_text: trimmedOrUndefined(input.descriptionPlainText) } : {}),
-      ...(input.descriptionRichText != null ? { p_description_rich_text: input.descriptionRichText } : {}),
-      ...(trimmedOrUndefined(input.scheduledAt) ? { p_scheduled_at: trimmedOrUndefined(input.scheduledAt) } : {}),
-      ...(trimmedOrUndefined(input.location) ? { p_location: trimmedOrUndefined(input.location) } : {}),
+      ...(trimmedOrUndefined(input.descriptionPlainText)
+        ? { p_description_plain_text: trimmedOrUndefined(input.descriptionPlainText) }
+        : {}),
+      ...(input.descriptionRichText != null
+        ? { p_description_rich_text: input.descriptionRichText }
+        : {}),
+      ...(trimmedOrUndefined(input.scheduledAt)
+        ? { p_scheduled_at: trimmedOrUndefined(input.scheduledAt) }
+        : {}),
+      ...(trimmedOrUndefined(input.location)
+        ? { p_location: trimmedOrUndefined(input.location) }
+        : {}),
       ...(input.isConfidential !== undefined ? { p_is_confidential: input.isConfidential } : {}),
       ...(input.status ? { p_status: input.status } : {}),
-      ...(trimmedOrUndefined(input.occurredAt) ? { p_occurred_at: trimmedOrUndefined(input.occurredAt) } : {}),
+      ...(trimmedOrUndefined(input.occurredAt)
+        ? { p_occurred_at: trimmedOrUndefined(input.occurredAt) }
+        : {}),
       ...(input.durationMinutes != null ? { p_duration_minutes: input.durationMinutes } : {}),
-      ...(trimmedOrUndefined(input.outcomeSummary) ? { p_outcome_summary: trimmedOrUndefined(input.outcomeSummary) } : {}),
+      ...(trimmedOrUndefined(input.outcomeSummary)
+        ? { p_outcome_summary: trimmedOrUndefined(input.outcomeSummary) }
+        : {}),
       ...(input.followUpTaskId ? { p_follow_up_task_id: input.followUpTaskId } : {}),
     });
 
@@ -287,8 +317,12 @@ export const mhdActivityService = {
     const { error } = await supabaseClient.rpc('mhd_create_sub_activity', {
       p_activity_id: input.activityId,
       p_title: input.title.trim(),
-      ...(trimmedOrUndefined(input.descriptionPlainText) ? { p_description_plain_text: trimmedOrUndefined(input.descriptionPlainText) } : {}),
-      ...(trimmedOrUndefined(input.scheduledAt) ? { p_scheduled_at: trimmedOrUndefined(input.scheduledAt) } : {}),
+      ...(trimmedOrUndefined(input.descriptionPlainText)
+        ? { p_description_plain_text: trimmedOrUndefined(input.descriptionPlainText) }
+        : {}),
+      ...(trimmedOrUndefined(input.scheduledAt)
+        ? { p_scheduled_at: trimmedOrUndefined(input.scheduledAt) }
+        : {}),
       ...(input.sortOrder !== undefined ? { p_sort_order: input.sortOrder } : {}),
     });
 
@@ -301,9 +335,13 @@ export const mhdActivityService = {
     const { error } = await supabaseClient.rpc('mhd_update_sub_activity', {
       p_sub_activity_id: subActivityId,
       ...(trimmedOrUndefined(input.title) ? { p_title: trimmedOrUndefined(input.title) } : {}),
-      ...(trimmedOrUndefined(input.descriptionPlainText) ? { p_description_plain_text: trimmedOrUndefined(input.descriptionPlainText) } : {}),
+      ...(trimmedOrUndefined(input.descriptionPlainText)
+        ? { p_description_plain_text: trimmedOrUndefined(input.descriptionPlainText) }
+        : {}),
       ...(input.status ? { p_status: input.status } : {}),
-      ...(trimmedOrUndefined(input.scheduledAt) ? { p_scheduled_at: trimmedOrUndefined(input.scheduledAt) } : {}),
+      ...(trimmedOrUndefined(input.scheduledAt)
+        ? { p_scheduled_at: trimmedOrUndefined(input.scheduledAt) }
+        : {}),
       ...(input.sortOrder !== undefined ? { p_sort_order: input.sortOrder } : {}),
     });
 
@@ -328,13 +366,19 @@ export const mhdActivityService = {
     context: MhdTaskMutationContext,
   ): Promise<MhdActivity> {
     const activity = await mhdActivityService.getActivityById(activityId);
-    const [statusId, priorityId] = await Promise.all([getDefaultTaskStatusId(), getDefaultTaskPriorityId()]);
+    const [statusId, priorityId] = await Promise.all([
+      getDefaultTaskStatusId(),
+      getDefaultTaskPriorityId(),
+    ]);
 
     const task = await mhdTaskService.createTask(
       {
         companyId: activity.companyId,
         title: input.title.trim(),
-        descriptionPlainText: trimmedOrUndefined(input.descriptionPlainText) ?? activity.outcomeSummary ?? activity.title,
+        descriptionPlainText:
+          trimmedOrUndefined(input.descriptionPlainText) ??
+          activity.outcomeSummary ??
+          activity.title,
         descriptionRichText: null,
         statusId,
         priorityId,

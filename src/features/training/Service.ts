@@ -133,9 +133,7 @@ function mapMutationResult(row: MhdTrainingMutationRpcRow): MhdMutationResult {
   return { id: row.id, referenceId: row.reference_id };
 }
 
-function mapCompletionResult(
-  row: MhdTrainingCompletionResultRpcRow,
-): MhdTrainingCompletionResult {
+function mapCompletionResult(row: MhdTrainingCompletionResultRpcRow): MhdTrainingCompletionResult {
   return { id: row.id, referenceId: row.reference_id, expiresAt: row.expires_at };
 }
 
@@ -235,9 +233,7 @@ export const mhdTrainingService = {
    * Each row carries a SERVER-DERIVED `compliance_status` — render it, do not
    * recompute compliance client-side.
    */
-  async listAssignments(
-    filters: MhdTrainingAssignmentFilters,
-  ): Promise<MhdTrainingAssignment[]> {
+  async listAssignments(filters: MhdTrainingAssignmentFilters): Promise<MhdTrainingAssignment[]> {
     if (!filters.companyId) return [];
     const { data, error } = await trainingRpc('mhd_training_list_assignments', {
       p_company_id: filters.companyId,
@@ -311,7 +307,10 @@ export const mhdTrainingService = {
    * A person's completion history. Each row carries a SERVER-DERIVED `is_expired`
    * — render it, do not re-derive expiry from `expires_at` on the client.
    */
-  async listCompletions(personId: string, courseId?: string | null): Promise<MhdTrainingCompletion[]> {
+  async listCompletions(
+    personId: string,
+    courseId?: string | null,
+  ): Promise<MhdTrainingCompletion[]> {
     const { data, error } = await trainingRpc('mhd_training_list_completions', {
       p_person_id: personId,
       p_course_id: trimmedOrUndefined(courseId),

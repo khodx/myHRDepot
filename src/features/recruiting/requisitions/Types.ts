@@ -150,13 +150,7 @@ export type MhdRecruitingApplicationReferenceId = `APP-${string}`;
 
 /** Requisition lifecycle. Transitioned server-side; the UI renders and offers moves. */
 export type MhdRecruitingRequisitionStatus =
-  | 'DRAFT'
-  | 'PENDING_APPROVAL'
-  | 'OPEN'
-  | 'ON_HOLD'
-  | 'FILLED'
-  | 'CLOSED'
-  | 'CANCELLED';
+  'DRAFT' | 'PENDING_APPROVAL' | 'OPEN' | 'ON_HOLD' | 'FILLED' | 'CLOSED' | 'CANCELLED';
 
 /** Pipeline-stage category. Drives the application lifecycle when a stage is entered. */
 export type MhdRecruitingStageCategory = 'ACTIVE' | 'HIRED' | 'REJECTED' | 'WITHDRAWN';
@@ -167,11 +161,7 @@ export type MhdRecruitingStageCategory = 'ACTIVE' | 'HIRED' | 'REJECTED' | 'WITH
  * category. Synced server-side by `move_stage` / `reject`; never computed client-side.
  */
 export type MhdRecruitingApplicationLifecycle =
-  | 'INVITED'
-  | 'ACTIVE'
-  | 'HIRED'
-  | 'REJECTED'
-  | 'WITHDRAWN';
+  'INVITED' | 'ACTIVE' | 'HIRED' | 'REJECTED' | 'WITHDRAWN';
 
 export const MHD_RECRUITING_REQUISITION_STATUSES = [
   'DRAFT',
@@ -525,9 +515,7 @@ const EEO_DISABILITY_STATUS_LABELS: Record<MhdRecruitingEeoDisabilityStatus, str
   DECLINE: 'Decline to self-identify',
 };
 
-export function mhdFormatRequisitionStatus(
-  value: MhdRecruitingRequisitionStatus | string,
-): string {
+export function mhdFormatRequisitionStatus(value: MhdRecruitingRequisitionStatus | string): string {
   return REQUISITION_STATUS_LABELS[value as MhdRecruitingRequisitionStatus] ?? value;
 }
 

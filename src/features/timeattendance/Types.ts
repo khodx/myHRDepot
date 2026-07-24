@@ -188,10 +188,7 @@ export type MhdOccurrenceType =
  * here by `mhdClassificationCanAccrue`).
  */
 export type MhdAttendanceClassification =
-  | 'UNEXCUSED'
-  | 'EXCUSED_UNPAID'
-  | 'EXCUSED_PAID'
-  | 'PROTECTED';
+  'UNEXCUSED' | 'EXCUSED_UNPAID' | 'EXCUSED_PAID' | 'PROTECTED';
 
 /**
  * Protected absence categories. Required iff classification is PROTECTED, and
@@ -228,10 +225,7 @@ export type MhdPointLedgerEntryType =
  * performs an adverse action; crossing one raises an event for a human.
  */
 export type MhdAttendanceActionLevel =
-  | 'VERBAL_WARNING'
-  | 'WRITTEN_WARNING'
-  | 'FINAL_WARNING'
-  | 'TERMINATION_REVIEW';
+  'VERBAL_WARNING' | 'WRITTEN_WARNING' | 'FINAL_WARNING' | 'TERMINATION_REVIEW';
 
 export type MhdThresholdEventStatus = 'RAISED' | 'ACKNOWLEDGED' | 'ACTIONED' | 'DISMISSED';
 

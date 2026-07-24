@@ -3,12 +3,22 @@ import type { MhdFormField, MhdFormFileValue } from './Types';
 import { mhdIsFormFileValue } from './Types';
 
 export const mhdCreateFormInputSchema = z.object({
-  name: z.string().trim().min(1, 'Form name is required').max(200, 'Form name must be 200 characters or fewer'),
-  description: z.string().trim().max(1000, 'Description must be 1000 characters or fewer').optional(),
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Form name is required')
+    .max(200, 'Form name must be 200 characters or fewer'),
+  description: z
+    .string()
+    .trim()
+    .max(1000, 'Description must be 1000 characters or fewer')
+    .optional(),
   definition: z.record(z.string(), z.unknown()),
 });
 
-export function mhdBuildFormValuesSchema(fields: MhdFormField[]): z.ZodObject<Record<string, z.ZodTypeAny>> {
+export function mhdBuildFormValuesSchema(
+  fields: MhdFormField[],
+): z.ZodObject<Record<string, z.ZodTypeAny>> {
   const shape: Record<string, z.ZodTypeAny> = {};
 
   for (const field of fields) {

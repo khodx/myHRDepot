@@ -279,7 +279,9 @@ describe('mhdConductService issue ceremony', () => {
         p_entity_id: 'action-1',
       }),
     );
-    expect(invokeMock).toHaveBeenCalledWith('render-document', { body: { generation_id: 'gen-1' } });
+    expect(invokeMock).toHaveBeenCalledWith('render-document', {
+      body: { generation_id: 'gen-1' },
+    });
     expect(createRequestFromGeneratedDocumentMock).toHaveBeenCalledWith(
       expect.objectContaining({
         companyId: 'company-1',

@@ -40,8 +40,8 @@ export function MhdPropertyAssignmentHistory({ assignments }: MhdPropertyAssignm
               <div className="font-medium text-foreground">
                 <Link to={`/people/${assignment.personId}`} className="hover:text-accent-hover">
                   {assignment.personDisplayName}
-                </Link>
-                {' '}· {assignment.quantity} unit{assignment.quantity === 1 ? '' : 's'}
+                </Link>{' '}
+                · {assignment.quantity} unit{assignment.quantity === 1 ? '' : 's'}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">{assignment.referenceId}</div>
             </div>
@@ -49,15 +49,22 @@ export function MhdPropertyAssignmentHistory({ assignments }: MhdPropertyAssignm
           </div>
 
           <div className="mt-3 space-y-1 text-sm text-muted-foreground">
-            <p>Issued {new Date(assignment.issuedAt).toLocaleDateString()} by {assignment.issuerDisplayName ?? assignment.issuedBy}</p>
+            <p>
+              Issued {new Date(assignment.issuedAt).toLocaleDateString()} by{' '}
+              {assignment.issuerDisplayName ?? assignment.issuedBy}
+            </p>
             <p>{renderLifecycleSummary(assignment)}</p>
           </div>
 
           {assignment.issuanceConditionNotes ? (
-            <p className="mt-3 text-sm text-muted-foreground">Issued condition: {assignment.issuanceConditionNotes}</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Issued condition: {assignment.issuanceConditionNotes}
+            </p>
           ) : null}
           {assignment.returnConditionNotes ? (
-            <p className="mt-1 text-sm text-muted-foreground">Disposition notes: {assignment.returnConditionNotes}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Disposition notes: {assignment.returnConditionNotes}
+            </p>
           ) : null}
         </li>
       ))}

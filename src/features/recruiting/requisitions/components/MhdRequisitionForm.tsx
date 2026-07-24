@@ -81,9 +81,7 @@ export function MhdRequisitionForm({
           placeholder="e.g. Senior Payroll Specialist"
           className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
-        {errors.title ? (
-          <p className="mt-1 text-xs text-rose-600">{errors.title.message}</p>
-        ) : null}
+        {errors.title ? <p className="mt-1 text-xs text-rose-600">{errors.title.message}</p> : null}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -159,10 +157,7 @@ export function MhdRequisitionForm({
         </div>
 
         <div>
-          <label
-            htmlFor="employmentType"
-            className="block text-sm font-medium text-foreground"
-          >
+          <label htmlFor="employmentType" className="block text-sm font-medium text-foreground">
             Employment type <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input

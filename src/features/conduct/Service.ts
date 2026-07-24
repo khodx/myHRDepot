@@ -138,7 +138,9 @@ async function fetchGenerationUntilGenerated(
       return data;
     }
     if (data.status === 'FAILED') {
-      throw new Error('Document generation failed — see the generation record for the failure reason.');
+      throw new Error(
+        'Document generation failed — see the generation record for the failure reason.',
+      );
     }
 
     lastStatus = data.status;
@@ -157,7 +159,9 @@ export const mhdConductService = {
   async listCases(filters: MhdConductCaseFilters): Promise<MhdConductCase[]> {
     const { data, error } = await conductRpc('mhd_conduct_list_cases', {
       p_company_id: filters.companyId,
-      ...(filterValueOrUndefined(filters.personId) ? { p_person_id: filterValueOrUndefined(filters.personId) } : {}),
+      ...(filterValueOrUndefined(filters.personId)
+        ? { p_person_id: filterValueOrUndefined(filters.personId) }
+        : {}),
       ...(filters.status !== 'ALL' ? { p_status: filters.status } : {}),
       ...(filters.category !== 'ALL' ? { p_category: filters.category } : {}),
     }).returns<MhdConductCaseRpcRow[]>();
@@ -207,7 +211,9 @@ export const mhdConductService = {
       p_company_id: input.companyId,
       p_person_id: input.personId,
       p_category: input.category,
-      ...(trimmedOrUndefined(input.concernSummary) ? { p_concern_summary: trimmedOrUndefined(input.concernSummary) } : {}),
+      ...(trimmedOrUndefined(input.concernSummary)
+        ? { p_concern_summary: trimmedOrUndefined(input.concernSummary) }
+        : {}),
     }).returns<MhdConductMutationRpcRow[]>();
 
     if (error) {
@@ -226,7 +232,9 @@ export const mhdConductService = {
     const { error } = await conductRpc('mhd_conduct_transition_case', {
       p_case_id: caseId,
       p_new_status: input.newStatus,
-      ...(trimmedOrUndefined(input.rescindReason) ? { p_rescind_reason: trimmedOrUndefined(input.rescindReason) } : {}),
+      ...(trimmedOrUndefined(input.rescindReason)
+        ? { p_rescind_reason: trimmedOrUndefined(input.rescindReason) }
+        : {}),
     });
 
     if (error) {
@@ -276,8 +284,12 @@ export const mhdConductService = {
     const { data, error } = await conductRpc('mhd_conduct_create_action', {
       p_case_id: input.caseId,
       p_severity: input.severity,
-      ...(trimmedOrUndefined(input.actionSummary) ? { p_action_summary: trimmedOrUndefined(input.actionSummary) } : {}),
-      ...(input.requiresDocument !== undefined ? { p_requires_document: input.requiresDocument } : {}),
+      ...(trimmedOrUndefined(input.actionSummary)
+        ? { p_action_summary: trimmedOrUndefined(input.actionSummary) }
+        : {}),
+      ...(input.requiresDocument !== undefined
+        ? { p_requires_document: input.requiresDocument }
+        : {}),
     }).returns<MhdConductMutationRpcRow[]>();
 
     if (error) {
@@ -296,7 +308,9 @@ export const mhdConductService = {
     const { error } = await conductRpc('mhd_conduct_update_action', {
       p_action_id: actionId,
       ...(input.severity ? { p_severity: input.severity } : {}),
-      ...(trimmedOrUndefined(input.actionSummary) ? { p_action_summary: trimmedOrUndefined(input.actionSummary) } : {}),
+      ...(trimmedOrUndefined(input.actionSummary)
+        ? { p_action_summary: trimmedOrUndefined(input.actionSummary) }
+        : {}),
     });
 
     if (error) {
@@ -416,12 +430,16 @@ export const mhdConductService = {
       .returns<Array<{ id: string; reference_id: string; status: string }>>();
 
     if (generationError) {
-      throw new Error(`Corrective action step 1 (request document generation) failed: ${generationError.message}`);
+      throw new Error(
+        `Corrective action step 1 (request document generation) failed: ${generationError.message}`,
+      );
     }
 
     const generationId = generationData?.[0]?.id;
     if (!generationId) {
-      throw new Error('Corrective action step 1 (request document generation) failed: no generation id returned.');
+      throw new Error(
+        'Corrective action step 1 (request document generation) failed: no generation id returned.',
+      );
     }
 
     input.onStep?.(2);
@@ -435,7 +453,9 @@ export const mhdConductService = {
       throw new Error(`Corrective action step 2 (render document) failed: ${renderError.message}`);
     }
     if (renderData?.success === false) {
-      throw new Error(`Corrective action step 2 (render document) failed: ${renderData.error ?? 'unknown render error.'}`);
+      throw new Error(
+        `Corrective action step 2 (render document) failed: ${renderData.error ?? 'unknown render error.'}`,
+      );
     }
 
     input.onStep?.(3);
@@ -449,7 +469,8 @@ export const mhdConductService = {
     input.onStep?.(4);
     // Step 4 — resolve the document hash (04.8 auto-stamp, manual fallback).
     const documentHash =
-      trimmedOrUndefined(generation.output_document_hash) ?? trimmedOrUndefined(input.manualDocumentHash);
+      trimmedOrUndefined(generation.output_document_hash) ??
+      trimmedOrUndefined(input.manualDocumentHash);
 
     if (!documentHash) {
       throw new Error(
@@ -480,7 +501,8 @@ export const mhdConductService = {
       invitationErrors = result.invitationErrors;
     } catch (cause) {
       throw new Error(
-        `Corrective action step 5 (create signature request) failed: ${cause instanceof Error ? cause.message : String(cause)}`, { cause },
+        `Corrective action step 5 (create signature request) failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+        { cause },
       );
     }
 

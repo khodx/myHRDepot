@@ -101,7 +101,10 @@ async function uploadFileToGoogleDrive(
 }
 
 export const mhdAttachmentService = {
-  async listAttachments(entityType: MhdAttachmentEntityType, entityId: string): Promise<MhdAttachment[]> {
+  async listAttachments(
+    entityType: MhdAttachmentEntityType,
+    entityId: string,
+  ): Promise<MhdAttachment[]> {
     const { data, error } = await supabaseClient
       .rpc('mhd_list_attachments_for_entity', {
         p_entity_type: entityType,

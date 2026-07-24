@@ -19,7 +19,10 @@ interface UseMhdAttachmentsReturn extends UseMhdAttachmentsState {
   downloadAttachment: (attachment: MhdAttachment) => Promise<void>;
 }
 
-export function useMhdAttachments(entityType: MhdAttachmentEntityType, entityId: string): UseMhdAttachmentsReturn {
+export function useMhdAttachments(
+  entityType: MhdAttachmentEntityType,
+  entityId: string,
+): UseMhdAttachmentsReturn {
   const [state, setState] = useState<UseMhdAttachmentsState>({
     attachments: [],
     isLoading: true,

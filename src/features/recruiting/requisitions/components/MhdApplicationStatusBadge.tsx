@@ -1,8 +1,5 @@
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
-import {
-  mhdFormatApplicationLifecycle,
-  type MhdRecruitingApplicationLifecycle,
-} from '../Types';
+import { mhdFormatApplicationLifecycle, type MhdRecruitingApplicationLifecycle } from '../Types';
 
 // The application lifecycle, coloured by where it sits in the funnel. This badge
 // only RENDERS the server-synced lifecycle — it is mirrored from the current

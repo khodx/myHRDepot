@@ -33,29 +33,41 @@ export function MhdOnboardingChecklistPage({
   isLoading,
   errorMessage,
 }: MhdOnboardingChecklistPageProps) {
-  const hasSignatureWorkflow = items.some((item) => item.requiresSignature && item.generatedDocumentRequired);
+  const hasSignatureWorkflow = items.some(
+    (item) => item.requiresSignature && item.generatedDocumentRequired,
+  );
 
   return (
     <MhdCard className="p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Onboarding Packet</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">
+            Onboarding Packet
+          </p>
           <h2 className="mt-2 text-2xl font-semibold text-foreground">{personDisplayName}</h2>
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            Packet progress is built from the `03.9` manifest, overlaid with live checklist rows and the seeded Forms Engine corpus for this person&apos;s company.
+            Packet progress is built from the `03.9` manifest, overlaid with live checklist rows and
+            the seeded Forms Engine corpus for this person&apos;s company.
           </p>
         </div>
         <div className="rounded-2xl bg-foreground px-4 py-3 text-right text-background">
-          <p className="text-xs uppercase tracking-[0.22em] text-background/70">Required Complete</p>
-          <p className="mt-1 text-2xl font-semibold">{completedCount}/{requiredCount}</p>
-          <p className="mt-1 text-xs text-background/70">{isFullyOnboarded ? 'Packet complete' : 'Packet in progress'}</p>
+          <p className="text-xs uppercase tracking-[0.22em] text-background/70">
+            Required Complete
+          </p>
+          <p className="mt-1 text-2xl font-semibold">
+            {completedCount}/{requiredCount}
+          </p>
+          <p className="mt-1 text-xs text-background/70">
+            {isFullyOnboarded ? 'Packet complete' : 'Packet in progress'}
+          </p>
         </div>
       </div>
 
       {hasSignatureWorkflow ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent/20 bg-accent-tint p-4 text-sm text-accent-hover">
           <p>
-            Signature-required packet items route through the Stage 6 E-Signature Center after document generation.
+            Signature-required packet items route through the Stage 6 E-Signature Center after
+            document generation.
           </p>
           <Link
             to={`/esignature?personId=${encodeURIComponent(personId)}&personName=${encodeURIComponent(personDisplayName)}`}
@@ -67,7 +79,9 @@ export function MhdOnboardingChecklistPage({
       ) : null}
 
       {errorMessage ? (
-        <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{errorMessage}</div>
+        <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+          {errorMessage}
+        </div>
       ) : null}
 
       {isLoading ? (
@@ -94,7 +108,9 @@ export function MhdOnboardingChecklistPage({
 
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
                   <span className="rounded-full bg-card px-2.5 py-1">
-                    {item.formReferenceId ? `${item.formReferenceId} · ${item.formName}` : `No seeded form mapped`}
+                    {item.formReferenceId
+                      ? `${item.formReferenceId} · ${item.formName}`
+                      : `No seeded form mapped`}
                   </span>
                   {item.requiresSignature ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-card px-2.5 py-1">
@@ -119,7 +135,9 @@ export function MhdOnboardingChecklistPage({
                 <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
                   <span>Checklist Ref: {item.referenceId}</span>
                   {item.documentRecordId ? <span>Record: {item.documentRecordId}</span> : null}
-                  {item.completedAt ? <span>Completed: {new Date(item.completedAt).toLocaleString()}</span> : null}
+                  {item.completedAt ? (
+                    <span>Completed: {new Date(item.completedAt).toLocaleString()}</span>
+                  ) : null}
                 </div>
               </div>
 
@@ -133,7 +151,9 @@ export function MhdOnboardingChecklistPage({
                     <ChevronRight className="h-4 w-4" />
                   </Link>
                 ) : (
-                  <span className="rounded-xl border border-border bg-card px-4 py-2 text-sm text-muted-foreground">Unavailable</span>
+                  <span className="rounded-xl border border-border bg-card px-4 py-2 text-sm text-muted-foreground">
+                    Unavailable
+                  </span>
                 )}
               </div>
             </article>

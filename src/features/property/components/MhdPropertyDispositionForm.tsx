@@ -31,15 +31,24 @@ export function MhdPropertyDispositionForm({
   const isLost = status === 'LOST';
 
   return (
-    <form className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm" onSubmit={handleSubmit(onSubmit)}>
+    <form
+      className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm"
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">{isLost ? 'Mark Property Lost' : 'Mark Property Damaged'}</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            {isLost ? 'Mark Property Lost' : 'Mark Property Damaged'}
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             This closes the assignment without restoring available quantity.
           </p>
         </div>
-        <button type="button" className="text-sm font-semibold text-muted-foreground hover:text-foreground" onClick={onCancel}>
+        <button
+          type="button"
+          className="text-sm font-semibold text-muted-foreground hover:text-foreground"
+          onClick={onCancel}
+        >
           Cancel
         </button>
       </div>
@@ -47,13 +56,23 @@ export function MhdPropertyDispositionForm({
       <input type="hidden" value={status} {...register('status')} />
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-foreground">{isLost ? 'Loss Notes' : 'Damage Notes'}</label>
-        <textarea className="w-full rounded-md border border-border px-3 py-2 text-sm" rows={4} {...register('notes')} />
+        <label className="mb-1 block text-sm font-medium text-foreground">
+          {isLost ? 'Loss Notes' : 'Damage Notes'}
+        </label>
+        <textarea
+          className="w-full rounded-md border border-border px-3 py-2 text-sm"
+          rows={4}
+          {...register('notes')}
+        />
         {errors.notes ? <p className="mt-1 text-xs text-red-600">{errors.notes.message}</p> : null}
       </div>
 
       <div className="flex justify-end gap-3">
-        <button type="button" onClick={onCancel} className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+        >
           Cancel
         </button>
         <button

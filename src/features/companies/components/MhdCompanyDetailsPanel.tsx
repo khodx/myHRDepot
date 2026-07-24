@@ -8,12 +8,18 @@ type MhdCompanyDetailsPanelProps = {
   onUpdateCompany: (values: MhdUpdateCompanyInput) => void;
 };
 
-export function MhdCompanyDetailsPanel({ company, isSubmitting, onUpdateCompany }: MhdCompanyDetailsPanelProps) {
+export function MhdCompanyDetailsPanel({
+  company,
+  isSubmitting,
+  onUpdateCompany,
+}: MhdCompanyDetailsPanelProps) {
   if (!company) {
     return (
       <MhdCard className="p-6">
         <h2 className="text-lg font-semibold text-foreground">Company details</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Select a company to view and edit its details.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Select a company to view and edit its details.
+        </p>
       </MhdCard>
     );
   }
@@ -21,7 +27,9 @@ export function MhdCompanyDetailsPanel({ company, isSubmitting, onUpdateCompany 
   return (
     <MhdCard className="p-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{company.referenceId}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {company.referenceId}
+        </p>
         <h2 className="mt-1 text-lg font-semibold text-foreground">{company.companyName}</h2>
       </div>
 

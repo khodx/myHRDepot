@@ -131,13 +131,7 @@ export type MhdHandbookAcknowledgmentReferenceId = `HBA-${string}`;
 export type MhdHandbookType = 'EMPLOYEE' | 'SAFETY';
 
 export type MhdHandbookJurisdiction =
-  | 'FEDERAL'
-  | 'CA'
-  | 'TX'
-  | 'OH'
-  | 'WA'
-  | 'FED_OSHA'
-  | 'CAL_OSHA';
+  'FEDERAL' | 'CA' | 'TX' | 'OH' | 'WA' | 'FED_OSHA' | 'CAL_OSHA';
 
 export type MhdHandbookStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 

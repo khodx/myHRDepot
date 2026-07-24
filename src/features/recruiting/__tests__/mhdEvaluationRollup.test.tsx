@@ -1,12 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const {
-  mockRollup,
-  mockScore,
-  mockEvaluation,
-  mockFinalize,
-} = vi.hoisted(() => ({
+const { mockRollup, mockScore, mockEvaluation, mockFinalize } = vi.hoisted(() => ({
   mockRollup: vi.fn(),
   mockScore: vi.fn(),
   mockEvaluation: vi.fn(),
@@ -24,9 +19,8 @@ vi.mock('../interviews/Hook', () => ({
   useMhdFinalizeEvaluation: () => mockFinalize(),
 }));
 
-const { MhdCandidateEvaluationPanel } = await import(
-  '../interviews/components/MhdCandidateEvaluationPanel'
-);
+const { MhdCandidateEvaluationPanel } =
+  await import('../interviews/components/MhdCandidateEvaluationPanel');
 
 describe('MhdCandidateEvaluationPanel — renders the SERVER-derived weighted score', () => {
   beforeEach(() => {
@@ -46,8 +40,20 @@ describe('MhdCandidateEvaluationPanel — renders the SERVER-derived weighted sc
     // rendered a recompute this assertion would fail.
     mockRollup.mockReturnValue({
       data: [
-        { competencyId: 'c-lead', competencyName: 'Leadership', weight: 3, avgRating: 4.6, responseCount: 2 },
-        { competencyId: 'c-comm', competencyName: 'Communication', weight: 1, avgRating: 1.4, responseCount: 1 },
+        {
+          competencyId: 'c-lead',
+          competencyName: 'Leadership',
+          weight: 3,
+          avgRating: 4.6,
+          responseCount: 2,
+        },
+        {
+          competencyId: 'c-comm',
+          competencyName: 'Communication',
+          weight: 1,
+          avgRating: 1.4,
+          responseCount: 1,
+        },
       ],
       isLoading: false,
       isError: false,
@@ -77,8 +83,6 @@ describe('MhdCandidateEvaluationPanel — renders the SERVER-derived weighted sc
 
     render(<MhdCandidateEvaluationPanel applicationId="app-1" canFinalize={false} />);
 
-    expect(
-      screen.getByText(/No rated responses yet/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/No rated responses yet/i)).toBeInTheDocument();
   });
 });

@@ -30,8 +30,8 @@ export function MhdMyFeedbackInvitations({ onOpen }: Props) {
       <header>
         <h1 className="text-xl font-semibold text-foreground">Feedback requests</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          You have been asked to give feedback on these colleagues. Your responses are combined
-          with others and shown only in aggregate.
+          You have been asked to give feedback on these colleagues. Your responses are combined with
+          others and shown only in aggregate.
         </p>
       </header>
 
@@ -69,8 +69,8 @@ export function MhdMyFeedbackInvitations({ onOpen }: Props) {
           <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
             {done.map((invitation) => (
               <li key={invitation.participantId}>
-                {invitation.subjectName} —{' '}
-                {mhdFormatParticipantType(invitation.participantType)} feedback given
+                {invitation.subjectName} — {mhdFormatParticipantType(invitation.participantType)}{' '}
+                feedback given
               </li>
             ))}
           </ul>

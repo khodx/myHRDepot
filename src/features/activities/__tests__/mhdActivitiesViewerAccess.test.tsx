@@ -209,7 +209,9 @@ describe('MhdActivityDetailPage role gating and confidentiality handling', () =>
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Activity not found or you do not have access to it.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Activity not found or you do not have access to it.'),
+    ).toBeInTheDocument();
     expect(screen.getByText('Back to Activities')).toBeInTheDocument();
   });
 });

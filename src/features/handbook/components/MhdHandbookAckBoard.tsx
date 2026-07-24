@@ -3,11 +3,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
-import {
-  useMhdAssignAcknowledgment,
-  useMhdHandbookAckStatus,
-  useMhdHandbookPeople,
-} from '../Hook';
+import { useMhdAssignAcknowledgment, useMhdHandbookAckStatus, useMhdHandbookPeople } from '../Hook';
 import { mhdFormatHandbookAckStatus } from '../Types';
 
 interface Props {
@@ -101,7 +97,9 @@ export function MhdHandbookAckBoard({ companyId, versionId, onRequestSignature }
 
       {assign.isError ? (
         <p className="text-xs text-rose-600">
-          {assign.error instanceof Error ? assign.error.message : 'Could not assign the acknowledgment.'}
+          {assign.error instanceof Error
+            ? assign.error.message
+            : 'Could not assign the acknowledgment.'}
         </p>
       ) : null}
 

@@ -5,8 +5,17 @@ import { MhdCompanyDetailsPanel } from '@/features/companies/components/MhdCompa
 import { MhdCompanyForm } from '@/features/companies/components/MhdCompanyForm';
 import { MhdCompanyList } from '@/features/companies/components/MhdCompanyList';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { useMhdCompanies, useMhdCreateCompany, useMhdUpdateCompany } from '@/features/companies/Hook';
-import type { MhdCompany, MhdCompanyListFilters, MhdCreateCompanyInput, MhdUpdateCompanyInput } from '@/features/companies/Types';
+import {
+  useMhdCompanies,
+  useMhdCreateCompany,
+  useMhdUpdateCompany,
+} from '@/features/companies/Hook';
+import type {
+  MhdCompany,
+  MhdCompanyListFilters,
+  MhdCreateCompanyInput,
+  MhdUpdateCompanyInput,
+} from '@/features/companies/Types';
 
 export function MhdCompaniesPage() {
   const { profile } = useMhdAuth();
@@ -38,7 +47,11 @@ export function MhdCompaniesPage() {
       <MhdPageHeader
         title="Companies"
         description="Companies are the tenant boundary for people, users, tasks, notes, attachments, and audit history."
-        actions={<div className="text-sm text-muted-foreground">Signed in as {profile?.displayName ?? 'authorized user'}</div>}
+        actions={
+          <div className="text-sm text-muted-foreground">
+            Signed in as {profile?.displayName ?? 'authorized user'}
+          </div>
+        }
       />
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -58,10 +71,14 @@ export function MhdCompaniesPage() {
           </MhdCard>
 
           {companiesQuery.isLoading ? (
-            <MhdCard className="p-8 text-center text-sm text-muted-foreground">Loading companies...</MhdCard>
+            <MhdCard className="p-8 text-center text-sm text-muted-foreground">
+              Loading companies...
+            </MhdCard>
           ) : companiesQuery.isError ? (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              {companiesQuery.error instanceof Error ? companiesQuery.error.message : 'Unable to load companies.'}
+              {companiesQuery.error instanceof Error
+                ? companiesQuery.error.message
+                : 'Unable to load companies.'}
             </div>
           ) : (
             <MhdCompanyList
@@ -75,7 +92,9 @@ export function MhdCompaniesPage() {
         <div className="space-y-6">
           <MhdCard className="p-6">
             <h2 className="text-lg font-semibold text-foreground">Create company</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Create the tenant record before adding people or tasks.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Create the tenant record before adding people or tasks.
+            </p>
             <div className="mt-5">
               <MhdCompanyForm
                 isSubmitting={createCompanyMutation.isPending}
@@ -85,7 +104,9 @@ export function MhdCompaniesPage() {
             </div>
             {createCompanyMutation.isError ? (
               <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-                {createCompanyMutation.error instanceof Error ? createCompanyMutation.error.message : 'Unable to create company.'}
+                {createCompanyMutation.error instanceof Error
+                  ? createCompanyMutation.error.message
+                  : 'Unable to create company.'}
               </p>
             ) : null}
           </MhdCard>

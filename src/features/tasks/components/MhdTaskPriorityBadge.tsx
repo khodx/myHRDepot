@@ -14,5 +14,11 @@ const PRIORITY_CLASS_BY_TOKEN: Record<string, string> = {
 export function MhdTaskPriorityBadge({ priorityName, colorToken }: MhdTaskPriorityBadgeProps) {
   if (!priorityName) return <span className="text-xs text-slate-400">No priority</span>;
   const className = PRIORITY_CLASS_BY_TOKEN[colorToken ?? 'slate'] ?? PRIORITY_CLASS_BY_TOKEN.slate;
-  return <span className={`inline-flex rounded-full border px-2 py-1 text-xs font-semibold ${className}`}>{priorityName}</span>;
+  return (
+    <span
+      className={`inline-flex rounded-full border px-2 py-1 text-xs font-semibold ${className}`}
+    >
+      {priorityName}
+    </span>
+  );
 }

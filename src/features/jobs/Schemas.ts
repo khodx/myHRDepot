@@ -7,7 +7,10 @@ import {
   MHD_QUALIFICATION_TYPES,
 } from './Types';
 
-const isoDate = z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a YYYY-MM-DD date.');
+const isoDate = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a YYYY-MM-DD date.');
 
 // O*NET-SOC codes look like 53-3032.00. Loose on purpose: the taxonomy is
 // revised periodically and a strict pattern would reject a valid future code.
@@ -43,10 +46,10 @@ export const mhdJobFormSchema = z
   })
   // A bound with no period is a number with no unit; an hourly 60000 and an
   // annual 60000 are very different claims about the same job.
-  .refine(
-    (form) => (form.payMin == null && form.payMax == null) || Boolean(form.payPeriod),
-    { message: 'Choose hourly or annual for the pay range.', path: ['payPeriod'] },
-  );
+  .refine((form) => (form.payMin == null && form.payMax == null) || Boolean(form.payPeriod), {
+    message: 'Choose hourly or annual for the pay range.',
+    path: ['payPeriod'],
+  });
 
 /**
  * Pay is a separate form because it is a separate authorisation: only Platform

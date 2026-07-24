@@ -234,7 +234,11 @@ export const mhdJobsService = {
 
   async setQualifications(
     descriptionId: string,
-    qualifications: Array<{ qualificationText: string; qualificationType: string; isRequired: boolean }>,
+    qualifications: Array<{
+      qualificationText: string;
+      qualificationType: string;
+      isRequired: boolean;
+    }>,
   ): Promise<void> {
     const { error } = await jobsRpc('mhd_job_description_set_qualifications', {
       p_description_id: descriptionId,

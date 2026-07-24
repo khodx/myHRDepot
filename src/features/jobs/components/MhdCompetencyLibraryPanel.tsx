@@ -107,7 +107,10 @@ export function MhdCompetencyLibraryPanel({
               />
             </div>
             <div>
-              <label htmlFor="competencyIndustry" className="block text-sm font-medium text-foreground">
+              <label
+                htmlFor="competencyIndustry"
+                className="block text-sm font-medium text-foreground"
+              >
                 Industry
               </label>
               <select

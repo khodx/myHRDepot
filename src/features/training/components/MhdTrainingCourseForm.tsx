@@ -1,10 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
-import {
-  mhdTrainingCourseFormSchema,
-  type MhdTrainingCourseFormValues,
-} from '../Schemas';
+import { mhdTrainingCourseFormSchema, type MhdTrainingCourseFormValues } from '../Schemas';
 import {
   MHD_TRAINING_CATEGORIES,
   MHD_TRAINING_DELIVERY_MODES,
@@ -124,9 +121,7 @@ export function MhdTrainingCourseForm({
           placeholder="e.g. Sexual harassment prevention (supervisors)"
           className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
-        {errors.title ? (
-          <p className="mt-1 text-xs text-rose-600">{errors.title.message}</p>
-        ) : null}
+        {errors.title ? <p className="mt-1 text-xs text-rose-600">{errors.title.message}</p> : null}
       </div>
 
       <div>
@@ -186,7 +181,8 @@ export function MhdTrainingCourseForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="recurrenceMonths" className="block text-sm font-medium text-foreground">
-            Recurrence (months) <span className="font-normal text-muted-foreground">(optional)</span>
+            Recurrence (months){' '}
+            <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
           <input
             id="recurrenceMonths"

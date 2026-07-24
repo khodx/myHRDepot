@@ -21,7 +21,11 @@ export type MhdApprovalDecisionFormValues = z.infer<typeof mhdApprovalDecisionFo
 
 export const mhdApprovalRejectionFormSchema = z.object({
   approvalId: z.string().min(1),
-  reason: z.string().trim().min(1, 'A rejection reason is required.').max(2000, 'Reason cannot exceed 2,000 characters.'),
+  reason: z
+    .string()
+    .trim()
+    .min(1, 'A rejection reason is required.')
+    .max(2000, 'Reason cannot exceed 2,000 characters.'),
 });
 
 export type MhdApprovalRejectionFormValues = z.infer<typeof mhdApprovalRejectionFormSchema>;

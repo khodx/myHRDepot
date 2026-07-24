@@ -57,21 +57,12 @@ export type MhdConductActionId = string;
 export type MhdConductActionReferenceId = `CACT-${string}`;
 
 export type MhdConductCategory =
-  | 'ATTENDANCE'
-  | 'PERFORMANCE'
-  | 'CONDUCT'
-  | 'POLICY'
-  | 'SAFETY'
-  | 'OTHER';
+  'ATTENDANCE' | 'PERFORMANCE' | 'CONDUCT' | 'POLICY' | 'SAFETY' | 'OTHER';
 
 export type MhdConductCaseStatus = 'OPEN' | 'CLOSED' | 'RESCINDED';
 
 export type MhdConductSeverity =
-  | 'VERBAL_WARNING'
-  | 'WRITTEN_WARNING'
-  | 'FINAL_WARNING'
-  | 'MOU'
-  | 'OTHER';
+  'VERBAL_WARNING' | 'WRITTEN_WARNING' | 'FINAL_WARNING' | 'MOU' | 'OTHER';
 
 export type MhdConductActionStatus = 'DRAFT' | 'ISSUED' | 'ACKNOWLEDGED' | 'REFUSED' | 'WAIVED';
 

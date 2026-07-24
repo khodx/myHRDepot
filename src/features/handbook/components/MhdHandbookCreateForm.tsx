@@ -80,9 +80,7 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
           placeholder="e.g. 2026 Employee Handbook"
           className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
-        {errors.title ? (
-          <p className="mt-1 text-xs text-rose-600">{errors.title.message}</p>
-        ) : null}
+        {errors.title ? <p className="mt-1 text-xs text-rose-600">{errors.title.message}</p> : null}
       </div>
 
       <div>

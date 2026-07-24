@@ -12,7 +12,12 @@ interface MhdPersonListProps {
   onSelectPerson: (personId: string) => void;
 }
 
-export function MhdPersonList({ people, selectedPersonId, isLoading, onSelectPerson }: MhdPersonListProps) {
+export function MhdPersonList({
+  people,
+  selectedPersonId,
+  isLoading,
+  onSelectPerson,
+}: MhdPersonListProps) {
   if (isLoading) {
     return <MhdCard className="text-sm text-muted-foreground">Loading people...</MhdCard>;
   }
@@ -20,7 +25,11 @@ export function MhdPersonList({ people, selectedPersonId, isLoading, onSelectPer
   if (people.length === 0) {
     return (
       <MhdCard className="border-dashed">
-        <MhdEmptyState icon={Users} title="No people found" description="Adjust the company filter or search term." />
+        <MhdEmptyState
+          icon={Users}
+          title="No people found"
+          description="Adjust the company filter or search term."
+        />
       </MhdCard>
     );
   }
@@ -34,12 +43,20 @@ export function MhdPersonList({ people, selectedPersonId, isLoading, onSelectPer
             <li key={person.id}>
               <button
                 type="button"
-                className={cn('w-full px-4 py-3 text-left transition-colors hover:bg-accent-tint/60', selected ? 'bg-accent-tint' : 'bg-card')}
+                className={cn(
+                  'w-full px-4 py-3 text-left transition-colors hover:bg-accent-tint/60',
+                  selected ? 'bg-accent-tint' : 'bg-card',
+                )}
                 onClick={() => onSelectPerson(person.id)}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <MhdAvatar name={person.displayName} detail={`${person.referenceId} · ${person.companyName ?? 'Company unavailable'}`} />
-                  {person.primaryEmail ? <span className="text-xs text-accent-hover">{person.primaryEmail}</span> : null}
+                  <MhdAvatar
+                    name={person.displayName}
+                    detail={`${person.referenceId} · ${person.companyName ?? 'Company unavailable'}`}
+                  />
+                  {person.primaryEmail ? (
+                    <span className="text-xs text-accent-hover">{person.primaryEmail}</span>
+                  ) : null}
                 </div>
               </button>
             </li>

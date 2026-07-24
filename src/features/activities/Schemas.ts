@@ -12,19 +12,26 @@ export const mhdActivityParticipantRowSchema = z
     personId: z.string().optional().nullable(),
     role: z.enum(MHD_ACTIVITY_PARTICIPANT_ROLES),
   })
-  .refine((row) => {
-    const hasUser = Boolean(row.userId && row.userId.trim().length > 0);
-    const hasPerson = Boolean(row.personId && row.personId.trim().length > 0);
-    return hasUser !== hasPerson;
-  }, { message: 'Each participant must target exactly one internal user or person.' });
+  .refine(
+    (row) => {
+      const hasUser = Boolean(row.userId && row.userId.trim().length > 0);
+      const hasPerson = Boolean(row.personId && row.personId.trim().length > 0);
+      return hasUser !== hasPerson;
+    },
+    { message: 'Each participant must target exactly one internal user or person.' },
+  );
 
 export const mhdActivityFormSchema = z
   .object({
     companyId: z.string().trim().min(1, 'Company is required.'),
     activityType: z.enum(MHD_ACTIVITY_TYPES),
-    title: z.string().min(1, 'Title is required.').max(200, 'Title must be 200 characters or fewer.').refine((value) => value.trim().length > 0, {
-      message: 'Title cannot be blank.',
-    }),
+    title: z
+      .string()
+      .min(1, 'Title is required.')
+      .max(200, 'Title must be 200 characters or fewer.')
+      .refine((value) => value.trim().length > 0, {
+        message: 'Title cannot be blank.',
+      }),
     personId: z.string().optional().nullable(),
     parentTaskId: z.string().optional().nullable(),
     descriptionPlainText: z.string().max(10000).optional().nullable(),
@@ -32,7 +39,12 @@ export const mhdActivityFormSchema = z
     status: z.enum(MHD_ACTIVITY_STATUSES).default('PLANNED'),
     scheduledAt: z.string().optional().nullable(),
     occurredAt: z.string().optional().nullable(),
-    durationMinutes: z.number().int('Duration must be a whole number of minutes.').positive('Duration must be greater than 0.').optional().nullable(),
+    durationMinutes: z
+      .number()
+      .int('Duration must be a whole number of minutes.')
+      .positive('Duration must be greater than 0.')
+      .optional()
+      .nullable(),
     location: z.string().max(300).optional().nullable(),
     outcomeSummary: z.string().max(10000).optional().nullable(),
     followUpTaskId: z.string().optional().nullable(),
@@ -40,15 +52,23 @@ export const mhdActivityFormSchema = z
     participants: z.array(mhdActivityParticipantRowSchema).default([]),
     actorUserId: z.string().optional().nullable(),
   })
-  .refine((form) => form.status !== 'COMPLETED' || Boolean(form.occurredAt && form.occurredAt.trim().length > 0), {
-    message: 'Occurred date/time is required when the activity is completed.',
-    path: ['occurredAt'],
-  });
+  .refine(
+    (form) =>
+      form.status !== 'COMPLETED' || Boolean(form.occurredAt && form.occurredAt.trim().length > 0),
+    {
+      message: 'Occurred date/time is required when the activity is completed.',
+      path: ['occurredAt'],
+    },
+  );
 
 export const mhdSubActivitySchema = z.object({
-  title: z.string().min(1, 'Title is required.').max(200, 'Title must be 200 characters or fewer.').refine((value) => value.trim().length > 0, {
-    message: 'Title cannot be blank.',
-  }),
+  title: z
+    .string()
+    .min(1, 'Title is required.')
+    .max(200, 'Title must be 200 characters or fewer.')
+    .refine((value) => value.trim().length > 0, {
+      message: 'Title cannot be blank.',
+    }),
   descriptionPlainText: z.string().max(10000).optional().nullable(),
   status: z.enum(MHD_SUB_ACTIVITY_STATUSES).default('PLANNED'),
   scheduledAt: z.string().optional().nullable(),
@@ -68,12 +88,21 @@ export const mhdActivityBoardFilterSchema = z.object({
 
 export const mhdCompleteActivitySchema = z.object({
   occurredAt: z.string().trim().min(1, 'Occurred date/time is required.'),
-  durationMinutes: z.number().int('Duration must be a whole number of minutes.').positive('Duration must be greater than 0.').optional().nullable(),
+  durationMinutes: z
+    .number()
+    .int('Duration must be a whole number of minutes.')
+    .positive('Duration must be greater than 0.')
+    .optional()
+    .nullable(),
   outcomeSummary: z.string().max(10000).optional().nullable(),
 });
 
 export const mhdCreateFollowUpTaskSchema = z.object({
-  title: z.string().trim().min(1, 'Task title is required.').max(200, 'Task title must be 200 characters or fewer.'),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Task title is required.')
+    .max(200, 'Task title must be 200 characters or fewer.'),
   descriptionPlainText: z.string().max(10000).optional().nullable(),
 });
 

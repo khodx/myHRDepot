@@ -20,13 +20,28 @@ import { mhdPerformanceService } from './Service';
 import type { MhdReviewFinalizeStepState } from './Types';
 
 export const mhdPerformanceQueryKeys = {
-  reviews: (filters: MhdPerformanceReviewFilters) => ['mhd-performance', 'reviews', filters] as const,
-  reviewDetail: (reviewId: string | null) => ['mhd-performance', 'review-detail', reviewId ?? ''] as const,
-  coachingPlans: (filters: MhdCoachingPlanFilters) => ['mhd-performance', 'coaching-plans', filters] as const,
-  coachingPlanDetail: (planId: string | null) => ['mhd-performance', 'coaching-plan-detail', planId ?? ''] as const,
-  coachingPlanItems: (planId: string | null) => ['mhd-performance', 'coaching-plan-items', planId ?? ''] as const,
-  personActivities: (companyId: string | null, personId: string | null, activityType: 'ONE_ON_ONE' | 'COACHING_SESSION') =>
-    ['mhd-performance', 'person-activities', companyId ?? '', personId ?? '', activityType] as const,
+  reviews: (filters: MhdPerformanceReviewFilters) =>
+    ['mhd-performance', 'reviews', filters] as const,
+  reviewDetail: (reviewId: string | null) =>
+    ['mhd-performance', 'review-detail', reviewId ?? ''] as const,
+  coachingPlans: (filters: MhdCoachingPlanFilters) =>
+    ['mhd-performance', 'coaching-plans', filters] as const,
+  coachingPlanDetail: (planId: string | null) =>
+    ['mhd-performance', 'coaching-plan-detail', planId ?? ''] as const,
+  coachingPlanItems: (planId: string | null) =>
+    ['mhd-performance', 'coaching-plan-items', planId ?? ''] as const,
+  personActivities: (
+    companyId: string | null,
+    personId: string | null,
+    activityType: 'ONE_ON_ONE' | 'COACHING_SESSION',
+  ) =>
+    [
+      'mhd-performance',
+      'person-activities',
+      companyId ?? '',
+      personId ?? '',
+      activityType,
+    ] as const,
   people: (companyId: string | null) => ['mhd-performance', 'people', companyId ?? 'ALL'] as const,
   users: (companyId: string | null) => ['mhd-performance', 'users', companyId ?? 'ALL'] as const,
 };
@@ -115,19 +130,30 @@ export function useMhdPerformanceActions() {
   }
 
   const createReview = useMutation({
-    mutationFn: (input: MhdCreatePerformanceReviewInput) => mhdPerformanceService.createReview(input),
+    mutationFn: (input: MhdCreatePerformanceReviewInput) =>
+      mhdPerformanceService.createReview(input),
     onSuccess: invalidate,
   });
 
   const updateReview = useMutation({
-    mutationFn: ({ reviewId, input }: { reviewId: string; input: MhdUpdatePerformanceReviewInput }) =>
-      mhdPerformanceService.updateReview(reviewId, input),
+    mutationFn: ({
+      reviewId,
+      input,
+    }: {
+      reviewId: string;
+      input: MhdUpdatePerformanceReviewInput;
+    }) => mhdPerformanceService.updateReview(reviewId, input),
     onSuccess: invalidate,
   });
 
   const transitionReview = useMutation({
-    mutationFn: ({ reviewId, input }: { reviewId: string; input: MhdTransitionPerformanceReviewInput }) =>
-      mhdPerformanceService.transitionReview(reviewId, input),
+    mutationFn: ({
+      reviewId,
+      input,
+    }: {
+      reviewId: string;
+      input: MhdTransitionPerformanceReviewInput;
+    }) => mhdPerformanceService.transitionReview(reviewId, input),
     onSuccess: invalidate,
   });
 
@@ -143,7 +169,8 @@ export function useMhdPerformanceActions() {
   });
 
   const createCoachingPlan = useMutation({
-    mutationFn: (input: MhdCreateCoachingPlanInput) => mhdPerformanceService.createCoachingPlan(input),
+    mutationFn: (input: MhdCreateCoachingPlanInput) =>
+      mhdPerformanceService.createCoachingPlan(input),
     onSuccess: invalidate,
   });
 
@@ -165,7 +192,8 @@ export function useMhdPerformanceActions() {
   });
 
   const createCoachingPlanItem = useMutation({
-    mutationFn: (input: MhdCreateCoachingPlanItemInput) => mhdPerformanceService.createCoachingPlanItem(input),
+    mutationFn: (input: MhdCreateCoachingPlanItemInput) =>
+      mhdPerformanceService.createCoachingPlanItem(input),
     onSuccess: invalidate,
   });
 
@@ -181,7 +209,8 @@ export function useMhdPerformanceActions() {
   });
 
   const createPersonActivity = useMutation({
-    mutationFn: (input: MhdUpdateActivityInput) => mhdPerformanceService.createPersonActivity(input),
+    mutationFn: (input: MhdUpdateActivityInput) =>
+      mhdPerformanceService.createPersonActivity(input),
     onSuccess: invalidate,
   });
 
@@ -208,8 +237,23 @@ export function useMhdPerformanceReviewActions() {
   return {
     createReview: actions.createReview,
     updateReview: actions.updateReview,
-    transitionReview: { ...actions.transitionReview, mutateAsync: ({ reviewId, newStatus, waiverReason }: { reviewId: string; newStatus: MhdTransitionPerformanceReviewInput['newStatus']; waiverReason?: string | null }) => actions.transitionReview.mutateAsync({ reviewId, input: { newStatus, waiverReason } }) },
-    deleteReview: { ...actions.deleteReview, mutateAsync: ({ reviewId }: { reviewId: string }) => actions.deleteReview.mutateAsync(reviewId) },
+    transitionReview: {
+      ...actions.transitionReview,
+      mutateAsync: ({
+        reviewId,
+        newStatus,
+        waiverReason,
+      }: {
+        reviewId: string;
+        newStatus: MhdTransitionPerformanceReviewInput['newStatus'];
+        waiverReason?: string | null;
+      }) => actions.transitionReview.mutateAsync({ reviewId, input: { newStatus, waiverReason } }),
+    },
+    deleteReview: {
+      ...actions.deleteReview,
+      mutateAsync: ({ reviewId }: { reviewId: string }) =>
+        actions.deleteReview.mutateAsync(reviewId),
+    },
   };
 }
 export function useMhdCoachingPlanActions() {
@@ -217,11 +261,43 @@ export function useMhdCoachingPlanActions() {
   return {
     createPlan: actions.createCoachingPlan,
     updatePlan: actions.updateCoachingPlan,
-    transitionPlan: { ...actions.transitionCoachingPlan, mutateAsync: ({ planId, newStatus, outcomeSummary }: { planId: string; newStatus: MhdTransitionCoachingPlanInput['newStatus']; outcomeSummary?: string | null }) => actions.transitionCoachingPlan.mutateAsync({ planId, input: { newStatus, outcomeSummary } }) },
-    deletePlan: { ...actions.deleteCoachingPlan, mutateAsync: ({ planId }: { planId: string }) => actions.deleteCoachingPlan.mutateAsync(planId) },
-    createPlanItem: { ...actions.createCoachingPlanItem, mutateAsync: ({ planId, input }: { planId: string; input: Omit<MhdCreateCoachingPlanItemInput, 'planId'> }) => actions.createCoachingPlanItem.mutateAsync({ planId, ...input }) },
+    transitionPlan: {
+      ...actions.transitionCoachingPlan,
+      mutateAsync: ({
+        planId,
+        newStatus,
+        outcomeSummary,
+      }: {
+        planId: string;
+        newStatus: MhdTransitionCoachingPlanInput['newStatus'];
+        outcomeSummary?: string | null;
+      }) =>
+        actions.transitionCoachingPlan.mutateAsync({
+          planId,
+          input: { newStatus, outcomeSummary },
+        }),
+    },
+    deletePlan: {
+      ...actions.deleteCoachingPlan,
+      mutateAsync: ({ planId }: { planId: string }) =>
+        actions.deleteCoachingPlan.mutateAsync(planId),
+    },
+    createPlanItem: {
+      ...actions.createCoachingPlanItem,
+      mutateAsync: ({
+        planId,
+        input,
+      }: {
+        planId: string;
+        input: Omit<MhdCreateCoachingPlanItemInput, 'planId'>;
+      }) => actions.createCoachingPlanItem.mutateAsync({ planId, ...input }),
+    },
     updatePlanItem: actions.updateCoachingPlanItem,
-    deletePlanItem: { ...actions.deleteCoachingPlanItem, mutateAsync: ({ itemId }: { itemId: string }) => actions.deleteCoachingPlanItem.mutateAsync(itemId) },
+    deletePlanItem: {
+      ...actions.deleteCoachingPlanItem,
+      mutateAsync: ({ itemId }: { itemId: string }) =>
+        actions.deleteCoachingPlanItem.mutateAsync(itemId),
+    },
   };
 }
 export function useMhdReviewFinalize() {
@@ -233,48 +309,57 @@ export function useMhdReviewFinalize() {
     setSteps([]);
   }, [actions.finalizeReviewForSignature]);
 
-  const finalize = useCallback(async (reviewId: string, signerUserId: string) => {
-    if (!signerUserId) {
-      throw new Error('The review subject must have an active internal user account before an acknowledgment can be sent.');
-    }
+  const finalize = useCallback(
+    async (reviewId: string, signerUserId: string) => {
+      if (!signerUserId) {
+        throw new Error(
+          'The review subject must have an active internal user account before an acknowledgment can be sent.',
+        );
+      }
 
-    const initialSteps: MhdReviewFinalizeStepState[] = [
-      ['resolve-template', 'Resolve review template'],
-      ['request-generation', 'Request document generation'],
-      ['render-document', 'Render document'],
-      ['wait-for-generation', 'Verify generated document'],
-      ['resolve-document-hash', 'Verify document hash'],
-      ['create-signature-request', 'Create signature request'],
-      ['link-documents', 'Link review documents'],
-      ['transition-review', 'Move review to pending signature'],
-    ].map(([key, label]) => ({ key, label, status: 'PENDING' }));
-    setSteps(initialSteps);
+      const initialSteps: MhdReviewFinalizeStepState[] = [
+        ['resolve-template', 'Resolve review template'],
+        ['request-generation', 'Request document generation'],
+        ['render-document', 'Render document'],
+        ['wait-for-generation', 'Verify generated document'],
+        ['resolve-document-hash', 'Verify document hash'],
+        ['create-signature-request', 'Create signature request'],
+        ['link-documents', 'Link review documents'],
+        ['transition-review', 'Move review to pending signature'],
+      ].map(([key, label]) => ({ key, label, status: 'PENDING' }));
+      setSteps(initialSteps);
 
-    try {
-      const result = await actions.finalizeReviewForSignature.mutateAsync({
-        reviewId,
-        signer: { kind: 'internal', userId: signerUserId },
-        onStep: (stepNumber) => {
-          setSteps((current) => current.map((step, index) => ({
+      try {
+        const result = await actions.finalizeReviewForSignature.mutateAsync({
+          reviewId,
+          signer: { kind: 'internal', userId: signerUserId },
+          onStep: (stepNumber) => {
+            setSteps((current) =>
+              current.map((step, index) => ({
+                ...step,
+                status: index < stepNumber ? 'DONE' : index === stepNumber ? 'RUNNING' : 'PENDING',
+              })),
+            );
+          },
+        });
+        setSteps((current) => current.map((step) => ({ ...step, status: 'DONE' })));
+        return result;
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : String(cause);
+        const match = /Finalize step (\d+)/.exec(message);
+        const failedStep = match ? Number(match[1]) : 0;
+        setSteps((current) =>
+          current.map((step, index) => ({
             ...step,
-            status: index < stepNumber ? 'DONE' : index === stepNumber ? 'RUNNING' : 'PENDING',
-          })));
-        },
-      });
-      setSteps((current) => current.map((step) => ({ ...step, status: 'DONE' })));
-      return result;
-    } catch (cause) {
-      const message = cause instanceof Error ? cause.message : String(cause);
-      const match = /Finalize step (\d+)/.exec(message);
-      const failedStep = match ? Number(match[1]) : 0;
-      setSteps((current) => current.map((step, index) => ({
-        ...step,
-        status: index < failedStep ? 'DONE' : index === failedStep ? 'ERROR' : 'PENDING',
-        ...(index === failedStep ? { errorMessage: message } : {}),
-      })));
-      throw cause;
-    }
-  }, [actions.finalizeReviewForSignature]);
+            status: index < failedStep ? 'DONE' : index === failedStep ? 'ERROR' : 'PENDING',
+            ...(index === failedStep ? { errorMessage: message } : {}),
+          })),
+        );
+        throw cause;
+      }
+    },
+    [actions.finalizeReviewForSignature],
+  );
 
   return { finalize, reset, isFinalizing: actions.finalizeReviewForSignature.isPending, steps };
 }

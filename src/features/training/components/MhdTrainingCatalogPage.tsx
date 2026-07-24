@@ -13,10 +13,7 @@ import {
   useMhdTrainingPeople,
   useMhdUpdateTrainingCourse,
 } from '../Hook';
-import type {
-  MhdAssignTrainingFormValues,
-  MhdTrainingCourseFormValues,
-} from '../Schemas';
+import type { MhdAssignTrainingFormValues, MhdTrainingCourseFormValues } from '../Schemas';
 import {
   mhdFormatTrainingDeliveryMode,
   mhdFormatTrainingRecurrence,
@@ -73,8 +70,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
       (people.data ?? []).map((person) => ({
         id: person.id,
         displayName:
-          person.preferredName ||
-          [person.firstName, person.lastName].filter(Boolean).join(' '),
+          person.preferredName || [person.firstName, person.lastName].filter(Boolean).join(' '),
       })),
     [people.data],
   );
@@ -186,7 +182,9 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
                           </MhdBadge>
                         ) : null}
                       </div>
-                      <div className="font-mono text-xs text-muted-foreground">{course.referenceId}</div>
+                      <div className="font-mono text-xs text-muted-foreground">
+                        {course.referenceId}
+                      </div>
                     </MhdTd>
                     <MhdTd>
                       <MhdCourseCategoryBadge category={course.category} />

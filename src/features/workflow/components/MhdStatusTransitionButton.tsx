@@ -24,7 +24,9 @@ export function MhdStatusTransitionButton({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [availableTransitions, setAvailableTransitions] = useState<MhdWorkflowAvailableTransition[]>([]);
+  const [availableTransitions, setAvailableTransitions] = useState<
+    MhdWorkflowAvailableTransition[]
+  >([]);
 
   const isTerminal = TERMINAL_STATUS_NAMES.has(currentStatusName);
 
@@ -82,7 +84,11 @@ export function MhdStatusTransitionButton({
         }`}
       >
         <span>{currentStatusName}</span>
-        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronDown className="h-4 w-4" />}
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <ChevronDown className="h-4 w-4" />
+        )}
       </button>
 
       {error ? (

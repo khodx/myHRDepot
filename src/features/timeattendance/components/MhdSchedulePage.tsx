@@ -208,7 +208,9 @@ function MhdScheduleBoard({ companyId, isPrivileged, selfPersonId }: BoardProps)
               the pattern in force when they were made. */}
           {(assignments.data ?? []).length > 1 ? (
             <details className="mt-3">
-              <summary className="cursor-pointer text-xs text-muted-foreground">Pattern history</summary>
+              <summary className="cursor-pointer text-xs text-muted-foreground">
+                Pattern history
+              </summary>
               <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
                 {(assignments.data ?? []).map((assignment) => (
                   <li key={assignment.id}>
@@ -232,7 +234,8 @@ function MhdScheduleBoard({ companyId, isPrivileged, selfPersonId }: BoardProps)
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : (shifts.data ?? []).length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No shifts in this range. {isPrivileged ? 'Generate them from the assigned pattern.' : ''}
+            No shifts in this range.{' '}
+            {isPrivileged ? 'Generate them from the assigned pattern.' : ''}
           </p>
         ) : (
           <MhdCard className="overflow-hidden p-0">

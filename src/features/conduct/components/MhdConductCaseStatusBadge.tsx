@@ -12,5 +12,7 @@ interface Props {
 }
 
 export function MhdConductCaseStatusBadge({ status }: Props) {
-  return <MhdBadge variant={STATUS_VARIANTS[status]}>{mhdFormatConductCaseStatus(status)}</MhdBadge>;
+  return (
+    <MhdBadge variant={STATUS_VARIANTS[status]}>{mhdFormatConductCaseStatus(status)}</MhdBadge>
+  );
 }

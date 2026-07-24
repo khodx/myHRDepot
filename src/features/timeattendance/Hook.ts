@@ -19,14 +19,16 @@ import type {
 import { mhdTimeAttendanceService } from './Service';
 
 export const mhdTimeAttendanceQueryKeys = {
-  templates: (companyId: string | null) => ['mhd-timeattendance', 'templates', companyId ?? ''] as const,
+  templates: (companyId: string | null) =>
+    ['mhd-timeattendance', 'templates', companyId ?? ''] as const,
   templateDetail: (templateId: string | null) =>
     ['mhd-timeattendance', 'template-detail', templateId ?? ''] as const,
   assignments: (personId: string | null) =>
     ['mhd-timeattendance', 'assignments', personId ?? ''] as const,
   shifts: (personId: string | null, from: string, to: string) =>
     ['mhd-timeattendance', 'shifts', personId ?? '', from, to] as const,
-  holidays: (companyId: string | null) => ['mhd-timeattendance', 'holidays', companyId ?? ''] as const,
+  holidays: (companyId: string | null) =>
+    ['mhd-timeattendance', 'holidays', companyId ?? ''] as const,
   policy: (companyId: string | null) => ['mhd-timeattendance', 'policy', companyId ?? ''] as const,
   occurrences: (filters: MhdAttendanceOccurrenceFilters) =>
     ['mhd-timeattendance', 'occurrences', filters] as const,
@@ -38,7 +40,8 @@ export const mhdTimeAttendanceQueryKeys = {
     ['mhd-timeattendance', 'threshold-events', companyId ?? '', status ?? 'ALL'] as const,
   reassessments: (companyId: string | null, status: string | null) =>
     ['mhd-timeattendance', 'reassessments', companyId ?? '', status ?? 'ALL'] as const,
-  people: (companyId: string | null) => ['mhd-timeattendance', 'people', companyId ?? 'ALL'] as const,
+  people: (companyId: string | null) =>
+    ['mhd-timeattendance', 'people', companyId ?? 'ALL'] as const,
 };
 
 /**
@@ -212,7 +215,8 @@ export function useMhdUpsertHoliday(companyId: string | null) {
       holidayDate: string;
       holidayName: string;
       isPaid?: boolean;
-    }) => mhdTimeAttendanceService.upsertHoliday(companyId!, holidayDate, holidayName, isPaid ?? true),
+    }) =>
+      mhdTimeAttendanceService.upsertHoliday(companyId!, holidayDate, holidayName, isPaid ?? true),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: mhdTimeAttendanceQueryKeys.holidays(companyId),

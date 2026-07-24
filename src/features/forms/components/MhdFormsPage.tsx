@@ -37,13 +37,19 @@ export function MhdFormsPage() {
       />
 
       {formState.errorMessage ? (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{formState.errorMessage}</div>
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {formState.errorMessage}
+        </div>
       ) : null}
 
       <MhdCard className="flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Filter</h2>
-          <p className="mt-1 text-sm text-muted-foreground">The live list comes from `mhd_list_forms` for the authenticated company.</p>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Filter
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The live list comes from `mhd_list_forms` for the authenticated company.
+          </p>
         </div>
 
         <select
@@ -66,12 +72,16 @@ export function MhdFormsPage() {
 
       {formState.drafts.length > 0 ? (
         <MhdCard>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">My Draft Submissions</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            My Draft Submissions
+          </h2>
           <div className="mt-3 grid gap-3 lg:grid-cols-2">
             {formState.drafts.map((draft) => (
               <div key={draft.id} className="rounded-md border border-border bg-muted p-3">
                 <p className="text-sm font-semibold text-foreground">{draft.referenceId}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Updated {new Date(draft.updatedAt ?? draft.createdAt).toLocaleString()}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Updated {new Date(draft.updatedAt ?? draft.createdAt).toLocaleString()}
+                </p>
                 <Link
                   to={`/forms/${draft.formId}/render?submissionId=${draft.id}`}
                   className="mt-3 inline-block text-sm font-semibold text-accent hover:text-accent-hover"

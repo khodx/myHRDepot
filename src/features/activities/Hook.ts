@@ -25,8 +25,10 @@ const DEFAULT_TASK_FILTERS = {
 export const mhdActivityQueryKeys = {
   board: (filters: MhdActivityBoardFilters) => ['mhd-activities', 'board', filters] as const,
   detail: (activityId: string | null) => ['mhd-activities', 'detail', activityId ?? ''] as const,
-  participants: (activityId: string | null) => ['mhd-activities', 'participants', activityId ?? ''] as const,
-  subActivities: (activityId: string | null) => ['mhd-activities', 'sub-activities', activityId ?? ''] as const,
+  participants: (activityId: string | null) =>
+    ['mhd-activities', 'participants', activityId ?? ''] as const,
+  subActivities: (activityId: string | null) =>
+    ['mhd-activities', 'sub-activities', activityId ?? ''] as const,
   people: (companyId: string | null) => ['mhd-activities', 'people', companyId ?? 'ALL'] as const,
   users: (companyId: string | null) => ['mhd-activities', 'users', companyId ?? 'ALL'] as const,
   tasks: (companyId: string | null) => ['mhd-activities', 'tasks', companyId ?? 'ALL'] as const,
@@ -113,14 +115,24 @@ export function useMhdActivityActions() {
   });
 
   const deleteActivity = useMutation({
-    mutationFn: ({ activityId, actorUserId }: { activityId: string; actorUserId?: string | null }) =>
-      mhdActivityService.deleteActivity(activityId, actorUserId),
+    mutationFn: ({
+      activityId,
+      actorUserId,
+    }: {
+      activityId: string;
+      actorUserId?: string | null;
+    }) => mhdActivityService.deleteActivity(activityId, actorUserId),
     onSuccess: invalidate,
   });
 
   const addParticipant = useMutation({
-    mutationFn: ({ activityId, input }: { activityId: string; input: MhdActivityParticipantInput }) =>
-      mhdActivityService.addParticipant(activityId, input),
+    mutationFn: ({
+      activityId,
+      input,
+    }: {
+      activityId: string;
+      input: MhdActivityParticipantInput;
+    }) => mhdActivityService.addParticipant(activityId, input),
     onSuccess: invalidate,
   });
 
@@ -135,8 +147,13 @@ export function useMhdActivityActions() {
   });
 
   const updateSubActivity = useMutation({
-    mutationFn: ({ subActivityId, input }: { subActivityId: string; input: MhdUpdateSubActivityInput }) =>
-      mhdActivityService.updateSubActivity(subActivityId, input),
+    mutationFn: ({
+      subActivityId,
+      input,
+    }: {
+      subActivityId: string;
+      input: MhdUpdateSubActivityInput;
+    }) => mhdActivityService.updateSubActivity(subActivityId, input),
     onSuccess: invalidate,
   });
 

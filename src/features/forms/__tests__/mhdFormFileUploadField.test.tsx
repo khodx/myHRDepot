@@ -87,6 +87,8 @@ describe('MhdFormFileUploadField', () => {
     render(<MhdFormFileUploadField field={field} value={null} onChange={vi.fn()} required />);
 
     expect(screen.getByLabelText(/voided check/i)).toBeDisabled();
-    expect(screen.getByText('File uploads are available when filling out the live form.')).toBeInTheDocument();
+    expect(
+      screen.getByText('File uploads are available when filling out the live form.'),
+    ).toBeInTheDocument();
   });
 });

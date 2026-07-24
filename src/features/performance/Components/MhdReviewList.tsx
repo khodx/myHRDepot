@@ -21,7 +21,11 @@ export function MhdReviewList({ reviews }: Props) {
   if (reviews.length === 0) {
     return (
       <MhdCard className="border-dashed">
-        <MhdEmptyState icon={ClipboardCheck} title="No reviews found" description="No reviews match the current filters." />
+        <MhdEmptyState
+          icon={ClipboardCheck}
+          title="No reviews found"
+          description="No reviews match the current filters."
+        />
       </MhdCard>
     );
   }
@@ -46,7 +50,10 @@ export function MhdReviewList({ reviews }: Props) {
             return (
               <MhdTr key={review.id}>
                 <MhdTd>
-                  <Link to={`/performance/reviews/${review.id}`} className="font-medium text-accent hover:text-accent-hover">
+                  <Link
+                    to={`/performance/reviews/${review.id}`}
+                    className="font-medium text-accent hover:text-accent-hover"
+                  >
                     {review.personDisplayName ?? 'Unknown person'}
                   </Link>
                   <div className="text-xs text-muted-foreground">{review.referenceId}</div>
@@ -66,7 +73,9 @@ export function MhdReviewList({ reviews }: Props) {
                 </MhdTd>
                 <MhdTd>
                   {review.dueDate ? (
-                    <span className={`inline-flex items-center gap-1 ${isOverdue ? 'font-medium text-red-600' : 'text-muted-foreground'}`}>
+                    <span
+                      className={`inline-flex items-center gap-1 ${isOverdue ? 'font-medium text-red-600' : 'text-muted-foreground'}`}
+                    >
                       {isOverdue ? <AlarmClock className="h-4 w-4" aria-label="Overdue" /> : null}
                       {formatDate(review.dueDate)}
                     </span>

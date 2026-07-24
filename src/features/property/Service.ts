@@ -111,11 +111,17 @@ export const mhdPropertyService = {
         p_company_id: input.companyId,
         p_category: input.category,
         p_name: input.name.trim(),
-        ...(trimmedOrUndefined(input.description) ? { p_description: trimmedOrUndefined(input.description) } : {}),
-        ...(trimmedOrUndefined(input.serialNumber) ? { p_serial_number: trimmedOrUndefined(input.serialNumber) } : {}),
+        ...(trimmedOrUndefined(input.description)
+          ? { p_description: trimmedOrUndefined(input.description) }
+          : {}),
+        ...(trimmedOrUndefined(input.serialNumber)
+          ? { p_serial_number: trimmedOrUndefined(input.serialNumber) }
+          : {}),
         ...(input.quantityTotal !== undefined ? { p_quantity_total: input.quantityTotal } : {}),
         ...(input.unitCost != null ? { p_unit_cost: input.unitCost } : {}),
-        ...(trimmedOrUndefined(input.acquisitionDate) ? { p_acquisition_date: trimmedOrUndefined(input.acquisitionDate) } : {}),
+        ...(trimmedOrUndefined(input.acquisitionDate)
+          ? { p_acquisition_date: trimmedOrUndefined(input.acquisitionDate) }
+          : {}),
       })
       .returns<MhdPropertyMutationResultRow[]>();
 
@@ -198,7 +204,9 @@ export const mhdPropertyService = {
       throw new Error('Unable to issue property: no record returned.');
     }
 
-    const assignments = await mhdPropertyService.listAssignments({ propertyItemId: input.propertyItemId });
+    const assignments = await mhdPropertyService.listAssignments({
+      propertyItemId: input.propertyItemId,
+    });
     const created = assignments.find((assignment) => assignment.id === row.id);
 
     if (!created) {

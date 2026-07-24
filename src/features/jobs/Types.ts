@@ -76,12 +76,7 @@ export type MhdCompetencyReferenceId = `COMP-${string}`;
  */
 export type MhdFlsaClassification = 'EXEMPT' | 'NON_EXEMPT';
 
-export type MhdEmploymentType =
-  | 'FULL_TIME'
-  | 'PART_TIME'
-  | 'TEMPORARY'
-  | 'SEASONAL'
-  | 'CONTRACT';
+export type MhdEmploymentType = 'FULL_TIME' | 'PART_TIME' | 'TEMPORARY' | 'SEASONAL' | 'CONTRACT';
 
 /** Drives competency-pack filtering. `GENERAL` applies everywhere. */
 export type MhdIndustry = 'GENERAL' | 'HEALTHCARE' | 'TRANSPORTATION' | 'OTHER';
@@ -94,11 +89,7 @@ export type MhdIndustry = 'GENERAL' | 'HEALTHCARE' | 'TRANSPORTATION' | 'OTHER';
 export type MhdJobDescriptionStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 
 export type MhdQualificationType =
-  | 'EDUCATION'
-  | 'EXPERIENCE'
-  | 'CERTIFICATION'
-  | 'LICENSE'
-  | 'SKILL';
+  'EDUCATION' | 'EXPERIENCE' | 'CERTIFICATION' | 'LICENSE' | 'SKILL';
 
 export type MhdPayPeriod = 'HOURLY' | 'ANNUAL';
 
@@ -377,7 +368,9 @@ export function mhdCanSeePayFromRow(job: Pick<MhdJob, 'payMin' | 'payMax' | 'pay
 }
 
 /** Formats a pay range for display, or null when there is nothing to show. */
-export function mhdFormatPayRange(job: Pick<MhdJob, 'payMin' | 'payMax' | 'payPeriod'>): string | null {
+export function mhdFormatPayRange(
+  job: Pick<MhdJob, 'payMin' | 'payMax' | 'payPeriod'>,
+): string | null {
   if (job.payMin === null && job.payMax === null) return null;
   const suffix = job.payPeriod === 'HOURLY' ? '/hr' : job.payPeriod === 'ANNUAL' ? '/yr' : '';
   const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -417,9 +410,9 @@ export function mhdCanPublishDescription(
  * optimistic entry, telemetry) must carry the period only — this is the single
  * place that shape is defined, and the schema test pins it.
  */
-export function mhdPayChangeAuditMetadata(
-  input: Pick<MhdSetPayRangeInput, 'payPeriod'>,
-): { pay_period: MhdPayPeriod } {
+export function mhdPayChangeAuditMetadata(input: Pick<MhdSetPayRangeInput, 'payPeriod'>): {
+  pay_period: MhdPayPeriod;
+} {
   return { pay_period: input.payPeriod };
 }
 

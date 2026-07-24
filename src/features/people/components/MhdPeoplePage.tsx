@@ -42,7 +42,12 @@ export function MhdPeoplePage() {
         title="People"
         description="Manage the people records that will be assigned to companies and future tasks."
         actions={
-          <Button onClick={() => { setEditingSelectedPerson(false); setIsFormOpen(true); }}>
+          <Button
+            onClick={() => {
+              setEditingSelectedPerson(false);
+              setIsFormOpen(true);
+            }}
+          >
             Add person
           </Button>
         }
@@ -54,7 +59,12 @@ export function MhdPeoplePage() {
           includeAllOption
           label="Filter by company"
           value={peopleState.filters.companyId}
-          onChange={(companyId) => peopleState.setFilters((current) => ({ ...current, companyId: companyId as typeof current.companyId }))}
+          onChange={(companyId) =>
+            peopleState.setFilters((current) => ({
+              ...current,
+              companyId: companyId as typeof current.companyId,
+            }))
+          }
         />
         <label className="block text-sm font-medium text-foreground md:col-span-2">
           Search people
@@ -62,20 +72,33 @@ export function MhdPeoplePage() {
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             placeholder="Search by name or email"
             value={peopleState.filters.searchTerm}
-            onChange={(event) => peopleState.setFilters((current) => ({ ...current, searchTerm: event.target.value }))}
+            onChange={(event) =>
+              peopleState.setFilters((current) => ({ ...current, searchTerm: event.target.value }))
+            }
           />
         </label>
       </MhdCard>
 
-      {peopleState.errorMessage ? <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{peopleState.errorMessage}</p> : null}
+      {peopleState.errorMessage ? (
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {peopleState.errorMessage}
+        </p>
+      ) : null}
       {companiesQuery.isError ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {companiesQuery.error instanceof Error ? companiesQuery.error.message : 'Unable to load companies.'}
+          {companiesQuery.error instanceof Error
+            ? companiesQuery.error.message
+            : 'Unable to load companies.'}
         </p>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(380px,480px)]">
-        <MhdPersonList people={peopleState.people} selectedPersonId={peopleState.selectedPersonId} isLoading={peopleState.isLoading} onSelectPerson={peopleState.setSelectedPersonId} />
+        <MhdPersonList
+          people={peopleState.people}
+          selectedPersonId={peopleState.selectedPersonId}
+          isLoading={peopleState.isLoading}
+          onSelectPerson={peopleState.setSelectedPersonId}
+        />
         {isFormOpen ? (
           <MhdPersonForm
             companies={activeCompanies}
@@ -83,10 +106,19 @@ export function MhdPeoplePage() {
             defaultCompanyId={peopleState.filters.companyId}
             onCreate={handleCreate}
             onUpdate={handleUpdate}
-            onCancel={() => { setIsFormOpen(false); setEditingSelectedPerson(false); }}
+            onCancel={() => {
+              setIsFormOpen(false);
+              setEditingSelectedPerson(false);
+            }}
           />
         ) : (
-          <MhdPersonDetailsPanel person={peopleState.selectedPerson} onEdit={() => { setEditingSelectedPerson(true); setIsFormOpen(true); }} />
+          <MhdPersonDetailsPanel
+            person={peopleState.selectedPerson}
+            onEdit={() => {
+              setEditingSelectedPerson(true);
+              setIsFormOpen(true);
+            }}
+          />
         )}
       </div>
     </div>

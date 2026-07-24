@@ -4,10 +4,7 @@ import { useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useMhdCreateInterview, useMhdInterviewPeople } from '../Hook';
-import {
-  mhdInterviewScheduleSchema,
-  type MhdInterviewScheduleFormValues,
-} from '../Schemas';
+import { mhdInterviewScheduleSchema, type MhdInterviewScheduleFormValues } from '../Schemas';
 
 interface Props {
   companyId: string;
@@ -42,8 +39,7 @@ export function MhdInterviewSchedulePanel({ companyId, applicationId, guideId = 
         }) => ({
           id: person.id,
           displayName:
-            person.preferredName ||
-            [person.firstName, person.lastName].filter(Boolean).join(' '),
+            person.preferredName || [person.firstName, person.lastName].filter(Boolean).join(' '),
         }),
       ),
     [people.data],

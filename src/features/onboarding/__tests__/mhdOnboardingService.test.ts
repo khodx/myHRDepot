@@ -72,7 +72,9 @@ describe('mhdOnboardingService', () => {
 
     const items = await mhdOnboardingService.getChecklistForPerson('01PERSON');
 
-    expect(rpcMock).toHaveBeenCalledWith('mhd_get_onboarding_checklist_for_person', { p_person_id: '01PERSON' });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_get_onboarding_checklist_for_person', {
+      p_person_id: '01PERSON',
+    });
     expect(items).toHaveLength(1);
     expect(items[0].documentKey).toBe('onboarding_handbook_acknowledgments');
     expect(items[0].status).toBe('NOT_STARTED');
@@ -197,7 +199,15 @@ describe('mhdOnboardingService', () => {
         name: 'New Hire - Direct Deposit',
         description: 'Direct deposit',
         status: 'ACTIVE',
-        definition: { id: 'FORM1', name: 'New Hire - Direct Deposit', fields: [], pages: [], logic: [], calculations: [], settings: { allowDraft: true, multiPage: false, progressBar: true } },
+        definition: {
+          id: 'FORM1',
+          name: 'New Hire - Direct Deposit',
+          fields: [],
+          pages: [],
+          logic: [],
+          calculations: [],
+          settings: { allowDraft: true, multiPage: false, progressBar: true },
+        },
         version: 1,
         previousVersionId: null,
         createdAt: '2026-07-17T00:00:00Z',
@@ -212,7 +222,15 @@ describe('mhdOnboardingService', () => {
         name: 'Some Other Form',
         description: 'Other',
         status: 'ACTIVE',
-        definition: { id: 'FORM2', name: 'Some Other Form', fields: [], pages: [], logic: [], calculations: [], settings: { allowDraft: true, multiPage: false, progressBar: true } },
+        definition: {
+          id: 'FORM2',
+          name: 'Some Other Form',
+          fields: [],
+          pages: [],
+          logic: [],
+          calculations: [],
+          settings: { allowDraft: true, multiPage: false, progressBar: true },
+        },
         version: 1,
         previousVersionId: null,
         createdAt: '2026-07-17T00:00:00Z',

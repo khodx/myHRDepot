@@ -48,9 +48,15 @@ export function MhdRatingStars(props: Props) {
         className="inline-flex items-center gap-0.5"
       >
         {RATING_VALUES.map((star) => (
-          <Star key={star} aria-hidden="true" className={starClass(star <= (props.value ?? 0), size)} />
+          <Star
+            key={star}
+            aria-hidden="true"
+            className={starClass(star <= (props.value ?? 0), size)}
+          />
         ))}
-        <span className="ml-1.5 text-sm text-muted-foreground">{RATING_LABELS[props.value] ?? ''}</span>
+        <span className="ml-1.5 text-sm text-muted-foreground">
+          {RATING_LABELS[props.value] ?? ''}
+        </span>
       </span>
     );
   }
@@ -59,8 +65,14 @@ export function MhdRatingStars(props: Props) {
 
   return (
     <fieldset className="m-0 border-0 p-0" disabled={disabled}>
-      <legend className={legend ? 'mb-1 block text-sm font-medium' : 'sr-only'}>{legend ?? 'Overall rating'}</legend>
-      <div role="radiogroup" aria-label={legend ?? 'Overall rating'} className="inline-flex items-center gap-0.5">
+      <legend className={legend ? 'mb-1 block text-sm font-medium' : 'sr-only'}>
+        {legend ?? 'Overall rating'}
+      </legend>
+      <div
+        role="radiogroup"
+        aria-label={legend ?? 'Overall rating'}
+        className="inline-flex items-center gap-0.5"
+      >
         {RATING_VALUES.map((star) => {
           const inputId = `${idPrefix}-star-${star}`;
           const isFilled = star <= (value ?? 0);

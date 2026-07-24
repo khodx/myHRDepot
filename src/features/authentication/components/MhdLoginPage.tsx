@@ -52,21 +52,49 @@ export function MhdLoginPage() {
         </div>
         <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
           <div>
-            <label className="block text-sm font-medium text-foreground" htmlFor="email">Email</label>
-            <input id="email" type="email" autoComplete="email" className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...form.register('email')} />
-            {form.formState.errors.email && <p className="mt-1 text-sm text-red-600">{form.formState.errors.email.message}</p>}
+            <label className="block text-sm font-medium text-foreground" htmlFor="email">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              {...form.register('email')}
+            />
+            {form.formState.errors.email && (
+              <p className="mt-1 text-sm text-red-600">{form.formState.errors.email.message}</p>
+            )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground" htmlFor="password">Password</label>
-            <input id="password" type="password" autoComplete="current-password" className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" {...form.register('password')} />
-            {form.formState.errors.password && <p className="mt-1 text-sm text-red-600">{form.formState.errors.password.message}</p>}
+            <label className="block text-sm font-medium text-foreground" htmlFor="password">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              {...form.register('password')}
+            />
+            {form.formState.errors.password && (
+              <p className="mt-1 text-sm text-red-600">{form.formState.errors.password.message}</p>
+            )}
           </div>
-          {formError && <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">{formError}</p>}
-          <button type="submit" disabled={form.formState.isSubmitting} className="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:opacity-60">
+          {formError && (
+            <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">{formError}</p>
+          )}
+          <button
+            type="submit"
+            disabled={form.formState.isSubmitting}
+            className="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:opacity-60"
+          >
             {form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
           </button>
           <div className="text-center text-sm">
-            <Link className="text-accent hover:underline" to="/forgot-password">Forgot your password?</Link>
+            <Link className="text-accent hover:underline" to="/forgot-password">
+              Forgot your password?
+            </Link>
           </div>
         </form>
       </MhdAuthCard>

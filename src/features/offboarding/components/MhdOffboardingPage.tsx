@@ -122,7 +122,11 @@ export function MhdOffboardingPage() {
         description="Separation cases with an evidence-backed exit checklist: property, exit acknowledgment, access, final pay."
         actions={
           canMutate ? (
-            <Button type="button" onClick={() => setIsCreating((current) => !current)} className="gap-1.5">
+            <Button
+              type="button"
+              onClick={() => setIsCreating((current) => !current)}
+              className="gap-1.5"
+            >
               <Plus className="h-4 w-4" />
               {isCreating ? 'Close Form' : 'New Case'}
             </Button>
@@ -145,20 +149,26 @@ export function MhdOffboardingPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <MhdCard>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Active</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Active
+          </p>
           <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{counts.active}</p>
         </MhdCard>
         <MhdCard>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Items Outstanding
           </p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-amber-700">{counts.itemsOutstanding}</p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-amber-700">
+            {counts.itemsOutstanding}
+          </p>
         </MhdCard>
         <MhdCard>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Completed
           </p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-700">{counts.completed}</p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-700">
+            {counts.completed}
+          </p>
         </MhdCard>
       </div>
 

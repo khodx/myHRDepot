@@ -35,7 +35,10 @@ export function useMhdEsignatureEvents(requestId: string | null) {
   });
 }
 
-export function useMhdEsignatureGeneratedDocuments(companyId: string | null, personId?: string | null) {
+export function useMhdEsignatureGeneratedDocuments(
+  companyId: string | null,
+  personId?: string | null,
+) {
   return useQuery({
     queryKey: esignatureKeys.generatedDocuments(companyId, personId ?? null),
     queryFn: () => mhdEsignatureService.listGeneratedDocuments(companyId!, personId),

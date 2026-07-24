@@ -509,8 +509,7 @@ export function MhdOffboardingCaseDetailPage() {
       <MhdCard>
         {isActive && completeBlocked ? (
           <p className="mb-4 text-xs text-muted-foreground">
-            Complete is unavailable while {outstandingRequiredItems.length} required checklist
-            item
+            Complete is unavailable while {outstandingRequiredItems.length} required checklist item
             {outstandingRequiredItems.length === 1 ? ' is' : 's are'} outstanding.
           </p>
         ) : null}
@@ -628,7 +627,11 @@ export function MhdOffboardingCaseDetailPage() {
           </ol>
           {ceremonyHasError && !isCeremonyInFlight ? (
             <div className="mt-4 flex gap-3">
-              <Button type="button" onClick={() => void handleLaunchCeremony()} className="font-semibold">
+              <Button
+                type="button"
+                onClick={() => void handleLaunchCeremony()}
+                className="font-semibold"
+              >
                 Retry
               </Button>
               <button
@@ -735,15 +738,15 @@ export function MhdOffboardingCaseDetailPage() {
                 </p>
                 {exitAcknowledgmentItem.linkedEsignatureStatus === 'DECLINED' ? (
                   <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-800">
-                    The employee declined the acknowledgment. The checklist item can still be
-                    waived with a documented reason so the case can complete.
+                    The employee declined the acknowledgment. The checklist item can still be waived
+                    with a documented reason so the case can complete.
                   </p>
                 ) : null}
               </div>
             ) : (
               <p className="mt-3 text-sm text-muted-foreground">
-                Not yet sent. The ceremony generates the acknowledgment, stamps its hash, and
-                routes it to the employee's primary email for signature.
+                Not yet sent. The ceremony generates the acknowledgment, stamps its hash, and routes
+                it to the employee's primary email for signature.
               </p>
             )}
             {canLaunchCeremony ? (

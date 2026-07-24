@@ -75,7 +75,10 @@ export function Mhd360FeedbackPanel({ reviewId, threshold }: Props) {
             ) : (
               <div className="mt-2 space-y-3">
                 {(byType.get(type) ?? []).map((group, index) => (
-                  <div key={`${type}-${index}`} className="border-t border-border pt-2 first:border-0 first:pt-0">
+                  <div
+                    key={`${type}-${index}`}
+                    className="border-t border-border pt-2 first:border-0 first:pt-0"
+                  >
                     <p className="text-sm font-medium text-foreground">
                       {group.competencyName ?? group.sectionTitle ?? 'General'}
                     </p>

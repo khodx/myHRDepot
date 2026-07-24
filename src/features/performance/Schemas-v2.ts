@@ -7,7 +7,10 @@ import {
   MHD_SECTION_RESPONSE_TYPES,
 } from './Types-v2';
 
-const isoDate = z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a YYYY-MM-DD date.');
+const isoDate = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a YYYY-MM-DD date.');
 
 /**
  * The rating scale is fixed at 1–5 (ruling Q7) and is NOT configurable. A
@@ -90,8 +93,7 @@ export const mhdFeedbackResponseItemSchema = z
     path: ['competencyId'],
   })
   .refine(
-    (item) =>
-      item.rating != null || Boolean(item.comment && item.comment.trim().length > 0),
+    (item) => item.rating != null || Boolean(item.comment && item.comment.trim().length > 0),
     {
       message: 'Give a rating, a comment, or both.',
       path: ['rating'],

@@ -211,9 +211,18 @@ export function AppRouter() {
               <Route path="/recruiting" element={<MhdRecruitingRoutePage />} />
               <Route path="/recruiting/eeo" element={<MhdEeoReportRoutePage />} />
               <Route path="/recruiting/questions" element={<MhdQuestionBankRoutePage />} />
-              <Route path="/recruiting/interviews/:interviewId" element={<MhdInterviewWorksheetRoutePage />} />
-              <Route path="/recruiting/requisitions/:reqId" element={<MhdRequisitionDetailRoutePage />} />
-              <Route path="/recruiting/applications/:appId" element={<MhdApplicationDetailRoutePage />} />
+              <Route
+                path="/recruiting/interviews/:interviewId"
+                element={<MhdInterviewWorksheetRoutePage />}
+              />
+              <Route
+                path="/recruiting/requisitions/:reqId"
+                element={<MhdRequisitionDetailRoutePage />}
+              />
+              <Route
+                path="/recruiting/applications/:appId"
+                element={<MhdApplicationDetailRoutePage />}
+              />
             </Route>
           </Route>
         </Route>

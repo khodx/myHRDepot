@@ -114,9 +114,7 @@ export function MhdAccessGrantPanel({
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Granted {grant.grantedAt}
-                  {grant.grantedBy
-                    ? ` by ${nameById.get(grant.grantedBy) ?? grant.grantedBy}`
-                    : ''}
+                  {grant.grantedBy ? ` by ${nameById.get(grant.grantedBy) ?? grant.grantedBy}` : ''}
                 </p>
               </div>
               <button

@@ -52,7 +52,11 @@ export function MhdJobDescriptionEditor({
     initialFunctions ?? [{ functionText: '', isEssential: true }],
   );
   const [qualifications, setQualifications] = useState<
-    Array<{ qualificationText: string; qualificationType: MhdQualificationType; isRequired: boolean }>
+    Array<{
+      qualificationText: string;
+      qualificationType: MhdQualificationType;
+      isRequired: boolean;
+    }>
   >(
     (initialQualifications ?? []).map((q) => ({
       qualificationText: q.text,

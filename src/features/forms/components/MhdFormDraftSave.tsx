@@ -38,7 +38,11 @@ export function MhdFormDraftSave({ submissionId, values, onSaved }: MhdFormDraft
       >
         {isSaving ? 'Saving...' : 'Save Draft'}
       </button>
-      {lastSavedAt ? <span className="text-xs text-muted-foreground">Saved at {new Date(lastSavedAt).toLocaleTimeString()}</span> : null}
+      {lastSavedAt ? (
+        <span className="text-xs text-muted-foreground">
+          Saved at {new Date(lastSavedAt).toLocaleTimeString()}
+        </span>
+      ) : null}
       {error ? <span className="text-xs text-red-600">{error}</span> : null}
     </div>
   );
@@ -54,13 +58,22 @@ export function MhdFormResumeDrafts({ drafts, onResume }: MhdFormResumeDraftsPro
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
-      <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Resume Saved Draft</h4>
+      <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        Resume Saved Draft
+      </h4>
       <ul className="mt-3 space-y-2">
         {drafts.map((draft) => (
-          <li key={draft.id} className="flex items-center justify-between gap-4 rounded-md border border-border px-3 py-2 text-sm">
+          <li
+            key={draft.id}
+            className="flex items-center justify-between gap-4 rounded-md border border-border px-3 py-2 text-sm"
+          >
             <div>
               <p className="font-medium text-foreground">{draft.referenceId}</p>
-              {draft.updatedAt ? <p className="text-xs text-muted-foreground">Updated {new Date(draft.updatedAt).toLocaleString()}</p> : null}
+              {draft.updatedAt ? (
+                <p className="text-xs text-muted-foreground">
+                  Updated {new Date(draft.updatedAt).toLocaleString()}
+                </p>
+              ) : null}
             </div>
             <button
               type="button"

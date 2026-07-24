@@ -1,8 +1,5 @@
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
-import {
-  mhdFormatRequisitionStatus,
-  type MhdRecruitingRequisitionStatus,
-} from '../Types';
+import { mhdFormatRequisitionStatus, type MhdRecruitingRequisitionStatus } from '../Types';
 
 // The requisition lifecycle status, coloured by what it means for the opening.
 // This badge only RENDERS the server's status — transitions are enforced

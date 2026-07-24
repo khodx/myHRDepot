@@ -61,7 +61,9 @@ export const mhdNotificationService = {
     // mhd_mark_notification_read (singular) only accepts one notification id at a time --
     // there is no bulk "mark these ids read" function deployed -- so we call it once per id.
     const results = await Promise.all(
-      notificationIds.map((id) => supabaseClient.rpc('mhd_mark_notification_read', { p_notification_id: id })),
+      notificationIds.map((id) =>
+        supabaseClient.rpc('mhd_mark_notification_read', { p_notification_id: id }),
+      ),
     );
     const firstError = results.find((r) => r.error)?.error;
     if (firstError) throw new Error('Unable to mark notifications read: ' + firstError.message);

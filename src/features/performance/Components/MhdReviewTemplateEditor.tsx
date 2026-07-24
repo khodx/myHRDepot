@@ -112,8 +112,8 @@ export function MhdReviewTemplateEditor({ companyId, isPlatformAdmin }: Props) {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {template.isGlobal ? 'Global default' : 'Company template'} ·{' '}
-                    {mhdFormatReviewTemplateStatus(template.status)} ·{' '}
-                    {template.sectionCount} section{template.sectionCount === 1 ? '' : 's'}
+                    {mhdFormatReviewTemplateStatus(template.status)} · {template.sectionCount}{' '}
+                    section{template.sectionCount === 1 ? '' : 's'}
                   </p>
                 </div>
                 {template.status === 'DRAFT' ? (
@@ -138,8 +138,8 @@ export function MhdReviewTemplateEditor({ companyId, isPlatformAdmin }: Props) {
           <p className="text-xs text-rose-600">Publishing failed. Nothing was changed.</p>
         ) : null}
         <p className="text-xs text-muted-foreground">
-          Publishing archives the currently published version. A published template cannot be
-          edited — to change it, create a new version and publish that.
+          Publishing archives the currently published version. A published template cannot be edited
+          — to change it, create a new version and publish that.
         </p>
       </section>
 
@@ -198,10 +198,7 @@ export function MhdReviewTemplateEditor({ companyId, isPlatformAdmin }: Props) {
           <legend className="text-sm font-medium text-foreground">Sections</legend>
           <div className="mt-2 space-y-3">
             {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="space-y-2 rounded-md border border-border px-3 py-3"
-              >
+              <div key={field.id} className="space-y-2 rounded-md border border-border px-3 py-3">
                 <div className="flex items-center gap-3">
                   <span className="w-6 text-sm text-muted-foreground">{index + 1}.</span>
                   <input

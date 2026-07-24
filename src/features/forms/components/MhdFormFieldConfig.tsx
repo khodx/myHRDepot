@@ -22,12 +22,15 @@ function updateOptionLabel(field: MhdFormField, index: number, nextLabel: string
 }
 
 export function MhdFormFieldConfig({ field, onChange }: MhdFormFieldConfigProps) {
-  const isOptionField = field.type === 'select' || field.type === 'dropdown' || field.type === 'radio';
+  const isOptionField =
+    field.type === 'select' || field.type === 'dropdown' || field.type === 'radio';
 
   return (
     <div className="space-y-3">
       <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Label</label>
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Label
+        </label>
         <input
           type="text"
           value={field.label}
@@ -37,7 +40,9 @@ export function MhdFormFieldConfig({ field, onChange }: MhdFormFieldConfigProps)
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</label>
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Description
+        </label>
         <textarea
           value={field.description ?? ''}
           onChange={(event) => onChange({ ...field, description: event.target.value })}
@@ -46,7 +51,9 @@ export function MhdFormFieldConfig({ field, onChange }: MhdFormFieldConfigProps)
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Placeholder</label>
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Placeholder
+        </label>
         <input
           type="text"
           value={field.placeholder ?? ''}
@@ -77,13 +84,18 @@ export function MhdFormFieldConfig({ field, onChange }: MhdFormFieldConfigProps)
       {isOptionField ? (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Options</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Options
+            </label>
             <button
               type="button"
               onClick={() =>
                 onChange({
                   ...field,
-                  options: [...(field.options ?? []), { value: `option-${Date.now()}`, label: 'New option' }],
+                  options: [
+                    ...(field.options ?? []),
+                    { value: `option-${Date.now()}`, label: 'New option' },
+                  ],
                 })
               }
               className="text-xs font-semibold text-accent hover:text-accent-hover"
@@ -104,7 +116,9 @@ export function MhdFormFieldConfig({ field, onChange }: MhdFormFieldConfigProps)
                 onClick={() =>
                   onChange({
                     ...field,
-                    options: (field.options ?? []).filter((_, optionIndex) => optionIndex !== index),
+                    options: (field.options ?? []).filter(
+                      (_, optionIndex) => optionIndex !== index,
+                    ),
                   })
                 }
                 className="text-xs font-semibold text-red-600 hover:underline"

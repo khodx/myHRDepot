@@ -46,7 +46,10 @@ export function useMhdNotifications(): MhdNotificationState & {
     notifications: notificationsQuery.data ?? [],
     unreadCount: unreadCountQuery.data ?? 0,
     isLoading: notificationsQuery.isLoading || unreadCountQuery.isLoading,
-    error: (notificationsQuery.error as Error | null)?.message ?? (unreadCountQuery.error as Error | null)?.message ?? null,
+    error:
+      (notificationsQuery.error as Error | null)?.message ??
+      (unreadCountQuery.error as Error | null)?.message ??
+      null,
     markRead: (ids) => markReadMutation.mutate(ids),
     markAllRead: () => markAllReadMutation.mutate(),
     refetch: () => {

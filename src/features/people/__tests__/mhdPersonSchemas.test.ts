@@ -19,10 +19,19 @@ describe('mhdPersonFormSchema', () => {
   });
 
   it('rejects a blank last name', () => {
-    expect(() => mhdPersonFormSchema.parse({ companyId: '01ABC', firstName: 'Maria', lastName: '', email: '' })).toThrow();
+    expect(() =>
+      mhdPersonFormSchema.parse({
+        companyId: '01ABC',
+        firstName: 'Maria',
+        lastName: '',
+        email: '',
+      }),
+    ).toThrow();
   });
 
   it('builds display name from preferred name when supplied', () => {
-    expect(mhdPersonDisplayName({ firstName: 'Marcel', lastName: 'Furnace', preferredName: 'Mac' })).toBe('Mac Furnace');
+    expect(
+      mhdPersonDisplayName({ firstName: 'Marcel', lastName: 'Furnace', preferredName: 'Mac' }),
+    ).toBe('Mac Furnace');
   });
 });

@@ -7,8 +7,12 @@ interface MhdFormFieldPaletteProps {
 export function MhdFormFieldPalette({ onAddField }: MhdFormFieldPaletteProps) {
   return (
     <aside className="w-64 border-r border-border bg-muted p-4">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Field Palette</h3>
-      <p className="mt-1 text-sm text-muted-foreground">Click a field type to add it to the current form.</p>
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        Field Palette
+      </h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Click a field type to add it to the current form.
+      </p>
 
       <div className="mt-4 grid gap-2">
         {MHD_FORM_PALETTE_FIELD_TYPES.map((fieldType) => (

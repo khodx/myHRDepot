@@ -21,12 +21,16 @@ const MHD_LOGIC_OPERATORS = [
 
 export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEditorProps) {
   const [draftFieldId, setDraftFieldId] = useState(fields[0]?.id ?? '');
-  const [draftOperator, setDraftOperator] = useState<(typeof MHD_LOGIC_OPERATORS)[number]['value']>('equals');
+  const [draftOperator, setDraftOperator] =
+    useState<(typeof MHD_LOGIC_OPERATORS)[number]['value']>('equals');
   const [draftValue, setDraftValue] = useState('');
   const [draftAction, setDraftAction] = useState<MhdFormLogicRule['action']>('SHOW');
-  const [draftTargetFieldId, setDraftTargetFieldId] = useState(fields[1]?.id ?? fields[0]?.id ?? '');
+  const [draftTargetFieldId, setDraftTargetFieldId] = useState(
+    fields[1]?.id ?? fields[0]?.id ?? '',
+  );
 
-  const fieldLabel = (fieldId: string) => fields.find((field) => field.id === fieldId)?.label ?? fieldId;
+  const fieldLabel = (fieldId: string) =>
+    fields.find((field) => field.id === fieldId)?.label ?? fieldId;
 
   const handleAddRule = () => {
     if (!draftFieldId || !draftTargetFieldId) return;
@@ -39,7 +43,8 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
         condition: {
           field: draftFieldId,
           operator: draftOperator,
-          value: draftOperator === 'isEmpty' || draftOperator === 'isNotEmpty' ? undefined : draftValue,
+          value:
+            draftOperator === 'isEmpty' || draftOperator === 'isNotEmpty' ? undefined : draftValue,
         },
         action: draftAction,
         targetFieldId: draftTargetFieldId,
@@ -51,7 +56,9 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-border bg-muted p-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Add Rule</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Add Rule
+        </h3>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <select
             value={draftFieldId}
@@ -67,7 +74,9 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
 
           <select
             value={draftOperator}
-            onChange={(event) => setDraftOperator(event.target.value as (typeof MHD_LOGIC_OPERATORS)[number]['value'])}
+            onChange={(event) =>
+              setDraftOperator(event.target.value as (typeof MHD_LOGIC_OPERATORS)[number]['value'])
+            }
             className="rounded-md border border-border px-3 py-2 text-sm"
           >
             {MHD_LOGIC_OPERATORS.map((operator) => (
@@ -124,12 +133,20 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
 
       <div className="space-y-2">
         {rules.map((rule) => (
-          <div key={rule.id} className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3 text-sm">
+          <div
+            key={rule.id}
+            className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3 text-sm"
+          >
             <div>
               If <strong>{fieldLabel((rule.condition as { field?: string }).field ?? '')}</strong>{' '}
-              {MHD_LOGIC_OPERATORS.find((operator) => operator.value === (rule.condition as { operator?: string }).operator)?.label ?? 'matches'}{' '}
-              {(rule.condition as { value?: string }).value ? <strong>{(rule.condition as { value?: string }).value}</strong> : null},
-              then <strong>{rule.action}</strong> <strong>{fieldLabel(rule.targetFieldId)}</strong>
+              {MHD_LOGIC_OPERATORS.find(
+                (operator) => operator.value === (rule.condition as { operator?: string }).operator,
+              )?.label ?? 'matches'}{' '}
+              {(rule.condition as { value?: string }).value ? (
+                <strong>{(rule.condition as { value?: string }).value}</strong>
+              ) : null}
+              , then <strong>{rule.action}</strong>{' '}
+              <strong>{fieldLabel(rule.targetFieldId)}</strong>
             </div>
             <button
               type="button"
@@ -140,7 +157,9 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
             </button>
           </div>
         ))}
-        {rules.length === 0 ? <p className="text-sm text-muted-foreground">No logic rules defined yet.</p> : null}
+        {rules.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No logic rules defined yet.</p>
+        ) : null}
       </div>
     </div>
   );

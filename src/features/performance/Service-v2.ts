@@ -402,10 +402,12 @@ export const mhdPerformanceV2Service = {
       p_company_id: companyId,
     });
     if (error) throw error;
-    const row = ((data ?? []) as Array<{
-      min_responses_for_release: number | string;
-      release_verbatim_comments: boolean;
-    }>)[0];
+    const row = (
+      (data ?? []) as Array<{
+        min_responses_for_release: number | string;
+        release_verbatim_comments: boolean;
+      }>
+    )[0];
     // A company with no settings row resolves to the defaults server-side; the RPC always returns
     // one row, so this fallback is belt-and-braces.
     return {

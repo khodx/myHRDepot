@@ -9,10 +9,7 @@ import {
   useMhdOffer,
   useMhdRescindOffer,
 } from '../Hook';
-import {
-  mhdDeclineOfferSchema,
-  type MhdDeclineOfferFormValues,
-} from '../Schemas';
+import { mhdDeclineOfferSchema, type MhdDeclineOfferFormValues } from '../Schemas';
 import type {
   MhdOfferAcceptResult,
   MhdOfferDetail as MhdOfferDetailModel,
@@ -113,8 +110,7 @@ export function MhdOfferDetail({
   }
 
   const o: MhdOfferDetailModel = offer.data;
-  const isLive =
-    o.status === 'DRAFT' || o.status === 'PENDING_APPROVAL' || o.status === 'EXTENDED';
+  const isLive = o.status === 'DRAFT' || o.status === 'PENDING_APPROVAL' || o.status === 'EXTENDED';
   const canExtend = o.status === 'DRAFT' || o.status === 'PENDING_APPROVAL';
   const canAccept = o.status === 'EXTENDED';
   // The server refuses declining anything but a live offer and rescinding an
@@ -205,19 +201,15 @@ export function MhdOfferDetail({
       {o.status === 'ACCEPTED' && o.jobAssignmentId ? (
         <div className="space-y-1 rounded-md border border-emerald-200 bg-emerald-50 p-3">
           <p className="text-sm font-medium text-emerald-800">
-            {handoff &&
-            handoff.onboardingOfferLetterId &&
-            handoff.onboardingCandidateEvaluationId
+            {handoff && handoff.onboardingOfferLetterId && handoff.onboardingCandidateEvaluationId
               ? 'Hired — onboarding packet started'
               : 'Hired'}
           </p>
           <p className="text-xs text-emerald-700">
-            Accepting created the employment record. The applicant is now an employee and
-            onboarding begins downstream.
+            Accepting created the employment record. The applicant is now an employee and onboarding
+            begins downstream.
           </p>
-          <p className="font-mono text-xs text-emerald-700">
-            Job assignment: {o.jobAssignmentId}
-          </p>
+          <p className="font-mono text-xs text-emerald-700">Job assignment: {o.jobAssignmentId}</p>
           {handoff?.onboardingOfferLetterId ? (
             <p className="font-mono text-xs text-emerald-700">
               Onboarding offer letter: {handoff.onboardingOfferLetterId}

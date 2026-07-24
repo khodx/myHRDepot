@@ -29,7 +29,12 @@ describe('training route access', () => {
 
   it('admits ONLY Client User to /my-training — not the privileged admin set, not Viewer', () => {
     expect(mhdCanAccessRoute('/my-training', ['Client User'])).toBe(true);
-    for (const role of ['Platform Admin', 'HR Partner', 'Client Admin', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of [
+      'Platform Admin',
+      'HR Partner',
+      'Client Admin',
+      'Viewer',
+    ] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/my-training', [role])).toBe(false);
     }
   });

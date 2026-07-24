@@ -4,10 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTabs } from '@/components/ui/MhdTabs';
-import {
-  mhdCanManageMileageRates,
-  mhdMileageIsPrivileged,
-} from '@/appshell/mhdRouteAccess';
+import { mhdCanManageMileageRates, mhdMileageIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
   useMhdAddTripToClaim,

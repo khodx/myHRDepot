@@ -60,10 +60,11 @@ export function MhdAttendancePolicyEditor({
       pointRules:
         current?.pointRules ??
         MHD_OCCURRENCE_TYPES.map((occurrenceType) => ({ occurrenceType, points: 0 })),
-      thresholds: current?.thresholds.map((threshold) => ({
-        pointsAt: threshold.pointsAt,
-        actionLevel: threshold.actionLevel,
-      })) ?? [],
+      thresholds:
+        current?.thresholds.map((threshold) => ({
+          pointsAt: threshold.pointsAt,
+          actionLevel: threshold.actionLevel,
+        })) ?? [],
     },
   });
 
@@ -177,10 +178,7 @@ export function MhdAttendancePolicyEditor({
                 {...register(`pointRules.${index}.points` as const, { valueAsNumber: true })}
                 className="w-24 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
-              <input
-                type="hidden"
-                {...register(`pointRules.${index}.occurrenceType` as const)}
-              />
+              <input type="hidden" {...register(`pointRules.${index}.occurrenceType` as const)} />
             </div>
           ))}
         </div>

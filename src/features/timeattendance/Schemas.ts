@@ -7,8 +7,14 @@ import {
   MHD_THRESHOLD_EVENT_STATUSES,
 } from './Types';
 
-const isoDate = z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a YYYY-MM-DD date.');
-const isoTime = z.string().trim().regex(/^\d{2}:\d{2}(:\d{2})?$/, 'Use a HH:MM time.');
+const isoDate = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a YYYY-MM-DD date.');
+const isoTime = z
+  .string()
+  .trim()
+  .regex(/^\d{2}:\d{2}(:\d{2})?$/, 'Use a HH:MM time.');
 
 // ---------------------------------------------------------------------------
 // Schedule
@@ -31,10 +37,13 @@ export const mhdScheduleTemplateDaySchema = z
     message: 'A working day needs both a start and an end time.',
     path: ['startTime'],
   })
-  .refine((day) => !day.isWorkingDay || !day.startTime || !day.endTime || day.endTime > day.startTime, {
-    message: 'End time must be after start time.',
-    path: ['endTime'],
-  })
+  .refine(
+    (day) => !day.isWorkingDay || !day.startTime || !day.endTime || day.endTime > day.startTime,
+    {
+      message: 'End time must be after start time.',
+      path: ['endTime'],
+    },
+  )
   .refine((day) => day.isWorkingDay || (!day.startTime && !day.endTime), {
     message: 'A non-working day must not carry times.',
     path: ['startTime'],
@@ -76,11 +85,10 @@ export const mhdGenerateShiftsSchema = z
   })
   // Mirrors the RPC's own two-year guard so the UI fails fast rather than
   // round-tripping a range the server will refuse.
-  .refine(
-    (input) =>
-      (Date.parse(input.to) - Date.parse(input.from)) / 86_400_000 <= 731,
-    { message: 'Generate at most two years of shifts per run.', path: ['to'] },
-  );
+  .refine((input) => (Date.parse(input.to) - Date.parse(input.from)) / 86_400_000 <= 731, {
+    message: 'Generate at most two years of shifts per run.',
+    path: ['to'],
+  });
 
 export const mhdOverrideShiftSchema = z
   .object({
@@ -130,20 +138,15 @@ export const mhdOccurrenceFormSchema = z
     reasonNote: z.string().max(2000).optional().nullable(),
     scheduledShiftId: z.string().optional().nullable(),
   })
-  .refine(
-    (form) => form.classification !== 'PROTECTED' || Boolean(form.protectedLeaveCategory),
-    {
-      message: 'Protected leave requires a category — it is what keeps the absence from accruing points.',
-      path: ['protectedLeaveCategory'],
-    },
-  )
-  .refine(
-    (form) => form.classification === 'PROTECTED' || !form.protectedLeaveCategory,
-    {
-      message: 'Only a protected absence may carry a protected-leave category.',
-      path: ['protectedLeaveCategory'],
-    },
-  );
+  .refine((form) => form.classification !== 'PROTECTED' || Boolean(form.protectedLeaveCategory), {
+    message:
+      'Protected leave requires a category — it is what keeps the absence from accruing points.',
+    path: ['protectedLeaveCategory'],
+  })
+  .refine((form) => form.classification === 'PROTECTED' || !form.protectedLeaveCategory, {
+    message: 'Only a protected absence may carry a protected-leave category.',
+    path: ['protectedLeaveCategory'],
+  });
 
 export const mhdUpdateOccurrenceSchema = z.object({
   occurrenceId: z.string().trim().min(1),
@@ -162,20 +165,14 @@ export const mhdReclassifyOccurrenceSchema = z
     protectedLeaveCategory: z.enum(MHD_PROTECTED_LEAVE_CATEGORIES).optional().nullable(),
     reason: z.string().max(2000).optional().nullable(),
   })
-  .refine(
-    (form) => form.classification !== 'PROTECTED' || Boolean(form.protectedLeaveCategory),
-    {
-      message: 'Protected leave requires a category.',
-      path: ['protectedLeaveCategory'],
-    },
-  )
-  .refine(
-    (form) => form.classification === 'PROTECTED' || !form.protectedLeaveCategory,
-    {
-      message: 'Only a protected absence may carry a protected-leave category.',
-      path: ['protectedLeaveCategory'],
-    },
-  );
+  .refine((form) => form.classification !== 'PROTECTED' || Boolean(form.protectedLeaveCategory), {
+    message: 'Protected leave requires a category.',
+    path: ['protectedLeaveCategory'],
+  })
+  .refine((form) => form.classification === 'PROTECTED' || !form.protectedLeaveCategory, {
+    message: 'Only a protected absence may carry a protected-leave category.',
+    path: ['protectedLeaveCategory'],
+  });
 
 export const mhdVoidOccurrenceSchema = z.object({
   occurrenceId: z.string().trim().min(1),
@@ -211,7 +208,8 @@ export const mhdResolveThresholdEventSchema = z
       form.status !== 'DISMISSED' ||
       Boolean(form.resolutionNote && form.resolutionNote.trim().length > 0),
     {
-      message: 'Dismissing a threshold event requires a reason — the record is the defence if the decision is ever challenged.',
+      message:
+        'Dismissing a threshold event requires a reason — the record is the defence if the decision is ever challenged.',
       path: ['resolutionNote'],
     },
   );
@@ -229,9 +227,17 @@ export const mhdResolveReassessmentSchema = z
     decisionNote: z
       .string()
       .trim()
-      .min(1, 'A written reason is required either way — it is what evidences consistent application.')
+      .min(
+        1,
+        'A written reason is required either way — it is what evidences consistent application.',
+      )
       .max(2000),
-    points: z.number().positive('Assessed points must be above zero.').max(99).optional().nullable(),
+    points: z
+      .number()
+      .positive('Assessed points must be above zero.')
+      .max(99)
+      .optional()
+      .nullable(),
     effectiveDate: isoDate.optional().nullable(),
   })
   .refine((form) => form.decision === 'ASSESSED' || form.points == null, {

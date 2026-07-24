@@ -17,6 +17,7 @@ Complete HR Management Portal with integrated workflow, approval, forms, search,
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - Supabase project
 - Vercel account

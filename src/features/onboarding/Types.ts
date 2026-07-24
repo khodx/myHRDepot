@@ -1,7 +1,8 @@
 import type { MhdFormStatus } from '@/features/forms/Types';
 
 export type MhdUserId = string;
-export type MhdOnboardingChecklistStatus = 'NOT_STARTED' | 'PENDING' | 'SUBMITTED' | 'SIGNED' | 'VOIDED';
+export type MhdOnboardingChecklistStatus =
+  'NOT_STARTED' | 'PENDING' | 'SUBMITTED' | 'SIGNED' | 'VOIDED';
 
 export type MhdOnboardingDocumentKey =
   | 'onboarding_direct_deposits'
@@ -67,13 +68,16 @@ export interface MhdOnboardingPacketFormRef {
   formStatus: MhdFormStatus;
 }
 
-export interface MhdOnboardingPacketItem extends MhdOnboardingChecklistItem, MhdOnboardingPacketDefinition {
+export interface MhdOnboardingPacketItem
+  extends MhdOnboardingChecklistItem, MhdOnboardingPacketDefinition {
   formId: string | null;
   formReferenceId: string | null;
   formStatus: MhdFormStatus | null;
 }
 
-export function mhdIsOnboardingDocumentKey(value: string | null | undefined): value is MhdOnboardingDocumentKey {
+export function mhdIsOnboardingDocumentKey(
+  value: string | null | undefined,
+): value is MhdOnboardingDocumentKey {
   if (!value) return false;
   return value in MHD_ONBOARDING_DOCUMENT_KEY_SET;
 }
@@ -301,10 +305,12 @@ export const MHD_ONBOARDING_PACKET_DEFINITIONS: MhdOnboardingPacketDefinition[] 
   },
 ];
 
-export const MHD_ONBOARDING_PACKET_BY_KEY: Record<MhdOnboardingDocumentKey, MhdOnboardingPacketDefinition> =
-  Object.fromEntries(
-    MHD_ONBOARDING_PACKET_DEFINITIONS.map((item) => [item.documentKey, item]),
-  ) as Record<MhdOnboardingDocumentKey, MhdOnboardingPacketDefinition>;
+export const MHD_ONBOARDING_PACKET_BY_KEY: Record<
+  MhdOnboardingDocumentKey,
+  MhdOnboardingPacketDefinition
+> = Object.fromEntries(
+  MHD_ONBOARDING_PACKET_DEFINITIONS.map((item) => [item.documentKey, item]),
+) as Record<MhdOnboardingDocumentKey, MhdOnboardingPacketDefinition>;
 
 const MHD_ONBOARDING_DOCUMENT_KEY_SET: Record<MhdOnboardingDocumentKey, true> = {
   onboarding_direct_deposits: true,

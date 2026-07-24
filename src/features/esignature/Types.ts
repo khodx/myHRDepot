@@ -1,6 +1,7 @@
 import type { MhdTaskAssignableUser } from '@/features/tasks/Types';
 
-export type MhdEsignatureStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'DECLINED' | 'VOIDED' | 'EXPIRED';
+export type MhdEsignatureStatus =
+  'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'DECLINED' | 'VOIDED' | 'EXPIRED';
 export type MhdEsignatureSignerStatus = 'PENDING' | 'VIEWED' | 'SIGNED' | 'DECLINED';
 export type MhdEsignatureSigningOrder = 'SEQUENTIAL' | 'PARALLEL';
 export type MhdEsignatureEventType =

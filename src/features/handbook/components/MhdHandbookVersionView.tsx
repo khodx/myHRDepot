@@ -1,9 +1,6 @@
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { useMhdHandbookVersion } from '../Hook';
-import {
-  MHD_HANDBOOK_ATTORNEY_PLACEHOLDER,
-  mhdFormatHandbookJurisdiction,
-} from '../Types';
+import { MHD_HANDBOOK_ATTORNEY_PLACEHOLDER, mhdFormatHandbookJurisdiction } from '../Types';
 import { MhdHandbookAttorneyPendingBanner } from './MhdHandbookAttorneyPendingBanner';
 
 interface Props {
@@ -48,9 +45,7 @@ export function MhdHandbookVersionView({ versionId }: Props) {
       <header className="rounded-xl border border-border bg-card p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-semibold text-foreground">
-              Version {v.versionNumber}
-            </h2>
+            <h2 className="text-base font-semibold text-foreground">Version {v.versionNumber}</h2>
             <p className="font-mono text-xs text-muted-foreground">{v.referenceId}</p>
           </div>
           <div className="text-right text-xs text-muted-foreground">

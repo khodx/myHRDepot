@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
-import {
-  mhdCanAccessRoute,
-  mhdCanMutateJobs,
-  mhdCanSeeJobPay,
-} from '@/appshell/mhdRouteAccess';
+import { mhdCanAccessRoute, mhdCanMutateJobs, mhdCanSeeJobPay } from '@/appshell/mhdRouteAccess';
 
 /**
  * Route-exclusion coverage for the Job Descriptions surfaces. The router guard

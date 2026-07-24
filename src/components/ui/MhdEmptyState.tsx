@@ -11,7 +11,13 @@ interface MhdEmptyStateProps {
 }
 
 /** Empty-list placeholder: tinted icon circle, title, hint, optional CTA. */
-export function MhdEmptyState({ icon: Icon, title, description, action, className }: MhdEmptyStateProps) {
+export function MhdEmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+  className,
+}: MhdEmptyStateProps) {
   return (
     <div className={cn('flex flex-col items-center gap-2 py-12 text-center', className)}>
       {Icon && (

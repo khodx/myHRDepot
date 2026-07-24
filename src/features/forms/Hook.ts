@@ -26,7 +26,10 @@ export function useMhdFormsIndex(companyId: string | null) {
 
     try {
       const [formRows, draftRows] = await Promise.all([
-        mhdFormService.listFormsForCompany(companyId, filters.status === 'ALL' ? undefined : filters.status),
+        mhdFormService.listFormsForCompany(
+          companyId,
+          filters.status === 'ALL' ? undefined : filters.status,
+        ),
         mhdFormService.listMyDraftSubmissions(),
       ]);
       setForms(formRows);

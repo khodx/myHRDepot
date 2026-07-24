@@ -14,10 +14,22 @@ export interface MhdRouteAccessRule {
 export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/dashboard', roles: 'ALL' },
   { path: '/tasks', roles: 'ALL' },
-  { path: '/activities', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
-  { path: '/forms', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
-  { path: '/property', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
-  { path: '/esignature', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'] },
+  {
+    path: '/activities',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+  },
+  {
+    path: '/forms',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+  },
+  {
+    path: '/property',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+  },
+  {
+    path: '/esignature',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+  },
   // Performance. The specific /performance/* sub-routes precede the general
   // /performance rule because mhdCanAccessRoute returns the FIRST matching rule
   // via prefix match, so /performance would otherwise capture them all (the same
@@ -30,7 +42,10 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // the general /performance rule below.
   { path: '/performance/templates', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   { path: '/performance/settings', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
-  { path: '/performance/invitations', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  {
+    path: '/performance/invitations',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
+  },
   { path: '/performance', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/offboarding', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   // Conduct — the strictest module. Corrective-action cases carry RESTRICTED-tier
@@ -137,7 +152,10 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   //   only their own requisitions (RLS). Viewer is excluded from every
   //   authenticated recruiting surface.
   { path: '/recruiting/eeo', roles: ['Platform Admin'] },
-  { path: '/recruiting/interviews', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  {
+    path: '/recruiting/interviews',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
+  },
   { path: '/recruiting', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
 ];
 
@@ -225,7 +243,12 @@ export function mhdCanMutateActivities(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_ACTIVITY_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }
 
-export const MHD_PERFORMANCE_MUTATING_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'];
+export const MHD_PERFORMANCE_MUTATING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+  'Client User',
+];
 export function mhdCanMutatePerformance(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_PERFORMANCE_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }
@@ -283,7 +306,11 @@ export function mhdCanMutateAttendance(userRoles: MhdAuthRoleName[]): boolean {
  * this list only controls whether the "Reveal" affordance renders; the RPC
  * enforces the same roles server-side and audits every reveal.
  */
-export const MHD_SENSITIVE_REVEAL_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner', 'Client Admin'];
+export const MHD_SENSITIVE_REVEAL_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
 
 export function mhdCanRevealEncryptedFields(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_SENSITIVE_REVEAL_ROLES.some((role) => userRoles.includes(role));

@@ -21,7 +21,12 @@ export function MhdAttachmentList({ attachments, onDownload, onDelete }: Props) 
   return (
     <div className="space-y-2">
       {attachments.map((attachment) => (
-        <MhdAttachmentItem key={attachment.id} attachment={attachment} onDownload={onDownload} onDelete={onDelete} />
+        <MhdAttachmentItem
+          key={attachment.id}
+          attachment={attachment}
+          onDownload={onDownload}
+          onDelete={onDelete}
+        />
       ))}
     </div>
   );

@@ -32,9 +32,7 @@ export function MhdRequisitionDetailRoutePage() {
         requisitionId={reqId}
         canManage={canManage}
         onBack={() => navigate('/recruiting')}
-        onOpenApplication={(applicationId) =>
-          navigate(`/recruiting/applications/${applicationId}`)
-        }
+        onOpenApplication={(applicationId) => navigate(`/recruiting/applications/${applicationId}`)}
       />
       {canManage ? (
         <MhdInterviewGuideBuilder

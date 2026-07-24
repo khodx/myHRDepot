@@ -64,9 +64,7 @@ export function MhdTaskDetailPage() {
   if (error || !task) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
-        <p className="text-sm text-red-600">
-          {(error as Error)?.message ?? 'Task not found'}
-        </p>
+        <p className="text-sm text-red-600">{(error as Error)?.message ?? 'Task not found'}</p>
         <button
           type="button"
           onClick={() => navigate('/tasks')}
@@ -107,7 +105,9 @@ export function MhdTaskDetailPage() {
 
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-neutral-100 pt-4 text-sm text-neutral-500">
           {task.dueDate ? <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span> : null}
-          {task.assignedDisplayNames.length > 0 ? <span>Assigned: {task.assignedDisplayNames.join(', ')}</span> : null}
+          {task.assignedDisplayNames.length > 0 ? (
+            <span>Assigned: {task.assignedDisplayNames.join(', ')}</span>
+          ) : null}
           <span>Progress: {progressPercent}%</span>
           <span>Notes: {task.noteCount}</span>
           <span>Attachments: {task.attachmentCount}</span>
@@ -115,7 +115,9 @@ export function MhdTaskDetailPage() {
 
         {task.descriptionPlainText ? (
           <div className="mt-4 border-t border-neutral-100 pt-4">
-            <p className="whitespace-pre-wrap text-sm text-neutral-700">{task.descriptionPlainText}</p>
+            <p className="whitespace-pre-wrap text-sm text-neutral-700">
+              {task.descriptionPlainText}
+            </p>
           </div>
         ) : null}
 
@@ -143,7 +145,10 @@ export function MhdTaskDetailPage() {
                 currentStatusName={task.statusName}
                 availableTransitions={availableTransitions}
               />
-              <MhdWorkflowTransitionHistory key={`history-${task.id}-${workflowRefreshKey}`} taskId={task.id} />
+              <MhdWorkflowTransitionHistory
+                key={`history-${task.id}-${workflowRefreshKey}`}
+                taskId={task.id}
+              />
             </div>
           </div>
 
@@ -175,12 +180,17 @@ export function MhdTaskDetailPage() {
 
             {!canMutateWorkflowApprovals ? (
               <p className="mt-4 text-sm text-neutral-500">
-                Your current role can review approval history but cannot request or action approvals.
+                Your current role can review approval history but cannot request or action
+                approvals.
               </p>
             ) : null}
 
             <div className="mt-6">
-              <MhdApprovalHistory key={`approvals-${task.id}-${workflowRefreshKey}`} entityType="TASK" entityId={task.id} />
+              <MhdApprovalHistory
+                key={`approvals-${task.id}-${workflowRefreshKey}`}
+                entityType="TASK"
+                entityId={task.id}
+              />
             </div>
           </div>
 

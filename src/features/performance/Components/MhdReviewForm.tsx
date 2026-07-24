@@ -97,7 +97,9 @@ export function MhdReviewForm({
               </option>
             ))}
           </select>
-          {errors.personId ? <p className="mt-1 text-xs text-red-600">{errors.personId.message}</p> : null}
+          {errors.personId ? (
+            <p className="mt-1 text-xs text-red-600">{errors.personId.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -117,7 +119,9 @@ export function MhdReviewForm({
               </option>
             ))}
           </select>
-          {errors.reviewerUserId ? <p className="mt-1 text-xs text-red-600">{errors.reviewerUserId.message}</p> : null}
+          {errors.reviewerUserId ? (
+            <p className="mt-1 text-xs text-red-600">{errors.reviewerUserId.message}</p>
+          ) : null}
         </div>
       </div>
 
@@ -138,7 +142,9 @@ export function MhdReviewForm({
               </option>
             ))}
           </select>
-          {errors.reviewType ? <p className="mt-1 text-xs text-red-600">{errors.reviewType.message}</p> : null}
+          {errors.reviewType ? (
+            <p className="mt-1 text-xs text-red-600">{errors.reviewType.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -152,7 +158,9 @@ export function MhdReviewForm({
             disabled={setupLocked}
             {...register('reviewPeriodStart')}
           />
-          {errors.reviewPeriodStart ? <p className="mt-1 text-xs text-red-600">{errors.reviewPeriodStart.message}</p> : null}
+          {errors.reviewPeriodStart ? (
+            <p className="mt-1 text-xs text-red-600">{errors.reviewPeriodStart.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -166,7 +174,9 @@ export function MhdReviewForm({
             disabled={setupLocked}
             {...register('reviewPeriodEnd')}
           />
-          {errors.reviewPeriodEnd ? <p className="mt-1 text-xs text-red-600">{errors.reviewPeriodEnd.message}</p> : null}
+          {errors.reviewPeriodEnd ? (
+            <p className="mt-1 text-xs text-red-600">{errors.reviewPeriodEnd.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -185,7 +195,8 @@ export function MhdReviewForm({
 
       {setupLocked ? (
         <p className="text-xs text-muted-foreground">
-          Subject, reviewer, type, period, and due date are set at creation and cannot be changed here.
+          Subject, reviewer, type, period, and due date are set at creation and cannot be changed
+          here.
         </p>
       ) : null}
 
@@ -225,10 +236,14 @@ export function MhdReviewForm({
           idPrefix="mhd-review-form-rating"
           legend="Overall Rating (1–5)"
           value={overallRating ?? null}
-          onChange={(value) => setValue('overallRating', value, { shouldDirty: true, shouldValidate: true })}
+          onChange={(value) =>
+            setValue('overallRating', value, { shouldDirty: true, shouldValidate: true })
+          }
           disabled={contentLocked}
         />
-        {errors.overallRating ? <p className="text-xs text-red-600">{errors.overallRating.message}</p> : null}
+        {errors.overallRating ? (
+          <p className="text-xs text-red-600">{errors.overallRating.message}</p>
+        ) : null}
 
         <div>
           <label htmlFor="mhd-review-form-strengths" className="mb-1 block text-sm font-medium">
@@ -270,7 +285,10 @@ export function MhdReviewForm({
         </div>
 
         <div>
-          <label htmlFor="mhd-review-form-reviewer-comments" className="mb-1 block text-sm font-medium">
+          <label
+            htmlFor="mhd-review-form-reviewer-comments"
+            className="mb-1 block text-sm font-medium"
+          >
             Reviewer Comments
           </label>
           <textarea
@@ -282,7 +300,10 @@ export function MhdReviewForm({
         </div>
 
         <div>
-          <label htmlFor="mhd-review-form-employee-comments" className="mb-1 block text-sm font-medium">
+          <label
+            htmlFor="mhd-review-form-employee-comments"
+            className="mb-1 block text-sm font-medium"
+          >
             Employee Comments
           </label>
           <textarea

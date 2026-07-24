@@ -14,5 +14,9 @@ const STATUS_VARIANTS: Record<MhdPropertyAssignmentStatus, MhdBadgeVariant> = {
 };
 
 export function MhdPropertyAssignmentBadge({ status }: MhdPropertyAssignmentBadgeProps) {
-  return <MhdBadge variant={STATUS_VARIANTS[status]}>{mhdFormatPropertyAssignmentStatus(status)}</MhdBadge>;
+  return (
+    <MhdBadge variant={STATUS_VARIANTS[status]}>
+      {mhdFormatPropertyAssignmentStatus(status)}
+    </MhdBadge>
+  );
 }

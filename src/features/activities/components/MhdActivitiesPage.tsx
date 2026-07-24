@@ -9,7 +9,13 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateActivities } from '@/appshell/mhdRouteAccess';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { mhdActivityBoardFilterSchema, type MhdActivityFormSchemaInput } from '../Schemas';
-import { useMhdActivities, useMhdActivityActions, useMhdActivityPeople, useMhdActivityTasks, useMhdActivityUsers } from '../Hook';
+import {
+  useMhdActivities,
+  useMhdActivityActions,
+  useMhdActivityPeople,
+  useMhdActivityTasks,
+  useMhdActivityUsers,
+} from '../Hook';
 import type { MhdActivityBoardFilters, MhdUpdateActivityInput } from '../Types';
 import { MhdActivityFilterBar } from './MhdActivityFilterBar';
 import { MhdActivityForm } from './MhdActivityForm';
@@ -33,13 +39,18 @@ export function MhdActivitiesPage() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const selectedCompanyId = canCrossCompanyFilter
-    ? (filters.companyId !== 'ALL' ? filters.companyId : profile?.companyId ?? null)
+    ? filters.companyId !== 'ALL'
+      ? filters.companyId
+      : (profile?.companyId ?? null)
     : (profile?.companyId ?? null);
 
-  const effectiveFilters = useMemo<MhdActivityBoardFilters>(() => ({
-    ...filters,
-    companyId: canCrossCompanyFilter ? filters.companyId : profile?.companyId ?? 'ALL',
-  }), [canCrossCompanyFilter, filters, profile?.companyId]);
+  const effectiveFilters = useMemo<MhdActivityBoardFilters>(
+    () => ({
+      ...filters,
+      companyId: canCrossCompanyFilter ? filters.companyId : (profile?.companyId ?? 'ALL'),
+    }),
+    [canCrossCompanyFilter, filters, profile?.companyId],
+  );
 
   const activitiesQuery = useMhdActivities(effectiveFilters);
   const actions = useMhdActivityActions();
@@ -87,53 +98,76 @@ export function MhdActivitiesPage() {
         }
       />
 
-        {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
-        {activitiesQuery.error ? (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {activitiesQuery.error instanceof Error ? activitiesQuery.error.message : 'Unable to load activities.'}
-          </div>
-        ) : null}
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <MhdStatCard icon={CalendarRange} label="Planned" value={counts.planned} />
-          <MhdStatCard icon={Loader2} label="In Progress" value={counts.inProgress} />
-          <MhdStatCard icon={CheckCircle2} label="Completed" value={counts.completed} />
+      {actionError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionError}
         </div>
+      ) : null}
+      {activitiesQuery.error ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {activitiesQuery.error instanceof Error
+            ? activitiesQuery.error.message
+            : 'Unable to load activities.'}
+        </div>
+      ) : null}
 
-        {isCreating && canMutate && selectedCompanyId ? (
-          <MhdCard className="p-6">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">New Activity</h2>
-            <MhdActivityForm
-              mode="create"
-              companyId={selectedCompanyId}
-              currentUserId={profile?.userId ?? ''}
-              people={(peopleQuery.data ?? []).map((person) => ({ id: person.id, label: person.displayName }))}
-              users={(usersQuery.data ?? []).map((user) => ({ id: user.id, label: user.displayName }))}
-              tasks={(tasksQuery.data ?? []).map((task) => ({ id: task.id, label: `${task.referenceId} — ${task.title}` }))}
-              onSubmit={handleCreate}
-              onCancel={() => setIsCreating(false)}
-              isSubmitting={actions.createActivity.isPending}
-            />
-          </MhdCard>
-        ) : null}
+      <div className="grid gap-4 md:grid-cols-3">
+        <MhdStatCard icon={CalendarRange} label="Planned" value={counts.planned} />
+        <MhdStatCard icon={Loader2} label="In Progress" value={counts.inProgress} />
+        <MhdStatCard icon={CheckCircle2} label="Completed" value={counts.completed} />
+      </div>
 
-        <MhdCard>
-          <MhdActivityFilterBar
-            filters={effectiveFilters}
-            onChange={setFilters}
-            companies={companyOptions}
-            people={(peopleQuery.data ?? []).map((person) => ({ id: person.id, label: person.displayName }))}
-            tasks={(tasksQuery.data ?? []).map((task) => ({ id: task.id, label: `${task.referenceId} — ${task.title}` }))}
+      {isCreating && canMutate && selectedCompanyId ? (
+        <MhdCard className="p-6">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">New Activity</h2>
+          <MhdActivityForm
+            mode="create"
+            companyId={selectedCompanyId}
+            currentUserId={profile?.userId ?? ''}
+            people={(peopleQuery.data ?? []).map((person) => ({
+              id: person.id,
+              label: person.displayName,
+            }))}
+            users={(usersQuery.data ?? []).map((user) => ({
+              id: user.id,
+              label: user.displayName,
+            }))}
+            tasks={(tasksQuery.data ?? []).map((task) => ({
+              id: task.id,
+              label: `${task.referenceId} — ${task.title}`,
+            }))}
+            onSubmit={handleCreate}
+            onCancel={() => setIsCreating(false)}
+            isSubmitting={actions.createActivity.isPending}
           />
         </MhdCard>
+      ) : null}
 
-        <MhdCard className="overflow-hidden p-0">
-          {activitiesQuery.isLoading ? (
-            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">Loading activities…</div>
-          ) : (
-            <MhdActivityList activities={activities} />
-          )}
-        </MhdCard>
+      <MhdCard>
+        <MhdActivityFilterBar
+          filters={effectiveFilters}
+          onChange={setFilters}
+          companies={companyOptions}
+          people={(peopleQuery.data ?? []).map((person) => ({
+            id: person.id,
+            label: person.displayName,
+          }))}
+          tasks={(tasksQuery.data ?? []).map((task) => ({
+            id: task.id,
+            label: `${task.referenceId} — ${task.title}`,
+          }))}
+        />
+      </MhdCard>
+
+      <MhdCard className="overflow-hidden p-0">
+        {activitiesQuery.isLoading ? (
+          <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+            Loading activities…
+          </div>
+        ) : (
+          <MhdActivityList activities={activities} />
+        )}
+      </MhdCard>
     </div>
   );
 }

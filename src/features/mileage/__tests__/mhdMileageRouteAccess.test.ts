@@ -36,7 +36,12 @@ describe('mileage route access', () => {
     expect(mhdCanManageMileageRates(['Platform Admin'])).toBe(true);
     // HR Partner and Client Admin are privileged for the module but must NOT be
     // able to write the global IRS registry; a Client User and Viewer even less.
-    for (const role of ['HR Partner', 'Client Admin', 'Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of [
+      'HR Partner',
+      'Client Admin',
+      'Client User',
+      'Viewer',
+    ] as MhdAuthRoleName[]) {
       expect(mhdCanManageMileageRates([role])).toBe(false);
     }
   });

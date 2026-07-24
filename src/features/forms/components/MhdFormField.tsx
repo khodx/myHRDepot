@@ -18,7 +18,15 @@ interface MhdFormFieldProps {
   onUploadFile?: (file: File) => Promise<MhdFormFileValue>;
 }
 
-export function MhdFormField({ field, value, onChange, required, error, readOnly, onUploadFile }: MhdFormFieldProps) {
+export function MhdFormField({
+  field,
+  value,
+  onChange,
+  required,
+  error,
+  readOnly,
+  onUploadFile,
+}: MhdFormFieldProps) {
   const isRequired = required ?? field.required;
 
   switch (field.type) {

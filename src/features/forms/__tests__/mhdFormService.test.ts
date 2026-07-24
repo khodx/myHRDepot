@@ -2,16 +2,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mhdFormCalculationEngine, mhdFormLogicEngine, mhdFormService } from '../Service';
 import type { MhdFormCalculation, MhdFormLogicRule } from '../Types';
 
-const { mockRpc, mockReturns, mockFrom, mockDelete, mockEq, mockInsert, mockInvoke } = vi.hoisted(() => {
-  const mockReturns = vi.fn();
-  const mockRpc = vi.fn();
-  const mockEq = vi.fn();
-  const mockDelete = vi.fn(() => ({ eq: mockEq }));
-  const mockInsert = vi.fn();
-  const mockFrom = vi.fn(() => ({ delete: mockDelete, insert: mockInsert }));
-  const mockInvoke = vi.fn();
-  return { mockRpc, mockReturns, mockFrom, mockDelete, mockEq, mockInsert, mockInvoke };
-});
+const { mockRpc, mockReturns, mockFrom, mockDelete, mockEq, mockInsert, mockInvoke } = vi.hoisted(
+  () => {
+    const mockReturns = vi.fn();
+    const mockRpc = vi.fn();
+    const mockEq = vi.fn();
+    const mockDelete = vi.fn(() => ({ eq: mockEq }));
+    const mockInsert = vi.fn();
+    const mockFrom = vi.fn(() => ({ delete: mockDelete, insert: mockInsert }));
+    const mockInvoke = vi.fn();
+    return { mockRpc, mockReturns, mockFrom, mockDelete, mockEq, mockInsert, mockInvoke };
+  },
+);
 
 vi.mock('@/config/appConfig', () => ({
   appConfig: {
@@ -63,9 +65,23 @@ describe('mhdFormService', () => {
             id: 'form-1',
             name: 'New Hire - Direct Deposit',
             description: 'Direct deposit setup for new hires.',
-            pages: [{ id: 'page-1', title: 'Page 1', fields: ['field-1', 'field-2', 'field-3'], order: 1 }],
+            pages: [
+              {
+                id: 'page-1',
+                title: 'Page 1',
+                fields: ['field-1', 'field-2', 'field-3'],
+                order: 1,
+              },
+            ],
             fields: [
-              { id: 'field-1', type: 'text_field', label: 'Bank Name', required: true, hidden: false, options: [] },
+              {
+                id: 'field-1',
+                type: 'text_field',
+                label: 'Bank Name',
+                required: true,
+                hidden: false,
+                options: [],
+              },
               {
                 id: 'field-2',
                 type: 'dropdown',
@@ -74,7 +90,14 @@ describe('mhdFormService', () => {
                 hidden: false,
                 options: [{ value: 'CHECKING', label: 'Checking' }],
               },
-              { id: 'field-3', type: 'long_text', label: 'Notes', required: false, hidden: false, options: [] },
+              {
+                id: 'field-3',
+                type: 'long_text',
+                label: 'Notes',
+                required: false,
+                hidden: false,
+                options: [],
+              },
             ],
             logic: [],
             calculations: [],
@@ -229,11 +252,14 @@ describe('mhdFormService', () => {
     it('throws and records nothing when the Drive edge function fails', async () => {
       const file = new File(['hello'], 'void-check.pdf', { type: 'application/pdf' });
 
-      mockInvoke.mockResolvedValueOnce({ data: null, error: { message: 'Drive credentials missing' } });
+      mockInvoke.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Drive credentials missing' },
+      });
 
-      await expect(mhdFormService.uploadSubmissionFile('submission-1', 'field-1', file)).rejects.toThrow(
-        'Drive credentials missing',
-      );
+      await expect(
+        mhdFormService.uploadSubmissionFile('submission-1', 'field-1', file),
+      ).rejects.toThrow('Drive credentials missing');
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
@@ -241,12 +267,21 @@ describe('mhdFormService', () => {
       const file = new File(['hello'], 'void-check.pdf', { type: 'application/pdf' });
 
       mockInvoke.mockResolvedValueOnce({
-        data: { driveFileId: 'drive-file-123', driveFolderId: 'drive-folder-456', driveWebViewLink: null, driveWebContentLink: null },
+        data: {
+          driveFileId: 'drive-file-123',
+          driveFolderId: 'drive-folder-456',
+          driveWebViewLink: null,
+          driveWebContentLink: null,
+        },
         error: null,
       });
-      mockInsert.mockResolvedValueOnce({ error: { message: 'RLS: submission does not belong to user' } });
+      mockInsert.mockResolvedValueOnce({
+        error: { message: 'RLS: submission does not belong to user' },
+      });
 
-      await expect(mhdFormService.uploadSubmissionFile('submission-1', 'field-1', file)).rejects.toThrow(
+      await expect(
+        mhdFormService.uploadSubmissionFile('submission-1', 'field-1', file),
+      ).rejects.toThrow(
         'Unable to record form attachment: RLS: submission does not belong to user',
       );
     });
@@ -254,9 +289,9 @@ describe('mhdFormService', () => {
     it('rejects disallowed files before invoking the edge function', async () => {
       const file = new File(['binary'], 'virus.exe', { type: 'application/x-msdownload' });
 
-      await expect(mhdFormService.uploadSubmissionFile('submission-1', 'field-1', file)).rejects.toThrow(
-        'not permitted',
-      );
+      await expect(
+        mhdFormService.uploadSubmissionFile('submission-1', 'field-1', file),
+      ).rejects.toThrow('not permitted');
       expect(mockInvoke).not.toHaveBeenCalled();
       expect(mockInsert).not.toHaveBeenCalled();
     });
@@ -280,8 +315,12 @@ describe('mhdFormLogicEngine', () => {
       ],
     };
 
-    expect(mhdFormLogicEngine.evaluateNode(group, { employmentStatus: 'Yes', role: 'Manager' })).toBe(true);
-    expect(mhdFormLogicEngine.evaluateNode(group, { employmentStatus: 'Yes', role: 'Employee' })).toBe(false);
+    expect(
+      mhdFormLogicEngine.evaluateNode(group, { employmentStatus: 'Yes', role: 'Manager' }),
+    ).toBe(true);
+    expect(
+      mhdFormLogicEngine.evaluateNode(group, { employmentStatus: 'Yes', role: 'Employee' }),
+    ).toBe(false);
   });
 
   it('resolves SHOW/HIDE and REQUIRE rules against default-hidden fields', () => {
@@ -302,7 +341,9 @@ describe('mhdFormLogicEngine', () => {
       },
     ];
 
-    const result = mhdFormLogicEngine.evaluateAllLogic(rules, { isManager: true }, ['managerNotes']);
+    const result = mhdFormLogicEngine.evaluateAllLogic(rules, { isManager: true }, [
+      'managerNotes',
+    ]);
     expect(result.hiddenFields.has('managerNotes')).toBe(false);
     expect(result.requiredFields.has('managerNotes')).toBe(true);
   });

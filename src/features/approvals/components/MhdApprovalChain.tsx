@@ -23,9 +23,11 @@ export function MhdApprovalChain({ approvalId }: MhdApprovalChainProps) {
     queryFn: () => mhdApprovalService.getApprovalChain(approvalId),
   });
 
-  if (isLoading) return <div className="text-sm text-muted-foreground">Loading approval chain...</div>;
+  if (isLoading)
+    return <div className="text-sm text-muted-foreground">Loading approval chain...</div>;
   if (error) return <div className="text-sm text-red-600">{error.message}</div>;
-  if (chain.length === 0) return <p className="text-sm text-muted-foreground">No approvers assigned.</p>;
+  if (chain.length === 0)
+    return <p className="text-sm text-muted-foreground">No approvers assigned.</p>;
 
   return (
     <div className="space-y-2">

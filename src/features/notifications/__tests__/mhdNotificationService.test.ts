@@ -143,7 +143,9 @@ describe('mhdNotificationService', () => {
     });
 
     it('should throw a prefixed error when supabase returns an error', async () => {
-      mockRpc.mockReturnValueOnce(Promise.resolve({ data: null, error: { message: 'rpc failed' } }));
+      mockRpc.mockReturnValueOnce(
+        Promise.resolve({ data: null, error: { message: 'rpc failed' } }),
+      );
 
       await expect(mhdNotificationService.getUnreadCount()).rejects.toThrow(
         'Unable to fetch unread notification count: rpc failed',
@@ -153,7 +155,9 @@ describe('mhdNotificationService', () => {
 
   describe('markRead', () => {
     it('should call mhd_mark_notification_read once per id (no bulk function exists)', async () => {
-      mockRpc.mockImplementation((..._args: unknown[]): unknown => Promise.resolve({ data: null, error: null }));
+      mockRpc.mockImplementation((..._args: unknown[]): unknown =>
+        Promise.resolve({ data: null, error: null }),
+      );
 
       await mhdNotificationService.markRead(['notif-001', 'notif-002']);
 
@@ -167,7 +171,9 @@ describe('mhdNotificationService', () => {
     });
 
     it('should throw a prefixed error when supabase returns an error', async () => {
-      mockRpc.mockReturnValueOnce(Promise.resolve({ data: null, error: { message: 'not permitted' } }));
+      mockRpc.mockReturnValueOnce(
+        Promise.resolve({ data: null, error: { message: 'not permitted' } }),
+      );
 
       await expect(mhdNotificationService.markRead(['notif-001'])).rejects.toThrow(
         'Unable to mark notifications read: not permitted',
@@ -185,7 +191,9 @@ describe('mhdNotificationService', () => {
     });
 
     it('should throw a prefixed error when supabase returns an error', async () => {
-      mockRpc.mockReturnValueOnce(Promise.resolve({ data: null, error: { message: 'not authenticated' } }));
+      mockRpc.mockReturnValueOnce(
+        Promise.resolve({ data: null, error: { message: 'not authenticated' } }),
+      );
 
       await expect(mhdNotificationService.markAllRead()).rejects.toThrow(
         'Unable to mark all notifications read: not authenticated',

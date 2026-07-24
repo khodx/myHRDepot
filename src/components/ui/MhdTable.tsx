@@ -33,7 +33,12 @@ export function MhdTh({ className, ...props }: ThHTMLAttributes<HTMLTableCellEle
 }
 
 export function MhdTr({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn('border-b border-border last:border-b-0 hover:bg-muted/50', className)} {...props} />;
+  return (
+    <tr
+      className={cn('border-b border-border last:border-b-0 hover:bg-muted/50', className)}
+      {...props}
+    />
+  );
 }
 
 export function MhdTd({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {

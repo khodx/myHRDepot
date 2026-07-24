@@ -136,16 +136,22 @@ describe('mhdAttachmentService', () => {
       error: null,
     });
     mockReturns.mockResolvedValueOnce({
-      data: [{ id: 'att-002', reference_id: 'FILE-000002', drive_file_id: 'drive-file-123', drive_web_view_link: null }],
+      data: [
+        {
+          id: 'att-002',
+          reference_id: 'FILE-000002',
+          drive_file_id: 'drive-file-123',
+          drive_web_view_link: null,
+        },
+      ],
       error: null,
     });
 
     await mhdAttachmentService.uploadAttachment('TASK', 'task-1', file);
 
-    const createArgs = mockRpc.mock.calls.find((call) => call[0] === 'mhd_create_attachment')?.[1] as Record<
-      string,
-      unknown
-    >;
+    const createArgs = mockRpc.mock.calls.find(
+      (call) => call[0] === 'mhd_create_attachment',
+    )?.[1] as Record<string, unknown>;
     expect(createArgs).toBeDefined();
     expect('p_file_extension' in createArgs).toBe(false);
     expect('p_stored_file_name' in createArgs).toBe(false);

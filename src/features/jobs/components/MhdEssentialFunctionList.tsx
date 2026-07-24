@@ -24,7 +24,11 @@ export function MhdEssentialFunctionList({ essential, marginal, readOnly = true,
       <div className="flex items-baseline justify-between">
         <h3 className="text-sm font-semibold text-foreground">Essential functions</h3>
         {!readOnly && onEdit ? (
-          <button type="button" onClick={onEdit} className="text-xs font-medium text-accent hover:text-accent-hover">
+          <button
+            type="button"
+            onClick={onEdit}
+            className="text-xs font-medium text-accent hover:text-accent-hover"
+          >
             Edit functions
           </button>
         ) : null}

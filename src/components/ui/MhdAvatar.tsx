@@ -29,7 +29,12 @@ export function MhdAvatar({ name, detail, size = 'md', className }: MhdAvatarPro
     </span>
   );
   if (!detail) {
-    return <span className={cn('inline-flex items-center gap-2', className)}>{circle}<span className="text-sm text-foreground">{name}</span></span>;
+    return (
+      <span className={cn('inline-flex items-center gap-2', className)}>
+        {circle}
+        <span className="text-sm text-foreground">{name}</span>
+      </span>
+    );
   }
   return (
     <span className={cn('inline-flex items-center gap-2.5', className)}>

@@ -95,9 +95,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
       setSubmitted(true);
     } catch (error) {
       // Surface the server's message (invalid/expired link, already submitted, …).
-      setSubmitError(
-        error instanceof Error ? error.message : 'Unable to submit your application.',
-      );
+      setSubmitError(error instanceof Error ? error.message : 'Unable to submit your application.');
     } finally {
       setIsSubmittingApplication(false);
     }
@@ -133,7 +131,9 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-rose-700">
             Apply Link Unavailable
           </p>
-          <h1 className="mt-2 text-3xl font-bold text-foreground">This apply link cannot be used</h1>
+          <h1 className="mt-2 text-3xl font-bold text-foreground">
+            This apply link cannot be used
+          </h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             No application token was provided. Please use the link from your invitation email.
           </p>
@@ -163,10 +163,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
               </p>
             </div>
           ) : (
-            <form
-              onSubmit={applyForm.handleSubmit(handleApply)}
-              className="mt-6 space-y-4"
-            >
+            <form onSubmit={applyForm.handleSubmit(handleApply)} className="mt-6 space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label

@@ -17,5 +17,7 @@ interface Props {
 }
 
 export function MhdSeverityBadge({ severity }: Props) {
-  return <MhdBadge variant={SEVERITY_VARIANTS[severity]}>{mhdFormatConductSeverity(severity)}</MhdBadge>;
+  return (
+    <MhdBadge variant={SEVERITY_VARIANTS[severity]}>{mhdFormatConductSeverity(severity)}</MhdBadge>
+  );
 }

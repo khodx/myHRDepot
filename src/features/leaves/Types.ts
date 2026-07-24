@@ -117,27 +117,13 @@ export type MhdLeaveJurisdiction = 'FEDERAL' | 'CA' | 'COMPANY' | 'OTHER';
  * trailing window, computed at read time by `mhd_leave_balance`.
  */
 export type MhdLeaveMeasurementMethod =
-  | 'CALENDAR_YEAR'
-  | 'FIXED_YEAR'
-  | 'ROLLING_FORWARD'
-  | 'ROLLING_BACKWARD'
-  | 'PER_EVENT'
-  | 'NONE';
+  'CALENDAR_YEAR' | 'FIXED_YEAR' | 'ROLLING_FORWARD' | 'ROLLING_BACKWARD' | 'PER_EVENT' | 'NONE';
 
 export type MhdLeaveCaseStatus =
-  | 'REQUESTED'
-  | 'APPROVED'
-  | 'ACTIVE'
-  | 'COMPLETED'
-  | 'DENIED'
-  | 'CANCELLED';
+  'REQUESTED' | 'APPROVED' | 'ACTIVE' | 'COMPLETED' | 'DENIED' | 'CANCELLED';
 
 export type MhdLeaveCertificationType =
-  | 'INITIAL'
-  | 'RECERTIFICATION'
-  | 'FITNESS_FOR_DUTY'
-  | 'SECOND_OPINION'
-  | 'THIRD_OPINION';
+  'INITIAL' | 'RECERTIFICATION' | 'FITNESS_FOR_DUTY' | 'SECOND_OPINION' | 'THIRD_OPINION';
 
 export type MhdLeaveLedgerEntryType = 'DESIGNATION' | 'ADJUSTMENT' | 'RESTORATION' | 'REVERSAL';
 

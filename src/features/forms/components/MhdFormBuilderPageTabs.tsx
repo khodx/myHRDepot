@@ -62,7 +62,10 @@ export function MhdFormBuilderPageTabs({
 
       {activePage ? (
         <div className="flex flex-wrap items-center gap-2">
-          <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground" htmlFor="mhd-active-page-title">
+          <label
+            className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            htmlFor="mhd-active-page-title"
+          >
             Page Title
           </label>
           <input

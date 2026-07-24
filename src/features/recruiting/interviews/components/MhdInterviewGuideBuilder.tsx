@@ -13,10 +13,7 @@ import {
   useMhdInterviewQuestions,
   useMhdRemoveGuideItem,
 } from '../Hook';
-import {
-  mhdAddCustomQuestionSchema,
-  type MhdAddCustomQuestionFormValues,
-} from '../Schemas';
+import { mhdAddCustomQuestionSchema, type MhdAddCustomQuestionFormValues } from '../Schemas';
 import {
   MHD_INTERVIEW_GUIDE_ITEM_SOURCES,
   MHD_INTERVIEW_RESPONSE_TYPES,
@@ -195,10 +192,7 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
               </h3>
               <ul className="space-y-2">
                 {group.items.map((item) => (
-                  <li
-                    key={item.id}
-                    className="rounded-md border border-border bg-card p-3"
-                  >
+                  <li key={item.id} className="rounded-md border border-border bg-card p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <p className="text-sm text-foreground">{item.questionText}</p>
@@ -236,7 +230,10 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
         <h3 className="text-sm font-semibold text-foreground">Add from the bank</h3>
         <div className="mt-3 flex items-end gap-2">
           <div className="flex-1">
-            <label htmlFor="bankQuestion" className="block text-xs font-medium text-muted-foreground">
+            <label
+              htmlFor="bankQuestion"
+              className="block text-xs font-medium text-muted-foreground"
+            >
               Question
             </label>
             <select

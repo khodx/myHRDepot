@@ -114,7 +114,7 @@ function mapRequest(row: RequestRow): MhdEsignatureRequest {
 
 function mapGeneratedDocument(row: GeneratedDocumentRow): MhdEsignatureGeneratedDocument {
   const template = Array.isArray(row.document_templates)
-    ? row.document_templates[0] ?? null
+    ? (row.document_templates[0] ?? null)
     : row.document_templates;
 
   return {
@@ -208,10 +208,14 @@ export const mhdEsignatureService = {
     }));
   },
 
-  async listGeneratedDocuments(companyId: string, personId?: string | null): Promise<MhdEsignatureGeneratedDocument[]> {
+  async listGeneratedDocuments(
+    companyId: string,
+    personId?: string | null,
+  ): Promise<MhdEsignatureGeneratedDocument[]> {
     let query = supabaseClient
       .from('document_generations')
-      .select(`
+      .select(
+        `
         id,
         reference_id,
         template_id,
@@ -229,7 +233,8 @@ export const mhdEsignatureService = {
           name,
           requires_signature
         )
-      `)
+      `,
+      )
       .eq('company_id', companyId)
       .not('output_drive_file_id', 'is', null)
       .order('generated_at', { ascending: false });
@@ -249,10 +254,13 @@ export const mhdEsignatureService = {
       .filter((generation) => generation.status === 'GENERATED' && generation.requiresSignature);
   },
 
-  async getGeneratedDocumentById(generationId: string): Promise<MhdEsignatureGeneratedDocument | null> {
+  async getGeneratedDocumentById(
+    generationId: string,
+  ): Promise<MhdEsignatureGeneratedDocument | null> {
     const { data, error } = await supabaseClient
       .from('document_generations')
-      .select(`
+      .select(
+        `
         id,
         reference_id,
         template_id,
@@ -270,7 +278,8 @@ export const mhdEsignatureService = {
           name,
           requires_signature
         )
-      `)
+      `,
+      )
       .eq('id', generationId)
       .maybeSingle();
 
@@ -347,14 +356,18 @@ export const mhdEsignatureService = {
     const invitationErrors = invitationResults.flatMap((result, index) => {
       if (result.status === 'fulfilled') return [];
       const signer = actionableSigners[index];
-      return [`${signer.externalEmail ?? signer.externalName ?? signer.id}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`];
+      return [
+        `${signer.externalEmail ?? signer.externalName ?? signer.id}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`,
+      ];
     });
 
     return { request, invitationErrors };
   },
 
   async sendReminder(signerId: string): Promise<void> {
-    const { error } = await supabaseClient.rpc('mhd_send_signature_reminder', { p_signer_id: signerId });
+    const { error } = await supabaseClient.rpc('mhd_send_signature_reminder', {
+      p_signer_id: signerId,
+    });
     if (error) {
       throw new Error(`Unable to queue a reminder: ${error.message}`);
     }
@@ -363,7 +376,9 @@ export const mhdEsignatureService = {
   },
 
   async voidRequest(requestId: string): Promise<void> {
-    const { error } = await supabaseClient.rpc('mhd_void_signature_request', { p_request_id: requestId });
+    const { error } = await supabaseClient.rpc('mhd_void_signature_request', {
+      p_request_id: requestId,
+    });
     if (error) {
       throw new Error(`Unable to void signature request: ${error.message}`);
     }
@@ -473,7 +488,11 @@ export const mhdEsignatureService = {
     }
   },
 
-  async declineViaToken(input: { signingToken: string; reason: string; userAgent?: string }): Promise<void> {
+  async declineViaToken(input: {
+    signingToken: string;
+    reason: string;
+    userAgent?: string;
+  }): Promise<void> {
     const { error } = await supabaseClient.rpc('mhd_decline_via_token', {
       p_signing_token: input.signingToken,
       p_reason: input.reason.trim(),

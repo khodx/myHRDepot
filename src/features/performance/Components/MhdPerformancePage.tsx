@@ -27,8 +27,23 @@ import { MhdReviewFilterBar } from './MhdReviewFilterBar';
 import { MhdReviewForm } from './MhdReviewForm';
 import { MhdReviewList } from './MhdReviewList';
 
-const DEFAULT_REVIEW_FILTERS: MhdReviewBoardFilters = { companyId: '', personId: 'ALL', reviewerUserId: 'ALL', reviewType: 'ALL', status: 'ALL', searchTerm: '', dueFrom: '', dueTo: '' };
-const DEFAULT_PLAN_FILTERS: MhdCoachingPlanBoardFilters = { companyId: '', personId: 'ALL', coachUserId: 'ALL', status: 'ALL', searchTerm: '' };
+const DEFAULT_REVIEW_FILTERS: MhdReviewBoardFilters = {
+  companyId: '',
+  personId: 'ALL',
+  reviewerUserId: 'ALL',
+  reviewType: 'ALL',
+  status: 'ALL',
+  searchTerm: '',
+  dueFrom: '',
+  dueTo: '',
+};
+const DEFAULT_PLAN_FILTERS: MhdCoachingPlanBoardFilters = {
+  companyId: '',
+  personId: 'ALL',
+  coachUserId: 'ALL',
+  status: 'ALL',
+  searchTerm: '',
+};
 
 type PerformanceTab = 'reviews' | 'coaching' | 'one-on-ones';
 
@@ -49,7 +64,8 @@ export function MhdPerformancePage() {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const activeTab: PerformanceTab = tabParam === 'coaching' || tabParam === 'one-on-ones' ? tabParam : 'reviews';
+  const activeTab: PerformanceTab =
+    tabParam === 'coaching' || tabParam === 'one-on-ones' ? tabParam : 'reviews';
   const fromReviewId = searchParams.get('fromReview');
 
   const [reviewFilters, setReviewFilters] = useState<MhdReviewBoardFilters>(DEFAULT_REVIEW_FILTERS);
@@ -59,13 +75,15 @@ export function MhdPerformancePage() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const selectedCompanyId = canCrossCompanyFilter
-    ? (reviewFilters.companyId !== 'ALL' ? reviewFilters.companyId : profile?.companyId ?? null)
+    ? reviewFilters.companyId !== 'ALL'
+      ? reviewFilters.companyId
+      : (profile?.companyId ?? null)
     : (profile?.companyId ?? null);
 
   const effectiveReviewFilters = useMemo<MhdReviewBoardFilters>(
     () => ({
       ...reviewFilters,
-      companyId: canCrossCompanyFilter ? reviewFilters.companyId : profile?.companyId ?? 'ALL',
+      companyId: canCrossCompanyFilter ? reviewFilters.companyId : (profile?.companyId ?? 'ALL'),
     }),
     [canCrossCompanyFilter, reviewFilters, profile?.companyId],
   );
@@ -73,7 +91,7 @@ export function MhdPerformancePage() {
   const planFilters = useMemo<MhdCoachingPlanBoardFilters>(
     () => ({
       ...DEFAULT_PLAN_FILTERS,
-      companyId: canCrossCompanyFilter ? 'ALL' : profile?.companyId ?? 'ALL',
+      companyId: canCrossCompanyFilter ? 'ALL' : (profile?.companyId ?? 'ALL'),
     }),
     [canCrossCompanyFilter, profile?.companyId],
   );
@@ -95,7 +113,8 @@ export function MhdPerformancePage() {
     return {
       draft: reviews.filter((review) => review.status === 'DRAFT').length,
       inReview: reviews.filter((review) => review.status === 'IN_REVIEW').length,
-      awaitingAcknowledgment: reviews.filter((review) => review.status === 'PENDING_SIGNATURE').length,
+      awaitingAcknowledgment: reviews.filter((review) => review.status === 'PENDING_SIGNATURE')
+        .length,
       overdue: reviews.filter((review) => mhdIsReviewOverdue(review)).length,
     };
   }, [reviews]);
@@ -145,8 +164,14 @@ export function MhdPerformancePage() {
   const companyOptions = canCrossCompanyFilter
     ? (companiesQuery.data ?? []).map((company) => ({ id: company.id, label: company.companyName }))
     : [];
-  const peopleOptions = (peopleQuery.data ?? []).map((person) => ({ id: person.id, label: person.displayName }));
-  const userOptions = (usersQuery.data ?? []).map((user) => ({ id: user.id, label: user.displayName }));
+  const peopleOptions = (peopleQuery.data ?? []).map((person) => ({
+    id: person.id,
+    label: person.displayName,
+  }));
+  const userOptions = (usersQuery.data ?? []).map((user) => ({
+    id: user.id,
+    label: user.displayName,
+  }));
 
   return (
     <div className="space-y-6">
@@ -180,112 +205,138 @@ export function MhdPerformancePage() {
         }
       />
 
-      <MhdTabs tabs={TABS.map((tab) => ({ value: tab.key, label: tab.label }))} value={activeTab} onChange={selectTab} />
+      <MhdTabs
+        tabs={TABS.map((tab) => ({ value: tab.key, label: tab.label }))}
+        value={activeTab}
+        onChange={selectTab}
+      />
 
-        {actionError ? <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div> : null}
+      {actionError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      ) : null}
 
-        {activeTab === 'reviews' ? (
-          <>
-            {reviewsQuery.error ? (
-              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                {reviewsQuery.error instanceof Error ? reviewsQuery.error.message : 'Unable to load reviews.'}
-              </div>
-            ) : null}
-
-            <div className="grid gap-4 md:grid-cols-4">
-              <MhdCard>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Draft</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">{counts.draft}</p>
-              </MhdCard>
-              <MhdCard>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">In Review</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">{counts.inReview}</p>
-              </MhdCard>
-              <MhdCard>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Awaiting Acknowledgment</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">{counts.awaitingAcknowledgment}</p>
-              </MhdCard>
-              <MhdCard>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Overdue</p>
-                <p className="mt-1 text-2xl font-bold text-red-600">{counts.overdue}</p>
-              </MhdCard>
+      {activeTab === 'reviews' ? (
+        <>
+          {reviewsQuery.error ? (
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {reviewsQuery.error instanceof Error
+                ? reviewsQuery.error.message
+                : 'Unable to load reviews.'}
             </div>
+          ) : null}
 
-            {isCreatingReview && canMutate && selectedCompanyId ? (
-              <MhdCard className="p-6">
-                <h2 className="mb-4 text-lg font-semibold text-foreground">New Review</h2>
-                <MhdReviewForm
-                  mode="create"
-                  companyId={selectedCompanyId}
-                  people={peopleOptions}
-                  reviewers={userOptions}
-                  meetingActivities={[]}
-                  onSubmit={handleCreateReview}
-                  onCancel={() => setIsCreatingReview(false)}
-                  isSubmitting={reviewActions.createReview.isPending}
-                />
-              </MhdCard>
-            ) : null}
+          <div className="grid gap-4 md:grid-cols-4">
+            <MhdCard>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Draft
+              </p>
+              <p className="mt-1 text-2xl font-bold text-foreground">{counts.draft}</p>
+            </MhdCard>
+            <MhdCard>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                In Review
+              </p>
+              <p className="mt-1 text-2xl font-bold text-foreground">{counts.inReview}</p>
+            </MhdCard>
+            <MhdCard>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Awaiting Acknowledgment
+              </p>
+              <p className="mt-1 text-2xl font-bold text-foreground">
+                {counts.awaitingAcknowledgment}
+              </p>
+            </MhdCard>
+            <MhdCard>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Overdue
+              </p>
+              <p className="mt-1 text-2xl font-bold text-red-600">{counts.overdue}</p>
+            </MhdCard>
+          </div>
 
-            <MhdReviewFilterBar
-              filters={effectiveReviewFilters}
-              onChange={setReviewFilters}
-              companies={companyOptions}
-              people={peopleOptions}
-              reviewers={userOptions}
-            />
+          {isCreatingReview && canMutate && selectedCompanyId ? (
+            <MhdCard className="p-6">
+              <h2 className="mb-4 text-lg font-semibold text-foreground">New Review</h2>
+              <MhdReviewForm
+                mode="create"
+                companyId={selectedCompanyId}
+                people={peopleOptions}
+                reviewers={userOptions}
+                meetingActivities={[]}
+                onSubmit={handleCreateReview}
+                onCancel={() => setIsCreatingReview(false)}
+                isSubmitting={reviewActions.createReview.isPending}
+              />
+            </MhdCard>
+          ) : null}
 
-            {reviewsQuery.isLoading ? (
-              <MhdCard className="flex h-40 items-center justify-center text-sm text-muted-foreground">Loading reviews…</MhdCard>
-            ) : (
-              <MhdReviewList reviews={reviews} />
-            )}
-          </>
-        ) : null}
+          <MhdReviewFilterBar
+            filters={effectiveReviewFilters}
+            onChange={setReviewFilters}
+            companies={companyOptions}
+            people={peopleOptions}
+            reviewers={userOptions}
+          />
 
-        {activeTab === 'coaching' ? (
-          <>
-            {plansQuery.error ? (
-              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                {plansQuery.error instanceof Error ? plansQuery.error.message : 'Unable to load coaching plans.'}
-              </div>
-            ) : null}
+          {reviewsQuery.isLoading ? (
+            <MhdCard className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+              Loading reviews…
+            </MhdCard>
+          ) : (
+            <MhdReviewList reviews={reviews} />
+          )}
+        </>
+      ) : null}
 
-            {showPlanCreateForm && canMutate && selectedCompanyId ? (
-              <MhdCard className="p-6">
-                <h2 className="mb-4 text-lg font-semibold text-foreground">New Coaching Plan</h2>
-                <MhdCoachingPlanForm
-                  mode="create"
-                  companyId={selectedCompanyId}
-                  sourceReviewId={fromReviewId}
-                  sourceReviewLabel={sourceReviewQuery.data?.referenceId ?? null}
-                  people={peopleOptions}
-                  coaches={userOptions}
-                  onSubmit={handleCreatePlan}
-                  onCancel={handleCancelPlanForm}
-                  isSubmitting={planActions.createPlan.isPending}
-                />
-              </MhdCard>
-            ) : null}
+      {activeTab === 'coaching' ? (
+        <>
+          {plansQuery.error ? (
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {plansQuery.error instanceof Error
+                ? plansQuery.error.message
+                : 'Unable to load coaching plans.'}
+            </div>
+          ) : null}
 
-            {plansQuery.isLoading ? (
-              <MhdCard className="flex h-40 items-center justify-center text-sm text-muted-foreground">Loading coaching plans…</MhdCard>
-            ) : (
-              <MhdCoachingPlanList plans={plans} />
-            )}
-          </>
-        ) : null}
+          {showPlanCreateForm && canMutate && selectedCompanyId ? (
+            <MhdCard className="p-6">
+              <h2 className="mb-4 text-lg font-semibold text-foreground">New Coaching Plan</h2>
+              <MhdCoachingPlanForm
+                mode="create"
+                companyId={selectedCompanyId}
+                sourceReviewId={fromReviewId}
+                sourceReviewLabel={sourceReviewQuery.data?.referenceId ?? null}
+                people={peopleOptions}
+                coaches={userOptions}
+                onSubmit={handleCreatePlan}
+                onCancel={handleCancelPlanForm}
+                isSubmitting={planActions.createPlan.isPending}
+              />
+            </MhdCard>
+          ) : null}
 
-        {activeTab === 'one-on-ones' && selectedCompanyId ? (
-          <MhdCard>
-            <MhdOneOnOneTab
-              companyId={selectedCompanyId}
-              currentUserId={profile?.userId ?? ''}
-              canMutate={canMutate}
-              people={peopleOptions}
-            />
-          </MhdCard>
-        ) : null}
+          {plansQuery.isLoading ? (
+            <MhdCard className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+              Loading coaching plans…
+            </MhdCard>
+          ) : (
+            <MhdCoachingPlanList plans={plans} />
+          )}
+        </>
+      ) : null}
+
+      {activeTab === 'one-on-ones' && selectedCompanyId ? (
+        <MhdCard>
+          <MhdOneOnOneTab
+            companyId={selectedCompanyId}
+            currentUserId={profile?.userId ?? ''}
+            canMutate={canMutate}
+            people={peopleOptions}
+          />
+        </MhdCard>
+      ) : null}
     </div>
   );
 }

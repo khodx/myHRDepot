@@ -23,9 +23,12 @@ export function MhdAttachmentItem({ attachment, onDownload, onDelete }: Props) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-foreground">{attachment.originalFileName}</p>
+        <p className="truncate text-sm font-medium text-foreground">
+          {attachment.originalFileName}
+        </p>
         <p className="text-xs text-muted-foreground">
-          {mhdFormatFileSize(attachment.fileSizeBytes)} · {attachment.uploaderDisplayName} · {uploadedAt}
+          {mhdFormatFileSize(attachment.fileSizeBytes)} · {attachment.uploaderDisplayName} ·{' '}
+          {uploadedAt}
         </p>
       </div>
 

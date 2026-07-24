@@ -65,7 +65,9 @@ describe('mhdIsEncryptedFormValue', () => {
   });
 
   it('recognizes a cipher-bearing wrapper', () => {
-    expect(mhdIsEncryptedFormValue({ mhd_encrypted: true, cipher: '-----BEGIN PGP MESSAGE-----' })).toBe(true);
+    expect(
+      mhdIsEncryptedFormValue({ mhd_encrypted: true, cipher: '-----BEGIN PGP MESSAGE-----' }),
+    ).toBe(true);
   });
 
   it('rejects non-wrapper values', () => {
@@ -101,7 +103,9 @@ describe('mhdFormService.revealSubmissionField', () => {
       error: { message: 'Not authorized to reveal encrypted field values' },
     });
 
-    await expect(mhdFormService.revealSubmissionField('submission-1', 'field-routing')).rejects.toThrow(
+    await expect(
+      mhdFormService.revealSubmissionField('submission-1', 'field-routing'),
+    ).rejects.toThrow(
       'Unable to reveal encrypted field: Not authorized to reveal encrypted field values',
     );
   });
@@ -132,13 +136,16 @@ describe('MhdFormSubmissionReview encrypted values', () => {
     },
   );
 
-  it.each<MhdAuthRoleName>(['Client User', 'Viewer'])('hides the Reveal button for a %s', (role) => {
-    mockAuth([role]);
-    render(<MhdFormSubmissionReview submission={maskedSubmission} />);
+  it.each<MhdAuthRoleName>(['Client User', 'Viewer'])(
+    'hides the Reveal button for a %s',
+    (role) => {
+      mockAuth([role]);
+      render(<MhdFormSubmissionReview submission={maskedSubmission} />);
 
-    expect(screen.getByText('•••••• (encrypted)')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Reveal' })).not.toBeInTheDocument();
-  });
+      expect(screen.getByText('•••••• (encrypted)')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Reveal' })).not.toBeInTheDocument();
+    },
+  );
 
   it('reveals the plaintext transiently via the audited RPC and can hide it again', async () => {
     mockAuth(['HR Partner']);
@@ -176,7 +183,9 @@ describe('MhdFormSubmissionReview encrypted values', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Unable to reveal encrypted field: Not authorized to reveal encrypted field values'),
+        screen.getByText(
+          'Unable to reveal encrypted field: Not authorized to reveal encrypted field values',
+        ),
       ).toBeInTheDocument();
     });
     expect(screen.queryByText('021000021')).not.toBeInTheDocument();

@@ -45,8 +45,8 @@ export function MhdLeaveBalancePanel({ rows, isLoading = false }: Props) {
       <div>
         <h2 className="text-base font-semibold text-foreground">Remaining by legal basis</h2>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Each basis is a separate clock. These are shown individually and are never added
-          together — exhausting one does not exhaust another.
+          Each basis is a separate clock. These are shown individually and are never added together
+          — exhausting one does not exhaust another.
         </p>
       </div>
 

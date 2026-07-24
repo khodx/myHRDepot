@@ -43,7 +43,12 @@ describe('recruiting route access', () => {
   });
 
   it('admits any authenticated non-Viewer to the interviewer worksheet route', () => {
-    for (const role of ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] as MhdAuthRoleName[]) {
+    for (const role of [
+      'Platform Admin',
+      'HR Partner',
+      'Client Admin',
+      'Client User',
+    ] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/recruiting/interviews/iv-1', [role])).toBe(true);
     }
     // The worksheet rule must precede /recruiting so Client User is not captured by
@@ -53,7 +58,12 @@ describe('recruiting route access', () => {
 
   it('restricts the EEO report route to Platform Admin ONLY — every other role is rejected', () => {
     expect(mhdCanAccessRoute('/recruiting/eeo', ['Platform Admin'])).toBe(true);
-    for (const role of ['HR Partner', 'Client Admin', 'Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of [
+      'HR Partner',
+      'Client Admin',
+      'Client User',
+      'Viewer',
+    ] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/recruiting/eeo', [role])).toBe(false);
     }
     // The /recruiting/eeo rule must precede /recruiting: an HR Partner / Client
@@ -64,7 +74,12 @@ describe('recruiting route access', () => {
 
   it('mhdCanReadEeoReport is Platform Admin only', () => {
     expect(mhdCanReadEeoReport(['Platform Admin'])).toBe(true);
-    for (const role of ['HR Partner', 'Client Admin', 'Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of [
+      'HR Partner',
+      'Client Admin',
+      'Client User',
+      'Viewer',
+    ] as MhdAuthRoleName[]) {
       expect(mhdCanReadEeoReport([role])).toBe(false);
     }
   });

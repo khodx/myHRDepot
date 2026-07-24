@@ -1,8 +1,5 @@
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
-import {
-  mhdFormatComplianceStatus,
-  type MhdInterviewComplianceStatus,
-} from '../Types';
+import { mhdFormatComplianceStatus, type MhdInterviewComplianceStatus } from '../Types';
 
 // The compliance flag on a bank question, shown wherever a question appears (the
 // bank, the guide builder, the worksheet). CAUTION reads red — a legally risky

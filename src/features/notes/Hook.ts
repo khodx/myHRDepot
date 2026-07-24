@@ -11,7 +11,11 @@ import type { MhdCreateNoteInput, MhdNote, MhdNoteEntityType, MhdNoteVisibility 
 // concern and is out of scope for this hook. Compose the Tasks module's task query alongside
 // this hook if a notes panel needs both.
 
-export function useMhdNotes(entityType: MhdNoteEntityType, entityId: string | undefined, isAuthenticated: boolean) {
+export function useMhdNotes(
+  entityType: MhdNoteEntityType,
+  entityId: string | undefined,
+  isAuthenticated: boolean,
+) {
   const [notes, setNotes] = useState<MhdNote[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -43,7 +47,13 @@ export function useMhdNotes(entityType: MhdNoteEntityType, entityId: string | un
       setIsSaving(true);
       setErrorMessage(null);
       try {
-        const input: MhdCreateNoteInput = { entityType, entityId, noteRichText, notePlainText, visibility };
+        const input: MhdCreateNoteInput = {
+          entityType,
+          entityId,
+          noteRichText,
+          notePlainText,
+          visibility,
+        };
         await mhdCreateNote(input);
         await loadNotes();
       } catch (error) {
@@ -58,7 +68,12 @@ export function useMhdNotes(entityType: MhdNoteEntityType, entityId: string | un
   );
 
   const updateNote = useCallback(
-    async (noteId: string, noteRichText: unknown, notePlainText: string, visibility?: MhdNoteVisibility) => {
+    async (
+      noteId: string,
+      noteRichText: unknown,
+      notePlainText: string,
+      visibility?: MhdNoteVisibility,
+    ) => {
       if (!isAuthenticated) throw new Error('Authenticated actor is required to update a note.');
       setIsSaving(true);
       setErrorMessage(null);

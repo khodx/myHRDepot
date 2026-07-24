@@ -1,8 +1,5 @@
 import { MhdBadge } from '@/components/ui/MhdBadge';
-import {
-  mhdFormatTrainingCompletionMethod,
-  type MhdTrainingCompletion,
-} from '../Types';
+import { mhdFormatTrainingCompletionMethod, type MhdTrainingCompletion } from '../Types';
 
 interface Props {
   completions: MhdTrainingCompletion[];
@@ -52,7 +49,9 @@ export function MhdCompletionHistoryPanel({
                   {mhdFormatTrainingCompletionMethod(completion.completionMethod)}
                   {completion.attachmentId ? ' · certificate on file' : ''}
                 </p>
-                <p className="mt-0.5 font-mono text-xs text-muted-foreground">{completion.referenceId}</p>
+                <p className="mt-0.5 font-mono text-xs text-muted-foreground">
+                  {completion.referenceId}
+                </p>
               </div>
 
               <div className="text-right">

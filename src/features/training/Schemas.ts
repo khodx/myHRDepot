@@ -1,8 +1,5 @@
 import { z } from 'zod';
-import {
-  MHD_TRAINING_CATEGORIES,
-  MHD_TRAINING_DELIVERY_MODES,
-} from './Types';
+import { MHD_TRAINING_CATEGORIES, MHD_TRAINING_DELIVERY_MODES } from './Types';
 
 // ---------------------------------------------------------------------------
 // Courses

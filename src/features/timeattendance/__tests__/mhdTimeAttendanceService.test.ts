@@ -82,7 +82,10 @@ describe('mhdTimeAttendanceService — subject-self visibility', () => {
   it('surfaces the 42501 denial an employee hits on the threshold-events RPC', async () => {
     rpcMock.mockResolvedValueOnce({
       data: null,
-      error: { code: '42501', message: 'permission denied for function mhd_attendance_list_threshold_events' },
+      error: {
+        code: '42501',
+        message: 'permission denied for function mhd_attendance_list_threshold_events',
+      },
     });
 
     await expect(mhdTimeAttendanceService.listThresholdEvents('company-1')).rejects.toMatchObject({
@@ -99,8 +102,8 @@ describe('mhdTimeAttendanceService — subject-self visibility', () => {
       },
     });
 
-    await expect(mhdTimeAttendanceService.listReassessmentEvents('company-1')).rejects.toMatchObject(
-      { code: '42501' },
-    );
+    await expect(
+      mhdTimeAttendanceService.listReassessmentEvents('company-1'),
+    ).rejects.toMatchObject({ code: '42501' });
   });
 });

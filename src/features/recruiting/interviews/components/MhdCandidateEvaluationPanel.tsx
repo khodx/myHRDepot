@@ -9,10 +9,7 @@ import {
   useMhdInterviewEvaluationRollup,
   useMhdInterviewEvaluationScore,
 } from '../Hook';
-import {
-  mhdEvaluationFinalizeSchema,
-  type MhdEvaluationFinalizeFormValues,
-} from '../Schemas';
+import { mhdEvaluationFinalizeSchema, type MhdEvaluationFinalizeFormValues } from '../Schemas';
 import {
   MHD_CANDIDATE_EVALUATION_STATUSES,
   MHD_INTERVIEW_RECOMMENDATIONS,
@@ -84,7 +81,9 @@ export function MhdCandidateEvaluationPanel({ applicationId, canFinalize }: Prop
 
       {/* The prominent, DERIVED overall score. */}
       <div className="rounded-lg border border-border bg-muted p-5">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">Overall weighted score</p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+          Overall weighted score
+        </p>
         {score.isLoading ? (
           <p className="mt-1 text-sm text-muted-foreground">Calculating…</p>
         ) : score.data == null ? (

@@ -189,8 +189,8 @@ export function MhdJobsPage() {
               transportation and healthcare and governs how the role is treated
               regardless of how its duties are currently worded. */}
           <p className="text-xs text-muted-foreground">
-            Safety-sensitive designation is a property of the role and follows it across
-            description versions.
+            Safety-sensitive designation is a property of the role and follows it across description
+            versions.
           </p>
           {error ? <p className="text-xs text-rose-600">{error}</p> : null}
           <div className="flex justify-end">

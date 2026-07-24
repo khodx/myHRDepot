@@ -24,7 +24,9 @@ interface Props {
  *   sees where the criteria came from.
  */
 export function MhdReviewCompetencyPanel({ reviewId, canRate }: Props) {
-  const [drafts, setDrafts] = useState<Record<string, { rating: number | null; comments: string }>>({});
+  const [drafts, setDrafts] = useState<Record<string, { rating: number | null; comments: string }>>(
+    {},
+  );
 
   const competencies = useMhdReviewCompetencies(reviewId);
   const seed = useMhdSeedCompetencies(reviewId);

@@ -49,7 +49,11 @@ export function MhdFormBuilderPage() {
   }, [formId, isNewForm]);
 
   if (!profile?.companyId) {
-    return <div className="p-6 text-sm text-red-600">The current user profile does not include a company context.</div>;
+    return (
+      <div className="p-6 text-sm text-red-600">
+        The current user profile does not include a company context.
+      </div>
+    );
   }
 
   if (!isNewForm && isLoading) {
@@ -68,9 +72,10 @@ export function MhdFormBuilderPage() {
           description="You have read-only access to forms."
         />
         <div className="space-y-6">
-
           {errorMessage ? (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{errorMessage}</div>
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {errorMessage}
+            </div>
           ) : null}
 
           {form ? (
@@ -101,9 +106,10 @@ export function MhdFormBuilderPage() {
         description="Builder edits save through the live `mhd_create_form`, `mhd_update_form`, and `mhd_publish_form` RPCs."
       />
       <div className="space-y-6">
-
         {errorMessage ? (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{errorMessage}</div>
+          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {errorMessage}
+          </div>
         ) : null}
 
         <MhdFormBuilder

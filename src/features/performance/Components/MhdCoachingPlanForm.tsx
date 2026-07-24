@@ -81,7 +81,9 @@ export function MhdCoachingPlanForm({
               </option>
             ))}
           </select>
-          {errors.personId ? <p className="mt-1 text-xs text-red-600">{errors.personId.message}</p> : null}
+          {errors.personId ? (
+            <p className="mt-1 text-xs text-red-600">{errors.personId.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -100,7 +102,9 @@ export function MhdCoachingPlanForm({
               </option>
             ))}
           </select>
-          {errors.coachUserId ? <p className="mt-1 text-xs text-red-600">{errors.coachUserId.message}</p> : null}
+          {errors.coachUserId ? (
+            <p className="mt-1 text-xs text-red-600">{errors.coachUserId.message}</p>
+          ) : null}
         </div>
       </div>
 
@@ -108,7 +112,11 @@ export function MhdCoachingPlanForm({
         <label htmlFor="mhd-coaching-form-title" className="mb-1 block text-sm font-medium">
           Title
         </label>
-        <input id="mhd-coaching-form-title" className="w-full rounded border px-3 py-2" {...register('title')} />
+        <input
+          id="mhd-coaching-form-title"
+          className="w-full rounded border px-3 py-2"
+          {...register('title')}
+        />
         {errors.title ? <p className="mt-1 text-xs text-red-600">{errors.title.message}</p> : null}
       </div>
 
@@ -130,14 +138,26 @@ export function MhdCoachingPlanForm({
           <label htmlFor="mhd-coaching-form-start" className="mb-1 block text-sm font-medium">
             Start Date
           </label>
-          <input id="mhd-coaching-form-start" type="date" className="w-full rounded border px-3 py-2" {...register('startDate')} />
+          <input
+            id="mhd-coaching-form-start"
+            type="date"
+            className="w-full rounded border px-3 py-2"
+            {...register('startDate')}
+          />
         </div>
         <div>
           <label htmlFor="mhd-coaching-form-target" className="mb-1 block text-sm font-medium">
             Target Date
           </label>
-          <input id="mhd-coaching-form-target" type="date" className="w-full rounded border px-3 py-2" {...register('targetDate')} />
-          {errors.targetDate ? <p className="mt-1 text-xs text-red-600">{errors.targetDate.message}</p> : null}
+          <input
+            id="mhd-coaching-form-target"
+            type="date"
+            className="w-full rounded border px-3 py-2"
+            {...register('targetDate')}
+          />
+          {errors.targetDate ? (
+            <p className="mt-1 text-xs text-red-600">{errors.targetDate.message}</p>
+          ) : null}
         </div>
       </div>
 

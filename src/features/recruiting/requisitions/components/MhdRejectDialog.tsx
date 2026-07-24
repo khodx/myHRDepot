@@ -28,13 +28,7 @@ interface Props {
  * reason, independent of moving to a REJECTED stage. Both reason and note are
  * optional at the RPC; the dialog nudges toward a reason for an auditable trail.
  */
-export function MhdRejectDialog({
-  application,
-  reasons,
-  onSubmit,
-  onCancel,
-  isSubmitting,
-}: Props) {
+export function MhdRejectDialog({ application, reasons, onSubmit, onCancel, isSubmitting }: Props) {
   const {
     register,
     handleSubmit,

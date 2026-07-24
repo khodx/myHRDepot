@@ -26,12 +26,15 @@ vi.mock('@/features/authentication/Hook', () => ({
 
 vi.mock('../Hook', () => ({
   useMhdPropertyActions: () => mockUseMhdPropertyActions(),
-  useMhdPropertyAssignments: (filter: { propertyItemId?: string | null; personId?: string | null }) =>
-    mockUseMhdPropertyAssignments(filter),
+  useMhdPropertyAssignments: (filter: {
+    propertyItemId?: string | null;
+    personId?: string | null;
+  }) => mockUseMhdPropertyAssignments(filter),
   useMhdPropertyItem: (companyId: string | null, itemId: string | null) =>
     mockUseMhdPropertyItem(companyId, itemId),
   useMhdPropertyItems: (companyId: string | null) => mockUseMhdPropertyItems(companyId),
-  useMhdPropertyPeople: (companyId: string | null, enabled?: boolean) => mockUseMhdPropertyPeople(companyId, enabled),
+  useMhdPropertyPeople: (companyId: string | null, enabled?: boolean) =>
+    mockUseMhdPropertyPeople(companyId, enabled),
 }));
 
 const { MhdPropertyPage } = await import('../components/MhdPropertyPage');

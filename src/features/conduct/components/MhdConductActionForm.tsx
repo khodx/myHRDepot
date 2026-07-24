@@ -2,11 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { mhdConductActionFormSchema, type MhdConductActionFormSchemaInput } from '../Schemas';
-import {
-  MHD_CONDUCT_SEVERITIES,
-  type MhdConductAction,
-  mhdFormatConductSeverity,
-} from '../Types';
+import { MHD_CONDUCT_SEVERITIES, type MhdConductAction, mhdFormatConductSeverity } from '../Types';
 
 interface Props {
   mode: 'create' | 'edit';
@@ -64,7 +60,9 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
         <p className="mt-1 text-xs text-muted-foreground">
           The rung on the escalation ladder. It selects the corrective-action document template.
         </p>
-        {errors.severity ? <p className="mt-1 text-xs text-red-600">{errors.severity.message}</p> : null}
+        {errors.severity ? (
+          <p className="mt-1 text-xs text-red-600">{errors.severity.message}</p>
+        ) : null}
       </div>
 
       <div>
@@ -78,7 +76,9 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
           placeholder="What the action states — the narrative that renders into the document. Sensitive; privileged roles only."
           {...register('actionSummary')}
         />
-        {errors.actionSummary ? <p className="mt-1 text-xs text-red-600">{errors.actionSummary.message}</p> : null}
+        {errors.actionSummary ? (
+          <p className="mt-1 text-xs text-red-600">{errors.actionSummary.message}</p>
+        ) : null}
       </div>
 
       {mode === 'create' ? (
@@ -93,8 +93,8 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
           <label htmlFor="mhd-conduct-action-requires-document" className="text-sm">
             Generate a signable document
             <span className="mt-0.5 block text-xs text-muted-foreground">
-              When on, issuing renders the template and routes it to the employee for acknowledgment of receipt.
-              When off, the action is recorded without a document.
+              When on, issuing renders the template and routes it to the employee for acknowledgment
+              of receipt. When off, the action is recorded without a document.
             </span>
           </label>
         </div>

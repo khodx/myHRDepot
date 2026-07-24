@@ -20,7 +20,11 @@ describe('conduct schemas', () => {
       mhdConductCaseFormSchema.parse({ companyId: '', personId: 'person-1', category: 'CONDUCT' }),
     ).toThrow('Company is required.');
     expect(() =>
-      mhdConductCaseFormSchema.parse({ companyId: 'company-1', personId: '  ', category: 'CONDUCT' }),
+      mhdConductCaseFormSchema.parse({
+        companyId: 'company-1',
+        personId: '  ',
+        category: 'CONDUCT',
+      }),
     ).toThrow('Subject employee is required.');
   });
 
@@ -41,7 +45,9 @@ describe('conduct schemas', () => {
   });
 
   it('defaults requiresDocument to true on the action form', () => {
-    expect(mhdConductActionFormSchema.parse({ severity: 'WRITTEN_WARNING' }).requiresDocument).toBe(true);
+    expect(mhdConductActionFormSchema.parse({ severity: 'WRITTEN_WARNING' }).requiresDocument).toBe(
+      true,
+    );
     expect(
       mhdConductActionFormSchema.parse({ severity: 'VERBAL_WARNING', requiresDocument: false })
         .requiresDocument,

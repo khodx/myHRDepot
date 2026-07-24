@@ -15,5 +15,11 @@ const STATUS_CLASS_BY_TOKEN: Record<string, string> = {
 
 export function MhdTaskStatusBadge({ statusName, colorToken }: MhdTaskStatusBadgeProps) {
   const className = STATUS_CLASS_BY_TOKEN[colorToken ?? 'slate'] ?? STATUS_CLASS_BY_TOKEN.slate;
-  return <span className={`inline-flex rounded-full border px-2 py-1 text-xs font-semibold ${className}`}>{statusName}</span>;
+  return (
+    <span
+      className={`inline-flex rounded-full border px-2 py-1 text-xs font-semibold ${className}`}
+    >
+      {statusName}
+    </span>
+  );
 }

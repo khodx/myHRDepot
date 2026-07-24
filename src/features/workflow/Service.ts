@@ -144,7 +144,9 @@ export const mhdWorkflowService = {
 
     const history = await this.getTransitionHistory(validInput.taskId);
     if (history.length === 0) {
-      throw new Error('Unable to transition task: transition was created but could not be retrieved');
+      throw new Error(
+        'Unable to transition task: transition was created but could not be retrieved',
+      );
     }
 
     return history[0];
@@ -163,7 +165,9 @@ export const mhdWorkflowService = {
   },
 
   async checkSLA(taskId: string): Promise<MhdWorkflowSLAStatus> {
-    const { data, error } = await supabaseClient.rpc('mhd_workflow_check_sla', { p_task_id: taskId });
+    const { data, error } = await supabaseClient.rpc('mhd_workflow_check_sla', {
+      p_task_id: taskId,
+    });
 
     if (error) {
       throw new Error(`Unable to check SLA: ${error.message}`);

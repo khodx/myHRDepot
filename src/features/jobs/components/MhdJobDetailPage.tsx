@@ -206,7 +206,11 @@ export function MhdJobDetailPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-foreground">Published description</h2>
             <Button disabled={createDraft.isPending} onClick={() => void startDraft()}>
-              {createDraft.isPending ? 'Preparing…' : job.publishedDescriptionId ? 'New version' : 'Write description'}
+              {createDraft.isPending
+                ? 'Preparing…'
+                : job.publishedDescriptionId
+                  ? 'New version'
+                  : 'Write description'}
             </Button>
           </div>
 

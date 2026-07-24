@@ -14,9 +14,7 @@ interface Props {
 
 export function MhdActivityList({ activities }: Props) {
   if (activities.length === 0) {
-    return (
-      <MhdEmptyState icon={CalendarClock} title="No activities match the current filters." />
-    );
+    return <MhdEmptyState icon={CalendarClock} title="No activities match the current filters." />;
   }
 
   return (
@@ -43,7 +41,9 @@ export function MhdActivityList({ activities }: Props) {
                   className="font-medium text-accent hover:text-accent-hover"
                 >
                   <span className="inline-flex items-center gap-1.5">
-                    {activity.isConfidential ? <Lock className="h-3.5 w-3.5 text-amber-600" aria-label="Confidential" /> : null}
+                    {activity.isConfidential ? (
+                      <Lock className="h-3.5 w-3.5 text-amber-600" aria-label="Confidential" />
+                    ) : null}
                     {activity.title}
                   </span>
                 </Link>
@@ -56,7 +56,9 @@ export function MhdActivityList({ activities }: Props) {
                 <MhdActivityStatusBadge status={activity.status} />
               </MhdTd>
               <MhdTd>
-                {activity.personDisplayName ?? <span className="text-muted-foreground">Company</span>}
+                {activity.personDisplayName ?? (
+                  <span className="text-muted-foreground">Company</span>
+                )}
               </MhdTd>
               <MhdTd>
                 <MhdActivityParticipantChips
@@ -78,7 +80,9 @@ export function MhdActivityList({ activities }: Props) {
               </MhdTd>
               <MhdTd>
                 {activity.scheduledAt ? (
-                  <span className={`inline-flex items-center gap-1 ${isOverdue ? 'font-medium text-red-600' : 'text-muted-foreground'}`}>
+                  <span
+                    className={`inline-flex items-center gap-1 ${isOverdue ? 'font-medium text-red-600' : 'text-muted-foreground'}`}
+                  >
                     {isOverdue ? <AlarmClock className="h-4 w-4" aria-label="Overdue" /> : null}
                     {new Date(activity.scheduledAt).toLocaleString()}
                   </span>

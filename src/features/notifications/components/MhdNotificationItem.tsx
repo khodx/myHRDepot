@@ -31,7 +31,9 @@ export function MhdNotificationItem({ notification, onSelect }: MhdNotificationI
         )}
         <div className={`min-w-0 ${notification.isRead ? 'pl-4' : ''}`}>
           <p className="line-clamp-1 text-sm font-medium text-foreground">{notification.title}</p>
-          {notification.body && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{notification.body}</p>}
+          {notification.body && (
+            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{notification.body}</p>
+          )}
           <p className="mt-1 text-xs text-muted-foreground">{timeAgo(notification.createdAt)}</p>
         </div>
       </div>

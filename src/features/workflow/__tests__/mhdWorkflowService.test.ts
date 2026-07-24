@@ -22,7 +22,12 @@ describe('mhdWorkflowService', () => {
   it('calls mhd_workflow_transition_allowed and returns allowed=true', async () => {
     mockRpc.mockResolvedValueOnce({ data: true, error: null });
 
-    const result = await mhdWorkflowService.isTransitionAllowed('task-123', 'not-started-id', 'in-progress-id', 'user-456');
+    const result = await mhdWorkflowService.isTransitionAllowed(
+      'task-123',
+      'not-started-id',
+      'in-progress-id',
+      'user-456',
+    );
 
     expect(mockRpc).toHaveBeenCalledWith('mhd_workflow_transition_allowed', {
       p_task_id: 'task-123',
@@ -35,7 +40,13 @@ describe('mhdWorkflowService', () => {
 
   it('validates input, executes the transition, and returns the latest history entry', async () => {
     mockRpc.mockResolvedValueOnce({
-      data: { id: 'wt-1', task_id: 'task-123', from_status_id: 'ns', to_status_id: 'ip', created_at: '2026-07-09T00:00:00Z' },
+      data: {
+        id: 'wt-1',
+        task_id: 'task-123',
+        from_status_id: 'ns',
+        to_status_id: 'ip',
+        created_at: '2026-07-09T00:00:00Z',
+      },
       error: null,
     });
     mockRpc.mockReturnValueOnce(

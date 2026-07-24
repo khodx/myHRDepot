@@ -20,7 +20,8 @@ export const mhdLeavesQueryKeys = {
     ['mhd-leaves', 'balance', personId ?? '', leaveTypeId ?? '', asOf ?? 'today'] as const,
   ledger: (personId: string | null, leaveTypeId: string | null) =>
     ['mhd-leaves', 'ledger', personId ?? '', leaveTypeId ?? 'ALL'] as const,
-  certifications: (caseId: string | null) => ['mhd-leaves', 'certifications', caseId ?? ''] as const,
+  certifications: (caseId: string | null) =>
+    ['mhd-leaves', 'certifications', caseId ?? ''] as const,
   people: (companyId: string | null) => ['mhd-leaves', 'people', companyId ?? 'ALL'] as const,
 };
 
@@ -175,8 +176,7 @@ export function useMhdLeaveCertifications(caseId: string | null) {
 export function useMhdRecordCertification() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: MhdRecordCertificationInput) =>
-      mhdLeavesService.recordCertification(input),
+    mutationFn: (input: MhdRecordCertificationInput) => mhdLeavesService.recordCertification(input),
     onSuccess: (_result, input) => {
       void queryClient.invalidateQueries({
         queryKey: mhdLeavesQueryKeys.certifications(input.caseId),

@@ -1,29 +1,22 @@
-import { AlertTriangle, ListChecks, Loader, RefreshCw, TrendingUp } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard'
-import { MhdPageHeader } from '@/components/ui/MhdPageHeader'
-import { MhdStatCard } from '@/components/ui/MhdStatCard'
-import { useMhdDashboard } from '../Hook'
-import { MhdDashboardMyTasks } from './MhdDashboardMyTasks'
-import { MhdDashboardActivity } from './MhdDashboardActivity'
+import { AlertTriangle, ListChecks, Loader, RefreshCw, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdStatCard } from '@/components/ui/MhdStatCard';
+import { useMhdDashboard } from '../Hook';
+import { MhdDashboardMyTasks } from './MhdDashboardMyTasks';
+import { MhdDashboardActivity } from './MhdDashboardActivity';
 
 export function MhdDashboardPage() {
-  const {
-    isLoading,
-    error,
-    taskSummary,
-    myTasks,
-    recentActivity,
-    lastRefreshed,
-    refetch,
-  } = useMhdDashboard()
+  const { isLoading, error, taskSummary, myTasks, recentActivity, lastRefreshed, refetch } =
+    useMhdDashboard();
 
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <p className="text-sm text-muted-foreground">Loading dashboard…</p>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -34,7 +27,7 @@ export function MhdDashboardPage() {
           Try again
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -50,9 +43,7 @@ export function MhdDashboardPage() {
             className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
             <RefreshCw className="h-3.5 w-3.5" aria-hidden />
-            {lastRefreshed
-              ? `Updated ${lastRefreshed.toLocaleTimeString()}`
-              : 'Refresh'}
+            {lastRefreshed ? `Updated ${lastRefreshed.toLocaleTimeString()}` : 'Refresh'}
           </button>
         }
       />
@@ -83,5 +74,5 @@ export function MhdDashboardPage() {
         </MhdCard>
       </div>
     </div>
-  )
+  );
 }

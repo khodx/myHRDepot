@@ -18,5 +18,9 @@ interface Props {
 }
 
 export function MhdSeparationTypeBadge({ separationType }: Props) {
-  return <MhdBadge variant={TYPE_VARIANTS[separationType]}>{mhdFormatSeparationType(separationType)}</MhdBadge>;
+  return (
+    <MhdBadge variant={TYPE_VARIANTS[separationType]}>
+      {mhdFormatSeparationType(separationType)}
+    </MhdBadge>
+  );
 }

@@ -54,7 +54,9 @@ export function MhdAttachmentUploader({ isUploading, onUpload }: Props) {
     <div className="space-y-3">
       <div
         className={`relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors cursor-pointer ${
-          dragActive ? 'border-accent bg-accent-tint' : 'border-border bg-muted hover:border-muted-foreground'
+          dragActive
+            ? 'border-accent bg-accent-tint'
+            : 'border-border bg-muted hover:border-muted-foreground'
         }`}
         onDragOver={(e) => {
           e.preventDefault();
@@ -68,7 +70,9 @@ export function MhdAttachmentUploader({ isUploading, onUpload }: Props) {
         <p className="text-sm text-muted-foreground">
           Drag & drop or <span className="font-medium text-accent">browse</span>
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">Max 25 MB · PDF, Word, Excel, images, CSV, ZIP</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Max 25 MB · PDF, Word, Excel, images, CSV, ZIP
+        </p>
         <input
           ref={inputRef}
           type="file"
@@ -82,8 +86,13 @@ export function MhdAttachmentUploader({ isUploading, onUpload }: Props) {
 
       {pendingFile && (
         <div className="flex items-center gap-3 rounded-md border border-border bg-card p-3">
-          <MhdAttachmentFileIcon mimeType={pendingFile.type} className="h-5 w-5 text-muted-foreground shrink-0" />
-          <span className="min-w-0 flex-1 truncate text-sm text-foreground">{pendingFile.name}</span>
+          <MhdAttachmentFileIcon
+            mimeType={pendingFile.type}
+            className="h-5 w-5 text-muted-foreground shrink-0"
+          />
+          <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+            {pendingFile.name}
+          </span>
           <button
             type="button"
             onClick={handleCancelPending}

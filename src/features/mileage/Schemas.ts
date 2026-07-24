@@ -5,7 +5,10 @@ import {
   MHD_MILEAGE_RATE_MODES,
 } from './Types';
 
-const isoDate = z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a YYYY-MM-DD date.');
+const isoDate = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a YYYY-MM-DD date.');
 
 /** Today in the same YYYY-MM-DD shape the RPCs take, for the not-in-the-future rule. */
 function today(): string {
@@ -37,7 +40,10 @@ export const mhdTripFormSchema = z
   .object({
     personId: z.string().trim().min(1, 'Employee is required.'),
     tripDate: isoDate,
-    miles: z.number().positive('Miles must be above zero.').max(10_000, 'That mileage is not plausible for one trip.'),
+    miles: z
+      .number()
+      .positive('Miles must be above zero.')
+      .max(10_000, 'That mileage is not plausible for one trip.'),
     origin: z.string().trim().min(1, 'A starting point is required.').max(500),
     destination: z.string().trim().min(1, 'A destination is required.').max(500),
     // Rule 6. This is the substantiation field: a mileage log full of blanks is
@@ -46,11 +52,18 @@ export const mhdTripFormSchema = z
     businessPurpose: z
       .string()
       .trim()
-      .min(1, 'A business purpose is required — it is what substantiates the trip if the log is ever examined.')
+      .min(
+        1,
+        'A business purpose is required — it is what substantiates the trip if the log is ever examined.',
+      )
       .max(2000),
     notOrdinaryCommuting: z.boolean(),
     isRoundTrip: z.boolean().default(false),
-    odometerStart: z.number().min(0, 'An odometer reading cannot be negative.').optional().nullable(),
+    odometerStart: z
+      .number()
+      .min(0, 'An odometer reading cannot be negative.')
+      .optional()
+      .nullable(),
     odometerEnd: z.number().min(0, 'An odometer reading cannot be negative.').optional().nullable(),
     commuteDeductionMiles: z
       .number()
@@ -74,16 +87,15 @@ export const mhdTripFormSchema = z
   })
   // A deduction equal to or larger than the trip leaves nothing to reimburse,
   // which is a mis-entry rather than a claim of zero.
-  .refine(
-    (form) => form.commuteDeductionMiles == null || form.commuteDeductionMiles < form.miles,
-    {
-      message: 'The commute deduction must be smaller than the trip itself.',
-      path: ['commuteDeductionMiles'],
-    },
-  )
+  .refine((form) => form.commuteDeductionMiles == null || form.commuteDeductionMiles < form.miles, {
+    message: 'The commute deduction must be smaller than the trip itself.',
+    path: ['commuteDeductionMiles'],
+  })
   .refine(
     (form) =>
-      form.odometerStart == null || form.odometerEnd == null || form.odometerEnd >= form.odometerStart,
+      form.odometerStart == null ||
+      form.odometerEnd == null ||
+      form.odometerEnd >= form.odometerStart,
     {
       message: 'The closing odometer reading cannot be below the opening one.',
       path: ['odometerEnd'],
@@ -140,7 +152,8 @@ export const mhdClaimDecisionSchema = z
       form.decision !== 'REJECTED' ||
       Boolean(form.decisionNote && form.decisionNote.trim().length > 0),
     {
-      message: 'A rejected claim requires a reason — it is what the claimant is owed and what the record has to show.',
+      message:
+        'A rejected claim requires a reason — it is what the claimant is owed and what the record has to show.',
       path: ['decisionNote'],
     },
   );
@@ -186,7 +199,10 @@ export const mhdRateProposalSchema = z.object({
   noticeNumber: z
     .string()
     .trim()
-    .min(1, 'A notice or bulletin number is required to identify which publication this figure came from.')
+    .min(
+      1,
+      'A notice or bulletin number is required to identify which publication this figure came from.',
+    )
     .max(100),
   sourceDocumentDate: isoDate.optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
@@ -227,7 +243,8 @@ export const mhdCompanyRatePolicySchema = z
     path: ['fixedRatePerMile'],
   })
   .refine((form) => form.rateMode !== 'TRACK_IRS_BUSINESS' || form.fixedRatePerMile == null, {
-    message: 'A policy that tracks the IRS rate must not also carry a fixed rate — only one of them can be the number that applies.',
+    message:
+      'A policy that tracks the IRS rate must not also carry a fixed rate — only one of them can be the number that applies.',
     path: ['fixedRatePerMile'],
   });
 

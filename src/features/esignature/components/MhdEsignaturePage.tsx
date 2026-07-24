@@ -73,11 +73,16 @@ export function MhdEsignaturePage() {
   const requestedGenerationId = searchParams.get('generationId');
 
   const requestsQuery = useMhdEsignatureRequests(profile?.companyId ?? null);
-  const generatedDocumentsQuery = useMhdEsignatureGeneratedDocuments(profile?.companyId ?? null, personId);
+  const generatedDocumentsQuery = useMhdEsignatureGeneratedDocuments(
+    profile?.companyId ?? null,
+    personId,
+  );
   const usersQuery = useMhdEsignatureAssignableUsers(profile?.companyId ?? null);
   const actions = useMhdEsignatureActions();
 
-  const [selectedGenerationId, setSelectedGenerationId] = useState<string | null>(requestedGenerationId);
+  const [selectedGenerationId, setSelectedGenerationId] = useState<string | null>(
+    requestedGenerationId,
+  );
   const [documentHash, setDocumentHash] = useState('');
   const [signingOrder, setSigningOrder] = useState<MhdEsignatureSigningOrder>('SEQUENTIAL');
   const [expiresAt, setExpiresAt] = useState('');
@@ -88,7 +93,10 @@ export function MhdEsignaturePage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [requestSearchTerm, setRequestSearchTerm] = useState('');
 
-  const generatedDocuments = useMemo(() => generatedDocumentsQuery.data ?? [], [generatedDocumentsQuery.data]);
+  const generatedDocuments = useMemo(
+    () => generatedDocumentsQuery.data ?? [],
+    [generatedDocumentsQuery.data],
+  );
   const requests = useMemo(() => requestsQuery.data ?? [], [requestsQuery.data]);
   const users = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
 
@@ -185,7 +193,9 @@ export function MhdEsignaturePage() {
       setActionMessage(message);
       resetComposer(selectedGeneration);
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'Unable to create the signature request.');
+      setActionError(
+        error instanceof Error ? error.message : 'Unable to create the signature request.',
+      );
     }
   }
 
@@ -197,13 +207,15 @@ export function MhdEsignaturePage() {
         actions={
           <MhdStatCard
             label="Open Requests"
-            value={requests.filter((request) => ['PENDING', 'IN_PROGRESS'].includes(request.status)).length}
+            value={
+              requests.filter((request) => ['PENDING', 'IN_PROGRESS'].includes(request.status))
+                .length
+            }
             hint={`${requests.length} total request${requests.length === 1 ? '' : 's'}`}
           />
         }
       />
       <div className="space-y-6">
-
         {personId ? (
           <div className="rounded-2xl border border-border bg-accent-tint p-4 text-sm text-foreground">
             <div className="flex items-start gap-3">
@@ -211,25 +223,37 @@ export function MhdEsignaturePage() {
               <div>
                 <p className="font-semibold">Onboarding handoff</p>
                 <p className="mt-1">
-                  Showing generated documents for {personName || 'the selected person'} that are ready to route into the signing workflow.
+                  Showing generated documents for {personName || 'the selected person'} that are
+                  ready to route into the signing workflow.
                 </p>
               </div>
             </div>
           </div>
         ) : null}
 
-        {actionMessage ? <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{actionMessage}</div> : null}
-        {actionError ? <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{actionError}</div> : null}
+        {actionMessage ? (
+          <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+            {actionMessage}
+          </div>
+        ) : null}
+        {actionError ? (
+          <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+            {actionError}
+          </div>
+        ) : null}
 
         <MhdCard className="rounded-2xl p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex items-center gap-2">
                 <FileCheck2 className="h-5 w-5 text-accent" />
-                <h2 className="text-lg font-semibold text-foreground">Generated Documents Ready for Signature</h2>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Generated Documents Ready for Signature
+                </h2>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
-                These rows come directly from `document_generations` and are filtered to documents whose template requires signature.
+                These rows come directly from `document_generations` and are filtered to documents
+                whose template requires signature.
               </p>
             </div>
             {selectedGeneration ? (
@@ -241,7 +265,9 @@ export function MhdEsignaturePage() {
 
           {generatedDocumentsQuery.error ? (
             <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-              {generatedDocumentsQuery.error instanceof Error ? generatedDocumentsQuery.error.message : 'Unable to load generated documents.'}
+              {generatedDocumentsQuery.error instanceof Error
+                ? generatedDocumentsQuery.error.message
+                : 'Unable to load generated documents.'}
             </div>
           ) : null}
 
@@ -249,7 +275,11 @@ export function MhdEsignaturePage() {
             <div className="space-y-3">
               {generatedDocuments.length === 0 ? (
                 <MhdCard className="border-dashed">
-                  <MhdEmptyState icon={FileCheck2} title="No documents ready for signature" description="No generated, signature-required documents are currently available for routing." />
+                  <MhdEmptyState
+                    icon={FileCheck2}
+                    title="No documents ready for signature"
+                    description="No generated, signature-required documents are currently available for routing."
+                  />
                 </MhdCard>
               ) : null}
 
@@ -267,17 +297,29 @@ export function MhdEsignaturePage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-base font-semibold text-foreground">{generation.outputFileName || generation.templateName}</h3>
-                          <MhdBadge variant={STATUS_VARIANTS[generation.status] ?? 'neutral'}>{generation.status}</MhdBadge>
+                          <h3 className="text-base font-semibold text-foreground">
+                            {generation.outputFileName || generation.templateName}
+                          </h3>
+                          <MhdBadge variant={STATUS_VARIANTS[generation.status] ?? 'neutral'}>
+                            {generation.status}
+                          </MhdBadge>
                         </div>
-                        <p className="mt-1 text-sm text-muted-foreground">{generation.referenceId} · {generation.templateName}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {generation.referenceId} · {generation.templateName}
+                        </p>
                         <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                          <span className="rounded-full bg-card px-2.5 py-1">Entity: {generation.entityType}</span>
+                          <span className="rounded-full bg-card px-2.5 py-1">
+                            Entity: {generation.entityType}
+                          </span>
                           {generation.generatedAt ? (
-                            <span className="rounded-full bg-card px-2.5 py-1">Generated: {new Date(generation.generatedAt).toLocaleString()}</span>
+                            <span className="rounded-full bg-card px-2.5 py-1">
+                              Generated: {new Date(generation.generatedAt).toLocaleString()}
+                            </span>
                           ) : null}
                           {generation.esignatureRequestId ? (
-                            <span className="rounded-full bg-card px-2.5 py-1">Linked request already exists</span>
+                            <span className="rounded-full bg-card px-2.5 py-1">
+                              Linked request already exists
+                            </span>
                           ) : null}
                         </div>
                       </div>
@@ -323,15 +365,19 @@ export function MhdEsignaturePage() {
             <div className="rounded-2xl border border-border bg-muted p-4">
               <div className="flex items-center gap-2">
                 <FileSignature className="h-5 w-5 text-accent" />
-                <h3 className="text-base font-semibold text-foreground">Create Signature Request</h3>
+                <h3 className="text-base font-semibold text-foreground">
+                  Create Signature Request
+                </h3>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Stage 5 requires a stored SHA-256 document hash before the sign step can succeed, so the request creator must provide the fingerprint here.
+                Stage 5 requires a stored SHA-256 document hash before the sign step can succeed, so
+                the request creator must provide the fingerprint here.
               </p>
 
               {!canMutate ? (
                 <div className="mt-4 rounded-xl border border-border bg-card p-3 text-sm text-muted-foreground">
-                  You can review request status and event timelines, but your role cannot create or mutate signature requests.
+                  You can review request status and event timelines, but your role cannot create or
+                  mutate signature requests.
                 </div>
               ) : (
                 <div className="mt-4 space-y-4">
@@ -347,7 +393,8 @@ export function MhdEsignaturePage() {
                         .filter((generation) => !generation.esignatureRequestId)
                         .map((generation) => (
                           <option key={generation.id} value={generation.id}>
-                            {generation.referenceId} · {generation.outputFileName || generation.templateName}
+                            {generation.referenceId} ·{' '}
+                            {generation.outputFileName || generation.templateName}
                           </option>
                         ))}
                     </select>
@@ -368,7 +415,9 @@ export function MhdEsignaturePage() {
                     <select
                       className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                       value={signingOrder}
-                      onChange={(event) => setSigningOrder(event.target.value as MhdEsignatureSigningOrder)}
+                      onChange={(event) =>
+                        setSigningOrder(event.target.value as MhdEsignatureSigningOrder)
+                      }
                     >
                       <option value="SEQUENTIAL">Sequential</option>
                       <option value="PARALLEL">Parallel</option>
@@ -411,7 +460,9 @@ export function MhdEsignaturePage() {
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => setSigners((current) => [...current, createSignerRow('internal')])}
+                          onClick={() =>
+                            setSigners((current) => [...current, createSignerRow('internal')])
+                          }
                           className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground"
                         >
                           <Plus className="h-3.5 w-3.5" />
@@ -419,7 +470,9 @@ export function MhdEsignaturePage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setSigners((current) => [...current, createSignerRow('external')])}
+                          onClick={() =>
+                            setSigners((current) => [...current, createSignerRow('external')])
+                          }
                           className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground"
                         >
                           <Plus className="h-3.5 w-3.5" />
@@ -432,11 +485,17 @@ export function MhdEsignaturePage() {
                       {signers.map((row, index) => (
                         <div key={row.id} className="rounded-xl border border-border bg-card p-3">
                           <div className="flex items-center justify-between gap-3">
-                            <p className="text-sm font-semibold text-foreground">Signer {index + 1}</p>
+                            <p className="text-sm font-semibold text-foreground">
+                              Signer {index + 1}
+                            </p>
                             {signers.length > 1 ? (
                               <button
                                 type="button"
-                                onClick={() => setSigners((current) => current.filter((candidate) => candidate.id !== row.id))}
+                                onClick={() =>
+                                  setSigners((current) =>
+                                    current.filter((candidate) => candidate.id !== row.id),
+                                  )
+                                }
                                 className="text-xs font-semibold text-rose-700"
                               >
                                 Remove
@@ -470,12 +529,18 @@ export function MhdEsignaturePage() {
                               <select
                                 className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                                 value={row.userId}
-                                onChange={(event) => updateSigner(row.id, (current) => ({ ...current, userId: event.target.value }))}
+                                onChange={(event) =>
+                                  updateSigner(row.id, (current) => ({
+                                    ...current,
+                                    userId: event.target.value,
+                                  }))
+                                }
                               >
                                 <option value="">Choose a user</option>
                                 {users.map((user) => (
                                   <option key={user.id} value={user.id}>
-                                    {user.displayName}{user.email ? ` (${user.email})` : ''}
+                                    {user.displayName}
+                                    {user.email ? ` (${user.email})` : ''}
                                   </option>
                                 ))}
                               </select>
@@ -486,7 +551,12 @@ export function MhdEsignaturePage() {
                                 Signer name
                                 <input
                                   value={row.externalName}
-                                  onChange={(event) => updateSigner(row.id, (current) => ({ ...current, externalName: event.target.value }))}
+                                  onChange={(event) =>
+                                    updateSigner(row.id, (current) => ({
+                                      ...current,
+                                      externalName: event.target.value,
+                                    }))
+                                  }
                                   className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                                 />
                               </label>
@@ -495,7 +565,12 @@ export function MhdEsignaturePage() {
                                 <input
                                   type="email"
                                   value={row.externalEmail}
-                                  onChange={(event) => updateSigner(row.id, (current) => ({ ...current, externalEmail: event.target.value }))}
+                                  onChange={(event) =>
+                                    updateSigner(row.id, (current) => ({
+                                      ...current,
+                                      externalEmail: event.target.value,
+                                    }))
+                                  }
                                   className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                                 />
                               </label>
@@ -513,7 +588,9 @@ export function MhdEsignaturePage() {
                     className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Send className="h-4 w-4" />
-                    {actions.createRequestFromGeneratedDocument.isPending ? 'Creating Request...' : 'Create Signature Request'}
+                    {actions.createRequestFromGeneratedDocument.isPending
+                      ? 'Creating Request...'
+                      : 'Create Signature Request'}
                   </button>
                 </div>
               )}
@@ -529,7 +606,8 @@ export function MhdEsignaturePage() {
                 <h2 className="text-lg font-semibold text-foreground">Request List</h2>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Open any request to inspect the signer chain, consent trail, and chronological event history.
+                Open any request to inspect the signer chain, consent trail, and chronological event
+                history.
               </p>
             </div>
             <label className="block text-sm font-medium text-foreground">
@@ -545,7 +623,9 @@ export function MhdEsignaturePage() {
 
           {requestsQuery.error ? (
             <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-              {requestsQuery.error instanceof Error ? requestsQuery.error.message : 'Unable to load signature requests.'}
+              {requestsQuery.error instanceof Error
+                ? requestsQuery.error.message
+                : 'Unable to load signature requests.'}
             </div>
           ) : null}
 
@@ -559,17 +639,27 @@ export function MhdEsignaturePage() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-semibold text-foreground">{request.documentName}</h3>
-                      <MhdBadge variant={STATUS_VARIANTS[request.status] ?? 'neutral'}>{request.status}</MhdBadge>
+                      <h3 className="text-base font-semibold text-foreground">
+                        {request.documentName}
+                      </h3>
+                      <MhdBadge variant={STATUS_VARIANTS[request.status] ?? 'neutral'}>
+                        {request.status}
+                      </MhdBadge>
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">{request.referenceId}</p>
                     <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span className="rounded-full bg-card px-2.5 py-1">Order: {request.signingOrder}</span>
+                      <span className="rounded-full bg-card px-2.5 py-1">
+                        Order: {request.signingOrder}
+                      </span>
                       {request.completedAt ? (
-                        <span className="rounded-full bg-card px-2.5 py-1">Completed: {new Date(request.completedAt).toLocaleString()}</span>
+                        <span className="rounded-full bg-card px-2.5 py-1">
+                          Completed: {new Date(request.completedAt).toLocaleString()}
+                        </span>
                       ) : null}
                       {request.expiresAt ? (
-                        <span className="rounded-full bg-card px-2.5 py-1">Expires: {new Date(request.expiresAt).toLocaleString()}</span>
+                        <span className="rounded-full bg-card px-2.5 py-1">
+                          Expires: {new Date(request.expiresAt).toLocaleString()}
+                        </span>
                       ) : null}
                     </div>
                   </div>
@@ -584,7 +674,11 @@ export function MhdEsignaturePage() {
 
             {!requestsQuery.isLoading && filteredRequests.length === 0 ? (
               <MhdCard className="border-dashed">
-                <MhdEmptyState icon={Mail} title="No signature requests" description="No signature requests match the current filter." />
+                <MhdEmptyState
+                  icon={Mail}
+                  title="No signature requests"
+                  description="No signature requests match the current filter."
+                />
               </MhdCard>
             ) : null}
           </div>
