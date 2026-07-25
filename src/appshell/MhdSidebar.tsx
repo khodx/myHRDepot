@@ -31,6 +31,7 @@ import {
   ShieldAlert,
   Stamp,
   UserSearch,
+  UserPlus,
   Users,
   TrendingUp,
   X,
@@ -72,6 +73,15 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'People & Org',
     items: [
       { label: 'People', route: '/people', icon: Users, roles: mhdRouteRoles('/people') },
+      // The new-hire packet roster. Sits beside People rather than next to
+      // Offboarding because it is the hire-side intake surface and reads the
+      // same people directory; Employee Relations covers conduct and exit.
+      {
+        label: 'Onboarding',
+        route: '/onboarding',
+        icon: UserPlus,
+        roles: mhdRouteRoles('/onboarding'),
+      },
       {
         label: 'Employee Files',
         route: '/employees',

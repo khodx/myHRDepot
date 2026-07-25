@@ -75,6 +75,41 @@ export interface MhdOnboardingPacketItem
   formStatus: MhdFormStatus | null;
 }
 
+/**
+ * One person's packet progress on the /onboarding roster, as returned by
+ * mhd_list_onboarding_progress_for_company (migration 0055). Only people with
+ * at least one onboarding_checklist_items row appear; the roster treats a
+ * person absent from that result as "not started" rather than inventing rows.
+ */
+export interface MhdOnboardingProgressSummary {
+  personId: string;
+  totalItems: number;
+  requiredItems: number;
+  requiredCompleted: number;
+  submittedCount: number;
+  signedCount: number;
+  voidedCount: number;
+  nextDueDate: string | null;
+  lastActivityAt: string | null;
+}
+
+/** A roster row: a person joined to their packet progress, or lack of it. */
+export interface MhdOnboardingRosterRow {
+  personId: string;
+  displayName: string;
+  referenceId: string;
+  companyId: string;
+  companyName: string | null;
+  primaryEmail: string | null;
+  progress: MhdOnboardingProgressSummary | null;
+  /** Denominator comes from the app-side manifest, not the database. */
+  packetSize: number;
+  isStarted: boolean;
+  isComplete: boolean;
+}
+
+export type MhdOnboardingRosterFilter = 'ALL' | 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETE';
+
 export function mhdIsOnboardingDocumentKey(
   value: string | null | undefined,
 ): value is MhdOnboardingDocumentKey {

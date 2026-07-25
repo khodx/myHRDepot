@@ -1,7 +1,76 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { mhdPersonService } from '@/features/people/Service';
 import { mhdOnboardingService } from './Service';
-import { MHD_ONBOARDING_PACKET_DEFINITIONS, type MhdOnboardingPacketItem } from './Types';
+import {
+  MHD_ONBOARDING_PACKET_DEFINITIONS,
+  type MhdOnboardingPacketItem,
+  type MhdOnboardingRosterRow,
+} from './Types';
+
+/**
+ * /onboarding roster. Two queries joined in memory: the people directory for the
+ * company, and one aggregate progress call (migration 0055). People with no
+ * checklist rows are absent from the progress result and surface here as
+ * "not started" — the roster never fabricates checklist rows to fill the gap.
+ *
+ * The denominator is the app-side packet manifest, because the 22-item packet is
+ * defined in MHD_ONBOARDING_PACKET_DEFINITIONS rather than in the database.
+ */
+export function useMhdOnboardingRoster(companyId: string | null) {
+  const peopleQuery = useQuery({
+    queryKey: ['mhd-onboarding-roster-people', companyId],
+    queryFn: () => mhdPersonService.listPeople({ companyId: companyId ?? 'ALL', searchTerm: '' }),
+    enabled: !!companyId,
+  });
+
+  const progressQuery = useQuery({
+    queryKey: ['mhd-onboarding-roster-progress', companyId],
+    queryFn: () => mhdOnboardingService.listProgressForCompany(companyId as string),
+    enabled: !!companyId,
+  });
+
+  const packetSize = MHD_ONBOARDING_PACKET_DEFINITIONS.filter(
+    (packet) => packet.isRequiredByDefault,
+  ).length;
+
+  const rows = useMemo<MhdOnboardingRosterRow[]>(() => {
+    const progressByPerson = new Map(
+      (progressQuery.data ?? []).map((entry) => [entry.personId, entry] as const),
+    );
+
+    return (peopleQuery.data ?? []).map((person) => {
+      const progress = progressByPerson.get(person.id) ?? null;
+      // Completeness is measured against the manifest, not against
+      // progress.requiredItems: a partially seeded packet has fewer rows than
+      // the manifest, and comparing against itself would read as complete.
+      const completed = progress?.requiredCompleted ?? 0;
+
+      return {
+        personId: person.id,
+        displayName: person.displayName,
+        referenceId: person.referenceId,
+        companyId: person.companyId,
+        companyName: person.companyName,
+        primaryEmail: person.primaryEmail,
+        progress,
+        packetSize,
+        isStarted: progress !== null && progress.totalItems > 0,
+        isComplete: packetSize > 0 && completed >= packetSize,
+      };
+    });
+  }, [packetSize, peopleQuery.data, progressQuery.data]);
+
+  return {
+    rows,
+    packetSize,
+    isLoading: peopleQuery.isLoading || progressQuery.isLoading,
+    errorMessage: peopleQuery.error?.message ?? progressQuery.error?.message ?? null,
+    refresh: async () => {
+      await Promise.all([peopleQuery.refetch(), progressQuery.refetch()]);
+    },
+  };
+}
 
 export function useMhdOnboardingPacket(personId: string, companyId: string) {
   const checklistQuery = useQuery({

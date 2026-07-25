@@ -47,6 +47,8 @@ import { MhdCoachingPlanDetailPage } from '@/features/performance/Components/Mhd
 import { MhdFeedbackInvitationsPage } from '@/features/performance/Components/MhdFeedbackInvitationsPage';
 import { MhdReviewTemplatesPage } from '@/features/performance/Components/MhdReviewTemplatesPage';
 import { MhdFeedbackSettingsPage } from '@/features/performance/Components/MhdFeedbackSettingsPage';
+import { MhdOnboardingIndexPage } from '@/features/onboarding/components/MhdOnboardingIndexPage';
+import { MhdOnboardingPersonPage } from '@/features/onboarding/components/MhdOnboardingPersonPage';
 import { MhdOffboardingPage } from '@/features/offboarding/components/MhdOffboardingPage';
 import { MhdOffboardingCaseDetailPage } from '@/features/offboarding/components/MhdOffboardingCaseDetailPage';
 import { MhdConductPage } from '@/features/conduct/components/MhdConductPage';
@@ -156,6 +158,12 @@ export function AppRouter() {
               <Route path="/performance/settings" element={<MhdFeedbackSettingsPage />} />
               <Route path="/performance/reviews/:reviewId" element={<MhdReviewDetailPage />} />
               <Route path="/performance/coaching/:planId" element={<MhdCoachingPlanDetailPage />} />
+              {/* Onboarding. /onboarding/:personId inherits the /onboarding
+                  rule via the guard's prefix match. The same checklist card is
+                  still embedded in /people/:personId; these routes give the
+                  module its own reachable surface. */}
+              <Route path="/onboarding" element={<MhdOnboardingIndexPage />} />
+              <Route path="/onboarding/:personId" element={<MhdOnboardingPersonPage />} />
               <Route path="/offboarding" element={<MhdOffboardingPage />} />
               <Route path="/offboarding/:caseId" element={<MhdOffboardingCaseDetailPage />} />
               {/* Conduct. Admin-only (see mhdRouteAccess); /conduct/:caseId

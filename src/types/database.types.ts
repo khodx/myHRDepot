@@ -16975,6 +16975,20 @@ export type Database = {
           values: Json;
         }[];
       };
+      mhd_list_onboarding_progress_for_company: {
+        Args: { p_company_id: string };
+        Returns: {
+          last_activity_at: string | null;
+          next_due_date: string | null;
+          person_id: string;
+          required_completed: number;
+          required_items: number;
+          signed_count: number;
+          submitted_count: number;
+          total_items: number;
+          voided_count: number;
+        }[];
+      };
       mhd_list_notes_for_entity: {
         Args: { p_entity_id: string; p_entity_type: string };
         Returns: {

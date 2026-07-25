@@ -52,6 +52,13 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
   },
   { path: '/performance', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  // Onboarding. Same audience as /offboarding: new-hire packets carry
+  // RESTRICTED-tier documents (I-9, W-4, direct deposit banking, consumer
+  // report disclosures), so Client User and Viewer are both excluded.
+  // /onboarding/:personId inherits this rule via the prefix match, and it
+  // matches the role check inside mhd_list_onboarding_progress_for_company —
+  // hiding a nav link is not access control, the router guard and the RPC are.
+  { path: '/onboarding', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   { path: '/offboarding', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   // Conduct — the strictest module. Corrective-action cases carry RESTRICTED-tier
   // discipline narratives, so only Platform Admin / HR Partner / Client Admin

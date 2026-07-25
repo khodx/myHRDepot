@@ -7,6 +7,7 @@ import type {
   MhdOnboardingChecklistUpsertInput,
   MhdOnboardingDocumentKey,
   MhdOnboardingPacketFormRef,
+  MhdOnboardingProgressSummary,
 } from './Types';
 import { MHD_ONBOARDING_PACKET_BY_KEY, MHD_ONBOARDING_PACKET_DEFINITIONS } from './Types';
 
@@ -31,7 +32,33 @@ type MhdApplyDestinationRow = {
   destination_record_id: string | null;
 };
 
+type MhdOnboardingProgressRow = {
+  person_id: string;
+  total_items: number;
+  required_items: number;
+  required_completed: number;
+  submitted_count: number;
+  signed_count: number;
+  voided_count: number;
+  next_due_date: string | null;
+  last_activity_at: string | null;
+};
+
 type MhdOnboardingTableName = MhdOnboardingDocumentKey;
+
+function mapProgressRow(row: MhdOnboardingProgressRow): MhdOnboardingProgressSummary {
+  return {
+    personId: row.person_id,
+    totalItems: row.total_items,
+    requiredItems: row.required_items,
+    requiredCompleted: row.required_completed,
+    submittedCount: row.submitted_count,
+    signedCount: row.signed_count,
+    voidedCount: row.voided_count,
+    nextDueDate: row.next_due_date,
+    lastActivityAt: row.last_activity_at,
+  };
+}
 
 function mapChecklistRow(row: MhdOnboardingChecklistRow): MhdOnboardingChecklistItem {
   return {
@@ -173,6 +200,18 @@ export const mhdOnboardingService = {
     }
 
     return mapChecklistRow(row);
+  },
+
+  async listProgressForCompany(companyId: string): Promise<MhdOnboardingProgressSummary[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_onboarding_progress_for_company', { p_company_id: companyId })
+      .returns<MhdOnboardingProgressRow[]>();
+
+    if (error) {
+      throw new Error(`Unable to load onboarding progress: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapProgressRow);
   },
 
   async listPacketFormsForCompany(companyId: string): Promise<MhdOnboardingPacketFormRef[]> {
