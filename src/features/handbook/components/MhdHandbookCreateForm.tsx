@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { mhdCreateHandbookSchema, type MhdCreateHandbookFormValues } from '../Schemas';
 import {
@@ -29,7 +29,6 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
   const {
     register,
     handleSubmit,
-    watch,
     control,
     formState: { errors },
   } = useForm<MhdCreateHandbookFormValues>({
@@ -42,7 +41,7 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
     },
   });
 
-  const handbookType = watch('handbookType');
+  const handbookType = useWatch({ control, name: 'handbookType' });
   const jurisdictionChoices = MHD_HANDBOOK_JURISDICTIONS_BY_TYPE[handbookType] ?? [];
 
   return (

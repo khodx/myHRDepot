@@ -4,9 +4,17 @@ import { CalendarOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdCreateLeaveCase, useMhdLeaveCases, useMhdLeavePeople } from '../Hook';
@@ -86,7 +94,7 @@ export function MhdLeavesPage() {
         }
       />
 
-      <MhdCard className="grid gap-3 md:grid-cols-3">
+      <MhdFilterBar>
         {isPrivileged ? (
           <MhdFilterSelect
             label="Employee"
@@ -121,7 +129,7 @@ export function MhdLeavesPage() {
             </option>
           ))}
         </MhdFilterSelect>
-      </MhdCard>
+      </MhdFilterBar>
 
       {cases.isLoading ? (
         <MhdCard className="p-6 text-sm text-muted-foreground">Loading…</MhdCard>
@@ -140,7 +148,7 @@ export function MhdLeavesPage() {
                 <MhdTh>Dates</MhdTh>
                 <MhdTh className="text-right">Bases</MhdTh>
                 <MhdTh>Status</MhdTh>
-                <MhdTh />
+                <MhdActionsTh />
               </tr>
             </thead>
             <tbody>
@@ -161,19 +169,17 @@ export function MhdLeavesPage() {
                   <MhdTd>
                     <MhdLeaveStatusBadge status={leaveCase.status} />
                   </MhdTd>
-                  <MhdTd className="text-right">
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/leaves/${leaveCase.id}`)}
-                      className="text-sm font-medium text-accent hover:text-accent-hover"
-                    >
-                      Open
-                    </button>
-                  </MhdTd>
+                  <MhdTableActions
+                    viewTo={`/leaves/${leaveCase.id}`}
+                    editTo={isPrivileged ? `/leaves/${leaveCase.id}` : undefined}
+                  />
                 </MhdTr>
               ))}
             </tbody>
           </MhdTable>
+          <MhdTableFooter
+            summary={`Showing 1 to ${(cases.data ?? []).length} of ${(cases.data ?? []).length} leave cases`}
+          />
         </MhdCard>
       )}
 

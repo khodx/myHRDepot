@@ -6,6 +6,8 @@ import {
   BookOpen,
   Briefcase,
   Building2,
+  Bell,
+  Bot,
   CalendarClock,
   CalendarDays,
   CalendarOff,
@@ -16,6 +18,7 @@ import {
   ClipboardList,
   DoorOpen,
   FileSignature,
+  FolderOpen,
   Gavel,
   GraduationCap,
   IdCard,
@@ -69,6 +72,12 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'People & Org',
     items: [
       { label: 'People', route: '/people', icon: Users, roles: mhdRouteRoles('/people') },
+      {
+        label: 'Employee Files',
+        route: '/employees',
+        icon: FolderOpen,
+        roles: mhdRouteRoles('/employees'),
+      },
       {
         label: 'Companies',
         route: '/companies',
@@ -203,6 +212,40 @@ const NAV_SECTIONS: NavSection[] = [
         route: '/esignature',
         icon: FileSignature,
         roles: mhdRouteRoles('/esignature'),
+      },
+    ],
+  },
+  {
+    label: 'Communications',
+    items: [
+      {
+        label: 'Communications',
+        route: '/communications',
+        icon: MessageSquare,
+        roles: mhdRouteRoles('/communications'),
+      },
+      {
+        label: 'Messaging',
+        route: '/communications/messaging',
+        icon: MessageSquare,
+        roles: mhdRouteRoles('/communications'),
+      },
+      {
+        label: 'System Alerts',
+        route: '/communications/system-alerts',
+        icon: Bell,
+        roles: mhdRouteRoles('/communications'),
+      },
+    ],
+  },
+  {
+    label: 'Automation',
+    items: [
+      {
+        label: 'Automations',
+        route: '/automations',
+        icon: Bot,
+        roles: mhdRouteRoles('/automations'),
       },
     ],
   },
@@ -477,7 +520,7 @@ function MhdNavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
           collapsed ? 'justify-center px-0' : 'gap-3 px-3'
         } ${
           isActive
-            ? 'bg-rail-selected font-semibold text-white shadow-[inset_0_0_0_1px_rgb(255_255_255/0.10)]'
+            ? 'bg-rail-selected font-semibold text-white shadow-[inset_0_0_0_1px_rgb(255_255_255/0.24),0_8px_20px_rgb(0_0_0/0.16)]'
             : 'font-medium text-rail-text hover:bg-rail-hover hover:text-white'
         }`
       }

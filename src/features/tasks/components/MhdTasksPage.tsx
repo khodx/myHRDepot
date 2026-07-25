@@ -1,17 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { Download, Layers, Plus, Save } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTaskFilterBar } from '@/features/tasks/components/MhdTaskFilterBar';
-import { MhdTaskForm } from '@/features/tasks/components/MhdTaskForm';
 import { MhdTaskList } from '@/features/tasks/components/MhdTaskList';
-import { MhdTaskSummaryCards } from '@/features/tasks/components/MhdTaskSummaryCards';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdTasks } from '@/features/tasks/Hook';
-import type { MhdTask } from '@/features/tasks/Types';
 
 export function MhdTasksPage() {
   const { profile } = useMhdAuth();
-  const [selectedTask, setSelectedTask] = useState<MhdTask | null>(null);
   const actorContext = useMemo(
     () => (profile?.userId ? { actorUserId: profile.userId } : null),
     [profile],
@@ -25,8 +24,31 @@ export function MhdTasksPage() {
   return (
     <div className="space-y-6">
       <MhdPageHeader
-        title="Task Management"
+        title="Tasks"
         description="Create, assign, filter, and track client work."
+        actions={
+          <>
+            <Link
+              to="/tasks/new"
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-sm font-semibold text-accent-on transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              New Task
+            </Link>
+            <Button variant="secondary" className="gap-1.5">
+              <Layers className="h-4 w-4" aria-hidden />
+              Bulk Actions
+            </Button>
+            <Button variant="secondary" className="gap-1.5">
+              <Save className="h-4 w-4" aria-hidden />
+              Save View
+            </Button>
+            <Button variant="secondary" className="gap-1.5">
+              <Download className="h-4 w-4" aria-hidden />
+              Export
+            </Button>
+          </>
+        }
       />
 
       {taskState.errorMessage && (
@@ -34,8 +56,6 @@ export function MhdTasksPage() {
           {taskState.errorMessage}
         </div>
       )}
-
-      <MhdTaskSummaryCards summary={taskState.summary} />
 
       <MhdTaskFilterBar
         companies={companies}
@@ -46,25 +66,11 @@ export function MhdTasksPage() {
         onChange={taskState.setFilters}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
-        <MhdTaskForm
-          companies={companies}
-          statuses={taskState.statuses}
-          priorities={taskState.priorities}
-          assignableUsers={taskState.assignableUsers}
-          selectedTask={selectedTask}
-          isSaving={taskState.isSaving}
-          onCreate={taskState.createTask}
-          onUpdate={taskState.updateTask}
-          onCancelEdit={() => setSelectedTask(null)}
-        />
-        <MhdTaskList
-          tasks={taskState.tasks}
-          isLoading={taskState.isLoading}
-          onEdit={setSelectedTask}
-          onDelete={taskState.deleteTask}
-        />
-      </div>
+      <MhdTaskList
+        tasks={taskState.tasks}
+        isLoading={taskState.isLoading}
+        onDelete={taskState.deleteTask}
+      />
     </div>
   );
 }

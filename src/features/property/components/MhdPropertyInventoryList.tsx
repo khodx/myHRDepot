@@ -1,8 +1,15 @@
-import { Link } from 'react-router-dom';
 import { Package } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import type { MhdPropertyItem } from '../Types';
 import { MhdPropertyStatusBadge } from './MhdPropertyStatusBadge';
 
@@ -44,7 +51,7 @@ export function MhdPropertyInventoryList({
             <MhdTh>Category</MhdTh>
             <MhdTh>Available</MhdTh>
             <MhdTh>Status</MhdTh>
-            <MhdTh>Action</MhdTh>
+            <MhdActionsTh />
           </tr>
         </thead>
         <tbody>
@@ -64,18 +71,15 @@ export function MhdPropertyInventoryList({
               <MhdTd>
                 <MhdPropertyStatusBadge status={item.status} />
               </MhdTd>
-              <MhdTd>
-                <Link
-                  to={`/property/${item.id}`}
-                  className="font-semibold text-accent hover:text-accent-hover"
-                >
-                  {canMutate ? 'Manage' : 'View'}
-                </Link>
-              </MhdTd>
+              <MhdTableActions
+                viewTo={`/property/${item.id}`}
+                editTo={canMutate ? `/property/${item.id}` : undefined}
+              />
             </MhdTr>
           ))}
         </tbody>
       </MhdTable>
+      <MhdTableFooter summary={`Showing 1 to ${items.length} of ${items.length} property items`} />
     </MhdCard>
   );
 }

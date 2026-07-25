@@ -19,7 +19,6 @@ import {
   useMhdPerformanceUsers,
 } from '../Hook';
 import type { MhdCoachingPlanBoardFilters, MhdReviewBoardFilters } from '../Types';
-import { mhdIsReviewOverdue } from '../Types';
 import { MhdCoachingPlanForm } from './MhdCoachingPlanForm';
 import { MhdCoachingPlanList } from './MhdCoachingPlanList';
 import { MhdOneOnOneTab } from './MhdOneOnOneTab';
@@ -118,16 +117,6 @@ export function MhdPerformancePage() {
 
   const reviews = useMemo(() => reviewsQuery.data ?? [], [reviewsQuery.data]);
   const plans = plansQuery.data ?? [];
-
-  const counts = useMemo(() => {
-    return {
-      draft: reviews.filter((review) => review.status === 'DRAFT').length,
-      inReview: reviews.filter((review) => review.status === 'IN_REVIEW').length,
-      awaitingAcknowledgment: reviews.filter((review) => review.status === 'PENDING_SIGNATURE')
-        .length,
-      overdue: reviews.filter((review) => mhdIsReviewOverdue(review)).length,
-    };
-  }, [reviews]);
 
   const showPlanCreateForm = isCreatingPlan || (Boolean(fromReviewId) && !planFormDismissed);
 
@@ -236,35 +225,6 @@ export function MhdPerformancePage() {
                 : 'Unable to load reviews.'}
             </div>
           ) : null}
-
-          <div className="grid gap-4 md:grid-cols-4">
-            <MhdCard>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Draft
-              </p>
-              <p className="mt-1 text-2xl font-bold text-foreground">{counts.draft}</p>
-            </MhdCard>
-            <MhdCard>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                In Review
-              </p>
-              <p className="mt-1 text-2xl font-bold text-foreground">{counts.inReview}</p>
-            </MhdCard>
-            <MhdCard>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Awaiting Acknowledgment
-              </p>
-              <p className="mt-1 text-2xl font-bold text-foreground">
-                {counts.awaitingAcknowledgment}
-              </p>
-            </MhdCard>
-            <MhdCard>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Overdue
-              </p>
-              <p className="mt-1 text-2xl font-bold text-red-600">{counts.overdue}</p>
-            </MhdCard>
-          </div>
 
           {isCreatingReview && canMutate && selectedCompanyId ? (
             <MhdCard className="p-6">

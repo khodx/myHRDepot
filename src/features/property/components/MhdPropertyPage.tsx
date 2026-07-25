@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
-import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateProperty } from '@/appshell/mhdRouteAccess';
@@ -70,61 +70,52 @@ export function MhdPropertyPage() {
         }
       />
 
-      <MhdCard className="grid gap-4 md:grid-cols-3">
-        <label className="block text-sm font-medium text-foreground md:col-span-1">
-          Search inventory
-          <input
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            placeholder="Search by name, reference, or serial"
-            value={filters.searchTerm}
-            onChange={(event) =>
-              setFilters((current) => ({ ...current, searchTerm: event.target.value }))
-            }
-          />
-        </label>
+      <MhdFilterBar>
+        <MhdFilterInput
+          label="Search"
+          placeholder="Search by name, reference, or serial"
+          value={filters.searchTerm}
+          onChange={(event) =>
+            setFilters((current) => ({ ...current, searchTerm: event.target.value }))
+          }
+        />
 
-        <label className="block text-sm font-medium text-foreground">
-          Category
-          <select
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            value={filters.category}
-            onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
-                category: event.target.value as MhdPropertyListFilters['category'],
-              }))
-            }
-          >
-            <option value="ALL">All categories</option>
-            {MHD_PROPERTY_CATEGORIES.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </label>
+        <MhdFilterSelect
+          label="Category"
+          value={filters.category}
+          onChange={(event) =>
+            setFilters((current) => ({
+              ...current,
+              category: event.target.value as MhdPropertyListFilters['category'],
+            }))
+          }
+        >
+          <option value="ALL">All categories</option>
+          {MHD_PROPERTY_CATEGORIES.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </MhdFilterSelect>
 
-        <label className="block text-sm font-medium text-foreground">
-          Status
-          <select
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            value={filters.status}
-            onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
-                status: event.target.value as MhdPropertyListFilters['status'],
-              }))
-            }
-          >
-            <option value="ALL">All statuses</option>
-            {MHD_PROPERTY_ITEM_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-        </label>
-      </MhdCard>
+        <MhdFilterSelect
+          label="Status"
+          value={filters.status}
+          onChange={(event) =>
+            setFilters((current) => ({
+              ...current,
+              status: event.target.value as MhdPropertyListFilters['status'],
+            }))
+          }
+        >
+          <option value="ALL">All statuses</option>
+          {MHD_PROPERTY_ITEM_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </MhdFilterSelect>
+      </MhdFilterBar>
 
       {itemsQuery.error ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -150,20 +141,6 @@ export function MhdPropertyPage() {
           }}
         />
       ) : null}
-
-      <MhdCard>
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Inventory
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {filteredItems.length} item{filteredItems.length === 1 ? '' : 's'} in the filtered
-              result set.
-            </p>
-          </div>
-        </div>
-      </MhdCard>
 
       <MhdPropertyInventoryList
         items={filteredItems}

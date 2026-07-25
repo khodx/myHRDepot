@@ -3,7 +3,15 @@ import { FileText } from 'lucide-react';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import type { MhdForm } from '../Types';
 
 interface MhdFormListProps {
@@ -51,7 +59,7 @@ export function MhdFormList({ forms, isLoading, canMutate = true }: MhdFormListP
             <MhdTh>Status</MhdTh>
             <MhdTh>Version</MhdTh>
             <MhdTh>Updated</MhdTh>
-            <MhdTh className="text-right">Actions</MhdTh>
+            <MhdActionsTh />
           </tr>
         </thead>
         <tbody>
@@ -73,29 +81,28 @@ export function MhdFormList({ forms, isLoading, canMutate = true }: MhdFormListP
               <MhdTd className="text-sm text-muted-foreground">
                 {new Date(form.updatedAt).toLocaleString()}
               </MhdTd>
-              <MhdTd>
-                <div className="flex justify-end gap-3 text-sm font-semibold">
-                  <Link to={`/forms/${form.id}`} className="text-accent hover:text-accent-hover">
-                    {canMutate ? 'Builder' : 'View'}
-                  </Link>
-                  <Link
-                    to={`/forms/${form.id}/render`}
-                    className="text-accent hover:text-accent-hover"
-                  >
-                    Render
-                  </Link>
-                  <Link
-                    to={`/forms/${form.id}/submissions`}
-                    className="text-accent hover:text-accent-hover"
-                  >
-                    Submissions
-                  </Link>
-                </div>
-              </MhdTd>
+              <MhdTableActions
+                viewTo={`/forms/${form.id}/render`}
+                editTo={canMutate ? `/forms/${form.id}` : undefined}
+                secondaryActions={
+                  <>
+                    <Link to={`/forms/${form.id}`} className="text-accent hover:text-accent-hover">
+                      Builder
+                    </Link>
+                    <Link
+                      to={`/forms/${form.id}/submissions`}
+                      className="text-accent hover:text-accent-hover"
+                    >
+                      Submissions
+                    </Link>
+                  </>
+                }
+              />
             </MhdTr>
           ))}
         </tbody>
       </MhdTable>
+      <MhdTableFooter summary={`Showing 1 to ${forms.length} of ${forms.length} forms`} />
     </MhdCard>
   );
 }

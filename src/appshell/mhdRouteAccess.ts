@@ -30,6 +30,11 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     path: '/esignature',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
   },
+  {
+    path: '/communications',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+  },
+  { path: '/automations', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   // Performance. The specific /performance/* sub-routes precede the general
   // /performance rule because mhdCanAccessRoute returns the FIRST matching rule
   // via prefix match, so /performance would otherwise capture them all (the same
@@ -65,6 +70,11 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/schedule', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/attendance/policy', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   { path: '/attendance', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  // Employee Files. Initial route is PA/HRP only because the existing
+  // attachment engine is company-scoped, not file-type scoped. Medical,
+  // confidential, and private employee file cabinets must not be exposed to
+  // Client Admin until a backend per-file-type policy layer exists.
+  { path: '/employees', roles: ['Platform Admin', 'HR Partner'] },
   { path: '/people', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/companies', roles: ['Platform Admin', 'HR Partner'] },
   { path: '/approvals', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },

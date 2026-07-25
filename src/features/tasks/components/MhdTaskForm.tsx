@@ -115,22 +115,20 @@ export function MhdTaskForm({
 
   return (
     <form
-      className="rounded-xl border border-border bg-card p-4 shadow-sm"
+      className="rounded-lg border border-border bg-card p-5 shadow-sm"
       onSubmit={(event) => void handleSubmit(event)}
     >
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-base font-semibold text-foreground">
+        <h2 className="text-[15px] font-semibold text-foreground">
           {selectedTask ? 'Edit Task' : 'Create Task'}
         </h2>
-        {selectedTask && (
-          <button
-            type="button"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground"
-            onClick={onCancelEdit}
-          >
-            Cancel edit
-          </button>
-        )}
+        <button
+          type="button"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground"
+          onClick={onCancelEdit}
+        >
+          Cancel
+        </button>
       </div>
 
       {formError && (

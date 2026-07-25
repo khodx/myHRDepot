@@ -13,6 +13,7 @@ import { MhdAuthCallbackPage } from '@/features/authentication/components/MhdAut
 // App pages
 import { MhdDashboardPage } from '@/features/dashboard/components/MhdDashboardPage';
 import { MhdTasksPage } from '@/features/tasks/components/MhdTasksPage';
+import { MhdTaskFormPage } from '@/features/tasks/components/MhdTaskFormPage';
 import { MhdTaskDetailPage } from '@/appshell/components/MhdTaskDetailPage';
 import { MhdTaskNotesPage } from '@/features/notes/components/MhdTaskNotesPage';
 import { MhdActivitiesPage } from '@/features/activities/components/MhdActivitiesPage';
@@ -26,9 +27,17 @@ import { MhdPropertyDetailPage } from '@/features/property/components/MhdPropert
 import { MhdEsignaturePage } from '@/features/esignature/components/MhdEsignaturePage';
 import { MhdEsignatureDetailPage } from '@/features/esignature/components/MhdEsignatureDetailPage';
 import { MhdPublicSigningPage } from '@/features/esignature/components/MhdPublicSigningPage';
+import { MhdCommunicationsPage } from '@/features/communications/components/MhdCommunicationsPage';
+import { MhdMessagingPage } from '@/features/communications/components/MhdMessagingPage';
+import { MhdSystemAlertsPage } from '@/features/communications/components/MhdSystemAlertsPage';
+import { MhdAutomationsPage } from '@/features/automations/components/MhdAutomationsPage';
+import { MhdEmployeeFilesPage } from '@/features/employee-files/components/MhdEmployeeFilesPage';
+import { MhdEmployeeFileCabinetPage } from '@/features/employee-files/components/MhdEmployeeFileCabinetPage';
 import { MhdPeoplePage } from '@/features/people/components/MhdPeoplePage';
+import { MhdPersonFormPage } from '@/features/people/components/MhdPersonFormPage';
 import { MhdPersonDetailPage } from '@/appshell/components/MhdPersonDetailPage';
 import { MhdCompaniesPage } from '@/features/companies/components/MhdCompaniesPage';
+import { MhdCompanyFormPage } from '@/features/companies/components/MhdCompanyFormPage';
 import { MhdCompanyDetailPage } from '@/appshell/components/MhdCompanyDetailPage';
 import { MhdApprovalsPage } from '@/features/approvals/components/MhdApprovalsPage';
 import { MhdPerformancePage } from '@/features/performance/Components/MhdPerformancePage';
@@ -98,6 +107,8 @@ export function AppRouter() {
             <Route element={<MhdRoleGuardedRoute />}>
               <Route path="/dashboard" element={<MhdDashboardPage />} />
               <Route path="/tasks" element={<MhdTasksPage />} />
+              <Route path="/tasks/new" element={<MhdTaskFormPage />} />
+              <Route path="/tasks/:taskId/edit" element={<MhdTaskFormPage />} />
               <Route path="/tasks/:taskId" element={<MhdTaskDetailPage />} />
               {/* Inherits the /tasks 'ALL' rule via mhdCanAccessRoute's prefix match. */}
               <Route path="/tasks/:taskId/notes" element={<MhdTaskNotesPage />} />
@@ -112,9 +123,19 @@ export function AppRouter() {
               <Route path="/property/:itemId" element={<MhdPropertyDetailPage />} />
               <Route path="/esignature" element={<MhdEsignaturePage />} />
               <Route path="/esignature/:requestId" element={<MhdEsignatureDetailPage />} />
+              <Route path="/communications" element={<MhdCommunicationsPage />} />
+              <Route path="/communications/messaging" element={<MhdMessagingPage />} />
+              <Route path="/communications/system-alerts" element={<MhdSystemAlertsPage />} />
+              <Route path="/automations" element={<MhdAutomationsPage />} />
+              <Route path="/employees" element={<MhdEmployeeFilesPage />} />
+              <Route path="/employees/:personId" element={<MhdEmployeeFileCabinetPage />} />
               <Route path="/people" element={<MhdPeoplePage />} />
+              <Route path="/people/new" element={<MhdPersonFormPage />} />
+              <Route path="/people/:personId/edit" element={<MhdPersonFormPage />} />
               <Route path="/people/:personId" element={<MhdPersonDetailPage />} />
               <Route path="/companies" element={<MhdCompaniesPage />} />
+              <Route path="/companies/new" element={<MhdCompanyFormPage />} />
+              <Route path="/companies/:companyId/edit" element={<MhdCompanyFormPage />} />
               <Route path="/companies/:companyId" element={<MhdCompanyDetailPage />} />
               <Route path="/approvals" element={<MhdApprovalsPage />} />
               <Route path="/approvals/:approvalId" element={<MhdApprovalDetailPage />} />

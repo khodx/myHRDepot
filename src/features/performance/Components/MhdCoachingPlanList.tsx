@@ -2,7 +2,15 @@ import { ListChecks, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import type { MhdCoachingPlan } from '../Types';
 import { MhdCoachingStatusBadge } from './MhdCoachingStatusBadge';
 
@@ -38,6 +46,7 @@ export function MhdCoachingPlanList({ plans }: Props) {
             <MhdTh>Status</MhdTh>
             <MhdTh>Checkpoints</MhdTh>
             <MhdTh>Target</MhdTh>
+            <MhdActionsTh />
           </tr>
         </thead>
         <tbody>
@@ -68,10 +77,17 @@ export function MhdCoachingPlanList({ plans }: Props) {
                 )}
               </MhdTd>
               <MhdTd className="text-muted-foreground">{formatDate(plan.targetDate)}</MhdTd>
+              <MhdTableActions
+                viewTo={`/performance/coaching/${plan.id}`}
+                editTo={`/performance/coaching/${plan.id}`}
+              />
             </MhdTr>
           ))}
         </tbody>
       </MhdTable>
+      <MhdTableFooter
+        summary={`Showing 1 to ${plans.length} of ${plans.length} coaching plans`}
+      />
     </MhdCard>
   );
 }

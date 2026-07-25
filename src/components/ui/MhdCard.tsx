@@ -2,13 +2,13 @@ import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/utils/cn';
 
 /**
- * Canonical surface (MHD Design System §3): rounded-xl, bordered, card bg.
- * Every panel in the app sits on this; do not re-author the recipe inline.
+ * Canonical surface for operational panels. The design template uses restrained
+ * eight-pixel corners and light borders, so keep this quiet and table-friendly.
  */
 export function MhdCard({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('rounded-xl border border-border bg-card p-4 shadow-sm', className)}
+      className={cn('rounded-lg border border-border bg-card p-4 shadow-sm', className)}
       {...props}
     />
   );
@@ -25,7 +25,7 @@ interface MhdCardHeaderProps {
 export function MhdCardHeader({ title, action, className }: MhdCardHeaderProps) {
   return (
     <div className={cn('mb-3 flex items-center justify-between gap-3', className)}>
-      <h2 className="text-base font-semibold text-foreground">{title}</h2>
+      <h2 className="text-[15px] font-semibold text-foreground">{title}</h2>
       {action}
     </div>
   );

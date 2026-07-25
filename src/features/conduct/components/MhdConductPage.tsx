@@ -1,12 +1,20 @@
-import { Gavel, Plus, Search } from 'lucide-react';
+import { Gavel, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import { mhdCanMutateConduct } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
@@ -171,19 +179,6 @@ export function MhdConductPage() {
 
   const cases = useMemo(() => casesQuery.data ?? [], [casesQuery.data]);
 
-  const counts = useMemo(() => {
-    const open = cases.filter((conductCase) => conductCase.status === 'OPEN');
-    return {
-      open: open.length,
-      actionsOutstanding: open.reduce(
-        (total, conductCase) =>
-          total + Math.max(conductCase.actionCount - conductCase.terminalCount, 0),
-        0,
-      ),
-      closed: cases.filter((conductCase) => conductCase.status === 'CLOSED').length,
-    };
-  }, [cases]);
-
   const companyOptions = canCrossCompanyFilter
     ? (companiesQuery.data ?? []).map((company) => ({ id: company.id, label: company.companyName }))
     : [];
@@ -243,29 +238,6 @@ export function MhdConductPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <MhdCard>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Open
-          </p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{counts.open}</p>
-        </MhdCard>
-        <MhdCard>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Actions Outstanding
-          </p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-amber-700">
-            {counts.actionsOutstanding}
-          </p>
-        </MhdCard>
-        <MhdCard>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Closed
-          </p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-700">{counts.closed}</p>
-        </MhdCard>
-      </div>
-
       {isCreating && canMutate && selectedCompanyId ? (
         <MhdCard>
           <MhdCardHeader title="New Conduct Case" />
@@ -279,26 +251,22 @@ export function MhdConductPage() {
         </MhdCard>
       ) : null}
 
-      <MhdCard className="flex flex-wrap items-end gap-3">
-        <div className="min-w-56 flex-1">
-          <label
-            htmlFor="mhd-conduct-filter-search"
-            className="mb-1 block text-xs font-medium text-muted-foreground"
-          >
-            Search
-          </label>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <input
-              id="mhd-conduct-filter-search"
-              type="search"
-              value={filters.searchTerm}
-              onChange={(event) => update({ searchTerm: event.target.value })}
-              placeholder="Person or reference…"
-              className="w-full rounded-md border border-border bg-card py-2 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            />
-          </div>
-        </div>
+      <MhdFilterBar
+        onClear={() =>
+          setFilters({
+            ...DEFAULT_FILTERS,
+            companyId: companyOptions.length > 0 ? 'ALL' : filters.companyId,
+          })
+        }
+      >
+        <MhdFilterInput
+          id="mhd-conduct-filter-search"
+          type="search"
+          label="Search"
+          value={filters.searchTerm}
+          onChange={(event) => update({ searchTerm: event.target.value })}
+          placeholder="Person or reference"
+        />
 
         {companyOptions.length > 0 ? (
           <MhdFilterSelect
@@ -362,19 +330,7 @@ export function MhdConductPage() {
           ))}
         </MhdFilterSelect>
 
-        <button
-          type="button"
-          onClick={() =>
-            setFilters({
-              ...DEFAULT_FILTERS,
-              companyId: companyOptions.length > 0 ? 'ALL' : filters.companyId,
-            })
-          }
-          className="pb-2 text-[13px] font-medium text-accent hover:text-accent-hover"
-        >
-          Clear
-        </button>
-      </MhdCard>
+      </MhdFilterBar>
 
       {casesQuery.isLoading ? (
         <MhdCard className="flex h-40 items-center justify-center text-sm text-muted-foreground">
@@ -396,8 +352,9 @@ export function MhdConductPage() {
                 <MhdTh>Case</MhdTh>
                 <MhdTh>Category</MhdTh>
                 <MhdTh>Status</MhdTh>
-                <MhdTh>Actions</MhdTh>
+                <MhdTh>Action count</MhdTh>
                 <MhdTh>Opened</MhdTh>
+                <MhdActionsTh />
               </tr>
             </thead>
             <tbody>
@@ -425,10 +382,15 @@ export function MhdConductPage() {
                   <MhdTd className="text-muted-foreground">
                     {new Date(conductCase.createdAt).toLocaleDateString()}
                   </MhdTd>
+                  <MhdTableActions
+                    viewTo={`/conduct/${conductCase.id}`}
+                    editTo={canMutate ? `/conduct/${conductCase.id}` : undefined}
+                  />
                 </MhdTr>
               ))}
             </tbody>
           </MhdTable>
+          <MhdTableFooter summary={`Showing 1 to ${cases.length} of ${cases.length} conduct cases`} />
         </MhdCard>
       )}
     </div>

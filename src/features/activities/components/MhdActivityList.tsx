@@ -1,7 +1,15 @@
 import { AlarmClock, CalendarClock, ListChecks, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import type { MhdActivity } from '../Types';
 import { mhdIsActivityOverdue } from '../Types';
 import { MhdActivityParticipantChips } from './MhdActivityParticipantChips';
@@ -10,14 +18,17 @@ import { MhdActivityTypeBadge } from './MhdActivityTypeBadge';
 
 interface Props {
   activities: MhdActivity[];
+  canMutate?: boolean;
+  onDelete?: (activityId: string) => Promise<void>;
 }
 
-export function MhdActivityList({ activities }: Props) {
+export function MhdActivityList({ activities, canMutate = false, onDelete }: Props) {
   if (activities.length === 0) {
     return <MhdEmptyState icon={CalendarClock} title="No activities match the current filters." />;
   }
 
   return (
+    <>
     <MhdTable>
       <thead>
         <tr>
@@ -28,10 +39,11 @@ export function MhdActivityList({ activities }: Props) {
           <MhdTh>Participants</MhdTh>
           <MhdTh>Checklist</MhdTh>
           <MhdTh>Scheduled</MhdTh>
+          <MhdActionsTh />
         </tr>
       </thead>
       <tbody>
-        {activities.map((activity) => {
+        {activities.slice(0, 10).map((activity) => {
           const isOverdue = mhdIsActivityOverdue(activity);
           return (
             <MhdTr key={activity.id}>
@@ -90,10 +102,21 @@ export function MhdActivityList({ activities }: Props) {
                   <span className="text-muted-foreground">Unscheduled</span>
                 )}
               </MhdTd>
+              <MhdTableActions
+                viewTo={`/activities/${activity.id}`}
+                onDelete={
+                  canMutate && onDelete ? () => onDelete(activity.id) : undefined
+                }
+                deleteConfirmMessage={`Delete activity "${activity.title}"?`}
+              />
             </MhdTr>
           );
         })}
       </tbody>
     </MhdTable>
+      <MhdTableFooter
+        summary={`Showing 1 to ${Math.min(10, activities.length)} of ${activities.length} activities`}
+      />
+    </>
   );
 }

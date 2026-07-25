@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import {
   useMhdAddCustomQuestion,
   useMhdAddGuideQuestion,
@@ -75,7 +75,7 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     formState: { errors },
   } = useForm<MhdAddCustomQuestionFormValues>({
     resolver: zodResolver(mhdAddCustomQuestionSchema),
@@ -88,7 +88,7 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
       categoryId: '',
     },
   });
-  const saveToBank = watch('saveToBank');
+  const saveToBank = useWatch({ control, name: 'saveToBank' });
 
   // Group the guide items by source, in the canonical assembly order.
   const grouped = useMemo(() => {

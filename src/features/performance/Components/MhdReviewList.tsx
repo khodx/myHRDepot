@@ -2,7 +2,15 @@ import { AlarmClock, ClipboardCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import type { MhdPerformanceReview } from '../Types';
 import { mhdIsReviewOverdue } from '../Types';
 import { MhdRatingStars } from './MhdRatingStars';
@@ -42,6 +50,7 @@ export function MhdReviewList({ reviews }: Props) {
             <MhdTh>Reviewer</MhdTh>
             <MhdTh>Period</MhdTh>
             <MhdTh>Due</MhdTh>
+            <MhdActionsTh />
           </tr>
         </thead>
         <tbody>
@@ -83,11 +92,16 @@ export function MhdReviewList({ reviews }: Props) {
                     <span className="text-muted-foreground">No due date</span>
                   )}
                 </MhdTd>
+                <MhdTableActions
+                  viewTo={`/performance/reviews/${review.id}`}
+                  editTo={`/performance/reviews/${review.id}`}
+                />
               </MhdTr>
             );
           })}
         </tbody>
       </MhdTable>
+      <MhdTableFooter summary={`Showing 1 to ${reviews.length} of ${reviews.length} reviews`} />
     </MhdCard>
   );
 }

@@ -1,9 +1,8 @@
-import { CalendarRange, CheckCircle2, Loader2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { MhdStatCard } from '@/components/ui/MhdStatCard';
 import type { Json } from '@/types/database.types';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateActivities } from '@/appshell/mhdRouteAccess';
@@ -60,15 +59,6 @@ export function MhdActivitiesPage() {
   const tasksQuery = useMhdActivityTasks(selectedCompanyId);
 
   const activities = activitiesQuery.data ?? [];
-  const counts = useMemo(() => {
-    const rows = activitiesQuery.data ?? [];
-    return {
-      planned: rows.filter((activity) => activity.status === 'PLANNED').length,
-      inProgress: rows.filter((activity) => activity.status === 'IN_PROGRESS').length,
-      completed: rows.filter((activity) => activity.status === 'COMPLETED').length,
-    };
-  }, [activitiesQuery.data]);
-
   async function handleCreate(input: MhdActivityFormSchemaInput) {
     setActionError(null);
     try {
@@ -111,12 +101,6 @@ export function MhdActivitiesPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <MhdStatCard icon={CalendarRange} label="Planned" value={counts.planned} />
-        <MhdStatCard icon={Loader2} label="In Progress" value={counts.inProgress} />
-        <MhdStatCard icon={CheckCircle2} label="Completed" value={counts.completed} />
-      </div>
-
       {isCreating && canMutate && selectedCompanyId ? (
         <MhdCard className="p-6">
           <h2 className="mb-4 text-lg font-semibold text-foreground">New Activity</h2>
@@ -143,21 +127,19 @@ export function MhdActivitiesPage() {
         </MhdCard>
       ) : null}
 
-      <MhdCard>
-        <MhdActivityFilterBar
-          filters={effectiveFilters}
-          onChange={setFilters}
-          companies={companyOptions}
-          people={(peopleQuery.data ?? []).map((person) => ({
-            id: person.id,
-            label: person.displayName,
-          }))}
-          tasks={(tasksQuery.data ?? []).map((task) => ({
-            id: task.id,
-            label: `${task.referenceId} — ${task.title}`,
-          }))}
-        />
-      </MhdCard>
+      <MhdActivityFilterBar
+        filters={effectiveFilters}
+        onChange={setFilters}
+        companies={companyOptions}
+        people={(peopleQuery.data ?? []).map((person) => ({
+          id: person.id,
+          label: person.displayName,
+        }))}
+        tasks={(tasksQuery.data ?? []).map((task) => ({
+          id: task.id,
+          label: `${task.referenceId} - ${task.title}`,
+        }))}
+      />
 
       <MhdCard className="overflow-hidden p-0">
         {activitiesQuery.isLoading ? (
@@ -165,7 +147,16 @@ export function MhdActivitiesPage() {
             Loading activities…
           </div>
         ) : (
-          <MhdActivityList activities={activities} />
+          <MhdActivityList
+            activities={activities}
+            canMutate={canMutate}
+            onDelete={(activityId) =>
+              actions.deleteActivity.mutateAsync({
+                activityId,
+                actorUserId: profile?.userId ?? null,
+              })
+            }
+          />
         )}
       </MhdCard>
     </div>

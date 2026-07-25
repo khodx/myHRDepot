@@ -31,7 +31,7 @@ export function MhdPageHeader({
   className,
 }: MhdPageHeaderProps) {
   return (
-    <header className={cn('space-y-1', className)}>
+    <header className={cn('space-y-2', className)}>
       {backTo && (
         <Link
           to={backTo}
@@ -41,14 +41,14 @@ export function MhdPageHeader({
           Back{backLabel ? ` to ${backLabel}` : ''}
         </Link>
       )}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+          <h1 className="text-[32px] font-semibold leading-tight text-foreground">{title}</h1>
           {chips}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div>}
       </div>
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      {description && <p className="max-w-4xl text-[15px] text-muted-foreground">{description}</p>}
     </header>
   );
 }

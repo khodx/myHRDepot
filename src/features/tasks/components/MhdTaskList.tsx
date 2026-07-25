@@ -1,8 +1,16 @@
-import { Link } from 'react-router-dom';
 import { ListChecks } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import { MhdTaskPriorityBadge } from '@/features/tasks/components/MhdTaskPriorityBadge';
 import { MhdTaskStatusBadge } from '@/features/tasks/components/MhdTaskStatusBadge';
 import type { MhdTask } from '@/features/tasks/Types';
@@ -10,11 +18,31 @@ import type { MhdTask } from '@/features/tasks/Types';
 interface MhdTaskListProps {
   tasks: MhdTask[];
   isLoading: boolean;
-  onEdit: (task: MhdTask) => void;
   onDelete: (taskId: string) => Promise<void>;
 }
 
-export function MhdTaskList({ tasks, isLoading, onEdit, onDelete }: MhdTaskListProps) {
+const PAGE_SIZE = 10;
+
+function initialsFor(names: string[]) {
+  const source = names[0] ?? 'Unassigned';
+  return (
+    source
+      .split(/\s+/)
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'UA'
+  );
+}
+
+function formatDueDate(dueDate: string | null) {
+  if (!dueDate) return 'No due date';
+  const date = new Date(`${dueDate}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dueDate;
+  return date.toLocaleDateString();
+}
+
+export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
   if (isLoading)
     return <MhdCard className="p-6 text-sm text-muted-foreground">Loading tasks...</MhdCard>;
   if (tasks.length === 0) {
@@ -29,29 +57,40 @@ export function MhdTaskList({ tasks, isLoading, onEdit, onDelete }: MhdTaskListP
     );
   }
 
+  const visibleTasks = tasks.slice(0, PAGE_SIZE);
+  const rangeEnd = Math.min(PAGE_SIZE, tasks.length);
+
   return (
     <MhdCard className="overflow-hidden p-0">
       <MhdTable>
         <thead>
           <tr>
-            <MhdTh>Task</MhdTh>
+            <MhdTh className="w-10">
+              <input type="checkbox" aria-label="Select all tasks" className="h-4 w-4 rounded" />
+            </MhdTh>
+            <MhdTh>Task Name</MhdTh>
             <MhdTh>Company</MhdTh>
-            <MhdTh>Status</MhdTh>
+            <MhdTh>Assignee</MhdTh>
+            <MhdTh>Department</MhdTh>
             <MhdTh>Priority</MhdTh>
-            <MhdTh>Assigned</MhdTh>
+            <MhdTh>Status</MhdTh>
             <MhdTh>Due</MhdTh>
-            <MhdTh className="text-right">Actions</MhdTh>
+            <MhdTh>Progress</MhdTh>
+            <MhdActionsTh />
           </tr>
         </thead>
         <tbody>
-          {tasks.map((task) => (
+          {visibleTasks.map((task) => {
+            const progress = task.calculatedProgressPercent ?? task.manualProgressPercent;
+            return (
             <MhdTr key={task.id}>
+              <MhdTd className="align-top">
+                <input type="checkbox" aria-label={`Select ${task.title}`} className="h-4 w-4 rounded" />
+              </MhdTd>
               <MhdTd className="align-top">
                 <div className="font-semibold text-foreground">{task.title}</div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  {task.referenceId} ·{' '}
-                  {task.calculatedProgressPercent ?? task.manualProgressPercent}% complete ·{' '}
-                  {task.noteCount} notes · {task.attachmentCount} files
+                  {task.referenceId} - {task.noteCount} notes - {task.attachmentCount} files
                 </div>
                 {task.descriptionPlainText && (
                   <div className="mt-1 max-w-xl truncate text-sm text-muted-foreground">
@@ -61,48 +100,58 @@ export function MhdTaskList({ tasks, isLoading, onEdit, onDelete }: MhdTaskListP
               </MhdTd>
               <MhdTd className="align-top text-sm">{task.companyName}</MhdTd>
               <MhdTd className="align-top">
-                <MhdTaskStatusBadge
-                  statusName={task.statusName}
-                  colorToken={task.statusColorToken}
-                />
+                <div className="flex items-center gap-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-tint text-xs font-semibold text-accent-hover">
+                    {initialsFor(task.assignedDisplayNames)}
+                  </span>
+                  <span className="max-w-40 truncate text-sm">
+                    {task.assignedDisplayNames.length > 0
+                      ? task.assignedDisplayNames.join(', ')
+                      : 'Unassigned'}
+                  </span>
+                </div>
               </MhdTd>
+              <MhdTd className="align-top text-sm text-muted-foreground">-</MhdTd>
               <MhdTd className="align-top">
                 <MhdTaskPriorityBadge
                   priorityName={task.priorityName}
                   colorToken={task.priorityColorToken}
                 />
               </MhdTd>
-              <MhdTd className="align-top text-sm">
-                {task.assignedDisplayNames.length > 0
-                  ? task.assignedDisplayNames.join(', ')
-                  : 'Unassigned'}
+              <MhdTd className="align-top">
+                <MhdTaskStatusBadge
+                  statusName={task.statusName}
+                  colorToken={task.statusColorToken}
+                />
               </MhdTd>
-              <MhdTd className="align-top text-sm">{task.dueDate ?? 'No due date'}</MhdTd>
-              <MhdTd className="align-top text-right">
-                {/* Task list navigation to the task notes page (03.5 package spec). */}
-                <Link
-                  className="mr-3 text-sm font-semibold text-accent hover:text-accent-hover"
-                  to={`/tasks/${task.id}/notes`}
-                >
-                  Comments
-                </Link>
-                <button
-                  className="mr-3 text-sm font-semibold text-accent hover:text-accent-hover"
-                  onClick={() => onEdit(task)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="text-sm font-semibold text-red-700 hover:text-red-800"
-                  onClick={() => void onDelete(task.id)}
-                >
-                  Delete
-                </button>
+              <MhdTd className="whitespace-nowrap align-top text-sm">
+                {formatDueDate(task.dueDate)}
               </MhdTd>
+              <MhdTd className="align-top">
+                <MhdProgressBar percent={progress} showLabel />
+              </MhdTd>
+              <MhdTableActions
+                viewTo={`/tasks/${task.id}`}
+                editTo={`/tasks/${task.id}/edit`}
+                onDelete={() => onDelete(task.id)}
+                deleteConfirmMessage={`Delete task "${task.title}"?`}
+              />
             </MhdTr>
-          ))}
+            );
+          })}
         </tbody>
       </MhdTable>
+      <MhdTableFooter summary={`Showing 1 to ${rangeEnd} of ${tasks.length} tasks`}>
+        <button className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground" disabled>
+          Previous
+        </button>
+        <button className="rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-accent-on">
+          1
+        </button>
+        <button className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground" disabled={tasks.length <= PAGE_SIZE}>
+          Next
+        </button>
+      </MhdTableFooter>
     </MhdCard>
   );
 }

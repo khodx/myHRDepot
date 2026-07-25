@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
@@ -42,17 +43,9 @@ export function MhdFormsPage() {
         </div>
       ) : null}
 
-      <MhdCard className="flex items-center justify-between">
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Filter
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            The live list comes from `mhd_list_forms` for the authenticated company.
-          </p>
-        </div>
-
-        <select
+      <MhdFilterBar>
+        <MhdFilterSelect
+          label="Status"
           value={formState.filters.status}
           onChange={(event) =>
             formState.setFilters((current) => ({
@@ -67,8 +60,8 @@ export function MhdFormsPage() {
               {option.label}
             </option>
           ))}
-        </select>
-      </MhdCard>
+        </MhdFilterSelect>
+      </MhdFilterBar>
 
       {formState.drafts.length > 0 ? (
         <MhdCard>

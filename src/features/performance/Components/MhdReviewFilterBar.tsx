@@ -1,6 +1,4 @@
-import { Search } from 'lucide-react';
-import { MhdCard } from '@/components/ui/MhdCard';
-import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import {
   MHD_REVIEW_STATUSES,
   MHD_REVIEW_TYPES,
@@ -18,30 +16,34 @@ interface Props {
   reviewers: MhdPerformanceOption[];
 }
 
-const INPUT_CLASSES =
-  'rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
-
 export function MhdReviewFilterBar({ filters, onChange, companies, people, reviewers }: Props) {
   function update(patch: Partial<MhdReviewBoardFilters>) {
     onChange({ ...filters, ...patch });
   }
 
   return (
-    <MhdCard className="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
-      <label className="flex flex-col gap-1 md:col-span-3 lg:col-span-4">
-        <span className="text-xs font-medium text-muted-foreground">Search</span>
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <input
-            id="mhd-review-filter-search"
-            type="search"
-            value={filters.searchTerm}
-            onChange={(event) => update({ searchTerm: event.target.value })}
-            placeholder="Person, reviewer, or reference…"
-            className={`w-full pl-8 ${INPUT_CLASSES}`}
-          />
-        </div>
-      </label>
+    <MhdFilterBar
+      onClear={() =>
+        onChange({
+          companyId: companies.length > 0 ? 'ALL' : filters.companyId,
+          personId: 'ALL',
+          reviewerUserId: 'ALL',
+          reviewType: 'ALL',
+          status: 'ALL',
+          searchTerm: '',
+          dueFrom: '',
+          dueTo: '',
+        })
+      }
+    >
+      <MhdFilterInput
+        id="mhd-review-filter-search"
+        type="search"
+        label="Search"
+        value={filters.searchTerm}
+        onChange={(event) => update({ searchTerm: event.target.value })}
+        placeholder="Person, reviewer, or reference"
+      />
 
       {companies.length > 0 ? (
         <MhdFilterSelect
@@ -121,48 +123,21 @@ export function MhdReviewFilterBar({ filters, onChange, companies, people, revie
         ))}
       </MhdFilterSelect>
 
-      <label htmlFor="mhd-review-filter-due-from" className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-muted-foreground">Due From</span>
-        <input
-          id="mhd-review-filter-due-from"
-          type="date"
-          value={filters.dueFrom}
-          onChange={(event) => update({ dueFrom: event.target.value })}
-          className={INPUT_CLASSES}
-        />
-      </label>
+      <MhdFilterInput
+        id="mhd-review-filter-due-from"
+        type="date"
+        label="Due From"
+        value={filters.dueFrom}
+        onChange={(event) => update({ dueFrom: event.target.value })}
+      />
 
-      <label htmlFor="mhd-review-filter-due-to" className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-muted-foreground">Due To</span>
-        <input
-          id="mhd-review-filter-due-to"
-          type="date"
-          value={filters.dueTo}
-          onChange={(event) => update({ dueTo: event.target.value })}
-          className={INPUT_CLASSES}
-        />
-      </label>
-
-      <div className="flex items-end">
-        <button
-          type="button"
-          onClick={() =>
-            onChange({
-              companyId: companies.length > 0 ? 'ALL' : filters.companyId,
-              personId: 'ALL',
-              reviewerUserId: 'ALL',
-              reviewType: 'ALL',
-              status: 'ALL',
-              searchTerm: '',
-              dueFrom: '',
-              dueTo: '',
-            })
-          }
-          className="pb-2 text-[13px] font-medium text-accent hover:text-accent-hover"
-        >
-          Clear
-        </button>
-      </div>
-    </MhdCard>
+      <MhdFilterInput
+        id="mhd-review-filter-due-to"
+        type="date"
+        label="Due To"
+        value={filters.dueTo}
+        onChange={(event) => update({ dueTo: event.target.value })}
+      />
+    </MhdFilterBar>
   );
 }

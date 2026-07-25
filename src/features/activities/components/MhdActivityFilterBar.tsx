@@ -1,5 +1,4 @@
-import { Search } from 'lucide-react';
-import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import {
   MHD_ACTIVITY_STATUSES,
   MHD_ACTIVITY_TYPES,
@@ -17,29 +16,33 @@ interface Props {
   tasks: MhdActivityOption[];
 }
 
-const DATE_INPUT_CLASSES =
-  'rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
-
 export function MhdActivityFilterBar({ filters, onChange, companies, people, tasks }: Props) {
   function update(patch: Partial<MhdActivityBoardFilters>) {
     onChange({ ...filters, ...patch });
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-3">
-      <label className="min-w-56 flex-1">
-        <span className="mb-1 block text-xs font-medium text-muted-foreground">Search</span>
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <input
-            type="search"
-            value={filters.searchTerm}
-            onChange={(event) => update({ searchTerm: event.target.value })}
-            placeholder="Title, description, or reference…"
-            className="w-full rounded-md border border-border bg-card py-2 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          />
-        </div>
-      </label>
+    <MhdFilterBar
+      onClear={() =>
+        onChange({
+          companyId: companies.length > 0 ? 'ALL' : filters.companyId,
+          personId: 'ALL',
+          taskId: 'ALL',
+          activityType: 'ALL',
+          status: 'ALL',
+          searchTerm: '',
+          from: '',
+          to: '',
+        })
+      }
+    >
+      <MhdFilterInput
+        type="search"
+        label="Search"
+        value={filters.searchTerm}
+        onChange={(event) => update({ searchTerm: event.target.value })}
+        placeholder="Title, description, or reference"
+      />
 
       {companies.length > 0 ? (
         <MhdFilterSelect
@@ -114,44 +117,19 @@ export function MhdActivityFilterBar({ filters, onChange, companies, people, tas
         ))}
       </MhdFilterSelect>
 
-      <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-muted-foreground">From</span>
-        <input
-          type="date"
-          value={filters.from}
-          onChange={(event) => update({ from: event.target.value })}
-          className={DATE_INPUT_CLASSES}
-        />
-      </label>
+      <MhdFilterInput
+        type="date"
+        label="From"
+        value={filters.from}
+        onChange={(event) => update({ from: event.target.value })}
+      />
 
-      <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-muted-foreground">To</span>
-        <input
-          type="date"
-          value={filters.to}
-          onChange={(event) => update({ to: event.target.value })}
-          className={DATE_INPUT_CLASSES}
-        />
-      </label>
-
-      <button
-        type="button"
-        onClick={() =>
-          onChange({
-            companyId: companies.length > 0 ? 'ALL' : filters.companyId,
-            personId: 'ALL',
-            taskId: 'ALL',
-            activityType: 'ALL',
-            status: 'ALL',
-            searchTerm: '',
-            from: '',
-            to: '',
-          })
-        }
-        className="pb-2 text-[13px] font-medium text-accent hover:text-accent-hover"
-      >
-        Clear
-      </button>
-    </div>
+      <MhdFilterInput
+        type="date"
+        label="To"
+        value={filters.to}
+        onChange={(event) => update({ to: event.target.value })}
+      />
+    </MhdFilterBar>
   );
 }

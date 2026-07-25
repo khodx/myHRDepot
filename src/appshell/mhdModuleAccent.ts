@@ -25,6 +25,7 @@ export const MHD_CATEGORY_THEMES: readonly MhdCategoryTheme[] = [
 const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/dashboard', 'dashboard'],
   ['/people', 'people-org'],
+  ['/employees', 'people-org'],
   ['/companies', 'people-org'],
   ['/jobs', 'people-org'],
   ['/my-job', 'people-org'],
@@ -47,6 +48,8 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/approvals', 'work-tools'],
   ['/property', 'work-tools'],
   ['/esignature', 'work-tools'],
+  ['/communications', 'work-tools'],
+  ['/automations', 'work-tools'],
   ['/payroll', 'work-tools'], // non-nav compatibility route
 ] as const satisfies ReadonlyArray<readonly [string, MhdCategoryTheme]>;
 

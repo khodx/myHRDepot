@@ -1,5 +1,4 @@
-import { MhdCard } from '@/components/ui/MhdCard';
-import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import type { MhdCompany } from '@/features/companies/Types';
 import type {
   MhdTaskAssignableUser,
@@ -26,7 +25,19 @@ export function MhdTaskFilterBar({
   onChange,
 }: MhdTaskFilterBarProps) {
   return (
-    <MhdCard className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+    <MhdFilterBar
+      onClear={() =>
+        onChange({
+          companyId: 'ALL',
+          statusId: 'ALL',
+          priorityId: 'ALL',
+          assignedUserId: 'ALL',
+          searchTerm: '',
+          dueFrom: '',
+          dueTo: '',
+        })
+      }
+    >
       <MhdFilterSelect
         label="Company"
         value={filters.companyId}
@@ -63,8 +74,11 @@ export function MhdTaskFilterBar({
           </option>
         ))}
       </MhdFilterSelect>
+      <MhdFilterSelect label="Department" value="ALL" disabled>
+        <option value="ALL">Not assigned</option>
+      </MhdFilterSelect>
       <MhdFilterSelect
-        label="Assigned To"
+        label="Assignee"
         value={filters.assignedUserId}
         onChange={(event) => onChange({ ...filters, assignedUserId: event.target.value })}
       >
@@ -75,15 +89,24 @@ export function MhdTaskFilterBar({
           </option>
         ))}
       </MhdFilterSelect>
-      <label className="flex flex-col gap-1 lg:col-span-2">
-        <span className="text-xs font-medium text-muted-foreground">Search</span>
-        <input
-          className="rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          value={filters.searchTerm}
-          onChange={(event) => onChange({ ...filters, searchTerm: event.target.value })}
-          placeholder="Search title, company, reference"
-        />
-      </label>
-    </MhdCard>
+      <MhdFilterInput
+        type="date"
+        label="Due From"
+        value={filters.dueFrom}
+        onChange={(event) => onChange({ ...filters, dueFrom: event.target.value })}
+      />
+      <MhdFilterInput
+        type="date"
+        label="Due To"
+        value={filters.dueTo}
+        onChange={(event) => onChange({ ...filters, dueTo: event.target.value })}
+      />
+      <MhdFilterInput
+        label="Search"
+        value={filters.searchTerm}
+        onChange={(event) => onChange({ ...filters, searchTerm: event.target.value })}
+        placeholder="Task, company, reference"
+      />
+    </MhdFilterBar>
   );
 }

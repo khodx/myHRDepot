@@ -4,8 +4,17 @@ import { mhdCanMutateJobs, mhdCanSeeJobPay } from '@/appshell/mhdRouteAccess';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFilterBar, MhdFilterInput } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCreateJob, useMhdJobs } from '../Hook';
@@ -201,14 +210,14 @@ export function MhdJobsPage() {
         </MhdCard>
       ) : null}
 
-      <div className="flex flex-wrap gap-3">
-        <input
-          placeholder="Search title or code…"
+      <MhdFilterBar>
+        <MhdFilterInput
+          label="Search"
+          placeholder="Search title or code"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
-        <label className="flex items-center gap-2 text-sm text-foreground">
+        <label className="flex h-10 items-center gap-2 self-end rounded-md border border-border bg-card px-3 text-sm text-foreground shadow-sm">
           <input
             type="checkbox"
             checked={activeOnly}
@@ -216,7 +225,7 @@ export function MhdJobsPage() {
           />
           Active only
         </label>
-      </div>
+      </MhdFilterBar>
 
       {jobs.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
@@ -233,6 +242,7 @@ export function MhdJobsPage() {
                 <MhdTh className="text-right">Incumbents</MhdTh>
                 {canSeePay ? <MhdTh>Pay range</MhdTh> : null}
                 <MhdTh>Description</MhdTh>
+                <MhdActionsTh />
               </tr>
             </thead>
             <tbody>
@@ -272,10 +282,17 @@ export function MhdJobsPage() {
                       </MhdBadge>
                     )}
                   </MhdTd>
+                  <MhdTableActions
+                    viewTo={`/jobs/${job.id}`}
+                    editTo={isPrivileged ? `/jobs/${job.id}` : undefined}
+                  />
                 </MhdTr>
               ))}
             </tbody>
           </MhdTable>
+          <MhdTableFooter
+            summary={`Showing 1 to ${(jobs.data ?? []).length} of ${(jobs.data ?? []).length} jobs`}
+          />
         </MhdCard>
       )}
     </div>

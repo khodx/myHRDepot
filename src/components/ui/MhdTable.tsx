@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from 'react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 
 /**
@@ -15,7 +16,7 @@ import { cn } from '@/utils/cn';
 export function MhdTable({ className, ...props }: HTMLAttributes<HTMLTableElement>) {
   return (
     <div className="overflow-x-auto">
-      <table className={cn('w-full border-collapse text-sm', className)} {...props} />
+      <table className={cn('w-full border-collapse text-[13px]', className)} {...props} />
     </div>
   );
 }
@@ -24,7 +25,7 @@ export function MhdTh({ className, ...props }: ThHTMLAttributes<HTMLTableCellEle
   return (
     <th
       className={cn(
-        'border-b border-border bg-muted px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground',
+        'border-b border-accent-border bg-accent-soft px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-accent',
         className,
       )}
       {...props}
@@ -35,7 +36,7 @@ export function MhdTh({ className, ...props }: ThHTMLAttributes<HTMLTableCellEle
 export function MhdTr({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
   return (
     <tr
-      className={cn('border-b border-border last:border-b-0 hover:bg-muted/50', className)}
+      className={cn('border-b border-border last:border-b-0 hover:bg-accent-soft/60', className)}
       {...props}
     />
   );
@@ -43,6 +44,84 @@ export function MhdTr({ className, ...props }: HTMLAttributes<HTMLTableRowElemen
 
 export function MhdTd({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
   return <td className={cn('px-4 py-3 align-middle text-foreground', className)} {...props} />;
+}
+
+export function MhdActionsTh({ className, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <MhdTh className={cn('w-[220px] text-right', className)} {...props}>
+      View / Edit / Delete
+    </MhdTh>
+  );
+}
+
+interface MhdTableActionsProps {
+  viewTo?: string;
+  editTo?: string;
+  onDelete?: () => void | Promise<void>;
+  deleteLabel?: string;
+  deleteConfirmMessage?: string;
+  disableView?: boolean;
+  disableEdit?: boolean;
+  disableDelete?: boolean;
+  secondaryActions?: ReactNode;
+}
+
+const actionLinkClass =
+  'inline-flex h-8 items-center justify-center rounded-md border border-accent-border px-2.5 text-xs font-semibold text-accent transition hover:bg-accent-soft hover:text-accent-hover';
+const disabledActionClass =
+  'inline-flex h-8 items-center justify-center rounded-md border border-border px-2.5 text-xs font-semibold text-muted-foreground opacity-50';
+
+export function MhdTableActions({
+  viewTo,
+  editTo,
+  onDelete,
+  deleteLabel = 'Delete',
+  deleteConfirmMessage = 'Delete this record?',
+  disableView = false,
+  disableEdit = false,
+  disableDelete = false,
+  secondaryActions,
+}: MhdTableActionsProps) {
+  function handleDelete() {
+    if (!onDelete || disableDelete) return;
+    if (!window.confirm(deleteConfirmMessage)) return;
+    void onDelete();
+  }
+
+  return (
+    <MhdTd className="whitespace-nowrap text-right">
+      <div className="flex justify-end gap-2">
+        {viewTo && !disableView ? (
+          <Link className={actionLinkClass} to={viewTo}>
+            View
+          </Link>
+        ) : (
+          <span className={disabledActionClass}>View</span>
+        )}
+        {editTo && !disableEdit ? (
+          <Link className={actionLinkClass} to={editTo}>
+            Edit
+          </Link>
+        ) : (
+          <span className={disabledActionClass}>Edit</span>
+        )}
+        {onDelete && !disableDelete ? (
+          <button
+            type="button"
+            className="inline-flex h-8 items-center justify-center rounded-md border border-red-200 px-2.5 text-xs font-semibold text-red-700 transition hover:bg-red-50"
+            onClick={handleDelete}
+          >
+            {deleteLabel}
+          </button>
+        ) : (
+          <span className={disabledActionClass}>Delete</span>
+        )}
+      </div>
+      {secondaryActions ? (
+        <div className="mt-2 flex justify-end gap-3 text-xs font-semibold">{secondaryActions}</div>
+      ) : null}
+    </MhdTd>
+  );
 }
 
 interface MhdTableFooterProps {
@@ -55,7 +134,7 @@ interface MhdTableFooterProps {
 /** Footer row under a table card: result summary left, pagination right. */
 export function MhdTableFooter({ summary, children }: MhdTableFooterProps) {
   return (
-    <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card px-4 py-3">
       <p className="text-[13px] text-muted-foreground">{summary}</p>
       {children && <div className="flex items-center gap-1">{children}</div>}
     </div>

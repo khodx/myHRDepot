@@ -6,7 +6,14 @@ import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import { mhdCanMutateOffboarding } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
@@ -332,6 +339,7 @@ export function MhdOffboardingPage() {
                 <MhdTh>Last Working Day</MhdTh>
                 <MhdTh>Required Items</MhdTh>
                 <MhdTh>Outstanding Property</MhdTh>
+                <MhdActionsTh />
               </tr>
             </thead>
             <tbody>
@@ -382,6 +390,10 @@ export function MhdOffboardingPage() {
                         <span className="text-muted-foreground">None</span>
                       )}
                     </MhdTd>
+                    <MhdTableActions
+                      viewTo={`/offboarding/${offboardingCase.id}`}
+                      editTo={canMutate ? `/offboarding/${offboardingCase.id}` : undefined}
+                    />
                   </MhdTr>
                 );
               })}

@@ -4,9 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import { mhdCanOpenInvestigation } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
@@ -100,7 +108,7 @@ export function MhdInvestigationsPage() {
         }
       />
 
-      <MhdCard className="flex flex-wrap items-end gap-3">
+      <MhdFilterBar>
         <MhdFilterSelect
           label="Status"
           value={filters.status ?? 'ALL'}
@@ -118,7 +126,7 @@ export function MhdInvestigationsPage() {
             </option>
           ))}
         </MhdFilterSelect>
-      </MhdCard>
+      </MhdFilterBar>
 
       {cases.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
@@ -138,7 +146,7 @@ export function MhdInvestigationsPage() {
                 <MhdTh>Severity</MhdTh>
                 <MhdTh>Status</MhdTh>
                 <MhdTh>Disposition</MhdTh>
-                <MhdTh />
+                <MhdActionsTh />
               </tr>
             </thead>
             <tbody>
@@ -159,19 +167,17 @@ export function MhdInvestigationsPage() {
                   <MhdTd>
                     <MhdDispositionBadge disposition={investigation.disposition} />
                   </MhdTd>
-                  <MhdTd className="text-right">
-                    <button
-                      type="button"
-                      onClick={() => openCase(investigation.id)}
-                      className="text-sm font-medium text-accent hover:text-accent-hover"
-                    >
-                      Open
-                    </button>
-                  </MhdTd>
+                  <MhdTableActions
+                    viewTo={`/investigations/${investigation.id}`}
+                    editTo={`/investigations/${investigation.id}`}
+                  />
                 </MhdTr>
               ))}
             </tbody>
           </MhdTable>
+          <MhdTableFooter
+            summary={`Showing 1 to ${(cases.data ?? []).length} of ${(cases.data ?? []).length} investigations`}
+          />
         </MhdCard>
       )}
 

@@ -15,6 +15,7 @@ import globalCss from '../../styles/global.css?raw';
 const NAV_INVENTORY: ReadonlyArray<[route: string, theme: MhdCategoryTheme]> = [
   ['/dashboard', 'dashboard'],
   ['/people', 'people-org'],
+  ['/employees', 'people-org'],
   ['/companies', 'people-org'],
   ['/jobs', 'people-org'],
   ['/my-job', 'people-org'],
@@ -39,6 +40,10 @@ const NAV_INVENTORY: ReadonlyArray<[route: string, theme: MhdCategoryTheme]> = [
   ['/approvals', 'work-tools'],
   ['/property', 'work-tools'],
   ['/esignature', 'work-tools'],
+  ['/communications', 'work-tools'],
+  ['/communications/messaging', 'work-tools'],
+  ['/communications/system-alerts', 'work-tools'],
+  ['/automations', 'work-tools'],
 ];
 
 describe('mhdCategoryThemeForPath — navigation inventory', () => {
@@ -55,6 +60,7 @@ describe('mhdCategoryThemeForPath — descendant inheritance', () => {
   const DESCENDANTS: ReadonlyArray<[route: string, theme: MhdCategoryTheme]> = [
     // ≥1 dynamic/detail child per category
     ['/people/8f14e45f/edit', 'people-org'],
+    ['/employees/8f14e45f', 'people-org'],
     ['/companies/42', 'people-org'],
     ['/jobs/123', 'people-org'],
     ['/jobs/competencies', 'people-org'],
@@ -78,6 +84,9 @@ describe('mhdCategoryThemeForPath — descendant inheritance', () => {
     ['/property/item-1', 'work-tools'],
     ['/esignature/req-1', 'work-tools'],
     ['/activities/act-1', 'work-tools'],
+    ['/communications/messaging/thread-1', 'work-tools'],
+    ['/communications/system-alerts/alert-1', 'work-tools'],
+    ['/automations/rule-1', 'work-tools'],
   ];
 
   it.each(DESCENDANTS)('%s inherits %s', (route, theme) => {
@@ -101,7 +110,7 @@ describe('mhdCategoryThemeForPath — boundaries and fallback', () => {
 });
 
 /* ------------------------------------------------------------------ */
-/* CSS token contract (spec §2)                                        */
+/* CSS token contract (global brand theme spec, revised 2026-07-24)    */
 /* ------------------------------------------------------------------ */
 
 const REQUIRED_VARS = [
@@ -152,7 +161,7 @@ describe('global.css category token contract', () => {
   it('keeps the shared white-alpha rail scale at the spec opacities', () => {
     expect(globalCss).toContain('--mhd-rail-surface: rgb(255 255 255 / 0.06)');
     expect(globalCss).toContain('--mhd-rail-hover: rgb(255 255 255 / 0.08)');
-    expect(globalCss).toContain('--mhd-rail-selected: rgb(255 255 255 / 0.16)');
+    expect(globalCss).toContain('--mhd-rail-selected: rgb(255 255 255 / 0.30)');
     expect(globalCss).toContain('--mhd-rail-border: rgb(255 255 255 / 0.18)');
     expect(globalCss).toContain('--mhd-rail-text: rgb(255 255 255 / 0.82)');
     expect(globalCss).toContain('--mhd-rail-muted: rgb(255 255 255 / 0.72)');
@@ -163,13 +172,19 @@ describe('global.css category token contract', () => {
 /* Contrast (WCAG, spec §2 accessibility table)                        */
 /* ------------------------------------------------------------------ */
 
-const PALETTE: Record<MhdCategoryTheme, { primary: string; rail: string; on: string }> = {
-  dashboard: { primary: '#0005E2', rail: '#0004A4', on: '#FFFFFF' },
-  'people-org': { primary: '#E20000', rail: '#A80000', on: '#FFFFFF' },
-  'time-leave': { primary: '#24C220', rail: '#177D15', on: '#111827' },
-  talent: { primary: '#AE40AE', rail: '#682668', on: '#FFFFFF' },
-  'employee-relations': { primary: '#949494', rail: '#494949', on: '#111827' },
-  'work-tools': { primary: '#3483BE', rail: '#22557C', on: '#111827' },
+const GLOBAL_BRAND_PALETTE = {
+  primary: '#0003AA',
+  rail: '#000479',
+  on: '#FFFFFF',
+} as const;
+
+const PALETTE: Record<MhdCategoryTheme, typeof GLOBAL_BRAND_PALETTE> = {
+  dashboard: GLOBAL_BRAND_PALETTE,
+  'people-org': GLOBAL_BRAND_PALETTE,
+  'time-leave': GLOBAL_BRAND_PALETTE,
+  talent: GLOBAL_BRAND_PALETTE,
+  'employee-relations': GLOBAL_BRAND_PALETTE,
+  'work-tools': GLOBAL_BRAND_PALETTE,
 };
 
 function luminance(hex: string): number {
@@ -187,13 +202,10 @@ function contrast(a: string, b: string): number {
 
 describe('category palette contrast', () => {
   it.each(MHD_CATEGORY_THEMES.map((t) => [t] as const))(
-    '%s on-primary is the stronger ink and meets the spec-documented floor',
+    '%s on-primary is the stronger ink and meets AA',
     (theme) => {
       const { primary, on } = PALETTE[theme];
-      // The spec's own contrast table documents Work Tools at P 4.34:1 (ink on
-      // #3483BE — the stronger of white/ink); the other five exceed 4.5:1.
-      const floor = theme === 'work-tools' ? 4.3 : 4.5;
-      expect(contrast(primary, on)).toBeGreaterThanOrEqual(floor);
+      expect(contrast(primary, on)).toBeGreaterThanOrEqual(4.5);
       const alternative = on === '#FFFFFF' ? '#111827' : '#FFFFFF';
       expect(contrast(primary, on)).toBeGreaterThanOrEqual(contrast(primary, alternative));
     },
@@ -207,7 +219,7 @@ describe('category palette contrast', () => {
   );
 
   it.each(MHD_CATEGORY_THEMES.map((t) => [t] as const))(
-    '%s CSS block carries the exact spec primary and rail HEX',
+    '%s CSS block carries the exact global brand primary and rail HEX',
     (theme) => {
       // Case-insensitive: Prettier normalizes hex literals to lowercase.
       const block = themeBlock(theme).toLowerCase();

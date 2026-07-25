@@ -7,24 +7,24 @@
 
 /* Semantic color tokens used by the app shell (04.1 - Navigation & App Shell
    components reference bg-background / bg-card / text-primary /
-   text-muted-foreground etc.). Mapped onto the scaffold's slate/blue palette. */
+   text-muted-foreground etc.). Mapped onto the myHRDepot global brand palette. */
 @theme {
   --color-background: #f8fafc; /* slate-50 */
   --color-foreground: #020617; /* slate-950 */
   --color-card: #ffffff;
   --color-card-foreground: #020617;
-  --color-primary: #1d4ed8; /* blue-700 */
+  --color-primary: #0003aa;
   --color-primary-foreground: #ffffff;
   --color-muted: #f1f5f9; /* slate-100 */
   --color-muted-foreground: #64748b; /* slate-500 */
   --color-border: #e2e8f0; /* slate-200 */
 }
 
-/* Category theme system (myHRDepot Category Theme Specification, FINAL).
-   Exactly six category themes; every route descendant inherits its parent
-   navigation category. The shell stamps data-mhd-theme on its root from the
-   route (mhdModuleAccent.ts); components consume ONLY the accent utilities
-   below — never a raw category hex.
+/* Global theme system (myHRDepot Brand Theme Specification, revised 2026-07-24).
+   The route-to-category resolver remains in place so every child page inherits
+   its parent navigation category, but every category now resolves to the same
+   project-wide brand primary (#0003AA) and dark rail (#000479).
+   Components consume ONLY the accent utilities below — never a raw module hex.
    `@theme inline` keeps the var() reference live so bg-accent etc. re-resolve
    when data-mhd-theme or .dark changes. */
 @theme inline {
@@ -45,99 +45,99 @@
   --color-rail-muted: var(--mhd-rail-muted);
 }
 
-/* Shared rail state scale (identical for every category — only the hue behind
-   it changes) + neutral fallback accent for routes outside any category
-   (auth screens, /404): brand blue, neutral dark rail. */
+/* Shared rail state scale and global brand fallback for routes outside any
+   category (auth screens, /404). */
 :root {
   --mhd-rail-surface: rgb(255 255 255 / 0.06);
   --mhd-rail-hover: rgb(255 255 255 / 0.08);
-  --mhd-rail-selected: rgb(255 255 255 / 0.16);
+  --mhd-rail-selected: rgb(255 255 255 / 0.30);
   --mhd-rail-border: rgb(255 255 255 / 0.18);
   --mhd-rail-text: rgb(255 255 255 / 0.82);
   --mhd-rail-muted: rgb(255 255 255 / 0.72);
 
-  --mhd-accent: #1d4ed8;
-  --mhd-rail: #1e293b;
-  --mhd-accent-hover: #1e40af;
-  --mhd-accent-pressed: #1e3a8a;
-  --mhd-accent-tint: #dbeafe;
-  --mhd-accent-soft: #eff6ff;
-  --mhd-accent-border: #bfdbfe;
+  --mhd-accent: #0003aa;
+  --mhd-rail: #000479;
+  --mhd-accent-hover: #00038f;
+  --mhd-accent-pressed: #000278;
+  --mhd-accent-tint: #e0e0f6;
+  --mhd-accent-soft: #ededfb;
+  --mhd-accent-border: #c6c7f1;
   --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
-/* The six category blocks — exact values from the FINAL specification.
-   Light and dark mode share these primary and rail HEX values. */
+/* Category blocks intentionally share the exact global brand values. Keeping
+   the blocks preserves parent/child inheritance and route-level future-proofing
+   without reintroducing per-module colors. */
 [data-mhd-theme='dashboard'] {
-  --mhd-accent: #0005e2;
-  --mhd-rail: #0004a4;
-  --mhd-accent-hover: #0004be;
-  --mhd-accent-pressed: #0004a3;
-  --mhd-accent-tint: #e0e1fc;
-  --mhd-accent-soft: #ebebfd;
-  --mhd-accent-border: #c2c3f8;
+  --mhd-accent: #0003aa;
+  --mhd-rail: #000479;
+  --mhd-accent-hover: #00038f;
+  --mhd-accent-pressed: #000278;
+  --mhd-accent-tint: #e0e0f6;
+  --mhd-accent-soft: #ededfb;
+  --mhd-accent-border: #c6c7f1;
   --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
 [data-mhd-theme='people-org'] {
-  --mhd-accent: #e20000;
-  --mhd-rail: #a80000;
-  --mhd-accent-hover: #be0000;
-  --mhd-accent-pressed: #a30000;
-  --mhd-accent-tint: #fce0e0;
-  --mhd-accent-soft: #fdebeb;
-  --mhd-accent-border: #f8c2c2;
+  --mhd-accent: #0003aa;
+  --mhd-rail: #000479;
+  --mhd-accent-hover: #00038f;
+  --mhd-accent-pressed: #000278;
+  --mhd-accent-tint: #e0e0f6;
+  --mhd-accent-soft: #ededfb;
+  --mhd-accent-border: #c6c7f1;
   --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
 [data-mhd-theme='time-leave'] {
-  --mhd-accent: #24c220;
-  --mhd-rail: #177d15;
-  --mhd-accent-hover: #1ea31b;
-  --mhd-accent-pressed: #1a8c17;
-  --mhd-accent-tint: #e5f8e4;
-  --mhd-accent-soft: #edfaed;
-  --mhd-accent-border: #caf0c9;
-  --mhd-accent-on: #111827;
+  --mhd-accent: #0003aa;
+  --mhd-rail: #000479;
+  --mhd-accent-hover: #00038f;
+  --mhd-accent-pressed: #000278;
+  --mhd-accent-tint: #e0e0f6;
+  --mhd-accent-soft: #ededfb;
+  --mhd-accent-border: #c6c7f1;
+  --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
 [data-mhd-theme='talent'] {
-  --mhd-accent: #ae40ae;
-  --mhd-rail: #682668;
-  --mhd-accent-hover: #923692;
-  --mhd-accent-pressed: #7d2e7d;
-  --mhd-accent-tint: #f5e8f5;
-  --mhd-accent-soft: #f9f0f9;
-  --mhd-accent-border: #ecd1ec;
+  --mhd-accent: #0003aa;
+  --mhd-rail: #000479;
+  --mhd-accent-hover: #00038f;
+  --mhd-accent-pressed: #000278;
+  --mhd-accent-tint: #e0e0f6;
+  --mhd-accent-soft: #ededfb;
+  --mhd-accent-border: #c6c7f1;
   --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
 [data-mhd-theme='employee-relations'] {
-  --mhd-accent: #949494;
-  --mhd-rail: #494949;
-  --mhd-accent-hover: #7c7c7c;
-  --mhd-accent-pressed: #6b6b6b;
-  --mhd-accent-tint: #f2f2f2;
-  --mhd-accent-soft: #f6f6f6;
-  --mhd-accent-border: #e5e5e5;
-  --mhd-accent-on: #111827;
+  --mhd-accent: #0003aa;
+  --mhd-rail: #000479;
+  --mhd-accent-hover: #00038f;
+  --mhd-accent-pressed: #000278;
+  --mhd-accent-tint: #e0e0f6;
+  --mhd-accent-soft: #ededfb;
+  --mhd-accent-border: #c6c7f1;
+  --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
 [data-mhd-theme='work-tools'] {
-  --mhd-accent: #3483be;
-  --mhd-rail: #22557c;
-  --mhd-accent-hover: #2c6ea0;
-  --mhd-accent-pressed: #255e89;
-  --mhd-accent-tint: #e7f0f7;
-  --mhd-accent-soft: #eff5fa;
-  --mhd-accent-border: #cee1ef;
-  --mhd-accent-on: #111827;
+  --mhd-accent: #0003aa;
+  --mhd-rail: #000479;
+  --mhd-accent-hover: #00038f;
+  --mhd-accent-pressed: #000278;
+  --mhd-accent-tint: #e0e0f6;
+  --mhd-accent-soft: #ededfb;
+  --mhd-accent-border: #c6c7f1;
+  --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
@@ -169,7 +169,7 @@
   --color-foreground: #eef1f5;
   --color-card: #151b24;
   --color-card-foreground: #eef1f5;
-  --color-primary: #3b82f6; /* blue-500 — a touch brighter on dark */
+  --color-primary: #0003aa;
   --color-primary-foreground: #ffffff;
   --color-muted: #1b222c;
   --color-muted-foreground: #97a1b0;
@@ -316,4 +316,9 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+button,
+[role='button'] {
+  text-transform: capitalize;
 }

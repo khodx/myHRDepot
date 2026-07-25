@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import {
   useMhdCreateReviewTemplate,
   useMhdPublishReviewTemplate,
@@ -39,7 +39,6 @@ export function MhdReviewTemplateEditor({ companyId, isPlatformAdmin }: Props) {
     handleSubmit,
     reset,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<MhdReviewTemplateFormValues>({
     resolver: zodResolver(mhdReviewTemplateSchema),
@@ -57,7 +56,8 @@ export function MhdReviewTemplateEditor({ companyId, isPlatformAdmin }: Props) {
   // `companyId: null` is the global default, a different authorisation from a
   // company template — so it is tracked in the form value the resolver sees, not
   // computed only at submit time.
-  const isGlobal = watch('companyId') == null;
+  const watchedCompanyId = useWatch({ control, name: 'companyId' });
+  const isGlobal = watchedCompanyId == null;
 
   const onSubmit = handleSubmit((values) => {
     createTemplate.mutate(
