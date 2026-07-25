@@ -1,3 +1,4 @@
+import type { Json } from '@/types/database.types';
 import type { MhdCompanyId } from '@/features/companies/Types';
 
 // ---------------------------------------------------------------------------
@@ -31,6 +32,7 @@ export interface MhdConductActionRpcRow {
   severity: string;
   status: string;
   action_summary: string | null;
+  document_payload: Json | null;
   requires_document: boolean;
   esignature_request_id: string | null;
   /** Live cross-service read of the linked request's status (E-Signature contract). */
@@ -81,6 +83,37 @@ export type MhdConductActionOutcome = 'ACKNOWLEDGED' | 'REFUSED' | 'WAIVED';
  * a labour-relations hazard; there is deliberately no assent path in v1.
  */
 export type MhdConductAcknowledgmentType = 'RECEIPT';
+
+/**
+ * Structured draft content for source-faithful corrective-action documents.
+ * Conduct owns this payload because it is legal-record content, not merely a
+ * Forms submission. Forms can capture it, but the issued action freezes it.
+ */
+export interface MhdConductActionDocumentPayload {
+  companyName?: string | null;
+  positionTitle?: string | null;
+  departmentProgram?: string | null;
+  supervisorName?: string | null;
+  facilityLocation?: string | null;
+  dateOfHire?: string | null;
+  dateOfNotice?: string | null;
+  incidentDates?: string | null;
+  incidentTime?: string | null;
+  incidentLocation?: string | null;
+  policiesViolated?: string | null;
+  previouslyAddressed?: string | null;
+  incidentNarrative?: string | null;
+  incidentFindings?: string | null;
+  policyCitationText?: string | null;
+  priorCorrectiveActionSummary?: string | null;
+  trainingItems?: string | null;
+  trainingDeadline?: string | null;
+  followUpReviewDate?: string | null;
+  expectations?: string | null;
+  consequencesText?: string | null;
+  extenuatingCircumstancesConsidered?: string | null;
+  extenuatingCircumstancesExplanation?: string | null;
+}
 
 export const MHD_CONDUCT_CATEGORIES = [
   'ATTENDANCE',
@@ -158,6 +191,7 @@ export interface MhdConductAction {
   severity: MhdConductSeverity;
   status: MhdConductActionStatus;
   actionSummary: string | null;
+  documentPayload: MhdConductActionDocumentPayload;
   requiresDocument: boolean;
   esignatureRequestId: string | null;
   /** Live status of the linked signature request (read, never stored). */
@@ -189,12 +223,14 @@ export interface MhdCreateConductActionInput {
   caseId: MhdConductCaseId;
   severity: MhdConductSeverity;
   actionSummary?: string | null;
+  documentPayload?: MhdConductActionDocumentPayload | null;
   requiresDocument?: boolean;
 }
 
 export interface MhdUpdateConductActionInput {
   severity?: MhdConductSeverity;
   actionSummary?: string | null;
+  documentPayload?: MhdConductActionDocumentPayload | null;
 }
 
 export interface MhdRecordConductOutcomeInput {
@@ -231,6 +267,7 @@ export interface MhdIssueConductActionInput {
   severity: MhdConductSeverity;
   requiresDocument: boolean;
   actionSummary?: string | null;
+  documentPayload?: MhdConductActionDocumentPayload | null;
   /** Case reference id, folded into the document merge data for traceability. */
   caseReferenceId?: string | null;
   /**

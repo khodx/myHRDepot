@@ -4,6 +4,7 @@ import { mhdEsignatureService } from '@/features/esignature/Service';
 import { mhdPersonService } from '@/features/people/Service';
 import type {
   MhdConductAction,
+  MhdConductActionDocumentPayload,
   MhdConductActionRpcRow,
   MhdConductCase,
   MhdConductCaseFilters,
@@ -46,6 +47,54 @@ function trimmedOrUndefined(value?: string | null): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function stringOrNull(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
+
+function mapDocumentPayload(value: Json | null | undefined): MhdConductActionDocumentPayload {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return {};
+  const payload = value as Record<string, unknown>;
+  return {
+    companyName: stringOrNull(payload.companyName),
+    positionTitle: stringOrNull(payload.positionTitle),
+    departmentProgram: stringOrNull(payload.departmentProgram),
+    supervisorName: stringOrNull(payload.supervisorName),
+    facilityLocation: stringOrNull(payload.facilityLocation),
+    dateOfHire: stringOrNull(payload.dateOfHire),
+    dateOfNotice: stringOrNull(payload.dateOfNotice),
+    incidentDates: stringOrNull(payload.incidentDates),
+    incidentTime: stringOrNull(payload.incidentTime),
+    incidentLocation: stringOrNull(payload.incidentLocation),
+    policiesViolated: stringOrNull(payload.policiesViolated),
+    previouslyAddressed: stringOrNull(payload.previouslyAddressed),
+    incidentNarrative: stringOrNull(payload.incidentNarrative),
+    incidentFindings: stringOrNull(payload.incidentFindings),
+    policyCitationText: stringOrNull(payload.policyCitationText),
+    priorCorrectiveActionSummary: stringOrNull(payload.priorCorrectiveActionSummary),
+    trainingItems: stringOrNull(payload.trainingItems),
+    trainingDeadline: stringOrNull(payload.trainingDeadline),
+    followUpReviewDate: stringOrNull(payload.followUpReviewDate),
+    expectations: stringOrNull(payload.expectations),
+    consequencesText: stringOrNull(payload.consequencesText),
+    extenuatingCircumstancesConsidered: stringOrNull(payload.extenuatingCircumstancesConsidered),
+    extenuatingCircumstancesExplanation: stringOrNull(payload.extenuatingCircumstancesExplanation),
+  };
+}
+
+function toJsonPayload(payload?: MhdConductActionDocumentPayload | null): Json {
+  return JSON.parse(JSON.stringify(payload ?? {})) as Json;
+}
+
+function htmlText(value?: string | null, fallback = ''): string {
+  const raw = value == null || value.trim().length === 0 ? fallback : value.trim();
+  return raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function filterValueOrUndefined(value?: string | null): string | undefined {
   if (!value || value === 'ALL') return undefined;
   return value;
@@ -76,6 +125,7 @@ function mapActionRow(row: MhdConductActionRpcRow): MhdConductAction {
     severity: row.severity as MhdConductAction['severity'],
     status: row.status as MhdConductAction['status'],
     actionSummary: row.action_summary,
+    documentPayload: mapDocumentPayload(row.document_payload),
     requiresDocument: row.requires_document,
     esignatureRequestId: row.esignature_request_id,
     esignatureStatus: row.esignature_status,
@@ -99,13 +149,59 @@ function buildCorrectiveActionMergeData(
   input: MhdIssueConductActionInput,
   subjectName: string,
 ): Record<string, unknown> {
+  const payload = input.documentPayload ?? {};
+  const today = new Date().toISOString().slice(0, 10);
   return {
-    person_name: subjectName,
-    company_id: input.companyId,
-    severity: mhdFormatConductSeverity(input.severity),
-    action_summary: input.actionSummary ?? '',
-    case_reference_id: input.caseReferenceId ?? '',
-    generated_date: new Date().toISOString().slice(0, 10),
+    person_name: htmlText(subjectName),
+    company_id: htmlText(input.companyId),
+    company_name: htmlText(payload.companyName, input.companyId),
+    severity: htmlText(mhdFormatConductSeverity(input.severity)),
+    action_summary: htmlText(input.actionSummary),
+    conduct_summary: htmlText(input.actionSummary),
+    case_reference_id: htmlText(input.caseReferenceId),
+    generated_date: today,
+    employee: {
+      position_title: htmlText(payload.positionTitle),
+      department_program: htmlText(payload.departmentProgram),
+      supervisor_name: htmlText(payload.supervisorName),
+      facility_location: htmlText(payload.facilityLocation),
+      date_of_hire: htmlText(payload.dateOfHire),
+    },
+    notice: {
+      date: htmlText(payload.dateOfNotice, today),
+      previously_addressed: htmlText(payload.previouslyAddressed, 'Not specified'),
+    },
+    incident: {
+      dates: htmlText(payload.incidentDates),
+      time: htmlText(payload.incidentTime),
+      location: htmlText(payload.incidentLocation),
+      policies_violated: htmlText(payload.policiesViolated),
+      narrative: htmlText(payload.incidentNarrative, input.actionSummary ?? ''),
+      findings: htmlText(payload.incidentFindings),
+      policy_citation_text: htmlText(payload.policyCitationText),
+    },
+    history: {
+      prior_corrective_action_summary: htmlText(
+        payload.priorCorrectiveActionSummary,
+        'No prior corrective action is documented for the concern addressed in this notice.',
+      ),
+    },
+    improvement: {
+      training_items: htmlText(payload.trainingItems),
+      training_deadline: htmlText(payload.trainingDeadline),
+      follow_up_review_date: htmlText(payload.followUpReviewDate),
+      expectations: htmlText(payload.expectations),
+    },
+    consequences: {
+      text: htmlText(
+        payload.consequencesText,
+        'Any further occurrence of similar conduct, violation of the policies listed above, or failure to meet the expectations in this notice may result in further disciplinary action up to and including termination of employment.',
+      ),
+    },
+    extenuating: {
+      considered: htmlText(payload.extenuatingCircumstancesConsidered, 'Not specified'),
+      explanation: htmlText(payload.extenuatingCircumstancesExplanation),
+    },
   };
 }
 
@@ -290,6 +386,7 @@ export const mhdConductService = {
       ...(input.requiresDocument !== undefined
         ? { p_requires_document: input.requiresDocument }
         : {}),
+      p_document_payload: toJsonPayload(input.documentPayload),
     }).returns<MhdConductMutationRpcRow[]>();
 
     if (error) {
@@ -310,6 +407,9 @@ export const mhdConductService = {
       ...(input.severity ? { p_severity: input.severity } : {}),
       ...(trimmedOrUndefined(input.actionSummary)
         ? { p_action_summary: trimmedOrUndefined(input.actionSummary) }
+        : {}),
+      ...(input.documentPayload
+        ? { p_document_payload: toJsonPayload(input.documentPayload) }
         : {}),
     });
 

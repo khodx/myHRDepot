@@ -42,6 +42,7 @@ const issuedActionRow = {
   severity: 'WRITTEN_WARNING',
   status: 'ISSUED',
   action_summary: 'Written warning for lateness.',
+  document_payload: {},
   requires_document: true,
   esignature_request_id: 'sig-1',
   esignature_status: 'PENDING',
@@ -191,6 +192,41 @@ describe('mhdConductService acknowledgment gate', () => {
   });
 });
 
+describe('mhdConductService document payload', () => {
+  it('forwards structured corrective-action notice payload when creating an action', async () => {
+    returnsMock.mockResolvedValueOnce({
+      data: [{ id: 'action-1', reference_id: 'CACT-000001' }],
+      error: null,
+    });
+
+    await mhdConductService.createAction({
+      caseId: 'case-1',
+      severity: 'FINAL_WARNING',
+      actionSummary: 'Final warning for unprofessional conduct.',
+      requiresDocument: true,
+      documentPayload: {
+        companyName: 'Crossroads of Choice',
+        positionTitle: 'Support Staff',
+        incidentDates: 'Friday, March 20, 2026',
+        policiesViolated: 'Consumer Confidentiality\nEmployee Conduct Rule #16',
+      },
+    });
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_conduct_create_action', {
+      p_case_id: 'case-1',
+      p_severity: 'FINAL_WARNING',
+      p_action_summary: 'Final warning for unprofessional conduct.',
+      p_requires_document: true,
+      p_document_payload: {
+        companyName: 'Crossroads of Choice',
+        positionTitle: 'Support Staff',
+        incidentDates: 'Friday, March 20, 2026',
+        policiesViolated: 'Consumer Confidentiality\nEmployee Conduct Rule #16',
+      },
+    });
+  });
+});
+
 describe('mhdConductService issue ceremony', () => {
   it('issues a no-document action directly without rendering or signing', async () => {
     rpcMock.mockResolvedValueOnce({ error: null });
@@ -261,6 +297,18 @@ describe('mhdConductService issue ceremony', () => {
       severity: 'WRITTEN_WARNING',
       requiresDocument: true,
       actionSummary: 'Written warning for lateness.',
+      documentPayload: {
+        companyName: 'Crossroads of Choice',
+        positionTitle: 'Support Staff',
+        departmentProgram: 'Day Program Services',
+        supervisorName: 'Supervisor Name Here',
+        facilityLocation: 'Crossroads of Choice',
+        dateOfNotice: 'Tuesday, June 22, 2026',
+        incidentDates: 'Friday, March 20, 2026',
+        incidentNarrative: 'Employee made <false> statements.',
+        policiesViolated: 'Consumer Confidentiality\nEmployee Conduct Rule #16',
+        trainingItems: 'Communicating Effectively\nConflict Resolution',
+      },
       caseReferenceId: 'COND-000001',
       pollIntervalMs: 0,
       onStep: (step) => steps.push(step),
@@ -277,6 +325,21 @@ describe('mhdConductService issue ceremony', () => {
         p_template_id: 'template-1',
         p_entity_type: 'CONDUCT_ACTION',
         p_entity_id: 'action-1',
+        p_merge_data: expect.objectContaining({
+          company_name: 'Crossroads of Choice',
+          employee: expect.objectContaining({
+            position_title: 'Support Staff',
+            department_program: 'Day Program Services',
+          }),
+          incident: expect.objectContaining({
+            dates: 'Friday, March 20, 2026',
+            narrative: 'Employee made &lt;false&gt; statements.',
+            policies_violated: 'Consumer Confidentiality\nEmployee Conduct Rule #16',
+          }),
+          improvement: expect.objectContaining({
+            training_items: 'Communicating Effectively\nConflict Resolution',
+          }),
+        }),
       }),
     );
     expect(invokeMock).toHaveBeenCalledWith('render-document', {

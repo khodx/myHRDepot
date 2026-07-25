@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormRegisterReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { mhdConductActionFormSchema, type MhdConductActionFormSchemaInput } from '../Schemas';
 import { MHD_CONDUCT_SEVERITIES, type MhdConductAction, mhdFormatConductSeverity } from '../Types';
@@ -11,6 +11,61 @@ interface Props {
   onSubmit: (input: MhdConductActionFormSchemaInput) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+}
+
+function MhdPayloadInput({
+  id,
+  label,
+  registration,
+  placeholder,
+}: {
+  id: string;
+  label: string;
+  registration: UseFormRegisterReturn;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1 block text-sm font-medium">
+        {label}
+      </label>
+      <input
+        id={id}
+        className="w-full rounded border px-3 py-2"
+        placeholder={placeholder}
+        {...registration}
+      />
+    </div>
+  );
+}
+
+function MhdPayloadTextarea({
+  id,
+  label,
+  registration,
+  rows = 3,
+  placeholder,
+}: {
+  id: string;
+  label: string;
+  registration: UseFormRegisterReturn;
+  rows?: number;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1 block text-sm font-medium">
+        {label}
+      </label>
+      <textarea
+        id={id}
+        className="w-full rounded border px-3 py-2"
+        rows={rows}
+        placeholder={placeholder}
+        {...registration}
+      />
+    </div>
+  );
 }
 
 /**
@@ -32,10 +87,12 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
       ? {
           severity: initial.severity,
           actionSummary: initial.actionSummary ?? undefined,
+          documentPayload: initial.documentPayload,
           requiresDocument: initial.requiresDocument,
         }
       : {
           severity: 'WRITTEN_WARNING',
+          documentPayload: {},
           requiresDocument: true,
         },
   });
@@ -79,6 +136,154 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
         {errors.actionSummary ? (
           <p className="mt-1 text-xs text-red-600">{errors.actionSummary.message}</p>
         ) : null}
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <h3 className="text-sm font-semibold text-foreground">Notice Layout Fields</h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          These fields feed the generated corrective-action notice. Drafts can be amended; issued
+          actions freeze this content with the document.
+        </p>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <MhdPayloadInput
+            id="mhd-conduct-payload-company"
+            label="Company Name"
+            registration={register('documentPayload.companyName')}
+          />
+          <MhdPayloadInput
+            id="mhd-conduct-payload-position"
+            label="Position/Title"
+            registration={register('documentPayload.positionTitle')}
+          />
+          <MhdPayloadInput
+            id="mhd-conduct-payload-department"
+            label="Department/Program"
+            registration={register('documentPayload.departmentProgram')}
+          />
+          <MhdPayloadInput
+            id="mhd-conduct-payload-supervisor"
+            label="Supervisor"
+            registration={register('documentPayload.supervisorName')}
+          />
+          <MhdPayloadInput
+            id="mhd-conduct-payload-location"
+            label="Facility/Location"
+            registration={register('documentPayload.facilityLocation')}
+          />
+          <MhdPayloadInput
+            id="mhd-conduct-payload-hire-date"
+            label="Date of Hire"
+            registration={register('documentPayload.dateOfHire')}
+            placeholder="Tuesday, June 22, 2026"
+          />
+          <MhdPayloadInput
+            id="mhd-conduct-payload-notice-date"
+            label="Date of Notice"
+            registration={register('documentPayload.dateOfNotice')}
+            placeholder="Tuesday, June 22, 2026"
+          />
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <MhdPayloadInput
+            id="mhd-conduct-payload-incident-dates"
+            label="Date(s) of Incident"
+            registration={register('documentPayload.incidentDates')}
+          />
+          <MhdPayloadInput
+            id="mhd-conduct-payload-incident-time"
+            label="Time of Incident"
+            registration={register('documentPayload.incidentTime')}
+          />
+          <MhdPayloadInput
+            id="mhd-conduct-payload-incident-location"
+            label="Location of Incident"
+            registration={register('documentPayload.incidentLocation')}
+          />
+          <MhdPayloadInput
+            id="mhd-conduct-payload-previously-addressed"
+            label="Previously Addressed"
+            registration={register('documentPayload.previouslyAddressed')}
+            placeholder="Yes / No"
+          />
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <MhdPayloadTextarea
+            id="mhd-conduct-payload-policies"
+            label="Policy/Procedure Violated"
+            registration={register('documentPayload.policiesViolated')}
+            placeholder="One policy per line."
+          />
+          <MhdPayloadTextarea
+            id="mhd-conduct-payload-narrative"
+            label="Description of Incident"
+            registration={register('documentPayload.incidentNarrative')}
+            rows={5}
+          />
+          <MhdPayloadTextarea
+            id="mhd-conduct-payload-findings"
+            label="Documented Facts / Findings"
+            registration={register('documentPayload.incidentFindings')}
+            rows={5}
+            placeholder="Use one fact per line for source-style bullets."
+          />
+          <MhdPayloadTextarea
+            id="mhd-conduct-payload-policy-citation"
+            label="Policy Citation Text"
+            registration={register('documentPayload.policyCitationText')}
+            rows={4}
+          />
+          <MhdPayloadTextarea
+            id="mhd-conduct-payload-history"
+            label="Prior Corrective Action History"
+            registration={register('documentPayload.priorCorrectiveActionSummary')}
+          />
+          <MhdPayloadTextarea
+            id="mhd-conduct-payload-training"
+            label="Mandatory Training / Required Steps"
+            registration={register('documentPayload.trainingItems')}
+            placeholder="One requirement per line."
+          />
+          <div className="grid gap-3 md:grid-cols-2">
+            <MhdPayloadInput
+              id="mhd-conduct-payload-training-deadline"
+              label="Training/Completion Deadline"
+              registration={register('documentPayload.trainingDeadline')}
+            />
+            <MhdPayloadInput
+              id="mhd-conduct-payload-follow-up"
+              label="Follow-Up Review Date"
+              registration={register('documentPayload.followUpReviewDate')}
+            />
+          </div>
+          <MhdPayloadTextarea
+            id="mhd-conduct-payload-expectations"
+            label="Expectations"
+            registration={register('documentPayload.expectations')}
+            rows={4}
+          />
+          <MhdPayloadTextarea
+            id="mhd-conduct-payload-consequences"
+            label="Consequences of Failure to Improve"
+            registration={register('documentPayload.consequencesText')}
+            rows={4}
+          />
+          <div className="grid gap-3 md:grid-cols-2">
+            <MhdPayloadInput
+              id="mhd-conduct-payload-extenuating-considered"
+              label="Extenuating Circumstances Considered"
+              registration={register('documentPayload.extenuatingCircumstancesConsidered')}
+              placeholder="Yes / No"
+            />
+            <MhdPayloadTextarea
+              id="mhd-conduct-payload-extenuating-explanation"
+              label="Extenuating Circumstances Explanation"
+              registration={register('documentPayload.extenuatingCircumstancesExplanation')}
+            />
+          </div>
+        </div>
       </div>
 
       {mode === 'create' ? (

@@ -502,6 +502,7 @@ export function MhdConductCaseDetailPage() {
         caseId: conductCase.id,
         severity: input.severity,
         actionSummary: input.actionSummary,
+        documentPayload: input.documentPayload,
         requiresDocument: input.requiresDocument,
       });
       setIsAddingAction(false);
@@ -516,7 +517,11 @@ export function MhdConductCaseDetailPage() {
     try {
       await mutations.updateAction.mutateAsync({
         actionId: editingActionId,
-        input: { severity: input.severity, actionSummary: input.actionSummary },
+        input: {
+          severity: input.severity,
+          actionSummary: input.actionSummary,
+          documentPayload: input.documentPayload,
+        },
       });
       setEditingActionId(null);
     } catch (error) {
@@ -550,6 +555,7 @@ export function MhdConductCaseDetailPage() {
         severity: action.severity,
         requiresDocument: action.requiresDocument,
         actionSummary: action.actionSummary,
+        documentPayload: action.documentPayload,
         caseReferenceId: conductCase.referenceId,
       });
     } catch (error) {

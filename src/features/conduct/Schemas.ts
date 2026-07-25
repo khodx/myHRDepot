@@ -6,6 +6,37 @@ import {
   MHD_CONDUCT_SEVERITIES,
 } from './Types';
 
+const mhdOptionalPayloadText = z.string().max(10000).optional().nullable();
+
+export const mhdConductActionDocumentPayloadSchema = z
+  .object({
+    companyName: mhdOptionalPayloadText,
+    positionTitle: mhdOptionalPayloadText,
+    departmentProgram: mhdOptionalPayloadText,
+    supervisorName: mhdOptionalPayloadText,
+    facilityLocation: mhdOptionalPayloadText,
+    dateOfHire: mhdOptionalPayloadText,
+    dateOfNotice: mhdOptionalPayloadText,
+    incidentDates: mhdOptionalPayloadText,
+    incidentTime: mhdOptionalPayloadText,
+    incidentLocation: mhdOptionalPayloadText,
+    policiesViolated: mhdOptionalPayloadText,
+    previouslyAddressed: mhdOptionalPayloadText,
+    incidentNarrative: mhdOptionalPayloadText,
+    incidentFindings: mhdOptionalPayloadText,
+    policyCitationText: mhdOptionalPayloadText,
+    priorCorrectiveActionSummary: mhdOptionalPayloadText,
+    trainingItems: mhdOptionalPayloadText,
+    trainingDeadline: mhdOptionalPayloadText,
+    followUpReviewDate: mhdOptionalPayloadText,
+    expectations: mhdOptionalPayloadText,
+    consequencesText: mhdOptionalPayloadText,
+    extenuatingCircumstancesConsidered: mhdOptionalPayloadText,
+    extenuatingCircumstancesExplanation: mhdOptionalPayloadText,
+  })
+  .optional()
+  .nullable();
+
 /** Create form: subject, category, and the (sensitive) concern narrative. */
 export const mhdConductCaseFormSchema = z.object({
   companyId: z.string().trim().min(1, 'Company is required.'),
@@ -43,6 +74,7 @@ export const mhdConductCaseTransitionSchema = z
 export const mhdConductActionFormSchema = z.object({
   severity: z.enum(MHD_CONDUCT_SEVERITIES),
   actionSummary: z.string().max(10000).optional().nullable(),
+  documentPayload: mhdConductActionDocumentPayloadSchema,
   requiresDocument: z.boolean().default(true),
 });
 
