@@ -5901,6 +5901,9 @@ export type Database = {
           duplicate_submission_rule: string | null;
           edit_after_submit_allowed: boolean;
           edit_window_minutes: number | null;
+          employee_file_category: string | null;
+          employee_file_person_id: string | null;
+          employee_file_user_id: string | null;
           form_id: string;
           id: string;
           is_draft: boolean;
@@ -5957,6 +5960,9 @@ export type Database = {
           duplicate_submission_rule?: string | null;
           edit_after_submit_allowed?: boolean;
           edit_window_minutes?: number | null;
+          employee_file_category?: string | null;
+          employee_file_person_id?: string | null;
+          employee_file_user_id?: string | null;
           form_id: string;
           id?: string;
           is_draft?: boolean;
@@ -6013,6 +6019,9 @@ export type Database = {
           duplicate_submission_rule?: string | null;
           edit_after_submit_allowed?: boolean;
           edit_window_minutes?: number | null;
+          employee_file_category?: string | null;
+          employee_file_person_id?: string | null;
+          employee_file_user_id?: string | null;
           form_id?: string;
           id?: string;
           is_draft?: boolean;
@@ -6065,6 +6074,20 @@ export type Database = {
           {
             foreignKeyName: 'form_submissions_created_by_fkey';
             columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'form_submissions_employee_file_person_id_fkey';
+            columns: ['employee_file_person_id'];
+            isOneToOne: false;
+            referencedRelation: 'people';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'form_submissions_employee_file_user_id_fkey';
+            columns: ['employee_file_user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
             referencedColumns: ['id'];
@@ -6654,6 +6677,7 @@ export type Database = {
           financial_impact_flag: boolean;
           form_branding_profile_id: string | null;
           form_category: string | null;
+          employee_file_category: string | null;
           form_color: string | null;
           form_complexity: string | null;
           form_icon: string | null;
@@ -6741,6 +6765,7 @@ export type Database = {
           financial_impact_flag?: boolean;
           form_branding_profile_id?: string | null;
           form_category?: string | null;
+          employee_file_category?: string | null;
           form_color?: string | null;
           form_complexity?: string | null;
           form_icon?: string | null;
@@ -6828,6 +6853,7 @@ export type Database = {
           financial_impact_flag?: boolean;
           form_branding_profile_id?: string | null;
           form_category?: string | null;
+          employee_file_category?: string | null;
           form_color?: string | null;
           form_complexity?: string | null;
           form_icon?: string | null;
@@ -15215,6 +15241,7 @@ export type Database = {
           p_company_id: string;
           p_definition?: Json;
           p_description?: string;
+          p_employee_file_category?: string | null;
           p_name: string;
         };
         Returns: {
@@ -15365,7 +15392,13 @@ export type Database = {
         }[];
       };
       mhd_create_submission: {
-        Args: { p_form_id: string; p_task_id?: string };
+        Args: {
+          p_employee_file_category?: string | null;
+          p_employee_file_person_id?: string;
+          p_employee_file_user_id?: string;
+          p_form_id: string;
+          p_task_id?: string;
+        };
         Returns: {
           id: string;
         }[];
@@ -15684,6 +15717,7 @@ export type Database = {
           created_by: string;
           definition: Json;
           description: string;
+          employee_file_category: string | null;
           id: string;
           name: string;
           previous_version_id: string;
@@ -15869,6 +15903,9 @@ export type Database = {
           form_id: string;
           id: string;
           is_draft: boolean;
+          employee_file_category: string | null;
+          employee_file_person_id: string | null;
+          employee_file_user_id: string | null;
           reference_id: string;
           status: string;
           submitted_at: string;
@@ -16887,6 +16924,7 @@ export type Database = {
           created_by: string;
           definition: Json;
           description: string;
+          employee_file_category: string | null;
           id: string;
           name: string;
           previous_version_id: string;
@@ -16899,10 +16937,32 @@ export type Database = {
           version: number;
         }[];
       };
+      mhd_list_employee_file_submissions: {
+        Args: { p_person_id: string };
+        Returns: {
+          attachment_count: number;
+          created_at: string;
+          employee_file_category: string;
+          employee_file_person_id: string;
+          employee_file_user_id: string | null;
+          form_id: string;
+          form_name: string;
+          id: string;
+          reference_id: string;
+          status: string;
+          submitted_at: string | null;
+          submitter_display_name: string;
+          submitter_id: string;
+          updated_at: string;
+        }[];
+      };
       mhd_list_my_draft_submissions: {
         Args: never;
         Returns: {
           created_at: string;
+          employee_file_category: string | null;
+          employee_file_person_id: string | null;
+          employee_file_user_id: string | null;
           form_id: string;
           id: string;
           is_draft: boolean;
@@ -17225,6 +17285,9 @@ export type Database = {
         Args: { p_form_id: string };
         Returns: {
           created_at: string;
+          employee_file_category: string | null;
+          employee_file_person_id: string | null;
+          employee_file_user_id: string | null;
           form_id: string;
           id: string;
           is_draft: boolean;
@@ -18698,6 +18761,7 @@ export type Database = {
         Args: {
           p_definition?: Json;
           p_description?: string;
+          p_employee_file_category?: string | null;
           p_form_id: string;
           p_name?: string;
         };

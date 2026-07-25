@@ -2,6 +2,18 @@ import { z } from 'zod';
 import type { MhdFormField, MhdFormFileValue } from './Types';
 import { mhdIsFormFileValue } from './Types';
 
+const mhdEmployeeFileCategorySchema = z.enum([
+  'general',
+  'payroll',
+  'i9',
+  'medical',
+  'benefits',
+  'confidential',
+  'supervisors',
+  'hr',
+  'private',
+]);
+
 export const mhdCreateFormInputSchema = z.object({
   name: z
     .string()
@@ -13,6 +25,7 @@ export const mhdCreateFormInputSchema = z.object({
     .trim()
     .max(1000, 'Description must be 1000 characters or fewer')
     .optional(),
+  employeeFileCategory: mhdEmployeeFileCategorySchema.nullable().optional(),
   definition: z.record(z.string(), z.unknown()),
 });
 

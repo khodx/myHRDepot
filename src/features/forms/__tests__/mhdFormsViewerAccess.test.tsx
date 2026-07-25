@@ -50,6 +50,7 @@ const baseForm: MhdForm = {
   name: 'Onboarding',
   description: 'New hire onboarding form',
   status: 'ACTIVE',
+  employeeFileCategory: null,
   version: 1,
   previousVersionId: null,
   createdAt: '2026-07-17T00:00:00Z',
@@ -117,9 +118,13 @@ describe('MhdFormsPage role gating', () => {
 
     expect(screen.queryByText('Create Form')).not.toBeInTheDocument();
     expect(screen.queryByText('Builder')).not.toBeInTheDocument();
-    expect(screen.getByText('View')).toBeInTheDocument();
+    expect(screen.getAllByText('View').length).toBeGreaterThan(0);
     // Read-only navigation stays available.
-    expect(screen.getByText('Render')).toBeInTheDocument();
+    expect(
+      screen
+        .getAllByRole('link', { name: 'View' })
+        .some((link) => link.getAttribute('href') === '/forms/form-1/render'),
+    ).toBe(true);
     expect(screen.getByText('Submissions')).toBeInTheDocument();
   });
 
@@ -159,6 +164,9 @@ describe('MhdFormRenderer read-only mode (Viewer)', () => {
       submitterId: 'user-1',
       taskId: null,
       status: 'DRAFT',
+      employeeFileCategory: null,
+      employeeFilePersonId: null,
+      employeeFileUserId: null,
       values: {},
       createdAt: '2026-07-17T00:00:00Z',
       updatedAt: null,

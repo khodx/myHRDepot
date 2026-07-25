@@ -3,6 +3,7 @@ import { mhdBuildFormValuesSchema } from '../Schemas';
 import { mhdFormCalculationEngine, mhdFormLogicEngine, mhdFormService } from '../Service';
 import type { MhdForm, MhdFormDefinition, MhdFormFileValue } from '../Types';
 import { mhdIsEncryptedFormValue } from '../Types';
+import type { MhdEmployeeFileTypeKey } from '@/features/employee-files/Types';
 import { MhdFormDraftSave } from './MhdFormDraftSave';
 import { MhdFormPage } from './MhdFormPage';
 import { MhdFormPageManager } from './MhdFormPageManager';
@@ -12,6 +13,9 @@ interface MhdFormRendererProps {
   formId: string;
   submissionId?: string;
   taskId?: string;
+  employeeFilePersonId?: string;
+  employeeFileUserId?: string;
+  employeeFileCategory?: MhdEmployeeFileTypeKey | null;
   taskPrefillValues?: Record<string, unknown>;
   userPrefillValues?: Record<string, unknown>;
   onSubmitted?: (submissionId: string) => void;
@@ -40,6 +44,9 @@ export function MhdFormRenderer({
   formId,
   submissionId: initialSubmissionId,
   taskId,
+  employeeFilePersonId,
+  employeeFileUserId,
+  employeeFileCategory,
   taskPrefillValues,
   userPrefillValues,
   onSubmitted,
@@ -75,6 +82,9 @@ export function MhdFormRenderer({
         setForm(loadedForm);
         let prefill: Record<string, unknown> = {
           ...readQueryPrefill(),
+          ...(employeeFileCategory ? { employeeFileCategory } : {}),
+          ...(employeeFilePersonId ? { employeeFilePersonId, personId: employeeFilePersonId } : {}),
+          ...(employeeFileUserId ? { employeeFileUserId, userId: employeeFileUserId } : {}),
           ...(taskPrefillValues ?? {}),
           ...(userPrefillValues ?? {}),
         };
@@ -98,7 +108,12 @@ export function MhdFormRenderer({
           setEncryptedDraftFieldIds(maskedFieldIds);
           setSubmissionId(submission.id);
         } else if (!readOnly && loadedForm.definition.settings.allowDraft) {
-          const submission = await mhdFormService.createSubmission(loadedForm.id, taskId);
+          const submission = await mhdFormService.createSubmission(loadedForm.id, {
+            taskId,
+            employeeFilePersonId,
+            employeeFileUserId,
+            employeeFileCategory,
+          });
           if (isCancelled) return;
           setSubmissionId(submission.id);
         }
@@ -123,6 +138,9 @@ export function MhdFormRenderer({
   }, [
     formId,
     initialSubmissionId,
+    employeeFileCategory,
+    employeeFilePersonId,
+    employeeFileUserId,
     isPreview,
     readOnly,
     taskId,
@@ -266,7 +284,12 @@ export function MhdFormRenderer({
   const ensureSubmission = async (): Promise<string> => {
     if (submissionId) return submissionId;
     if (!form) throw new Error('Form not loaded');
-    const submission = await mhdFormService.createSubmission(form.id, taskId);
+    const submission = await mhdFormService.createSubmission(form.id, {
+      taskId,
+      employeeFilePersonId,
+      employeeFileUserId,
+      employeeFileCategory,
+    });
     setSubmissionId(submission.id);
     return submission.id;
   };

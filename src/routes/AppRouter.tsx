@@ -33,6 +33,7 @@ import { MhdSystemAlertsPage } from '@/features/communications/components/MhdSys
 import { MhdAutomationsPage } from '@/features/automations/components/MhdAutomationsPage';
 import { MhdEmployeeFilesPage } from '@/features/employee-files/components/MhdEmployeeFilesPage';
 import { MhdEmployeeFileCabinetPage } from '@/features/employee-files/components/MhdEmployeeFileCabinetPage';
+import { MhdEmployeeFileNewRecordPage } from '@/features/employee-files/components/MhdEmployeeFileNewRecordPage';
 import { MhdPeoplePage } from '@/features/people/components/MhdPeoplePage';
 import { MhdPersonFormPage } from '@/features/people/components/MhdPersonFormPage';
 import { MhdPersonDetailPage } from '@/appshell/components/MhdPersonDetailPage';
@@ -128,6 +129,7 @@ export function AppRouter() {
               <Route path="/communications/system-alerts" element={<MhdSystemAlertsPage />} />
               <Route path="/automations" element={<MhdAutomationsPage />} />
               <Route path="/employees" element={<MhdEmployeeFilesPage />} />
+              <Route path="/employees/:personId/files/new" element={<MhdEmployeeFileNewRecordPage />} />
               <Route path="/employees/:personId" element={<MhdEmployeeFileCabinetPage />} />
               <Route path="/people" element={<MhdPeoplePage />} />
               <Route path="/people/new" element={<MhdPersonFormPage />} />

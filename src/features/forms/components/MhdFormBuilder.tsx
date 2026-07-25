@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Plus, Save, UploadCloud } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
+import {
+  MHD_EMPLOYEE_FILE_TYPES,
+  mhdIsEmployeeFileTypeKey,
+} from '@/features/employee-files/Types';
 import { mhdCreateFormInputSchema } from '../Schemas';
 import { mhdFormService } from '../Service';
 import type { MhdFieldType, MhdForm, MhdFormDefinition, MhdFormField, MhdFormPage } from '../Types';
@@ -48,6 +52,9 @@ function sortPages(pages: MhdFormPage[]): MhdFormPage[] {
 export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdFormBuilderProps) {
   const [formName, setFormName] = useState(initialForm?.name ?? '');
   const [description, setDescription] = useState(initialForm?.description ?? '');
+  const [employeeFileCategory, setEmployeeFileCategory] = useState(
+    initialForm?.employeeFileCategory ?? '',
+  );
   const [pages, setPages] = useState<MhdFormPage[]>(initialForm?.definition.pages ?? []);
   const [fields, setFields] = useState<MhdFormField[]>(initialForm?.definition.fields ?? []);
   const [logic, setLogic] = useState<MhdFormDefinition['logic']>(
@@ -237,9 +244,13 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
 
     try {
       const definition = buildDefinition();
+      const selectedEmployeeFileCategory = mhdIsEmployeeFileTypeKey(employeeFileCategory)
+        ? employeeFileCategory
+        : null;
       const parsed = mhdCreateFormInputSchema.safeParse({
         name: formName,
         description,
+        employeeFileCategory: selectedEmployeeFileCategory,
         definition,
       });
 
@@ -252,12 +263,14 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
         ? await mhdFormService.updateForm(savedFormId, {
             name: formName,
             description,
+            employeeFileCategory: selectedEmployeeFileCategory,
             definition,
           })
         : await mhdFormService.createForm(
             {
               name: formName,
               description,
+              employeeFileCategory: selectedEmployeeFileCategory,
               definition,
             },
             companyId,
@@ -323,6 +336,28 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
                 placeholder="Form description"
                 className="min-h-24 w-full rounded-md border border-border px-3 py-2 text-sm"
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-foreground">
+                Employee File Destination
+              </label>
+              <select
+                value={employeeFileCategory}
+                onChange={(event) => setEmployeeFileCategory(event.target.value)}
+                className="w-full rounded-md border border-border px-3 py-2 text-sm"
+              >
+                <option value="">None</option>
+                {MHD_EMPLOYEE_FILE_TYPES.map((fileType) => (
+                  <option key={fileType.key} value={fileType.key}>
+                    {fileType.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Submitted records from this form appear in the matching employee file when rendered
+                with an employee context.
+              </p>
             </div>
           </div>
 

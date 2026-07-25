@@ -3,9 +3,12 @@ import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { Json, Database } from '@/types/database.types';
 import type { MhdDriveUploadResponse } from '@/features/attachments/Types';
 import { mhdValidateAttachment } from '@/features/attachments/Types';
+import { mhdIsEmployeeFileTypeKey } from '@/features/employee-files/Types';
 import type {
   MhdCalculationOp,
   MhdCreateFormInput,
+  MhdCreateSubmissionOptions,
+  MhdEmployeeFileSubmissionRecord,
   MhdForm,
   MhdFormCalculation,
   MhdFormDefinition,
@@ -20,6 +23,7 @@ import type {
   MhdLogicConditionGroup,
   MhdLogicConditionNode,
   MhdRpcDraftSubmissionRow,
+  MhdRpcEmployeeFileSubmissionRow,
   MhdRpcFormRow,
   MhdRpcFormsListRow,
   MhdRpcSubmissionListRow,
@@ -203,6 +207,10 @@ function mapDefinition(
 }
 
 function mapFormRow(row: MhdRpcFormRow | MhdRpcFormsListRow): MhdForm {
+  const employeeFileCategory = mhdIsEmployeeFileTypeKey(row.employee_file_category)
+    ? row.employee_file_category
+    : null;
+
   return {
     id: row.id,
     referenceId: row.reference_id,
@@ -210,6 +218,7 @@ function mapFormRow(row: MhdRpcFormRow | MhdRpcFormsListRow): MhdForm {
     name: row.name,
     description: row.description ?? undefined,
     status: row.status as MhdFormStatus,
+    employeeFileCategory,
     definition: mapDefinition(row.definition, {
       id: row.id,
       name: row.name,
@@ -239,11 +248,39 @@ function mapSubmissionRow(
     submitterId: row.submitter_id,
     taskId: row.task_id ?? null,
     status: row.status as MhdSubmissionStatus,
+    employeeFileCategory: mhdIsEmployeeFileTypeKey(row.employee_file_category)
+      ? row.employee_file_category
+      : null,
+    employeeFilePersonId: row.employee_file_person_id ?? null,
+    employeeFileUserId: row.employee_file_user_id ?? null,
     values,
     createdAt: row.created_at,
     updatedAt: row.updated_at ?? null,
     submittedAt: row.submitted_at ?? null,
     isDraft: row.is_draft,
+  };
+}
+
+function mapEmployeeFileSubmissionRow(
+  row: MhdRpcEmployeeFileSubmissionRow,
+): MhdEmployeeFileSubmissionRecord | null {
+  if (!mhdIsEmployeeFileTypeKey(row.employee_file_category)) return null;
+
+  return {
+    id: row.id,
+    referenceId: row.reference_id,
+    formId: row.form_id,
+    formName: row.form_name,
+    employeeFileCategory: row.employee_file_category,
+    employeeFilePersonId: row.employee_file_person_id,
+    employeeFileUserId: row.employee_file_user_id ?? null,
+    submitterId: row.submitter_id,
+    submitterDisplayName: row.submitter_display_name,
+    status: row.status as MhdSubmissionStatus,
+    submittedAt: row.submitted_at ?? null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at ?? null,
+    attachmentCount: Number(row.attachment_count ?? 0),
   };
 }
 
@@ -265,6 +302,7 @@ export const mhdFormService = {
         p_company_id: companyId,
         p_name: input.name.trim(),
         p_definition: toJsonValue(input.definition),
+        p_employee_file_category: input.employeeFileCategory ?? null,
         ...(description ? { p_description: description } : {}),
       })
       .returns<MhdCreateFormResultRow[]>();
@@ -285,12 +323,19 @@ export const mhdFormService = {
     const name = stringToUndefined(input.name);
     const description = stringToUndefined(input.description);
     const definition = input.definition ? toJsonValue(input.definition) : undefined;
+    const shouldUpdateEmployeeFileCategory = Object.prototype.hasOwnProperty.call(
+      input,
+      'employeeFileCategory',
+    );
 
     const { error } = await supabaseClient.rpc('mhd_update_form', {
       p_form_id: formId,
       ...(name ? { p_name: name } : {}),
       ...(description ? { p_description: description } : {}),
       ...(definition ? { p_definition: definition } : {}),
+      ...(shouldUpdateEmployeeFileCategory
+        ? { p_employee_file_category: input.employeeFileCategory ?? null }
+        : {}),
     });
 
     if (error) {
@@ -368,9 +413,24 @@ export const mhdFormService = {
     }
   },
 
-  async createSubmission(formId: string, taskId?: string): Promise<MhdFormSubmission> {
+  async createSubmission(
+    formId: string,
+    optionsOrTaskId?: MhdCreateSubmissionOptions | string,
+  ): Promise<MhdFormSubmission> {
+    const options =
+      typeof optionsOrTaskId === 'string' ? { taskId: optionsOrTaskId } : optionsOrTaskId ?? {};
     const { data, error } = await supabaseClient
-      .rpc('mhd_create_submission', { p_form_id: formId, ...(taskId ? { p_task_id: taskId } : {}) })
+      .rpc('mhd_create_submission', {
+        p_form_id: formId,
+        ...(options.taskId ? { p_task_id: options.taskId } : {}),
+        ...(options.employeeFilePersonId
+          ? { p_employee_file_person_id: options.employeeFilePersonId }
+          : {}),
+        ...(options.employeeFileUserId ? { p_employee_file_user_id: options.employeeFileUserId } : {}),
+        ...(options.employeeFileCategory
+          ? { p_employee_file_category: options.employeeFileCategory }
+          : {}),
+      })
       .returns<MhdCreateSubmissionResultRow[]>();
 
     if (error) {
@@ -463,6 +523,20 @@ export const mhdFormService = {
     }
 
     return (data ?? []).map(mapSubmissionRow);
+  },
+
+  async listEmployeeFileSubmissions(personId: string): Promise<MhdEmployeeFileSubmissionRecord[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_employee_file_submissions', { p_person_id: personId })
+      .returns<MhdRpcEmployeeFileSubmissionRow[]>();
+
+    if (error) {
+      throw new Error(`Unable to list employee file records: ${error.message}`);
+    }
+
+    return (data ?? [])
+      .map(mapEmployeeFileSubmissionRow)
+      .filter((record): record is MhdEmployeeFileSubmissionRecord => record !== null);
   },
 
   /**

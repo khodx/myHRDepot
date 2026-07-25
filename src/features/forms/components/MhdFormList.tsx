@@ -87,7 +87,7 @@ export function MhdFormList({ forms, isLoading, canMutate = true }: MhdFormListP
                 secondaryActions={
                   <>
                     <Link to={`/forms/${form.id}`} className="text-accent hover:text-accent-hover">
-                      Builder
+                      {canMutate ? 'Builder' : 'View'}
                     </Link>
                     <Link
                       to={`/forms/${form.id}/submissions`}

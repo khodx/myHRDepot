@@ -9,6 +9,7 @@ import {
   MHD_ONBOARDING_PACKET_BY_KEY,
   mhdIsOnboardingDocumentKey,
 } from '@/features/onboarding/Types';
+import { mhdIsEmployeeFileTypeKey } from '@/features/employee-files/Types';
 import type { MhdFormSubmission } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormRenderer } from './MhdFormRenderer';
@@ -50,6 +51,12 @@ export function MhdFormRendererPage() {
 
   const submissionId = searchParams.get('submissionId') ?? undefined;
   const taskId = searchParams.get('taskId') ?? undefined;
+  const employeeFilePersonId = searchParams.get('employeeFilePersonId') ?? undefined;
+  const employeeFileUserId = searchParams.get('employeeFileUserId') ?? undefined;
+  const employeeFileCategoryValue = searchParams.get('employeeFileCategory');
+  const employeeFileCategory = mhdIsEmployeeFileTypeKey(employeeFileCategoryValue)
+    ? employeeFileCategoryValue
+    : null;
   const onboardingPersonId = searchParams.get('personId') ?? undefined;
   const onboardingPersonName = searchParams.get('personName') ?? undefined;
   const onboardingDocumentKeyValue = searchParams.get('documentKey');
@@ -206,6 +213,9 @@ export function MhdFormRendererPage() {
             formId={formId}
             submissionId={submissionId}
             taskId={taskId}
+            employeeFilePersonId={employeeFilePersonId}
+            employeeFileUserId={employeeFileUserId}
+            employeeFileCategory={employeeFileCategory}
             readOnly={!canMutate}
             userPrefillValues={userPrefillValues}
             onSubmitted={(nextSubmissionId) => {

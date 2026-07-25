@@ -60,8 +60,8 @@ export function MhdEmployeeFilesPage() {
         </MhdCard>
         <MhdCard className="p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-accent">Architecture</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">Poly</p>
-          <p className="mt-1 text-sm text-muted-foreground">Attachment Entity Type + Person ID</p>
+          <p className="mt-2 text-3xl font-bold text-foreground">Forms</p>
+          <p className="mt-1 text-sm text-muted-foreground">Submitted Records + Person/User Links</p>
         </MhdCard>
       </div>
 
@@ -70,6 +70,10 @@ export function MhdEmployeeFilesPage() {
           <FolderOpen className="mt-1 h-5 w-5 text-accent" aria-hidden />
           <div>
             <h2 className="text-base font-semibold text-foreground">Employee File Types</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              File cabinets are populated by submitted forms assigned to each employee file
+              destination.
+            </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {MHD_EMPLOYEE_FILE_TYPES.map((fileType) => (
                 <span

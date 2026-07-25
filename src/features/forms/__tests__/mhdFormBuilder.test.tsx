@@ -96,6 +96,7 @@ describe('MhdFormBuilder', () => {
     name: 'New Hire - Direct Deposit',
     description: 'Direct deposit setup for new hires.',
     status: 'DRAFT',
+    employeeFileCategory: null,
     definition: seededSinglePageDefinition,
     version: 1,
     previousVersionId: null,

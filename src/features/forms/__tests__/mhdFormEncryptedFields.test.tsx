@@ -49,6 +49,9 @@ const maskedSubmission: MhdFormSubmission = {
   submitterId: 'user-1',
   taskId: null,
   status: 'SUBMITTED',
+  employeeFileCategory: null,
+  employeeFilePersonId: null,
+  employeeFileUserId: null,
   values: {
     'field-bank': 'First National Test Bank',
     'field-routing': { mhd_encrypted: true, masked: true },

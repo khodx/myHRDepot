@@ -84,3 +84,15 @@ export const MHD_EMPLOYEE_FILE_TYPES: readonly MhdEmployeeFileTypeDefinition[] =
     restricted: true,
   },
 ] as const;
+
+export const MHD_EMPLOYEE_FILE_TYPE_KEYS = MHD_EMPLOYEE_FILE_TYPES.map(
+  (fileType) => fileType.key,
+);
+
+export function mhdIsEmployeeFileTypeKey(value: string | null | undefined): value is MhdEmployeeFileTypeKey {
+  return MHD_EMPLOYEE_FILE_TYPE_KEYS.includes(value as MhdEmployeeFileTypeKey);
+}
+
+export function mhdEmployeeFileLabelForKey(value: MhdEmployeeFileTypeKey | null | undefined): string {
+  return MHD_EMPLOYEE_FILE_TYPES.find((fileType) => fileType.key === value)?.label ?? 'Employee File';
+}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import type { MhdForm, MhdFormSubmission } from '../Types';
@@ -8,6 +8,8 @@ import { MhdFormSubmissionReview } from './MhdFormSubmissionReview';
 
 export function MhdFormSubmissionsPage() {
   const { formId } = useParams<{ formId: string }>();
+  const [searchParams] = useSearchParams();
+  const requestedSubmissionId = searchParams.get('submissionId');
   const [form, setForm] = useState<MhdForm | null>(null);
   const [submissions, setSubmissions] = useState<MhdFormSubmission[]>([]);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
@@ -32,7 +34,13 @@ export function MhdFormSubmissionsPage() {
         if (!isCancelled) {
           setForm(loadedForm);
           setSubmissions(loadedSubmissions);
-          setSelectedSubmissionId((current) => current ?? loadedSubmissions[0]?.id ?? null);
+          setSelectedSubmissionId(
+            (current) =>
+              current ??
+              loadedSubmissions.find((submission) => submission.id === requestedSubmissionId)?.id ??
+              loadedSubmissions[0]?.id ??
+              null,
+          );
           setIsLoading(false);
         }
       } catch (error) {
@@ -48,7 +56,7 @@ export function MhdFormSubmissionsPage() {
     return () => {
       isCancelled = true;
     };
-  }, [formId]);
+  }, [formId, requestedSubmissionId]);
 
   const selectedSubmission = useMemo(
     () => submissions.find((submission) => submission.id === selectedSubmissionId) ?? null,

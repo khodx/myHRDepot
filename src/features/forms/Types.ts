@@ -1,4 +1,5 @@
 import type { Json, Database } from '@/types/database.types';
+import type { MhdEmployeeFileTypeKey } from '@/features/employee-files/Types';
 
 type DbFunctions = Database['public']['Functions'];
 
@@ -167,6 +168,7 @@ export interface MhdForm {
   name: string;
   description?: string;
   status: MhdFormStatus;
+  employeeFileCategory: MhdEmployeeFileTypeKey | null;
   definition: MhdFormDefinition;
   version: number;
   previousVersionId: string | null;
@@ -183,6 +185,9 @@ export interface MhdFormSubmission {
   submitterId: string;
   taskId: string | null;
   status: MhdSubmissionStatus;
+  employeeFileCategory: MhdEmployeeFileTypeKey | null;
+  employeeFilePersonId: string | null;
+  employeeFileUserId: string | null;
   values: Record<string, Json | string | number | boolean | null>;
   createdAt: string;
   updatedAt: string | null;
@@ -237,13 +242,39 @@ export function mhdIsEncryptedFormValue(value: unknown): value is MhdFormEncrypt
 export interface MhdCreateFormInput {
   name: string;
   description?: string;
+  employeeFileCategory?: MhdEmployeeFileTypeKey | null;
   definition: MhdFormDefinition;
 }
 
 export interface MhdUpdateFormInput {
   name?: string;
   description?: string;
+  employeeFileCategory?: MhdEmployeeFileTypeKey | null;
   definition?: MhdFormDefinition;
+}
+
+export interface MhdCreateSubmissionOptions {
+  taskId?: string;
+  employeeFilePersonId?: string;
+  employeeFileUserId?: string;
+  employeeFileCategory?: MhdEmployeeFileTypeKey | null;
+}
+
+export interface MhdEmployeeFileSubmissionRecord {
+  id: string;
+  referenceId: string;
+  formId: string;
+  formName: string;
+  employeeFileCategory: MhdEmployeeFileTypeKey;
+  employeeFilePersonId: string;
+  employeeFileUserId: string | null;
+  submitterId: string;
+  submitterDisplayName: string;
+  status: MhdSubmissionStatus;
+  submittedAt: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+  attachmentCount: number;
 }
 
 export interface MhdFormsIndexFilters {
@@ -257,6 +288,8 @@ export type MhdRpcDraftSubmissionRow =
   DbFunctions['mhd_list_my_draft_submissions']['Returns'][number];
 export type MhdRpcSubmissionListRow =
   DbFunctions['mhd_list_submissions_for_form']['Returns'][number];
+export type MhdRpcEmployeeFileSubmissionRow =
+  DbFunctions['mhd_list_employee_file_submissions']['Returns'][number];
 
 export function mhdNormalizeFieldType(type: string | null | undefined): MhdFieldType {
   switch (type) {
