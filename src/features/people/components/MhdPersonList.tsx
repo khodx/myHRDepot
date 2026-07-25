@@ -79,7 +79,11 @@ export function MhdPersonList({
                   />
                 </MhdTd>
                 <MhdTd>
-                  <button type="button" className="text-left" onClick={() => onSelectPerson(person.id)}>
+                  <button
+                    type="button"
+                    className="text-left"
+                    onClick={() => onSelectPerson(person.id)}
+                  >
                     <MhdAvatar name={person.displayName} detail={person.referenceId} />
                   </button>
                 </MhdTd>

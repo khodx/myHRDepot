@@ -83,72 +83,82 @@ export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
           {visibleTasks.map((task) => {
             const progress = task.calculatedProgressPercent ?? task.manualProgressPercent;
             return (
-            <MhdTr key={task.id}>
-              <MhdTd className="align-top">
-                <input type="checkbox" aria-label={`Select ${task.title}`} className="h-4 w-4 rounded" />
-              </MhdTd>
-              <MhdTd className="align-top">
-                <div className="font-semibold text-foreground">{task.title}</div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  {task.referenceId} - {task.noteCount} notes - {task.attachmentCount} files
-                </div>
-                {task.descriptionPlainText && (
-                  <div className="mt-1 max-w-xl truncate text-sm text-muted-foreground">
-                    {task.descriptionPlainText}
+              <MhdTr key={task.id}>
+                <MhdTd className="align-top">
+                  <input
+                    type="checkbox"
+                    aria-label={`Select ${task.title}`}
+                    className="h-4 w-4 rounded"
+                  />
+                </MhdTd>
+                <MhdTd className="align-top">
+                  <div className="font-semibold text-foreground">{task.title}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {task.referenceId} - {task.noteCount} notes - {task.attachmentCount} files
                   </div>
-                )}
-              </MhdTd>
-              <MhdTd className="align-top text-sm">{task.companyName}</MhdTd>
-              <MhdTd className="align-top">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-tint text-xs font-semibold text-accent-hover">
-                    {initialsFor(task.assignedDisplayNames)}
-                  </span>
-                  <span className="max-w-40 truncate text-sm">
-                    {task.assignedDisplayNames.length > 0
-                      ? task.assignedDisplayNames.join(', ')
-                      : 'Unassigned'}
-                  </span>
-                </div>
-              </MhdTd>
-              <MhdTd className="align-top text-sm text-muted-foreground">-</MhdTd>
-              <MhdTd className="align-top">
-                <MhdTaskPriorityBadge
-                  priorityName={task.priorityName}
-                  colorToken={task.priorityColorToken}
+                  {task.descriptionPlainText && (
+                    <div className="mt-1 max-w-xl truncate text-sm text-muted-foreground">
+                      {task.descriptionPlainText}
+                    </div>
+                  )}
+                </MhdTd>
+                <MhdTd className="align-top text-sm">{task.companyName}</MhdTd>
+                <MhdTd className="align-top">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-tint text-xs font-semibold text-accent-hover">
+                      {initialsFor(task.assignedDisplayNames)}
+                    </span>
+                    <span className="max-w-40 truncate text-sm">
+                      {task.assignedDisplayNames.length > 0
+                        ? task.assignedDisplayNames.join(', ')
+                        : 'Unassigned'}
+                    </span>
+                  </div>
+                </MhdTd>
+                <MhdTd className="align-top text-sm text-muted-foreground">-</MhdTd>
+                <MhdTd className="align-top">
+                  <MhdTaskPriorityBadge
+                    priorityName={task.priorityName}
+                    colorToken={task.priorityColorToken}
+                  />
+                </MhdTd>
+                <MhdTd className="align-top">
+                  <MhdTaskStatusBadge
+                    statusName={task.statusName}
+                    colorToken={task.statusColorToken}
+                  />
+                </MhdTd>
+                <MhdTd className="whitespace-nowrap align-top text-sm">
+                  {formatDueDate(task.dueDate)}
+                </MhdTd>
+                <MhdTd className="align-top">
+                  <MhdProgressBar percent={progress} showLabel />
+                </MhdTd>
+                <MhdTableActions
+                  viewTo={`/tasks/${task.id}`}
+                  editTo={`/tasks/${task.id}/edit`}
+                  onDelete={() => onDelete(task.id)}
+                  deleteConfirmMessage={`Delete task "${task.title}"?`}
                 />
-              </MhdTd>
-              <MhdTd className="align-top">
-                <MhdTaskStatusBadge
-                  statusName={task.statusName}
-                  colorToken={task.statusColorToken}
-                />
-              </MhdTd>
-              <MhdTd className="whitespace-nowrap align-top text-sm">
-                {formatDueDate(task.dueDate)}
-              </MhdTd>
-              <MhdTd className="align-top">
-                <MhdProgressBar percent={progress} showLabel />
-              </MhdTd>
-              <MhdTableActions
-                viewTo={`/tasks/${task.id}`}
-                editTo={`/tasks/${task.id}/edit`}
-                onDelete={() => onDelete(task.id)}
-                deleteConfirmMessage={`Delete task "${task.title}"?`}
-              />
-            </MhdTr>
+              </MhdTr>
             );
           })}
         </tbody>
       </MhdTable>
       <MhdTableFooter summary={`Showing 1 to ${rangeEnd} of ${tasks.length} tasks`}>
-        <button className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground" disabled>
+        <button
+          className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground"
+          disabled
+        >
           Previous
         </button>
         <button className="rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-accent-on">
           1
         </button>
-        <button className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground" disabled={tasks.length <= PAGE_SIZE}>
+        <button
+          className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground"
+          disabled={tasks.length <= PAGE_SIZE}
+        >
           Next
         </button>
       </MhdTableFooter>

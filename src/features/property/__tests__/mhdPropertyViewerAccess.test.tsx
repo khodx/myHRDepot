@@ -156,7 +156,9 @@ describe('MhdPropertyPage role gating', () => {
     );
 
     expect(screen.queryByText('Add Property Item')).not.toBeInTheDocument();
-    expect(screen.getByText('View')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'View' })).toBeInTheDocument();
+    // Edit renders as a disabled affordance, never a navigable link, for Viewers.
+    expect(screen.queryByRole('link', { name: 'Edit' })).not.toBeInTheDocument();
   });
 
   it('shows the create affordance and manage links for a Client Admin', () => {
@@ -169,7 +171,7 @@ describe('MhdPropertyPage role gating', () => {
     );
 
     expect(screen.getByText('Add Property Item')).toBeInTheDocument();
-    expect(screen.getByText('Manage')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Edit' })).toBeInTheDocument();
   });
 });
 

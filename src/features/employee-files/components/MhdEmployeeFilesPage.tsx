@@ -28,7 +28,8 @@ export function MhdEmployeeFilesPage() {
   const filteredPeople = useMemo(
     () =>
       peopleState.people.filter((person) => {
-        const companyMatches = selectedCompanyId === 'ALL' || person.companyId === selectedCompanyId;
+        const companyMatches =
+          selectedCompanyId === 'ALL' || person.companyId === selectedCompanyId;
         const query = searchTerm.trim().toLowerCase();
         const searchMatches =
           query.length === 0 ||
@@ -55,13 +56,17 @@ export function MhdEmployeeFilesPage() {
         </MhdCard>
         <MhdCard className="p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-accent">File Types</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">{MHD_EMPLOYEE_FILE_TYPES.length}</p>
+          <p className="mt-2 text-3xl font-bold text-foreground">
+            {MHD_EMPLOYEE_FILE_TYPES.length}
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">Configured Employee File Cabinets</p>
         </MhdCard>
         <MhdCard className="p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-accent">Architecture</p>
           <p className="mt-2 text-3xl font-bold text-foreground">Forms</p>
-          <p className="mt-1 text-sm text-muted-foreground">Submitted Records + Person/User Links</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Submitted Records + Person/User Links
+          </p>
         </MhdCard>
       </div>
 

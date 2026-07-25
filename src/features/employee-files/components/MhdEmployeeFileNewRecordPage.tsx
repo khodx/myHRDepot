@@ -48,13 +48,21 @@ export function MhdEmployeeFileNewRecordPage() {
   if (!personId || !category) {
     return (
       <div className="space-y-4">
-        <MhdPageHeader title="Employee File Category Not Found" backTo="/employees" backLabel="Employee Files" />
+        <MhdPageHeader
+          title="Employee File Category Not Found"
+          backTo="/employees"
+          backLabel="Employee Files"
+        />
       </div>
     );
   }
 
   if (personQuery.isLoading || formsQuery.isLoading) {
-    return <MhdCard className="p-6 text-sm text-muted-foreground">Loading Employee File Forms...</MhdCard>;
+    return (
+      <MhdCard className="p-6 text-sm text-muted-foreground">
+        Loading Employee File Forms...
+      </MhdCard>
+    );
   }
 
   if (personQuery.isError || !personQuery.data) {
@@ -92,8 +100,9 @@ export function MhdEmployeeFileNewRecordPage() {
 
       <MhdCard className="p-5">
         <p className="text-sm text-muted-foreground">
-          Only active forms assigned to <span className="font-semibold text-foreground">{categoryLabel}</span>{' '}
-          are listed. The selected form will create a submission linked to the employee file.
+          Only active forms assigned to{' '}
+          <span className="font-semibold text-foreground">{categoryLabel}</span> are listed. The
+          selected form will create a submission linked to the employee file.
         </p>
       </MhdCard>
 

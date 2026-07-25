@@ -418,7 +418,7 @@ export const mhdFormService = {
     optionsOrTaskId?: MhdCreateSubmissionOptions | string,
   ): Promise<MhdFormSubmission> {
     const options =
-      typeof optionsOrTaskId === 'string' ? { taskId: optionsOrTaskId } : optionsOrTaskId ?? {};
+      typeof optionsOrTaskId === 'string' ? { taskId: optionsOrTaskId } : (optionsOrTaskId ?? {});
     const { data, error } = await supabaseClient
       .rpc('mhd_create_submission', {
         p_form_id: formId,
@@ -426,7 +426,9 @@ export const mhdFormService = {
         ...(options.employeeFilePersonId
           ? { p_employee_file_person_id: options.employeeFilePersonId }
           : {}),
-        ...(options.employeeFileUserId ? { p_employee_file_user_id: options.employeeFileUserId } : {}),
+        ...(options.employeeFileUserId
+          ? { p_employee_file_user_id: options.employeeFileUserId }
+          : {}),
         ...(options.employeeFileCategory
           ? { p_employee_file_category: options.employeeFileCategory }
           : {}),

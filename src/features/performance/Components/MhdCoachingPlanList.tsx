@@ -85,9 +85,7 @@ export function MhdCoachingPlanList({ plans }: Props) {
           ))}
         </tbody>
       </MhdTable>
-      <MhdTableFooter
-        summary={`Showing 1 to ${plans.length} of ${plans.length} coaching plans`}
-      />
+      <MhdTableFooter summary={`Showing 1 to ${plans.length} of ${plans.length} coaching plans`} />
     </MhdCard>
   );
 }

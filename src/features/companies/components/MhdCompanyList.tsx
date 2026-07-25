@@ -41,7 +41,11 @@ export function MhdCompanyList({
         <thead>
           <tr>
             <MhdTh className="w-10">
-              <input type="checkbox" aria-label="Select all companies" className="h-4 w-4 rounded" />
+              <input
+                type="checkbox"
+                aria-label="Select all companies"
+                className="h-4 w-4 rounded"
+              />
             </MhdTh>
             <MhdTh>Reference</MhdTh>
             <MhdTh>Company</MhdTh>

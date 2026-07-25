@@ -124,7 +124,10 @@ export function MhdEmployeeFileCabinetPage() {
   });
 
   const recordsByType = useMemo(() => {
-    const grouped = new Map<MhdEmployeeFileTypeDefinition['key'], MhdEmployeeFileSubmissionRecord[]>();
+    const grouped = new Map<
+      MhdEmployeeFileTypeDefinition['key'],
+      MhdEmployeeFileSubmissionRecord[]
+    >();
     for (const fileType of MHD_EMPLOYEE_FILE_TYPES) {
       grouped.set(fileType.key, []);
     }
@@ -143,7 +146,11 @@ export function MhdEmployeeFileCabinetPage() {
   }
 
   if (personQuery.isLoading || recordsQuery.isLoading) {
-    return <MhdCard className="p-6 text-sm text-muted-foreground">Loading Employee File Cabinet...</MhdCard>;
+    return (
+      <MhdCard className="p-6 text-sm text-muted-foreground">
+        Loading Employee File Cabinet...
+      </MhdCard>
+    );
   }
 
   if (personQuery.isError || !personQuery.data) {

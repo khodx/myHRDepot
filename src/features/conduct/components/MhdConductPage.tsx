@@ -329,7 +329,6 @@ export function MhdConductPage() {
             </option>
           ))}
         </MhdFilterSelect>
-
       </MhdFilterBar>
 
       {casesQuery.isLoading ? (
@@ -390,7 +389,9 @@ export function MhdConductPage() {
               ))}
             </tbody>
           </MhdTable>
-          <MhdTableFooter summary={`Showing 1 to ${cases.length} of ${cases.length} conduct cases`} />
+          <MhdTableFooter
+            summary={`Showing 1 to ${cases.length} of ${cases.length} conduct cases`}
+          />
         </MhdCard>
       )}
     </div>

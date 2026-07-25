@@ -21,8 +21,8 @@ export function MhdMessagingPage() {
             <h2 className="text-lg font-semibold text-foreground">Messaging Engine Required</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               I found a live notification engine, but I did not find messaging/conversation tables,
-              recipient routing, send/reply RPCs, delivery status, or a message service. This page is
-              therefore a designed placeholder until the engine exists.
+              recipient routing, send/reply RPCs, delivery status, or a message service. This page
+              is therefore a designed placeholder until the engine exists.
             </p>
           </div>
         </div>

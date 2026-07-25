@@ -129,7 +129,10 @@ export function AppRouter() {
               <Route path="/communications/system-alerts" element={<MhdSystemAlertsPage />} />
               <Route path="/automations" element={<MhdAutomationsPage />} />
               <Route path="/employees" element={<MhdEmployeeFilesPage />} />
-              <Route path="/employees/:personId/files/new" element={<MhdEmployeeFileNewRecordPage />} />
+              <Route
+                path="/employees/:personId/files/new"
+                element={<MhdEmployeeFileNewRecordPage />}
+              />
               <Route path="/employees/:personId" element={<MhdEmployeeFileCabinetPage />} />
               <Route path="/people" element={<MhdPeoplePage />} />
               <Route path="/people/new" element={<MhdPersonFormPage />} />

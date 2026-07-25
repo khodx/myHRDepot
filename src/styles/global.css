@@ -50,7 +50,7 @@
 :root {
   --mhd-rail-surface: rgb(255 255 255 / 0.06);
   --mhd-rail-hover: rgb(255 255 255 / 0.08);
-  --mhd-rail-selected: rgb(255 255 255 / 0.30);
+  --mhd-rail-selected: rgb(255 255 255 / 0.3);
   --mhd-rail-border: rgb(255 255 255 / 0.18);
   --mhd-rail-text: rgb(255 255 255 / 0.82);
   --mhd-rail-muted: rgb(255 255 255 / 0.72);
