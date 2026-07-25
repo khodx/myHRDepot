@@ -246,11 +246,13 @@
   --color-neutral-950: #f8f9fb;
   --color-stone-950: #f8f9fb;
 
-  /* status families — darken ONLY the light tints (50/100) so tinted panels and
-     pill-badge backgrounds (bg-*-50 / bg-*-100) go dark. The saturated shades
-     (500–900) are left at their defaults so colored buttons (bg-blue-600/700,
-     bg-red-600 …) stay solid and their white text keeps its contrast; badge text
-     (text-*-700) then reads as a mid-tone on the dark same-hue tint. */
+  /* status families — darken the light tints (50/100) so tinted panels and
+     pill-badge backgrounds (bg-*-50 / bg-*-100) go dark, and LIGHTEN the -900
+     ink shades so text-*-900 headlines on those panels stay readable (they are
+     text-only — no bg-*-900 exists in the app). The saturated mid shades
+     (500–800) are left at their defaults so colored buttons (bg-blue-600/700,
+     bg-red-600, hover:bg-red-800 …) stay solid and their white text keeps its
+     contrast; badge text (text-*-700) reads as a mid-tone on the dark tint. */
   --color-red-50: #2a1416;
   --color-red-100: #3a181b;
   --color-rose-50: #2a1418;
@@ -281,6 +283,23 @@
   --color-purple-100: #2c1c45;
   --color-pink-50: #2a1420;
   --color-pink-100: #3a1829;
+
+  /* -900 ink → the family's light tone (Tailwind's default -300 values) */
+  --color-red-900: #fca5a5;
+  --color-rose-900: #fda4af;
+  --color-orange-900: #fdba74;
+  --color-amber-900: #fcd34d;
+  --color-yellow-900: #fde047;
+  --color-green-900: #86efac;
+  --color-emerald-900: #6ee7b7;
+  --color-teal-900: #5eead4;
+  --color-cyan-900: #67e8f9;
+  --color-sky-900: #7dd3fc;
+  --color-blue-900: #93c5fd;
+  --color-indigo-900: #a5b4fc;
+  --color-violet-900: #c4b5fd;
+  --color-purple-900: #d8b4fe;
+  --color-pink-900: #f9a8d4;
 }
 
 /* Tailwind v4 defaults bare `border-*` utilities to currentColor; the shell
