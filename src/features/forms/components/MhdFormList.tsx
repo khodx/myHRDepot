@@ -17,8 +17,6 @@ import type { MhdForm } from '../Types';
 interface MhdFormListProps {
   forms: MhdForm[];
   isLoading: boolean;
-  /** False for read-only roles (Viewer): /forms/:formId opens a read-only view, so the link is labeled "View". */
-  canMutate?: boolean;
 }
 
 function statusBadgeVariant(status: MhdForm['status']): MhdBadgeVariant {
@@ -33,7 +31,7 @@ function statusBadgeVariant(status: MhdForm['status']): MhdBadgeVariant {
   }
 }
 
-export function MhdFormList({ forms, isLoading, canMutate = true }: MhdFormListProps) {
+export function MhdFormList({ forms, isLoading }: MhdFormListProps) {
   if (isLoading) {
     return <MhdCard className="p-6 text-sm text-muted-foreground">Loading forms...</MhdCard>;
   }
@@ -64,7 +62,7 @@ export function MhdFormList({ forms, isLoading, canMutate = true }: MhdFormListP
         </thead>
         <tbody>
           {forms.map((form) => (
-            <MhdTr key={form.id}>
+            <MhdTr key={form.id} to={`/forms/${form.id}`}>
               <MhdTd>
                 <div>
                   <p className="font-medium text-foreground">{form.name}</p>
@@ -82,12 +80,14 @@ export function MhdFormList({ forms, isLoading, canMutate = true }: MhdFormListP
                 {new Date(form.updatedAt).toLocaleString()}
               </MhdTd>
               <MhdTableActions
-                viewTo={`/forms/${form.id}/render`}
-                editTo={canMutate ? `/forms/${form.id}` : undefined}
+                viewTo={`/forms/${form.id}`}
                 secondaryActions={
                   <>
-                    <Link to={`/forms/${form.id}`} className="text-accent hover:text-accent-hover">
-                      {canMutate ? 'Builder' : 'View'}
+                    <Link
+                      to={`/forms/${form.id}/render`}
+                      className="text-accent hover:text-accent-hover"
+                    >
+                      Open Form
                     </Link>
                     <Link
                       to={`/forms/${form.id}/submissions`}

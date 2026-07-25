@@ -193,7 +193,7 @@ export function MhdOneOnOneTab({ companyId, currentUserId, canMutate, people }: 
           </thead>
           <tbody>
             {activities.map((activity) => (
-              <MhdTr key={activity.id}>
+              <MhdTr key={activity.id} to={`/activities/${activity.id}`}>
                 <MhdTd>
                   <Link
                     to={`/activities/${activity.id}`}

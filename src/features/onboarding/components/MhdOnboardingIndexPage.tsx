@@ -183,7 +183,7 @@ export function MhdOnboardingIndexPage() {
                 const completed = row.progress?.requiredCompleted ?? 0;
 
                 return (
-                  <MhdTr key={row.personId}>
+                  <MhdTr key={row.personId} to={`/onboarding/${row.personId}`}>
                     <MhdTd>
                       <div>
                         <p className="font-medium text-foreground">{row.displayName}</p>

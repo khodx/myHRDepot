@@ -346,7 +346,7 @@ export function MhdOffboardingPage() {
               {cases.map((offboardingCase) => {
                 const isOverdue = mhdIsOffboardingCaseOverdue(offboardingCase);
                 return (
-                  <MhdTr key={offboardingCase.id}>
+                  <MhdTr key={offboardingCase.id} to={`/offboarding/${offboardingCase.id}`}>
                     <MhdTd>
                       <Link
                         to={`/offboarding/${offboardingCase.id}`}

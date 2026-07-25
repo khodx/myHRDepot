@@ -151,7 +151,7 @@ export function MhdInvestigationsPage() {
             </thead>
             <tbody>
               {(cases.data ?? []).map((investigation) => (
-                <MhdTr key={investigation.id}>
+                <MhdTr key={investigation.id} to={`/investigations/${investigation.id}`}>
                   <MhdTd className="whitespace-nowrap font-mono text-xs">
                     {investigation.referenceId}
                   </MhdTd>

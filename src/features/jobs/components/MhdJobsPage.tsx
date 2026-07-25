@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { mhdCanMutateJobs, mhdCanSeeJobPay } from '@/appshell/mhdRouteAccess';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
@@ -44,7 +44,6 @@ import { MhdFlsaBadge } from './MhdFlsaBadge';
  */
 export function MhdJobsPage() {
   const { profile, roles } = useMhdAuth();
-  const navigate = useNavigate();
   const companyId = profile?.companyId ?? null;
   const isPrivileged = mhdCanMutateJobs(roles);
   const canSeePay = mhdCanSeeJobPay(roles);
@@ -249,8 +248,8 @@ export function MhdJobsPage() {
               {(jobs.data ?? []).map((job) => (
                 <MhdTr
                   key={job.id}
-                  onClick={() => navigate(`/jobs/${job.id}`)}
-                  className={cn('cursor-pointer', !job.isActive && 'opacity-60')}
+                  to={`/jobs/${job.id}`}
+                  className={cn(!job.isActive && 'opacity-60')}
                 >
                   <MhdTd>
                     <span className="font-medium">{job.jobTitle}</span>

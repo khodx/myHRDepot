@@ -56,7 +56,7 @@ export function MhdPropertyInventoryList({
         </thead>
         <tbody>
           {items.map((item) => (
-            <MhdTr key={item.id} className="align-top">
+            <MhdTr key={item.id} to={`/property/${item.id}`} className="align-top">
               <MhdTd>
                 <div className="font-medium text-foreground">{item.name}</div>
                 <div className="text-xs text-muted-foreground">{item.referenceId}</div>

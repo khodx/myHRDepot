@@ -144,7 +144,12 @@ export function MhdEmployeeFileNewRecordPage() {
             </thead>
             <tbody>
               {matchingForms.map((form) => (
-                <MhdTr key={form.id}>
+                <MhdTr
+                  key={form.id}
+                  to={`/forms/${form.id}/render?employeeFilePersonId=${encodeURIComponent(
+                    person.id,
+                  )}&employeeFileCategory=${encodeURIComponent(category)}`}
+                >
                   <MhdTd>
                     <p className="font-semibold text-foreground">{form.name}</p>
                     <p className="text-xs text-muted-foreground">{form.referenceId}</p>

@@ -73,7 +73,7 @@ export function MhdHandbookListPage({ companyId, canManage, onOpenHandbook }: Pr
             </thead>
             <tbody>
               {(handbooks.data ?? []).map((handbook) => (
-                <MhdTr key={handbook.id}>
+                <MhdTr key={handbook.id} to={`/handbooks/${handbook.id}`}>
                   <MhdTd className="whitespace-nowrap font-mono text-xs">
                     {handbook.referenceId}
                   </MhdTd>

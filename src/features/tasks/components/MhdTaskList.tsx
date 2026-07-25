@@ -83,7 +83,7 @@ export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
           {visibleTasks.map((task) => {
             const progress = task.calculatedProgressPercent ?? task.manualProgressPercent;
             return (
-              <MhdTr key={task.id}>
+              <MhdTr key={task.id} to={`/tasks/${task.id}`}>
                 <MhdTd className="align-top">
                   <input
                     type="checkbox"
@@ -136,7 +136,6 @@ export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
                 </MhdTd>
                 <MhdTableActions
                   viewTo={`/tasks/${task.id}`}
-                  editTo={`/tasks/${task.id}/edit`}
                   onDelete={() => onDelete(task.id)}
                   deleteConfirmMessage={`Delete task "${task.title}"?`}
                 />

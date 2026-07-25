@@ -52,4 +52,75 @@ describe('MhdFormRenderer', () => {
     expect(await screen.findByText('Onboarding')).toBeInTheDocument();
     expect(await screen.findByText('First Name')).toBeInTheDocument();
   });
+
+  it('renders fields marked hidden by default so form logic can be planned', async () => {
+    vi.mocked(mhdFormService.getFormById).mockResolvedValue({
+      ...baseForm,
+      definition: {
+        ...baseForm.definition,
+        pages: [
+          {
+            id: 'page-1',
+            title: 'Page 1',
+            fields: ['field-1', 'manager-notes'],
+            order: 1,
+          },
+        ],
+        fields: [
+          ...baseForm.definition.fields,
+          {
+            id: 'manager-notes',
+            type: 'longtext',
+            label: 'Manager Notes',
+            required: false,
+            hidden: true,
+          },
+        ],
+      },
+    } as never);
+
+    render(<MhdFormRenderer formId="form-1" />);
+
+    expect(await screen.findByText('Manager Notes')).toBeInTheDocument();
+  });
+
+  it('renders fields targeted by HIDE logic so branching can be planned', async () => {
+    vi.mocked(mhdFormService.getFormById).mockResolvedValue({
+      ...baseForm,
+      definition: {
+        ...baseForm.definition,
+        pages: [
+          {
+            id: 'page-1',
+            title: 'Page 1',
+            fields: ['field-1', 'conditional-field'],
+            order: 1,
+          },
+        ],
+        fields: [
+          ...baseForm.definition.fields,
+          {
+            id: 'conditional-field',
+            type: 'text',
+            label: 'Conditional Field',
+            required: false,
+            hidden: false,
+          },
+        ],
+        logic: [
+          {
+            id: 'logic-1',
+            order: 1,
+            condition: { field: 'field-1', operator: 'isEmpty' },
+            action: 'HIDE',
+            targetFieldId: 'conditional-field',
+          },
+        ],
+      },
+    } as never);
+
+    render(<MhdFormRenderer formId="form-1" />);
+
+    expect(await screen.findByText('Conditional Field')).toBeInTheDocument();
+  });
 });

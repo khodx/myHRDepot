@@ -87,7 +87,7 @@ export function MhdFormsPage() {
         </MhdCard>
       ) : null}
 
-      <MhdFormList forms={formState.forms} isLoading={formState.isLoading} canMutate={canMutate} />
+      <MhdFormList forms={formState.forms} isLoading={formState.isLoading} />
     </div>
   );
 }

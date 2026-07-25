@@ -225,7 +225,7 @@ export function MhdAccommodationsPage() {
             </thead>
             <tbody>
               {(cases.data ?? []).map((item) => (
-                <MhdTr key={item.id}>
+                <MhdTr key={item.id} to={`/accommodations/${item.id}`}>
                   <MhdTd className="font-mono">{item.referenceId}</MhdTd>
                   <MhdTd>{item.personDisplayName}</MhdTd>
                   <MhdTd>{mhdFormatAccommodationValue(item.requestSource)}</MhdTd>

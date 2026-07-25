@@ -67,6 +67,7 @@ export function MhdPersonList({
             return (
               <MhdTr
                 key={person.id}
+                to={`/people/${person.id}`}
                 className={cn(selected ? 'bg-accent-tint hover:bg-accent-tint/80' : undefined)}
               >
                 <MhdTd>

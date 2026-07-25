@@ -129,7 +129,7 @@ export function MhdFormRendererPage() {
               </Link>
             ) : null}
             <Link
-              to={`/forms/${formId}`}
+              to={canMutate ? `/forms/${formId}/edit` : `/forms/${formId}`}
               className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
             >
               {canMutate ? 'Open Builder' : 'View Form'}

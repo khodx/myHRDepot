@@ -58,6 +58,7 @@ export function MhdCompanyList({
           {companies.map((company) => (
             <MhdTr
               key={company.id}
+              to={`/companies/${company.id}`}
               className={
                 selectedCompanyId === company.id
                   ? 'bg-accent-tint hover:bg-accent-tint/60'

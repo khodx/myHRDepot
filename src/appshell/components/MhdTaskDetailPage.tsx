@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { MhdBreadcrumb } from './MhdBreadcrumb';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -90,6 +90,12 @@ export function MhdTaskDetailPage() {
             <p className="mt-1 text-sm text-neutral-500">{task.companyName}</p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-3">
+            <Link
+              to={`/tasks/${task.id}/edit`}
+              className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-semibold text-foreground hover:border-accent hover:text-accent"
+            >
+              Edit Task
+            </Link>
             <MhdStatusTransitionButton
               taskId={task.id}
               currentStatusId={task.statusId}

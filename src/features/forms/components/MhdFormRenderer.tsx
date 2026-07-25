@@ -152,12 +152,6 @@ export function MhdFormRenderer({
   const displayName = previewName ?? form?.name ?? '';
   const displayDescription = previewDescription ?? form?.description ?? '';
 
-  const defaultHiddenFieldIds = useMemo(
-    () =>
-      definition ? definition.fields.filter((field) => field.hidden).map((field) => field.id) : [],
-    [definition],
-  );
-
   const calculatedValues = useMemo(() => {
     if (!definition || definition.calculations.length === 0) return {};
     return mhdFormCalculationEngine.evaluateAllCalculations(definition.calculations, values);
@@ -194,10 +188,14 @@ export function MhdFormRenderer({
     const result = mhdFormLogicEngine.evaluateAllLogic(
       definition.logic,
       effectiveValues,
-      defaultHiddenFieldIds,
+      [],
     );
-    return { hiddenFields: result.hiddenFields, requiredFields: result.requiredFields };
-  }, [defaultHiddenFieldIds, definition, effectiveValues]);
+    // Planning posture: add/edit sessions must expose every configured field so
+    // logic, calculations, and branching can be inspected in context. Keep
+    // evaluating logic for dynamic requiredness, but do not let default-hidden
+    // flags or HIDE rules suppress rendering or validation inputs.
+    return { hiddenFields: new Set<string>(), requiredFields: result.requiredFields };
+  }, [definition, effectiveValues]);
 
   const pages = useMemo(() => {
     if (!definition) return [];

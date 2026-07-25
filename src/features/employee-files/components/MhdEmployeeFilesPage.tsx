@@ -149,7 +149,7 @@ export function MhdEmployeeFilesPage() {
             </thead>
             <tbody>
               {filteredPeople.map((person) => (
-                <MhdTr key={person.id}>
+                <MhdTr key={person.id} to={`/employees/${person.id}`}>
                   <MhdTd>
                     <Link
                       to={`/employees/${person.id}`}

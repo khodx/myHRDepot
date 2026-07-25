@@ -60,14 +60,14 @@ export function MhdFormBuilderPage() {
     return <div className="p-6 text-sm text-muted-foreground">Loading form builder...</div>;
   }
 
-  // Read-only roles (Viewer) never see the editable builder: /forms/:formId
+  // Read-only roles (Viewer) never see the editable builder: /forms/:formId/edit
   // renders the form preview instead, and /forms/new offers nothing to edit.
   if (!canMutate) {
     return (
       <div className="space-y-6">
         <MhdPageHeader
-          backTo="/forms"
-          backLabel="Forms"
+          backTo={form ? `/forms/${form.id}` : '/forms'}
+          backLabel={form ? 'Form Detail' : 'Forms'}
           title={`${form ? form.name : 'Form'} (read-only)`}
           description="You have read-only access to forms."
         />
@@ -100,8 +100,8 @@ export function MhdFormBuilderPage() {
   return (
     <div className="space-y-6">
       <MhdPageHeader
-        backTo="/forms"
-        backLabel="Forms"
+        backTo={form ? `/forms/${form.id}` : '/forms'}
+        backLabel={form ? 'Form Detail' : 'Forms'}
         title={form ? `Form Builder: ${form.name}` : 'Create Form'}
         description="Builder edits save through the live `mhd_create_form`, `mhd_update_form`, and `mhd_publish_form` RPCs."
       />

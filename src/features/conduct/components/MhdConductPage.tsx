@@ -358,7 +358,7 @@ export function MhdConductPage() {
             </thead>
             <tbody>
               {cases.map((conductCase) => (
-                <MhdTr key={conductCase.id}>
+                <MhdTr key={conductCase.id} to={`/conduct/${conductCase.id}`}>
                   <MhdTd>
                     <Link
                       to={`/conduct/${conductCase.id}`}

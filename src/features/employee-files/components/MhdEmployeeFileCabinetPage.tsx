@@ -72,7 +72,10 @@ function EmployeeFileTable({
             </MhdTr>
           ) : (
             records.map((record) => (
-              <MhdTr key={record.id}>
+              <MhdTr
+                key={record.id}
+                to={`/forms/${record.formId}/submissions?submissionId=${record.id}`}
+              >
                 <MhdTd>
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-accent" aria-hidden />

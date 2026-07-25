@@ -8,9 +8,9 @@ import type { MhdForm } from '../Types';
  * Component-level Viewer (read-only) gating for the forms feature. Route
  * reachability for Viewers is covered in mhdAppRouter.test.tsx; these tests
  * assert that mutating affordances are hidden inside the pages themselves:
- * - forms list: no "Create Form", builder links become "View"
+ * - forms list: no "Create Form", no builder/edit links
  * - renderer: no draft save / submit, and no draft submission is created
- * - builder route: read-only preview instead of an editable builder
+ * - edit route: read-only preview instead of an editable builder
  */
 
 const mockUseMhdAuth = vi.fn();
@@ -42,6 +42,7 @@ const { mhdFormService } = await import('../Service');
 const { MhdFormsPage } = await import('../components/MhdFormsPage');
 const { MhdFormRenderer } = await import('../components/MhdFormRenderer');
 const { MhdFormBuilderPage } = await import('../components/MhdFormBuilderPage');
+const { MhdFormDetailPage } = await import('../components/MhdFormDetailPage');
 
 const baseForm: MhdForm = {
   id: 'form-1',
@@ -107,7 +108,7 @@ beforeEach(() => {
 });
 
 describe('MhdFormsPage role gating', () => {
-  it('hides "Create Form" and relabels builder links to "View" for a Viewer', () => {
+  it('hides "Create Form" and builder/edit links for a Viewer', () => {
     mockAuth(['Viewer']);
 
     render(
@@ -118,17 +119,19 @@ describe('MhdFormsPage role gating', () => {
 
     expect(screen.queryByText('Create Form')).not.toBeInTheDocument();
     expect(screen.queryByText('Builder')).not.toBeInTheDocument();
+    expect(screen.queryByText('Edit Form')).not.toBeInTheDocument();
     expect(screen.getAllByText('View').length).toBeGreaterThan(0);
-    // Read-only navigation stays available.
+    // List navigation opens the detail page first.
     expect(
       screen
         .getAllByRole('link', { name: 'View' })
-        .some((link) => link.getAttribute('href') === '/forms/form-1/render'),
+        .some((link) => link.getAttribute('href') === '/forms/form-1'),
     ).toBe(true);
+    expect(screen.getByText('Open Form')).toBeInTheDocument();
     expect(screen.getByText('Submissions')).toBeInTheDocument();
   });
 
-  it('shows "Create Form" and "Builder" links for a Client User', () => {
+  it('shows "Create Form" but keeps edit off the list for a Client User', () => {
     mockAuth(['Client User']);
 
     render(
@@ -138,7 +141,44 @@ describe('MhdFormsPage role gating', () => {
     );
 
     expect(screen.getByText('Create Form')).toBeInTheDocument();
-    expect(screen.getByText('Builder')).toBeInTheDocument();
+    expect(screen.queryByText('Builder')).not.toBeInTheDocument();
+    expect(screen.queryByText('Edit Form')).not.toBeInTheDocument();
+  });
+});
+
+describe('MhdFormDetailPage role gating', () => {
+  it('hides the detail-page edit action for a Viewer', async () => {
+    mockAuth(['Viewer']);
+
+    render(
+      <MemoryRouter initialEntries={['/forms/form-1']}>
+        <Routes>
+          <Route path="/forms/:formId" element={<MhdFormDetailPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Onboarding', level: 1 })).toBeInTheDocument();
+    expect(screen.queryByText('Edit Form')).not.toBeInTheDocument();
+    expect(screen.getByText('Open Form')).toBeInTheDocument();
+  });
+
+  it('shows the detail-page edit action for a Client Admin', async () => {
+    mockAuth(['Client Admin']);
+
+    render(
+      <MemoryRouter initialEntries={['/forms/form-1']}>
+        <Routes>
+          <Route path="/forms/:formId" element={<MhdFormDetailPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Onboarding', level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Edit Form' })).toHaveAttribute(
+      'href',
+      '/forms/form-1/edit',
+    );
   });
 });
 
@@ -183,13 +223,13 @@ describe('MhdFormRenderer read-only mode (Viewer)', () => {
 });
 
 describe('MhdFormBuilderPage read-only mode (Viewer)', () => {
-  it('renders a read-only preview instead of the editable builder for a Viewer at /forms/:formId', async () => {
+  it('renders a read-only preview instead of the editable builder for a Viewer at /forms/:formId/edit', async () => {
     mockAuth(['Viewer']);
 
     render(
-      <MemoryRouter initialEntries={['/forms/form-1']}>
+      <MemoryRouter initialEntries={['/forms/form-1/edit']}>
         <Routes>
-          <Route path="/forms/:formId" element={<MhdFormBuilderPage />} />
+          <Route path="/forms/:formId/edit" element={<MhdFormBuilderPage />} />
         </Routes>
       </MemoryRouter>,
     );
@@ -211,9 +251,9 @@ describe('MhdFormBuilderPage read-only mode (Viewer)', () => {
     mockAuth(['Client Admin']);
 
     render(
-      <MemoryRouter initialEntries={['/forms/form-1']}>
+      <MemoryRouter initialEntries={['/forms/form-1/edit']}>
         <Routes>
-          <Route path="/forms/:formId" element={<MhdFormBuilderPage />} />
+          <Route path="/forms/:formId/edit" element={<MhdFormBuilderPage />} />
         </Routes>
       </MemoryRouter>,
     );

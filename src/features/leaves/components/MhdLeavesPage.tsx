@@ -153,7 +153,7 @@ export function MhdLeavesPage() {
             </thead>
             <tbody>
               {(cases.data ?? []).map((leaveCase) => (
-                <MhdTr key={leaveCase.id}>
+                <MhdTr key={leaveCase.id} to={`/leaves/${leaveCase.id}`}>
                   <MhdTd className="whitespace-nowrap font-mono text-xs">
                     {leaveCase.referenceId}
                   </MhdTd>

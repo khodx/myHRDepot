@@ -92,6 +92,9 @@ vi.mock('@/features/activities/components/MhdActivityDetailPage', () => ({
 vi.mock('@/features/forms/components/MhdFormBuilderPage', () => ({
   MhdFormBuilderPage: () => <div>Form Builder Page</div>,
 }));
+vi.mock('@/features/forms/components/MhdFormDetailPage', () => ({
+  MhdFormDetailPage: () => <div>Form Detail Page</div>,
+}));
 vi.mock('@/features/forms/components/MhdFormRendererPage', () => ({
   MhdFormRendererPage: () => <div>Form Renderer Page</div>,
 }));
@@ -380,9 +383,18 @@ describe('MhdAppRouter', () => {
       expect(window.location.pathname).toBe('/forms');
     });
 
-    it('renders "/forms/:formId" for a Viewer (read-only view, inherits the /forms rule)', () => {
+    it('renders "/forms/:formId" for a Viewer (detail view, inherits the /forms rule)', () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/forms/form-1');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText('Form Detail Page')).toBeInTheDocument();
+    });
+
+    it('renders "/forms/:formId/edit" for a forms admin', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Client Admin' as MhdAuthRoleName] });
+      setUrl('/forms/form-1/edit');
 
       render(<MhdAppRouter />);
 

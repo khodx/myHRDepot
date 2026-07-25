@@ -1,5 +1,13 @@
-import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from 'react';
-import { Link } from 'react-router-dom';
+import type {
+  HTMLAttributes,
+  KeyboardEvent,
+  MouseEvent,
+  ReactNode,
+  TdHTMLAttributes,
+  ThHTMLAttributes,
+} from 'react';
+import { useContext } from 'react';
+import { Link, UNSAFE_NavigationContext, type To } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 
 /**
@@ -33,11 +41,62 @@ export function MhdTh({ className, ...props }: ThHTMLAttributes<HTMLTableCellEle
   );
 }
 
-export function MhdTr({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
+interface MhdTrProps extends HTMLAttributes<HTMLTableRowElement> {
+  /** Detail-route destination for record rows. Clicks on nested controls are ignored. */
+  to?: To;
+}
+
+function isInteractiveTableClickTarget(
+  target: EventTarget | null,
+  currentTarget: HTMLTableRowElement,
+): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const interactiveTarget = target.closest(
+    'a,button,input,select,textarea,label,[role="button"],[role="link"],[data-row-click-ignore]',
+  );
+  return Boolean(interactiveTarget && interactiveTarget !== currentTarget);
+}
+
+export function MhdTr({ className, to, onClick, onKeyDown, ...props }: MhdTrProps) {
+  const navigationContext = useContext(UNSAFE_NavigationContext);
+  const isClickable = Boolean(to || onClick);
+
+  function handleClick(event: MouseEvent<HTMLTableRowElement>) {
+    if (!isClickable || isInteractiveTableClickTarget(event.target, event.currentTarget)) return;
+
+    onClick?.(event);
+    if (!to || event.defaultPrevented) return;
+
+    navigationContext?.navigator.push(to);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLTableRowElement>) {
+    onKeyDown?.(event);
+    if (
+      !isClickable ||
+      event.defaultPrevented ||
+      isInteractiveTableClickTarget(event.target, event.currentTarget)
+    ) {
+      return;
+    }
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+
+    event.preventDefault();
+    event.currentTarget.click();
+  }
+
   return (
     <tr
-      className={cn('border-b border-border last:border-b-0 hover:bg-accent-soft/60', className)}
       {...props}
+      className={cn(
+        'border-b border-border last:border-b-0 hover:bg-accent-soft/60',
+        isClickable && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+        className,
+      )}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      tabIndex={isClickable ? 0 : props.tabIndex}
+      role={isClickable ? (to ? 'link' : 'button') : props.role}
     />
   );
 }

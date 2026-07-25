@@ -19,6 +19,7 @@ import { MhdTaskNotesPage } from '@/features/notes/components/MhdTaskNotesPage';
 import { MhdActivitiesPage } from '@/features/activities/components/MhdActivitiesPage';
 import { MhdActivityDetailPage } from '@/features/activities/components/MhdActivityDetailPage';
 import { MhdFormsPage } from '@/features/forms/components/MhdFormsPage';
+import { MhdFormDetailPage } from '@/features/forms/components/MhdFormDetailPage';
 import { MhdFormBuilderPage } from '@/features/forms/components/MhdFormBuilderPage';
 import { MhdFormRendererPage } from '@/features/forms/components/MhdFormRendererPage';
 import { MhdFormSubmissionsPage } from '@/features/forms/components/MhdFormSubmissionsPage';
@@ -123,7 +124,8 @@ export function AppRouter() {
               <Route path="/forms/new" element={<MhdFormBuilderPage />} />
               <Route path="/forms/:formId/render" element={<MhdFormRendererPage />} />
               <Route path="/forms/:formId/submissions" element={<MhdFormSubmissionsPage />} />
-              <Route path="/forms/:formId" element={<MhdFormBuilderPage />} />
+              <Route path="/forms/:formId/edit" element={<MhdFormBuilderPage />} />
+              <Route path="/forms/:formId" element={<MhdFormDetailPage />} />
               <Route path="/property" element={<MhdPropertyPage />} />
               <Route path="/property/:itemId" element={<MhdPropertyDetailPage />} />
               <Route path="/esignature" element={<MhdEsignaturePage />} />

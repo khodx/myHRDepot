@@ -136,7 +136,7 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
             </thead>
             <tbody>
               {(requisitions.data ?? []).map((requisition) => (
-                <MhdTr key={requisition.id}>
+                <MhdTr key={requisition.id} to={`/recruiting/requisitions/${requisition.id}`}>
                   <MhdTd className="whitespace-nowrap font-mono text-xs text-muted-foreground">
                     {requisition.referenceId}
                   </MhdTd>

@@ -51,7 +51,7 @@ export function MhdCoachingPlanList({ plans }: Props) {
         </thead>
         <tbody>
           {plans.map((plan) => (
-            <MhdTr key={plan.id}>
+            <MhdTr key={plan.id} to={`/performance/coaching/${plan.id}`}>
               <MhdTd>
                 <Link
                   to={`/performance/coaching/${plan.id}`}

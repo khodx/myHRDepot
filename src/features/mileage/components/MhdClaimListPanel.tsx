@@ -118,6 +118,7 @@ export function MhdClaimListPanel({
               {claims.map((claim) => (
                 <MhdTr
                   key={claim.id}
+                  onClick={() => onSelect(claim.id)}
                   className={selectedClaimId === claim.id ? 'bg-accent-tint' : undefined}
                 >
                   <MhdTd className="whitespace-nowrap font-medium">{claim.referenceId}</MhdTd>

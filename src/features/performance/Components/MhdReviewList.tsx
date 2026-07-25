@@ -57,7 +57,7 @@ export function MhdReviewList({ reviews }: Props) {
           {reviews.map((review) => {
             const isOverdue = mhdIsReviewOverdue(review);
             return (
-              <MhdTr key={review.id}>
+              <MhdTr key={review.id} to={`/performance/reviews/${review.id}`}>
                 <MhdTd>
                   <Link
                     to={`/performance/reviews/${review.id}`}

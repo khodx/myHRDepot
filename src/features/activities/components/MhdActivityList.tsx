@@ -46,7 +46,7 @@ export function MhdActivityList({ activities, canMutate = false, onDelete }: Pro
           {activities.slice(0, 10).map((activity) => {
             const isOverdue = mhdIsActivityOverdue(activity);
             return (
-              <MhdTr key={activity.id}>
+              <MhdTr key={activity.id} to={`/activities/${activity.id}`}>
                 <MhdTd>
                   <Link
                     to={`/activities/${activity.id}`}
