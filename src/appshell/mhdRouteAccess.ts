@@ -538,6 +538,28 @@ export function mhdRecruitingIsPrivileged(userRoles: MhdAuthRoleName[]): boolean
 }
 
 /**
+ * Roles that may ARM or DISARM an automation rule — Platform Admin only,
+ * deliberately narrower than the /automations route audience (which also admits
+ * HR Partner and Client Admin for review).
+ *
+ * Arming is the act that lets a rule act on live tenant data, and the rule's
+ * AUTHOR becomes the privilege basis for everything it subsequently does: the
+ * engine checks the author's role against each action's minimum, not the role of
+ * whoever tripped the event. Rules are provisioned INACTIVE for the same reason,
+ * and the database refuses an active rule with no recorded authorizer
+ * (automation_rules_active_requires_authorization).
+ *
+ * mhd_automation_set_rule_active re-checks mhd_is_platform_admin server-side and
+ * writes an audit row either way; this helper only decides whether the arm /
+ * disarm control renders.
+ */
+export const MHD_AUTOMATION_ARM_ROLES: MhdAuthRoleName[] = ['Platform Admin'];
+
+export function mhdCanArmAutomations(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_AUTOMATION_ARM_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
  * Narrower than the privileged set: only Platform Admin may read the aggregate
  * EEO report. The `recruiting_eeo_self_identification` partition is readable by
  * NO one row-wise (RLS using(false)); `mhd_recruiting_eeo_report` is the sole

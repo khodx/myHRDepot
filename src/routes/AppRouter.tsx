@@ -32,6 +32,8 @@ import { MhdCommunicationsPage } from '@/features/communications/components/MhdC
 import { MhdMessagingPage } from '@/features/communications/components/MhdMessagingPage';
 import { MhdSystemAlertsPage } from '@/features/communications/components/MhdSystemAlertsPage';
 import { MhdAutomationsPage } from '@/features/automations/components/MhdAutomationsPage';
+import { MhdAutomationRuleDetailPage } from '@/features/automations/components/MhdAutomationRuleDetailPage';
+import { MhdAutomationRunDetailPage } from '@/features/automations/components/MhdAutomationRunDetailPage';
 import { MhdEmployeeFilesPage } from '@/features/employee-files/components/MhdEmployeeFilesPage';
 import { MhdEmployeeFileCabinetPage } from '@/features/employee-files/components/MhdEmployeeFileCabinetPage';
 import { MhdEmployeeFileNewRecordPage } from '@/features/employee-files/components/MhdEmployeeFileNewRecordPage';
@@ -134,6 +136,11 @@ export function AppRouter() {
               <Route path="/communications/messaging" element={<MhdMessagingPage />} />
               <Route path="/communications/system-alerts" element={<MhdSystemAlertsPage />} />
               <Route path="/automations" element={<MhdAutomationsPage />} />
+              {/* Both inherit the /automations rule via mhdCanAccessRoute's
+                  prefix match. Arming inside the rule page is gated separately
+                  on mhdCanArmAutomations (Platform Admin only). */}
+              <Route path="/automations/rules/:ruleId" element={<MhdAutomationRuleDetailPage />} />
+              <Route path="/automations/runs/:runId" element={<MhdAutomationRunDetailPage />} />
               <Route path="/employees" element={<MhdEmployeeFilesPage />} />
               <Route
                 path="/employees/:personId/files/new"
