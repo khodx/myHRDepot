@@ -29,7 +29,7 @@ describe('MhdFormBuilder', () => {
   it('renders the form name and description inputs', () => {
     render(<MhdFormBuilder companyId="company-1" />);
     expect(screen.getByPlaceholderText('Enter form name')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Form description')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Description' })).toBeInTheDocument();
   });
 
   it('adds a field to the canvas when "Add Field" is clicked', () => {
@@ -40,6 +40,43 @@ describe('MhdFormBuilder', () => {
 
     expect(screen.getByText('Untitled field')).toBeInTheDocument();
     expect(screen.getByText('text')).toBeInTheDocument();
+  });
+
+  it('exposes Cognito-style field groups including repeating sections and tables', () => {
+    render(<MhdFormBuilder companyId="company-1" />);
+
+    expect(screen.getByText('Basic Fields')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Signature' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Repeating Section' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Repeating Table' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Notice Packet Acknowledgment' }),
+    ).toBeInTheDocument();
+  });
+
+  it('adds a repeating section with nested field defaults', async () => {
+    mockCreateForm.mockResolvedValue(seededForm);
+
+    render(<MhdFormBuilder companyId="company-1" />);
+    fireEvent.change(screen.getByPlaceholderText('Enter form name'), {
+      target: { value: 'Repeating Section Form' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Repeating Section' }));
+    fireEvent.click(screen.getByRole('button', { name: /save draft/i }));
+
+    await waitFor(() => expect(mockCreateForm).toHaveBeenCalledTimes(1));
+
+    const [createInput] = mockCreateForm.mock.calls[0] as [{ definition: MhdFormDefinition }];
+    expect(createInput.definition.fields[0]).toMatchObject({
+      type: 'repeating_section',
+      repeatable: {
+        kind: 'section',
+        minRows: 1,
+        maxRows: 10,
+      },
+    });
+    expect(createInput.definition.fields[0].repeatable?.fields).toHaveLength(1);
   });
 
   // ---------------------------------------------------------------------------
@@ -164,6 +201,41 @@ describe('MhdFormBuilder', () => {
     expect(definition.pages[0].fields).toEqual([definition.fields[0].id]);
     expect(definition.pages[1].fields).toEqual([definition.fields[1].id]);
     expect(definition.settings.multiPage).toBe(true);
+  });
+
+  it('authors workflow statuses, triggers, task views, and save-resume settings', async () => {
+    mockCreateForm.mockResolvedValue(seededForm);
+
+    render(<MhdFormBuilder companyId="company-1" />);
+    fireEvent.change(screen.getByPlaceholderText('Enter form name'), {
+      target: { value: 'Workflow Form' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /workflow/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save draft/i }));
+
+    await waitFor(() => expect(mockCreateForm).toHaveBeenCalledTimes(1));
+
+    const [createInput] = mockCreateForm.mock.calls[0] as [{ definition: MhdFormDefinition }];
+    expect(createInput.definition.workflow).toMatchObject({
+      enabled: true,
+      saveAndResume: true,
+      workflowLinkSharing: true,
+      formReadOnlyWhenComplete: true,
+    });
+    expect(createInput.definition.workflow?.statuses.map((status) => status.name)).toEqual([
+      'Open',
+      'Submitted',
+      'Complete',
+    ]);
+    expect(createInput.definition.workflow?.actions.map((action) => action.triggerEvent)).toEqual([
+      'SUBMIT',
+      'STATUS_CHANGE',
+    ]);
+    expect(createInput.definition.workflow?.taskViews[0]).toMatchObject({
+      name: 'Review Submission',
+      reminderEnabled: true,
+    });
   });
 
   it('removing a page reassigns its fields to the first remaining page', async () => {

@@ -379,7 +379,7 @@ export const mhdActivityService = {
           trimmedOrUndefined(input.descriptionPlainText) ??
           activity.outcomeSummary ??
           activity.title,
-        descriptionRichText: null,
+        descriptionRichText: input.descriptionRichText ?? null,
         statusId,
         priorityId,
         startDate: formatDateOnly(activity.occurredAt ?? activity.scheduledAt),

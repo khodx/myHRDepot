@@ -1,16 +1,26 @@
 import { useMemo, useState } from 'react';
 import { Plus, Save, UploadCloud } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
+import { mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { MHD_EMPLOYEE_FILE_TYPES, mhdIsEmployeeFileTypeKey } from '@/features/employee-files/Types';
 import { mhdCreateFormInputSchema } from '../Schemas';
 import { mhdFormService } from '../Service';
-import type { MhdFieldType, MhdForm, MhdFormDefinition, MhdFormField, MhdFormPage } from '../Types';
+import type {
+  MhdFieldType,
+  MhdForm,
+  MhdFormDefinition,
+  MhdFormField,
+  MhdFormPage,
+  MhdFormWorkflowDefinition,
+} from '../Types';
 import { MhdFormBuilderPageTabs } from './MhdFormBuilderPageTabs';
 import { MhdFormCalculationEditor } from './MhdFormCalculationEditor';
 import { MhdFormFieldPalette } from './MhdFormFieldPalette';
 import { MhdFormLogicEditor } from './MhdFormLogicEditor';
 import { MhdFormPreview } from './MhdFormPreview';
 import { MhdFormPropertyPanel } from './MhdFormPropertyPanel';
+import { MhdFormWorkflowEditor } from './MhdFormWorkflowEditor';
 
 interface MhdFormBuilderProps {
   companyId: string;
@@ -20,16 +30,126 @@ interface MhdFormBuilderProps {
 }
 
 function createBlankField(type: MhdFieldType): MhdFormField {
+  const optionFields = [
+    'choice',
+    'select',
+    'dropdown',
+    'radio',
+    'state_select',
+    'lookup',
+    'person',
+  ];
+  const defaultOptions =
+    type === 'state_select'
+      ? [
+          { value: 'CA', label: 'California' },
+          { value: 'NY', label: 'New York' },
+          { value: 'TX', label: 'Texas' },
+        ]
+      : optionFields.includes(type)
+        ? [{ value: 'option-1', label: 'Option 1' }]
+        : undefined;
+  const repeatable =
+    type === 'repeating_section'
+      ? {
+          kind: 'section' as const,
+          minRows: 1,
+          maxRows: 10,
+          fields: [
+            {
+              id: `child-${Date.now()}-1`,
+              type: 'text' as const,
+              label: 'Item',
+              required: false,
+              hidden: false,
+            },
+          ],
+        }
+      : type === 'repeating_table' || type === 'table' || type === 'grid'
+        ? {
+            kind: 'table' as const,
+            minRows: 1,
+            maxRows: 25,
+            columns: [
+              { id: 'column_1', label: 'Column 1', type: 'text' as const },
+              { id: 'column_2', label: 'Column 2', type: 'text' as const },
+            ],
+          }
+        : undefined;
+
   return {
     id: `field-${Date.now()}-${Math.round(Math.random() * 9999)}`,
     type,
-    label: '',
+    label:
+      type === 'display_block' || type === 'content'
+        ? 'Content'
+        : type === 'page_break'
+          ? 'Page Break'
+          : type === 'repeating_section'
+            ? 'Repeating Section'
+            : type === 'repeating_table' || type === 'table'
+              ? 'Repeating Table'
+              : '',
     required: false,
     hidden: false,
-    options:
-      type === 'select' || type === 'radio'
-        ? [{ value: 'option-1', label: 'Option 1' }]
-        : undefined,
+    helpText:
+      type === 'signature'
+        ? 'Captures signer name, signature text, and timestamp.'
+        : type === 'initials'
+          ? 'Captures clause-level initials.'
+          : undefined,
+    options: defaultOptions,
+    repeatable,
+  };
+}
+
+function createDefaultWorkflow(): MhdFormWorkflowDefinition {
+  return {
+    enabled: true,
+    saveAndResume: true,
+    workflowLinkSharing: true,
+    formReadOnlyWhenComplete: true,
+    statuses: [
+      { id: 'status-open', name: 'Open', color: 'blue', isInitial: true },
+      { id: 'status-submitted', name: 'Submitted', color: 'amber' },
+      { id: 'status-complete', name: 'Complete', color: 'emerald', isTerminal: true },
+    ],
+    roles: [
+      { id: 'role-submitter', name: 'Submitter', type: 'PUBLIC' },
+      { id: 'role-reviewer', name: 'Reviewer', type: 'INTERNAL' },
+    ],
+    actions: [
+      {
+        id: 'action-submit',
+        name: 'Submit',
+        fromStatusId: 'status-open',
+        toStatusId: 'status-submitted',
+        allowedRoleIds: ['role-submitter'],
+        triggerEvent: 'SUBMIT',
+        sendEmail: true,
+        createTask: true,
+      },
+      {
+        id: 'action-complete',
+        name: 'Complete Review',
+        fromStatusId: 'status-submitted',
+        toStatusId: 'status-complete',
+        allowedRoleIds: ['role-reviewer'],
+        triggerEvent: 'STATUS_CHANGE',
+        sendEmail: true,
+      },
+    ],
+    taskViews: [
+      {
+        id: 'task-review',
+        name: 'Review Submission',
+        roleId: 'role-reviewer',
+        statusId: 'status-submitted',
+        dueInDays: 2,
+        reminderEnabled: true,
+        reminderOffsetDays: 1,
+      },
+    ],
   };
 }
 
@@ -60,13 +180,16 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
   const [calculations, setCalculations] = useState<MhdFormDefinition['calculations']>(
     initialForm?.definition.calculations ?? [],
   );
+  const [workflow, setWorkflow] = useState<MhdFormDefinition['workflow']>(
+    initialForm?.definition.workflow,
+  );
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [activePageId, setActivePageId] = useState<string | null>(
     sortPages(initialForm?.definition.pages ?? [])[0]?.id ?? null,
   );
-  const [activeTab, setActiveTab] = useState<'fields' | 'logic' | 'calculations' | 'preview'>(
-    'fields',
-  );
+  const [activeTab, setActiveTab] = useState<
+    'fields' | 'logic' | 'calculations' | 'workflow' | 'preview'
+  >('fields');
   const [savedFormId, setSavedFormId] = useState<string | undefined>(initialForm?.id ?? formId);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -118,7 +241,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
       };
     }
 
-    return {
+    const definition: MhdFormDefinition = {
       id: savedFormId ?? `form-${Date.now()}`,
       name: formName,
       description: description || undefined,
@@ -136,6 +259,12 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
         progressBar: initialForm?.definition.settings.progressBar ?? true,
       },
     };
+
+    if (workflow) {
+      definition.workflow = workflow;
+    }
+
+    return definition;
   };
 
   const addField = (type: MhdFieldType) => {
@@ -325,15 +454,13 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
               />
             </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-foreground">Description</label>
-              <textarea
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Form description"
-                className="min-h-24 w-full rounded-md border border-border px-3 py-2 text-sm"
-              />
-            </div>
+            <MhdRichTextEditor
+              label="Description"
+              html={description.includes('<') ? description : mhdPlainTextToRichHtml(description)}
+              onChange={(html, plainText) => setDescription(html || plainText)}
+              placeholder="Form description"
+              minHeightClassName="min-h-24"
+            />
 
             <div>
               <label className="mb-1 block text-sm font-medium text-foreground">
@@ -385,11 +512,16 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
         </div>
 
         <div className="mt-6 flex gap-4 border-b border-border">
-          {(['fields', 'logic', 'calculations', 'preview'] as const).map((tab) => (
+          {(['fields', 'logic', 'calculations', 'workflow', 'preview'] as const).map((tab) => (
             <button
               key={tab}
               type="button"
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                if (tab === 'workflow' && !workflow) {
+                  setWorkflow(createDefaultWorkflow());
+                }
+                setActiveTab(tab);
+              }}
               className={`border-b-2 pb-2 text-sm font-semibold capitalize ${
                 activeTab === tab
                   ? 'border-accent text-accent-hover'
@@ -509,6 +641,15 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
             fields={fields}
             calculations={calculations}
             onChange={setCalculations}
+          />
+        </div>
+      ) : null}
+
+      {activeTab === 'workflow' ? (
+        <div className="p-4">
+          <MhdFormWorkflowEditor
+            workflow={workflow ?? createDefaultWorkflow()}
+            onChange={setWorkflow}
           />
         </div>
       ) : null}

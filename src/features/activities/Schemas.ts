@@ -104,6 +104,7 @@ export const mhdCreateFollowUpTaskSchema = z.object({
     .min(1, 'Task title is required.')
     .max(200, 'Task title must be 200 characters or fewer.'),
   descriptionPlainText: z.string().max(10000).optional().nullable(),
+  descriptionRichText: z.unknown().optional().nullable(),
 });
 
 export type MhdActivityParticipantRowSchemaInput = z.infer<typeof mhdActivityParticipantRowSchema>;

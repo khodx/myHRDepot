@@ -8,6 +8,7 @@ import { MhdFormDraftSave } from './MhdFormDraftSave';
 import { MhdFormPage } from './MhdFormPage';
 import { MhdFormPageManager } from './MhdFormPageManager';
 import { MhdFormProgress } from './MhdFormProgress';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 
 interface MhdFormRendererProps {
   formId: string;
@@ -185,11 +186,7 @@ export function MhdFormRenderer({
       return { hiddenFields: new Set<string>(), requiredFields: new Set<string>() };
     }
 
-    const result = mhdFormLogicEngine.evaluateAllLogic(
-      definition.logic,
-      effectiveValues,
-      [],
-    );
+    const result = mhdFormLogicEngine.evaluateAllLogic(definition.logic, effectiveValues, []);
     // Planning posture: add/edit sessions must expose every configured field so
     // logic, calculations, and branching can be inspected in context. Keep
     // evaluating logic for dynamic requiredness, but do not let default-hidden
@@ -339,7 +336,7 @@ export function MhdFormRenderer({
       <div>
         <h2 className="text-2xl font-semibold text-foreground">{displayName}</h2>
         {displayDescription ? (
-          <p className="mt-1 text-sm text-muted-foreground">{displayDescription}</p>
+          <MhdRichTextRenderer html={displayDescription} className="mt-1" />
         ) : null}
       </div>
 

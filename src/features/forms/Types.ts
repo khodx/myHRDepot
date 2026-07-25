@@ -11,45 +11,119 @@ export type MhdFieldType =
   | 'text_field'
   | 'longtext'
   | 'long_text'
+  | 'name'
   | 'email'
   | 'email_field'
   | 'phone'
   | 'phone_field'
+  | 'address'
+  | 'website'
   | 'number'
   | 'number_field'
   | 'date'
   | 'date_field'
   | 'time'
   | 'time_field'
+  | 'choice'
   | 'select'
   | 'dropdown'
   | 'checkbox'
+  | 'yes_no'
   | 'radio'
   | 'file'
   | 'file_upload'
   | 'rating'
+  | 'rating_scale'
   | 'currency'
+  | 'price'
   | 'percentage'
   | 'toggle'
+  | 'signature'
+  | 'initials'
+  | 'masked_text'
+  | 'state_select'
+  | 'lookup'
+  | 'person'
+  | 'calculation'
+  | 'display_block'
+  | 'content'
+  | 'page_break'
+  | 'section'
+  | 'repeating_section'
+  | 'repeating_table'
+  | 'table'
+  | 'grid'
+  | 'notice_packet_acknowledgment'
   | (string & {});
 
-export const MHD_FORM_PALETTE_FIELD_TYPES: Array<{ type: MhdFieldType; label: string }> = [
-  { type: 'text', label: 'Text' },
-  { type: 'longtext', label: 'Long Text' },
-  { type: 'email', label: 'Email' },
-  { type: 'phone', label: 'Phone' },
-  { type: 'number', label: 'Number' },
-  { type: 'date', label: 'Date' },
-  { type: 'time', label: 'Time' },
-  { type: 'select', label: 'Dropdown' },
-  { type: 'checkbox', label: 'Checkbox' },
-  { type: 'radio', label: 'Radio Buttons' },
-  { type: 'file', label: 'File Upload' },
-  { type: 'rating', label: 'Rating' },
-  { type: 'currency', label: 'Currency' },
-  { type: 'percentage', label: 'Percentage' },
-  { type: 'toggle', label: 'Toggle' },
+export interface MhdFormPaletteGroup {
+  group: string;
+  fields: Array<{ type: MhdFieldType; label: string }>;
+}
+
+export const MHD_FORM_PALETTE_FIELD_GROUPS: MhdFormPaletteGroup[] = [
+  {
+    group: 'Basic Fields',
+    fields: [
+      { type: 'text', label: 'Textbox' },
+      { type: 'longtext', label: 'Long Text' },
+      { type: 'name', label: 'Name' },
+      { type: 'email', label: 'Email' },
+      { type: 'phone', label: 'Phone' },
+      { type: 'address', label: 'Address' },
+      { type: 'website', label: 'Website' },
+      { type: 'number', label: 'Number' },
+      { type: 'date', label: 'Date' },
+      { type: 'time', label: 'Time' },
+    ],
+  },
+  {
+    group: 'Choice Fields',
+    fields: [
+      { type: 'choice', label: 'Choice' },
+      { type: 'select', label: 'Dropdown' },
+      { type: 'radio', label: 'Radio Buttons' },
+      { type: 'checkbox', label: 'Checkbox' },
+      { type: 'yes_no', label: 'Yes/No' },
+      { type: 'toggle', label: 'Toggle' },
+      { type: 'rating_scale', label: 'Rating Scale' },
+    ],
+  },
+  {
+    group: 'Advanced Fields',
+    fields: [
+      { type: 'currency', label: 'Currency' },
+      { type: 'price', label: 'Price' },
+      { type: 'percentage', label: 'Percentage' },
+      { type: 'file', label: 'File Upload' },
+      { type: 'signature', label: 'Signature' },
+      { type: 'initials', label: 'Initials' },
+      { type: 'masked_text', label: 'Masked Text' },
+      { type: 'state_select', label: 'State' },
+      { type: 'lookup', label: 'Lookup' },
+      { type: 'person', label: 'Person' },
+      { type: 'calculation', label: 'Calculation' },
+    ],
+  },
+  {
+    group: 'Layout & Repeating',
+    fields: [
+      { type: 'content', label: 'Content' },
+      { type: 'display_block', label: 'Display Text' },
+      { type: 'page_break', label: 'Page Break' },
+      { type: 'section', label: 'Section' },
+      { type: 'repeating_section', label: 'Repeating Section' },
+      { type: 'repeating_table', label: 'Repeating Table' },
+      { type: 'table', label: 'Table' },
+      { type: 'grid', label: 'Grid' },
+      { type: 'notice_packet_acknowledgment', label: 'Notice Packet Acknowledgment' },
+    ],
+  },
 ];
+
+export const MHD_FORM_PALETTE_FIELD_TYPES = MHD_FORM_PALETTE_FIELD_GROUPS.flatMap(
+  (group) => group.fields,
+);
 
 export interface MhdFormFieldOption {
   value: string;
@@ -150,6 +224,65 @@ export interface MhdFormDefinitionSettings {
   progressBar: boolean;
 }
 
+export interface MhdFormWorkflowStatus {
+  id: string;
+  name: string;
+  color: string;
+  isInitial?: boolean;
+  isTerminal?: boolean;
+  autoAssignWhen?: string;
+}
+
+export type MhdFormWorkflowRoleType = 'PUBLIC' | 'INTERNAL' | 'OTHER';
+
+export interface MhdFormWorkflowRole {
+  id: string;
+  name: string;
+  type: MhdFormWorkflowRoleType;
+  description?: string;
+}
+
+export interface MhdFormWorkflowAction {
+  id: string;
+  name: string;
+  fromStatusId?: string;
+  toStatusId?: string;
+  allowedRoleIds: string[];
+  triggerEvent:
+    | 'SUBMIT'
+    | 'SAVE'
+    | 'UPDATE'
+    | 'STATUS_CHANGE'
+    | 'PAYMENT_COMPLETE'
+    | 'TASK_COMPLETE'
+    | 'MANUAL';
+  condition?: string;
+  sendEmail?: boolean;
+  createTask?: boolean;
+  webhookUrl?: string;
+}
+
+export interface MhdFormWorkflowTaskView {
+  id: string;
+  name: string;
+  roleId?: string;
+  statusId?: string;
+  dueInDays?: number;
+  reminderEnabled?: boolean;
+  reminderOffsetDays?: number;
+}
+
+export interface MhdFormWorkflowDefinition {
+  enabled: boolean;
+  saveAndResume: boolean;
+  workflowLinkSharing: boolean;
+  formReadOnlyWhenComplete: boolean;
+  statuses: MhdFormWorkflowStatus[];
+  roles: MhdFormWorkflowRole[];
+  actions: MhdFormWorkflowAction[];
+  taskViews: MhdFormWorkflowTaskView[];
+}
+
 export interface MhdFormDefinition {
   id: string;
   name: string;
@@ -159,6 +292,7 @@ export interface MhdFormDefinition {
   logic: MhdFormLogicRule[];
   calculations: MhdFormCalculation[];
   settings: MhdFormDefinitionSettings;
+  workflow?: MhdFormWorkflowDefinition;
 }
 
 export interface MhdForm {
@@ -311,6 +445,14 @@ export function mhdNormalizeFieldType(type: string | null | undefined): MhdField
       return 'select';
     case 'file_upload':
       return 'file';
+    case 'rating':
+      return 'rating_scale';
+    case 'price':
+      return 'currency';
+    case 'display_block':
+      return 'content';
+    case 'table':
+      return 'repeating_table';
     default:
       return (type ?? 'text') as MhdFieldType;
   }

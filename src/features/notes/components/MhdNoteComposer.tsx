@@ -1,14 +1,22 @@
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
+import { mhdPlainTextToRichHtml, mhdRichTextToDocument } from '@/components/ui/MhdRichTextUtils';
 import type { MhdNoteVisibility } from '../Types';
 
 interface MhdNoteComposerProps {
   isSaving: boolean;
-  onCreate: (notePlainText: string, visibility: MhdNoteVisibility) => Promise<void>;
+  onCreate: (
+    noteRichText: unknown,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) => Promise<void>;
 }
 
 export function MhdNoteComposer({ isSaving, onCreate }: MhdNoteComposerProps) {
   const [notePlainText, setNotePlainText] = useState('');
+  const [noteHtml, setNoteHtml] = useState('');
+  const [noteRichText, setNoteRichText] = useState<unknown>(null);
   const [visibility, setVisibility] = useState<MhdNoteVisibility>('PUBLIC');
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -21,8 +29,15 @@ export function MhdNoteComposer({ isSaving, onCreate }: MhdNoteComposerProps) {
     }
     setLocalError(null);
     try {
-      await onCreate(trimmedNote, visibility);
+      await onCreate(
+        noteRichText ??
+          mhdRichTextToDocument(noteHtml || mhdPlainTextToRichHtml(trimmedNote), trimmedNote),
+        trimmedNote,
+        visibility,
+      );
       setNotePlainText('');
+      setNoteHtml('');
+      setNoteRichText(null);
       setVisibility('PUBLIC');
     } catch (error) {
       // The hook surfaces the failure via its own errorMessage; keep the draft text so the
@@ -53,12 +68,19 @@ export function MhdNoteComposer({ isSaving, onCreate }: MhdNoteComposerProps) {
           <option value="PRIVATE">Private</option>
         </select>
       </div>
-      <textarea
-        className="mt-4 min-h-32 w-full rounded-md border border-border bg-card p-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        value={notePlainText}
-        onChange={(event) => setNotePlainText(event.target.value)}
-        placeholder="Type the task note or comment here..."
-      />
+      <div className="mt-4">
+        <MhdRichTextEditor
+          label="Note"
+          html={noteHtml || mhdPlainTextToRichHtml(notePlainText)}
+          onChange={(html, plainText, document) => {
+            setNoteHtml(html);
+            setNotePlainText(plainText);
+            setNoteRichText(document);
+          }}
+          minHeightClassName="min-h-32"
+          placeholder="Type the task note or comment here..."
+        />
+      </div>
       {localError && <p className="mt-2 text-sm text-red-600">{localError}</p>}
       <div className="mt-4 flex justify-end">
         <Button className="font-semibold" type="submit" disabled={isSaving}>

@@ -3,6 +3,7 @@ import { FileText } from 'lucide-react';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import {
   MhdActionsTh,
   MhdTable,
@@ -68,7 +69,7 @@ export function MhdFormList({ forms, isLoading }: MhdFormListProps) {
                   <p className="font-medium text-foreground">{form.name}</p>
                   <p className="text-xs text-muted-foreground">{form.referenceId}</p>
                   {form.description ? (
-                    <p className="mt-1 text-sm text-muted-foreground">{form.description}</p>
+                    <MhdRichTextRenderer html={form.description} className="mt-1 line-clamp-2" />
                   ) : null}
                 </div>
               </MhdTd>

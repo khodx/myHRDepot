@@ -3,6 +3,12 @@ import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdRichTextEditor, MhdRichTextRenderer } from '@/components/ui/MhdRichText';
+import {
+  mhdDocumentToRichHtml,
+  mhdPlainTextToRichHtml,
+  mhdRichTextToDocument,
+} from '@/components/ui/MhdRichTextUtils';
 import { MhdNoteVisibilityBadge } from './MhdNoteVisibilityBadge';
 import type { MhdNote, MhdNoteVisibility } from '../Types';
 
@@ -10,13 +16,20 @@ interface MhdNoteListProps {
   notes: MhdNote[];
   isLoading: boolean;
   isSaving: boolean;
-  onUpdate: (noteId: string, notePlainText: string, visibility: MhdNoteVisibility) => Promise<void>;
+  onUpdate: (
+    noteId: string,
+    noteRichText: unknown,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) => Promise<void>;
   onDelete: (noteId: string) => Promise<void>;
 }
 
 export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: MhdNoteListProps) {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [draftText, setDraftText] = useState('');
+  const [draftHtml, setDraftHtml] = useState('');
+  const [draftRichText, setDraftRichText] = useState<unknown>(null);
   const [draftVisibility, setDraftVisibility] = useState<MhdNoteVisibility>('PUBLIC');
 
   if (isLoading)
@@ -36,13 +49,24 @@ export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: 
   function startEdit(note: MhdNote) {
     setEditingNoteId(note.id);
     setDraftText(note.notePlainText);
+    setDraftHtml(mhdDocumentToRichHtml(note.noteRichText, note.notePlainText));
+    setDraftRichText(note.noteRichText);
     setDraftVisibility(note.visibility);
   }
 
   async function saveEdit(noteId: string) {
-    await onUpdate(noteId, draftText.trim(), draftVisibility);
+    const trimmedDraft = draftText.trim();
+    await onUpdate(
+      noteId,
+      draftRichText ??
+        mhdRichTextToDocument(draftHtml || mhdPlainTextToRichHtml(trimmedDraft), trimmedDraft),
+      trimmedDraft,
+      draftVisibility,
+    );
     setEditingNoteId(null);
     setDraftText('');
+    setDraftHtml('');
+    setDraftRichText(null);
   }
 
   return (
@@ -93,10 +117,15 @@ export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: 
                   <option value="ADMIN">Admin</option>
                   <option value="PRIVATE">Private</option>
                 </select>
-                <textarea
-                  className="min-h-28 w-full rounded-md border border-border bg-card p-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  value={draftText}
-                  onChange={(event) => setDraftText(event.target.value)}
+                <MhdRichTextEditor
+                  label="Note"
+                  html={draftHtml}
+                  onChange={(html, plainText, document) => {
+                    setDraftHtml(html);
+                    setDraftText(plainText);
+                    setDraftRichText(document);
+                  }}
+                  minHeightClassName="min-h-28"
                 />
                 <div className="flex justify-end gap-2">
                   <button
@@ -117,9 +146,10 @@ export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: 
                 </div>
               </div>
             ) : (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground">
-                {note.notePlainText}
-              </p>
+              <MhdRichTextRenderer
+                html={mhdDocumentToRichHtml(note.noteRichText, note.notePlainText)}
+                className="mt-3 leading-6 text-foreground"
+              />
             )}
           </article>
         );

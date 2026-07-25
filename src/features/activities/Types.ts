@@ -145,6 +145,7 @@ export interface MhdUpdateSubActivityInput {
 export interface MhdCreateFollowUpTaskInput {
   title: string;
   descriptionPlainText?: string | null;
+  descriptionRichText?: Json | null;
 }
 
 export interface MhdCompleteActivityInput {

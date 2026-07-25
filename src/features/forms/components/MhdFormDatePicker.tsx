@@ -1,4 +1,5 @@
 import { MhdFormFieldError } from './MhdFormFieldError';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 
 interface MhdFormDatePickerProps {
   id: string;
@@ -32,7 +33,7 @@ export function MhdFormDatePicker({
         onChange={(event) => onChange(event.target.value)}
         className={`w-full rounded-md border px-3 py-2 text-sm ${error ? 'border-red-300' : 'border-border'}`}
       />
-      {helpText ? <p className="mt-1 text-xs text-muted-foreground">{helpText}</p> : null}
+      {helpText ? <MhdRichTextRenderer html={helpText} className="mt-1 text-xs" /> : null}
       <MhdFormFieldError message={error} />
     </div>
   );

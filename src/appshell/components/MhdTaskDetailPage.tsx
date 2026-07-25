@@ -13,6 +13,8 @@ import { MhdWorkflowTransitionHistory } from '@/features/workflow/components/Mhd
 import { MhdApprovalRequest } from '@/features/approvals/components/MhdApprovalRequest';
 import { MhdApprovalHistory } from '@/features/approvals/components/MhdApprovalHistory';
 import { mhdCanMutateWorkflowApprovals } from '@/appshell/mhdRouteAccess';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
+import { mhdDocumentToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { useState } from 'react';
 
 export function MhdTaskDetailPage() {
@@ -119,11 +121,15 @@ export function MhdTaskDetailPage() {
           <span>Attachments: {task.attachmentCount}</span>
         </div>
 
-        {task.descriptionPlainText ? (
+        {task.descriptionRichText || task.descriptionPlainText ? (
           <div className="mt-4 border-t border-neutral-100 pt-4">
-            <p className="whitespace-pre-wrap text-sm text-neutral-700">
-              {task.descriptionPlainText}
-            </p>
+            <MhdRichTextRenderer
+              html={mhdDocumentToRichHtml(
+                task.descriptionRichText,
+                task.descriptionPlainText ?? '',
+              )}
+              className="text-neutral-700"
+            />
           </div>
         ) : null}
 

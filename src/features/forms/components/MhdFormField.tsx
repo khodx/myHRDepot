@@ -1,4 +1,5 @@
 import type { MhdFormField as MhdFormFieldType, MhdFormFileValue } from '../Types';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import { MhdFormDatePicker } from './MhdFormDatePicker';
 import { MhdFormEmailInput } from './MhdFormEmailInput';
 import { MhdFormFieldError } from './MhdFormFieldError';
@@ -6,6 +7,60 @@ import { MhdFormFileUploadField } from './MhdFormFileUploadField';
 import { MhdFormNumberInput } from './MhdFormNumberInput';
 import { MhdFormSelect } from './MhdFormSelect';
 import { MhdFormTextInput } from './MhdFormTextInput';
+
+const US_STATE_OPTIONS = [
+  { value: 'AL', label: 'Alabama' },
+  { value: 'AK', label: 'Alaska' },
+  { value: 'AZ', label: 'Arizona' },
+  { value: 'AR', label: 'Arkansas' },
+  { value: 'CA', label: 'California' },
+  { value: 'CO', label: 'Colorado' },
+  { value: 'CT', label: 'Connecticut' },
+  { value: 'DE', label: 'Delaware' },
+  { value: 'DC', label: 'District of Columbia' },
+  { value: 'FL', label: 'Florida' },
+  { value: 'GA', label: 'Georgia' },
+  { value: 'HI', label: 'Hawaii' },
+  { value: 'ID', label: 'Idaho' },
+  { value: 'IL', label: 'Illinois' },
+  { value: 'IN', label: 'Indiana' },
+  { value: 'IA', label: 'Iowa' },
+  { value: 'KS', label: 'Kansas' },
+  { value: 'KY', label: 'Kentucky' },
+  { value: 'LA', label: 'Louisiana' },
+  { value: 'ME', label: 'Maine' },
+  { value: 'MD', label: 'Maryland' },
+  { value: 'MA', label: 'Massachusetts' },
+  { value: 'MI', label: 'Michigan' },
+  { value: 'MN', label: 'Minnesota' },
+  { value: 'MS', label: 'Mississippi' },
+  { value: 'MO', label: 'Missouri' },
+  { value: 'MT', label: 'Montana' },
+  { value: 'NE', label: 'Nebraska' },
+  { value: 'NV', label: 'Nevada' },
+  { value: 'NH', label: 'New Hampshire' },
+  { value: 'NJ', label: 'New Jersey' },
+  { value: 'NM', label: 'New Mexico' },
+  { value: 'NY', label: 'New York' },
+  { value: 'NC', label: 'North Carolina' },
+  { value: 'ND', label: 'North Dakota' },
+  { value: 'OH', label: 'Ohio' },
+  { value: 'OK', label: 'Oklahoma' },
+  { value: 'OR', label: 'Oregon' },
+  { value: 'PA', label: 'Pennsylvania' },
+  { value: 'RI', label: 'Rhode Island' },
+  { value: 'SC', label: 'South Carolina' },
+  { value: 'SD', label: 'South Dakota' },
+  { value: 'TN', label: 'Tennessee' },
+  { value: 'TX', label: 'Texas' },
+  { value: 'UT', label: 'Utah' },
+  { value: 'VT', label: 'Vermont' },
+  { value: 'VA', label: 'Virginia' },
+  { value: 'WA', label: 'Washington' },
+  { value: 'WV', label: 'West Virginia' },
+  { value: 'WI', label: 'Wisconsin' },
+  { value: 'WY', label: 'Wyoming' },
+];
 
 interface MhdFormFieldProps {
   field: MhdFormFieldType;
@@ -30,8 +85,26 @@ export function MhdFormField({
   const isRequired = required ?? field.required;
 
   switch (field.type) {
+    case 'content':
+    case 'display_block':
+    case 'section':
+      return (
+        <section className="rounded-md border border-border bg-muted px-4 py-3">
+          <h4 className="text-sm font-semibold text-foreground">{field.label}</h4>
+          <MhdRichTextRenderer html={field.description || field.helpText} className="mt-1" />
+        </section>
+      );
+
+    case 'page_break':
+      return <hr className="border-border" aria-label={field.label || 'Page Break'} />;
+
     case 'text':
     case 'text_field':
+    case 'name':
+    case 'website':
+    case 'lookup':
+    case 'person':
+    case 'initials':
       return (
         <MhdFormTextInput
           id={field.id}
@@ -43,6 +116,22 @@ export function MhdFormField({
           helpText={field.helpText}
           error={error}
           readOnly={readOnly}
+        />
+      );
+
+    case 'masked_text':
+      return (
+        <MhdFormTextInput
+          id={field.id}
+          label={field.label}
+          value={String(value ?? '')}
+          onChange={onChange}
+          placeholder={field.placeholder}
+          required={isRequired}
+          helpText={field.helpText}
+          error={error}
+          readOnly={readOnly}
+          type="password"
         />
       );
 
@@ -80,6 +169,7 @@ export function MhdFormField({
 
     case 'number':
     case 'number_field':
+    case 'calculation':
       return (
         <MhdFormNumberInput
           id={field.id}
@@ -97,6 +187,7 @@ export function MhdFormField({
       );
 
     case 'currency':
+    case 'price':
       return (
         <MhdFormNumberInput
           id={field.id}
@@ -142,6 +233,7 @@ export function MhdFormField({
 
     case 'select':
     case 'dropdown':
+    case 'choice':
       return (
         <MhdFormSelect
           id={field.id}
@@ -149,6 +241,21 @@ export function MhdFormField({
           value={String(value ?? '')}
           onChange={onChange}
           options={field.options ?? []}
+          required={isRequired}
+          placeholder={field.placeholder}
+          helpText={field.helpText}
+          error={error}
+        />
+      );
+
+    case 'state_select':
+      return (
+        <MhdFormSelect
+          id={field.id}
+          label={field.label}
+          value={String(value ?? '')}
+          onChange={onChange}
+          options={field.options && field.options.length > 0 ? field.options : US_STATE_OPTIONS}
           required={isRequired}
           placeholder={field.placeholder}
           helpText={field.helpText}
@@ -212,6 +319,33 @@ export function MhdFormField({
         </div>
       );
 
+    case 'yes_no':
+      return (
+        <fieldset>
+          <legend className="mb-1 block text-sm font-medium text-foreground">
+            {field.label}
+            {isRequired ? <span className="ml-1 text-red-500">*</span> : null}
+          </legend>
+          <div className="flex gap-3">
+            {[
+              { label: 'Yes', value: true },
+              { label: 'No', value: false },
+            ].map((option) => (
+              <label key={option.label} className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="radio"
+                  name={field.id}
+                  checked={value === option.value}
+                  onChange={() => onChange(option.value)}
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+          <MhdFormFieldError message={error} />
+        </fieldset>
+      );
+
     case 'toggle':
       return (
         <div>
@@ -263,7 +397,8 @@ export function MhdFormField({
         </fieldset>
       );
 
-    case 'rating': {
+    case 'rating':
+    case 'rating_scale': {
       const current = Number(value) || 0;
       return (
         <div>
@@ -288,6 +423,78 @@ export function MhdFormField({
         </div>
       );
     }
+
+    case 'signature': {
+      const signatureValue =
+        typeof value === 'object' && value !== null && !Array.isArray(value)
+          ? (value as Record<string, unknown>)
+          : {};
+      const signerName = String(signatureValue.signerName ?? '');
+      const signatureText = String(signatureValue.signatureText ?? '');
+      const signedAt = String(signatureValue.signedAt ?? '');
+      const updateSignature = (patch: Record<string, string>) => {
+        onChange({
+          signerName,
+          signatureText,
+          signedAt,
+          ...patch,
+        });
+      };
+
+      return (
+        <fieldset className="space-y-2 rounded-md border border-border p-3">
+          <legend className="px-1 text-sm font-medium text-foreground">
+            {field.label}
+            {isRequired ? <span className="ml-1 text-red-500">*</span> : null}
+          </legend>
+          <input
+            type="text"
+            value={signerName}
+            onChange={(event) => updateSignature({ signerName: event.target.value })}
+            placeholder="Signer name"
+            readOnly={readOnly}
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
+          />
+          <input
+            type="text"
+            value={signatureText}
+            onChange={(event) =>
+              updateSignature({
+                signatureText: event.target.value,
+                signedAt: new Date().toISOString(),
+              })
+            }
+            placeholder="Type signature"
+            readOnly={readOnly}
+            className="w-full rounded-md border border-border px-3 py-2 text-sm font-semibold italic"
+          />
+          {signedAt ? (
+            <p className="text-xs text-muted-foreground">
+              Signed {new Date(signedAt).toLocaleString()}
+            </p>
+          ) : null}
+          <MhdFormFieldError message={error} />
+        </fieldset>
+      );
+    }
+
+    case 'notice_packet_acknowledgment':
+      return (
+        <div className="space-y-2 rounded-md border border-border bg-muted p-4">
+          <h4 className="text-sm font-semibold text-foreground">{field.label}</h4>
+          {field.description ? <MhdRichTextRenderer html={field.description} /> : null}
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={Boolean(value)}
+              onChange={(event) => onChange(event.target.checked)}
+              disabled={readOnly}
+            />
+            I acknowledge the required notices in this packet.
+          </label>
+          <MhdFormFieldError message={error} />
+        </div>
+      );
 
     case 'file':
     case 'file_upload':

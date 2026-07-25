@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdRichTextEditor, MhdRichTextRenderer } from '@/components/ui/MhdRichText';
+import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { useState, type FormEvent } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { Json } from '@/types/database.types';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
@@ -128,10 +130,14 @@ function MhdFollowUpTaskForm({
   const {
     register,
     handleSubmit,
+    control,
+    setValue,
     formState: { errors },
   } = useForm<MhdCreateFollowUpTaskSchemaInput>({
     resolver: zodResolver(mhdCreateFollowUpTaskSchema),
   });
+  const descriptionPlainText = useWatch({ control, name: 'descriptionPlainText' }) ?? '';
+  const descriptionRichText = useWatch({ control, name: 'descriptionRichText' });
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
@@ -144,11 +150,18 @@ function MhdFollowUpTaskForm({
         {errors.title ? <p className="mt-1 text-xs text-red-600">{errors.title.message}</p> : null}
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">Description (optional)</label>
-        <textarea
-          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          rows={2}
-          {...register('descriptionPlainText')}
+        <MhdRichTextEditor
+          label="Description (optional)"
+          html={
+            descriptionRichText
+              ? mhdDocumentToRichHtml(descriptionRichText, descriptionPlainText)
+              : mhdPlainTextToRichHtml(descriptionPlainText)
+          }
+          onChange={(_, plainText, document) => {
+            setValue('descriptionPlainText', plainText, { shouldDirty: true });
+            setValue('descriptionRichText', document, { shouldDirty: true });
+          }}
+          minHeightClassName="min-h-28"
         />
       </div>
       <div className="flex gap-3">
@@ -248,7 +261,10 @@ export function MhdActivityDetailPage() {
     try {
       await actions.createFollowUpTask.mutateAsync({
         activityId: activity.id,
-        input,
+        input: {
+          ...input,
+          descriptionRichText: (input.descriptionRichText ?? null) as Json | null,
+        },
         context: { actorUserId: profile.userId },
       });
       setIsCreatingFollowUp(false);
@@ -504,12 +520,18 @@ export function MhdActivityDetailPage() {
           </div>
         </div>
 
-        {activity.descriptionPlainText ? (
+        {activity.descriptionRichText || activity.descriptionPlainText ? (
           <div className="mt-4 rounded-md bg-muted p-4 text-sm text-muted-foreground">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Description
             </p>
-            <p className="mt-2 whitespace-pre-wrap">{activity.descriptionPlainText}</p>
+            <MhdRichTextRenderer
+              html={mhdDocumentToRichHtml(
+                activity.descriptionRichText,
+                activity.descriptionPlainText ?? '',
+              )}
+              className="mt-2 text-foreground"
+            />
           </div>
         ) : null}
 

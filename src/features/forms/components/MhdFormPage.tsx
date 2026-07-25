@@ -6,6 +6,7 @@ import type {
 import { MhdFormField } from './MhdFormField';
 import { MhdFormFieldGroup } from './MhdFormFieldGroup';
 import { MhdFormTable } from './MhdFormTable';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 
 interface MhdFormPageProps {
   page: MhdFormPageType;
@@ -40,9 +41,7 @@ export function MhdFormPage({
     <div className="space-y-4">
       <div>
         <h3 className="text-xl font-semibold text-foreground">{page.title}</h3>
-        {page.description ? (
-          <p className="mt-1 text-sm text-muted-foreground">{page.description}</p>
-        ) : null}
+        {page.description ? <MhdRichTextRenderer html={page.description} className="mt-1" /> : null}
       </div>
 
       {pageFields.map((field) => {

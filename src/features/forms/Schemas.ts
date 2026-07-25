@@ -38,6 +38,12 @@ export function mhdBuildFormValuesSchema(
     let schema: z.ZodTypeAny;
 
     switch (field.type) {
+      case 'content':
+      case 'display_block':
+      case 'page_break':
+      case 'section':
+        schema = z.unknown().optional().nullable();
+        break;
       case 'email':
       case 'email_field':
         schema = z.string().email('Enter a valid email address');
@@ -45,12 +51,16 @@ export function mhdBuildFormValuesSchema(
       case 'number':
       case 'number_field':
       case 'currency':
+      case 'price':
       case 'percentage':
       case 'rating':
+      case 'rating_scale':
+      case 'calculation':
         schema = z.coerce.number();
         break;
       case 'checkbox':
       case 'toggle':
+      case 'yes_no':
         schema = z.boolean();
         break;
       case 'file':
@@ -58,6 +68,22 @@ export function mhdBuildFormValuesSchema(
         // The stored value is a Drive file *reference* (MhdFormFileValue), not raw bytes.
         schema = z.custom<MhdFormFileValue>((value) => mhdIsFormFileValue(value), {
           message: 'A file must be uploaded',
+        });
+        break;
+      case 'notice_packet_acknowledgment':
+        schema = z.boolean();
+        break;
+      case 'grid':
+      case 'repeating_section':
+      case 'repeating_table':
+      case 'table':
+        schema = z.array(z.record(z.string(), z.unknown()));
+        break;
+      case 'signature':
+        schema = z.object({
+          signerName: z.string().min(1, 'Signer name is required'),
+          signedAt: z.string().optional(),
+          signatureText: z.string().min(1, 'Signature is required'),
         });
         break;
       default:

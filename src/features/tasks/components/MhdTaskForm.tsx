@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
+import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { mhdTaskFormSchema, type MhdTaskFormValues } from '@/features/tasks/Schemas';
 import type { MhdCompany } from '@/features/companies/Types';
 import type {
@@ -27,6 +29,7 @@ const EMPTY_VALUES: MhdTaskFormValues = {
   companyId: '',
   title: '',
   descriptionPlainText: '',
+  descriptionRichText: null,
   statusId: '',
   priorityId: '',
   startDate: '',
@@ -57,6 +60,7 @@ export function MhdTaskForm({
         companyId: selectedTask.companyId,
         title: selectedTask.title,
         descriptionPlainText: selectedTask.descriptionPlainText ?? '',
+        descriptionRichText: selectedTask.descriptionRichText ?? null,
         statusId: selectedTask.statusId,
         priorityId: selectedTask.priorityId ?? '',
         startDate: selectedTask.startDate ?? '',
@@ -163,14 +167,21 @@ export function MhdTaskForm({
           />
         </label>
 
-        <label className="text-sm font-medium text-foreground md:col-span-2">
-          Description
-          <textarea
-            className="mt-1 min-h-24 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            value={values.descriptionPlainText}
-            onChange={(event) => updateValue('descriptionPlainText', event.target.value)}
+        <div className="md:col-span-2">
+          <MhdRichTextEditor
+            label="Description"
+            html={
+              values.descriptionRichText
+                ? mhdDocumentToRichHtml(values.descriptionRichText, values.descriptionPlainText)
+                : mhdPlainTextToRichHtml(values.descriptionPlainText)
+            }
+            onChange={(_, plainText, document) => {
+              updateValue('descriptionPlainText', plainText);
+              updateValue('descriptionRichText', document);
+            }}
+            placeholder="Describe the work, context, links, and acceptance criteria."
           />
-        </label>
+        </div>
 
         <label className="text-sm font-medium text-foreground">
           Status

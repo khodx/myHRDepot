@@ -3,13 +3,15 @@ import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdRichTextEditor, MhdRichTextRenderer } from '@/components/ui/MhdRichText';
+import {
+  mhdDocumentToRichHtml,
+  mhdPlainTextToRichHtml,
+  mhdRichTextToDocument,
+} from '@/components/ui/MhdRichTextUtils';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdNotes } from '@/features/notes/Hook';
-import {
-  mhdPlainTextToRichText,
-  type MhdNote,
-  type MhdNoteVisibility,
-} from '@/features/notes/Types';
+import { type MhdNote, type MhdNoteVisibility } from '@/features/notes/Types';
 
 interface Props {
   activityId: string;
@@ -18,18 +20,30 @@ interface Props {
 
 function MhdActivityNoteEditor({
   initialText = '',
+  initialRichText,
   initialVisibility = 'PUBLIC',
   isSaving,
   onSave,
   onCancel,
 }: {
   initialText?: string;
+  initialRichText?: unknown;
   initialVisibility?: MhdNoteVisibility;
   isSaving: boolean;
-  onSave: (notePlainText: string, visibility: MhdNoteVisibility) => Promise<void>;
+  onSave: (
+    noteRichText: unknown,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) => Promise<void>;
   onCancel?: () => void;
 }) {
   const [notePlainText, setNotePlainText] = useState(initialText);
+  const [noteHtml, setNoteHtml] = useState(
+    initialRichText
+      ? mhdDocumentToRichHtml(initialRichText, initialText)
+      : mhdPlainTextToRichHtml(initialText),
+  );
+  const [noteRichText, setNoteRichText] = useState<unknown>(initialRichText ?? null);
   const [visibility, setVisibility] = useState<MhdNoteVisibility>(initialVisibility);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -42,9 +56,15 @@ function MhdActivityNoteEditor({
     }
 
     setLocalError(null);
-    await onSave(trimmed, visibility);
+    await onSave(
+      noteRichText ?? mhdRichTextToDocument(noteHtml || mhdPlainTextToRichHtml(trimmed), trimmed),
+      trimmed,
+      visibility,
+    );
     if (!onCancel) {
       setNotePlainText('');
+      setNoteHtml('');
+      setNoteRichText(null);
       setVisibility('PUBLIC');
     }
   }
@@ -55,12 +75,15 @@ function MhdActivityNoteEditor({
       onSubmit={(event) => void handleSubmit(event)}
     >
       <div>
-        <label className="mb-1 block text-sm font-medium text-foreground">Note</label>
-        <textarea
-          value={notePlainText}
-          onChange={(event) => setNotePlainText(event.target.value)}
-          rows={3}
-          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        <MhdRichTextEditor
+          label="Note"
+          html={noteHtml}
+          onChange={(html, plainText, document) => {
+            setNoteHtml(html);
+            setNotePlainText(plainText);
+            setNoteRichText(document);
+          }}
+          minHeightClassName="min-h-28"
           placeholder="Add a note to this activity…"
         />
       </div>
@@ -105,7 +128,12 @@ function MhdActivityNoteItem({
   note: MhdNote;
   isSaving: boolean;
   readOnly: boolean;
-  onUpdate: (noteId: string, notePlainText: string, visibility: MhdNoteVisibility) => Promise<void>;
+  onUpdate: (
+    noteId: string,
+    noteRichText: unknown,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) => Promise<void>;
   onDelete: (noteId: string) => Promise<void>;
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -114,10 +142,11 @@ function MhdActivityNoteItem({
     return (
       <MhdActivityNoteEditor
         initialText={note.notePlainText}
+        initialRichText={note.noteRichText}
         initialVisibility={note.visibility}
         isSaving={isSaving}
-        onSave={async (notePlainText, visibility) => {
-          await onUpdate(note.id, notePlainText, visibility);
+        onSave={async (noteRichText, notePlainText, visibility) => {
+          await onUpdate(note.id, noteRichText, notePlainText, visibility);
           setIsEditing(false);
         }}
         onCancel={() => setIsEditing(false)}
@@ -161,7 +190,10 @@ function MhdActivityNoteItem({
         ) : null}
       </div>
 
-      <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{note.notePlainText}</p>
+      <MhdRichTextRenderer
+        html={mhdDocumentToRichHtml(note.noteRichText, note.notePlainText)}
+        className="mt-3 text-foreground"
+      />
     </MhdCard>
   );
 }
@@ -170,22 +202,22 @@ export function MhdActivityNotesPanel({ activityId, readOnly = false }: Props) {
   const { profile } = useMhdAuth();
   const notesState = useMhdNotes('ACTIVITY', activityId, Boolean(profile?.userId));
 
-  async function handleCreate(notePlainText: string, visibility: MhdNoteVisibility) {
-    await notesState.createNote(mhdPlainTextToRichText(notePlainText), notePlainText, visibility);
+  async function handleCreate(
+    noteRichText: unknown,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) {
+    await notesState.createNote(noteRichText, notePlainText, visibility);
   }
 
   async function handleUpdate(
     noteId: string,
+    noteRichText: unknown,
     notePlainText: string,
     visibility: MhdNoteVisibility,
   ) {
     try {
-      await notesState.updateNote(
-        noteId,
-        mhdPlainTextToRichText(notePlainText),
-        notePlainText,
-        visibility,
-      );
+      await notesState.updateNote(noteId, noteRichText, notePlainText, visibility);
     } catch {
       // Surfaced through notesState.errorMessage.
     }

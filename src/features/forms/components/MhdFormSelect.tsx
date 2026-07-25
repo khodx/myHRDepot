@@ -1,5 +1,6 @@
 import type { MhdFormFieldOption } from '../Types';
 import { MhdFormFieldError } from './MhdFormFieldError';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 
 interface MhdFormSelectProps {
   id: string;
@@ -43,7 +44,7 @@ export function MhdFormSelect({
           </option>
         ))}
       </select>
-      {helpText ? <p className="mt-1 text-xs text-muted-foreground">{helpText}</p> : null}
+      {helpText ? <MhdRichTextRenderer html={helpText} className="mt-1 text-xs" /> : null}
       <MhdFormFieldError message={error} />
     </div>
   );

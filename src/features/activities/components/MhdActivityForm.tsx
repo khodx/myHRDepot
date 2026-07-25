@@ -3,6 +3,8 @@ import { Lock, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
+import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { mhdActivityFormSchema, type MhdActivityFormSchemaInput } from '../Schemas';
 import {
   MHD_ACTIVITY_PARTICIPANT_ROLES,
@@ -88,6 +90,8 @@ export function MhdActivityForm({
   const participants = useWatch({ control, name: 'participants' });
   const isConfidential = useWatch({ control, name: 'isConfidential' });
   const selectedPersonId = useWatch({ control, name: 'personId' });
+  const descriptionPlainText = useWatch({ control, name: 'descriptionPlainText' }) ?? '';
+  const descriptionRichText = useWatch({ control, name: 'descriptionRichText' });
 
   function participantKind(fieldId: string, index: number): ParticipantKind {
     return rowKinds[fieldId] ?? (participants?.[index]?.personId ? 'PERSON' : 'USER');
@@ -199,12 +203,18 @@ export function MhdActivityForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Description</label>
-        <textarea
-          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          rows={4}
+        <MhdRichTextEditor
+          label="Description"
+          html={
+            descriptionRichText
+              ? mhdDocumentToRichHtml(descriptionRichText, descriptionPlainText)
+              : mhdPlainTextToRichHtml(descriptionPlainText)
+          }
+          onChange={(_, plainText, document) => {
+            setValue('descriptionPlainText', plainText, { shouldDirty: true });
+            setValue('descriptionRichText', document, { shouldDirty: true });
+          }}
           placeholder="What is this interaction about?"
-          {...register('descriptionPlainText')}
         />
       </div>
 

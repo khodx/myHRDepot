@@ -1,4 +1,5 @@
 import { MhdFormFieldError } from './MhdFormFieldError';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 
 interface MhdFormNumberInputProps {
   id: string;
@@ -62,7 +63,7 @@ export function MhdFormNumberInput({
           <span className="absolute right-3 top-2 text-sm text-muted-foreground">{suffix}</span>
         ) : null}
       </div>
-      {helpText ? <p className="mt-1 text-xs text-muted-foreground">{helpText}</p> : null}
+      {helpText ? <MhdRichTextRenderer html={helpText} className="mt-1 text-xs" /> : null}
       <MhdFormFieldError message={error} />
     </div>
   );

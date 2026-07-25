@@ -1,4 +1,5 @@
 import { MhdFormFieldError } from './MhdFormFieldError';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 
 interface MhdFormTextInputProps {
   id: string;
@@ -11,6 +12,7 @@ interface MhdFormTextInputProps {
   error?: string | null;
   multiline?: boolean;
   readOnly?: boolean;
+  type?: 'text' | 'password' | 'url';
 }
 
 export function MhdFormTextInput({
@@ -24,6 +26,7 @@ export function MhdFormTextInput({
   error,
   multiline,
   readOnly,
+  type = 'text',
 }: MhdFormTextInputProps) {
   const className = `w-full rounded-md border px-3 py-2 text-sm ${
     error ? 'border-red-300' : 'border-border'
@@ -47,7 +50,7 @@ export function MhdFormTextInput({
       ) : (
         <input
           id={id}
-          type="text"
+          type={type}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
@@ -55,7 +58,7 @@ export function MhdFormTextInput({
           className={className}
         />
       )}
-      {helpText ? <p className="mt-1 text-xs text-muted-foreground">{helpText}</p> : null}
+      {helpText ? <MhdRichTextRenderer html={helpText} className="mt-1 text-xs" /> : null}
       <MhdFormFieldError message={error} />
     </div>
   );
