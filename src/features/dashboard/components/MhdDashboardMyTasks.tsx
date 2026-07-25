@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
@@ -36,13 +37,13 @@ export function MhdDashboardMyTasks({ tasks }: Props) {
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1">
               {/* Status colors are workflow-configured server-side, so this pill
-                  keeps its dynamic token rather than the semantic set. */}
+                  keeps its dynamic token rather than the semantic set. The hex
+                  flows through a CSS variable so dark mode can lighten it —
+                  dark-configured tokens (e.g. the brand blue) are otherwise
+                  unreadable on dark cards. */}
               <span
-                className="rounded-full px-2 py-0.5 text-xs font-medium"
-                style={{
-                  backgroundColor: `${task.statusColorToken ?? '#64748b'}22`,
-                  color: task.statusColorToken ?? '#64748b',
-                }}
+                className="rounded-full bg-[color-mix(in_srgb,var(--mhd-status-color)_13%,transparent)] px-2 py-0.5 text-xs font-medium text-[color:var(--mhd-status-color)] dark:text-[color:color-mix(in_srgb,var(--mhd-status-color)_45%,white)]"
+                style={{ '--mhd-status-color': task.statusColorToken ?? '#64748b' } as CSSProperties}
               >
                 {task.statusName}
               </span>
