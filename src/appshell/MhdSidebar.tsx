@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   BarChart3,
+  Accessibility,
   BookMarked,
   BookOpen,
   Briefcase,
@@ -121,6 +122,12 @@ const NAV_SECTIONS: NavSection[] = [
       // company board) behind the same link; Viewer is excluded. The medical
       // partition is gated deeper in the case detail page.
       { label: 'Leaves', route: '/leaves', icon: CalendarOff, roles: mhdRouteRoles('/leaves') },
+      {
+        label: 'Accommodations',
+        route: '/accommodations',
+        icon: Accessibility,
+        roles: mhdRouteRoles('/accommodations'),
+      },
       { label: 'Mileage', route: '/mileage', icon: Car, roles: mhdRouteRoles('/mileage') },
     ],
   },

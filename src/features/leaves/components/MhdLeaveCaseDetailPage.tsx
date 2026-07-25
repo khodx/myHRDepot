@@ -32,6 +32,7 @@ import {
 import { MhdLeaveBalancePanel } from './MhdLeaveBalancePanel';
 import { MhdLeaveCertificationPanel } from './MhdLeaveCertificationPanel';
 import { MhdLeaveStatusBadge } from './MhdLeaveStatusBadge';
+import { MhdLeaveWorkflowPanel } from './MhdLeaveWorkflowPanel';
 
 const REQUIRE_REASON: readonly MhdLeaveCaseStatus[] = ['DENIED', 'CANCELLED'];
 
@@ -318,6 +319,8 @@ export function MhdLeaveCaseDetailPage() {
       <MhdCard>
         <MhdLeaveBalancePanel rows={balanceRows} isLoading={balancesLoading} />
       </MhdCard>
+
+      <MhdLeaveWorkflowPanel caseId={caseId} privileged={isPrivileged} />
 
       {/* ----- Designate hours ----- */}
       {isPrivileged ? (

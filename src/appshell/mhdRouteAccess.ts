@@ -110,6 +110,13 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // provider_note / drive_file_id to null below Platform Admin / HR Partner
   // (Client Admin included) — see MHD_LEAVES_MEDICAL_ROLES.
   { path: '/leaves', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  // Reasonable Accommodations. Employees may open and view only their own
+  // process; the privileged set administers non-medical workflow facts. The
+  // medical partition remains PA/HRP-only server-side and in-page.
+  {
+    path: '/accommodations',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
+  },
   // Investigations — the strictest access model in the platform. Route access
   // does NOT grant case visibility: reaching /investigations (and
   // /investigations/:caseId via the guard's prefix match) only lets a user
@@ -430,6 +437,22 @@ export const MHD_LEAVES_MEDICAL_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'H
 
 export function mhdLeavesCanSeeMedical(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_LEAVES_MEDICAL_ROLES.some((role) => userRoles.includes(role));
+}
+
+export const MHD_ACCOMMODATIONS_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdAccommodationsIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_ACCOMMODATIONS_PRIVILEGED_ROLES.some((role) => userRoles.includes(role));
+}
+
+export const MHD_ACCOMMODATIONS_MEDICAL_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner'];
+
+export function mhdAccommodationsCanSeeMedical(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_ACCOMMODATIONS_MEDICAL_ROLES.some((role) => userRoles.includes(role));
 }
 
 /**

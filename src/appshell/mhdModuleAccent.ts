@@ -32,6 +32,7 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/schedule', 'time-leave'],
   ['/attendance', 'time-leave'],
   ['/leaves', 'time-leave'],
+  ['/accommodations', 'time-leave'],
   ['/mileage', 'time-leave'],
   ['/performance', 'talent'], // includes /performance/invitations
   ['/recruiting', 'talent'], // includes /recruiting/eeo

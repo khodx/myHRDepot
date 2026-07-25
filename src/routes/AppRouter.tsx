@@ -63,6 +63,8 @@ import { MhdMyJobPage } from '@/features/jobs/components/MhdMyJobPage';
 import { MhdMileagePage } from '@/features/mileage/components/MhdMileagePage';
 import { MhdLeavesPage } from '@/features/leaves/components/MhdLeavesPage';
 import { MhdLeaveCaseDetailPage } from '@/features/leaves/components/MhdLeaveCaseDetailPage';
+import { MhdAccommodationsPage } from '@/features/accommodations/components/MhdAccommodationsPage';
+import { MhdAccommodationCaseDetailPage } from '@/features/accommodations/components/MhdAccommodationCaseDetailPage';
 import { MhdInvestigationsPage } from '@/features/investigations/components/MhdInvestigationsPage';
 import { MhdInvestigationCaseDetailPage } from '@/features/investigations/components/MhdInvestigationCaseDetailPage';
 import { MhdTrainingPage } from '@/features/training/components/MhdTrainingPage';
@@ -199,6 +201,8 @@ export function AppRouter() {
                   Platform Admin / HR Partner. */}
               <Route path="/leaves" element={<MhdLeavesPage />} />
               <Route path="/leaves/:caseId" element={<MhdLeaveCaseDetailPage />} />
+              <Route path="/accommodations" element={<MhdAccommodationsPage />} />
+              <Route path="/accommodations/:caseId" element={<MhdAccommodationCaseDetailPage />} />
               {/* Investigations — the strictest access model. The route admits
                   Platform Admin / HR Partner / Client Admin (see mhdRouteAccess);
                   /investigations/:caseId inherits that rule via the guard's

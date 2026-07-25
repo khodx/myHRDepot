@@ -304,7 +304,10 @@ export const mhdFormService = {
         p_definition: toJsonValue(input.definition),
         p_employee_file_category: input.employeeFileCategory ?? null,
         ...(description ? { p_description: description } : {}),
-      })
+        // Postgres uses NULL to mean "no employee-file destination"; gen:types
+        // currently omits null from defaulted RPC arguments even though the
+        // function accepts it at runtime.
+      } as never)
       .returns<MhdCreateFormResultRow[]>();
 
     if (error) {
@@ -336,7 +339,7 @@ export const mhdFormService = {
       ...(shouldUpdateEmployeeFileCategory
         ? { p_employee_file_category: input.employeeFileCategory ?? null }
         : {}),
-    });
+    } as never);
 
     if (error) {
       throw new Error(`Unable to update form: ${error.message}`);

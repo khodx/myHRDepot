@@ -161,6 +161,18 @@ vi.mock('@/features/timeattendance/components/MhdAttendancePage', () => ({
 vi.mock('@/features/timeattendance/components/MhdAttendancePolicyPage', () => ({
   MhdAttendancePolicyPage: () => <div>Attendance Policy Page</div>,
 }));
+vi.mock('@/features/leaves/components/MhdLeavesPage', () => ({
+  MhdLeavesPage: () => <div>Leaves Page</div>,
+}));
+vi.mock('@/features/leaves/components/MhdLeaveCaseDetailPage', () => ({
+  MhdLeaveCaseDetailPage: () => <div>Leave Case Detail Page</div>,
+}));
+vi.mock('@/features/accommodations/components/MhdAccommodationsPage', () => ({
+  MhdAccommodationsPage: () => <div>Accommodations Page</div>,
+}));
+vi.mock('@/features/accommodations/components/MhdAccommodationCaseDetailPage', () => ({
+  MhdAccommodationCaseDetailPage: () => <div>Accommodation Case Detail Page</div>,
+}));
 vi.mock('../components/MhdNotFoundPage', () => ({
   MhdNotFoundPage: () => <div>Page Not Found</div>,
 }));
@@ -555,6 +567,55 @@ describe('MhdAppRouter', () => {
       expect(screen.getByText('Offboarding Case Detail Page')).toBeInTheDocument();
     });
 
+    // Leaves of Absence and Reasonable Accommodations — the same audience
+    // (privileged set + Client User for their OWN cases), the same exclusion
+    // (Viewer), and the same discipline: reaching the route is not the same as
+    // seeing a case. Case visibility is decided server-side by
+    // mhd_can_view_leave_person / mhd_can_view_accommodation_case, and the
+    // medical partition inside each module is narrower still (PA/HRP only).
+    it.each<[string, string]>([
+      ['/leaves', 'Leaves Page'],
+      ['/leaves/case-1', 'Leave Case Detail Page'],
+      ['/accommodations', 'Accommodations Page'],
+      ['/accommodations/case-1', 'Accommodation Case Detail Page'],
+    ])('renders "%s" for a Client User (own-case surface)', (path, text) => {
+      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      setUrl(path);
+
+      render(<MhdAppRouter />);
+
+      expect(screen.getByText(text)).toBeInTheDocument();
+      expect(window.location.pathname).toBe(path);
+    });
+
+    it.each<[string, string]>([
+      ['/leaves', 'Leaves Page'],
+      ['/leaves/case-1', 'Leave Case Detail Page'],
+      ['/accommodations', 'Accommodations Page'],
+      ['/accommodations/case-1', 'Accommodation Case Detail Page'],
+    ])('redirects a Viewer away from "%s" to "/404"', (path, text) => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl(path);
+
+      render(<MhdAppRouter />);
+
+      expect(screen.queryByText(text)).not.toBeInTheDocument();
+      expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/404');
+    });
+
+    it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin'])(
+      'renders the accommodation case detail route for %s',
+      (role) => {
+        mockAuth({ isAuthenticated: true, roles: [role] });
+        setUrl('/accommodations/case-1');
+
+        render(<MhdAppRouter />);
+
+        expect(screen.getByText('Accommodation Case Detail Page')).toBeInTheDocument();
+      },
+    );
+
     it('does not restrict "/tasks", which has no role rule (ALL)', () => {
       mockAuth({ isAuthenticated: true, roles: ['Client User'] });
       setUrl('/tasks');
@@ -673,6 +734,45 @@ describe('MhdSidebar role-based visibility', () => {
 
     expect(screen.queryByText('Investigations')).not.toBeInTheDocument();
     expect(screen.getByText('My Training')).toBeInTheDocument();
+  });
+
+  it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'])(
+    'shows "Leaves" and "Accommodations" in Time & Leave for %s',
+    async (role) => {
+      // Both entries derive their audience from mhdRouteRoles, so the nav and the
+      // router guard can never drift apart. A Client User sees both links because
+      // they reach their OWN cases — an accommodation request may be verbal and
+      // must never depend on an admin opening it for them.
+      mockAuth({ isAuthenticated: true, roles: [role] });
+      const { MhdSidebar } = await import('../MhdSidebar');
+      const { MemoryRouter } = await import('react-router-dom');
+
+      render(
+        <MemoryRouter>
+          <MhdSidebar />
+        </MemoryRouter>,
+      );
+
+      expect(screen.getByText('Leaves')).toBeInTheDocument();
+      expect(screen.getByText('Accommodations')).toBeInTheDocument();
+    },
+  );
+
+  it('hides "Leaves" and "Accommodations" from a Viewer', async () => {
+    mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+    const { MhdSidebar } = await import('../MhdSidebar');
+    const { MemoryRouter } = await import('react-router-dom');
+
+    render(
+      <MemoryRouter>
+        <MhdSidebar />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText('Leaves')).not.toBeInTheDocument();
+    expect(screen.queryByText('Accommodations')).not.toBeInTheDocument();
+    // The Viewer's read-only surfaces still render — the exclusion is targeted.
+    expect(screen.getByText('Forms')).toBeInTheDocument();
   });
 });
 

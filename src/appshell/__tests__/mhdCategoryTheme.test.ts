@@ -22,6 +22,11 @@ const NAV_INVENTORY: ReadonlyArray<[route: string, theme: MhdCategoryTheme]> = [
   ['/schedule', 'time-leave'],
   ['/attendance', 'time-leave'],
   ['/leaves', 'time-leave'],
+  // Reasonable Accommodations shares the Leaves category rather than carrying a
+  // hue of its own: an accommodation is frequently the continuation of a leave
+  // (restrictions on return, leave exhaustion), and the two surfaces link to
+  // each other in both directions.
+  ['/accommodations', 'time-leave'],
   ['/mileage', 'time-leave'],
   ['/performance', 'talent'],
   ['/performance/invitations', 'talent'],
@@ -65,6 +70,9 @@ describe('mhdCategoryThemeForPath — descendant inheritance', () => {
     ['/jobs/123', 'people-org'],
     ['/jobs/competencies', 'people-org'],
     ['/leaves/cases/123', 'time-leave'],
+    // A child page inherits its parent module's category theme; the
+    // accommodation case detail never invents a palette of its own.
+    ['/accommodations/case-1', 'time-leave'],
     ['/attendance/policy', 'time-leave'],
     ['/performance/reviews/rev-1', 'talent'],
     ['/performance/coaching/plan-1', 'talent'],
@@ -161,7 +169,10 @@ describe('global.css category token contract', () => {
   it('keeps the shared white-alpha rail scale at the spec opacities', () => {
     expect(globalCss).toContain('--mhd-rail-surface: rgb(255 255 255 / 0.06)');
     expect(globalCss).toContain('--mhd-rail-hover: rgb(255 255 255 / 0.08)');
-    expect(globalCss).toContain('--mhd-rail-selected: rgb(255 255 255 / 0.30)');
+    // 0.3, not 0.30 — Prettier normalizes the CSS literal, and the selected
+    // opacity was deliberately raised from the earlier faint treatment so the
+    // active module survives a visual scan.
+    expect(globalCss).toContain('--mhd-rail-selected: rgb(255 255 255 / 0.3)');
     expect(globalCss).toContain('--mhd-rail-border: rgb(255 255 255 / 0.18)');
     expect(globalCss).toContain('--mhd-rail-text: rgb(255 255 255 / 0.82)');
     expect(globalCss).toContain('--mhd-rail-muted: rgb(255 255 255 / 0.72)');
