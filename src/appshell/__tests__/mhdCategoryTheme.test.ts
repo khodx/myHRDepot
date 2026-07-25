@@ -239,3 +239,43 @@ describe('category palette contrast', () => {
     },
   );
 });
+
+/* ------------------------------------------------------------------ */
+/* Dark mode: the brand primary is unreadable as text on dark surfaces,
+   so .dark brightens the interactive accent ramp (the rail keeps the
+   exact brand hex). Guard the override and its contrast.               */
+/* ------------------------------------------------------------------ */
+
+const DARK_ACCENT = '#7d82fa';
+const DARK_ACCENT_ON = '#111827';
+const DARK_CARD = '#151b24';
+const DARK_BACKGROUND = '#0b0e13';
+
+describe('dark-mode accent contrast', () => {
+  it('declares the brightened dark accent ramp with ink on-color', () => {
+    const darkThemed = globalCss.indexOf('.dark [data-mhd-theme]');
+    expect(darkThemed).toBeGreaterThan(-1);
+    const block = globalCss.slice(darkThemed, globalCss.indexOf('}', darkThemed));
+    expect(block).toContain(`--mhd-accent: ${DARK_ACCENT}`);
+    expect(block).toContain(`--mhd-accent-on: ${DARK_ACCENT_ON}`);
+    // The rail must NOT be re-declared in dark — it keeps the exact brand hex.
+    expect(block).not.toContain('--mhd-rail:');
+  });
+
+  it('dark accent text meets AA on the dark card and background (≥4.5:1)', () => {
+    expect(contrast(DARK_ACCENT, DARK_CARD)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(DARK_ACCENT, DARK_BACKGROUND)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('ink on-color meets AA on the dark accent fill (≥4.5:1)', () => {
+    expect(contrast(DARK_ACCENT, DARK_ACCENT_ON)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(DARK_ACCENT, DARK_ACCENT_ON)).toBeGreaterThanOrEqual(
+      contrast(DARK_ACCENT, '#FFFFFF'),
+    );
+  });
+
+  it('dark semantic primary matches the brightened accent', () => {
+    const darkRoot = globalCss.indexOf('--color-primary: #7d82fa');
+    expect(darkRoot).toBeGreaterThan(-1);
+  });
+});

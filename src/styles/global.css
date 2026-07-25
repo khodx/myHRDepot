@@ -141,16 +141,28 @@
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
-/* Dark mode changes neutral content surfaces only. The category primary, rail,
-   hover, pressed, and on-primary HEX stay exact — only the light-tint surfaces
-   become alpha tints of the same hue so they sit on dark cards. */
+/* Dark mode. The RAIL keeps the exact brand #000479 — it sits on its own dark
+   surface and anchors the brand. The interactive accent family (text, links,
+   statuses, solid buttons, focus) brightens to a periwinkle derivative of the
+   brand blue because #0003AA is unreadable against dark surfaces (~1.4:1 on
+   the dark card). #7d82fa holds ≥5:1 on the dark card/background, and its
+   on-color flips to ink (#111827, ~5.4:1) since white would fail on the
+   brighter fill. Tint/soft/border derive from the live accent as alpha tints. */
 .dark [data-mhd-theme] {
+  --mhd-accent: #7d82fa;
+  --mhd-accent-hover: #989cfc;
+  --mhd-accent-pressed: #666bee;
+  --mhd-accent-on: #111827;
   --mhd-accent-tint: rgb(from var(--mhd-accent) r g b / 0.16);
   --mhd-accent-soft: rgb(from var(--mhd-accent) r g b / 0.1);
   --mhd-accent-border: rgb(from var(--mhd-accent) r g b / 0.32);
 }
-/* Dark fallback (no category) — same alpha-tint treatment on the brand blue. */
+/* Dark fallback (no category — auth screens, /404): same brightened ramp. */
 .dark {
+  --mhd-accent: #7d82fa;
+  --mhd-accent-hover: #989cfc;
+  --mhd-accent-pressed: #666bee;
+  --mhd-accent-on: #111827;
   --mhd-accent-tint: rgb(from var(--mhd-accent) r g b / 0.16);
   --mhd-accent-soft: rgb(from var(--mhd-accent) r g b / 0.1);
   --mhd-accent-border: rgb(from var(--mhd-accent) r g b / 0.32);
@@ -169,8 +181,10 @@
   --color-foreground: #eef1f5;
   --color-card: #151b24;
   --color-card-foreground: #eef1f5;
-  --color-primary: #0003aa;
-  --color-primary-foreground: #ffffff;
+  /* Brand primary as TEXT is unreadable on dark surfaces — use the same
+     brightened periwinkle as the dark accent ramp, with ink foreground. */
+  --color-primary: #7d82fa;
+  --color-primary-foreground: #111827;
   --color-muted: #1b222c;
   --color-muted-foreground: #97a1b0;
   --color-border: #262e39;
