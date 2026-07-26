@@ -26,7 +26,11 @@ import type {
 // policy on `recruiting_offers`, so a direct insert/update is refused regardless
 // of role, and reads go through the RPCs so their access checks and column
 // projection are the single authority.
-const offerRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -134,7 +138,7 @@ export const mhdOfferService = {
    * numeric `baseSalary` is passed through when set (null/undefined otherwise).
    */
   async createOffer(input: MhdCreateOfferInput): Promise<MhdOfferMutationResult> {
-    const { data, error } = await offerRpc('mhd_recruiting_offer_create', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_offer_create', {
       p_application_id: input.applicationId,
       p_job_title: input.jobTitle.trim(),
       p_start_date: trimmedOrUndefined(input.startDate),
@@ -158,7 +162,7 @@ export const mhdOfferService = {
    */
   async listOffers(applicationId: string | null): Promise<MhdOfferSummary[]> {
     if (!applicationId) return [];
-    const { data, error } = await offerRpc('mhd_recruiting_offer_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_offer_list', {
       p_application_id: applicationId,
     });
     if (error) throw error;
@@ -171,7 +175,7 @@ export const mhdOfferService = {
    * whoever can view the parent requisition (RLS).
    */
   async getOffer(offerId: string): Promise<MhdOfferDetail> {
-    const { data, error } = await offerRpc('mhd_recruiting_offer_get', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_offer_get', {
       p_offer_id: offerId,
     }).single();
     if (error) throw error;
@@ -186,7 +190,7 @@ export const mhdOfferService = {
    * Admin-only at the RPC.
    */
   async extendOffer(input: MhdExtendOfferInput): Promise<void> {
-    const { error } = await offerRpc('mhd_recruiting_offer_extend', {
+    const { error } = await supabaseClient.rpc('mhd_recruiting_offer_extend', {
       p_offer_id: input.offerId,
       p_document_generation_id: trimmedOrUndefined(input.documentGenerationId),
       p_esignature_request_id: trimmedOrUndefined(input.esignatureRequestId),
@@ -204,7 +208,7 @@ export const mhdOfferService = {
    * "signature not yet complete" gate — surface it from the RPC error.
    */
   async acceptOffer(input: MhdAcceptOfferInput): Promise<MhdOfferAcceptResult> {
-    const { data, error } = await offerRpc('mhd_recruiting_offer_accept', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_offer_accept', {
       p_offer_id: input.offerId,
       p_esignature_request_id: trimmedOrUndefined(input.esignatureRequestId),
     });
@@ -219,7 +223,7 @@ export const mhdOfferService = {
    * Admin-only at the RPC.
    */
   async declineOffer(input: MhdDeclineOfferInput): Promise<void> {
-    const { error } = await offerRpc('mhd_recruiting_offer_decline', {
+    const { error } = await supabaseClient.rpc('mhd_recruiting_offer_decline', {
       p_offer_id: input.offerId,
       p_reason: trimmedOrUndefined(input.reason),
     });
@@ -232,7 +236,7 @@ export const mhdOfferService = {
    * elsewhere); the guard surfaces as an RPC error. Admin-only at the RPC.
    */
   async rescindOffer(input: MhdRescindOfferInput): Promise<void> {
-    const { error } = await offerRpc('mhd_recruiting_offer_rescind', {
+    const { error } = await supabaseClient.rpc('mhd_recruiting_offer_rescind', {
       p_offer_id: input.offerId,
       p_reason: trimmedOrUndefined(input.reason),
     });
@@ -248,7 +252,7 @@ export const mhdOfferService = {
    * numerics are normalised, nulls preserved.
    */
   async getHirePayload(applicationId: string): Promise<MhdHirePayload> {
-    const { data, error } = await offerRpc('mhd_recruiting_hire_payload', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_hire_payload', {
       p_application_id: applicationId,
     }).single();
     if (error) throw error;

@@ -2,17 +2,21 @@ import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { MhdComplianceReadiness } from '@/types/mhdCompliance';
 import type { MhdLeaveEligibilityInput, MhdLeaveWorkflow } from './WorkflowTypes';
 
-const rpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 export const mhdLeaveWorkflowService = {
   async get(caseId: string): Promise<MhdLeaveWorkflow> {
-    const { data, error } = await rpc('mhd_leave_workflow_get', { p_case_id: caseId });
+    const { data, error } = await supabaseClient.rpc('mhd_leave_workflow_get', { p_case_id: caseId });
     if (error) throw error;
     return data as unknown as MhdLeaveWorkflow;
   },
 
   async evaluate(input: MhdLeaveEligibilityInput) {
-    const { data, error } = await rpc('mhd_leave_eligibility_evaluate', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_eligibility_evaluate', {
       p_case_id: input.caseId,
       p_as_of_date: input.asOfDate,
       p_employer_employee_count: input.employerEmployeeCount,
@@ -41,7 +45,7 @@ export const mhdLeaveWorkflowService = {
    * impossible, not merely discouraged.
    */
   async confirm(snapshotId: string) {
-    const { error } = await rpc('mhd_leave_eligibility_confirm', {
+    const { error } = await supabaseClient.rpc('mhd_leave_eligibility_confirm', {
       p_snapshot_id: snapshotId,
     });
     if (error) throw error;
@@ -62,7 +66,7 @@ export const mhdLeaveWorkflowService = {
     if (!reason) {
       throw new Error('An eligibility override requires a recorded reason.');
     }
-    const { error } = await rpc('mhd_leave_eligibility_override', {
+    const { error } = await supabaseClient.rpc('mhd_leave_eligibility_override', {
       p_determination_id: input.determinationId,
       p_effective_outcome: input.effectiveOutcome,
       p_override_reason: reason,
@@ -77,7 +81,7 @@ export const mhdLeaveWorkflowService = {
     summary: string;
     visibility: 'EMPLOYEE' | 'HR_ONLY';
   }) {
-    const { data, error } = await rpc('mhd_leave_event_record', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_event_record', {
       p_case_id: input.caseId,
       p_event_type: input.eventType,
       p_channel: input.channel,
@@ -98,7 +102,7 @@ export const mhdLeaveWorkflowService = {
     restrictionsPresent: boolean;
     accommodationReferralRequired: boolean;
   }) {
-    const { data, error } = await rpc('mhd_leave_return_to_work_record', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_return_to_work_record', {
       p_case_id: input.caseId,
       p_expected_return_date: input.expectedReturnDate,
       p_actual_return_date: input.actualReturnDate || undefined,
@@ -112,7 +116,7 @@ export const mhdLeaveWorkflowService = {
   },
 
   async readiness(): Promise<MhdComplianceReadiness | null> {
-    const { data, error } = await rpc('mhd_compliance_module_readiness', {
+    const { data, error } = await supabaseClient.rpc('mhd_compliance_module_readiness', {
       p_module_key: 'LEAVES',
     });
     if (error) throw error;

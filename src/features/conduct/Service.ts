@@ -20,7 +20,11 @@ import type {
 } from './Types';
 import { mhdFormatConductSeverity, mhdToNumber } from './Types';
 
-const conductRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 // Edge function that performs the actual merge + Drive upload for a requested
 // generation (05 - Integration & Deployment / render-document). Body contract:
@@ -253,7 +257,7 @@ export const mhdConductService = {
   // -------------------------------------------------------------------------
 
   async listCases(filters: MhdConductCaseFilters): Promise<MhdConductCase[]> {
-    const { data, error } = await conductRpc('mhd_conduct_list_cases', {
+    const { data, error } = await supabaseClient.rpc('mhd_conduct_list_cases', {
       p_company_id: filters.companyId,
       ...(filterValueOrUndefined(filters.personId)
         ? { p_person_id: filterValueOrUndefined(filters.personId) }
@@ -303,7 +307,7 @@ export const mhdConductService = {
   },
 
   async createCase(input: MhdCreateConductCaseInput): Promise<MhdConductMutationRpcRow> {
-    const { data, error } = await conductRpc('mhd_conduct_create_case', {
+    const { data, error } = await supabaseClient.rpc('mhd_conduct_create_case', {
       p_company_id: input.companyId,
       p_person_id: input.personId,
       p_category: input.category,
@@ -325,7 +329,7 @@ export const mhdConductService = {
   },
 
   async transitionCase(caseId: string, input: MhdTransitionConductCaseInput): Promise<void> {
-    const { error } = await conductRpc('mhd_conduct_transition_case', {
+    const { error } = await supabaseClient.rpc('mhd_conduct_transition_case', {
       p_case_id: caseId,
       p_new_status: input.newStatus,
       ...(trimmedOrUndefined(input.rescindReason)
@@ -344,7 +348,7 @@ export const mhdConductService = {
    * through T&A's own contract — never a direct table write from here.
    */
   async openFromThreshold(thresholdEventId: string): Promise<MhdConductMutationRpcRow> {
-    const { data, error } = await conductRpc('mhd_conduct_open_from_threshold', {
+    const { data, error } = await supabaseClient.rpc('mhd_conduct_open_from_threshold', {
       p_threshold_event_id: thresholdEventId,
     }).returns<MhdConductMutationRpcRow[]>();
 
@@ -365,7 +369,7 @@ export const mhdConductService = {
   // -------------------------------------------------------------------------
 
   async listActions(caseId: string): Promise<MhdConductAction[]> {
-    const { data, error } = await conductRpc('mhd_conduct_list_actions', {
+    const { data, error } = await supabaseClient.rpc('mhd_conduct_list_actions', {
       p_case_id: caseId,
     }).returns<MhdConductActionRpcRow[]>();
 
@@ -377,7 +381,7 @@ export const mhdConductService = {
   },
 
   async createAction(input: MhdCreateConductActionInput): Promise<MhdConductMutationRpcRow> {
-    const { data, error } = await conductRpc('mhd_conduct_create_action', {
+    const { data, error } = await supabaseClient.rpc('mhd_conduct_create_action', {
       p_case_id: input.caseId,
       p_severity: input.severity,
       ...(trimmedOrUndefined(input.actionSummary)
@@ -402,7 +406,7 @@ export const mhdConductService = {
   },
 
   async updateAction(actionId: string, input: MhdUpdateConductActionInput): Promise<void> {
-    const { error } = await conductRpc('mhd_conduct_update_action', {
+    const { error } = await supabaseClient.rpc('mhd_conduct_update_action', {
       p_action_id: actionId,
       ...(input.severity ? { p_severity: input.severity } : {}),
       ...(trimmedOrUndefined(input.actionSummary)
@@ -426,7 +430,7 @@ export const mhdConductService = {
    * first-class, complete record, not a stuck ISSUED state.
    */
   async recordOutcome(actionId: string, input: MhdRecordConductOutcomeInput): Promise<void> {
-    const { error } = await conductRpc('mhd_conduct_record_outcome', {
+    const { error } = await supabaseClient.rpc('mhd_conduct_record_outcome', {
       p_action_id: actionId,
       p_outcome: input.outcome,
       ...(trimmedOrUndefined(input.reason) ? { p_reason: trimmedOrUndefined(input.reason) } : {}),
@@ -439,7 +443,7 @@ export const mhdConductService = {
   },
 
   async deleteAction(actionId: string): Promise<void> {
-    const { error } = await conductRpc('mhd_conduct_delete_action', {
+    const { error } = await supabaseClient.rpc('mhd_conduct_delete_action', {
       p_action_id: actionId,
     });
 
@@ -470,7 +474,7 @@ export const mhdConductService = {
     // An action still transitions DRAFT -> ISSUED and the subject is notified.
     if (!input.requiresDocument) {
       input.onStep?.(0);
-      const { error } = await conductRpc('mhd_conduct_issue_action', {
+      const { error } = await supabaseClient.rpc('mhd_conduct_issue_action', {
         p_action_id: input.actionId,
       });
       if (error) {
@@ -611,7 +615,7 @@ export const mhdConductService = {
     // DRAFT -> ISSUED, stamps the document + signature request, and notifies the
     // subject to acknowledge receipt. ACKNOWLEDGED stays gated on the request
     // completing (recordOutcome enforces it).
-    const { error: issueError } = await conductRpc('mhd_conduct_issue_action', {
+    const { error: issueError } = await supabaseClient.rpc('mhd_conduct_issue_action', {
       p_action_id: input.actionId,
       p_document_generation_id: generationId,
       p_esignature_request_id: esignatureRequestId,

@@ -9,28 +9,29 @@ import type {
 } from './Types';
 
 /**
- * The automation RPCs (migrations 0081-0085) are deliberately NOT in
- * src/types/database.types.ts.
+ * The RPC boundary for this feature is typed locally rather than through the
+ * generated client.
  *
- * Regenerating that file from the local stack produces a 40,000-line diff and
- * two type errors in files this feature does not own — one of them
- * features/onboarding/Service.ts, which another session is editing right now
- * (a nullable RPC argument the generator types as non-null), and one TS2589
- * "type instantiation is excessively deep" in features/performance/Service.ts,
- * which the larger generated union tips over. Neither is this feature's to fix
- * mid-flight, and clobbering a shared generated file while another session is
- * working in it is how two agents corrupt each other's work.
+ * The automation RPCs (migrations 0081-0085) ARE now present in
+ * src/types/database.types.ts — an earlier revision of this comment said they
+ * were not, which was true before the 2026-07-25 regeneration. The reason for
+ * the local seam changed rather than disappeared: the generated `rpc` member
+ * carries one overload per RPC, and at the current schema size merely
+ * *referencing* it exceeds TypeScript's instantiation depth limit (TS2589).
+ * That is why the client is narrowed structurally below before `rpc` is
+ * touched — reading `supabaseClient.rpc` directly is itself the error.
  *
- * So the RPC boundary is typed locally instead. Everything past this seam is
- * fully typed by the domain interfaces in ./Types — the untyped surface is one
- * function, in one file, with the row shapes checked by the map* functions
- * below. When database.types.ts is next regenerated (and the two errors above
- * are dealt with deliberately), this can be swapped for the generated client
- * with no change to any caller.
+ * Everything past this seam is fully typed by the domain interfaces in
+ * ./Types; the untyped surface is one function, in one file, with row shapes
+ * checked by the map* functions below.
  */
 type MhdRpcResult<T> = { data: T | null; error: { message: string } | null };
 
-const mhdRpc = supabaseClient.rpc.bind(supabaseClient) as unknown as <T>(
+const mhdRpc = (
+  supabaseClient as unknown as {
+    rpc: (fn: string, args?: Record<string, unknown>) => unknown;
+  }
+).rpc.bind(supabaseClient) as <T>(
   fn: string,
   args?: Record<string, unknown>,
 ) => PromiseLike<MhdRpcResult<T>>;

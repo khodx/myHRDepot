@@ -40,7 +40,11 @@ import type {
 // insert/update/select is refused regardless of role. The two applicant paths
 // (`submitApplication`, `submitEeo`) are the same RPC surface, reached
 // unauthenticated through the token — see the apply page.
-const recruitingRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -192,7 +196,7 @@ export const mhdRecruitingService = {
    */
   async listStages(companyId: string | null): Promise<MhdRecruitingStage[]> {
     if (!companyId) return [];
-    const { data, error } = await recruitingRpc('mhd_recruiting_stage_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_stage_list', {
       p_company_id: companyId,
     });
     if (error) throw error;
@@ -201,7 +205,7 @@ export const mhdRecruitingService = {
 
   /** Upsert a company pipeline stage. Admin-only at the RPC. Returns the stage id. */
   async upsertStage(input: MhdStageUpsertInput): Promise<string> {
-    const { data, error } = await recruitingRpc('mhd_recruiting_stage_upsert', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_stage_upsert', {
       p_company_id: input.companyId,
       p_stage_key: input.stageKey.trim(),
       p_stage_name: input.stageName.trim(),
@@ -215,7 +219,7 @@ export const mhdRecruitingService = {
   /** The configurable rejection reasons — global + company, active only. */
   async listReasons(companyId: string | null): Promise<MhdRecruitingReason[]> {
     if (!companyId) return [];
-    const { data, error } = await recruitingRpc('mhd_recruiting_reason_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_reason_list', {
       p_company_id: companyId,
     });
     if (error) throw error;
@@ -230,7 +234,7 @@ export const mhdRecruitingService = {
    * through untrimmed when set, omitted when blank.
    */
   async createRequisition(input: MhdCreateRequisitionInput): Promise<MhdRecruitingMutationResult> {
-    const { data, error } = await recruitingRpc('mhd_recruiting_requisition_create', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_requisition_create', {
       p_company_id: input.companyId,
       p_title: input.title.trim(),
       p_job_id: trimmedOrUndefined(input.jobId),
@@ -254,7 +258,7 @@ export const mhdRecruitingService = {
    */
   async listRequisitions(filters: MhdRequisitionFilters): Promise<MhdRecruitingRequisition[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await recruitingRpc('mhd_recruiting_requisition_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_requisition_list', {
       p_company_id: filters.companyId,
       p_status: filterValueOrUndefined(filters.status),
     });
@@ -268,7 +272,7 @@ export const mhdRecruitingService = {
    * app-layer; this RPC records the move and trusts the caller's authority.
    */
   async transitionRequisition(input: MhdTransitionRequisitionInput): Promise<void> {
-    const { error } = await recruitingRpc('mhd_recruiting_requisition_transition', {
+    const { error } = await supabaseClient.rpc('mhd_recruiting_requisition_transition', {
       p_req_id: input.reqId,
       p_new_status: input.newStatus,
     });
@@ -283,7 +287,7 @@ export const mhdRecruitingService = {
    * the recruiter UI shows/copies it and never re-lists the token.
    */
   async inviteApplication(input: MhdInviteApplicationInput): Promise<MhdRecruitingInviteResult> {
-    const { data, error } = await recruitingRpc('mhd_recruiting_application_invite', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_application_invite', {
       p_requisition_id: input.requisitionId,
       p_person_id: input.personId,
       p_source: trimmedOrUndefined(input.source),
@@ -302,7 +306,7 @@ export const mhdRecruitingService = {
    * is not burned (EEO may follow). Called directly by the public apply page.
    */
   async submitApplication(input: MhdSubmitApplicationInput): Promise<MhdRecruitingMutationResult> {
-    const { data, error } = await recruitingRpc('mhd_recruiting_application_submit', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_application_submit', {
       p_invite_token: input.inviteToken,
       p_desired_pay_rate: input.desiredPayRate ?? undefined,
       p_availability_date: trimmedOrUndefined(input.availabilityDate),
@@ -324,7 +328,7 @@ export const mhdRecruitingService = {
    */
   async listApplications(filters: MhdApplicationFilters): Promise<MhdRecruitingApplication[]> {
     if (!filters.requisitionId) return [];
-    const { data, error } = await recruitingRpc('mhd_recruiting_application_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_application_list', {
       p_requisition_id: filters.requisitionId,
       p_stage_id: trimmedOrUndefined(filters.stageId),
       p_lifecycle: filterValueOrUndefined(filters.lifecycle),
@@ -339,7 +343,7 @@ export const mhdRecruitingService = {
    * Visible to whoever can view the parent requisition (RLS). Carries NO EEO data.
    */
   async getApplication(applicationId: string): Promise<MhdRecruitingApplicationDetail> {
-    const { data, error } = await recruitingRpc('mhd_recruiting_application_get', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_application_get', {
       p_application_id: applicationId,
     }).single();
     if (error) throw error;
@@ -354,7 +358,7 @@ export const mhdRecruitingService = {
   async getApplicationHistory(
     applicationId: string,
   ): Promise<MhdRecruitingApplicationHistoryEntry[]> {
-    const { data, error } = await recruitingRpc('mhd_recruiting_application_history', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_application_history', {
       p_application_id: applicationId,
     });
     if (error) throw error;
@@ -368,7 +372,7 @@ export const mhdRecruitingService = {
    * syncs lifecycle from the destination stage's category. Admin-only at the RPC.
    */
   async moveApplicationStage(input: MhdMoveApplicationStageInput): Promise<void> {
-    const { error } = await recruitingRpc('mhd_recruiting_application_move_stage', {
+    const { error } = await supabaseClient.rpc('mhd_recruiting_application_move_stage', {
       p_application_id: input.applicationId,
       p_to_stage_id: input.toStageId,
       p_note: trimmedOrUndefined(input.note),
@@ -381,7 +385,7 @@ export const mhdRecruitingService = {
    * outcome, independent of moving to a REJECTED stage. Admin-only at the RPC.
    */
   async rejectApplication(input: MhdRejectApplicationInput): Promise<void> {
-    const { error } = await recruitingRpc('mhd_recruiting_application_reject', {
+    const { error } = await supabaseClient.rpc('mhd_recruiting_application_reject', {
       p_application_id: input.applicationId,
       p_reason_id: trimmedOrUndefined(input.reasonId),
       p_note: trimmedOrUndefined(input.note),
@@ -397,7 +401,7 @@ export const mhdRecruitingService = {
    * never surfaced back to a recruiter. Called directly by the public apply page.
    */
   async submitEeo(input: MhdSubmitEeoInput): Promise<void> {
-    const { error } = await recruitingRpc('mhd_recruiting_eeo_submit', {
+    const { error } = await supabaseClient.rpc('mhd_recruiting_eeo_submit', {
       p_invite_token: input.inviteToken,
       p_race_ethnicity: trimmedOrUndefined(input.raceEthnicity),
       p_gender: trimmedOrUndefined(input.gender),
@@ -415,7 +419,7 @@ export const mhdRecruitingService = {
    */
   async eeoReport(filters: MhdEeoReportFilters): Promise<MhdRecruitingEeoReportRow[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await recruitingRpc('mhd_recruiting_eeo_report', {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_eeo_report', {
       p_company_id: filters.companyId,
       p_requisition_id: trimmedOrUndefined(filters.requisitionId),
     });

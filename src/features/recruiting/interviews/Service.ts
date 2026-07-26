@@ -37,7 +37,11 @@ import type {
 // gated, reads gate on `mhd_recruiting_can_view_requisition`, and the worksheet
 // gates on `mhd_interview_can_access_interview` (view-the-requisition OR the
 // assigned interviewer) — so an interviewer reaches only their own scorecard.
-const interviewRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -178,7 +182,7 @@ export const mhdInterviewService = {
    */
   async listCategories(companyId: string | null): Promise<MhdInterviewCategory[]> {
     if (!companyId) return [];
-    const { data, error } = await interviewRpc('mhd_interview_category_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_category_list', {
       p_company_id: companyId,
     });
     if (error) throw error;
@@ -192,7 +196,7 @@ export const mhdInterviewService = {
    */
   async listQuestions(filters: MhdInterviewQuestionFilters): Promise<MhdInterviewQuestion[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await interviewRpc('mhd_interview_question_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_question_list', {
       p_company_id: filters.companyId,
       p_category_id: trimmedOrUndefined(filters.categoryId),
       p_scope: filterValueOrUndefined(filters.scope),
@@ -203,7 +207,7 @@ export const mhdInterviewService = {
 
   /** Author a bank question. Admin-only at the RPC. Returns the new question id. */
   async createQuestion(input: MhdCreateQuestionInput): Promise<string> {
-    const { data, error } = await interviewRpc('mhd_interview_question_create', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_question_create', {
       p_company_id: input.companyId,
       p_category_id: input.categoryId,
       p_question_key: input.questionKey.trim(),
@@ -228,7 +232,7 @@ export const mhdInterviewService = {
    */
   async jobCompetencies(requisitionId: string | null): Promise<MhdInterviewJobCompetency[]> {
     if (!requisitionId) return [];
-    const { data, error } = await interviewRpc('mhd_interview_job_competencies', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_job_competencies', {
       p_requisition_id: requisitionId,
     });
     if (error) throw error;
@@ -241,7 +245,7 @@ export const mhdInterviewService = {
    * a second call returns the same guide.
    */
   async guideGetOrCreate(requisitionId: string): Promise<string> {
-    const { data, error } = await interviewRpc('mhd_interview_guide_get_or_create', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_guide_get_or_create', {
       p_requisition_id: requisitionId,
     });
     if (error) throw error;
@@ -254,7 +258,7 @@ export const mhdInterviewService = {
    * Returns the count of items added.
    */
   async guideAssemble(guideId: string): Promise<number> {
-    const { data, error } = await interviewRpc('mhd_interview_guide_assemble', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_guide_assemble', {
       p_guide_id: guideId,
     });
     if (error) throw error;
@@ -263,7 +267,7 @@ export const mhdInterviewService = {
 
   /** Add a specific bank question to a guide (source BANK). Admin-only. Returns the item id. */
   async guideAddQuestion(input: MhdAddGuideQuestionInput): Promise<string> {
-    const { data, error } = await interviewRpc('mhd_interview_guide_add_question', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_guide_add_question', {
       p_guide_id: input.guideId,
       p_question_id: input.questionId,
     });
@@ -276,7 +280,7 @@ export const mhdInterviewService = {
    * by category so the library grows. Admin-only. Returns the item id.
    */
   async guideAddCustom(input: MhdAddCustomQuestionInput): Promise<string> {
-    const { data, error } = await interviewRpc('mhd_interview_guide_add_custom', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_guide_add_custom', {
       p_guide_id: input.guideId,
       p_question_text: input.questionText.trim(),
       p_response_type: input.responseType ?? 'RATING_1_5',
@@ -294,7 +298,7 @@ export const mhdInterviewService = {
    */
   async listGuideItems(guideId: string | null): Promise<MhdInterviewGuideItem[]> {
     if (!guideId) return [];
-    const { data, error } = await interviewRpc('mhd_interview_guide_list_items', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_guide_list_items', {
       p_guide_id: guideId,
     });
     if (error) throw error;
@@ -303,7 +307,7 @@ export const mhdInterviewService = {
 
   /** Remove a guide item. Admin-only at the RPC. */
   async removeGuideItem(itemId: string): Promise<void> {
-    const { error } = await interviewRpc('mhd_interview_guide_remove_item', {
+    const { error } = await supabaseClient.rpc('mhd_interview_guide_remove_item', {
       p_item_id: itemId,
     });
     if (error) throw error;
@@ -317,7 +321,7 @@ export const mhdInterviewService = {
    * audits the create. Returns the minted `(id, reference_id)`.
    */
   async createInterview(input: MhdCreateInterviewInput): Promise<MhdInterviewMutationResult> {
-    const { data, error } = await interviewRpc('mhd_interview_create', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_create', {
       p_application_id: input.applicationId,
       p_interviewer_person_id: input.interviewerPersonId,
       p_guide_id: trimmedOrUndefined(input.guideId),
@@ -337,7 +341,7 @@ export const mhdInterviewService = {
    */
   async listInterviews(applicationId: string | null): Promise<MhdInterview[]> {
     if (!applicationId) return [];
-    const { data, error } = await interviewRpc('mhd_interview_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_list', {
       p_application_id: applicationId,
     });
     if (error) throw error;
@@ -352,7 +356,7 @@ export const mhdInterviewService = {
    */
   async getWorksheet(interviewId: string | null): Promise<MhdInterviewWorksheetItem[]> {
     if (!interviewId) return [];
-    const { data, error } = await interviewRpc('mhd_interview_get_worksheet', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_get_worksheet', {
       p_interview_id: interviewId,
     });
     if (error) throw error;
@@ -384,7 +388,7 @@ export const mhdInterviewService = {
       if (text !== undefined) row.response_text = text;
       return row;
     });
-    const { data, error } = await interviewRpc('mhd_interview_submit_responses', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_submit_responses', {
       p_interview_id: input.interviewId,
       p_responses: payload,
     });
@@ -400,7 +404,7 @@ export const mhdInterviewService = {
    */
   async evaluationRollup(applicationId: string | null): Promise<MhdInterviewEvaluationRollupRow[]> {
     if (!applicationId) return [];
-    const { data, error } = await interviewRpc('mhd_interview_evaluation_rollup', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_evaluation_rollup', {
       p_application_id: applicationId,
     });
     if (error) throw error;
@@ -414,7 +418,7 @@ export const mhdInterviewService = {
    */
   async evaluationOverallScore(applicationId: string | null): Promise<number | null> {
     if (!applicationId) return null;
-    const { data, error } = await interviewRpc('mhd_interview_evaluation_overall_score', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_evaluation_overall_score', {
       p_application_id: applicationId,
     });
     if (error) throw error;
@@ -426,7 +430,7 @@ export const mhdInterviewService = {
    * the RPC, which audits the decision. Returns the evaluation `(id, reference_id)`.
    */
   async finalizeEvaluation(input: MhdFinalizeEvaluationInput): Promise<MhdInterviewMutationResult> {
-    const { data, error } = await interviewRpc('mhd_interview_evaluation_finalize', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_evaluation_finalize', {
       p_application_id: input.applicationId,
       p_recommendation: input.recommendation,
       p_summary: trimmedOrUndefined(input.summary),
@@ -444,7 +448,7 @@ export const mhdInterviewService = {
    */
   async getEvaluation(applicationId: string | null): Promise<MhdCandidateEvaluation | null> {
     if (!applicationId) return null;
-    const { data, error } = await interviewRpc('mhd_interview_evaluation_get', {
+    const { data, error } = await supabaseClient.rpc('mhd_interview_evaluation_get', {
       p_application_id: applicationId,
     });
     if (error) throw error;

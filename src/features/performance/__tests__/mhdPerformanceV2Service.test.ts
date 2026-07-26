@@ -6,10 +6,13 @@ import {
   type MhdReviewParticipant,
 } from '../Types-v2';
 
-// The v2 service binds `supabaseClient.rpc` at module load
-// (`supabaseClient.rpc.bind(supabaseClient)`), so the mock must be in place
-// before the dynamic import below. Every v2 read goes through a single RPC — no
-// direct table selects — which is itself part of the anonymity guarantee.
+// The mock must be in place before the dynamic import below. The v2 service
+// used to bind `supabaseClient.rpc` at module load, which made that ordering
+// load-bearing; it now calls `supabaseClient.rpc` directly (binding the real
+// member instantiates one overload per RPC and trips TS2589 at the current
+// schema size), so the ordering is merely conventional here. Every v2 read
+// goes through a single RPC — no direct table selects — which is itself part
+// of the anonymity guarantee.
 const { rpcMock } = vi.hoisted(() => ({
   rpcMock: vi.fn<(name: string, args?: unknown) => unknown>(),
 }));

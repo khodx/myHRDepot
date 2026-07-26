@@ -12,7 +12,11 @@ import type {
   MhdRecordAccommodationMedicalInput,
 } from './Types';
 
-const rpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 interface MhdAccommodationManagerProjectionRpcRow {
   implementation_id: string;
@@ -42,7 +46,7 @@ function mapSummary(row: MhdAccommodationSummaryRpcRow): MhdAccommodationSummary
 
 export const mhdAccommodationsService = {
   async list(companyId: string, status?: string | null, personId?: string | null) {
-    const { data, error } = await rpc('mhd_accommodation_case_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_case_list', {
       p_company_id: companyId,
       p_status: !status || status === 'ALL' ? undefined : status,
       p_person_id: personId ?? undefined,
@@ -52,13 +56,13 @@ export const mhdAccommodationsService = {
   },
 
   async get(caseId: string): Promise<MhdAccommodationDetail> {
-    const { data, error } = await rpc('mhd_accommodation_case_get', { p_case_id: caseId });
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_case_get', { p_case_id: caseId });
     if (error) throw error;
     return data as unknown as MhdAccommodationDetail;
   },
 
   async create(input: MhdCreateAccommodationInput): Promise<{ id: string; referenceId: string }> {
-    const { data, error } = await rpc('mhd_accommodation_case_create', {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_case_create', {
       p_company_id: input.companyId,
       p_person_id: input.personId,
       p_request_source: input.requestSource,
@@ -74,7 +78,7 @@ export const mhdAccommodationsService = {
   },
 
   async transition(caseId: string, status: MhdAccommodationStatus, reason?: string | null) {
-    const { error } = await rpc('mhd_accommodation_transition', {
+    const { error } = await supabaseClient.rpc('mhd_accommodation_transition', {
       p_case_id: caseId,
       p_new_status: status,
       p_reason: reason?.trim() || undefined,
@@ -91,7 +95,7 @@ export const mhdAccommodationsService = {
     nextStepDue?: string | null;
     employeeVisible: boolean;
   }) {
-    const { data, error } = await rpc('mhd_accommodation_add_interaction', {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_add_interaction', {
       p_case_id: input.caseId,
       p_occurred_at: input.occurredAt,
       p_channel: input.channel,
@@ -114,7 +118,7 @@ export const mhdAccommodationsService = {
     employeePreference: boolean;
     estimatedCost?: number | null;
   }) {
-    const { data, error } = await rpc('mhd_accommodation_add_option', {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_add_option', {
       p_case_id: input.caseId,
       p_option_type: input.optionType,
       p_description: input.description.trim(),
@@ -139,7 +143,7 @@ export const mhdAccommodationsService = {
     alternativesConsidered: boolean;
     interactiveProcessContinues: boolean;
   }) {
-    const { data, error } = await rpc('mhd_accommodation_decide', {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_decide', {
       p_case_id: input.caseId,
       p_outcome: input.outcome,
       p_decision_summary: input.decisionSummary.trim(),
@@ -163,7 +167,7 @@ export const mhdAccommodationsService = {
     managerInstruction: string;
     reviewDueDate?: string | null;
   }) {
-    const { data, error } = await rpc('mhd_accommodation_implement', {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_implement', {
       p_case_id: input.caseId,
       p_option_id: input.optionId,
       p_start_date: input.startDate,
@@ -181,7 +185,7 @@ export const mhdAccommodationsService = {
     summary: string;
     reengageRequired: boolean;
   }) {
-    const { error } = await rpc('mhd_accommodation_complete_review', {
+    const { error } = await supabaseClient.rpc('mhd_accommodation_complete_review', {
       p_review_id: input.reviewId,
       p_effectiveness: input.effectiveness,
       p_summary: input.summary.trim(),
@@ -199,7 +203,7 @@ export const mhdAccommodationsService = {
    * encrypted server-side and never returned by the case read.
    */
   async recordMedical(input: MhdRecordAccommodationMedicalInput): Promise<string> {
-    const { data, error } = await rpc('mhd_accommodation_medical_record', {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_medical_record', {
       p_case_id: input.caseId,
       p_documentation_type: input.documentationType,
       p_status: input.status,
@@ -220,7 +224,7 @@ export const mhdAccommodationsService = {
    * SENSITIVE_FIELD_REVEAL audit event server-side, so a reveal is never silent.
    */
   async revealMedical(documentationId: string): Promise<MhdAccommodationMedicalReveal> {
-    const { data, error } = await rpc('mhd_accommodation_medical_reveal', {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_medical_reveal', {
       p_documentation_id: documentationId,
     });
     if (error) throw error;
@@ -229,7 +233,7 @@ export const mhdAccommodationsService = {
 
   /** Manager-safe projection: instructions and dates only, never medical facts. */
   async managerProjection(personId: string): Promise<MhdAccommodationManagerInstruction[]> {
-    const { data, error } = await rpc('mhd_accommodation_manager_projection', {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_manager_projection', {
       p_person_id: personId,
     });
     if (error) throw error;
@@ -244,7 +248,7 @@ export const mhdAccommodationsService = {
   },
 
   async readiness(): Promise<MhdComplianceReadiness | null> {
-    const { data, error } = await rpc('mhd_compliance_module_readiness', {
+    const { data, error } = await supabaseClient.rpc('mhd_compliance_module_readiness', {
       p_module_key: 'ACCOMMODATIONS',
     });
     if (error) throw error;

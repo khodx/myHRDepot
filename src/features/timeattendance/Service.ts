@@ -37,7 +37,11 @@ import type {
 } from './Types';
 import { mhdToNumber } from './Types';
 
-const attendanceRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -229,7 +233,7 @@ export const mhdTimeAttendanceService = {
   // ----- Schedule -----
 
   async listTemplates(companyId: string): Promise<MhdScheduleTemplateSummary[]> {
-    const { data, error } = await attendanceRpc('mhd_schedule_list_templates', {
+    const { data, error } = await supabaseClient.rpc('mhd_schedule_list_templates', {
       p_company_id: companyId,
     });
     if (error) throw error;
@@ -237,7 +241,7 @@ export const mhdTimeAttendanceService = {
   },
 
   async getTemplate(templateId: string): Promise<MhdScheduleTemplateDetail | null> {
-    const { data, error } = await attendanceRpc('mhd_schedule_get_template', {
+    const { data, error } = await supabaseClient.rpc('mhd_schedule_get_template', {
       p_template_id: templateId,
     });
     if (error) throw error;
@@ -247,7 +251,7 @@ export const mhdTimeAttendanceService = {
   async createTemplate(
     input: MhdCreateScheduleTemplateInput,
   ): Promise<{ id: string; referenceId: string }> {
-    const { data, error } = await attendanceRpc('mhd_schedule_create_template', {
+    const { data, error } = await supabaseClient.rpc('mhd_schedule_create_template', {
       p_company_id: input.companyId,
       p_template_name: input.templateName.trim(),
       // The RPC materialises all seven days server-side; days omitted from this
@@ -268,7 +272,7 @@ export const mhdTimeAttendanceService = {
   },
 
   async updateTemplate(input: MhdUpdateScheduleTemplateInput): Promise<void> {
-    const { error } = await attendanceRpc('mhd_schedule_update_template', {
+    const { error } = await supabaseClient.rpc('mhd_schedule_update_template', {
       p_template_id: input.templateId,
       p_template_name: trimmedOrUndefined(input.templateName),
       p_description: input.description ?? undefined,
@@ -287,14 +291,14 @@ export const mhdTimeAttendanceService = {
   },
 
   async deleteTemplate(templateId: string): Promise<void> {
-    const { error } = await attendanceRpc('mhd_schedule_delete_template', {
+    const { error } = await supabaseClient.rpc('mhd_schedule_delete_template', {
       p_template_id: templateId,
     });
     if (error) throw error;
   },
 
   async assignTemplate(input: MhdAssignScheduleTemplateInput): Promise<string> {
-    const { data, error } = await attendanceRpc('mhd_schedule_assign_template', {
+    const { data, error } = await supabaseClient.rpc('mhd_schedule_assign_template', {
       p_person_id: input.personId,
       p_template_id: input.templateId,
       p_effective_from: input.effectiveFrom,
@@ -305,7 +309,7 @@ export const mhdTimeAttendanceService = {
   },
 
   async endAssignment(assignmentId: string, effectiveTo: string): Promise<void> {
-    const { error } = await attendanceRpc('mhd_schedule_end_assignment', {
+    const { error } = await supabaseClient.rpc('mhd_schedule_end_assignment', {
       p_assignment_id: assignmentId,
       p_effective_to: effectiveTo,
     });
@@ -313,7 +317,7 @@ export const mhdTimeAttendanceService = {
   },
 
   async listAssignments(personId: string): Promise<MhdScheduleAssignment[]> {
-    const { data, error } = await attendanceRpc('mhd_schedule_list_assignments', {
+    const { data, error } = await supabaseClient.rpc('mhd_schedule_list_assignments', {
       p_person_id: personId,
     });
     if (error) throw error;
@@ -322,7 +326,7 @@ export const mhdTimeAttendanceService = {
 
   /** Returns the number of shift rows written. Non-destructive to MANUAL/OVERRIDE rows. */
   async generateShifts(input: MhdGenerateShiftsInput): Promise<number> {
-    const { data, error } = await attendanceRpc('mhd_schedule_generate_shifts', {
+    const { data, error } = await supabaseClient.rpc('mhd_schedule_generate_shifts', {
       p_person_id: input.personId,
       p_from: input.from,
       p_to: input.to,
@@ -332,7 +336,7 @@ export const mhdTimeAttendanceService = {
   },
 
   async listShifts(personId: string, from: string, to: string): Promise<MhdScheduledShift[]> {
-    const { data, error } = await attendanceRpc('mhd_schedule_list_shifts', {
+    const { data, error } = await supabaseClient.rpc('mhd_schedule_list_shifts', {
       p_person_id: personId,
       p_from: from,
       p_to: to,
@@ -342,7 +346,7 @@ export const mhdTimeAttendanceService = {
   },
 
   async overrideShift(input: MhdOverrideShiftInput): Promise<void> {
-    const { error } = await attendanceRpc('mhd_schedule_override_shift', {
+    const { error } = await supabaseClient.rpc('mhd_schedule_override_shift', {
       p_shift_id: input.shiftId,
       p_start_time: input.startTime,
       p_end_time: input.endTime,
@@ -359,7 +363,7 @@ export const mhdTimeAttendanceService = {
     from?: string | null,
     to?: string | null,
   ): Promise<MhdCompanyHoliday[]> {
-    const { data, error } = await attendanceRpc('mhd_schedule_list_holidays', {
+    const { data, error } = await supabaseClient.rpc('mhd_schedule_list_holidays', {
       p_company_id: companyId,
       p_from: from ?? undefined,
       p_to: to ?? undefined,
@@ -374,7 +378,7 @@ export const mhdTimeAttendanceService = {
     holidayName: string,
     isPaid = true,
   ): Promise<string> {
-    const { data, error } = await attendanceRpc('mhd_schedule_upsert_holiday', {
+    const { data, error } = await supabaseClient.rpc('mhd_schedule_upsert_holiday', {
       p_company_id: companyId,
       p_holiday_date: holidayDate,
       p_holiday_name: holidayName.trim(),
@@ -385,7 +389,7 @@ export const mhdTimeAttendanceService = {
   },
 
   async deleteHoliday(holidayId: string): Promise<void> {
-    const { error } = await attendanceRpc('mhd_schedule_delete_holiday', {
+    const { error } = await supabaseClient.rpc('mhd_schedule_delete_holiday', {
       p_holiday_id: holidayId,
     });
     if (error) throw error;
@@ -395,7 +399,7 @@ export const mhdTimeAttendanceService = {
 
   /** Returns the currently open policy version, or null when none is configured yet. */
   async getPolicy(companyId: string): Promise<MhdAttendancePolicy | null> {
-    const { data, error } = await attendanceRpc('mhd_attendance_get_policy', {
+    const { data, error } = await supabaseClient.rpc('mhd_attendance_get_policy', {
       p_company_id: companyId,
     });
     if (error) throw error;
@@ -409,7 +413,7 @@ export const mhdTimeAttendanceService = {
    * explicable under the policy in force at the time (Business Rule 10).
    */
   async createPolicyVersion(input: MhdCreatePolicyVersionInput): Promise<string> {
-    const { data, error } = await attendanceRpc('mhd_attendance_create_policy_version', {
+    const { data, error } = await supabaseClient.rpc('mhd_attendance_create_policy_version', {
       p_company_id: input.companyId,
       p_policy_name: input.policyName.trim(),
       p_effective_from: input.effectiveFrom,
@@ -435,7 +439,7 @@ export const mhdTimeAttendanceService = {
     filters: MhdAttendanceOccurrenceFilters,
   ): Promise<MhdAttendanceOccurrence[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await attendanceRpc('mhd_attendance_list_occurrences', {
+    const { data, error } = await supabaseClient.rpc('mhd_attendance_list_occurrences', {
       p_company_id: filters.companyId,
       p_person_id: filters.personId ?? undefined,
       p_from: filters.from ?? undefined,
@@ -459,7 +463,7 @@ export const mhdTimeAttendanceService = {
     reasonNote?: string | null;
     scheduledShiftId?: string | null;
   }): Promise<{ id: string; referenceId: string; pointsAssessed: number }> {
-    const { data, error } = await attendanceRpc('mhd_attendance_record_occurrence', {
+    const { data, error } = await supabaseClient.rpc('mhd_attendance_record_occurrence', {
       p_person_id: input.personId,
       p_occurrence_date: input.occurrenceDate,
       p_occurrence_type: input.occurrenceType,
@@ -485,7 +489,7 @@ export const mhdTimeAttendanceService = {
   },
 
   async updateOccurrence(input: MhdUpdateOccurrenceInput): Promise<void> {
-    const { error } = await attendanceRpc('mhd_attendance_update_occurrence', {
+    const { error } = await supabaseClient.rpc('mhd_attendance_update_occurrence', {
       p_occurrence_id: input.occurrenceId,
       p_occurrence_type: input.occurrenceType ?? undefined,
       p_minutes_variance: input.minutesVariance ?? undefined,
@@ -505,7 +509,7 @@ export const mhdTimeAttendanceService = {
    * deliberate — surface the zero in the UI so it is not recorded silently.
    */
   async reclassifyOccurrence(input: MhdReclassifyOccurrenceInput): Promise<void> {
-    const { error } = await attendanceRpc('mhd_attendance_reclassify_occurrence', {
+    const { error } = await supabaseClient.rpc('mhd_attendance_reclassify_occurrence', {
       p_occurrence_id: input.occurrenceId,
       p_classification: input.classification,
       // Optional `string` in the live 0032 types; omit for a non-protected
@@ -518,7 +522,7 @@ export const mhdTimeAttendanceService = {
 
   /** Soft delete: unwinds points via reversals, but the occurrence row survives. */
   async voidOccurrence(input: MhdVoidOccurrenceInput): Promise<void> {
-    const { error } = await attendanceRpc('mhd_attendance_void_occurrence', {
+    const { error } = await supabaseClient.rpc('mhd_attendance_void_occurrence', {
       p_occurrence_id: input.occurrenceId,
       p_reason: input.reason.trim(),
     });
@@ -528,7 +532,7 @@ export const mhdTimeAttendanceService = {
   // ----- Points -----
 
   async pointBalance(personId: string, asOf?: string | null): Promise<number> {
-    const { data, error } = await attendanceRpc('mhd_attendance_point_balance', {
+    const { data, error } = await supabaseClient.rpc('mhd_attendance_point_balance', {
       p_person_id: personId,
       p_as_of: asOf ?? undefined,
     });
@@ -541,7 +545,7 @@ export const mhdTimeAttendanceService = {
     from?: string | null,
     to?: string | null,
   ): Promise<MhdPointLedgerEntry[]> {
-    const { data, error } = await attendanceRpc('mhd_attendance_list_point_ledger', {
+    const { data, error } = await supabaseClient.rpc('mhd_attendance_list_point_ledger', {
       p_person_id: personId,
       p_from: from ?? undefined,
       p_to: to ?? undefined,
@@ -551,7 +555,7 @@ export const mhdTimeAttendanceService = {
   },
 
   async adjustPoints(input: MhdAdjustPointsInput): Promise<string> {
-    const { data, error } = await attendanceRpc('mhd_attendance_adjust_points', {
+    const { data, error } = await supabaseClient.rpc('mhd_attendance_adjust_points', {
       p_person_id: input.personId,
       p_points_delta: input.pointsDelta,
       p_reason: input.reason.trim(),
@@ -568,7 +572,7 @@ export const mhdTimeAttendanceService = {
     companyId: string,
     status?: string | null,
   ): Promise<MhdThresholdEvent[]> {
-    const { data, error } = await attendanceRpc('mhd_attendance_list_threshold_events', {
+    const { data, error } = await supabaseClient.rpc('mhd_attendance_list_threshold_events', {
       p_company_id: companyId,
       p_status: filterValueOrUndefined(status),
     });
@@ -577,7 +581,7 @@ export const mhdTimeAttendanceService = {
   },
 
   async resolveThresholdEvent(input: MhdResolveThresholdEventInput): Promise<void> {
-    const { error } = await attendanceRpc('mhd_attendance_resolve_threshold_event', {
+    const { error } = await supabaseClient.rpc('mhd_attendance_resolve_threshold_event', {
       p_event_id: input.eventId,
       p_status: input.status,
       p_resolution_note: trimmedOrUndefined(input.resolutionNote),
@@ -592,7 +596,7 @@ export const mhdTimeAttendanceService = {
     companyId: string,
     status?: string | null,
   ): Promise<MhdReassessmentEvent[]> {
-    const { data, error } = await attendanceRpc('mhd_attendance_list_reassessment_events', {
+    const { data, error } = await supabaseClient.rpc('mhd_attendance_list_reassessment_events', {
       p_company_id: companyId,
       p_status: filterValueOrUndefined(status),
     });
@@ -610,7 +614,7 @@ export const mhdTimeAttendanceService = {
    * occurrence. Override only with a reason that says why.
    */
   async resolveReassessmentEvent(input: MhdResolveReassessmentInput): Promise<string | null> {
-    const { data, error } = await attendanceRpc('mhd_attendance_resolve_reassessment_event', {
+    const { data, error } = await supabaseClient.rpc('mhd_attendance_resolve_reassessment_event', {
       p_event_id: input.eventId,
       p_decision: input.decision,
       p_decision_note: input.decisionNote.trim(),

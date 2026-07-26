@@ -17,7 +17,11 @@ import type {
 } from './Types';
 import { mhdToNullableNumber, mhdToNumber } from './Types';
 
-const jobsRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -120,7 +124,7 @@ export const mhdJobsService = {
   // ----- Jobs -----
 
   async listJobs(companyId: string, search?: string | null, activeOnly = true): Promise<MhdJob[]> {
-    const { data, error } = await jobsRpc('mhd_job_list_jobs', {
+    const { data, error } = await supabaseClient.rpc('mhd_job_list_jobs', {
       p_company_id: companyId,
       p_search: trimmedOrUndefined(search),
       p_active_only: activeOnly,
@@ -130,7 +134,7 @@ export const mhdJobsService = {
   },
 
   async createJob(input: MhdCreateJobInput): Promise<{ id: string; referenceId: string }> {
-    const { data, error } = await jobsRpc('mhd_job_create_job', {
+    const { data, error } = await supabaseClient.rpc('mhd_job_create_job', {
       p_company_id: input.companyId,
       p_job_title: input.jobTitle.trim(),
       p_job_code: trimmedOrUndefined(input.jobCode),
@@ -152,7 +156,7 @@ export const mhdJobsService = {
   },
 
   async updateJob(input: MhdUpdateJobInput): Promise<void> {
-    const { error } = await jobsRpc('mhd_job_update_job', {
+    const { error } = await supabaseClient.rpc('mhd_job_update_job', {
       p_job_id: input.jobId,
       p_job_title: trimmedOrUndefined(input.jobTitle),
       p_job_code: input.jobCode ?? undefined,
@@ -174,7 +178,7 @@ export const mhdJobsService = {
    * read.
    */
   async setPayRange(input: MhdSetPayRangeInput): Promise<void> {
-    const { error } = await jobsRpc('mhd_job_set_pay_range', {
+    const { error } = await supabaseClient.rpc('mhd_job_set_pay_range', {
       p_job_id: input.jobId,
       p_pay_min: input.payMin,
       p_pay_max: input.payMax,
@@ -184,7 +188,7 @@ export const mhdJobsService = {
   },
 
   async deleteJob(jobId: string): Promise<void> {
-    const { error } = await jobsRpc('mhd_job_delete_job', { p_job_id: jobId });
+    const { error } = await supabaseClient.rpc('mhd_job_delete_job', { p_job_id: jobId });
     if (error) throw error;
   },
 
@@ -195,7 +199,7 @@ export const mhdJobsService = {
     jobId: string,
     copyFrom?: string | null,
   ): Promise<{ id: string; referenceId: string }> {
-    const { data, error } = await jobsRpc('mhd_job_description_create_draft', {
+    const { data, error } = await supabaseClient.rpc('mhd_job_description_create_draft', {
       p_job_id: jobId,
       p_copy_from: copyFrom ?? undefined,
     });
@@ -206,7 +210,7 @@ export const mhdJobsService = {
   },
 
   async updateDraft(input: MhdUpdateDescriptionDraftInput): Promise<void> {
-    const { error } = await jobsRpc('mhd_job_description_update_draft', {
+    const { error } = await supabaseClient.rpc('mhd_job_description_update_draft', {
       p_description_id: input.descriptionId,
       p_summary: input.summary ?? undefined,
       p_scope_of_role: input.scopeOfRole ?? undefined,
@@ -222,7 +226,7 @@ export const mhdJobsService = {
     descriptionId: string,
     functions: Array<{ functionText: string; isEssential: boolean }>,
   ): Promise<void> {
-    const { error } = await jobsRpc('mhd_job_description_set_functions', {
+    const { error } = await supabaseClient.rpc('mhd_job_description_set_functions', {
       p_description_id: descriptionId,
       p_functions: functions.map((f) => ({
         function_text: f.functionText,
@@ -240,7 +244,7 @@ export const mhdJobsService = {
       isRequired: boolean;
     }>,
   ): Promise<void> {
-    const { error } = await jobsRpc('mhd_job_description_set_qualifications', {
+    const { error } = await supabaseClient.rpc('mhd_job_description_set_qualifications', {
       p_description_id: descriptionId,
       p_qualifications: qualifications.map((q) => ({
         qualification_text: q.qualificationText,
@@ -255,7 +259,7 @@ export const mhdJobsService = {
     descriptionId: string,
     competencies: Array<{ competencyId: string; weight?: number | null }>,
   ): Promise<void> {
-    const { error } = await jobsRpc('mhd_job_description_set_competencies', {
+    const { error } = await supabaseClient.rpc('mhd_job_description_set_competencies', {
       p_description_id: descriptionId,
       p_competencies: competencies.map((c) => ({
         competency_id: c.competencyId,
@@ -271,7 +275,7 @@ export const mhdJobsService = {
    * cannot support an accommodation analysis.
    */
   async publish(descriptionId: string, effectiveFrom?: string | null): Promise<void> {
-    const { error } = await jobsRpc('mhd_job_description_publish', {
+    const { error } = await supabaseClient.rpc('mhd_job_description_publish', {
       p_description_id: descriptionId,
       p_effective_from: effectiveFrom ?? undefined,
     });
@@ -285,7 +289,7 @@ export const mhdJobsService = {
     industry?: string | null,
     activeOnly = true,
   ): Promise<MhdCompetency[]> {
-    const { data, error } = await jobsRpc('mhd_competency_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_competency_list', {
       p_company_id: companyId,
       p_industry: industry ?? undefined,
       p_active_only: activeOnly,
@@ -295,7 +299,7 @@ export const mhdJobsService = {
   },
 
   async upsertCompetency(input: MhdUpsertCompetencyInput): Promise<string> {
-    const { data, error } = await jobsRpc('mhd_competency_upsert', {
+    const { data, error } = await supabaseClient.rpc('mhd_competency_upsert', {
       // Sent explicitly as null rather than omitted: null MEANS global here, and
       // an omitted argument would take the default instead of expressing intent.
       p_company_id: input.companyId as string,
@@ -313,7 +317,7 @@ export const mhdJobsService = {
   // ----- Assignments -----
 
   async listAssignmentsForPerson(personId: string): Promise<MhdJobAssignment[]> {
-    const { data, error } = await jobsRpc('mhd_job_assignment_list_for_person', {
+    const { data, error } = await supabaseClient.rpc('mhd_job_assignment_list_for_person', {
       p_person_id: personId,
     });
     if (error) throw error;
@@ -322,7 +326,7 @@ export const mhdJobsService = {
 
   /** Closes the current assignment rather than overwriting it — history survives. */
   async assign(input: MhdAssignJobInput): Promise<string> {
-    const { data, error } = await jobsRpc('mhd_job_assignment_assign', {
+    const { data, error } = await supabaseClient.rpc('mhd_job_assignment_assign', {
       p_person_id: input.personId,
       p_job_id: input.jobId,
       p_effective_from: input.effectiveFrom,
@@ -348,7 +352,7 @@ export const mhdJobsService = {
     personId: string,
     asOf?: string | null,
   ): Promise<MhdPublishedJobDescription | null> {
-    const { data, error } = await jobsRpc('mhd_job_get_published_for_person', {
+    const { data, error } = await supabaseClient.rpc('mhd_job_get_published_for_person', {
       p_person_id: personId,
       p_as_of: asOf ?? undefined,
     });

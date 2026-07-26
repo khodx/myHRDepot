@@ -10,7 +10,6 @@ import type {
   MhdUpdateCaseDocumentInput,
 } from './Types';
 
-const caseDocumentsRpc = supabaseClient.rpc.bind(supabaseClient);
 const RENDER_DOCUMENT_FUNCTION_NAME = 'render-document';
 const DEFAULT_GENERATION_POLL_ATTEMPTS = 10;
 const DEFAULT_GENERATION_POLL_INTERVAL_MS = 1500;
@@ -20,7 +19,15 @@ type RpcResult = {
   error: { message: string } | null;
 };
 
-const caseDocumentsRpcUntyped = caseDocumentsRpc as unknown as (
+// The client is narrowed structurally before `rpc` is touched. Reading
+// `supabaseClient.rpc` directly instantiates one overload per RPC, which
+// exceeds TypeScript's instantiation depth limit at the current schema size
+// (TS2589) — so the previous `.bind()` on the real member is itself the error.
+const caseDocumentsRpcUntyped = (
+  supabaseClient as unknown as {
+    rpc: (functionName: string, args: Record<string, unknown>) => unknown;
+  }
+).rpc.bind(supabaseClient) as (
   functionName: string,
   args: Record<string, unknown>,
 ) => Promise<RpcResult>;

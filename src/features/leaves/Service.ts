@@ -22,7 +22,11 @@ import type {
 } from './Types';
 import { mhdToNumber } from './Types';
 
-const leavesRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -108,7 +112,7 @@ export const mhdLeavesService = {
   // ----- Leave types (the catalog) -----
 
   async listLeaveTypes(companyId: string): Promise<MhdLeaveType[]> {
-    const { data, error } = await leavesRpc('mhd_leave_type_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_type_list', {
       p_company_id: companyId,
     });
     if (error) throw error;
@@ -119,7 +123,7 @@ export const mhdLeavesService = {
 
   async listCases(filters: MhdLeaveCaseFilters): Promise<MhdLeaveCaseSummary[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await leavesRpc('mhd_leave_case_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_case_list', {
       p_company_id: filters.companyId,
       p_person_id: filters.personId ?? undefined,
       p_status: filterValueOrUndefined(filters.status),
@@ -129,7 +133,7 @@ export const mhdLeavesService = {
   },
 
   async createCase(input: MhdCreateLeaveCaseInput): Promise<MhdMutationResult> {
-    const { data, error } = await leavesRpc('mhd_leave_case_create', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_case_create', {
       p_company_id: input.companyId,
       p_person_id: input.personId,
       p_reason_category: input.reasonCategory.trim(),
@@ -149,7 +153,7 @@ export const mhdLeavesService = {
    * full set, so an omitted type is a removed basis.
    */
   async setCaseBases(input: MhdSetLeaveCaseBasesInput): Promise<void> {
-    const { error } = await leavesRpc('mhd_leave_case_set_bases', {
+    const { error } = await supabaseClient.rpc('mhd_leave_case_set_bases', {
       p_case_id: input.caseId,
       p_type_ids: input.leaveTypeIds,
     });
@@ -164,13 +168,13 @@ export const mhdLeavesService = {
    * outside the certification partition.
    */
   async listCaseBases(caseId: string): Promise<MhdLeaveTypeId[]> {
-    const { data, error } = await leavesRpc('mhd_leave_case_get_bases', { p_case_id: caseId });
+    const { data, error } = await supabaseClient.rpc('mhd_leave_case_get_bases', { p_case_id: caseId });
     if (error) throw error;
     return ((data ?? []) as MhdLeaveCaseBasisRpcRow[]).map((row) => row.leave_type_id);
   },
 
   async transitionCase(input: MhdTransitionLeaveCaseInput): Promise<void> {
-    const { error } = await leavesRpc('mhd_leave_case_transition', {
+    const { error } = await supabaseClient.rpc('mhd_leave_case_transition', {
       p_case_id: input.caseId,
       p_new_status: input.newStatus,
       p_decision_reason: trimmedOrUndefined(input.decisionReason),
@@ -187,7 +191,7 @@ export const mhdLeavesService = {
    * clocks, which is exactly what a single running counter could never do.
    */
   async designate(input: MhdDesignateLeaveInput): Promise<number> {
-    const { data, error } = await leavesRpc('mhd_leave_designate', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_designate', {
       p_case_id: input.caseId,
       p_hours: input.hours,
       p_effective_date: input.effectiveDate,
@@ -197,7 +201,7 @@ export const mhdLeavesService = {
   },
 
   async adjust(input: MhdAdjustLeaveInput): Promise<string> {
-    const { data, error } = await leavesRpc('mhd_leave_adjust', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_adjust', {
       p_person_id: input.personId,
       p_leave_type_id: input.leaveTypeId,
       p_hours_delta: input.hoursDelta,
@@ -214,7 +218,7 @@ export const mhdLeavesService = {
    * FMLA, CFRA and PDL on separate clocks.
    */
   async balance(personId: string, leaveTypeId: string, asOf?: string | null): Promise<number> {
-    const { data, error } = await leavesRpc('mhd_leave_balance', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_balance', {
       p_person_id: personId,
       p_leave_type_id: leaveTypeId,
       p_as_of: asOf ?? undefined,
@@ -224,7 +228,7 @@ export const mhdLeavesService = {
   },
 
   async listLedger(personId: string, leaveTypeId?: string | null): Promise<MhdLeaveLedgerEntry[]> {
-    const { data, error } = await leavesRpc('mhd_leave_list_ledger', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_list_ledger', {
       p_person_id: personId,
       p_leave_type_id: leaveTypeId ?? undefined,
     });
@@ -242,7 +246,7 @@ export const mhdLeavesService = {
    * `canSeeMedical` flag from the route to render honestly.
    */
   async listCertifications(caseId: string): Promise<MhdLeaveCertification[]> {
-    const { data, error } = await leavesRpc('mhd_leave_cert_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_cert_list', {
       p_case_id: caseId,
     });
     if (error) throw error;
@@ -250,7 +254,7 @@ export const mhdLeavesService = {
   },
 
   async recordCertification(input: MhdRecordCertificationInput): Promise<string> {
-    const { data, error } = await leavesRpc('mhd_leave_cert_record', {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_cert_record', {
       p_case_id: input.caseId,
       p_certification_type: input.certificationType,
       p_due_date: input.dueDate ?? undefined,
@@ -260,7 +264,7 @@ export const mhdLeavesService = {
   },
 
   async markCertificationSufficient(input: MhdMarkCertificationInput): Promise<void> {
-    const { error } = await leavesRpc('mhd_leave_cert_mark_sufficient', {
+    const { error } = await supabaseClient.rpc('mhd_leave_cert_mark_sufficient', {
       p_cert_id: input.certId,
       p_sufficient: input.sufficient,
       p_received_at: input.receivedAt ?? undefined,

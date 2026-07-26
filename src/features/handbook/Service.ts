@@ -35,7 +35,11 @@ import type {
 // direct insert/update is refused even for an admin. The library read
 // (handbook_sections) is likewise reached through `section_list`, never a
 // direct select.
-const handbookRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -165,7 +169,7 @@ export const mhdHandbookService = {
    * mutating RPCs re-check the role regardless, so this only governs affordances.
    */
   async isPrivileged(): Promise<boolean> {
-    const { data, error } = await handbookRpc('mhd_handbook_is_privileged', undefined);
+    const { data, error } = await supabaseClient.rpc('mhd_handbook_is_privileged', undefined);
     if (error) throw error;
     return Boolean(data);
   },
@@ -179,7 +183,7 @@ export const mhdHandbookService = {
    */
   async listSections(filters: MhdHandbookSectionFilters): Promise<MhdHandbookSection[]> {
     if (!filters.handbookType) return [];
-    const { data, error } = await handbookRpc('mhd_handbook_section_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_handbook_section_list', {
       p_handbook_type: filters.handbookType,
       p_jurisdiction: trimmedOrUndefined(filters.jurisdiction),
     });
@@ -193,7 +197,7 @@ export const mhdHandbookService = {
    * only at the RPC; the caller sees the minted `(id, reference_id)`.
    */
   async create(input: MhdCreateHandbookInput): Promise<MhdHandbookMutationResult> {
-    const { data, error } = await handbookRpc('mhd_handbook_create', {
+    const { data, error } = await supabaseClient.rpc('mhd_handbook_create', {
       p_company_id: input.companyId,
       p_handbook_type: input.handbookType,
       p_title: input.title.trim(),
@@ -208,7 +212,7 @@ export const mhdHandbookService = {
   /** A company's handbooks, newest first per type. Gates on company access. */
   async list(filters: MhdHandbookListFilters): Promise<MhdHandbook[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await handbookRpc('mhd_handbook_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_handbook_list', {
       p_company_id: filters.companyId,
     });
     if (error) throw error;
@@ -221,7 +225,7 @@ export const mhdHandbookService = {
    * the server's error rather than pre-empting it.
    */
   async toggleSection(input: MhdToggleSectionInput): Promise<void> {
-    const { error } = await handbookRpc('mhd_handbook_toggle_section', {
+    const { error } = await supabaseClient.rpc('mhd_handbook_toggle_section', {
       p_handbook_id: input.handbookId,
       p_section_id: input.sectionId,
       p_included: input.included,
@@ -235,7 +239,7 @@ export const mhdHandbookService = {
    * placeholders and the preview UI marks them as such.
    */
   async preview(handbookId: string): Promise<MhdHandbookPreviewRow[]> {
-    const { data, error } = await handbookRpc('mhd_handbook_preview', {
+    const { data, error } = await supabaseClient.rpc('mhd_handbook_preview', {
       p_handbook_id: handbookId,
     });
     if (error) throw error;
@@ -251,7 +255,7 @@ export const mhdHandbookService = {
    * document; the service never invents a doc-gen call.
    */
   async publish(input: MhdPublishHandbookInput): Promise<MhdHandbookPublishResult> {
-    const { data, error } = await handbookRpc('mhd_handbook_publish', {
+    const { data, error } = await supabaseClient.rpc('mhd_handbook_publish', {
       p_handbook_id: input.handbookId,
       p_effective_date: trimmedOrUndefined(input.effectiveDate),
       p_document_generation_id: trimmedOrUndefined(input.documentGenerationId),
@@ -267,7 +271,7 @@ export const mhdHandbookService = {
    * render it read-only. Correction is a new version, never an edit to this one.
    */
   async versionGet(versionId: string): Promise<MhdHandbookVersion | null> {
-    const { data, error } = await handbookRpc('mhd_handbook_version_get', {
+    const { data, error } = await supabaseClient.rpc('mhd_handbook_version_get', {
       p_version_id: versionId,
     });
     if (error) throw error;
@@ -280,7 +284,7 @@ export const mhdHandbookService = {
 
   /** Archive a handbook. Admin only at the RPC. */
   async archive(handbookId: string): Promise<void> {
-    const { error } = await handbookRpc('mhd_handbook_archive', {
+    const { error } = await supabaseClient.rpc('mhd_handbook_archive', {
       p_handbook_id: handbookId,
     });
     if (error) throw error;
@@ -298,7 +302,7 @@ export const mhdHandbookService = {
   async assignAcknowledgment(
     input: MhdAssignAcknowledgmentInput,
   ): Promise<MhdHandbookMutationResult> {
-    const { data, error } = await handbookRpc('mhd_handbook_assign_acknowledgment', {
+    const { data, error } = await supabaseClient.rpc('mhd_handbook_assign_acknowledgment', {
       p_version_id: input.versionId,
       p_person_id: input.personId,
       p_esignature_request_id: trimmedOrUndefined(input.esignatureRequestId),
@@ -317,7 +321,7 @@ export const mhdHandbookService = {
    * (the shell path) it succeeds directly.
    */
   async acknowledge(input: MhdAcknowledgeInput): Promise<void> {
-    const { error } = await handbookRpc('mhd_handbook_acknowledge', {
+    const { error } = await supabaseClient.rpc('mhd_handbook_acknowledge', {
       p_ack_id: input.ackId,
       p_esignature_request_id: trimmedOrUndefined(input.esignatureRequestId),
     });
@@ -329,7 +333,7 @@ export const mhdHandbookService = {
    * Admin only at the RPC.
    */
   async ackStatus(versionId: string): Promise<MhdHandbookAckStatusRow[]> {
-    const { data, error } = await handbookRpc('mhd_handbook_ack_status', {
+    const { data, error } = await supabaseClient.rpc('mhd_handbook_ack_status', {
       p_version_id: versionId,
     });
     if (error) throw error;
@@ -341,7 +345,7 @@ export const mhdHandbookService = {
    * employee reaches this; RLS narrows it to their own rows via `auth.uid()`.
    */
   async myAcknowledgments(): Promise<MhdMyAcknowledgment[]> {
-    const { data, error } = await handbookRpc('mhd_handbook_my_acknowledgments', undefined);
+    const { data, error } = await supabaseClient.rpc('mhd_handbook_my_acknowledgments', undefined);
     if (error) throw error;
     return ((data ?? []) as MhdMyAcknowledgmentRpcRow[]).map(mapMyAcknowledgment);
   },

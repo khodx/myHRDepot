@@ -28,7 +28,11 @@ import type {
 } from './Types';
 import { mhdToNumber } from './Types';
 
-const mileageRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -163,7 +167,7 @@ export const mhdMileageService = {
   // ----- Rate registry (global; Platform Admin writes, everyone reads) -----
 
   async listRates(filters: MhdMileageRateFilters = {}): Promise<MhdMileageRate[]> {
-    const { data, error } = await mileageRpc('mhd_mileage_list_rates', {
+    const { data, error } = await supabaseClient.rpc('mhd_mileage_list_rates', {
       p_category: filterValueOrUndefined(filters.category),
       p_status: filterValueOrUndefined(filters.status),
     });
@@ -180,7 +184,7 @@ export const mhdMileageService = {
     category: string,
     onDate: string,
   ): Promise<MhdMileageResolvedRate | null> {
-    const { data, error } = await mileageRpc('mhd_mileage_resolve_rate_for_date', {
+    const { data, error } = await supabaseClient.rpc('mhd_mileage_resolve_rate_for_date', {
       p_category: category,
       p_on_date: onDate,
     });
@@ -195,7 +199,7 @@ export const mhdMileageService = {
    * why the citation is mandatory at this point rather than later.
    */
   async proposeRate(input: MhdProposeRateInput): Promise<{ id: string; referenceId: string }> {
-    const { data, error } = await mileageRpc('mhd_mileage_propose_rate', {
+    const { data, error } = await supabaseClient.rpc('mhd_mileage_propose_rate', {
       p_category: input.category,
       p_rate_per_mile: input.ratePerMile,
       p_effective_from: input.effectiveFrom,
@@ -216,7 +220,7 @@ export const mhdMileageService = {
    * registry never holds two ACTIVE rows for one category and date.
    */
   async confirmRate(rateId: string): Promise<void> {
-    const { error } = await mileageRpc('mhd_mileage_confirm_rate', {
+    const { error } = await supabaseClient.rpc('mhd_mileage_confirm_rate', {
       p_rate_id: rateId,
     });
     if (error) throw error;
@@ -233,7 +237,7 @@ export const mhdMileageService = {
     companyId: string,
     onDate?: string | null,
   ): Promise<MhdMileageEffectiveRate | null> {
-    const { data, error } = await mileageRpc('mhd_mileage_get_effective_rate', {
+    const { data, error } = await supabaseClient.rpc('mhd_mileage_get_effective_rate', {
       p_company_id: companyId,
       p_on_date: onDate ?? undefined,
     });
@@ -248,7 +252,7 @@ export const mhdMileageService = {
    * never restates a settled reimbursement.
    */
   async setCompanyPolicy(input: MhdSetCompanyRatePolicyInput): Promise<string> {
-    const { data, error } = await mileageRpc('mhd_mileage_set_company_policy', {
+    const { data, error } = await supabaseClient.rpc('mhd_mileage_set_company_policy', {
       p_company_id: input.companyId,
       p_effective_from: input.effectiveFrom,
       p_rate_mode: input.rateMode,
@@ -268,7 +272,7 @@ export const mhdMileageService = {
 
   async listTrips(filters: MhdMileageTripFilters): Promise<MhdMileageTrip[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await mileageRpc('mhd_mileage_list_trips', {
+    const { data, error } = await supabaseClient.rpc('mhd_mileage_list_trips', {
       p_company_id: filters.companyId,
       p_person_id: filters.personId ?? undefined,
       p_from: filters.from ?? undefined,
@@ -286,7 +290,7 @@ export const mhdMileageService = {
    * supplies on the user's behalf is not an affirmation.
    */
   async recordTrip(input: MhdRecordTripInput): Promise<{ id: string; referenceId: string }> {
-    const { data, error } = await mileageRpc('mhd_mileage_record_trip', {
+    const { data, error } = await supabaseClient.rpc('mhd_mileage_record_trip', {
       p_person_id: input.personId,
       p_trip_date: input.tripDate,
       p_miles: input.miles,
@@ -314,7 +318,7 @@ export const mhdMileageService = {
    * the money is decided.
    */
   async voidTrip(input: MhdVoidTripInput): Promise<void> {
-    const { error } = await mileageRpc('mhd_mileage_void_trip', {
+    const { error } = await supabaseClient.rpc('mhd_mileage_void_trip', {
       p_trip_id: input.tripId,
       p_reason: input.reason.trim(),
     });
@@ -339,7 +343,7 @@ export const mhdMileageService = {
     vehicleDescription?: string | null;
     notes?: string | null;
   }): Promise<void> {
-    const { error } = await mileageRpc('mhd_mileage_update_trip', {
+    const { error } = await supabaseClient.rpc('mhd_mileage_update_trip', {
       p_trip_id: input.tripId,
       p_trip_date: input.tripDate ?? undefined,
       p_miles: input.miles ?? undefined,
@@ -359,7 +363,7 @@ export const mhdMileageService = {
 
   async listClaims(filters: MhdMileageClaimFilters): Promise<MhdMileageClaimSummary[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await mileageRpc('mhd_mileage_list_claims', {
+    const { data, error } = await supabaseClient.rpc('mhd_mileage_list_claims', {
       p_company_id: filters.companyId,
       p_person_id: filters.personId ?? undefined,
       p_status: filterValueOrUndefined(filters.status),
@@ -369,7 +373,7 @@ export const mhdMileageService = {
   },
 
   async getClaim(claimId: string): Promise<MhdMileageClaimDetail | null> {
-    const { data, error } = await mileageRpc('mhd_mileage_get_claim', {
+    const { data, error } = await supabaseClient.rpc('mhd_mileage_get_claim', {
       p_claim_id: claimId,
     });
     if (error) throw error;
@@ -380,7 +384,7 @@ export const mhdMileageService = {
   },
 
   async createClaim(input: MhdCreateClaimInput): Promise<{ id: string; referenceId: string }> {
-    const { data, error } = await mileageRpc('mhd_mileage_create_claim', {
+    const { data, error } = await supabaseClient.rpc('mhd_mileage_create_claim', {
       p_person_id: input.personId,
       p_period_start: input.periodStart,
       p_period_end: input.periodEnd,
@@ -398,7 +402,7 @@ export const mhdMileageService = {
    * would be paid twice.
    */
   async addTripToClaim(input: MhdAddTripToClaimInput): Promise<void> {
-    const { error } = await mileageRpc('mhd_mileage_add_trip_to_claim', {
+    const { error } = await supabaseClient.rpc('mhd_mileage_add_trip_to_claim', {
       p_claim_id: input.claimId,
       p_trip_id: input.tripId,
     });
@@ -413,7 +417,7 @@ export const mhdMileageService = {
    */
   /** The counterpart to `addTripToClaim`. Draft claims only. */
   async removeTripFromClaim(claimId: string, tripId: string): Promise<void> {
-    const { error } = await mileageRpc('mhd_mileage_remove_trip_from_claim', {
+    const { error } = await supabaseClient.rpc('mhd_mileage_remove_trip_from_claim', {
       p_claim_id: claimId,
       p_trip_id: tripId,
     });
@@ -427,7 +431,7 @@ export const mhdMileageService = {
    * gone to payroll, withdrawing it is a conversation with payroll.
    */
   async cancelClaim(claimId: string, reason: string): Promise<void> {
-    const { error } = await mileageRpc('mhd_mileage_cancel_claim', {
+    const { error } = await supabaseClient.rpc('mhd_mileage_cancel_claim', {
       p_claim_id: claimId,
       p_reason: reason.trim(),
     });
@@ -435,7 +439,7 @@ export const mhdMileageService = {
   },
 
   async submitClaim(claimId: string): Promise<void> {
-    const { error } = await mileageRpc('mhd_mileage_submit_claim', {
+    const { error } = await supabaseClient.rpc('mhd_mileage_submit_claim', {
       p_claim_id: claimId,
     });
     if (error) throw error;
@@ -452,7 +456,7 @@ export const mhdMileageService = {
    * module exists to prevent.
    */
   async decideClaim(input: MhdDecideClaimInput): Promise<void> {
-    const { error } = await mileageRpc('mhd_mileage_decide_claim', {
+    const { error } = await supabaseClient.rpc('mhd_mileage_decide_claim', {
       p_claim_id: input.claimId,
       p_decision: input.decision,
       p_decision_note: trimmedOrUndefined(input.decisionNote),
@@ -462,7 +466,7 @@ export const mhdMileageService = {
 
   /** Terminal. Only an APPROVED claim can be exported, and only once. */
   async markExported(input: MhdMarkClaimExportedInput): Promise<void> {
-    const { error } = await mileageRpc('mhd_mileage_mark_exported', {
+    const { error } = await supabaseClient.rpc('mhd_mileage_mark_exported', {
       p_claim_id: input.claimId,
       p_batch_reference: input.batchReference.trim(),
     });
@@ -478,7 +482,7 @@ export const mhdMileageService = {
    * permission error.
    */
   async isPrivileged(): Promise<boolean> {
-    const { data, error } = await mileageRpc('mhd_mileage_is_privileged', undefined);
+    const { data, error } = await supabaseClient.rpc('mhd_mileage_is_privileged', undefined);
     if (error) throw error;
     return Boolean(data);
   },

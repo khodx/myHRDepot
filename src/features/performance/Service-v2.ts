@@ -17,7 +17,11 @@ import type {
 } from './Types-v2';
 import { mhdToNumber } from './Types-v2';
 
-const performanceRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -117,7 +121,7 @@ export const mhdPerformanceV2Service = {
    * has to name, and what a rater is told before they write.
    */
   async feedbackThreshold(companyId: string): Promise<number> {
-    const { data, error } = await performanceRpc('mhd_performance_feedback_threshold', {
+    const { data, error } = await supabaseClient.rpc('mhd_performance_feedback_threshold', {
       p_company_id: companyId,
     });
     if (error) throw error;
@@ -137,7 +141,7 @@ export const mhdPerformanceV2Service = {
    * SELF and MANAGER groups are never gated and appear as soon as they exist.
    */
   async feedbackAggregate(reviewId: string): Promise<MhdFeedbackAggregateGroup[]> {
-    const { data, error } = await performanceRpc('mhd_performance_feedback_aggregate', {
+    const { data, error } = await supabaseClient.rpc('mhd_performance_feedback_aggregate', {
       p_review_id: reviewId,
     });
     if (error) throw error;
@@ -155,7 +159,7 @@ export const mhdPerformanceV2Service = {
    * back from `listParticipants` rather than assuming INVITED.
    */
   async inviteParticipant(input: MhdInviteParticipantInput): Promise<string> {
-    const { data, error } = await performanceRpc('mhd_performance_invite_participant', {
+    const { data, error } = await supabaseClient.rpc('mhd_performance_invite_participant', {
       p_review_id: input.reviewId,
       p_person_id: input.personId,
       p_participant_type: input.participantType,
@@ -166,7 +170,7 @@ export const mhdPerformanceV2Service = {
 
   /** Turn a subject's nomination into a real invitation. Reviewer/HR only. */
   async approveParticipant(participantId: string): Promise<void> {
-    const { error } = await performanceRpc('mhd_performance_approve_participant', {
+    const { error } = await supabaseClient.rpc('mhd_performance_approve_participant', {
       p_participant_id: participantId,
     });
     if (error) throw error;
@@ -183,7 +187,7 @@ export const mhdPerformanceV2Service = {
    * existing rows before inserting. Always send the complete set.
    */
   async submitFeedback(input: MhdSubmitFeedbackInput): Promise<void> {
-    const { error } = await performanceRpc('mhd_performance_submit_feedback', {
+    const { error } = await supabaseClient.rpc('mhd_performance_submit_feedback', {
       p_participant_id: input.participantId,
       // Sent as a jsonb array of snake_case objects — the RPC reads
       // `competency_id`, `section_id`, `rating` and `comment` off each element.
@@ -204,7 +208,7 @@ export const mhdPerformanceV2Service = {
    * refusal stops looking like an invitation nobody ever opened.
    */
   async declineParticipation(input: MhdDeclineParticipationInput): Promise<void> {
-    const { error } = await performanceRpc('mhd_performance_decline_participation', {
+    const { error } = await supabaseClient.rpc('mhd_performance_decline_participation', {
       p_participant_id: input.participantId,
       p_reason: trimmedOrUndefined(input.reason),
     });
@@ -220,7 +224,7 @@ export const mhdPerformanceV2Service = {
    * what makes that a decision rather than an accident.
    */
   async closeFeedback(input: MhdCloseFeedbackInput): Promise<void> {
-    const { error } = await performanceRpc('mhd_performance_close_feedback', {
+    const { error } = await supabaseClient.rpc('mhd_performance_close_feedback', {
       p_review_id: input.reviewId,
       p_reason: input.reason.trim(),
     });
@@ -240,7 +244,7 @@ export const mhdPerformanceV2Service = {
    * the review simply proceeds on template sections alone.
    */
   async seedCompetencies(reviewId: string): Promise<number> {
-    const { data, error } = await performanceRpc('mhd_performance_seed_competencies', {
+    const { data, error } = await supabaseClient.rpc('mhd_performance_seed_competencies', {
       p_review_id: reviewId,
     });
     if (error) throw error;
@@ -255,7 +259,7 @@ export const mhdPerformanceV2Service = {
    * criteria be quietly narrowed after the fact.
    */
   async addReviewCompetency(input: MhdAddReviewCompetencyInput): Promise<string> {
-    const { data, error } = await performanceRpc('mhd_performance_add_review_competency', {
+    const { data, error } = await supabaseClient.rpc('mhd_performance_add_review_competency', {
       p_review_id: input.reviewId,
       p_competency_id: input.competencyId,
     });
@@ -265,7 +269,7 @@ export const mhdPerformanceV2Service = {
 
   /** Rate one competency, 1–5. Comments are merged, not cleared, when omitted. */
   async rateCompetency(input: MhdRateCompetencyInput): Promise<void> {
-    const { error } = await performanceRpc('mhd_performance_rate_competency', {
+    const { error } = await supabaseClient.rpc('mhd_performance_rate_competency', {
       p_review_competency_id: input.reviewCompetencyId,
       p_rating: input.rating,
       // The RPC coalesces onto the existing value, so an undefined here LEAVES
@@ -277,7 +281,7 @@ export const mhdPerformanceV2Service = {
 
   /** Inherited rows first, then review-specific additions, each in seeded order. */
   async listReviewCompetencies(reviewId: string): Promise<MhdReviewCompetency[]> {
-    const { data, error } = await performanceRpc('mhd_performance_list_review_competencies', {
+    const { data, error } = await supabaseClient.rpc('mhd_performance_list_review_competencies', {
       p_review_id: reviewId,
     });
     if (error) throw error;
@@ -294,7 +298,7 @@ export const mhdPerformanceV2Service = {
    * over one or two responses would be de-anonymised by anyone reading it.
    */
   async listParticipants(reviewId: string): Promise<MhdReviewParticipant[]> {
-    const { data, error } = await performanceRpc('mhd_performance_list_participants', {
+    const { data, error } = await supabaseClient.rpc('mhd_performance_list_participants', {
       p_review_id: reviewId,
     });
     if (error) throw error;
@@ -311,7 +315,7 @@ export const mhdPerformanceV2Service = {
    * somebody else's invitations.
    */
   async myInvitations(): Promise<MhdMyInvitation[]> {
-    const { data, error } = await performanceRpc('mhd_performance_my_invitations');
+    const { data, error } = await supabaseClient.rpc('mhd_performance_my_invitations');
     if (error) throw error;
     return ((data ?? []) as MhdMyInvitationRpcRow[]).map(mapMyInvitation);
   },
@@ -334,7 +338,7 @@ export const mhdPerformanceV2Service = {
       sectionCount: number;
     }>
   > {
-    const { data, error } = await performanceRpc('mhd_performance_list_templates', {
+    const { data, error } = await supabaseClient.rpc('mhd_performance_list_templates', {
       p_company_id: companyId,
     });
     if (error) throw error;
@@ -367,7 +371,7 @@ export const mhdPerformanceV2Service = {
     description?: string | null;
     sections: Array<{ sectionTitle: string; prompt?: string | null; responseType: string }>;
   }): Promise<{ id: string; referenceId: string }> {
-    const { data, error } = await performanceRpc('mhd_performance_create_template', {
+    const { data, error } = await supabaseClient.rpc('mhd_performance_create_template', {
       // Sent explicitly: null MEANS the global default template (Platform Admin only), which is a
       // different authorisation from a company template — not an omitted argument. The generated
       // arg type is non-null (PostgREST cannot express a nullable arg); the RPC accepts null
@@ -388,7 +392,7 @@ export const mhdPerformanceV2Service = {
   },
 
   async publishTemplate(templateId: string, effectiveFrom?: string | null): Promise<void> {
-    const { error } = await performanceRpc('mhd_performance_publish_template', {
+    const { error } = await supabaseClient.rpc('mhd_performance_publish_template', {
       p_template_id: templateId,
       p_effective_from: effectiveFrom ?? undefined,
     });
@@ -398,7 +402,7 @@ export const mhdPerformanceV2Service = {
   async getSettings(
     companyId: string,
   ): Promise<{ minResponsesForRelease: number; releaseVerbatimComments: boolean }> {
-    const { data, error } = await performanceRpc('mhd_performance_get_settings', {
+    const { data, error } = await supabaseClient.rpc('mhd_performance_get_settings', {
       p_company_id: companyId,
     });
     if (error) throw error;
@@ -421,7 +425,7 @@ export const mhdPerformanceV2Service = {
     minResponsesForRelease: number,
     releaseVerbatimComments: boolean,
   ): Promise<void> {
-    const { error } = await performanceRpc('mhd_performance_upsert_settings', {
+    const { error } = await supabaseClient.rpc('mhd_performance_upsert_settings', {
       p_company_id: companyId,
       p_min_responses_for_release: minResponsesForRelease,
       p_release_verbatim_comments: releaseVerbatimComments,

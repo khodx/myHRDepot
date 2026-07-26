@@ -32,7 +32,11 @@ import type {
 // service. The whole surface is security-definer RPCs; RLS carries a
 // `using(false) with check(false)` no-direct-write policy on every table, so a
 // direct insert/update is refused even for an admin.
-const trainingRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -151,7 +155,7 @@ export const mhdTrainingService = {
    */
   async listCourses(filters: MhdTrainingCourseFilters): Promise<MhdTrainingCourse[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await trainingRpc('mhd_training_course_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_training_course_list', {
       p_company_id: filters.companyId,
       p_include_inactive: filters.includeInactive ?? false,
     });
@@ -160,7 +164,7 @@ export const mhdTrainingService = {
   },
 
   async createCourse(input: MhdCreateCourseInput): Promise<MhdMutationResult> {
-    const { data, error } = await trainingRpc('mhd_training_course_create', {
+    const { data, error } = await supabaseClient.rpc('mhd_training_course_create', {
       p_company_id: input.companyId,
       p_course_key: input.courseKey.trim(),
       p_title: input.title.trim(),
@@ -184,7 +188,7 @@ export const mhdTrainingService = {
    * one slips through. Every param is nullable; the RPC `coalesce`s unset fields.
    */
   async updateCourse(input: MhdUpdateCourseInput): Promise<void> {
-    const { error } = await trainingRpc('mhd_training_course_update', {
+    const { error } = await supabaseClient.rpc('mhd_training_course_update', {
       p_course_id: input.courseId,
       p_title: trimmedOrUndefined(input.title),
       p_description: input.description ?? undefined,
@@ -200,7 +204,7 @@ export const mhdTrainingService = {
 
   /** Retire or reactivate a company course. Refused for a global course at the RPC. */
   async setCourseActive(input: MhdSetCourseActiveInput): Promise<void> {
-    const { error } = await trainingRpc('mhd_training_course_set_active', {
+    const { error } = await supabaseClient.rpc('mhd_training_course_set_active', {
       p_course_id: input.courseId,
       p_is_active: input.isActive,
     });
@@ -215,7 +219,7 @@ export const mhdTrainingService = {
    * `(id, reference_id)`.
    */
   async assign(input: MhdAssignTrainingInput): Promise<MhdMutationResult> {
-    const { data, error } = await trainingRpc('mhd_training_assign', {
+    const { data, error } = await supabaseClient.rpc('mhd_training_assign', {
       p_company_id: input.companyId,
       p_course_id: input.courseId,
       p_person_id: input.personId,
@@ -235,7 +239,7 @@ export const mhdTrainingService = {
    */
   async listAssignments(filters: MhdTrainingAssignmentFilters): Promise<MhdTrainingAssignment[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await trainingRpc('mhd_training_list_assignments', {
+    const { data, error } = await supabaseClient.rpc('mhd_training_list_assignments', {
       p_company_id: filters.companyId,
       p_person_id: trimmedOrUndefined(filters.personId),
       p_status: filterValueOrUndefined(filters.status),
@@ -245,7 +249,7 @@ export const mhdTrainingService = {
   },
 
   async cancelAssignment(assignmentId: string): Promise<void> {
-    const { error } = await trainingRpc('mhd_training_cancel_assignment', {
+    const { error } = await supabaseClient.rpc('mhd_training_cancel_assignment', {
       p_assignment_id: assignmentId,
     });
     if (error) throw error;
@@ -253,7 +257,7 @@ export const mhdTrainingService = {
 
   /** Waive an assignment. A reason is required at the RPC. */
   async waiveAssignment(input: MhdWaiveAssignmentInput): Promise<void> {
-    const { error } = await trainingRpc('mhd_training_waive_assignment', {
+    const { error } = await supabaseClient.rpc('mhd_training_waive_assignment', {
       p_assignment_id: input.assignmentId,
       p_reason: input.reason.trim(),
     });
@@ -270,7 +274,7 @@ export const mhdTrainingService = {
    * attached the method should be `CERTIFICATE`.
    */
   async complete(input: MhdCompleteTrainingInput): Promise<MhdTrainingCompletionResult> {
-    const { data, error } = await trainingRpc('mhd_training_complete', {
+    const { data, error } = await supabaseClient.rpc('mhd_training_complete', {
       p_assignment_id: input.assignmentId,
       p_completion_method: input.completionMethod ?? 'ATTESTED',
       p_attachment_id: trimmedOrUndefined(input.attachmentId),
@@ -290,7 +294,7 @@ export const mhdTrainingService = {
   async recordAdminCompletion(
     input: MhdRecordAdminCompletionInput,
   ): Promise<MhdTrainingCompletionResult> {
-    const { data, error } = await trainingRpc('mhd_training_record_admin_completion', {
+    const { data, error } = await supabaseClient.rpc('mhd_training_record_admin_completion', {
       p_company_id: input.companyId,
       p_course_id: input.courseId,
       p_person_id: input.personId,
@@ -311,7 +315,7 @@ export const mhdTrainingService = {
     personId: string,
     courseId?: string | null,
   ): Promise<MhdTrainingCompletion[]> {
-    const { data, error } = await trainingRpc('mhd_training_list_completions', {
+    const { data, error } = await supabaseClient.rpc('mhd_training_list_completions', {
       p_person_id: personId,
       p_course_id: trimmedOrUndefined(courseId),
     });
@@ -327,7 +331,7 @@ export const mhdTrainingService = {
    * is computed server-side and rendered verbatim.
    */
   async compliance(personId: string, courseId?: string | null): Promise<MhdTrainingCompliance[]> {
-    const { data, error } = await trainingRpc('mhd_training_compliance', {
+    const { data, error } = await supabaseClient.rpc('mhd_training_compliance', {
       p_person_id: personId,
       p_course_id: trimmedOrUndefined(courseId),
     });
@@ -343,7 +347,7 @@ export const mhdTrainingService = {
     filters: MhdTrainingComplianceMatrixFilters,
   ): Promise<MhdTrainingComplianceMatrixRow[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await trainingRpc('mhd_training_compliance_matrix', {
+    const { data, error } = await supabaseClient.rpc('mhd_training_compliance_matrix', {
       p_company_id: filters.companyId,
       p_category: filterValueOrUndefined(filters.category),
     });

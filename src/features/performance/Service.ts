@@ -29,7 +29,12 @@ import type {
 } from './Types';
 import { mhdFormatPerformanceReviewType } from './Types';
 
-const performanceRpc = supabaseClient.rpc.bind(supabaseClient);
+// Call supabaseClient.rpc directly rather than binding it to a local alias.
+// Binding forces TypeScript to instantiate the whole generic rpc signature at
+// once — one overload per RPC — which exceeds the instantiation depth limit at
+// the current schema size (TS2589). A direct call only instantiates for the
+// literal RPC name at that call site, so the generated argument and return
+// types are still fully checked.
 
 // Edge function that performs the actual merge + Drive upload for a requested
 // generation (05 - Integration & Deployment / render-document). Body contract:
@@ -233,7 +238,7 @@ export const mhdPerformanceService = {
   // -------------------------------------------------------------------------
 
   async listReviews(filters: MhdPerformanceReviewFilters): Promise<MhdPerformanceReview[]> {
-    const { data, error } = await performanceRpc('mhd_list_performance_reviews', {
+    const { data, error } = await supabaseClient.rpc('mhd_list_performance_reviews', {
       p_company_id: filters.companyId,
       ...(filterValueOrUndefined(filters.personId)
         ? { p_person_id: filterValueOrUndefined(filters.personId) }
@@ -260,7 +265,7 @@ export const mhdPerformanceService = {
   },
 
   async getReviewById(reviewId: string): Promise<MhdPerformanceReview> {
-    const { data, error } = await performanceRpc('mhd_get_performance_review', {
+    const { data, error } = await supabaseClient.rpc('mhd_get_performance_review', {
       p_review_id: reviewId,
     }).returns<MhdPerformanceReviewRpcRow[]>();
 
@@ -277,7 +282,7 @@ export const mhdPerformanceService = {
   },
 
   async createReview(input: MhdCreatePerformanceReviewInput): Promise<MhdPerformanceReview> {
-    const { data, error } = await performanceRpc('mhd_create_performance_review', {
+    const { data, error } = await supabaseClient.rpc('mhd_create_performance_review', {
       p_company_id: input.companyId,
       p_person_id: input.personId,
       p_reviewer_user_id: input.reviewerUserId,
@@ -303,7 +308,7 @@ export const mhdPerformanceService = {
   },
 
   async updateReview(reviewId: string, input: MhdUpdatePerformanceReviewInput): Promise<void> {
-    const { error } = await performanceRpc('mhd_update_performance_review', {
+    const { error } = await supabaseClient.rpc('mhd_update_performance_review', {
       p_review_id: reviewId,
       ...(input.reviewType ? { p_review_type: input.reviewType } : {}),
       ...(input.reviewerUserId ? { p_reviewer_user_id: input.reviewerUserId } : {}),
@@ -344,7 +349,7 @@ export const mhdPerformanceService = {
     reviewId: string,
     input: MhdTransitionPerformanceReviewInput,
   ): Promise<void> {
-    const { error } = await performanceRpc('mhd_transition_performance_review', {
+    const { error } = await supabaseClient.rpc('mhd_transition_performance_review', {
       p_review_id: reviewId,
       p_new_status: input.newStatus,
       ...(trimmedOrUndefined(input.waiverReason)
@@ -358,7 +363,7 @@ export const mhdPerformanceService = {
   },
 
   async linkReviewDocuments(reviewId: string, input: MhdLinkReviewDocumentsInput): Promise<void> {
-    const { error } = await performanceRpc('mhd_link_review_documents', {
+    const { error } = await supabaseClient.rpc('mhd_link_review_documents', {
       p_review_id: reviewId,
       ...(input.documentGenerationId
         ? { p_document_generation_id: input.documentGenerationId }
@@ -372,7 +377,7 @@ export const mhdPerformanceService = {
   },
 
   async deleteReview(reviewId: string): Promise<void> {
-    const { error } = await performanceRpc('mhd_delete_performance_review', {
+    const { error } = await supabaseClient.rpc('mhd_delete_performance_review', {
       p_review_id: reviewId,
     });
 
@@ -559,7 +564,7 @@ export const mhdPerformanceService = {
   // -------------------------------------------------------------------------
 
   async listCoachingPlans(filters: MhdCoachingPlanFilters): Promise<MhdCoachingPlan[]> {
-    const { data, error } = await performanceRpc('mhd_list_coaching_plans', {
+    const { data, error } = await supabaseClient.rpc('mhd_list_coaching_plans', {
       p_company_id: filters.companyId,
       ...(filterValueOrUndefined(filters.personId)
         ? { p_person_id: filterValueOrUndefined(filters.personId) }
@@ -581,7 +586,7 @@ export const mhdPerformanceService = {
   },
 
   async getCoachingPlanById(planId: string): Promise<MhdCoachingPlan> {
-    const { data, error } = await performanceRpc('mhd_get_coaching_plan', {
+    const { data, error } = await supabaseClient.rpc('mhd_get_coaching_plan', {
       p_plan_id: planId,
     }).returns<MhdCoachingPlanRpcRow[]>();
 
@@ -598,7 +603,7 @@ export const mhdPerformanceService = {
   },
 
   async createCoachingPlan(input: MhdCreateCoachingPlanInput): Promise<MhdCoachingPlan> {
-    const { data, error } = await performanceRpc('mhd_create_coaching_plan', {
+    const { data, error } = await supabaseClient.rpc('mhd_create_coaching_plan', {
       p_company_id: input.companyId,
       p_person_id: input.personId,
       p_coach_user_id: input.coachUserId,
@@ -628,7 +633,7 @@ export const mhdPerformanceService = {
   },
 
   async updateCoachingPlan(planId: string, input: MhdUpdateCoachingPlanInput): Promise<void> {
-    const { error } = await performanceRpc('mhd_update_coaching_plan', {
+    const { error } = await supabaseClient.rpc('mhd_update_coaching_plan', {
       p_plan_id: planId,
       ...(trimmedOrUndefined(input.title) ? { p_title: trimmedOrUndefined(input.title) } : {}),
       ...(trimmedOrUndefined(input.objective)
@@ -655,7 +660,7 @@ export const mhdPerformanceService = {
     planId: string,
     input: MhdTransitionCoachingPlanInput,
   ): Promise<void> {
-    const { error } = await performanceRpc('mhd_transition_coaching_plan', {
+    const { error } = await supabaseClient.rpc('mhd_transition_coaching_plan', {
       p_plan_id: planId,
       p_new_status: input.newStatus,
       ...(trimmedOrUndefined(input.outcomeSummary)
@@ -669,7 +674,7 @@ export const mhdPerformanceService = {
   },
 
   async deleteCoachingPlan(planId: string): Promise<void> {
-    const { error } = await performanceRpc('mhd_delete_coaching_plan', {
+    const { error } = await supabaseClient.rpc('mhd_delete_coaching_plan', {
       p_plan_id: planId,
     });
 
@@ -679,7 +684,7 @@ export const mhdPerformanceService = {
   },
 
   async listCoachingPlanItems(planId: string): Promise<MhdCoachingPlanItem[]> {
-    const { data, error } = await performanceRpc('mhd_list_coaching_plan_items', {
+    const { data, error } = await supabaseClient.rpc('mhd_list_coaching_plan_items', {
       p_plan_id: planId,
     }).returns<MhdCoachingPlanItemRpcRow[]>();
 
@@ -691,7 +696,7 @@ export const mhdPerformanceService = {
   },
 
   async createCoachingPlanItem(input: MhdCreateCoachingPlanItemInput): Promise<void> {
-    const { error } = await performanceRpc('mhd_create_coaching_plan_item', {
+    const { error } = await supabaseClient.rpc('mhd_create_coaching_plan_item', {
       p_plan_id: input.planId,
       p_title: input.title.trim(),
       ...(trimmedOrUndefined(input.description)
@@ -713,7 +718,7 @@ export const mhdPerformanceService = {
     itemId: string,
     input: MhdUpdateCoachingPlanItemInput,
   ): Promise<void> {
-    const { error } = await performanceRpc('mhd_update_coaching_plan_item', {
+    const { error } = await supabaseClient.rpc('mhd_update_coaching_plan_item', {
       p_item_id: itemId,
       ...(trimmedOrUndefined(input.title) ? { p_title: trimmedOrUndefined(input.title) } : {}),
       ...(trimmedOrUndefined(input.description)
@@ -733,7 +738,7 @@ export const mhdPerformanceService = {
   },
 
   async deleteCoachingPlanItem(itemId: string): Promise<void> {
-    const { error } = await performanceRpc('mhd_delete_coaching_plan_item', {
+    const { error } = await supabaseClient.rpc('mhd_delete_coaching_plan_item', {
       p_item_id: itemId,
     });
 

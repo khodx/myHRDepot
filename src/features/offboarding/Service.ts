@@ -22,7 +22,11 @@ import type {
 } from './Types';
 import { mhdFormatSeparationType } from './Types';
 
-const offboardingRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 // Edge function that performs the actual merge + Drive upload for a requested
 // generation (05 - Integration & Deployment / render-document). Body contract:
@@ -184,7 +188,7 @@ export const mhdOffboardingService = {
   // -------------------------------------------------------------------------
 
   async listCases(filters: MhdOffboardingCaseFilters): Promise<MhdOffboardingCase[]> {
-    const { data, error } = await offboardingRpc('mhd_list_offboarding_cases', {
+    const { data, error } = await supabaseClient.rpc('mhd_list_offboarding_cases', {
       ...(filterValueOrUndefined(filters.companyId)
         ? { p_company_id: filterValueOrUndefined(filters.companyId) }
         : {}),
@@ -208,7 +212,7 @@ export const mhdOffboardingService = {
   },
 
   async getCaseById(caseId: string): Promise<MhdOffboardingCase> {
-    const { data, error } = await offboardingRpc('mhd_get_offboarding_case', {
+    const { data, error } = await supabaseClient.rpc('mhd_get_offboarding_case', {
       p_case_id: caseId,
     }).returns<MhdOffboardingCaseRpcRow[]>();
 
@@ -225,7 +229,7 @@ export const mhdOffboardingService = {
   },
 
   async createCase(input: MhdCreateOffboardingCaseInput): Promise<MhdOffboardingCase> {
-    const { data, error } = await offboardingRpc('mhd_create_offboarding_case', {
+    const { data, error } = await supabaseClient.rpc('mhd_create_offboarding_case', {
       p_company_id: input.companyId,
       p_person_id: input.personId,
       p_separation_type: input.separationType,
@@ -252,7 +256,7 @@ export const mhdOffboardingService = {
   },
 
   async updateCase(caseId: string, input: MhdUpdateOffboardingCaseInput): Promise<void> {
-    const { error } = await offboardingRpc('mhd_update_offboarding_case', {
+    const { error } = await supabaseClient.rpc('mhd_update_offboarding_case', {
       p_case_id: caseId,
       ...(input.separationType ? { p_separation_type: input.separationType } : {}),
       ...(trimmedOrUndefined(input.separationDate)
@@ -278,7 +282,7 @@ export const mhdOffboardingService = {
   },
 
   async transitionCase(caseId: string, input: MhdTransitionOffboardingCaseInput): Promise<void> {
-    const { error } = await offboardingRpc('mhd_transition_offboarding_case', {
+    const { error } = await supabaseClient.rpc('mhd_transition_offboarding_case', {
       p_case_id: caseId,
       p_new_status: input.newStatus,
       ...(trimmedOrUndefined(input.cancelReason)
@@ -292,7 +296,7 @@ export const mhdOffboardingService = {
   },
 
   async deleteCase(caseId: string): Promise<void> {
-    const { error } = await offboardingRpc('mhd_delete_offboarding_case', {
+    const { error } = await supabaseClient.rpc('mhd_delete_offboarding_case', {
       p_case_id: caseId,
     });
 
@@ -306,7 +310,7 @@ export const mhdOffboardingService = {
   // -------------------------------------------------------------------------
 
   async listItems(caseId: string): Promise<MhdOffboardingChecklistItem[]> {
-    const { data, error } = await offboardingRpc('mhd_list_offboarding_items', {
+    const { data, error } = await supabaseClient.rpc('mhd_list_offboarding_items', {
       p_case_id: caseId,
     }).returns<MhdOffboardingItemRpcRow[]>();
 
@@ -318,7 +322,7 @@ export const mhdOffboardingService = {
   },
 
   async createItem(input: MhdCreateOffboardingItemInput): Promise<void> {
-    const { error } = await offboardingRpc('mhd_create_offboarding_item', {
+    const { error } = await supabaseClient.rpc('mhd_create_offboarding_item', {
       p_case_id: input.caseId,
       p_title: input.title.trim(),
       ...(trimmedOrUndefined(input.description)
@@ -338,7 +342,7 @@ export const mhdOffboardingService = {
   },
 
   async updateItem(itemId: string, input: MhdUpdateOffboardingItemInput): Promise<void> {
-    const { error } = await offboardingRpc('mhd_update_offboarding_item', {
+    const { error } = await supabaseClient.rpc('mhd_update_offboarding_item', {
       p_item_id: itemId,
       ...(trimmedOrUndefined(input.title) ? { p_title: trimmedOrUndefined(input.title) } : {}),
       ...(trimmedOrUndefined(input.description)
@@ -363,7 +367,7 @@ export const mhdOffboardingService = {
   },
 
   async deleteItem(itemId: string): Promise<void> {
-    const { error } = await offboardingRpc('mhd_delete_offboarding_item', {
+    const { error } = await supabaseClient.rpc('mhd_delete_offboarding_item', {
       p_item_id: itemId,
     });
 

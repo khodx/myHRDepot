@@ -21,7 +21,11 @@ import type {
 // there is not a single `supabaseClient.from('investigation_*')` select in this
 // service. The whole surface is security-definer RPCs; RLS would refuse a direct
 // table select regardless, and the grant model is enforced inside each function.
-const investigationsRpc = supabaseClient.rpc.bind(supabaseClient);
+// supabaseClient.rpc is called directly rather than bound to a local alias.
+// Binding instantiates the whole generated rpc overload set at once, which now
+// exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
+// A direct call instantiates only the matching overload, so argument and return
+// types remain fully checked.
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -110,7 +114,7 @@ export const mhdInvestigationsService = {
    */
   async listCases(filters: MhdInvestigationCaseFilters): Promise<MhdInvestigationCaseSummary[]> {
     if (!filters.companyId) return [];
-    const { data, error } = await investigationsRpc('mhd_investigation_list', {
+    const { data, error } = await supabaseClient.rpc('mhd_investigation_list', {
       p_company_id: filters.companyId,
       p_status: filterValueOrUndefined(filters.status),
     });
@@ -124,7 +128,7 @@ export const mhdInvestigationsService = {
    * through `revealAllegation`, on an explicit user action.
    */
   async getCase(caseId: string): Promise<MhdInvestigationCaseDetail | null> {
-    const { data, error } = await investigationsRpc('mhd_investigation_get', {
+    const { data, error } = await supabaseClient.rpc('mhd_investigation_get', {
       p_case_id: caseId,
     });
     if (error) throw error;
@@ -133,7 +137,7 @@ export const mhdInvestigationsService = {
   },
 
   async createCase(input: MhdCreateInvestigationInput): Promise<MhdMutationResult> {
-    const { data, error } = await investigationsRpc('mhd_investigation_create', {
+    const { data, error } = await supabaseClient.rpc('mhd_investigation_create', {
       p_company_id: input.companyId,
       p_case_type: input.caseType,
       p_allegation: input.allegation.trim(),
@@ -153,7 +157,7 @@ export const mhdInvestigationsService = {
    * by a deliberate user action, never fetched on mount.
    */
   async revealAllegation(caseId: string): Promise<string | null> {
-    const { data, error } = await investigationsRpc('mhd_investigation_reveal_allegation', {
+    const { data, error } = await supabaseClient.rpc('mhd_investigation_reveal_allegation', {
       p_case_id: caseId,
     });
     if (error) throw error;
@@ -161,7 +165,7 @@ export const mhdInvestigationsService = {
   },
 
   async transitionCase(input: MhdTransitionInvestigationInput): Promise<void> {
-    const { error } = await investigationsRpc('mhd_investigation_transition', {
+    const { error } = await supabaseClient.rpc('mhd_investigation_transition', {
       p_case_id: input.caseId,
       p_new_status: input.newStatus,
       p_disposition: input.disposition ?? undefined,
@@ -171,7 +175,7 @@ export const mhdInvestigationsService = {
   },
 
   async assignInvestigator(input: MhdAssignInvestigatorInput): Promise<void> {
-    const { error } = await investigationsRpc('mhd_investigation_assign', {
+    const { error } = await supabaseClient.rpc('mhd_investigation_assign', {
       p_case_id: input.caseId,
       p_investigator: input.investigator,
     });
@@ -181,7 +185,7 @@ export const mhdInvestigationsService = {
   // ----- Grants — the access model itself -----
 
   async listGrants(caseId: string): Promise<MhdInvestigationGrant[]> {
-    const { data, error } = await investigationsRpc('mhd_investigation_list_grants', {
+    const { data, error } = await supabaseClient.rpc('mhd_investigation_list_grants', {
       p_case_id: caseId,
     });
     if (error) throw error;
@@ -193,7 +197,7 @@ export const mhdInvestigationsService = {
    * access); an ungranted admin cannot grant themselves in.
    */
   async grantAccess(input: MhdInvestigationGrantInput): Promise<void> {
-    const { error } = await investigationsRpc('mhd_investigation_grant_access', {
+    const { error } = await supabaseClient.rpc('mhd_investigation_grant_access', {
       p_case_id: input.caseId,
       p_user_id: input.userId,
     });
@@ -201,7 +205,7 @@ export const mhdInvestigationsService = {
   },
 
   async revokeAccess(input: MhdInvestigationGrantInput): Promise<void> {
-    const { error } = await investigationsRpc('mhd_investigation_revoke_access', {
+    const { error } = await supabaseClient.rpc('mhd_investigation_revoke_access', {
       p_case_id: input.caseId,
       p_user_id: input.userId,
     });
@@ -217,7 +221,7 @@ export const mhdInvestigationsService = {
    * verbatim.
    */
   async listParties(caseId: string): Promise<MhdInvestigationParty[]> {
-    const { data, error } = await investigationsRpc('mhd_investigation_list_parties', {
+    const { data, error } = await supabaseClient.rpc('mhd_investigation_list_parties', {
       p_case_id: caseId,
     });
     if (error) throw error;
@@ -225,7 +229,7 @@ export const mhdInvestigationsService = {
   },
 
   async addParty(input: MhdAddPartyInput): Promise<string> {
-    const { data, error } = await investigationsRpc('mhd_investigation_add_party', {
+    const { data, error } = await supabaseClient.rpc('mhd_investigation_add_party', {
       p_case_id: input.caseId,
       p_party_role: input.partyRole,
       p_person_id: trimmedOrUndefined(input.personId),
@@ -242,7 +246,7 @@ export const mhdInvestigationsService = {
    * allegation, keyed on the party rather than the case. Never fetched on mount.
    */
   async revealStatement(partyId: string): Promise<string | null> {
-    const { data, error } = await investigationsRpc('mhd_investigation_reveal_statement', {
+    const { data, error } = await supabaseClient.rpc('mhd_investigation_reveal_statement', {
       p_party_id: partyId,
     });
     if (error) throw error;
