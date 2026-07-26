@@ -1,5 +1,5 @@
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import type { MhdForm } from '../Types';
@@ -120,11 +120,15 @@ describe('MhdFormsPage role gating', () => {
     expect(screen.queryByText('Create Form')).not.toBeInTheDocument();
     expect(screen.queryByText('Builder')).not.toBeInTheDocument();
     expect(screen.queryByText('Edit Form')).not.toBeInTheDocument();
+    // Row actions collapse into a kebab menu; open it to see the actual links.
+    // Menu items carry an explicit role="menuitem" (correct ARIA for a menu
+    // popup), so they're queried as menuitem, not the anchor's implicit link role.
+    fireEvent.click(screen.getByRole('button', { name: 'Row actions' }));
     expect(screen.getAllByText('View').length).toBeGreaterThan(0);
     // List navigation opens the detail page first.
     expect(
       screen
-        .getAllByRole('link', { name: 'View' })
+        .getAllByRole('menuitem', { name: 'View' })
         .some((link) => link.getAttribute('href') === '/forms/form-1'),
     ).toBe(true);
     expect(screen.getByText('Open Form')).toBeInTheDocument();

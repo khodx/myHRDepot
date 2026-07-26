@@ -166,16 +166,25 @@ describe('global.css category token contract', () => {
     expect(globalCss).not.toContain('data-module');
   });
 
-  it('keeps the shared white-alpha rail scale at the spec opacities', () => {
-    expect(globalCss).toContain('--mhd-rail-surface: rgb(255 255 255 / 0.06)');
-    expect(globalCss).toContain('--mhd-rail-hover: rgb(255 255 255 / 0.08)');
-    // 0.3, not 0.30 — Prettier normalizes the CSS literal, and the selected
-    // opacity was deliberately raised from the earlier faint treatment so the
-    // active module survives a visual scan.
-    expect(globalCss).toContain('--mhd-rail-selected: rgb(255 255 255 / 0.3)');
-    expect(globalCss).toContain('--mhd-rail-border: rgb(255 255 255 / 0.18)');
-    expect(globalCss).toContain('--mhd-rail-text: rgb(255 255 255 / 0.82)');
-    expect(globalCss).toContain('--mhd-rail-muted: rgb(255 255 255 / 0.72)');
+  // 2026-07-26 design review: the rail moved from a permanently dark navy
+  // surface (white-alpha state scale) to a light surface matching the app's
+  // card background, with the accent color marking only the active item.
+  it('gives the rail a light surface that tracks the card background', () => {
+    expect(globalCss).toContain('--mhd-rail: var(--color-card);');
+    expect(globalCss).toContain('--mhd-rail-surface: var(--mhd-accent-soft);');
+    expect(globalCss).toContain('--mhd-rail-hover: var(--mhd-accent-soft);');
+    expect(globalCss).toContain('--mhd-rail-selected: var(--mhd-accent);');
+    expect(globalCss).toContain('--mhd-rail-border: var(--color-border);');
+    expect(globalCss).toContain('--mhd-rail-text: var(--color-muted-foreground);');
+    expect(globalCss).toContain('--mhd-rail-muted: var(--color-muted-foreground);');
+  });
+
+  it('never re-pins the rail to the old fixed dark-navy hex in any category block', () => {
+    for (const theme of MHD_CATEGORY_THEMES) {
+      const block = themeBlock(theme).toLowerCase();
+      expect(block, `${theme} still hardcodes the old dark rail`).not.toContain('--mhd-rail: #000479');
+      expect(block).toContain('--mhd-rail: var(--color-card)');
+    }
   });
 });
 
@@ -185,7 +194,6 @@ describe('global.css category token contract', () => {
 
 const GLOBAL_BRAND_PALETTE = {
   primary: '#0003AA',
-  rail: '#000479',
   on: '#FFFFFF',
 } as const;
 
@@ -222,20 +230,18 @@ describe('category palette contrast', () => {
     },
   );
 
-  it.each(MHD_CATEGORY_THEMES.map((t) => [t] as const))(
-    '%s rail passes AA for white text (≥4.5:1)',
-    (theme) => {
-      expect(contrast(PALETTE[theme].rail, '#FFFFFF')).toBeGreaterThanOrEqual(4.5);
-    },
-  );
+  // The rail surface is no longer a fixed dark hex (see the light-rail token
+  // test in the "global.css category token contract" block above) — the only
+  // place white text sits on a solid accent fill now is the active nav item
+  // (bg-rail-selected == --mhd-accent), which is exactly the on-primary
+  // contrast already asserted above.
 
   it.each(MHD_CATEGORY_THEMES.map((t) => [t] as const))(
-    '%s CSS block carries the exact global brand primary and rail HEX',
+    '%s CSS block carries the exact global brand primary HEX',
     (theme) => {
       // Case-insensitive: Prettier normalizes hex literals to lowercase.
       const block = themeBlock(theme).toLowerCase();
       expect(block).toContain(`--mhd-accent: ${PALETTE[theme].primary.toLowerCase()}`);
-      expect(block).toContain(`--mhd-rail: ${PALETTE[theme].rail.toLowerCase()}`);
     },
   );
 });

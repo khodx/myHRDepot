@@ -290,10 +290,10 @@ function readRailCollapsed(): boolean {
 }
 
 /**
- * Desktop rail. The whole surface takes the active category's darker rail
- * color (bg-rail resolves from the shell's data-mhd-theme stamp); every state
- * uses the shared white-alpha scale. 252px expanded, 72px collapsed (icon-only,
- * persisted separately from the per-group collapse).
+ * Desktop rail. Light surface matching the app's card background (bg-rail
+ * tracks --color-card) — the active category accent only marks the current
+ * nav item (bg-rail-selected), not the whole sidebar. 252px expanded, 72px
+ * collapsed (icon-only, persisted separately from the per-group collapse).
  */
 export function MhdSidebar() {
   const [railCollapsed, setRailCollapsed] = useState<boolean>(() => readRailCollapsed());
@@ -315,7 +315,6 @@ export function MhdSidebar() {
       className={`hidden h-full flex-col border-r border-rail-border bg-rail text-rail-text transition-[width] duration-200 motion-reduce:transition-none lg:flex ${
         railCollapsed ? 'w-[72px]' : 'w-[252px]'
       }`}
-      style={{ backgroundImage: 'linear-gradient(rgb(255 255 255 / 0.04), transparent 220px)' }}
     >
       <MhdSidebarContent collapsed={railCollapsed} />
       <button
@@ -323,7 +322,7 @@ export function MhdSidebar() {
         onClick={toggleRail}
         aria-label={railCollapsed ? 'Expand navigation' : 'Collapse navigation'}
         title={railCollapsed ? 'Expand navigation' : 'Collapse navigation'}
-        className="flex min-h-10 items-center justify-center gap-2 border-t border-rail-border px-3 text-rail-muted transition-colors duration-150 hover:bg-rail-hover hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 motion-reduce:transition-none"
+        className="flex min-h-10 items-center justify-center gap-2 border-t border-rail-border px-3 text-rail-muted transition-colors duration-150 hover:bg-rail-hover hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
       >
         {railCollapsed ? (
           <PanelLeftOpen className="h-4 w-4 shrink-0" aria-hidden />
@@ -400,13 +399,12 @@ export function MhdMobileNavDrawer({ onClose }: { onClose: () => void }) {
         aria-modal="true"
         aria-label="Navigation"
         className="absolute inset-y-0 left-0 flex w-[252px] flex-col border-r border-rail-border bg-rail text-rail-text shadow-xl transition-transform duration-200 motion-reduce:transition-none"
-        style={{ backgroundImage: 'linear-gradient(rgb(255 255 255 / 0.04), transparent 220px)' }}
       >
         <button
           type="button"
           onClick={onClose}
           aria-label="Close navigation"
-          className="absolute right-2 top-6 rounded-md p-2 text-rail-muted transition-colors hover:bg-rail-hover hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          className="absolute right-2 top-6 rounded-md p-2 text-rail-muted transition-colors hover:bg-rail-hover hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
@@ -450,7 +448,7 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
           collapsed ? 'items-center px-2' : 'px-4'
         }`}
       >
-        <span className="text-lg font-bold leading-tight tracking-tight text-white">
+        <span className="text-lg font-bold leading-tight tracking-tight text-foreground">
           {collapsed ? 'HR' : 'myHRDepot'}
         </span>
         {collapsed ? null : (
@@ -468,9 +466,9 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
             collapsed ? 'justify-center px-0' : ''
           }`}
         >
-          <Building2 className="h-4 w-4 shrink-0 text-rail-muted" aria-hidden />
+          <Building2 className="h-4 w-4 shrink-0 text-accent" aria-hidden />
           {collapsed ? null : (
-            <span className="truncate text-[13px] font-semibold text-white">
+            <span className="truncate text-[13px] font-semibold text-foreground">
               {profile.companyName}
             </span>
           )}
@@ -505,7 +503,7 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
                 type="button"
                 onClick={() => toggleGroup(section.label)}
                 aria-expanded={!isCollapsed}
-                className="flex w-full items-center justify-between rounded-md px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-rail-muted transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 motion-reduce:transition-none"
+                className="flex min-h-10 w-full items-center justify-between rounded-md px-3 text-[13px] font-semibold text-rail-text transition-colors duration-150 hover:bg-rail-hover hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
               >
                 <span>{section.label}</span>
                 <ChevronDown
@@ -533,12 +531,12 @@ function MhdNavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
       to={item.route}
       title={collapsed ? item.label : undefined}
       className={({ isActive }) =>
-        `relative flex min-h-10 items-center rounded-md text-[13px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 motion-reduce:transition-none ${
+        `relative flex min-h-10 items-center rounded-md text-[13px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${
           collapsed ? 'justify-center px-0' : 'gap-3 px-3'
         } ${
           isActive
-            ? 'bg-rail-selected font-semibold text-white shadow-[inset_0_0_0_1px_rgb(255_255_255/0.24),0_8px_20px_rgb(0_0_0/0.16)]'
-            : 'font-medium text-rail-text hover:bg-rail-hover hover:text-white'
+            ? 'bg-rail-selected font-semibold text-accent-on shadow-sm'
+            : 'font-medium text-rail-text hover:bg-rail-hover hover:text-accent'
         }`
       }
     >

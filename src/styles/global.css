@@ -46,17 +46,22 @@
 }
 
 /* Shared rail state scale and global brand fallback for routes outside any
-   category (auth screens, /404). */
+   category (auth screens, /404).
+   2026-07-26 design review: the rail moved from a permanently dark navy
+   surface to a light surface matching the card background — the accent color
+   now marks the ACTIVE item only, rather than flooding the whole sidebar.
+   --mhd-rail tracks --color-card so it (and the app) still flips correctly
+   under .dark without a separate dark-rail override. */
 :root {
-  --mhd-rail-surface: rgb(255 255 255 / 0.06);
-  --mhd-rail-hover: rgb(255 255 255 / 0.08);
-  --mhd-rail-selected: rgb(255 255 255 / 0.3);
-  --mhd-rail-border: rgb(255 255 255 / 0.18);
-  --mhd-rail-text: rgb(255 255 255 / 0.82);
-  --mhd-rail-muted: rgb(255 255 255 / 0.72);
+  --mhd-rail-surface: var(--mhd-accent-soft);
+  --mhd-rail-hover: var(--mhd-accent-soft);
+  --mhd-rail-selected: var(--mhd-accent);
+  --mhd-rail-border: var(--color-border);
+  --mhd-rail-text: var(--color-muted-foreground);
+  --mhd-rail-muted: var(--color-muted-foreground);
 
   --mhd-accent: #0003aa;
-  --mhd-rail: #000479;
+  --mhd-rail: var(--color-card);
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -71,7 +76,7 @@
    without reintroducing per-module colors. */
 [data-mhd-theme='dashboard'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: #000479;
+  --mhd-rail: var(--color-card);
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -83,7 +88,7 @@
 
 [data-mhd-theme='people-org'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: #000479;
+  --mhd-rail: var(--color-card);
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -95,7 +100,7 @@
 
 [data-mhd-theme='time-leave'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: #000479;
+  --mhd-rail: var(--color-card);
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -107,7 +112,7 @@
 
 [data-mhd-theme='talent'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: #000479;
+  --mhd-rail: var(--color-card);
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -119,7 +124,7 @@
 
 [data-mhd-theme='employee-relations'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: #000479;
+  --mhd-rail: var(--color-card);
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -131,7 +136,7 @@
 
 [data-mhd-theme='work-tools'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: #000479;
+  --mhd-rail: var(--color-card);
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;

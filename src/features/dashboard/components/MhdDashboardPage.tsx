@@ -50,11 +50,27 @@ export function MhdDashboardPage() {
 
       {taskSummary && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <MhdStatCard icon={ListChecks} label="Total Tasks" value={taskSummary.totalTasks} />
-          <MhdStatCard icon={Loader} label="In Progress" value={taskSummary.inProgress} />
-          <MhdStatCard icon={AlertTriangle} label="Overdue" value={taskSummary.overdueCount} />
+          <MhdStatCard
+            icon={ListChecks}
+            tone="info"
+            label="Total Tasks"
+            value={taskSummary.totalTasks}
+          />
+          <MhdStatCard
+            icon={Loader}
+            tone="warning"
+            label="In Progress"
+            value={taskSummary.inProgress}
+          />
+          <MhdStatCard
+            icon={AlertTriangle}
+            tone="error"
+            label="Overdue"
+            value={taskSummary.overdueCount}
+          />
           <MhdStatCard
             icon={TrendingUp}
+            tone="success"
             label="Completion Rate"
             value={`${taskSummary.completionRate.toFixed(1)}%`}
             hint={`${taskSummary.completed} of ${taskSummary.totalTasks} completed`}

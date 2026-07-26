@@ -1,5 +1,5 @@
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import type { MhdPropertyAssignment, MhdPropertyItem } from '../Types';
@@ -156,9 +156,13 @@ describe('MhdPropertyPage role gating', () => {
     );
 
     expect(screen.queryByText('Add Property Item')).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'View' })).toBeInTheDocument();
+    // Row actions collapse into a kebab menu; open it to see the actual links.
+    // Menu items carry an explicit role="menuitem" (correct ARIA for a menu
+    // popup), so they're queried as menuitem, not the anchor's implicit link role.
+    fireEvent.click(screen.getByRole('button', { name: 'Row actions' }));
+    expect(screen.getByRole('menuitem', { name: 'View' })).toBeInTheDocument();
     // Edit renders as a disabled affordance, never a navigable link, for Viewers.
-    expect(screen.queryByRole('link', { name: 'Edit' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
   });
 
   it('shows the create affordance and manage links for a Client Admin', () => {
@@ -171,7 +175,8 @@ describe('MhdPropertyPage role gating', () => {
     );
 
     expect(screen.getByText('Add Property Item')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Edit' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Row actions' }));
+    expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument();
   });
 });
 
