@@ -277,9 +277,7 @@ export function MhdReviewDetailPage() {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-600">
-          {reviewQuery.error instanceof Error
-            ? reviewQuery.error.message
-            : 'Review not found or you do not have access to it.'}
+          Review not found or you do not have access to it.
         </p>
         <button
           type="button"

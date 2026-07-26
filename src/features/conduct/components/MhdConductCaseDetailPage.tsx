@@ -624,9 +624,7 @@ export function MhdConductCaseDetailPage() {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-600">
-          {caseQuery.error instanceof Error
-            ? caseQuery.error.message
-            : 'Case not found or you do not have access to it.'}
+          Case not found or you do not have access to it.
         </p>
         <button
           type="button"

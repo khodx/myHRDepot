@@ -196,6 +196,23 @@ describe('mhdOffboardingService', () => {
     });
   });
 
+  it('sends explicit unknown rehire eligibility as null and omits untouched eligibility', async () => {
+    rpcMock.mockResolvedValue({ error: null });
+
+    await mhdOffboardingService.updateCase('case-1', {
+      eligibleForRehire: null,
+    });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_update_offboarding_case', {
+      p_case_id: 'case-1',
+      p_eligible_for_rehire: null,
+    });
+
+    await mhdOffboardingService.updateCase('case-1', {});
+    expect(rpcMock).toHaveBeenLastCalledWith('mhd_update_offboarding_case', {
+      p_case_id: 'case-1',
+    });
+  });
+
   it('maps a waiver to p_status/p_reason and sends evidence links only as a pair', async () => {
     rpcMock.mockResolvedValue({ error: null });
 

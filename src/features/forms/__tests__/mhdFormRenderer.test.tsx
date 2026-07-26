@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MhdFormRenderer } from '../components/MhdFormRenderer';
 import { mhdFormService } from '../Service';
@@ -43,6 +43,7 @@ const baseForm = {
 
 describe('MhdFormRenderer', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.mocked(mhdFormService.getFormById).mockResolvedValue(baseForm as never);
   });
 
@@ -122,5 +123,38 @@ describe('MhdFormRenderer', () => {
     render(<MhdFormRenderer formId="form-1" />);
 
     expect(await screen.findByText('Conditional Field')).toBeInTheDocument();
+  });
+
+  it('does not create duplicate drafts when the load effect re-runs before state commits', async () => {
+    const draftForm = {
+      ...baseForm,
+      definition: {
+        ...baseForm.definition,
+        settings: { ...baseForm.definition.settings, allowDraft: true },
+      },
+    };
+    let resolveDraft!: (submission: { id: string }) => void;
+    const draftPromise = new Promise<{ id: string }>((resolve) => {
+      resolveDraft = resolve;
+    });
+
+    vi.mocked(mhdFormService.getFormById).mockResolvedValue(draftForm as never);
+    vi.mocked(mhdFormService.createSubmission).mockReturnValue(draftPromise as never);
+
+    const { rerender } = render(
+      <MhdFormRenderer formId="form-1" taskPrefillValues={{ source: 'initial' }} />,
+    );
+
+    await waitFor(() => expect(mhdFormService.createSubmission).toHaveBeenCalledTimes(1));
+
+    rerender(<MhdFormRenderer formId="form-1" taskPrefillValues={{ source: 'rerender' }} />);
+
+    await waitFor(() => expect(mhdFormService.getFormById).toHaveBeenCalledTimes(2));
+    expect(mhdFormService.createSubmission).toHaveBeenCalledTimes(1);
+
+    resolveDraft({ id: 'submission-1' });
+
+    expect(await screen.findByText('Save Draft')).toBeInTheDocument();
+    expect(mhdFormService.createSubmission).toHaveBeenCalledTimes(1);
   });
 });

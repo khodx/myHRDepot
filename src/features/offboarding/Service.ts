@@ -268,13 +268,15 @@ export const mhdOffboardingService = {
       ...(trimmedOrUndefined(input.reasonSummary)
         ? { p_reason_summary: trimmedOrUndefined(input.reasonSummary) }
         : {}),
-      ...(input.eligibleForRehire != null
+      ...(input.eligibleForRehire !== undefined
         ? { p_eligible_for_rehire: input.eligibleForRehire }
         : {}),
       ...(input.exitInterviewActivityId
         ? { p_exit_interview_activity_id: input.exitInterviewActivityId }
         : {}),
-    });
+      // gen:types omits null from p_eligible_for_rehire even though the RPC
+      // accepts it at runtime to mean "explicitly cleared to unknown."
+    } as never);
 
     if (error) {
       throw new Error(`Unable to update offboarding case: ${error.message}`);

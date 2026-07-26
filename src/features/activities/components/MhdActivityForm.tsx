@@ -107,8 +107,11 @@ export function MhdActivityForm({
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium">Type</label>
+          <label htmlFor="activityType" className="mb-1 block text-sm font-medium">
+            Type
+          </label>
           <select
+            id="activityType"
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             {...register('activityType')}
           >
@@ -124,8 +127,11 @@ export function MhdActivityForm({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">Person</label>
+          <label htmlFor="personId" className="mb-1 block text-sm font-medium">
+            Person
+          </label>
           <select
+            id="personId"
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             {...register('personId')}
           >
@@ -140,8 +146,11 @@ export function MhdActivityForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Title</label>
+        <label htmlFor="title" className="mb-1 block text-sm font-medium">
+          Title
+        </label>
         <input
+          id="title"
           className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           {...register('title')}
         />
@@ -149,8 +158,11 @@ export function MhdActivityForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Supports Task</label>
+        <label htmlFor="parentTaskId" className="mb-1 block text-sm font-medium">
+          Supports Task
+        </label>
         <select
+          id="parentTaskId"
           className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           {...register('parentTaskId')}
         >
@@ -165,16 +177,22 @@ export function MhdActivityForm({
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium">Scheduled Date &amp; Time</label>
+          <label htmlFor="scheduledAt" className="mb-1 block text-sm font-medium">
+            Scheduled Date &amp; Time
+          </label>
           <input
+            id="scheduledAt"
             type="datetime-local"
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             {...register('scheduledAt')}
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Location</label>
+          <label htmlFor="location" className="mb-1 block text-sm font-medium">
+            Location
+          </label>
           <input
+            id="location"
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             placeholder="Room, phone, or video link…"
             {...register('location')}

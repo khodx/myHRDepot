@@ -390,9 +390,7 @@ export function MhdActivityDetailPage() {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-600">
-          {activityQuery.error instanceof Error
-            ? activityQuery.error.message
-            : 'Activity not found or you do not have access to it.'}
+          Activity not found or you do not have access to it.
         </p>
         <button
           type="button"

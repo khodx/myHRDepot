@@ -325,9 +325,7 @@ export function MhdCoachingPlanDetailPage() {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-600">
-          {planQuery.error instanceof Error
-            ? planQuery.error.message
-            : 'Coaching plan not found or you do not have access to it.'}
+          Coaching plan not found or you do not have access to it.
         </p>
         <button
           type="button"

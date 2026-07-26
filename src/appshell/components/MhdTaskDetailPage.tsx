@@ -5,6 +5,7 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdTaskService } from '@/features/tasks/Service';
 import { MhdTaskNotesPanel } from '@/features/notes/components/MhdTaskNotesPanel';
 import { MhdTaskAttachmentsPanel } from '@/features/attachments/components/MhdTaskAttachmentsPanel';
+import { MhdTaskActivitiesPanel } from '@/features/activities/components/MhdTaskActivitiesPanel';
 import { mhdWorkflowService } from '@/features/workflow/Service';
 import { MhdStatusTransitionButton } from '@/features/workflow/components/MhdStatusTransitionButton';
 import { MhdSLAStatus } from '@/features/workflow/components/MhdSLAStatus';
@@ -213,6 +214,13 @@ export function MhdTaskDetailPage() {
         </div>
 
         <div className="space-y-6">
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-neutral-900">Activities</h2>
+            <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">
+              <MhdTaskActivitiesPanel taskId={task.id} companyId={task.companyId} />
+            </div>
+          </section>
+
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-neutral-900">Attachments</h2>
             <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">

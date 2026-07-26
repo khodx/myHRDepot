@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { mhdBuildFormValuesSchema } from '../Schemas';
 import { mhdFormCalculationEngine, mhdFormLogicEngine, mhdFormService } from '../Service';
 import type { MhdForm, MhdFormDefinition, MhdFormFileValue } from '../Types';
@@ -64,6 +64,7 @@ export function MhdFormRenderer({
   const [isLoading, setIsLoading] = useState(!previewDefinition);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const draftSubmissionPromiseRef = useRef<Promise<string> | null>(null);
   // Fields whose resumed draft value came back as a masked encrypted wrapper.
   // They render as an empty input with a "stored encrypted" hint; while left
   // empty they are omitted from outbound saves so the ciphertext row survives.
@@ -109,14 +110,17 @@ export function MhdFormRenderer({
           setEncryptedDraftFieldIds(maskedFieldIds);
           setSubmissionId(submission.id);
         } else if (!readOnly && loadedForm.definition.settings.allowDraft) {
-          const submission = await mhdFormService.createSubmission(loadedForm.id, {
-            taskId,
-            employeeFilePersonId,
-            employeeFileUserId,
-            employeeFileCategory,
-          });
+          draftSubmissionPromiseRef.current ??= mhdFormService
+            .createSubmission(loadedForm.id, {
+              taskId,
+              employeeFilePersonId,
+              employeeFileUserId,
+              employeeFileCategory,
+            })
+            .then((submission) => submission.id);
+          const draftSubmissionId = await draftSubmissionPromiseRef.current;
           if (isCancelled) return;
-          setSubmissionId(submission.id);
+          setSubmissionId(draftSubmissionId);
         }
 
         if (!isCancelled) {
