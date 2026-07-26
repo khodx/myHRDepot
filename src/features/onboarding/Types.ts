@@ -50,6 +50,23 @@ export interface MhdOnboardingChecklistUpsertInput {
   status?: Exclude<MhdOnboardingChecklistStatus, 'NOT_STARTED'>;
 }
 
+/**
+ * Enrolls a person in the packet by seeding onboarding_checklist_items
+ * (mhd_start_onboarding_packet, migration 0062).
+ *
+ * The RPC is additive and never rewrites an existing row, so re-running with a
+ * later due date will NOT move deadlines on items already in flight. To change
+ * a deadline, change it on the item.
+ */
+export interface MhdStartOnboardingPacketInput {
+  companyId: string;
+  personId: string;
+  documentKeys: MhdOnboardingDocumentKey[];
+  /** Applied to newly seeded items only. Null leaves them open-ended. */
+  dueDate: string | null;
+  actorUserId: MhdUserId;
+}
+
 export interface MhdOnboardingPacketDefinition {
   documentKey: MhdOnboardingDocumentKey;
   label: string;

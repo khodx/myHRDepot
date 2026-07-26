@@ -104,7 +104,6 @@ export function MhdFormField({
     case 'website':
     case 'lookup':
     case 'person':
-    case 'initials':
       return (
         <MhdFormTextInput
           id={field.id}
@@ -117,6 +116,36 @@ export function MhdFormField({
           error={error}
           readOnly={readOnly}
         />
+      );
+
+    /**
+     * Initials are a distinct signing ceremony, not a short text answer. The
+     * source documents collect them at separate points -- the Employment
+     * Application at nine, the Required Notices acknowledgment at seven -- and
+     * their legal weight rests on each being captured against its own clause.
+     * Rendering them as an ordinary text box loses that: the clause the
+     * initials attach to has to be visible next to the box being initialed.
+     */
+    case 'initials':
+      return (
+        <div className="mhd-form-initials">
+          {field.description ? (
+            <p className="mhd-form-initials__clause">{field.description}</p>
+          ) : null}
+          <div className="mhd-form-initials__capture">
+            <MhdFormTextInput
+              id={field.id}
+              label={field.label}
+              value={String(value ?? '')}
+              onChange={(next) => onChange(next.toUpperCase().slice(0, 10))}
+              placeholder="Initials"
+              required={isRequired}
+              helpText={field.helpText ?? 'Enter your initials to acknowledge this clause.'}
+              error={error}
+              readOnly={readOnly}
+            />
+          </div>
+        </div>
       );
 
     case 'masked_text':
@@ -508,6 +537,114 @@ export function MhdFormField({
           onUploadFile={readOnly ? undefined : onUploadFile}
         />
       );
+
+    /**
+     * Fixed row x column matrix. The Employment Application needs two of these:
+     * availability (7 days x available/hours) and education (6 levels x school,
+     * location, degree, major). The previous seed collapsed both into a single
+     * long-text box, which is why the form captured 12 fields against a source
+     * carrying roughly 150.
+     *
+     * The value is stored as { [rowValue]: { [columnKey]: cellValue } } so a
+     * row is addressable by its stable key rather than by position.
+     */
+    case 'grid': {
+      if (!field.grid) {
+        return (
+          <p className="mhd-form-field__error">
+            Grid field &quot;{field.label}&quot; has no grid definition.
+          </p>
+        );
+      }
+
+      const gridValue = (
+        typeof value === 'object' && value !== null && !Array.isArray(value) ? value : {}
+      ) as Record<string, Record<string, unknown>>;
+
+      const setCell = (rowValue: string, columnKey: string, cellValue: unknown) => {
+        onChange({
+          ...gridValue,
+          [rowValue]: { ...(gridValue[rowValue] ?? {}), [columnKey]: cellValue },
+        } as never);
+      };
+
+      return (
+        <fieldset className="mhd-form-grid" aria-describedby={`${field.id}-help`}>
+          <legend className="mhd-form-grid__legend">
+            {field.label}
+            {isRequired ? <span aria-hidden="true"> *</span> : null}
+          </legend>
+          {field.helpText ? (
+            <p id={`${field.id}-help`} className="mhd-form-grid__help">
+              {field.helpText}
+            </p>
+          ) : null}
+          <div className="mhd-form-grid__scroll">
+            <table className="mhd-form-grid__table">
+              <thead>
+                <tr>
+                  <th scope="col">{field.description ?? ''}</th>
+                  {field.grid.columns.map((column) => (
+                    <th key={column.key} scope="col">
+                      {column.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {field.grid.rows.map((row) => (
+                  <tr key={row.value}>
+                    <th scope="row">{row.label}</th>
+                    {field.grid?.columns.map((column) => {
+                      const cellId = `${field.id}-${row.value}-${column.key}`;
+                      const cell = gridValue[row.value]?.[column.key];
+
+                      if (column.type === 'radio' && column.options?.length) {
+                        return (
+                          <td key={column.key}>
+                            <div role="radiogroup" aria-label={`${row.label} ${column.label}`}>
+                              {column.options.map((option) => (
+                                <label key={option.value} className="mhd-form-grid__radio">
+                                  <input
+                                    type="radio"
+                                    name={cellId}
+                                    value={option.value}
+                                    checked={String(cell ?? '') === option.value}
+                                    disabled={readOnly}
+                                    onChange={() => setCell(row.value, column.key, option.value)}
+                                  />
+                                  <span>{option.label}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </td>
+                        );
+                      }
+
+                      return (
+                        <td key={column.key}>
+                          <input
+                            id={cellId}
+                            type="text"
+                            aria-label={`${row.label} ${column.label}`}
+                            value={String(cell ?? '')}
+                            readOnly={readOnly}
+                            onChange={(event) =>
+                              setCell(row.value, column.key, event.target.value)
+                            }
+                          />
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {error ? <p className="mhd-form-field__error">{error}</p> : null}
+        </fieldset>
+      );
+    }
 
     default:
       return (

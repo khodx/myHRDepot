@@ -8,6 +8,7 @@ import type {
   MhdOnboardingDocumentKey,
   MhdOnboardingPacketFormRef,
   MhdOnboardingProgressSummary,
+  MhdStartOnboardingPacketInput,
 } from './Types';
 import { MHD_ONBOARDING_PACKET_BY_KEY, MHD_ONBOARDING_PACKET_DEFINITIONS } from './Types';
 
@@ -200,6 +201,29 @@ export const mhdOnboardingService = {
     }
 
     return mapChecklistRow(row);
+  },
+
+  async startPacket(input: MhdStartOnboardingPacketInput): Promise<MhdOnboardingChecklistItem[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_start_onboarding_packet', {
+        p_company_id: input.companyId,
+        p_person_id: input.personId,
+        p_document_keys: input.documentKeys,
+        // The generator types p_due_date as non-null because the SQL argument
+        // carries no DEFAULT, but mhd_start_onboarding_packet inserts it
+        // straight into a nullable due_date column, so NULL is a legitimate
+        // "no due date" rather than a missing argument. Same compatibility cast
+        // as the Forms employee-file category arguments.
+        p_due_date: input.dueDate as never,
+        p_actor_user_id: input.actorUserId,
+      })
+      .returns<MhdOnboardingChecklistRow[]>();
+
+    if (error) {
+      throw new Error(`Unable to start the onboarding packet: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapChecklistRow);
   },
 
   async listProgressForCompany(companyId: string): Promise<MhdOnboardingProgressSummary[]> {

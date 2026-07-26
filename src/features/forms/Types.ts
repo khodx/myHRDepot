@@ -147,6 +147,48 @@ export interface MhdRepeatableFieldConfig {
   maxRows?: number;
 }
 
+/**
+ * Authored conditional-visibility rule, as written by the onboarding packet seed
+ * into `form_fields.field_visibility_rule` (migration 0067).
+ *
+ * This is a *different shape* from `MhdFormLogicRule`, which is what the logic
+ * engine consumes. The seed expresses a rule declaratively on the field it
+ * governs; the engine expects a flat list of rules targeting a field id.
+ * `mhdVisibilityRuleToLogic` in Service.ts bridges the two at load time, so the
+ * rule is authored once and never duplicated into `form_logic_rules`.
+ */
+export interface MhdVisibilityCondition {
+  field: string;
+  op: 'eq' | 'neq' | 'in' | 'contains' | 'isEmpty' | 'isNotEmpty';
+  value?: Json | string | number | boolean | null;
+}
+
+export interface MhdVisibilityGroup {
+  all?: MhdVisibilityNode[];
+  any?: MhdVisibilityNode[];
+}
+
+export type MhdVisibilityNode = MhdVisibilityCondition | MhdVisibilityGroup;
+
+export function mhdIsVisibilityGroup(node: MhdVisibilityNode): node is MhdVisibilityGroup {
+  const group = node as MhdVisibilityGroup;
+  return Array.isArray(group.all) || Array.isArray(group.any);
+}
+
+/** Fixed row x column matrix, e.g. the Employment Application availability grid. */
+export interface MhdGridColumn {
+  key: string;
+  label: string;
+  type: MhdFieldType;
+  options?: MhdFormFieldOption[];
+}
+
+export interface MhdGridDefinition {
+  rowKey: string;
+  rows: MhdFormFieldOption[];
+  columns: MhdGridColumn[];
+}
+
 export interface MhdFormField {
   id: string;
   type: MhdFieldType;
@@ -160,6 +202,12 @@ export interface MhdFormField {
   validation?: MhdFormFieldValidation;
   options?: MhdFormFieldOption[];
   repeatable?: MhdRepeatableFieldConfig;
+  /** Key that authored visibility rules use to reference this field. */
+  fieldKey?: string;
+  visibilityRule?: MhdVisibilityNode;
+  grid?: MhdGridDefinition;
+  /** Clause this field captures assent to (initials / acknowledgment checkbox). */
+  clauseKey?: string;
 }
 
 export interface MhdLogicCondition {

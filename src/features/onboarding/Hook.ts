@@ -1,12 +1,32 @@
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { mhdPersonService } from '@/features/people/Service';
 import { mhdOnboardingService } from './Service';
 import {
   MHD_ONBOARDING_PACKET_DEFINITIONS,
   type MhdOnboardingPacketItem,
   type MhdOnboardingRosterRow,
+  type MhdStartOnboardingPacketInput,
 } from './Types';
+
+/**
+ * Enrolls a person in the new-hire packet. Invalidates both the roster
+ * aggregate and that person's checklist, since the roster's counts and the
+ * per-person page are two separate reads of the rows this seeds.
+ */
+export function useMhdStartOnboardingPacket() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: MhdStartOnboardingPacketInput) => mhdOnboardingService.startPacket(input),
+    onSuccess: async (_result, input) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['mhd-onboarding-roster-progress'] }),
+        queryClient.invalidateQueries({ queryKey: ['mhd-onboarding-checklist', input.personId] }),
+      ]);
+    },
+  });
+}
 
 /**
  * /onboarding roster. Two queries joined in memory: the people directory for the

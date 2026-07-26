@@ -17,6 +17,7 @@ import {
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdOnboardingRoster } from '../Hook';
 import type { MhdOnboardingRosterFilter, MhdOnboardingRosterRow } from '../Types';
+import { MhdStartOnboardingDialog } from './MhdStartOnboardingDialog';
 
 const STATUS_OPTIONS: Array<{ value: MhdOnboardingRosterFilter; label: string }> = [
   { value: 'ALL', label: 'All people' },
@@ -70,6 +71,7 @@ export function MhdOnboardingIndexPage() {
 
   const [statusFilter, setStatusFilter] = useState<MhdOnboardingRosterFilter>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const [enrolling, setEnrolling] = useState<MhdOnboardingRosterRow | null>(null);
 
   const visibleRows = useMemo(() => {
     const needle = searchTerm.trim().toLowerCase();
@@ -207,7 +209,18 @@ export function MhdOnboardingIndexPage() {
                         ? new Date(row.progress.lastActivityAt).toLocaleString()
                         : '—'}
                     </MhdTd>
-                    <MhdTableActions viewTo={`/onboarding/${row.personId}`} />
+                    <MhdTableActions
+                      viewTo={`/onboarding/${row.personId}`}
+                      secondaryActions={
+                        <button
+                          type="button"
+                          onClick={() => setEnrolling(row)}
+                          className="text-accent hover:text-accent-hover"
+                        >
+                          {row.isStarted ? 'Add Items' : 'Start Onboarding'}
+                        </button>
+                      }
+                    />
                   </MhdTr>
                 );
               })}
@@ -218,6 +231,10 @@ export function MhdOnboardingIndexPage() {
           />
         </MhdCard>
       )}
+
+      {enrolling ? (
+        <MhdStartOnboardingDialog row={enrolling} onClose={() => setEnrolling(null)} />
+      ) : null}
     </div>
   );
 }

@@ -30,8 +30,10 @@ import type {
   MhdRpcSubmissionRow,
   MhdSubmissionStatus,
   MhdUpdateFormInput,
+  MhdVisibilityNode,
+  MhdGridDefinition,
 } from './Types';
-import { mhdIsConditionGroup, mhdNormalizeFieldType } from './Types';
+import { mhdIsConditionGroup, mhdIsVisibilityGroup, mhdNormalizeFieldType } from './Types';
 
 type DbFunctions = Database['public']['Functions'];
 type MhdCreateFormResultRow = DbFunctions['mhd_create_form']['Returns'][number];
@@ -112,7 +114,131 @@ function mapField(value: unknown): MhdFormField | null {
         }
       : undefined,
     options: asFieldOptions(value.options),
+    fieldKey:
+      asString(value.fieldKey) ||
+      asString(value.key) ||
+      asString(value.name) ||
+      asString(value.destinationColumn) ||
+      asString(value.destination_column) ||
+      undefined,
+    visibilityRule: (isObject(value.visibilityRule)
+      ? value.visibilityRule
+      : isObject(value.field_visibility_rule)
+        ? value.field_visibility_rule
+        : isObject(value.visibleWhen)
+          ? value.visibleWhen
+          : undefined) as MhdVisibilityNode | undefined,
+    grid: mapGrid(value.grid ?? value.gridDefinition ?? value.grid_definition),
+    clauseKey: asString(value.clauseKey) || asString(value.clause_key) || undefined,
   };
+}
+
+function mapGrid(value: unknown): MhdGridDefinition | undefined {
+  if (!isObject(value)) return undefined;
+  const rows = asFieldOptions(value.rows);
+  const rawColumns = Array.isArray(value.columns) ? value.columns : [];
+  const columns = rawColumns
+    .filter(isObject)
+    .map((column) => ({
+      key: asString(column.key),
+      label: asString(column.label),
+      type: mhdNormalizeFieldType(asString(column.type, 'text')),
+      options: asFieldOptions(column.options),
+    }))
+    .filter((column) => column.key !== '');
+  if (rows.length === 0 || columns.length === 0) return undefined;
+  return {
+    rowKey: asString(value.rowKey) || asString(value.row_key) || 'row',
+    rows,
+    columns,
+  };
+}
+
+/**
+ * Bridges an authored `visibilityRule` -- declared on the field it governs --
+ * into the flat `MhdFormLogicRule[]` the logic engine evaluates.
+ *
+ * Without this the onboarding packet seed's conditional rules are inert: the
+ * seed writes them to `form_fields.field_visibility_rule` (migration 0067) and
+ * the engine reads `definition.logic`. Two different places, so every branch
+ * rendered unconditionally -- the I-9 citizenship branch, the Self-Identification
+ * decline gate, the staffing-agency block, the Marketplace eligibility branch
+ * and the jurisdiction-conditional FCRA disclosures all showed at once.
+ *
+ * Emitted as SHOW, so a field carrying a rule stays hidden unless its condition
+ * passes. References resolve by field id first and then by field key, because
+ * authored rules name the destination column rather than the generated id.
+ */
+export function mhdVisibilityRuleToLogic(fields: MhdFormField[]): MhdFormLogicRule[] {
+  const byKey = new Map<string, string>();
+  for (const field of fields) {
+    byKey.set(field.id, field.id);
+    if (field.fieldKey) byKey.set(field.fieldKey, field.id);
+  }
+
+  const resolve = (reference: string): string => byKey.get(reference) ?? reference;
+
+  const toCondition = (node: MhdVisibilityNode): MhdLogicConditionNode | null => {
+    if (mhdIsVisibilityGroup(node)) {
+      const children = (node.all ?? node.any ?? [])
+        .map(toCondition)
+        .filter((child): child is MhdLogicConditionNode => child !== null);
+      if (children.length === 0) return null;
+      return { combinator: node.all ? 'AND' : 'OR', conditions: children };
+    }
+
+    const field = resolve(node.field);
+
+    switch (node.op) {
+      case 'eq':
+        return { field, operator: 'equals', value: (node.value ?? null) as Json };
+      case 'neq':
+        return { field, operator: 'notEquals', value: (node.value ?? null) as Json };
+      case 'contains':
+        return { field, operator: 'contains', value: (node.value ?? null) as Json };
+      case 'isEmpty':
+        return { field, operator: 'isEmpty' };
+      case 'isNotEmpty':
+        return { field, operator: 'isNotEmpty' };
+      case 'in': {
+        // The engine has no `in`. Expanded to an OR of equals so a multi-value
+        // condition -- the FCRA Minnesota/Oklahoma state list, for instance --
+        // is not silently dropped.
+        const values = Array.isArray(node.value) ? node.value : [node.value ?? null];
+        if (values.length === 0) return null;
+        if (values.length === 1) {
+          return { field, operator: 'equals', value: values[0] as Json };
+        }
+        return {
+          combinator: 'OR',
+          conditions: values.map((entry) => ({
+            field,
+            operator: 'equals' as const,
+            value: entry as Json,
+          })),
+        };
+      }
+      default:
+        return null;
+    }
+  };
+
+  const rules: MhdFormLogicRule[] = [];
+  let order = 0;
+  for (const field of fields) {
+    if (!field.visibilityRule) continue;
+    const condition = toCondition(field.visibilityRule);
+    if (!condition) continue;
+    order += 1;
+    rules.push({
+      id: `visibility-${field.id}`,
+      order,
+      condition,
+      action: 'SHOW',
+      targetFieldId: field.id,
+    });
+  }
+  return rules;
 }
 
 function mapPage(value: unknown, fallbackFieldIds: string[]): MhdFormPage | null {
@@ -168,9 +294,18 @@ function mapDefinition(
   const pages = (Array.isArray(definition.pages) ? definition.pages : [])
     .map((page) => mapPage(page, fallbackFieldIds))
     .filter((page): page is MhdFormPage => page !== null);
-  const logic = (Array.isArray(definition.logic) ? definition.logic : [])
+  const authoredLogic = (Array.isArray(definition.logic) ? definition.logic : [])
     .map((rule) => mapLogicRule(rule))
     .filter((rule): rule is MhdFormLogicRule => rule !== null);
+  // Field-level visibility rules are projected into the same rule list the logic
+  // engine already evaluates, rather than duplicated into form_logic_rules.
+  // Explicit rules win: a rule authored directly against a field id overrides the
+  // derived one for that field.
+  const explicitTargets = new Set(authoredLogic.map((rule) => rule.targetFieldId));
+  const derivedLogic = mhdVisibilityRuleToLogic(fields).filter(
+    (rule) => !explicitTargets.has(rule.targetFieldId),
+  );
+  const logic = [...authoredLogic, ...derivedLogic];
   const calculations = (Array.isArray(definition.calculations) ? definition.calculations : [])
     .map((calculation) => mapCalculation(calculation))
     .filter((calculation): calculation is MhdFormCalculation => calculation !== null);
