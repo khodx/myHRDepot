@@ -2977,6 +2977,7 @@ export type Database = {
           created_at: string | null
           created_by: string
           document_generation_id: string | null
+          document_payload: Json
           esignature_request_id: string | null
           id: string
           issued_at: string | null
@@ -2999,6 +3000,7 @@ export type Database = {
           created_at?: string | null
           created_by: string
           document_generation_id?: string | null
+          document_payload?: Json
           esignature_request_id?: string | null
           id?: string
           issued_at?: string | null
@@ -3021,6 +3023,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string
           document_generation_id?: string | null
+          document_payload?: Json
           esignature_request_id?: string | null
           id?: string
           issued_at?: string | null
@@ -11703,6 +11706,175 @@ export type Database = {
           },
         ]
       }
+      message_thread_participants: {
+        Row: {
+          id: string
+          is_muted: boolean
+          joined_at: string
+          last_read_at: string | null
+          left_at: string | null
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_muted?: boolean
+          joined_at?: string
+          last_read_at?: string | null
+          left_at?: string | null
+          role?: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_muted?: boolean
+          joined_at?: string
+          last_read_at?: string | null
+          left_at?: string | null
+          role?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_thread_participants_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_thread_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_threads: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_archived: boolean
+          last_message_at: string | null
+          reference_id: string
+          subject: string | null
+          thread_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_archived?: boolean
+          last_message_at?: string | null
+          reference_id: string
+          subject?: string | null
+          thread_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_archived?: boolean
+          last_message_at?: string | null
+          reference_id?: string
+          subject?: string | null
+          thread_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_threads_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          company_id: string
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          id: string
+          is_system: boolean
+          reference_id: string
+          sender_user_id: string
+          thread_id: string
+        }
+        Insert: {
+          body: string
+          company_id: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          is_system?: boolean
+          reference_id: string
+          sender_user_id: string
+          thread_id: string
+        }
+        Update: {
+          body?: string
+          company_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          is_system?: boolean
+          reference_id?: string
+          sender_user_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_user_id_fkey"
+            columns: ["sender_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mhd_reference_sequences: {
         Row: {
           current_value: number
@@ -13979,6 +14151,7 @@ export type Database = {
           status: string
           updated_at: string
           updated_by: string | null
+          voided_reason: string | null
         }
         Insert: {
           company_id: string
@@ -13995,6 +14168,7 @@ export type Database = {
           status?: string
           updated_at?: string
           updated_by?: string | null
+          voided_reason?: string | null
         }
         Update: {
           company_id?: string
@@ -14011,6 +14185,7 @@ export type Database = {
           status?: string
           updated_at?: string
           updated_by?: string | null
+          voided_reason?: string | null
         }
         Relationships: [
           {
@@ -20108,6 +20283,10 @@ export type Database = {
           updated_by: string
         }[]
       }
+      mhd_add_message_thread_participants: {
+        Args: { p_thread_id: string; p_user_ids: string[] }
+        Returns: undefined
+      }
       mhd_apply_form_submission_to_destination: {
         Args: { p_submission_id: string }
         Returns: {
@@ -20130,6 +20309,10 @@ export type Database = {
         }[]
       }
       mhd_archive_form: { Args: { p_form_id: string }; Returns: undefined }
+      mhd_archive_message_thread: {
+        Args: { p_is_archived: boolean; p_thread_id: string }
+        Returns: undefined
+      }
       mhd_assemble_form_calculations: {
         Args: { p_form_id: string }
         Returns: Json
@@ -20203,6 +20386,14 @@ export type Database = {
       }
       mhd_assert_leaves_mutate: {
         Args: { p_company_id: string }
+        Returns: undefined
+      }
+      mhd_assert_message_thread_owner: {
+        Args: { p_thread_id: string }
+        Returns: undefined
+      }
+      mhd_assert_message_thread_participant: {
+        Args: { p_thread_id: string }
         Returns: undefined
       }
       mhd_assert_offboarding_case_access: {
@@ -20641,6 +20832,10 @@ export type Database = {
         Args: { p_person_id: string }
         Returns: boolean
       }
+      mhd_can_view_message_thread: {
+        Args: { p_thread_id: string }
+        Returns: boolean
+      }
       mhd_can_view_mileage_person: {
         Args: { p_person_id: string }
         Returns: boolean
@@ -20785,6 +20980,7 @@ export type Database = {
         Args: {
           p_action_summary?: string
           p_case_id: string
+          p_document_payload?: Json
           p_requires_document?: boolean
           p_severity: string
         }
@@ -20823,6 +21019,7 @@ export type Database = {
         Returns: {
           acknowledgment_type: string
           action_summary: string
+          document_payload: Json
           esignature_request_id: string
           esignature_status: string
           id: string
@@ -20882,6 +21079,7 @@ export type Database = {
         Args: {
           p_action_id: string
           p_action_summary?: string
+          p_document_payload?: Json
           p_severity?: string
         }
         Returns: undefined
@@ -21008,6 +21206,18 @@ export type Database = {
         Returns: {
           id: string
         }[]
+      }
+      mhd_create_message_thread: {
+        Args: {
+          p_company_id: string
+          p_entity_id: string
+          p_entity_type: string
+          p_initial_body: string
+          p_participant_user_ids: string[]
+          p_subject: string
+          p_thread_type: string
+        }
+        Returns: string
       }
       mhd_create_note: {
         Args: {
@@ -21198,6 +21408,26 @@ export type Database = {
       mhd_current_person_id: { Args: never; Returns: string }
       mhd_current_user_id: { Args: never; Returns: string }
       mhd_current_user_roles: { Args: never; Returns: string[] }
+      mhd_dashboard_company_summary: {
+        Args: { p_company_id?: string }
+        Returns: {
+          avg_tenure_years: number
+          contractor_count: number
+          distinct_department_count: number
+          full_time_count: number
+          intern_count: number
+          part_time_count: number
+          total_people: number
+          turnover_rate_ytd: number
+        }[]
+      }
+      mhd_dashboard_headcount_trend: {
+        Args: { p_company_id?: string; p_months?: number }
+        Returns: {
+          headcount: number
+          month_start: string
+        }[]
+      }
       mhd_dashboard_my_tasks: {
         Args: { p_company_id?: string; p_limit?: number }
         Returns: {
@@ -21244,6 +21474,15 @@ export type Database = {
           waiting_on_client: number
         }[]
       }
+      mhd_dashboard_tasks_by_priority: {
+        Args: { p_company_id?: string }
+        Returns: {
+          color_token: string
+          display_order: number
+          priority_name: string
+          task_count: number
+        }[]
+      }
       mhd_decline_via_token: {
         Args: {
           p_ip_address?: string
@@ -21276,6 +21515,7 @@ export type Database = {
         Args: { p_contact_method_id: string }
         Returns: boolean
       }
+      mhd_delete_message: { Args: { p_message_id: string }; Returns: undefined }
       mhd_delete_note: { Args: { p_note_id: string }; Returns: undefined }
       mhd_delete_offboarding_case: {
         Args: { p_case_id: string }
@@ -21303,6 +21543,10 @@ export type Database = {
       }
       mhd_delete_task: {
         Args: { p_actor_user_id?: string; p_task_id: string }
+        Returns: undefined
+      }
+      mhd_edit_message: {
+        Args: { p_body: string; p_message_id: string }
         Returns: undefined
       }
       mhd_emit_event: {
@@ -21505,6 +21749,7 @@ export type Database = {
           version: number
         }[]
       }
+      mhd_get_message_thread: { Args: { p_thread_id: string }; Returns: Json }
       mhd_get_notice_packet_version: {
         Args: { p_packet_version_id: string }
         Returns: {
@@ -22983,6 +23228,47 @@ export type Database = {
           status: string
         }[]
       }
+      mhd_list_message_threads: {
+        Args: {
+          p_entity_id?: string
+          p_entity_type?: string
+          p_include_archived?: boolean
+          p_limit?: number
+          p_thread_type?: string
+        }
+        Returns: {
+          company_id: string
+          created_at: string
+          created_by: string
+          entity_id: string
+          entity_type: string
+          id: string
+          is_archived: boolean
+          last_message_at: string
+          last_message_body: string
+          participant_count: number
+          reference_id: string
+          subject: string
+          thread_type: string
+          unread_count: number
+          updated_at: string
+        }[]
+      }
+      mhd_list_messages: {
+        Args: { p_before?: string; p_limit?: number; p_thread_id: string }
+        Returns: {
+          body: string
+          company_id: string
+          created_at: string
+          deleted_at: string
+          edited_at: string
+          id: string
+          is_system: boolean
+          reference_id: string
+          sender_user_id: string
+          thread_id: string
+        }[]
+      }
       mhd_list_my_draft_submissions: {
         Args: never
         Returns: {
@@ -23171,6 +23457,33 @@ export type Database = {
           reference_id: string
           updated_at: string
           updated_by: string
+        }[]
+      }
+      mhd_list_people_directory_paged: {
+        Args: {
+          p_company_id?: string
+          p_limit?: number
+          p_offset?: number
+          p_search_term?: string
+          p_sort_column?: string
+          p_sort_direction?: string
+        }
+        Returns: {
+          company_id: string
+          company_name: string
+          created_at: string
+          display_name: string
+          first_name: string
+          id: string
+          last_name: string
+          middle_name: string
+          preferred_name: string
+          primary_email: string
+          primary_mobile: string
+          primary_phone: string
+          reference_id: string
+          total_count: number
+          updated_at: string
         }[]
       }
       mhd_list_performance_reviews: {
@@ -23449,6 +23762,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      mhd_mark_thread_read: {
+        Args: { p_thread_id: string }
+        Returns: undefined
+      }
       mhd_mileage_add_trip_to_claim: {
         Args: { p_claim_id: string; p_trip_id: string }
         Returns: undefined
@@ -23656,6 +23973,10 @@ export type Database = {
       }
       mhd_next_business_day: { Args: { p_from: string }; Returns: string }
       mhd_next_reference_id: { Args: { p_prefix: string }; Returns: string }
+      mhd_notification_channel_message: {
+        Args: { p_delivery_id: string }
+        Returns: Json
+      }
       mhd_notification_channel_message_placeholder: {
         Args: { p_delivery_id: string }
         Returns: Json
@@ -23709,6 +24030,10 @@ export type Database = {
           p_title: string
         }
         Returns: string[]
+      }
+      mhd_onboarding_cancel_person: {
+        Args: { p_person_id: string; p_reason: string }
+        Returns: number
       }
       mhd_open_compliance_deadline: {
         Args: {
@@ -24370,6 +24695,10 @@ export type Database = {
         Args: { p_participant_id: string }
         Returns: undefined
       }
+      mhd_remove_message_thread_participant: {
+        Args: { p_thread_id: string; p_user_id: string }
+        Returns: undefined
+      }
       mhd_replace_form_definition: {
         Args: { p_definition: Json; p_form_id: string }
         Returns: undefined
@@ -24722,6 +25051,10 @@ export type Database = {
           status_name: string
           title: string
         }[]
+      }
+      mhd_send_message: {
+        Args: { p_body: string; p_thread_id: string }
+        Returns: string
       }
       mhd_send_signature_reminder: {
         Args: { p_actor_user_id?: string; p_signer_id: string }
