@@ -6,6 +6,7 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { MhdPersonForm } from '@/features/people/components/MhdPersonForm';
 import { mhdPersonService } from '@/features/people/Service';
+import { MhdPersonRecordTabs } from '@/features/people/components/MhdPersonRecordTabs';
 
 export function MhdPersonFormPage() {
   const { personId } = useParams<{ personId?: string }>();
@@ -34,6 +35,8 @@ export function MhdPersonFormPage() {
         backTo={isEdit && personId ? `/people/${personId}` : '/people'}
         backLabel={isEdit ? 'Person profile' : 'People'}
       />
+
+      {isEdit && personId ? <MhdPersonRecordTabs personId={personId} active="edit" /> : null}
 
       {companiesQuery.isLoading || personQuery.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading form...</p>

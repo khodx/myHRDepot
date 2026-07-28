@@ -8,6 +8,7 @@ import type { MhdForm } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormBuilder } from './MhdFormBuilder';
 import { MhdFormPreview } from './MhdFormPreview';
+import { MhdFormRecordTabs } from './MhdFormRecordTabs';
 
 export function MhdFormBuilderPage() {
   const { formId } = useParams<{ formId: string }>();
@@ -71,6 +72,11 @@ export function MhdFormBuilderPage() {
           title={`${form ? form.name : 'Form'} (read-only)`}
           description="You have read-only access to forms."
         />
+
+        {form ? (
+          <MhdFormRecordTabs formId={form.id} active="builder" canMutate={canMutate} />
+        ) : null}
+
         <div className="space-y-6">
           {errorMessage ? (
             <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -105,6 +111,9 @@ export function MhdFormBuilderPage() {
         title={form ? `Form Builder: ${form.name}` : 'Create Form'}
         description="Builder edits save through the live `mhd_create_form`, `mhd_update_form`, and `mhd_publish_form` RPCs."
       />
+
+      {form ? <MhdFormRecordTabs formId={form.id} active="builder" canMutate={canMutate} /> : null}
+
       <div className="space-y-6">
         {errorMessage ? (
           <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">

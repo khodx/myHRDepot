@@ -9,6 +9,7 @@ import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
 import type { MhdForm } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormPreview } from './MhdFormPreview';
+import { MhdFormRecordTabs } from './MhdFormRecordTabs';
 
 function statusBadgeVariant(status: MhdForm['status']): MhdBadgeVariant {
   switch (status) {
@@ -127,12 +128,6 @@ export function MhdFormDetailPage() {
             >
               Open Form
             </Link>
-            <Link
-              to={`/forms/${form.id}/submissions`}
-              className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:border-accent hover:text-accent"
-            >
-              Submissions
-            </Link>
             {canMutate ? (
               <MhdDetailActions
                 editTo={`/forms/${form.id}/edit`}
@@ -144,6 +139,8 @@ export function MhdFormDetailPage() {
           </>
         }
       />
+
+      <MhdFormRecordTabs formId={form.id} active="detail" canMutate={canMutate} />
 
       <MhdCard>
         <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

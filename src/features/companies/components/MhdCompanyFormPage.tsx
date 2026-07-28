@@ -4,6 +4,7 @@ import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompany, useMhdCreateCompany, useMhdUpdateCompany } from '@/features/companies/Hook';
 import { MhdCompanyForm } from '@/features/companies/components/MhdCompanyForm';
+import { MhdCompanyRecordTabs } from '@/features/companies/components/MhdCompanyRecordTabs';
 import type { MhdCreateCompanyInput, MhdUpdateCompanyInput } from '@/features/companies/Types';
 
 export function MhdCompanyFormPage() {
@@ -43,6 +44,8 @@ export function MhdCompanyFormPage() {
         backTo={isEdit && companyId ? `/companies/${companyId}` : '/companies'}
         backLabel={isEdit ? 'Company profile' : 'Companies'}
       />
+
+      {isEdit && companyId ? <MhdCompanyRecordTabs companyId={companyId} active="edit" /> : null}
 
       {isEdit && companyQuery.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading company...</p>

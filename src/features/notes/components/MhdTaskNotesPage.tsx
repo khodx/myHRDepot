@@ -1,6 +1,7 @@
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTaskNotesPanel } from './MhdTaskNotesPanel';
+import { MhdTaskRecordTabs } from '@/appshell/components/MhdTaskRecordTabs';
 
 /**
  * Route: /tasks/:taskId/notes
@@ -15,16 +16,9 @@ export function MhdTaskNotesPage() {
 
   return (
     <div className="space-y-6">
-      <MhdPageHeader
-        backTo="/tasks"
-        backLabel="Tasks"
-        title="Task Notes & Comments"
-        description={
-          <Link className="text-accent hover:text-accent-hover" to={`/tasks/${taskId}`}>
-            View task
-          </Link>
-        }
-      />
+      <MhdPageHeader backTo="/tasks" backLabel="Tasks" title="Task Notes & Comments" />
+
+      <MhdTaskRecordTabs taskId={taskId} active="notes" />
 
       <MhdTaskNotesPanel taskId={taskId} />
     </div>

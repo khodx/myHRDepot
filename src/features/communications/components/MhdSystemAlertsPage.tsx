@@ -4,6 +4,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTableFooter, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdNotifications } from '@/features/notifications/Hook';
+import { MhdCommunicationsTabs } from '@/appshell/components/MhdCommunicationsTabs';
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString();
@@ -31,6 +32,8 @@ export function MhdSystemAlertsPage() {
           </button>
         }
       />
+
+      <MhdCommunicationsTabs active="system-alerts" />
 
       {error ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

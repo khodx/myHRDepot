@@ -38,6 +38,7 @@ import {
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Link } from 'react-router-dom';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdPersonRecordTabs } from '@/features/people/components/MhdPersonRecordTabs';
 
 export function MhdPersonDetailPage() {
   const { personId } = useParams<{ personId: string }>();
@@ -150,6 +151,8 @@ export function MhdPersonDetailPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
       <MhdBreadcrumb items={[{ label: 'People', to: '/people' }, { label: person.displayName }]} />
+
+      <MhdPersonRecordTabs personId={person.id} active="detail" />
 
       {/* Profile card */}
       <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">

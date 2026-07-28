@@ -17,6 +17,7 @@ import { Users, ClipboardList } from 'lucide-react';
 import { MhdBreadcrumb } from './MhdBreadcrumb';
 import { mhdCompanyService } from '@/features/companies/Service';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdCompanyRecordTabs } from '@/features/companies/components/MhdCompanyRecordTabs';
 
 export function MhdCompanyDetailPage() {
   const { companyId } = useParams<{ companyId: string }>();
@@ -60,6 +61,8 @@ export function MhdCompanyDetailPage() {
       <MhdBreadcrumb
         items={[{ label: 'Companies', to: '/companies' }, { label: company.companyName }]}
       />
+
+      <MhdCompanyRecordTabs companyId={company.id} active="detail" />
 
       {/* Company card */}
       <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">

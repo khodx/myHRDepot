@@ -17,6 +17,7 @@ import { mhdCanMutateWorkflowApprovals } from '@/appshell/mhdRouteAccess';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdTaskRecordTabs } from './MhdTaskRecordTabs';
 import { useState } from 'react';
 
 export function MhdTaskDetailPage() {
@@ -91,6 +92,8 @@ export function MhdTaskDetailPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
       <MhdBreadcrumb items={[{ label: 'Tasks', to: '/tasks' }, { label: task.referenceId }]} />
+
+      <MhdTaskRecordTabs taskId={task.id} active="detail" />
 
       <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">

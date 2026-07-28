@@ -2,13 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { useMhdAuth } from '@/features/authentication/Hook';
+import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
 import type { MhdForm, MhdFormSubmission } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormSubmissionReview } from './MhdFormSubmissionReview';
+import { MhdFormRecordTabs } from './MhdFormRecordTabs';
 
 export function MhdFormSubmissionsPage() {
   const { formId } = useParams<{ formId: string }>();
   const location = useLocation();
+  const { roles } = useMhdAuth();
+  const canMutate = mhdCanMutateForms(roles);
   const [searchParams] = useSearchParams();
   const requestedSubmissionId = searchParams.get('submissionId');
   const [form, setForm] = useState<MhdForm | null>(null);
@@ -80,23 +85,18 @@ export function MhdFormSubmissionsPage() {
         title={form ? `${form.name} Submissions` : 'Form Submissions'}
         description="Review runtime submissions returned by `mhd_list_submissions_for_form` and `mhd_get_submission`."
         actions={
-          <>
-            <Link
-              to={`/forms/${formId}/edit`}
-              className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
-            >
-              Open Builder
-            </Link>
-            <Link
-              to={`/forms/${formId}/render`}
-              state={{ backgroundLocation: location }}
-              className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
-            >
-              Open Renderer
-            </Link>
-          </>
+          <Link
+            to={`/forms/${formId}/render`}
+            state={{ backgroundLocation: location }}
+            className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+          >
+            Open Renderer
+          </Link>
         }
       />
+
+      <MhdFormRecordTabs formId={formId} active="submissions" canMutate={canMutate} />
+
       <div className="space-y-6">
         {errorMessage ? (
           <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">

@@ -8,6 +8,7 @@ import { useMhdMessageThreads } from '../Hook';
 import { MhdMessageThreadList } from './MhdMessageThreadList';
 import { MhdMessageThreadView } from './MhdMessageThreadView';
 import { MhdNewMessageDialog } from './MhdNewMessageDialog';
+import { MhdCommunicationsTabs } from '@/appshell/components/MhdCommunicationsTabs';
 
 export function MhdMessagingPage() {
   const { profile, authUserId } = useMhdAuth();
@@ -30,6 +31,8 @@ export function MhdMessagingPage() {
           </Button>
         }
       />
+
+      <MhdCommunicationsTabs active="messaging" />
 
       <section className="grid min-h-[36rem] gap-4 xl:grid-cols-[24rem_1fr]">
         <MhdCard className="overflow-hidden p-0">
