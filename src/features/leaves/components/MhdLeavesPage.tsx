@@ -15,6 +15,12 @@ import {
   MhdTh,
   MhdTr,
 } from '@/components/ui/MhdTable';
+import {
+  MhdViewToggle,
+  mhdReadPersistedViewMode,
+  mhdWritePersistedViewMode,
+  type MhdViewMode,
+} from '@/components/ui/MhdViewToggle';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdCreateLeaveCase, useMhdLeaveCases, useMhdLeavePeople } from '../Hook';
@@ -24,8 +30,11 @@ import {
   mhdFormatLeaveCaseStatus,
   type MhdLeaveCaseFilters,
 } from '../Types';
+import { MhdLeaveBoard } from './MhdLeaveBoard';
 import { MhdLeaveCaseForm } from './MhdLeaveCaseForm';
 import { MhdLeaveStatusBadge } from './MhdLeaveStatusBadge';
+
+const MHD_LEAVES_VIEW_KEY = 'mhd:leaves:view';
 
 /**
  * `/leaves` — the case board (route entry).
@@ -51,6 +60,14 @@ export function MhdLeavesPage() {
     personId: isPrivileged ? null : selfPersonId,
     status: 'ALL',
   });
+  const [viewMode, setViewMode] = useState<MhdViewMode>(() =>
+    mhdReadPersistedViewMode(MHD_LEAVES_VIEW_KEY),
+  );
+
+  function handleViewModeChange(mode: MhdViewMode) {
+    setViewMode(mode);
+    mhdWritePersistedViewMode(MHD_LEAVES_VIEW_KEY, mode);
+  }
 
   const cases = useMhdLeaveCases(filters);
   const people = useMhdLeavePeople(isPrivileged ? companyId || null : null);
@@ -131,12 +148,18 @@ export function MhdLeavesPage() {
         </MhdFilterSelect>
       </MhdFilterBar>
 
+      <div className="flex justify-end">
+        <MhdViewToggle value={viewMode} onChange={handleViewModeChange} />
+      </div>
+
       {cases.isLoading ? (
         <MhdCard className="p-6 text-sm text-muted-foreground">Loading…</MhdCard>
       ) : (cases.data ?? []).length === 0 ? (
         <MhdCard className="border-dashed">
           <MhdEmptyState icon={CalendarOff} title="No leave cases on record." />
         </MhdCard>
+      ) : viewMode === 'board' ? (
+        <MhdLeaveBoard cases={cases.data ?? []} isLoading={cases.isLoading} isPrivileged={isPrivileged} />
       ) : (
         <MhdCard className="overflow-hidden p-0">
           <MhdTable>

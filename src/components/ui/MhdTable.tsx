@@ -45,6 +45,8 @@ export function MhdTh({ className, ...props }: ThHTMLAttributes<HTMLTableCellEle
 interface MhdTrProps extends HTMLAttributes<HTMLTableRowElement> {
   /** Detail-route destination for record rows. Clicks on nested controls are ignored. */
   to?: To;
+  /** History state passed through to the underlying `navigator.push(to, state)` call — e.g. `{ backgroundLocation }` for modal routes. */
+  state?: unknown;
 }
 
 function isInteractiveTableClickTarget(
@@ -58,7 +60,7 @@ function isInteractiveTableClickTarget(
   return Boolean(interactiveTarget && interactiveTarget !== currentTarget);
 }
 
-export function MhdTr({ className, to, onClick, onKeyDown, ...props }: MhdTrProps) {
+export function MhdTr({ className, to, state, onClick, onKeyDown, ...props }: MhdTrProps) {
   const navigationContext = useContext(UNSAFE_NavigationContext);
   const isClickable = Boolean(to || onClick);
 
@@ -68,7 +70,7 @@ export function MhdTr({ className, to, onClick, onKeyDown, ...props }: MhdTrProp
     onClick?.(event);
     if (!to || event.defaultPrevented) return;
 
-    navigationContext?.navigator.push(to);
+    navigationContext?.navigator.push(to, state);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTableRowElement>) {
@@ -116,7 +118,9 @@ export function MhdActionsTh({ className, ...props }: ThHTMLAttributes<HTMLTable
 
 interface MhdTableActionsProps {
   viewTo?: string;
+  /** @deprecated Edit now lives only on the record's detail page (MhdDetailActions). Kept optional so existing callers still typecheck; no longer rendered here. */
   editTo?: string;
+  /** @deprecated Delete now lives only on the record's detail page (MhdDetailActions). Kept optional so existing callers still typecheck; no longer rendered here. */
   onDelete?: () => void | Promise<void>;
   deleteLabel?: string;
   deleteConfirmMessage?: string;
@@ -144,13 +148,7 @@ const disabledMenuItemClass = 'block px-3 py-2 text-xs font-medium text-muted-fo
  */
 export function MhdTableActions({
   viewTo,
-  editTo,
-  onDelete,
-  deleteLabel = 'Delete',
-  deleteConfirmMessage = 'Delete this record?',
   disableView = false,
-  disableEdit = false,
-  disableDelete = false,
   secondaryActions,
 }: MhdTableActionsProps) {
   const [open, setOpen] = useState(false);
@@ -171,13 +169,6 @@ export function MhdTableActions({
       document.removeEventListener('keydown', onKeyDown);
     };
   }, [open]);
-
-  function handleDelete() {
-    setOpen(false);
-    if (!onDelete || disableDelete) return;
-    if (!window.confirm(deleteConfirmMessage)) return;
-    void onDelete();
-  }
 
   return (
     <MhdTd className="whitespace-nowrap text-right" data-row-click-ignore>
@@ -209,30 +200,9 @@ export function MhdTableActions({
             ) : (
               <span className={disabledMenuItemClass}>View</span>
             )}
-            {editTo && !disableEdit ? (
-              <Link
-                role="menuitem"
-                to={editTo}
-                className={menuItemClass}
-                onClick={() => setOpen(false)}
-              >
-                Edit
-              </Link>
-            ) : (
-              <span className={disabledMenuItemClass}>Edit</span>
-            )}
-            {onDelete && !disableDelete ? (
-              <button
-                type="button"
-                role="menuitem"
-                className={cn(menuItemClass, 'w-full text-red-700 hover:bg-red-50')}
-                onClick={handleDelete}
-              >
-                {deleteLabel}
-              </button>
-            ) : (
-              <span className={disabledMenuItemClass}>Delete</span>
-            )}
+            {/* Edit and Delete are intentionally NOT offered from the row menu —
+                both are only reachable from the record's own detail page
+                (top/bottom action bar there), never inline from a list row. */}
             {secondaryActions ? (
               <div className="mt-1 border-t border-border pt-1">{secondaryActions}</div>
             ) : null}

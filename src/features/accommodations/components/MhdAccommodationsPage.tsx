@@ -7,6 +7,12 @@ import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTableActions, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdViewToggle,
+  mhdReadPersistedViewMode,
+  mhdWritePersistedViewMode,
+  type MhdViewMode,
+} from '@/components/ui/MhdViewToggle';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdAccommodationsIsPrivileged } from '@/appshell/mhdRouteAccess';
 import {
@@ -25,10 +31,13 @@ import {
   type MhdAccommodationRequestSource,
   type MhdAccommodationStatus,
 } from '../Types';
+import { MhdAccommodationBoard } from './MhdAccommodationBoard';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
+
+const MHD_ACCOMMODATIONS_VIEW_KEY = 'mhd:accommodations:view';
 
 export function MhdAccommodationsPage() {
   const navigate = useNavigate();
@@ -43,6 +52,14 @@ export function MhdAccommodationsPage() {
   const [requestChannel, setRequestChannel] = useState<MhdAccommodationRequestChannel>('VERBAL');
   const [requestSummary, setRequestSummary] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<MhdViewMode>(() =>
+    mhdReadPersistedViewMode(MHD_ACCOMMODATIONS_VIEW_KEY),
+  );
+
+  function handleViewModeChange(mode: MhdViewMode) {
+    setViewMode(mode);
+    mhdWritePersistedViewMode(MHD_ACCOMMODATIONS_VIEW_KEY, mode);
+  }
 
   const cases = useMhdAccommodationCases(companyId || null, status, personId || null);
   const people = useMhdAccommodationPeople(isPrivileged ? companyId || null : null);
@@ -202,6 +219,10 @@ export function MhdAccommodationsPage() {
         </MhdFilterSelect>
       </MhdFilterBar>
 
+      <div className="flex justify-end">
+        <MhdViewToggle value={viewMode} onChange={handleViewModeChange} />
+      </div>
+
       {cases.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading accommodation cases…</p>
       ) : (cases.data ?? []).length === 0 ? (
@@ -210,6 +231,8 @@ export function MhdAccommodationsPage() {
           title="No accommodation cases"
           description="Requests will appear here whether they begin verbally, in writing, or through another workflow."
         />
+      ) : viewMode === 'board' ? (
+        <MhdAccommodationBoard cases={cases.data ?? []} isLoading={cases.isLoading} />
       ) : (
         <MhdCard className="overflow-hidden p-0">
           <MhdTable>

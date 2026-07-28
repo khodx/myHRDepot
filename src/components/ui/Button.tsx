@@ -1,13 +1,13 @@
 import type { ButtonHTMLAttributes } from 'react';
 import { cn } from '@/utils/cn';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'warning';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
 };
 
-const variantClasses: Record<ButtonVariant, string> = {
+export const buttonVariantClasses: Record<ButtonVariant, string> = {
   // Category primary with the derived hover/pressed states and the 25%-alpha
   // focus ring from the category token block.
   primary:
@@ -16,19 +16,19 @@ const variantClasses: Record<ButtonVariant, string> = {
   ghost: 'bg-transparent text-slate-950 hover:bg-slate-100 focus-visible:ring-slate-500',
   // Semantic error red (design system §5), independent of the category accent.
   destructive: 'bg-red-700 text-white hover:bg-red-800 focus-visible:ring-red-700',
+  // Record-detail Edit action (2026-07-26) — deliberately yellow, distinct from
+  // the navy category accent, so Edit reads as its own affordance next to Delete.
+  warning: 'bg-yellow-400 text-yellow-950 hover:bg-yellow-300 active:bg-yellow-500 focus-visible:ring-yellow-400',
 };
+
+export const buttonBaseClasses =
+  'inline-flex h-10 items-center justify-center gap-1.5 rounded-md px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
 
 export function Button({ className, variant = 'primary', type = 'button', ...props }: ButtonProps) {
   return (
     <button
       type={type}
-      className={cn(
-        'inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-semibold transition-colors',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-        'disabled:pointer-events-none disabled:opacity-50',
-        variantClasses[variant],
-        className,
-      )}
+      className={cn(buttonBaseClasses, buttonVariantClasses[variant], className)}
       {...props}
     />
   );

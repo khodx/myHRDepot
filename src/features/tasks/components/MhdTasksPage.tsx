@@ -1,16 +1,33 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, Layers, Plus, Save } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import {
+  MhdViewToggle,
+  mhdReadPersistedViewMode,
+  mhdWritePersistedViewMode,
+  type MhdViewMode,
+} from '@/components/ui/MhdViewToggle';
+import { MhdTaskBoard } from '@/features/tasks/components/MhdTaskBoard';
 import { MhdTaskFilterBar } from '@/features/tasks/components/MhdTaskFilterBar';
 import { MhdTaskList } from '@/features/tasks/components/MhdTaskList';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdTasks } from '@/features/tasks/Hook';
 
+const MHD_TASKS_VIEW_KEY = 'mhd:tasks:view';
+
 export function MhdTasksPage() {
   const { profile } = useMhdAuth();
+  const [viewMode, setViewMode] = useState<MhdViewMode>(() =>
+    mhdReadPersistedViewMode(MHD_TASKS_VIEW_KEY),
+  );
+
+  function handleViewModeChange(mode: MhdViewMode) {
+    setViewMode(mode);
+    mhdWritePersistedViewMode(MHD_TASKS_VIEW_KEY, mode);
+  }
   const actorContext = useMemo(
     () => (profile?.userId ? { actorUserId: profile.userId } : null),
     [profile],
@@ -66,11 +83,23 @@ export function MhdTasksPage() {
         onChange={taskState.setFilters}
       />
 
-      <MhdTaskList
-        tasks={taskState.tasks}
-        isLoading={taskState.isLoading}
-        onDelete={taskState.deleteTask}
-      />
+      <div className="flex justify-end">
+        <MhdViewToggle value={viewMode} onChange={handleViewModeChange} />
+      </div>
+
+      {viewMode === 'board' ? (
+        <MhdTaskBoard
+          tasks={taskState.tasks}
+          statuses={taskState.statuses}
+          isLoading={taskState.isLoading}
+        />
+      ) : (
+        <MhdTaskList
+          tasks={taskState.tasks}
+          isLoading={taskState.isLoading}
+          onDelete={taskState.deleteTask}
+        />
+      )}
     </div>
   );
 }
