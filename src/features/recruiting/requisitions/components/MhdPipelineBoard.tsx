@@ -87,33 +87,31 @@ export function MhdPipelineBoard({
     return (
       <div
         key={application.id}
-        className="space-y-2 rounded-md border border-border bg-card p-3 shadow-sm"
+        className="space-y-1.5 rounded-md border border-border bg-card p-2 shadow-sm"
       >
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <button
-              type="button"
-              onClick={() => onOpenApplication?.(application.id)}
-              className="text-left text-sm font-medium text-accent hover:text-accent-hover"
-            >
-              {application.personDisplayName}
-            </button>
-            <div className="font-mono text-xs text-muted-foreground">{application.referenceId}</div>
-          </div>
+        <div className="flex items-start justify-between gap-1.5">
+          <button
+            type="button"
+            onClick={() => onOpenApplication?.(application.id)}
+            className="truncate text-left text-xs font-medium text-accent hover:text-accent-hover"
+          >
+            {application.personDisplayName}
+          </button>
           <MhdApplicationStatusBadge lifecycle={application.lifecycle} />
         </div>
 
-        {application.source ? (
-          <p className="text-xs text-muted-foreground">Source: {application.source}</p>
-        ) : null}
+        <p className="truncate text-[11px] text-muted-foreground">
+          {application.referenceId}
+          {application.source ? ` · ${application.source}` : ''}
+        </p>
 
         {canManage && application.lifecycle === 'ACTIVE' ? (
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-1.5 pt-0.5">
             <select
               value={application.currentStageId ?? ''}
               disabled={moveStage.isPending}
               onChange={(event) => void handleMove(application, event.target.value)}
-              className="w-full rounded-md border border-border px-2 py-1 text-xs disabled:opacity-50"
+              className="w-full rounded-md border border-border px-1.5 py-0.5 text-[11px] disabled:opacity-50"
             >
               {stages.map((stage) => (
                 <option key={stage.id} value={stage.id}>
@@ -124,7 +122,7 @@ export function MhdPipelineBoard({
             <button
               type="button"
               onClick={() => setRejecting(application)}
-              className="whitespace-nowrap text-xs font-medium text-red-700 hover:text-red-800"
+              className="whitespace-nowrap text-[11px] font-medium text-red-700 hover:text-red-800"
             >
               Reject
             </button>

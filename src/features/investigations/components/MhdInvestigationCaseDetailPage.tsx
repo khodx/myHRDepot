@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
@@ -48,6 +49,8 @@ import { MhdPartyPanel } from './MhdPartyPanel';
  * without a single role check — which is the whole access model: per case, by
  * grant, never by role.
  */
+const INVESTIGATION_STATUS_FINDINGS_ID = 'investigation-status-findings';
+
 export function MhdInvestigationCaseDetailPage() {
   const { caseId = '' } = useParams<{ caseId: string }>();
   const { profile } = useMhdAuth();
@@ -108,6 +111,18 @@ export function MhdInvestigationCaseDetailPage() {
     setFinding('');
   }
 
+  // Opens the existing status/disposition transition panel preset to CLOSED,
+  // rather than performing any delete. Closing already requires a disposition
+  // (enforced in submitTransition above), so this only stages the flow — it
+  // does not submit on its own.
+  function openCloseFlow() {
+    setNewStatus('CLOSED');
+    setTransitionError(null);
+    document
+      .getElementById(INVESTIGATION_STATUS_FINDINGS_ID)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   async function submitAssign() {
     if (!investigatorId) return;
     await assign.mutateAsync({ caseId, investigator: investigatorId });
@@ -148,6 +163,13 @@ export function MhdInvestigationCaseDetailPage() {
             {detail.closedAt ? ` · closed ${detail.closedAt}` : ''}
           </>
         }
+        actions={
+          <MhdDetailActions
+            onDelete={openCloseFlow}
+            deleteLabel="Close Case"
+            skipConfirm
+          />
+        }
       />
 
       {/* ----- The reveal-gated allegation ----- */}
@@ -178,7 +200,7 @@ export function MhdInvestigationCaseDetailPage() {
       </MhdCard>
 
       {/* ----- Status / disposition / findings ----- */}
-      <MhdCard className="space-y-3">
+      <MhdCard id={INVESTIGATION_STATUS_FINDINGS_ID} className="space-y-3">
         <h2 className="text-base font-semibold text-foreground">Status & findings</h2>
         <div className="flex flex-wrap items-end gap-3">
           <div>
@@ -316,6 +338,10 @@ export function MhdInvestigationCaseDetailPage() {
           await revokeAccess.mutateAsync(input);
         }}
       />
+
+      <div className="flex justify-end border-t border-border pt-4">
+        <MhdDetailActions onDelete={openCloseFlow} deleteLabel="Close Case" skipConfirm />
+      </div>
     </div>
   );
 }

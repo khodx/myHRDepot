@@ -16,6 +16,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Users, ClipboardList } from 'lucide-react';
 import { MhdBreadcrumb } from './MhdBreadcrumb';
 import { mhdCompanyService } from '@/features/companies/Service';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 
 export function MhdCompanyDetailPage() {
   const { companyId } = useParams<{ companyId: string }>();
@@ -67,6 +68,7 @@ export function MhdCompanyDetailPage() {
             <p className="text-xs text-neutral-400">{company.referenceId}</p>
             <h1 className="mt-0.5 text-xl font-semibold text-neutral-900">{company.companyName}</h1>
           </div>
+          <MhdDetailActions editTo={`/companies/${company.id}/edit`} />
         </div>
 
         {/* Quick actions */}
@@ -94,6 +96,10 @@ export function MhdCompanyDetailPage() {
           <p>Created: {new Date(company.createdAt).toLocaleDateString()}</p>
           <p>Updated: {new Date(company.updatedAt).toLocaleDateString()}</p>
         </div>
+      </div>
+
+      <div className="flex justify-end border-t border-neutral-100 pt-4">
+        <MhdDetailActions editTo={`/companies/${company.id}/edit`} />
       </div>
     </div>
   );

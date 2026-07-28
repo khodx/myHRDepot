@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlarmClock, ExternalLink, ListChecks, Plus, Trash2 } from 'lucide-react';
+import { AlarmClock, ExternalLink, ListChecks, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import {
   mhdCustomItemSchema,
@@ -342,7 +343,6 @@ export function MhdOffboardingChecklist({
   }
 
   async function handleDelete(item: MhdOffboardingChecklistItem) {
-    if (!window.confirm(`Delete custom item "${item.title}"? This cannot be undone.`)) return;
     setItemError(item.id, null);
     try {
       await actions.deleteItem.mutateAsync({ itemId: item.id });
@@ -464,15 +464,11 @@ export function MhdOffboardingChecklist({
                         {waivingItemId === item.id ? 'Close' : 'Waive / N.A.'}
                       </button>
                       {isCustom ? (
-                        <button
-                          type="button"
-                          onClick={() => void handleDelete(item)}
-                          disabled={actions.deleteItem.isPending}
-                          className="inline-flex items-center gap-1 rounded-md border border-rose-300 bg-card px-3 py-1.5 text-xs font-semibold text-rose-700 disabled:opacity-50"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Delete
-                        </button>
+                        <MhdDetailActions
+                          onDelete={() => handleDelete(item)}
+                          deleteLabel="Delete"
+                          deleteConfirmMessage={`Delete custom item "${item.title}"? This cannot be undone.`}
+                        />
                       ) : null}
                     </div>
                   ) : null}

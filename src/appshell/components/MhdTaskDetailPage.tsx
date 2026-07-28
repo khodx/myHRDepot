@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { MhdBreadcrumb } from './MhdBreadcrumb';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -16,6 +16,7 @@ import { MhdApprovalHistory } from '@/features/approvals/components/MhdApprovalH
 import { mhdCanMutateWorkflowApprovals } from '@/appshell/mhdRouteAccess';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml } from '@/components/ui/MhdRichTextUtils';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { useState } from 'react';
 
 export function MhdTaskDetailPage() {
@@ -56,6 +57,12 @@ export function MhdTaskDetailPage() {
     setWorkflowRefreshKey((current) => current + 1);
   }
 
+  async function handleDeleteTask() {
+    if (!task || !profile?.userId) return;
+    await mhdTaskService.deleteTask(task.id, { actorUserId: profile.userId });
+    navigate('/tasks');
+  }
+
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -93,12 +100,11 @@ export function MhdTaskDetailPage() {
             <p className="mt-1 text-sm text-neutral-500">{task.companyName}</p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-3">
-            <Link
-              to={`/tasks/${task.id}/edit`}
-              className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-semibold text-foreground hover:border-accent hover:text-accent"
-            >
-              Edit Task
-            </Link>
+            <MhdDetailActions
+              editTo={`/tasks/${task.id}/edit`}
+              onDelete={profile?.userId ? handleDeleteTask : undefined}
+              deleteConfirmMessage={`Delete task "${task.title}"? This cannot be undone.`}
+            />
             <MhdStatusTransitionButton
               taskId={task.id}
               currentStatusId={task.statusId}
@@ -238,6 +244,14 @@ export function MhdTaskDetailPage() {
           </div>
         </div>
       </section>
+
+      <div className="flex justify-end border-t border-neutral-200 pt-4">
+        <MhdDetailActions
+          editTo={`/tasks/${task.id}/edit`}
+          onDelete={profile?.userId ? handleDeleteTask : undefined}
+          deleteConfirmMessage={`Delete task "${task.title}"? This cannot be undone.`}
+        />
+      </div>
     </div>
   );
 }

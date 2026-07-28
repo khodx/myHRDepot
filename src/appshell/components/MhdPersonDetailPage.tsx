@@ -37,6 +37,7 @@ import {
 } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Link } from 'react-router-dom';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 
 export function MhdPersonDetailPage() {
   const { personId } = useParams<{ personId: string }>();
@@ -152,19 +153,22 @@ export function MhdPersonDetailPage() {
 
       {/* Profile card */}
       <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
-        <div className="flex items-start gap-4">
-          {/* Avatar initials */}
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-700">
-            {person.firstName?.[0] ?? ''}
-            {person.lastName?.[0] ?? ''}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            {/* Avatar initials */}
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-700">
+              {person.firstName?.[0] ?? ''}
+              {person.lastName?.[0] ?? ''}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl font-semibold text-neutral-900">{person.displayName}</h1>
+              {person.preferredName && (
+                <p className="text-sm text-neutral-500">Preferred: {person.preferredName}</p>
+              )}
+              <p className="mt-0.5 text-xs text-neutral-400">{person.referenceId}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-neutral-900">{person.displayName}</h1>
-            {person.preferredName && (
-              <p className="text-sm text-neutral-500">Preferred: {person.preferredName}</p>
-            )}
-            <p className="mt-0.5 text-xs text-neutral-400">{person.referenceId}</p>
-          </div>
+          <MhdDetailActions editTo={`/people/${person.id}/edit`} />
         </div>
 
         {/* Company */}
@@ -411,6 +415,10 @@ export function MhdPersonDetailPage() {
           <MhdActivityList activities={activitiesQuery.data ?? []} />
         )}
       </section>
+
+      <div className="flex justify-end border-t border-neutral-200 pt-4">
+        <MhdDetailActions editTo={`/people/${person.id}/edit`} />
+      </div>
     </div>
   );
 }

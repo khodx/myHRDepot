@@ -13,6 +13,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { mhdCanMutateOffboarding } from '@/appshell/mhdRouteAccess';
@@ -319,8 +320,6 @@ export function MhdOffboardingCaseDetailPage() {
 
   async function handleDelete() {
     if (!offboardingCase) return;
-    if (!window.confirm(`Delete case ${offboardingCase.referenceId}? This cannot be undone.`))
-      return;
     setActionError(null);
     try {
       await actions.deleteCase.mutateAsync({ caseId: offboardingCase.id });
@@ -453,13 +452,13 @@ export function MhdOffboardingCaseDetailPage() {
               ) : null}
 
               {isActive ? (
-                <button
+                <Button
                   type="button"
+                  variant="warning"
                   onClick={() => setIsEditing((current) => !current)}
-                  className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
                 >
                   {isEditing ? 'Close Edit' : 'Edit Case'}
-                </button>
+                </Button>
               ) : null}
 
               {isActive ? (
@@ -472,16 +471,11 @@ export function MhdOffboardingCaseDetailPage() {
                 </button>
               ) : null}
 
-              {isActive && !hasCompletedItems ? (
-                <button
-                  type="button"
-                  onClick={() => void handleDelete()}
-                  disabled={actions.deleteCase.isPending}
-                  className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  Delete Case
-                </button>
-              ) : null}
+              <MhdDetailActions
+                onDelete={isActive && !hasCompletedItems ? handleDelete : undefined}
+                deleteLabel="Delete Case"
+                deleteConfirmMessage={`Delete case ${offboardingCase.referenceId}? This cannot be undone.`}
+              />
             </>
           ) : undefined
         }
@@ -834,6 +828,19 @@ export function MhdOffboardingCaseDetailPage() {
           </MhdCard>
         </div>
       </section>
+
+      {canMutate && isActive ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" variant="warning" onClick={() => setIsEditing((current) => !current)}>
+            {isEditing ? 'Close Edit' : 'Edit Case'}
+          </Button>
+          <MhdDetailActions
+            onDelete={!hasCompletedItems ? handleDelete : undefined}
+            deleteLabel="Delete Case"
+            deleteConfirmMessage={`Delete case ${offboardingCase.referenceId}? This cannot be undone.`}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

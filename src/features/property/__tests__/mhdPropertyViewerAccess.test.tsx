@@ -175,8 +175,11 @@ describe('MhdPropertyPage role gating', () => {
     );
 
     expect(screen.getByText('Add Property Item')).toBeInTheDocument();
+    // Edit/Delete are no longer offered from the row menu for anyone — both
+    // are only reachable from the record's own detail page (MhdDetailActions).
     fireEvent.click(screen.getByRole('button', { name: 'Row actions' }));
-    expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'View' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
   });
 });
 
@@ -211,7 +214,8 @@ describe('MhdPropertyDetailPage role gating', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Edit Item')).toBeInTheDocument();
+    // Edit/Delete now render twice (top + bottom action bar via MhdDetailActions).
+    expect(screen.getAllByText('Edit Item').length).toBeGreaterThan(0);
     expect(screen.getByText('Issue Property')).toBeInTheDocument();
     expect(screen.getByText('Record Return')).toBeInTheDocument();
     expect(screen.getByText('Mark Lost')).toBeInTheDocument();

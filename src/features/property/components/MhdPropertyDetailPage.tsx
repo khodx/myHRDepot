@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
@@ -102,11 +103,6 @@ export function MhdPropertyDetailPage() {
 
   async function handleDeleteItem() {
     if (!item) return;
-    const confirmed = window.confirm(
-      `Delete property item ${item.referenceId}? This is a soft delete and will fail if the item is still issued.`,
-    );
-    if (!confirmed) return;
-
     setActionError(null);
     try {
       await actions.deleteItem.mutateAsync(item.id);
@@ -186,13 +182,13 @@ export function MhdPropertyDetailPage() {
         actions={
           canMutate ? (
             <>
-              <button
+              <Button
                 type="button"
+                variant="warning"
                 onClick={() => setIsEditingItem((current) => !current)}
-                className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
               >
                 {isEditingItem ? 'Close Edit' : 'Edit Item'}
-              </button>
+              </Button>
               <Button
                 type="button"
                 onClick={() => setIsIssuing((current) => !current)}
@@ -201,13 +197,11 @@ export function MhdPropertyDetailPage() {
               >
                 {isIssuing ? 'Close Issue Form' : 'Issue Property'}
               </Button>
-              <button
-                type="button"
-                onClick={() => void handleDeleteItem()}
-                className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white"
-              >
-                Delete Item
-              </button>
+              <MhdDetailActions
+                onDelete={handleDeleteItem}
+                deleteLabel="Delete Item"
+                deleteConfirmMessage={`Delete property item ${item.referenceId}? This is a soft delete and will fail if the item is still issued.`}
+              />
             </>
           ) : undefined
         }
@@ -394,6 +388,23 @@ export function MhdPropertyDetailPage() {
 
         <MhdPropertyAssignmentHistory assignments={assignments} />
       </section>
+
+      {canMutate ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="warning"
+            onClick={() => setIsEditingItem((current) => !current)}
+          >
+            {isEditingItem ? 'Close Edit' : 'Edit Item'}
+          </Button>
+          <MhdDetailActions
+            onDelete={handleDeleteItem}
+            deleteLabel="Delete Item"
+            deleteConfirmMessage={`Delete property item ${item.referenceId}? This is a soft delete and will fail if the item is still issued.`}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

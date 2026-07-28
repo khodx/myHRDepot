@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdRichTextEditor, MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { useState, type FormEvent } from 'react';
@@ -275,12 +276,6 @@ export function MhdActivityDetailPage() {
 
   async function handleDelete() {
     if (!activity) return;
-    if (
-      !window.confirm(
-        `Delete activity ${activity.referenceId}? Sub-activities and participants are deleted with it.`,
-      )
-    )
-      return;
     setActionError(null);
     try {
       await actions.deleteActivity.mutateAsync({
@@ -438,16 +433,13 @@ export function MhdActivityDetailPage() {
         actions={
           canMutate ? (
             <>
-              <Button variant="secondary" onClick={() => setIsEditing((current) => !current)}>
+              <Button variant="warning" onClick={() => setIsEditing((current) => !current)}>
                 {isEditing ? 'Close Edit' : 'Edit Activity'}
               </Button>
-              <button
-                type="button"
-                onClick={() => void handleDelete()}
-                className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white"
-              >
-                Delete
-              </button>
+              <MhdDetailActions
+                onDelete={handleDelete}
+                deleteConfirmMessage={`Delete activity ${activity.referenceId}? Sub-activities and participants are deleted with it.`}
+              />
             </>
           ) : undefined
         }
@@ -763,6 +755,18 @@ export function MhdActivityDetailPage() {
           </section>
         </div>
       </section>
+
+      {canMutate ? (
+        <div className="flex justify-end gap-2 border-t border-border pt-4">
+          <Button variant="warning" onClick={() => setIsEditing((current) => !current)}>
+            {isEditing ? 'Close Edit' : 'Edit Activity'}
+          </Button>
+          <MhdDetailActions
+            onDelete={handleDelete}
+            deleteConfirmMessage={`Delete activity ${activity.referenceId}? Sub-activities and participants are deleted with it.`}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

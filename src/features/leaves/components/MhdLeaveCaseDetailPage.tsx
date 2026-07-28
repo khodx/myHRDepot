@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -35,6 +36,8 @@ import { MhdLeaveStatusBadge } from './MhdLeaveStatusBadge';
 import { MhdLeaveWorkflowPanel } from './MhdLeaveWorkflowPanel';
 
 const REQUIRE_REASON: readonly MhdLeaveCaseStatus[] = ['DENIED', 'CANCELLED'];
+
+const LEAVE_STATUS_TRANSITION_ID = 'leave-status-transition';
 
 const INPUT_CLASSES =
   'rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -166,6 +169,17 @@ export function MhdLeaveCaseDetailPage() {
     setDecisionReason('');
   }
 
+  // Opens the existing status-transition panel preset to CANCELLED, rather than
+  // performing any delete — the panel already requires a typed reason before it
+  // will submit (see REQUIRE_REASON / submitTransition above).
+  function openCancelFlow() {
+    setNewStatus('CANCELLED');
+    setTransitionError(null);
+    document
+      .getElementById(LEAVE_STATUS_TRANSITION_ID)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   async function submitAdjust() {
     const hours = Number.parseFloat(adjustHours);
     if (!adjustTypeId) {
@@ -210,11 +224,25 @@ export function MhdLeaveCaseDetailPage() {
             {leaveCase.requestedEnd ? ` → ${leaveCase.requestedEnd}` : ''}
           </>
         }
+        actions={
+          isPrivileged ? (
+            <>
+              <Button variant="warning" onClick={toggleEditingBases}>
+                {isEditingBases ? 'Cancel Edit Bases' : 'Edit Bases'}
+              </Button>
+              <MhdDetailActions
+                onDelete={openCancelFlow}
+                deleteLabel="Cancel Case"
+                skipConfirm
+              />
+            </>
+          ) : undefined
+        }
       />
 
       {/* ----- Status transition (privileged) ----- */}
       {isPrivileged ? (
-        <MhdCard className="space-y-3">
+        <MhdCard id={LEAVE_STATUS_TRANSITION_ID} className="space-y-3">
           <MhdCardHeader title="Status" className="mb-0" />
           <div className="flex flex-wrap items-end gap-3">
             <div>
@@ -480,6 +508,15 @@ export function MhdLeaveCaseDetailPage() {
           await markCert.mutateAsync(input);
         }}
       />
+
+      {isPrivileged ? (
+        <div className="flex justify-end gap-3 border-t border-border pt-4">
+          <Button variant="warning" onClick={toggleEditingBases}>
+            {isEditingBases ? 'Cancel Edit Bases' : 'Edit Bases'}
+          </Button>
+          <MhdDetailActions onDelete={openCancelFlow} deleteLabel="Cancel Case" skipConfirm />
+        </div>
+      ) : null}
     </div>
   );
 }

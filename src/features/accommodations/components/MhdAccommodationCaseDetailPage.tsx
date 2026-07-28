@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTabs } from '@/components/ui/MhdTabs';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -37,6 +38,21 @@ import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 type Tab = 'process' | 'options' | 'decision' | 'implementation' | 'medical';
+
+// Mirrors mhd_accommodation_transition's own transition graph (0053_reasonable
+//_accommodations_module.sql): CLOSED is not a legal next state from EVALUATION
+// or IMPLEMENTING, and a case already CLOSED can only reopen to
+// INTERACTIVE_PROCESS. The Close Case action must not be offered outside this
+// set — the RPC is the enforcement, this only avoids showing a button that
+// would just raise 22023.
+const MHD_ACCOMMODATION_CLOSABLE_STATUSES: readonly MhdAccommodationStatus[] = [
+  'INTAKE',
+  'INTERACTIVE_PROCESS',
+  'DOCUMENTATION_PENDING',
+  'DECIDED',
+  'ACTIVE',
+  'REVIEW_DUE',
+];
 
 export function MhdAccommodationCaseDetailPage() {
   const { caseId = '' } = useParams<{ caseId: string }>();
@@ -83,6 +99,8 @@ export function MhdAccommodationCaseDetailPage() {
   const [accommodationNeed, setAccommodationNeed] = useState('');
   const [revealed, setRevealed] = useState<Record<string, MhdAccommodationMedicalReveal>>({});
   const [error, setError] = useState<string | null>(null);
+  const [closingCase, setClosingCase] = useState(false);
+  const [closeReason, setCloseReason] = useState('');
 
   const record = detail.data;
   if (detail.isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
@@ -96,6 +114,9 @@ export function MhdAccommodationCaseDetailPage() {
       setError(caught instanceof Error ? caught.message : 'The action could not be completed.');
     }
   }
+
+  const canCloseCase =
+    privileged && MHD_ACCOMMODATION_CLOSABLE_STATUSES.includes(record.case.status);
 
   const activeDecision = record.decisions.find((item) => !item.superseded_at);
   // The option to implement is a DECIDED fact, not a UI fact. `selectedOptionId`
@@ -158,8 +179,62 @@ export function MhdAccommodationCaseDetailPage() {
         description={`${mhdFormatAccommodationValue(record.case.request_source)} · ${new Date(
           record.case.requested_at,
         ).toLocaleDateString()} · ${mhdFormatAccommodationValue(record.case.status)}`}
+        actions={
+          canCloseCase ? (
+            <MhdDetailActions
+              deleteLabel="Close Case"
+              onDelete={() => setClosingCase(true)}
+              skipConfirm
+            />
+          ) : undefined
+        }
       />
       <MhdComplianceGateBanner readiness={readiness.data} />
+
+      {closingCase ? (
+        <MhdCard className="space-y-3">
+          <MhdCardHeader title="Close case" />
+          <p className="text-xs text-muted-foreground">
+            Closing is the audited cancel/withdraw path for this module — the case record and its
+            interactive-process history are retained, not deleted. A reason is required.
+          </p>
+          <label className="text-sm font-medium">
+            Reason <span className="font-normal text-muted-foreground">(required)</span>
+            <input
+              className={`mt-1 ${inputClass}`}
+              value={closeReason}
+              onChange={(event) => setCloseReason(event.target.value)}
+              placeholder="Why is this case closing?"
+            />
+          </label>
+          <div className="flex gap-2">
+            <Button
+              variant="destructive"
+              disabled={transition.isPending || !closeReason.trim()}
+              onClick={() =>
+                void run(async () => {
+                  await transition.mutateAsync({ status: 'CLOSED', reason: closeReason });
+                  setClosingCase(false);
+                  setCloseReason('');
+                })
+              }
+            >
+              {transition.isPending ? 'Closing…' : 'Confirm Close Case'}
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={transition.isPending}
+              onClick={() => {
+                setClosingCase(false);
+                setCloseReason('');
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </MhdCard>
+      ) : null}
+
       <MhdCard>
         <MhdCardHeader title="Request and job context" />
         <p className="text-sm text-foreground">{record.case.request_summary}</p>
@@ -782,6 +857,16 @@ export function MhdAccommodationCaseDetailPage() {
             </div>
           ) : null}
         </MhdCard>
+      ) : null}
+
+      {canCloseCase ? (
+        <div className="flex justify-end border-t border-border pt-4">
+          <MhdDetailActions
+            deleteLabel="Close Case"
+            onDelete={() => setClosingCase(true)}
+            skipConfirm
+          />
+        </div>
       ) : null}
     </div>
   );

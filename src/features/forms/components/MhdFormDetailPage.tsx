@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
 import type { MhdForm } from '../Types';
@@ -34,11 +35,14 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 export function MhdFormDetailPage() {
   const { formId } = useParams<{ formId: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { roles } = useMhdAuth();
   const canMutate = mhdCanMutateForms(roles);
   const [form, setForm] = useState<MhdForm | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!formId) return;
@@ -70,6 +74,17 @@ export function MhdFormDetailPage() {
     };
   }, [formId]);
 
+  async function handleArchive() {
+    if (!formId) return;
+    setActionError(null);
+    try {
+      await mhdFormService.archiveForm(formId);
+      navigate('/forms');
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Unable to archive form.');
+    }
+  }
+
   if (!formId) {
     return <div className="p-6 text-sm text-red-600">No form id was provided.</div>;
   }
@@ -91,6 +106,12 @@ export function MhdFormDetailPage() {
 
   return (
     <div className="space-y-6">
+      {actionError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      ) : null}
+
       <MhdPageHeader
         backTo="/forms"
         backLabel="Forms"
@@ -101,6 +122,7 @@ export function MhdFormDetailPage() {
           <>
             <Link
               to={`/forms/${form.id}/render`}
+              state={{ backgroundLocation: location }}
               className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:border-accent hover:text-accent"
             >
               Open Form
@@ -112,12 +134,12 @@ export function MhdFormDetailPage() {
               Submissions
             </Link>
             {canMutate ? (
-              <Link
-                to={`/forms/${form.id}/edit`}
-                className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover"
-              >
-                Edit Form
-              </Link>
+              <MhdDetailActions
+                editTo={`/forms/${form.id}/edit`}
+                onDelete={handleArchive}
+                deleteLabel="Archive Form"
+                deleteConfirmMessage="Archive this form? It will no longer accept new submissions, but existing submissions are preserved."
+              />
             ) : null}
           </>
         }
@@ -143,6 +165,17 @@ export function MhdFormDetailPage() {
           definition: form.definition,
         }}
       />
+
+      {canMutate ? (
+        <div className="flex justify-end border-t border-border pt-4">
+          <MhdDetailActions
+            editTo={`/forms/${form.id}/edit`}
+            onDelete={handleArchive}
+            deleteLabel="Archive Form"
+            deleteConfirmMessage="Archive this form? It will no longer accept new submissions, but existing submissions are preserved."
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

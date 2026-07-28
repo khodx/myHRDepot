@@ -1,20 +1,30 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { mhdCanSeeJobPay } from '@/appshell/mhdRouteAccess';
+import { useNavigate, useParams } from 'react-router-dom';
+import { mhdCanMutateJobs, mhdCanSeeJobPay } from '@/appshell/mhdRouteAccess';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
   useMhdCreateDescriptionDraft,
+  useMhdDeleteJob,
   useMhdJobs,
   useMhdPublishedJobForPerson,
   useMhdSetPayRange,
+  useMhdUpdateJob,
 } from '../Hook';
 import {
+  MHD_EMPLOYMENT_TYPES,
+  MHD_FLSA_CLASSIFICATIONS,
+  MHD_INDUSTRIES,
   MHD_PAY_PERIODS,
   mhdFormatEmploymentType,
+  mhdFormatFlsa,
   mhdFormatIndustry,
+  type MhdEmploymentType,
+  type MhdFlsaClassification,
+  type MhdIndustry,
   type MhdPayPeriod,
 } from '../Types';
 import { MhdEssentialFunctionList } from './MhdEssentialFunctionList';
@@ -35,9 +45,11 @@ import { MhdPayRangeField } from './MhdPayRangeField';
  */
 export function MhdJobDetailPage() {
   const { jobId } = useParams<{ jobId: string }>();
+  const navigate = useNavigate();
   const { profile, roles } = useMhdAuth();
   const companyId = profile?.companyId ?? null;
   const canSeePay = mhdCanSeeJobPay(roles);
+  const canMutate = mhdCanMutateJobs(roles);
   const previewPersonId: string | null = null;
 
   const [draftId, setDraftId] = useState<string | null>(null);
@@ -47,12 +59,27 @@ export function MhdJobDetailPage() {
   const [payPeriod, setPayPeriod] = useState<MhdPayPeriod>('ANNUAL');
   const [payError, setPayError] = useState<string | null>(null);
 
+  const [isEditingJob, setIsEditingJob] = useState(false);
+  const [jobTitle, setJobTitle] = useState('');
+  const [jobCode, setJobCode] = useState('');
+  const [jobFamily, setJobFamily] = useState('');
+  const [jobLevel, setJobLevel] = useState('');
+  const [department, setDepartment] = useState('');
+  const [flsaClassification, setFlsaClassification] = useState<MhdFlsaClassification | ''>('');
+  const [employmentType, setEmploymentType] = useState<MhdEmploymentType>('FULL_TIME');
+  const [industry, setIndustry] = useState<MhdIndustry>('GENERAL');
+  const [isSafetySensitive, setIsSafetySensitive] = useState(false);
+  const [isActive, setIsActive] = useState(true);
+  const [jobError, setJobError] = useState<string | null>(null);
+
   const jobs = useMhdJobs(companyId, null, false);
   const job = (jobs.data ?? []).find((candidate) => candidate.id === jobId) ?? null;
 
   const published = useMhdPublishedJobForPerson(previewPersonId);
   const createDraft = useMhdCreateDescriptionDraft(companyId);
   const setPay = useMhdSetPayRange();
+  const updateJob = useMhdUpdateJob();
+  const deleteJob = useMhdDeleteJob();
 
   async function startDraft() {
     if (!jobId) return;
@@ -83,6 +110,52 @@ export function MhdJobDetailPage() {
     setIsEditingPay(false);
   }
 
+  function startEditingJob() {
+    if (!job) return;
+    setJobTitle(job.jobTitle);
+    setJobCode(job.jobCode ?? '');
+    setJobFamily(job.jobFamily ?? '');
+    setJobLevel(job.jobLevel ?? '');
+    setDepartment(job.department ?? '');
+    setFlsaClassification(job.flsaClassification ?? '');
+    setEmploymentType(job.employmentType);
+    setIndustry(job.industry);
+    setIsSafetySensitive(job.isSafetySensitive);
+    setIsActive(job.isActive);
+    setJobError(null);
+    setIsEditingJob(true);
+  }
+
+  async function saveJob() {
+    if (!jobId) return;
+    const trimmedTitle = jobTitle.trim();
+    if (!trimmedTitle) {
+      setJobError('Title is required.');
+      return;
+    }
+    setJobError(null);
+    await updateJob.mutateAsync({
+      jobId,
+      jobTitle: trimmedTitle,
+      jobCode: jobCode.trim() || null,
+      jobFamily: jobFamily.trim() || null,
+      jobLevel: jobLevel.trim() || null,
+      department: department.trim() || null,
+      flsaClassification: flsaClassification || null,
+      employmentType,
+      isSafetySensitive,
+      industry,
+      isActive,
+    });
+    setIsEditingJob(false);
+  }
+
+  async function handleDeleteJob() {
+    if (!jobId) return;
+    await deleteJob.mutateAsync(jobId);
+    navigate('/jobs');
+  }
+
   if (!companyId || jobs.isLoading) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
@@ -108,13 +181,179 @@ export function MhdJobDetailPage() {
           </>
         }
         actions={
-          <MhdPayRangeField
-            job={job}
-            canSeePay={canSeePay}
-            onEdit={canSeePay ? () => setIsEditingPay(true) : undefined}
-          />
+          <div className="flex flex-wrap items-center gap-3">
+            <MhdPayRangeField
+              job={job}
+              canSeePay={canSeePay}
+              onEdit={canSeePay ? () => setIsEditingPay(true) : undefined}
+            />
+            {canMutate ? (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="warning"
+                  onClick={() => (isEditingJob ? setIsEditingJob(false) : startEditingJob())}
+                >
+                  {isEditingJob ? 'Cancel Edit' : 'Edit Job'}
+                </Button>
+                <MhdDetailActions
+                  onDelete={handleDeleteJob}
+                  deleteLabel="Delete Job"
+                  deleteConfirmMessage="Delete this job? This cannot be undone."
+                />
+              </div>
+            ) : null}
+          </div>
         }
       />
+
+      {isEditingJob && canMutate ? (
+        <MhdCard className="space-y-3">
+          <h2 className="text-base font-semibold text-foreground">Edit job</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label htmlFor="jobTitle" className="block text-sm font-medium text-foreground">
+                Title
+              </label>
+              <input
+                id="jobTitle"
+                type="text"
+                value={jobTitle}
+                onChange={(event) => setJobTitle(event.target.value)}
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+            </div>
+            <div>
+              <label htmlFor="jobCode" className="block text-sm font-medium text-foreground">
+                Code
+              </label>
+              <input
+                id="jobCode"
+                type="text"
+                value={jobCode}
+                onChange={(event) => setJobCode(event.target.value)}
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+            </div>
+            <div>
+              <label htmlFor="jobFamily" className="block text-sm font-medium text-foreground">
+                Family
+              </label>
+              <input
+                id="jobFamily"
+                type="text"
+                value={jobFamily}
+                onChange={(event) => setJobFamily(event.target.value)}
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+            </div>
+            <div>
+              <label htmlFor="jobLevel" className="block text-sm font-medium text-foreground">
+                Level
+              </label>
+              <input
+                id="jobLevel"
+                type="text"
+                value={jobLevel}
+                onChange={(event) => setJobLevel(event.target.value)}
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+            </div>
+            <div>
+              <label htmlFor="department" className="block text-sm font-medium text-foreground">
+                Department
+              </label>
+              <input
+                id="department"
+                type="text"
+                value={department}
+                onChange={(event) => setDepartment(event.target.value)}
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+            </div>
+            <div>
+              <label htmlFor="flsaClassification" className="block text-sm font-medium text-foreground">
+                FLSA classification
+              </label>
+              <select
+                id="flsaClassification"
+                value={flsaClassification}
+                onChange={(event) =>
+                  setFlsaClassification(event.target.value as MhdFlsaClassification | '')
+                }
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <option value="">Unclassified</option>
+                {MHD_FLSA_CLASSIFICATIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {mhdFormatFlsa(value)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="employmentType" className="block text-sm font-medium text-foreground">
+                Employment type
+              </label>
+              <select
+                id="employmentType"
+                value={employmentType}
+                onChange={(event) => setEmploymentType(event.target.value as MhdEmploymentType)}
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                {MHD_EMPLOYMENT_TYPES.map((value) => (
+                  <option key={value} value={value}>
+                    {mhdFormatEmploymentType(value)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="industry" className="block text-sm font-medium text-foreground">
+                Industry
+              </label>
+              <select
+                id="industry"
+                value={industry}
+                onChange={(event) => setIndustry(event.target.value as MhdIndustry)}
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                {MHD_INDUSTRIES.map((value) => (
+                  <option key={value} value={value}>
+                    {mhdFormatIndustry(value)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={isSafetySensitive}
+                onChange={(event) => setIsSafetySensitive(event.target.checked)}
+              />
+              Safety-sensitive
+            </label>
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={isActive}
+                onChange={(event) => setIsActive(event.target.checked)}
+              />
+              Active
+            </label>
+          </div>
+          {jobError ? <p className="text-xs text-rose-600">{jobError}</p> : null}
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => setIsEditingJob(false)}>
+              Cancel
+            </Button>
+            <Button disabled={updateJob.isPending} onClick={() => void saveJob()}>
+              {updateJob.isPending ? 'Saving…' : 'Save job'}
+            </Button>
+          </div>
+        </MhdCard>
+      ) : null}
 
       {isEditingPay && canSeePay ? (
         <MhdCard className="space-y-3">
@@ -236,6 +475,22 @@ export function MhdJobDetailPage() {
           )}
         </section>
       )}
+
+      {canMutate ? (
+        <div className="flex justify-end gap-2 border-t border-border pt-4">
+          <Button
+            variant="warning"
+            onClick={() => (isEditingJob ? setIsEditingJob(false) : startEditingJob())}
+          >
+            {isEditingJob ? 'Cancel Edit' : 'Edit Job'}
+          </Button>
+          <MhdDetailActions
+            onDelete={handleDeleteJob}
+            deleteLabel="Delete Job"
+            deleteConfirmMessage="Delete this job? This cannot be undone."
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

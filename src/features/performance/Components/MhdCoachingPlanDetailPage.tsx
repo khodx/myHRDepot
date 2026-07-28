@@ -15,6 +15,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities, useMhdActivityActions } from '@/features/activities/Hook';
@@ -198,7 +199,6 @@ export function MhdCoachingPlanDetailPage() {
 
   async function handleDeletePlan() {
     if (!plan) return;
-    if (!window.confirm(`Delete coaching plan ${plan.referenceId}? This cannot be undone.`)) return;
     setActionError(null);
     try {
       await actions.deletePlan.mutateAsync({ planId: plan.id });
@@ -386,13 +386,13 @@ export function MhdCoachingPlanDetailPage() {
             <div className="flex flex-wrap gap-3">
               {isPlanActive ? (
                 <>
-                  <button
+                  <Button
                     type="button"
+                    variant="warning"
                     onClick={() => setIsEditing((current) => !current)}
-                    className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
                   >
                     {isEditing ? 'Close Edit' : 'Edit Plan'}
-                  </button>
+                  </Button>
                   <button
                     type="button"
                     onClick={() => void handleTransition('COMPLETED')}
@@ -409,16 +409,11 @@ export function MhdCoachingPlanDetailPage() {
                   >
                     Cancel Plan
                   </button>
-                  {completedItemCount === 0 ? (
-                    <button
-                      type="button"
-                      onClick={() => void handleDeletePlan()}
-                      disabled={actions.deletePlan.isPending}
-                      className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                    >
-                      Delete
-                    </button>
-                  ) : null}
+                  <MhdDetailActions
+                    onDelete={completedItemCount === 0 ? handleDeletePlan : undefined}
+                    deleteLabel="Delete"
+                    deleteConfirmMessage={`Delete coaching plan ${plan.referenceId}? This cannot be undone.`}
+                  />
                 </>
               ) : null}
             </div>
@@ -736,6 +731,23 @@ export function MhdCoachingPlanDetailPage() {
           })}
         </ol>
       </MhdCard>
+
+      {canMutate && isPlanActive ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="warning"
+            onClick={() => setIsEditing((current) => !current)}
+          >
+            {isEditing ? 'Close Edit' : 'Edit Plan'}
+          </Button>
+          <MhdDetailActions
+            onDelete={completedItemCount === 0 ? handleDeletePlan : undefined}
+            deleteLabel="Delete"
+            deleteConfirmMessage={`Delete coaching plan ${plan.referenceId}? This cannot be undone.`}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

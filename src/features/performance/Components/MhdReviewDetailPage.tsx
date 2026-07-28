@@ -16,6 +16,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities } from '@/features/activities/Hook';
@@ -254,8 +255,6 @@ export function MhdReviewDetailPage() {
 
   async function handleDelete() {
     if (!review) return;
-    if (!window.confirm(`Delete draft review ${review.referenceId}? This cannot be undone.`))
-      return;
     setActionError(null);
     try {
       await actions.deleteReview.mutateAsync({ reviewId: review.id });
@@ -369,13 +368,13 @@ export function MhdReviewDetailPage() {
               ) : null}
 
               {isContentEditable ? (
-                <button
+                <Button
                   type="button"
+                  variant="warning"
                   onClick={() => setIsEditing((current) => !current)}
-                  className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
                 >
                   {isEditing ? 'Close Edit' : 'Edit Review'}
-                </button>
+                </Button>
               ) : null}
 
               {review.status !== 'COMPLETED' && review.status !== 'CANCELLED' ? (
@@ -389,16 +388,11 @@ export function MhdReviewDetailPage() {
                 </button>
               ) : null}
 
-              {review.status === 'DRAFT' ? (
-                <button
-                  type="button"
-                  onClick={() => void handleDelete()}
-                  disabled={actions.deleteReview.isPending}
-                  className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  Delete Draft
-                </button>
-              ) : null}
+              <MhdDetailActions
+                onDelete={review.status === 'DRAFT' ? handleDelete : undefined}
+                deleteLabel="Delete Draft"
+                deleteConfirmMessage={`Delete draft review ${review.referenceId}? This cannot be undone.`}
+              />
             </div>
           ) : null}
         </div>
@@ -699,6 +693,25 @@ export function MhdReviewDetailPage() {
             </MhdCard>
           </div>
         </section>
+      ) : null}
+
+      {canMutate ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {isContentEditable ? (
+            <Button
+              type="button"
+              variant="warning"
+              onClick={() => setIsEditing((current) => !current)}
+            >
+              {isEditing ? 'Close Edit' : 'Edit Review'}
+            </Button>
+          ) : null}
+          <MhdDetailActions
+            onDelete={review.status === 'DRAFT' ? handleDelete : undefined}
+            deleteLabel="Delete Draft"
+            deleteConfirmMessage={`Delete draft review ${review.referenceId}? This cannot be undone.`}
+          />
+        </div>
       ) : null}
     </div>
   );
