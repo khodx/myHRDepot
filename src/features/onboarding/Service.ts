@@ -248,6 +248,26 @@ export const mhdOnboardingService = {
       return [mapFormToPacketRef(form)];
     });
   },
+
+  /**
+   * Bulk-cancels a person's onboarding packet (migration 0091,
+   * mhd_onboarding_cancel_person). Voids every checklist item still
+   * NOT_STARTED, PENDING, or SUBMITTED; SIGNED items are left untouched
+   * server-side because they are already-executed documents. Returns the
+   * number of items voided.
+   */
+  async cancelOnboarding(personId: string, reason: string): Promise<number> {
+    const { data, error } = await supabaseClient.rpc('mhd_onboarding_cancel_person', {
+      p_person_id: personId,
+      p_reason: reason,
+    });
+
+    if (error) {
+      throw new Error(`Unable to cancel onboarding: ${error.message}`);
+    }
+
+    return data ?? 0;
+  },
 };
 
 function mapFormToPacketRef(form: MhdForm): MhdOnboardingPacketFormRef {

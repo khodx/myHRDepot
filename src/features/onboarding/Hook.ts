@@ -92,6 +92,27 @@ export function useMhdOnboardingRoster(companyId: string | null) {
   };
 }
 
+/**
+ * Bulk-cancels a person's onboarding packet (mhd_onboarding_cancel_person,
+ * migration 0091). Invalidates the same two query keys as
+ * useMhdStartOnboardingPacket, since cancellation moves the same rows the
+ * roster and per-person page read.
+ */
+export function useMhdCancelOnboarding() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ personId, reason }: { personId: string; reason: string }) =>
+      mhdOnboardingService.cancelOnboarding(personId, reason),
+    onSuccess: async (_result, { personId }) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['mhd-onboarding-roster-progress'] }),
+        queryClient.invalidateQueries({ queryKey: ['mhd-onboarding-checklist', personId] }),
+      ]);
+    },
+  });
+}
+
 export function useMhdOnboardingPacket(personId: string, companyId: string) {
   const checklistQuery = useQuery({
     queryKey: ['mhd-onboarding-checklist', personId],

@@ -288,6 +288,23 @@ export function mhdCanMutateOffboarding(userRoles: MhdAuthRoleName[]): boolean {
 }
 
 /**
+ * Same audience as /onboarding itself (route table above): Platform Admin,
+ * HR Partner, Client Admin. Mirrors mhd_onboarding_cancel_person's own
+ * authorization check (mhd_can_access_company + Client Admin or HR Partner —
+ * Platform Admin passes via mhd_user_has_role's is_admin bypass), migration
+ * 0091.
+ */
+export const MHD_ONBOARDING_MUTATING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdCanMutateOnboarding(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_ONBOARDING_MUTATING_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
  * Roles that may open, edit, issue, and resolve corrective actions — the same
  * privileged set that reaches the /conduct surface. Conduct is admin-only: there
  * is no subject-facing route, so this is both the "can reach" and the "can
