@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -15,9 +15,22 @@ import { mhdFormService } from '../Service';
 import { MhdFormRenderer } from './MhdFormRenderer';
 import { MhdFormResumeDrafts } from './MhdFormDraftSave';
 
-export function MhdFormRendererPage() {
+interface MhdFormRendererPageProps {
+  /**
+   * True when rendered inside `MhdFormModalRoute`'s `MhdModal` shell rather
+   * than as the standalone full-page route. Suppresses the page-level
+   * `MhdPageHeader` (back link + Open Builder/View Submissions actions,
+   * which duplicate the modal's own close affordance and would navigate the
+   * background page out from under the dialog) while leaving the actual
+   * form-field rendering logic untouched.
+   */
+  embedded?: boolean;
+}
+
+export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPageProps = {}) {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile, roles } = useMhdAuth();
   const canMutate = mhdCanMutateForms(roles);
   const [searchParams] = useSearchParams();
@@ -113,36 +126,40 @@ export function MhdFormRendererPage() {
 
   return (
     <div className="space-y-6">
-      <MhdPageHeader
-        backTo="/forms"
-        backLabel="Forms"
-        title="Form Renderer"
-        description="This route exercises the same `mhd_get_form`, draft, and submit RPC surface that Stage 3 will verify locally."
-        actions={
-          <>
-            {onboardingPersonId ? (
+      {embedded ? (
+        <h2 className="text-lg font-semibold text-foreground">Form Renderer</h2>
+      ) : (
+        <MhdPageHeader
+          backTo="/forms"
+          backLabel="Forms"
+          title="Form Renderer"
+          description="This route exercises the same `mhd_get_form`, draft, and submit RPC surface that Stage 3 will verify locally."
+          actions={
+            <>
+              {onboardingPersonId ? (
+                <Link
+                  to={`/people/${onboardingPersonId}`}
+                  className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+                >
+                  Back to Person
+                </Link>
+              ) : null}
               <Link
-                to={`/people/${onboardingPersonId}`}
+                to={canMutate ? `/forms/${formId}/edit` : `/forms/${formId}`}
                 className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
               >
-                Back to Person
+                {canMutate ? 'Open Builder' : 'View Form'}
               </Link>
-            ) : null}
-            <Link
-              to={canMutate ? `/forms/${formId}/edit` : `/forms/${formId}`}
-              className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
-            >
-              {canMutate ? 'Open Builder' : 'View Form'}
-            </Link>
-            <Link
-              to={`/forms/${formId}/submissions`}
-              className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
-            >
-              View Submissions
-            </Link>
-          </>
-        }
-      />
+              <Link
+                to={`/forms/${formId}/submissions`}
+                className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+              >
+                View Submissions
+              </Link>
+            </>
+          }
+        />
+      )}
       <div className="space-y-6">
         {message ? (
           <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
@@ -204,7 +221,12 @@ export function MhdFormRendererPage() {
             updatedAt: draft.updatedAt,
           }))}
           onResume={(nextSubmissionId) =>
-            navigate(`/forms/${formId}/render?submissionId=${nextSubmissionId}`)
+            // Preserve location.state (in particular `backgroundLocation`) so
+            // resuming a draft from inside the modal doesn't drop the
+            // background route and fall back to a full-page render.
+            navigate(`/forms/${formId}/render?submissionId=${nextSubmissionId}`, {
+              state: location.state,
+            })
           }
         />
 

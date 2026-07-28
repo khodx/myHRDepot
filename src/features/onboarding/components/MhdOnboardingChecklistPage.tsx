@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FileSignature, ShieldAlert, Sparkles, ChevronRight } from 'lucide-react';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
@@ -33,6 +33,7 @@ export function MhdOnboardingChecklistPage({
   isLoading,
   errorMessage,
 }: MhdOnboardingChecklistPageProps) {
+  const location = useLocation();
   const hasSignatureWorkflow = items.some(
     (item) => item.requiresSignature && item.generatedDocumentRequired,
   );
@@ -145,6 +146,7 @@ export function MhdOnboardingChecklistPage({
                 {item.formId ? (
                   <Link
                     to={`/forms/${item.formId}/render?personId=${encodeURIComponent(personId)}&documentKey=${encodeURIComponent(item.documentKey)}&personName=${encodeURIComponent(personDisplayName)}`}
+                    state={{ backgroundLocation: location }}
                     className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-on transition-colors hover:bg-accent-hover"
                   >
                     Open Form

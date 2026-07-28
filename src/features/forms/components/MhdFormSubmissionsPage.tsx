@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import type { MhdForm, MhdFormSubmission } from '../Types';
@@ -8,6 +8,7 @@ import { MhdFormSubmissionReview } from './MhdFormSubmissionReview';
 
 export function MhdFormSubmissionsPage() {
   const { formId } = useParams<{ formId: string }>();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const requestedSubmissionId = searchParams.get('submissionId');
   const [form, setForm] = useState<MhdForm | null>(null);
@@ -88,6 +89,7 @@ export function MhdFormSubmissionsPage() {
             </Link>
             <Link
               to={`/forms/${formId}/render`}
+              state={{ backgroundLocation: location }}
               className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
             >
               Open Renderer

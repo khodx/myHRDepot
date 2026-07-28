@@ -163,7 +163,8 @@ describe('MhdFormDetailPage role gating', () => {
     );
 
     expect(await screen.findByRole('heading', { name: 'Onboarding', level: 1 })).toBeInTheDocument();
-    expect(screen.queryByText('Edit Form')).not.toBeInTheDocument();
+    // MhdDetailActions' Edit link renders as "Edit Record" (not "Edit Form").
+    expect(screen.queryByText('Edit Record')).not.toBeInTheDocument();
     expect(screen.getByText('Open Form')).toBeInTheDocument();
   });
 
@@ -179,10 +180,13 @@ describe('MhdFormDetailPage role gating', () => {
     );
 
     expect(await screen.findByRole('heading', { name: 'Onboarding', level: 1 })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Edit Form' })).toHaveAttribute(
-      'href',
-      '/forms/form-1/edit',
-    );
+    // Edit now renders twice (top + bottom action bar via MhdDetailActions),
+    // labeled "Edit Record" rather than "Edit Form".
+    const editLinks = screen.getAllByRole('link', { name: 'Edit Record' });
+    expect(editLinks.length).toBeGreaterThan(0);
+    for (const link of editLinks) {
+      expect(link).toHaveAttribute('href', '/forms/form-1/edit');
+    }
   });
 });
 

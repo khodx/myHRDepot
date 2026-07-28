@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -16,6 +16,7 @@ const STATUS_OPTIONS: Array<{ value: MhdFormStatus | 'ALL'; label: string }> = [
 ];
 
 export function MhdFormsPage() {
+  const location = useLocation();
   const { profile, roles } = useMhdAuth();
   const canMutate = mhdCanMutateForms(roles);
   const formState = useMhdFormsIndex(profile?.companyId ?? null);
@@ -77,6 +78,7 @@ export function MhdFormsPage() {
                 </p>
                 <Link
                   to={`/forms/${draft.formId}/render?submissionId=${draft.id}`}
+                  state={{ backgroundLocation: location }}
                   className="mt-3 inline-block text-sm font-semibold text-accent hover:text-accent-hover"
                 >
                   Resume Draft

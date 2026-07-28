@@ -544,13 +544,6 @@ export const mhdFormService = {
     return (data ?? []).map(mapFormRow);
   },
 
-  async deleteForm(formId: string): Promise<void> {
-    const { error } = await supabaseClient.from('forms').delete().eq('id', formId);
-    if (error) {
-      throw new Error(`Unable to delete form: ${error.message}`);
-    }
-  },
-
   async createSubmission(
     formId: string,
     optionsOrTaskId?: MhdCreateSubmissionOptions | string,

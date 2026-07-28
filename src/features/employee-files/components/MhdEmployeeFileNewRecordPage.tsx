@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { ClipboardList } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
@@ -24,6 +24,7 @@ import {
 
 export function MhdEmployeeFileNewRecordPage() {
   const { personId } = useParams<{ personId: string }>();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { profile } = useMhdAuth();
   const categoryValue = searchParams.get('category');
@@ -149,6 +150,7 @@ export function MhdEmployeeFileNewRecordPage() {
                   to={`/forms/${form.id}/render?employeeFilePersonId=${encodeURIComponent(
                     person.id,
                   )}&employeeFileCategory=${encodeURIComponent(category)}`}
+                  state={{ backgroundLocation: location }}
                 >
                   <MhdTd>
                     <p className="font-semibold text-foreground">{form.name}</p>
@@ -164,6 +166,7 @@ export function MhdEmployeeFileNewRecordPage() {
                       to={`/forms/${form.id}/render?employeeFilePersonId=${encodeURIComponent(
                         person.id,
                       )}&employeeFileCategory=${encodeURIComponent(category)}`}
+                      state={{ backgroundLocation: location }}
                       className="inline-flex h-8 items-center justify-center rounded-md border border-accent-border px-2.5 text-xs font-semibold text-accent transition hover:bg-accent-soft hover:text-accent-hover"
                     >
                       Use Form

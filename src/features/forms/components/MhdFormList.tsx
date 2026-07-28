@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
@@ -33,6 +33,8 @@ function statusBadgeVariant(status: MhdForm['status']): MhdBadgeVariant {
 }
 
 export function MhdFormList({ forms, isLoading }: MhdFormListProps) {
+  const location = useLocation();
+
   if (isLoading) {
     return <MhdCard className="p-6 text-sm text-muted-foreground">Loading forms...</MhdCard>;
   }
@@ -86,6 +88,7 @@ export function MhdFormList({ forms, isLoading }: MhdFormListProps) {
                   <>
                     <Link
                       to={`/forms/${form.id}/render`}
+                      state={{ backgroundLocation: location }}
                       className="text-accent hover:text-accent-hover"
                     >
                       Open Form

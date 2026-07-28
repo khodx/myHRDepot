@@ -1,4 +1,5 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import type { Location } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { MhdProtectedRoute } from '@/features/authentication/components/MhdProtectedRoute';
 import { MhdRoleGuardedRoute } from '@/appshell/MhdRoleGuardedRoute';
 import { MhdAppShell } from '@/appshell/MhdAppShell';
@@ -22,6 +23,7 @@ import { MhdFormsPage } from '@/features/forms/components/MhdFormsPage';
 import { MhdFormDetailPage } from '@/features/forms/components/MhdFormDetailPage';
 import { MhdFormBuilderPage } from '@/features/forms/components/MhdFormBuilderPage';
 import { MhdFormRendererPage } from '@/features/forms/components/MhdFormRendererPage';
+import { MhdFormModalRoute } from '@/features/forms/components/MhdFormModalRoute';
 import { MhdFormSubmissionsPage } from '@/features/forms/components/MhdFormSubmissionsPage';
 import { MhdPropertyPage } from '@/features/property/components/MhdPropertyPage';
 import { MhdPropertyDetailPage } from '@/features/property/components/MhdPropertyDetailPage';
@@ -29,7 +31,7 @@ import { MhdEsignaturePage } from '@/features/esignature/components/MhdEsignatur
 import { MhdEsignatureDetailPage } from '@/features/esignature/components/MhdEsignatureDetailPage';
 import { MhdPublicSigningPage } from '@/features/esignature/components/MhdPublicSigningPage';
 import { MhdCommunicationsPage } from '@/features/communications/components/MhdCommunicationsPage';
-import { MhdMessagingPage } from '@/features/communications/components/MhdMessagingPage';
+import { MhdMessagingPage } from '@/features/messaging/components/MhdMessagingPage';
 import { MhdSystemAlertsPage } from '@/features/communications/components/MhdSystemAlertsPage';
 import { MhdAutomationsPage } from '@/features/automations/components/MhdAutomationsPage';
 import { MhdAutomationRuleDetailPage } from '@/features/automations/components/MhdAutomationRuleDetailPage';
@@ -88,7 +90,36 @@ import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <Routes>
+      <MhdAppRoutes />
+    </BrowserRouter>
+  );
+}
+
+/**
+ * React Router "background location" modal pattern (the same one used by
+ * React Router's own gallery-photo-modal examples). `/forms/:formId/render`
+ * keeps its route/URL exactly as-is — deep-linkable, shareable, refreshable —
+ * but when reached via an in-app Link/navigate carrying
+ * `state.backgroundLocation`, it renders as a modal OVER the background
+ * page's route instead of replacing it:
+ *
+ *  - The main `<Routes>` below renders at `backgroundLocation` when present,
+ *    so the page the user was "really" on keeps rendering underneath.
+ *  - A second `<Routes>` renders ONLY when a backgroundLocation is present,
+ *    at the real current location, containing just the modal-eligible route.
+ *    This renders the modal ADDITIONALLY, without unmounting the page below.
+ *  - A direct load / refresh / shared link has no `backgroundLocation` in
+ *    history state, so `/forms/:formId/render` falls through to the main
+ *    `<Routes>` tree and renders as an ordinary full page.
+ */
+function MhdAppRoutes() {
+  const location = useLocation();
+  const backgroundLocation = (location.state as { backgroundLocation?: Location } | null)
+    ?.backgroundLocation;
+
+  return (
+    <>
+      <Routes location={backgroundLocation || location}>
         {/* Public auth routes */}
         <Route path="/login" element={<MhdLoginPage />} />
         <Route path="/forgot-password" element={<MhdForgotPasswordPage />} />
@@ -278,6 +309,24 @@ export function AppRouter() {
         <Route path="/404" element={<MhdNotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
-    </BrowserRouter>
+
+      {backgroundLocation ? (
+        <Routes>
+          {/* Same guard nesting as the canonical route above (MhdProtectedRoute
+              then MhdRoleGuardedRoute) — this second <Routes> tree is a
+              separate route match, so the auth/role check has to be applied
+              here explicitly rather than inherited. Deliberately excludes
+              MhdAppShell: the background page (rendered by the <Routes>
+              above, already inside its own MhdAppShell) supplies the
+              sidebar/top bar chrome, and the modal is only ever an overlay
+              on top of it. */}
+          <Route element={<MhdProtectedRoute />}>
+            <Route element={<MhdRoleGuardedRoute />}>
+              <Route path="/forms/:formId/render" element={<MhdFormModalRoute />} />
+            </Route>
+          </Route>
+        </Routes>
+      ) : null}
+    </>
   );
 }
