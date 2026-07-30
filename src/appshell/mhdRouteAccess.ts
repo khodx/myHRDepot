@@ -22,6 +22,15 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     path: '/forms',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
   },
+  // Reports (04.8 Document Generation Engine). Browsing templates/generation
+  // history is open to the same audience as Forms/Approvals; template
+  // authoring is narrower (Client Admin/HR Partner, or Platform Admin for a
+  // platform-level template) — see MHD_DOCUMENTS_MUTATING_ROLES below,
+  // mirroring document_templates' RLS.
+  {
+    path: '/reports',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+  },
   {
     path: '/property',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
@@ -222,6 +231,24 @@ export const MHD_FORMS_MUTATING_ROLES: MhdAuthRoleName[] = [
 
 export function mhdCanMutateForms(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_FORMS_MUTATING_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Roles that may create/edit/delete a document template (mirrors
+ * document_templates' RLS "manage" policy: Client Admin or HR Partner on an
+ * accessible company; a platform-level template with company_id null is
+ * Platform-Admin-only, checked separately by the RPCs). Client User and
+ * Viewer can still browse templates and request/view generations — see the
+ * /documents route rule above — but never author a template.
+ */
+export const MHD_DOCUMENTS_MUTATING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdCanMutateDocumentTemplates(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_DOCUMENTS_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }
 
 export const MHD_PROPERTY_MUTATING_ROLES: MhdAuthRoleName[] = [

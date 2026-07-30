@@ -1,0 +1,301 @@
+import { useEffect, useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import type { MhdCompany } from '@/features/companies/Types';
+import {
+  MHD_DOCUMENT_CONTENT_FORMATS,
+  MHD_DOCUMENT_TEMPLATE_TYPES,
+  type MhdDocumentMergeField,
+  type MhdDocumentMergeFieldSource,
+  type MhdDocumentTemplateDetail,
+} from '../Types';
+import { mhdDocumentTemplateFormSchema } from '../Schemas';
+
+interface MhdDocumentTemplateEditorProps {
+  companies: MhdCompany[];
+  canAuthorPlatformLevel: boolean;
+  selectedTemplate: MhdDocumentTemplateDetail | null;
+  isSaving: boolean;
+  onCreate: (values: ReturnType<typeof mhdDocumentTemplateFormSchema.parse>) => Promise<void>;
+  onUpdate: (values: ReturnType<typeof mhdDocumentTemplateFormSchema.parse>) => Promise<void>;
+  onCancel: () => void;
+}
+
+const MERGE_FIELD_SOURCES: MhdDocumentMergeFieldSource[] = [
+  'person',
+  'company',
+  'user',
+  'task',
+  'system',
+  'custom',
+];
+
+function emptyMergeField(): MhdDocumentMergeField {
+  return { path: '', label: '', source: 'custom' };
+}
+
+export function MhdDocumentTemplateEditor({
+  companies,
+  canAuthorPlatformLevel,
+  selectedTemplate,
+  isSaving,
+  onCreate,
+  onUpdate,
+  onCancel,
+}: MhdDocumentTemplateEditorProps) {
+  const [companyId, setCompanyId] = useState<string | null>(companies[0]?.id ?? null);
+  const [name, setName] = useState('');
+  const [templateType, setTemplateType] = useState<string>(MHD_DOCUMENT_TEMPLATE_TYPES[0]);
+  const [contentFormat, setContentFormat] = useState<string>(MHD_DOCUMENT_CONTENT_FORMATS[0]);
+  const [content, setContent] = useState('');
+  const [description, setDescription] = useState('');
+  const [requiresSignature, setRequiresSignature] = useState(false);
+  const [isActive, setIsActive] = useState(true);
+  const [mergeFields, setMergeFields] = useState<MhdDocumentMergeField[]>([]);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedTemplate) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- package pattern: sync form fields from the selected template prop
+      setCompanyId(selectedTemplate.companyId);
+      setName(selectedTemplate.name);
+      setTemplateType(selectedTemplate.templateType);
+      setContentFormat(selectedTemplate.contentFormat);
+      setContent(selectedTemplate.content);
+      setDescription(selectedTemplate.description ?? '');
+      setRequiresSignature(selectedTemplate.requiresSignature);
+      setIsActive(selectedTemplate.isActive);
+      setMergeFields(selectedTemplate.mergeFields);
+    } else {
+      setCompanyId(companies[0]?.id ?? null);
+      setName('');
+      setTemplateType(MHD_DOCUMENT_TEMPLATE_TYPES[0]);
+      setContentFormat(MHD_DOCUMENT_CONTENT_FORMATS[0]);
+      setContent('');
+      setDescription('');
+      setRequiresSignature(false);
+      setIsActive(true);
+      setMergeFields([]);
+    }
+  }, [companies, selectedTemplate]);
+
+  function updateMergeField(index: number, patch: Partial<MhdDocumentMergeField>) {
+    setMergeFields((current) =>
+      current.map((field, i) => (i === index ? { ...field, ...patch } : field)),
+    );
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError(null);
+
+    const parsed = mhdDocumentTemplateFormSchema.safeParse({
+      companyId,
+      name,
+      templateType,
+      contentFormat,
+      content,
+      mergeFields,
+      description,
+      requiresSignature,
+      isActive,
+    });
+
+    if (!parsed.success) {
+      setFormError(parsed.error.issues[0]?.message ?? 'Please correct the template form.');
+      return;
+    }
+
+    try {
+      if (selectedTemplate) {
+        await onUpdate(parsed.data);
+      } else {
+        await onCreate(parsed.data);
+      }
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Unable to save template.');
+    }
+  }
+
+  return (
+    <form
+      className="rounded-lg border border-border bg-card p-5 shadow-sm"
+      onSubmit={(event) => void handleSubmit(event)}
+    >
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-[15px] font-semibold text-foreground">
+          {selectedTemplate ? 'Edit Template' : 'New Template'}
+        </h2>
+        <button
+          type="button"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+      </div>
+
+      {formError && (
+        <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {formError}
+        </div>
+      )}
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <label className="text-sm font-medium text-foreground">
+          Company
+          <select
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={companyId ?? ''}
+            onChange={(event) => setCompanyId(event.target.value === '' ? null : event.target.value)}
+          >
+            {canAuthorPlatformLevel ? <option value="">Platform-level (shared)</option> : null}
+            {companies.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.companyName}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-sm font-medium text-foreground">
+          Name
+          <input
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </label>
+
+        <label className="text-sm font-medium text-foreground">
+          Template Type
+          <select
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={templateType}
+            onChange={(event) => setTemplateType(event.target.value)}
+          >
+            {MHD_DOCUMENT_TEMPLATE_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-sm font-medium text-foreground">
+          Content Format
+          <select
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={contentFormat}
+            onChange={(event) => setContentFormat(event.target.value)}
+          >
+            {MHD_DOCUMENT_CONTENT_FORMATS.map((format) => (
+              <option key={format} value={format}>
+                {format}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-sm font-medium text-foreground md:col-span-2">
+          Description
+          <input
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+          />
+        </label>
+
+        <label className="text-sm font-medium text-foreground md:col-span-2">
+          Content
+          <textarea
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            rows={8}
+            placeholder="Dear {{person.first_name}}, ..."
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+          />
+        </label>
+
+        <div className="md:col-span-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-foreground">Merge Fields</p>
+            <button
+              type="button"
+              onClick={() => setMergeFields((current) => [...current, emptyMergeField()])}
+              className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
+            >
+              <Plus className="h-4 w-4" />
+              Add field
+            </button>
+          </div>
+          <div className="mt-2 space-y-2">
+            {mergeFields.map((field, index) => (
+              <div key={index} className="flex flex-wrap items-center gap-2">
+                <input
+                  className="min-w-40 flex-1 rounded-md border border-border bg-card px-2 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  placeholder="path (e.g. person.first_name)"
+                  value={field.path}
+                  onChange={(event) => updateMergeField(index, { path: event.target.value })}
+                />
+                <input
+                  className="min-w-32 flex-1 rounded-md border border-border bg-card px-2 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  placeholder="label"
+                  value={field.label}
+                  onChange={(event) => updateMergeField(index, { label: event.target.value })}
+                />
+                <select
+                  className="rounded-md border border-border bg-card px-2 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  value={field.source}
+                  onChange={(event) =>
+                    updateMergeField(index, {
+                      source: event.target.value as MhdDocumentMergeFieldSource,
+                    })
+                  }
+                >
+                  {MERGE_FIELD_SOURCES.map((source) => (
+                    <option key={source} value={source}>
+                      {source}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMergeFields((current) => current.filter((_, i) => i !== index))
+                  }
+                  aria-label="Remove merge field"
+                  className="rounded p-2 text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <input
+            type="checkbox"
+            checked={requiresSignature}
+            onChange={(event) => setRequiresSignature(event.target.checked)}
+          />
+          Requires Signature
+        </label>
+
+        <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(event) => setIsActive(event.target.checked)}
+          />
+          Active
+        </label>
+      </div>
+
+      <Button type="submit" disabled={isSaving} className="mt-4">
+        {isSaving ? 'Saving...' : selectedTemplate ? 'Update Template' : 'Create Template'}
+      </Button>
+    </form>
+  );
+}

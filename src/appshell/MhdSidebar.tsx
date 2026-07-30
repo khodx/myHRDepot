@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   BarChart3,
   Accessibility,
@@ -18,6 +18,7 @@ import {
   ClipboardList,
   DoorOpen,
   FileSignature,
+  FileText,
   FolderOpen,
   Gavel,
   GraduationCap,
@@ -69,6 +70,33 @@ const DASHBOARD_ITEM: NavItem = {
 // Dashboard are exactly the six category themes — the rail color follows the
 // active route's category via the shell's data-mhd-theme stamp.
 const NAV_SECTIONS: NavSection[] = [
+  {
+    label: 'Work Tools',
+    items: [
+      { label: 'Tasks', route: '/tasks', icon: CheckSquare, roles: mhdRouteRoles('/tasks') },
+      {
+        label: 'Activities',
+        route: '/activities',
+        icon: CalendarClock,
+        roles: mhdRouteRoles('/activities'),
+      },
+      { label: 'Forms', route: '/forms', icon: ClipboardList, roles: mhdRouteRoles('/forms') },
+      { label: 'Approvals', route: '/approvals', icon: Stamp, roles: mhdRouteRoles('/approvals') },
+      {
+        label: 'Reports',
+        route: '/reports',
+        icon: FileText,
+        roles: mhdRouteRoles('/reports'),
+      },
+      { label: 'Property', route: '/property', icon: Package2, roles: mhdRouteRoles('/property') },
+      {
+        label: 'E-Signature',
+        route: '/esignature',
+        icon: FileSignature,
+        roles: mhdRouteRoles('/esignature'),
+      },
+    ],
+  },
   {
     label: 'People & Org',
     items: [
@@ -211,27 +239,6 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: 'Work Tools',
-    items: [
-      { label: 'Tasks', route: '/tasks', icon: CheckSquare, roles: mhdRouteRoles('/tasks') },
-      {
-        label: 'Activities',
-        route: '/activities',
-        icon: CalendarClock,
-        roles: mhdRouteRoles('/activities'),
-      },
-      { label: 'Forms', route: '/forms', icon: ClipboardList, roles: mhdRouteRoles('/forms') },
-      { label: 'Approvals', route: '/approvals', icon: Stamp, roles: mhdRouteRoles('/approvals') },
-      { label: 'Property', route: '/property', icon: Package2, roles: mhdRouteRoles('/property') },
-      {
-        label: 'E-Signature',
-        route: '/esignature',
-        icon: FileSignature,
-        roles: mhdRouteRoles('/esignature'),
-      },
-    ],
-  },
-  {
     label: 'Communications',
     items: [
       {
@@ -261,9 +268,13 @@ const MHD_RAIL_STATE_KEY = 'mhd:nav:rail';
 function readCollapsedGroups(): string[] {
   try {
     const raw = window.localStorage.getItem(MHD_NAV_COLLAPSE_KEY);
-    return raw ? (JSON.parse(raw) as string[]) : [];
+    // No stored preference: default every group collapsed. Once a user
+    // toggles anything, their stored choice always wins over this default.
+    return raw ? (JSON.parse(raw) as string[]) : NAV_SECTIONS.map((section) => section.label);
   } catch {
-    // localStorage unavailable (private mode / non-browser env) — start expanded.
+    // localStorage genuinely unavailable (private mode / non-browser env) —
+    // fall back to expanded rather than compounding one degraded experience
+    // (no persistence) with another (everything hidden behind a click).
     return [];
   }
 }
@@ -277,10 +288,10 @@ function readRailCollapsed(): boolean {
 }
 
 /**
- * Desktop rail. Light surface matching the app's card background (bg-rail
- * tracks --color-card) — the active category accent only marks the current
- * nav item (bg-rail-selected), not the whole sidebar. 252px expanded, 72px
- * collapsed (icon-only, persisted separately from the per-group collapse).
+ * Desktop rail. Dark navy surface (bg-rail, #00157A) — the active nav item is
+ * marked by a raised bevel on its amber selected fill (bg-rail-selected),
+ * not by flooding the whole sidebar. 252px expanded, 72px collapsed
+ * (icon-only, persisted separately from the per-group collapse).
  */
 export function MhdSidebar() {
   const [railCollapsed, setRailCollapsed] = useState<boolean>(() => readRailCollapsed());
@@ -309,7 +320,7 @@ export function MhdSidebar() {
         onClick={toggleRail}
         aria-label={railCollapsed ? 'Expand navigation' : 'Collapse navigation'}
         title={railCollapsed ? 'Expand navigation' : 'Collapse navigation'}
-        className="flex min-h-10 items-center justify-center gap-2 border-t border-rail-border px-3 text-rail-muted transition-colors duration-150 hover:bg-rail-hover hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
+        className="flex min-h-10 items-center justify-center gap-2 border-t border-rail-border px-3 text-rail-muted transition-colors duration-150 hover:bg-rail-hover hover:text-rail-hover-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
       >
         {railCollapsed ? (
           <PanelLeftOpen className="h-4 w-4 shrink-0" aria-hidden />
@@ -391,7 +402,7 @@ export function MhdMobileNavDrawer({ onClose }: { onClose: () => void }) {
           type="button"
           onClick={onClose}
           aria-label="Close navigation"
-          className="absolute right-2 top-6 rounded-md p-2 text-rail-muted transition-colors hover:bg-rail-hover hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          className="absolute right-2 top-6 rounded-md p-2 text-rail-muted transition-colors hover:bg-rail-hover hover:text-rail-hover-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
@@ -404,15 +415,38 @@ export function MhdMobileNavDrawer({ onClose }: { onClose: () => void }) {
 /** Shared rail content: logo band, company card, and the grouped navigation. */
 function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
   const { roles, profile } = useMhdAuth();
+  const location = useLocation();
   // Collapsed group labels, remembered per user. Default (empty) = all expanded.
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>(() => readCollapsedGroups());
+
+  // Landing on Dashboard collapses every group back down, since Dashboard is
+  // the "everything tucked away" home view. This only fires on arrival —
+  // once there, groups still expand/collapse normally on click, so a module
+  // stays reachable without leaving the page.
+  useEffect(() => {
+    if (location.pathname !== '/dashboard') return;
+    const allLabels = NAV_SECTIONS.map((section) => section.label);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- package pattern: sync collapsed state from route arrival
+    setCollapsedGroups(allLabels);
+    try {
+      window.localStorage.setItem(MHD_NAV_COLLAPSE_KEY, JSON.stringify(allLabels));
+    } catch {
+      // localStorage unavailable — collapse state stays in-memory only.
+    }
+  }, [location.pathname]);
 
   const hasRole = (item: NavItem) =>
     item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role));
 
+  // Accordion behavior: expanding one section collapses every other one.
+  // Clicking the already-expanded section collapses it too, leaving none
+  // expanded — there is no "expand all" state.
   const toggleGroup = (label: string) => {
     setCollapsedGroups((prev) => {
-      const next = prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label];
+      const allLabels = NAV_SECTIONS.map((section) => section.label);
+      // Currently collapsed -> expand just this one (collapsing every other
+      // group). Currently expanded -> collapse it too, leaving none open.
+      const next = prev.includes(label) ? allLabels.filter((l) => l !== label) : allLabels;
       try {
         window.localStorage.setItem(MHD_NAV_COLLAPSE_KEY, JSON.stringify(next));
       } catch {
@@ -435,27 +469,35 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
           collapsed ? 'items-center px-2' : 'px-4'
         }`}
       >
-        <span className="text-lg font-bold leading-tight tracking-tight text-foreground">
+        <span className="text-[23px] font-bold leading-tight tracking-tight text-white">
           {collapsed ? 'HR' : 'myHRDepot'}
         </span>
         {collapsed ? null : (
-          <span className="text-[11px] leading-tight text-rail-muted">
+          <span
+            title="Your one stop shop for everything HR."
+            className="overflow-hidden text-ellipsis whitespace-nowrap text-[10px] leading-tight tracking-tight text-rail-muted"
+          >
             Your one stop shop for everything HR.
           </span>
         )}
       </div>
 
-      {/* Company card — the tenant the session is scoped to. */}
+      {/* Company band — the tenant the session is scoped to. Same flush-strip
+          treatment as the logo band above (no card box, no outline): a fixed
+          height with a bottom divider line. That gives the scrollable nav
+          below a clean, full-width edge to butt up against, instead of a
+          floating rounded card whose bottom edge the scrolled content could
+          appear to clip into. */}
       {profile?.companyName ? (
         <div
           title={profile.companyName}
-          className={`mx-3 mt-3 flex shrink-0 items-center gap-2 rounded-md border border-rail-border bg-rail-surface px-3 py-2 ${
-            collapsed ? 'justify-center px-0' : ''
+          className={`flex h-11 shrink-0 items-center gap-2 border-b border-rail-border ${
+            collapsed ? 'justify-center px-2' : 'px-4'
           }`}
         >
-          <Building2 className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+          <Building2 className="h-4 w-4 shrink-0 text-white" aria-hidden />
           {collapsed ? null : (
-            <span className="truncate text-[13px] font-semibold text-foreground">
+            <span className="truncate text-[13px] font-semibold text-white">
               {profile.companyName}
             </span>
           )}
@@ -466,7 +508,7 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
           viewport (min-h-0 lets the flex child shrink below its content so
           overflow-y-auto engages instead of the ancestor clipping it). Each
           domain group collapses to keep the list short. */}
-      <nav className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
+      <nav className="mhd-rail-scroll min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         {hasRole(DASHBOARD_ITEM) ? (
           <MhdNavItem item={DASHBOARD_ITEM} collapsed={collapsed} />
         ) : null}
@@ -490,7 +532,7 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
                 type="button"
                 onClick={() => toggleGroup(section.label)}
                 aria-expanded={!isCollapsed}
-                className="flex min-h-10 w-full items-center justify-between rounded-md px-3 text-[13px] font-semibold text-rail-text transition-colors duration-150 hover:bg-rail-hover hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
+                className="flex min-h-10 w-full items-center justify-between rounded-md px-3 text-[17px] font-semibold text-rail-text transition-colors duration-150 hover:bg-rail-hover hover:text-rail-hover-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
               >
                 <span>{section.label}</span>
                 <ChevronDown
@@ -518,23 +560,23 @@ function MhdNavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
       to={item.route}
       title={collapsed ? item.label : undefined}
       className={({ isActive }) =>
-        `relative flex min-h-10 items-center rounded-md text-[13px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${
+        `relative flex min-h-10 items-center rounded-md text-[17px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${
           collapsed ? 'justify-center px-0' : 'gap-3 px-3'
         } ${
           isActive
-            ? 'bg-rail-selected font-semibold text-accent-on shadow-sm'
-            : 'font-medium text-rail-text hover:bg-rail-hover hover:text-accent'
+            ? // Raised-bevel emphasis, deliberately heavier than a flat fill: a
+              // wide soft drop shadow plus a tight contact shadow lift the row
+              // off the rail, and a bright top edge / dark bottom edge (inset
+              // shadows) read as a pushed-out, embossed button rather than a
+              // flat color block. This carries the whole "active" signal now
+              // that there's no separate indicator dot.
+              'bg-rail-selected font-semibold text-rail-selected-text shadow-[0_6px_14px_rgba(0,0,0,0.55),0_2px_4px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-2px_0_rgba(0,0,0,0.4)]'
+            : 'font-medium text-rail-text hover:bg-rail-hover hover:text-rail-hover-text'
         }`
       }
     >
-      {({ isActive }) => (
+      {() => (
         <>
-          {isActive ? (
-            <span
-              className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r bg-white"
-              aria-hidden
-            />
-          ) : null}
           <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
           {collapsed ? null : <span className="truncate">{item.label}</span>}
         </>

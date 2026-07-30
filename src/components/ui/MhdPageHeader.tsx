@@ -41,12 +41,12 @@ export function MhdPageHeader({
           Back{backLabel ? ` to ${backLabel}` : ''}
         </Link>
       )}
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start gap-4">
+        {actions && <div className="flex flex-wrap items-center justify-start gap-2">{actions}</div>}
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-[32px] font-semibold leading-tight text-foreground">{title}</h1>
           {chips}
         </div>
-        {actions && <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div>}
       </div>
       {description && <p className="max-w-4xl text-[15px] text-muted-foreground">{description}</p>}
     </header>

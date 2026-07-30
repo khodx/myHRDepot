@@ -19,12 +19,15 @@ type MhdTaskBoardRow = {
   title: string;
   description_plain_text: string | null;
   description_rich_text: unknown | null;
+  detailed_instructions_plain_text: string | null;
+  detailed_instructions_rich_text: unknown | null;
   status_id: string;
   status_name: string;
   status_color_token: string | null;
   priority_id: string | null;
   priority_name: string | null;
   priority_color_token: string | null;
+  assigned_date: string;
   start_date: string | null;
   due_date: string | null;
   completed_date: string | null;
@@ -94,12 +97,15 @@ function mapTaskRow(row: MhdTaskBoardRow): MhdTask {
     title: row.title,
     descriptionPlainText: row.description_plain_text,
     descriptionRichText: row.description_rich_text,
+    detailedInstructionsPlainText: row.detailed_instructions_plain_text,
+    detailedInstructionsRichText: row.detailed_instructions_rich_text,
     statusId: row.status_id,
     statusName: row.status_name,
     statusColorToken: row.status_color_token,
     priorityId: row.priority_id,
     priorityName: row.priority_name,
     priorityColorToken: row.priority_color_token,
+    assignedDate: row.assigned_date,
     startDate: row.start_date,
     dueDate: row.due_date,
     completedDate: row.completed_date,
@@ -226,6 +232,9 @@ export const mhdTaskService = {
         p_assigned_user_ids: input.assignedUserIds,
         p_actor_user_id: context.actorUserId,
         p_description_rich_text: (input.descriptionRichText ?? undefined) as Json | undefined,
+        p_detailed_instructions_plain_text: emptyToUndefined(input.detailedInstructionsPlainText),
+        p_detailed_instructions_rich_text: (input.detailedInstructionsRichText ??
+          undefined) as Json | undefined,
       })
       .returns<MhdTaskMutationResultRow[]>();
 
@@ -259,6 +268,9 @@ export const mhdTaskService = {
         p_assigned_user_ids: input.assignedUserIds,
         p_actor_user_id: context.actorUserId,
         p_description_rich_text: (input.descriptionRichText ?? undefined) as Json | undefined,
+        p_detailed_instructions_plain_text: emptyToUndefined(input.detailedInstructionsPlainText),
+        p_detailed_instructions_rich_text: (input.detailedInstructionsRichText ??
+          undefined) as Json | undefined,
       })
       .returns<MhdTaskMutationResultRow[]>();
 

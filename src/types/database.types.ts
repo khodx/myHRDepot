@@ -19347,6 +19347,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          assigned_date: string
           calculated_progress_percent: number | null
           company_id: string
           completed_date: string | null
@@ -19354,6 +19355,8 @@ export type Database = {
           created_by: string
           description_plain_text: string | null
           description_rich_text: Json | null
+          detailed_instructions_plain_text: string | null
+          detailed_instructions_rich_text: Json | null
           due_date: string | null
           id: string
           manual_progress_percent: number | null
@@ -19366,6 +19369,7 @@ export type Database = {
           updated_by: string
         }
         Insert: {
+          assigned_date?: string
           calculated_progress_percent?: number | null
           company_id: string
           completed_date?: string | null
@@ -19373,6 +19377,8 @@ export type Database = {
           created_by: string
           description_plain_text?: string | null
           description_rich_text?: Json | null
+          detailed_instructions_plain_text?: string | null
+          detailed_instructions_rich_text?: Json | null
           due_date?: string | null
           id?: string
           manual_progress_percent?: number | null
@@ -19385,6 +19391,7 @@ export type Database = {
           updated_by: string
         }
         Update: {
+          assigned_date?: string
           calculated_progress_percent?: number | null
           company_id?: string
           completed_date?: string | null
@@ -19392,6 +19399,8 @@ export type Database = {
           created_by?: string
           description_plain_text?: string | null
           description_rich_text?: Json | null
+          detailed_instructions_plain_text?: string | null
+          detailed_instructions_rich_text?: Json | null
           due_date?: string | null
           id?: string
           manual_progress_percent?: number | null
@@ -21189,6 +21198,23 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_create_document_template: {
+        Args: {
+          p_actor_user_id?: string
+          p_company_id: string
+          p_content: string
+          p_content_format: string
+          p_description?: string
+          p_merge_fields?: Json
+          p_name: string
+          p_requires_signature?: boolean
+          p_template_type: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
       mhd_create_form: {
         Args: {
           p_company_id: string
@@ -21393,6 +21419,8 @@ export type Database = {
           p_company_id: string
           p_description_plain_text?: string
           p_description_rich_text?: Json
+          p_detailed_instructions_plain_text?: string
+          p_detailed_instructions_rich_text?: Json
           p_due_date?: string
           p_manual_progress_percent?: number
           p_priority_id?: string
@@ -21514,6 +21542,10 @@ export type Database = {
       mhd_delete_contact_method: {
         Args: { p_contact_method_id: string }
         Returns: boolean
+      }
+      mhd_delete_document_template: {
+        Args: { p_actor_user_id?: string; p_template_id: string }
+        Returns: undefined
       }
       mhd_delete_message: { Args: { p_message_id: string }; Returns: undefined }
       mhd_delete_note: { Args: { p_note_id: string }; Returns: undefined }
@@ -21722,6 +21754,41 @@ export type Database = {
       }
       mhd_get_default_task_priority_id: { Args: never; Returns: string }
       mhd_get_default_task_status_id: { Args: never; Returns: string }
+      mhd_get_document_generation: {
+        Args: { p_generation_id: string }
+        Returns: {
+          company_id: string
+          entity_id: string
+          entity_type: string
+          esignature_request_id: string
+          generated_at: string
+          id: string
+          output_drive_file_id: string
+          output_file_name: string
+          reference_id: string
+          status: string
+          template_id: string
+        }[]
+      }
+      mhd_get_document_template: {
+        Args: { p_template_id: string }
+        Returns: {
+          company_id: string
+          content: string
+          content_format: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          merge_fields: Json
+          name: string
+          reference_id: string
+          requires_signature: boolean
+          template_type: string
+          updated_at: string
+          version: number
+        }[]
+      }
       mhd_get_document_template_by_key: {
         Args: { p_company_id?: string; p_template_key: string }
         Returns: string
@@ -21989,6 +22056,7 @@ export type Database = {
       mhd_get_task_by_id: {
         Args: { p_task_id: string }
         Returns: {
+          assigned_date: string
           assigned_display_names: string[]
           assigned_user_ids: string[]
           attachment_count: number
@@ -22000,6 +22068,8 @@ export type Database = {
           created_by: string
           description_plain_text: string
           description_rich_text: Json
+          detailed_instructions_plain_text: string
+          detailed_instructions_rich_text: Json
           due_date: string
           id: string
           manual_progress_percent: number
@@ -23164,6 +23234,44 @@ export type Database = {
           updated_by: string
         }[]
       }
+      mhd_list_document_generations: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: {
+          company_id: string
+          created_at: string
+          esignature_request_id: string
+          generated_at: string
+          id: string
+          output_drive_file_id: string
+          output_file_name: string
+          reference_id: string
+          status: string
+          template_id: string
+          template_name: string
+        }[]
+      }
+      mhd_list_document_templates: {
+        Args: {
+          p_company_id?: string
+          p_include_inactive?: boolean
+          p_template_type?: string
+        }
+        Returns: {
+          company_id: string
+          content_format: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          merge_fields: Json
+          name: string
+          reference_id: string
+          requires_signature: boolean
+          template_type: string
+          updated_at: string
+          version: number
+        }[]
+      }
       mhd_list_employee_file_submissions: {
         Args: { p_person_id: string }
         Returns: {
@@ -23702,6 +23810,7 @@ export type Database = {
           p_status_id?: string
         }
         Returns: {
+          assigned_date: string
           assigned_display_names: string[]
           assigned_user_ids: string[]
           attachment_count: number
@@ -23713,6 +23822,8 @@ export type Database = {
           created_by: string
           description_plain_text: string
           description_rich_text: Json
+          detailed_instructions_plain_text: string
+          detailed_instructions_rich_text: Json
           due_date: string
           id: string
           manual_progress_percent: number
@@ -25409,6 +25520,25 @@ export type Database = {
           updated_by: string
         }[]
       }
+      mhd_update_document_template: {
+        Args: {
+          p_actor_user_id?: string
+          p_content: string
+          p_content_format: string
+          p_description?: string
+          p_is_active?: boolean
+          p_merge_fields?: Json
+          p_name: string
+          p_requires_signature?: boolean
+          p_template_id: string
+          p_template_type: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+          version: number
+        }[]
+      }
       mhd_update_form: {
         Args: {
           p_definition?: Json
@@ -25558,6 +25688,8 @@ export type Database = {
           p_completed_date?: string
           p_description_plain_text?: string
           p_description_rich_text?: Json
+          p_detailed_instructions_plain_text?: string
+          p_detailed_instructions_rich_text?: Json
           p_due_date?: string
           p_manual_progress_percent?: number
           p_priority_id?: string

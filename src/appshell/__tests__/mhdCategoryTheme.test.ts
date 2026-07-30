@@ -166,24 +166,36 @@ describe('global.css category token contract', () => {
     expect(globalCss).not.toContain('data-module');
   });
 
-  // 2026-07-26 design review: the rail moved from a permanently dark navy
-  // surface (white-alpha state scale) to a light surface matching the app's
-  // card background, with the accent color marking only the active item.
-  it('gives the rail a light surface that tracks the card background', () => {
-    expect(globalCss).toContain('--mhd-rail: var(--color-card);');
-    expect(globalCss).toContain('--mhd-rail-surface: var(--mhd-accent-soft);');
-    expect(globalCss).toContain('--mhd-rail-hover: var(--mhd-accent-soft);');
-    expect(globalCss).toContain('--mhd-rail-selected: var(--mhd-accent);');
-    expect(globalCss).toContain('--mhd-rail-border: var(--color-border);');
-    expect(globalCss).toContain('--mhd-rail-text: var(--color-muted-foreground);');
-    expect(globalCss).toContain('--mhd-rail-muted: var(--color-muted-foreground);');
+  // 2026-07-30: dark navy rail (#00157A). All rail text is white — the
+  // active nav item is called out solely by a raised bevel (box-shadow, see
+  // MhdSidebar.tsx) on a pure white selected fill (no separate indicator
+  // dot). --mhd-rail-selected is #FFFFFF (2026-07-30 layout revisions).
+  // White is light, so --mhd-rail-selected-text flips to ink for contrast —
+  // the one rail text token that isn't white. Hover and selected text get
+  // their own tokens instead of the global --mhd-accent-on, which flips dark
+  // under .dark for the app's light surfaces and would go unreadable on the
+  // (always-dark) rail.
+  it('gives the rail a dark navy surface with white text and a white selected fill', () => {
+    expect(globalCss).toContain('--mhd-rail: #00157a;');
+    expect(globalCss).toContain('--mhd-rail-surface: #0a2499;');
+    expect(globalCss).toContain('--mhd-rail-hover: #12299e;');
+    expect(globalCss).toContain('--mhd-rail-hover-text: #ffffff;');
+    expect(globalCss).toContain('--mhd-rail-selected: #ffffff;');
+    expect(globalCss).toContain('--mhd-rail-selected-text: #111827;');
+    expect(globalCss).toContain('--mhd-rail-border: rgb(255 255 255 / 0.14);');
+    expect(globalCss).toContain('--mhd-rail-text: #ffffff;');
+    expect(globalCss).toContain('--mhd-rail-muted: #ffffff;');
   });
 
-  it('never re-pins the rail to the old fixed dark-navy hex in any category block', () => {
+  it('does not carry an indicator-dot token anymore', () => {
+    expect(globalCss).not.toContain('--mhd-rail-indicator');
+    expect(globalCss).not.toContain('--color-rail-indicator');
+  });
+
+  it('pins every category block to the same dark navy rail', () => {
     for (const theme of MHD_CATEGORY_THEMES) {
       const block = themeBlock(theme).toLowerCase();
-      expect(block, `${theme} still hardcodes the old dark rail`).not.toContain('--mhd-rail: #000479');
-      expect(block).toContain('--mhd-rail: var(--color-card)');
+      expect(block).toContain('--mhd-rail: #00157a');
     }
   });
 });
@@ -230,11 +242,19 @@ describe('category palette contrast', () => {
     },
   );
 
-  // The rail surface is no longer a fixed dark hex (see the light-rail token
-  // test in the "global.css category token contract" block above) — the only
-  // place white text sits on a solid accent fill now is the active nav item
-  // (bg-rail-selected == --mhd-accent), which is exactly the on-primary
-  // contrast already asserted above.
+  // The active nav item sits on --mhd-rail-selected (#FFFFFF), not the raw
+  // --mhd-accent fill — guard its dedicated ink text token
+  // (--mhd-rail-selected-text) meets AA there, and that the fill itself
+  // still clears the 3:1 non-text/UI-component minimum against the plain
+  // rail (it's the only "active" signal now that there's no separate
+  // indicator dot).
+  it('rail-selected-text (ink) meets AA on the white rail-selected fill', () => {
+    expect(contrast('#ffffff', '#111827')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('rail-selected fill clears the 3:1 UI-component minimum against the plain rail', () => {
+    expect(contrast('#00157A', '#ffffff')).toBeGreaterThanOrEqual(3);
+  });
 
   it.each(MHD_CATEGORY_THEMES.map((t) => [t] as const))(
     '%s CSS block carries the exact global brand primary HEX',

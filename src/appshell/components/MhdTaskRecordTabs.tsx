@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
 
-export type MhdTaskRecordTab = 'detail' | 'edit' | 'notes';
+export type MhdTaskRecordTab = 'detail' | 'notes' | 'activities' | 'attachments' | 'reports';
 
 interface MhdTaskRecordTabsProps {
   taskId: string;
@@ -10,33 +11,36 @@ interface MhdTaskRecordTabsProps {
 }
 
 /**
- * Sub-page nav for a single task record: Detail / Edit / Notes. Same
- * route-linked underline tab pattern as MhdFormRecordTabs.tsx — these three
- * are separate full-page routes, not in-page state.
+ * Record-nav buttons for a single task: Detail / Notes / Activities /
+ * Attachments / Reports — each its own routed page. Rendered as buttons
+ * (primary when active, secondary otherwise), not underlined tabs, matching
+ * the platform-wide "these are buttons" convention (same reasoning that
+ * moved Edit off a tab and onto MhdDetailActions). The only modals in this
+ * flow are the "new/create" forms inside each page (Add Note, Add Activity,
+ * Generate Report) — these buttons always navigate to a full page.
  */
 export function MhdTaskRecordTabs({ taskId, active, className }: MhdTaskRecordTabsProps) {
   const tabs: Array<{ key: MhdTaskRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/tasks/${taskId}` },
-    { key: 'edit', label: 'Edit', to: `/tasks/${taskId}/edit` },
     { key: 'notes', label: 'Notes', to: `/tasks/${taskId}/notes` },
+    { key: 'activities', label: 'Activities', to: `/tasks/${taskId}/activities` },
+    { key: 'attachments', label: 'Attachments', to: `/tasks/${taskId}/attachments` },
+    { key: 'reports', label: 'Reports', to: `/tasks/${taskId}/reports` },
   ];
 
   return (
-    <div role="tablist" className={cn('flex gap-1 border-b border-border', className)}>
+    <div className={cn('flex flex-wrap gap-2', className)}>
       {tabs.map((tab) => {
         const isActive = tab.key === active;
         return (
           <Link
             key={tab.key}
-            role="tab"
-            aria-selected={isActive}
+            aria-current={isActive ? 'page' : undefined}
             to={tab.to}
             className={cn(
-              '-mb-px inline-flex items-center gap-1.5 border-b-[3px] px-3 py-2 text-sm font-medium transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring',
-              isActive
-                ? 'border-accent text-accent-hover'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
+              buttonBaseClasses,
+              'h-9 px-3 text-sm',
+              isActive ? buttonVariantClasses.primary : buttonVariantClasses.secondary,
             )}
           >
             {tab.label}

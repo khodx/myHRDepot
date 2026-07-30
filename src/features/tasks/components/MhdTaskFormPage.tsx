@@ -5,7 +5,7 @@ import { MhdTaskForm } from '@/features/tasks/components/MhdTaskForm';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdTasks } from '@/features/tasks/Hook';
-import { MhdTaskRecordTabs } from '@/appshell/components/MhdTaskRecordTabs';
+import { MHD_SIMPLYHR_COMPANY_ID } from '@/features/tasks/Types';
 
 export function MhdTaskFormPage() {
   const { taskId } = useParams<{ taskId?: string }>();
@@ -52,8 +52,6 @@ export function MhdTaskFormPage() {
         backLabel="Tasks"
       />
 
-      {isEdit && taskId ? <MhdTaskRecordTabs taskId={taskId} active="edit" /> : null}
-
       {taskState.errorMessage || companiesQuery.isError ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {taskState.errorMessage ??
@@ -70,6 +68,8 @@ export function MhdTaskFormPage() {
         assignableUsers={taskState.assignableUsers}
         selectedTask={selectedTask}
         isSaving={taskState.isSaving}
+        currentUserCompanyId={profile?.companyId ?? ''}
+        canEditCompany={profile?.companyId === MHD_SIMPLYHR_COMPANY_ID}
         onCreate={async (input) => {
           await taskState.createTask(input);
           navigate('/tasks');

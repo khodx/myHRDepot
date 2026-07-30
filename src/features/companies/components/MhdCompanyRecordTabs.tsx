@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 
-export type MhdCompanyRecordTab = 'detail' | 'edit';
+export type MhdCompanyRecordTab = 'detail';
 
 interface MhdCompanyRecordTabsProps {
   companyId: string;
@@ -10,13 +10,13 @@ interface MhdCompanyRecordTabsProps {
 }
 
 /**
- * Sub-page nav for a single company record: Detail / Edit. Same route-linked
- * underline tab pattern as MhdFormRecordTabs.tsx.
+ * Sub-page nav for a single company record: Detail. Edit is a button
+ * (MhdDetailActions), not a tab, matching the platform-wide "edit is a
+ * button" convention for detail pages.
  */
 export function MhdCompanyRecordTabs({ companyId, active, className }: MhdCompanyRecordTabsProps) {
   const tabs: Array<{ key: MhdCompanyRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/companies/${companyId}` },
-    { key: 'edit', label: 'Edit', to: `/companies/${companyId}/edit` },
   ];
 
   return (

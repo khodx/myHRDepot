@@ -19,6 +19,10 @@ import { MhdTaskDetailPage } from '@/appshell/components/MhdTaskDetailPage';
 import { MhdTaskNotesPage } from '@/features/notes/components/MhdTaskNotesPage';
 import { MhdActivitiesPage } from '@/features/activities/components/MhdActivitiesPage';
 import { MhdActivityDetailPage } from '@/features/activities/components/MhdActivityDetailPage';
+import { MhdTaskActivitiesPage } from '@/features/activities/components/MhdTaskActivitiesPage';
+import { MhdTaskAttachmentsPage } from '@/features/attachments/components/MhdTaskAttachmentsPage';
+import { MhdTaskReportsPage } from '@/features/documents/components/MhdTaskReportsPage';
+import { MhdDocumentsPage } from '@/features/documents/components/MhdDocumentsPage';
 import { MhdFormsPage } from '@/features/forms/components/MhdFormsPage';
 import { MhdFormDetailPage } from '@/features/forms/components/MhdFormDetailPage';
 import { MhdFormBuilderPage } from '@/features/forms/components/MhdFormBuilderPage';
@@ -149,10 +153,14 @@ function MhdAppRoutes() {
               <Route path="/tasks/new" element={<MhdTaskFormPage />} />
               <Route path="/tasks/:taskId/edit" element={<MhdTaskFormPage />} />
               <Route path="/tasks/:taskId" element={<MhdTaskDetailPage />} />
-              {/* Inherits the /tasks 'ALL' rule via mhdCanAccessRoute's prefix match. */}
+              {/* Inherit the /tasks 'ALL' rule via mhdCanAccessRoute's prefix match. */}
               <Route path="/tasks/:taskId/notes" element={<MhdTaskNotesPage />} />
+              <Route path="/tasks/:taskId/activities" element={<MhdTaskActivitiesPage />} />
+              <Route path="/tasks/:taskId/attachments" element={<MhdTaskAttachmentsPage />} />
+              <Route path="/tasks/:taskId/reports" element={<MhdTaskReportsPage />} />
               <Route path="/activities" element={<MhdActivitiesPage />} />
               <Route path="/activities/:activityId" element={<MhdActivityDetailPage />} />
+              <Route path="/reports" element={<MhdDocumentsPage />} />
               <Route path="/forms" element={<MhdFormsPage />} />
               <Route path="/forms/new" element={<MhdFormBuilderPage />} />
               <Route path="/forms/:formId/render" element={<MhdFormRendererPage />} />

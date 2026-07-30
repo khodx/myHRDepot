@@ -1,24 +1,27 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
 import { MhdBreadcrumb } from './MhdBreadcrumb';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdTaskService } from '@/features/tasks/Service';
-import { MhdTaskNotesPanel } from '@/features/notes/components/MhdTaskNotesPanel';
-import { MhdTaskAttachmentsPanel } from '@/features/attachments/components/MhdTaskAttachmentsPanel';
-import { MhdTaskActivitiesPanel } from '@/features/activities/components/MhdTaskActivitiesPanel';
+import { useMhdSubtasks } from '@/features/tasks/SubtaskHook';
+import { MhdSubtaskForm } from '@/features/tasks/components/MhdSubtaskForm';
+import { MhdSubtaskList } from '@/features/tasks/components/MhdSubtaskList';
+import type { MhdSubtask } from '@/features/tasks/Types';
 import { mhdWorkflowService } from '@/features/workflow/Service';
 import { MhdStatusTransitionButton } from '@/features/workflow/components/MhdStatusTransitionButton';
 import { MhdSLAStatus } from '@/features/workflow/components/MhdSLAStatus';
 import { MhdWorkflowStateVisualization } from '@/features/workflow/components/MhdWorkflowStateVisualization';
 import { MhdWorkflowTransitionHistory } from '@/features/workflow/components/MhdWorkflowTransitionHistory';
-import { MhdApprovalRequest } from '@/features/approvals/components/MhdApprovalRequest';
-import { MhdApprovalHistory } from '@/features/approvals/components/MhdApprovalHistory';
 import { mhdCanMutateWorkflowApprovals } from '@/appshell/mhdRouteAccess';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
+import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
+import { MhdModal } from '@/components/ui/MhdModal';
+import { Button } from '@/components/ui/Button';
 import { MhdTaskRecordTabs } from './MhdTaskRecordTabs';
-import { useState } from 'react';
 
 export function MhdTaskDetailPage() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -26,6 +29,9 @@ export function MhdTaskDetailPage() {
   const { profile, roles } = useMhdAuth();
   const [workflowRefreshKey, setWorkflowRefreshKey] = useState(0);
   const canMutateWorkflowApprovals = mhdCanMutateWorkflowApprovals(roles);
+
+  const [isSubtaskModalOpen, setIsSubtaskModalOpen] = useState(false);
+  const [editingSubtask, setEditingSubtask] = useState<MhdSubtask | null>(null);
 
   const {
     data: task,
@@ -44,16 +50,22 @@ export function MhdTaskDetailPage() {
     enabled: !!taskId,
   });
 
-  const { data: approverOptions = [] } = useQuery({
-    queryKey: ['mhd-task-approver-options', task?.companyId],
-    queryFn: async () => {
-      const users = await mhdTaskService.listAssignableUsers(task!.companyId);
-      return users.map((user) => ({ id: user.id, displayName: user.displayName }));
-    },
-    enabled: !!task?.companyId,
+  const { data: statuses = [] } = useQuery({
+    queryKey: ['mhd-task-status-options'],
+    queryFn: () => mhdTaskService.listStatusOptions(),
+  });
+  const { data: priorities = [] } = useQuery({
+    queryKey: ['mhd-task-priority-options'],
+    queryFn: () => mhdTaskService.listPriorityOptions(),
   });
 
-  async function refreshWorkflowAndApprovals() {
+  const actorContext = useMemo(
+    () => (profile?.userId ? { actorUserId: profile.userId } : null),
+    [profile],
+  );
+  const subtaskState = useMhdSubtasks(taskId ?? '', actorContext);
+
+  async function refreshWorkflow() {
     await refetchTask();
     setWorkflowRefreshKey((current) => current + 1);
   }
@@ -62,6 +74,16 @@ export function MhdTaskDetailPage() {
     if (!task || !profile?.userId) return;
     await mhdTaskService.deleteTask(task.id, { actorUserId: profile.userId });
     navigate('/tasks');
+  }
+
+  function openSubtaskModal(subtask: MhdSubtask | null) {
+    setEditingSubtask(subtask);
+    setIsSubtaskModalOpen(true);
+  }
+
+  async function handleSubtaskSaved() {
+    setIsSubtaskModalOpen(false);
+    setEditingSubtask(null);
   }
 
   if (isLoading) {
@@ -112,7 +134,7 @@ export function MhdTaskDetailPage() {
               taskId={task.id}
               currentStatusId={task.statusId}
               currentStatusName={task.statusName}
-              onTransitionSuccess={refreshWorkflowAndApprovals}
+              onTransitionSuccess={refreshWorkflow}
               disabled={!canMutateWorkflowApprovals || !profile?.userId}
             />
             <div className="flex flex-col items-end gap-1 text-sm text-neutral-600">
@@ -122,17 +144,23 @@ export function MhdTaskDetailPage() {
         </div>
 
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-neutral-100 pt-4 text-sm text-neutral-500">
+          <span>Assigned: {new Date(task.assignedDate).toLocaleDateString()}</span>
           {task.dueDate ? <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span> : null}
           {task.assignedDisplayNames.length > 0 ? (
-            <span>Assigned: {task.assignedDisplayNames.join(', ')}</span>
+            <span>Assignees: {task.assignedDisplayNames.join(', ')}</span>
           ) : null}
-          <span>Progress: {progressPercent}%</span>
           <span>Notes: {task.noteCount}</span>
           <span>Attachments: {task.attachmentCount}</span>
         </div>
 
+        <div className="mt-4 border-t border-neutral-100 pt-4">
+          <p className="mb-1 text-xs uppercase tracking-wide text-neutral-400">Progress</p>
+          <MhdProgressBar percent={progressPercent} tone="graduated" showLabel />
+        </div>
+
         {task.descriptionRichText || task.descriptionPlainText ? (
           <div className="mt-4 border-t border-neutral-100 pt-4">
+            <p className="mb-1 text-xs uppercase tracking-wide text-neutral-400">Description</p>
             <MhdRichTextRenderer
               html={mhdDocumentToRichHtml(
                 task.descriptionRichText,
@@ -143,110 +171,109 @@ export function MhdTaskDetailPage() {
           </div>
         ) : null}
 
-        <div className="mt-4 border-t border-neutral-100 pt-4 text-xs text-neutral-400">
-          <p>Created: {new Date(task.createdAt).toLocaleString()}</p>
-          <p>Updated: {new Date(task.updatedAt).toLocaleString()}</p>
+        {task.detailedInstructionsRichText || task.detailedInstructionsPlainText ? (
+          <div className="mt-4 border-t border-neutral-100 pt-4">
+            <p className="mb-1 text-xs uppercase tracking-wide text-neutral-400">
+              Detailed Instructions
+            </p>
+            <MhdRichTextRenderer
+              html={mhdDocumentToRichHtml(
+                task.detailedInstructionsRichText,
+                task.detailedInstructionsPlainText ?? '',
+              )}
+              className="text-neutral-700"
+            />
+          </div>
+        ) : null}
+
+        <div className="mt-4 border-t border-neutral-100 pt-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                Workflow
+              </h2>
+            </div>
+            <MhdSLAStatus key={`sla-${task.id}-${workflowRefreshKey}`} taskId={task.id} />
+          </div>
+          <div className="mt-4 space-y-4">
+            <MhdWorkflowStateVisualization
+              currentStatusName={task.statusName}
+              availableTransitions={availableTransitions}
+            />
+            <MhdWorkflowTransitionHistory
+              key={`history-${task.id}-${workflowRefreshKey}`}
+              taskId={task.id}
+            />
+          </div>
         </div>
       </div>
 
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-6">
-          <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-neutral-900">Workflow</h2>
-                <p className="mt-1 text-sm text-neutral-500">
-                  Live status, transition path, and SLA state for this task.
-                </p>
-              </div>
-              <MhdSLAStatus key={`sla-${task.id}-${workflowRefreshKey}`} taskId={task.id} />
-            </div>
-
-            <div className="mt-6 space-y-6">
-              <MhdWorkflowStateVisualization
-                currentStatusName={task.statusName}
-                availableTransitions={availableTransitions}
-              />
-              <MhdWorkflowTransitionHistory
-                key={`history-${task.id}-${workflowRefreshKey}`}
-                taskId={task.id}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-neutral-900">Approvals</h2>
-                <p className="mt-1 text-sm text-neutral-500">
-                  Request approval on this task and review all approval activity tied to it.
-                </p>
-              </div>
-              {canMutateWorkflowApprovals ? (
-                <MhdApprovalRequest
-                  companyId={task.companyId}
-                  entityType="TASK"
-                  entityId={task.id}
-                  taskId={task.id}
-                  approverOptions={approverOptions}
-                  onSuccess={() => {
-                    void refreshWorkflowAndApprovals();
-                  }}
-                />
-              ) : (
-                <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600">
-                  Read-only
-                </span>
-              )}
-            </div>
-
-            {!canMutateWorkflowApprovals ? (
-              <p className="mt-4 text-sm text-neutral-500">
-                Your current role can review approval history but cannot request or action
-                approvals.
-              </p>
-            ) : null}
-
-            <div className="mt-6">
-              <MhdApprovalHistory
-                key={`approvals-${task.id}-${workflowRefreshKey}`}
-                entityType="TASK"
-                entityId={task.id}
-              />
-            </div>
-          </div>
-
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-neutral-900">Notes & Comments</h2>
-            <MhdTaskNotesPanel taskId={task.id} />
-          </section>
+      <section className="space-y-3 rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
+        <div className="flex items-center gap-3">
+          <Button type="button" onClick={() => openSubtaskModal(null)}>
+            Add Subtask
+          </Button>
+          <h2 className="text-lg font-semibold text-neutral-900">Subtasks</h2>
         </div>
-
-        <div className="space-y-6">
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-neutral-900">Activities</h2>
-            <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">
-              <MhdTaskActivitiesPanel taskId={task.id} companyId={task.companyId} />
-            </div>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-neutral-900">Attachments</h2>
-            <div className="rounded-lg border border-neutral-200 bg-card p-4 shadow-sm">
-              <MhdTaskAttachmentsPanel taskId={task.id} />
-            </div>
-          </section>
-
-          <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-neutral-900">Access Context</h2>
-            <div className="mt-4 space-y-2 text-sm text-neutral-600">
-              <p>Signed in as: {profile?.displayName || profile?.email || 'Unknown user'}</p>
-              <p>Task company: {task.companyName}</p>
-              <p>Workflow actions: {canMutateWorkflowApprovals ? 'Enabled' : 'Read-only'}</p>
-            </div>
+        {subtaskState.errorMessage && (
+          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {subtaskState.errorMessage}
           </div>
-        </div>
+        )}
+        <MhdSubtaskList
+          subtasks={subtaskState.subtasks}
+          onEdit={(subtask) => openSubtaskModal(subtask)}
+          onDelete={(subtaskId) => void subtaskState.deleteSubtask(subtaskId)}
+        />
       </section>
+
+      {isSubtaskModalOpen && (
+        <MhdModal
+          onClose={() => {
+            setIsSubtaskModalOpen(false);
+            setEditingSubtask(null);
+          }}
+          title={editingSubtask ? 'Edit Subtask' : 'Add Subtask'}
+        >
+          <MhdSubtaskForm
+            parentTask={task}
+            statuses={statuses}
+            priorities={priorities}
+            selectedSubtask={editingSubtask}
+            isSaving={subtaskState.isSaving}
+            onCreate={async (input) => {
+              await subtaskState.createSubtask(input);
+              await handleSubtaskSaved();
+            }}
+            onUpdate={async (input) => {
+              await subtaskState.updateSubtask(input);
+              await handleSubtaskSaved();
+            }}
+            onCancel={() => {
+              setIsSubtaskModalOpen(false);
+              setEditingSubtask(null);
+            }}
+          />
+        </MhdModal>
+      )}
+
+      <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-neutral-900">Access Context</h2>
+        <div className="mt-4 space-y-2 text-sm text-neutral-600">
+          <p>Signed in as: {profile?.displayName || profile?.email || 'Unknown user'}</p>
+          <p>Task company: {task.companyName}</p>
+          <p>Workflow actions: {canMutateWorkflowApprovals ? 'Enabled' : 'Read-only'}</p>
+        </div>
+      </div>
+
+      <MhdSystemFieldsCard
+        id={task.id}
+        referenceId={task.referenceId}
+        createdAt={task.createdAt}
+        createdBy={task.createdBy}
+        updatedAt={task.updatedAt}
+        updatedBy={task.updatedBy}
+      />
 
       <div className="flex justify-end border-t border-neutral-200 pt-4">
         <MhdDetailActions

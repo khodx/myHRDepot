@@ -65,7 +65,11 @@ export function MhdDashboardMyTasks({ tasks }: Props) {
           </div>
 
           {task.overallProgressPercent > 0 && (
-            <MhdProgressBar percent={task.overallProgressPercent} className="mt-2" />
+            <MhdProgressBar
+              percent={task.overallProgressPercent}
+              tone="graduated"
+              className="mt-2"
+            />
           )}
         </button>
       ))}

@@ -7,22 +7,22 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
 };
 
+// Hover/press feedback is one consistent dim (see buttonBaseClasses' shared
+// hover:opacity-80 / active:opacity-70) rather than a per-variant color swap
+// — every variant below defines only its resting fill/text/focus-ring color.
 export const buttonVariantClasses: Record<ButtonVariant, string> = {
-  // Category primary with the derived hover/pressed states and the 25%-alpha
-  // focus ring from the category token block.
-  primary:
-    'bg-accent text-accent-on hover:bg-accent-hover active:bg-accent-pressed focus-visible:ring-focus-ring',
-  secondary: 'bg-slate-100 text-slate-950 hover:bg-slate-200 focus-visible:ring-slate-500',
-  ghost: 'bg-transparent text-slate-950 hover:bg-slate-100 focus-visible:ring-slate-500',
+  primary: 'bg-accent text-accent-on focus-visible:ring-focus-ring',
+  secondary: 'bg-slate-100 text-slate-950 focus-visible:ring-slate-500',
+  ghost: 'bg-transparent text-slate-950 focus-visible:ring-slate-500',
   // Semantic error red (design system §5), independent of the category accent.
-  destructive: 'bg-red-700 text-white hover:bg-red-800 focus-visible:ring-red-700',
+  destructive: 'bg-red-700 text-white focus-visible:ring-red-700',
   // Record-detail Edit action (2026-07-26) — deliberately yellow, distinct from
   // the navy category accent, so Edit reads as its own affordance next to Delete.
-  warning: 'bg-yellow-400 text-yellow-950 hover:bg-yellow-300 active:bg-yellow-500 focus-visible:ring-yellow-400',
+  warning: 'bg-yellow-400 text-yellow-950 focus-visible:ring-yellow-400',
 };
 
 export const buttonBaseClasses =
-  'inline-flex h-10 items-center justify-center gap-1.5 rounded-md px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+  'inline-flex h-10 items-center justify-center gap-1.5 rounded-md px-4 text-sm font-semibold transition-opacity hover:opacity-80 active:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
 
 export function Button({ className, variant = 'primary', type = 'button', ...props }: ButtonProps) {
   return (

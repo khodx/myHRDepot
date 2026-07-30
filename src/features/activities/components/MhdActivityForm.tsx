@@ -28,6 +28,9 @@ interface Props {
   onSubmit: (input: MhdActivityFormSchemaInput) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+  /** Create mode only: pre-selects "Supports Task" (e.g. opened from a task's
+   *  own Activities button), so linking back is automatic rather than manual. */
+  defaultParentTaskId?: string;
 }
 
 function toDateTimeLocalValue(iso: string | null | undefined): string {
@@ -48,6 +51,7 @@ export function MhdActivityForm({
   onSubmit,
   onCancel,
   isSubmitting,
+  defaultParentTaskId,
 }: Props) {
   const {
     register,
@@ -81,6 +85,7 @@ export function MhdActivityForm({
           activityType: 'MEETING',
           status: 'PLANNED',
           isConfidential: false,
+          parentTaskId: defaultParentTaskId,
           participants: [{ userId: currentUserId, role: 'FACILITATOR' }],
         },
   });

@@ -76,12 +76,16 @@ describe('MhdSidebar rail', () => {
   });
 
   it('marks the active route row with the white-alpha selected state', async () => {
+    const user = userEvent.setup();
     const { MhdSidebar } = await import('../MhdSidebar');
     render(
       <MemoryRouter initialEntries={['/tasks']}>
         <MhdSidebar />
       </MemoryRouter>,
     );
+
+    // Nav groups default collapsed — expand Work Tools to reach its items.
+    await user.click(screen.getByRole('button', { name: /Work Tools/i }));
 
     const active = screen.getByRole('link', { name: 'Tasks' });
     expect(active.className).toContain('bg-rail-selected');
@@ -93,11 +97,18 @@ describe('MhdSidebar rail', () => {
   it('collapses to icon-only and persists under mhd:nav:rail', async () => {
     const user = userEvent.setup();
     const { MhdSidebar } = await import('../MhdSidebar');
+    // Off the Dashboard route deliberately: Dashboard forces every group
+    // collapsed regardless of the user's toggle, which would defeat the
+    // manual "expand Work Tools" step below.
     const { container } = render(
-      <MemoryRouter initialEntries={['/dashboard']}>
+      <MemoryRouter initialEntries={['/tasks']}>
         <MhdSidebar />
       </MemoryRouter>,
     );
+
+    // Nav groups default collapsed — expand Work Tools so "Tasks" is present
+    // to assert on around the rail collapse/expand toggle below.
+    await user.click(screen.getByRole('button', { name: /Work Tools/i }));
 
     await user.click(screen.getByRole('button', { name: 'Collapse navigation' }));
 
@@ -113,18 +124,37 @@ describe('MhdSidebar rail', () => {
     expect(screen.getByText('Tasks')).toBeInTheDocument();
   });
 
-  it('keeps the existing per-group collapse key working', async () => {
+  it('defaults every group collapsed, and expanding one collapses the rest', async () => {
     const user = userEvent.setup();
     const { MhdSidebar } = await import('../MhdSidebar');
+    // Off the Dashboard route deliberately: Dashboard forces every group
+    // collapsed regardless of the user's toggle, which is its own behavior,
+    // not what this test is exercising.
     render(
-      <MemoryRouter initialEntries={['/dashboard']}>
+      <MemoryRouter initialEntries={['/tasks']}>
         <MhdSidebar />
       </MemoryRouter>,
     );
 
-    await user.click(screen.getByRole('button', { name: /Work Tools/i }));
-    expect(JSON.parse(window.localStorage.getItem('mhd:nav:collapsed')!)).toEqual(['Work Tools']);
+    // Nothing stored yet: every group starts collapsed.
     expect(screen.queryByText('Tasks')).not.toBeInTheDocument();
+    expect(screen.queryByText('People')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Work Tools/i }));
+    expect(screen.getByText('Tasks')).toBeInTheDocument();
+    expect(screen.queryByText('People')).not.toBeInTheDocument();
+
+    // Expanding People & Org collapses Work Tools back — only one open at a time.
+    await user.click(screen.getByRole('button', { name: /People & Org/i }));
+    expect(screen.getByText('People')).toBeInTheDocument();
+    expect(screen.queryByText('Tasks')).not.toBeInTheDocument();
+
+    // Clicking the open group again collapses it, leaving none expanded.
+    await user.click(screen.getByRole('button', { name: /People & Org/i }));
+    expect(screen.queryByText('People')).not.toBeInTheDocument();
+    expect(JSON.parse(window.localStorage.getItem('mhd:nav:collapsed')!)).toEqual(
+      expect.arrayContaining(['Work Tools', 'People & Org']),
+    );
   });
 });
 

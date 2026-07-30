@@ -23,7 +23,7 @@
 /* Global theme system (myHRDepot Brand Theme Specification, revised 2026-07-24).
    The route-to-category resolver remains in place so every child page inherits
    its parent navigation category, but every category now resolves to the same
-   project-wide brand primary (#0003AA) and dark rail (#000479).
+   project-wide brand primary (#0003AA) and dark rail (#00157A).
    Components consume ONLY the accent utilities below — never a raw module hex.
    `@theme inline` keeps the var() reference live so bg-accent etc. re-resolve
    when data-mhd-theme or .dark changes. */
@@ -39,7 +39,9 @@
   --color-rail: var(--mhd-rail);
   --color-rail-surface: var(--mhd-rail-surface);
   --color-rail-hover: var(--mhd-rail-hover);
+  --color-rail-hover-text: var(--mhd-rail-hover-text);
   --color-rail-selected: var(--mhd-rail-selected);
+  --color-rail-selected-text: var(--mhd-rail-selected-text);
   --color-rail-border: var(--mhd-rail-border);
   --color-rail-text: var(--mhd-rail-text);
   --color-rail-muted: var(--mhd-rail-muted);
@@ -47,21 +49,33 @@
 
 /* Shared rail state scale and global brand fallback for routes outside any
    category (auth screens, /404).
-   2026-07-26 design review: the rail moved from a permanently dark navy
-   surface to a light surface matching the card background — the accent color
-   now marks the ACTIVE item only, rather than flooding the whole sidebar.
-   --mhd-rail tracks --color-card so it (and the app) still flips correctly
-   under .dark without a separate dark-rail override. */
+   2026-07-30: dark navy rail (#00157A). All rail text is white — the active
+   nav item is called out solely by a raised bevel (box-shadow on the row,
+   see MhdSidebar.tsx) on a true-complementary amber fill (there is no
+   separate indicator dot; the bevel + fill carries the whole "active"
+   signal). --mhd-rail-selected is #FFB020 darkened 7% in HSL lightness
+   (#FBA200) so the bevel's own highlight/shadow edges have room to read
+   against it. Amber is light, so --mhd-rail-selected-text flips to ink
+   (#111827) rather than white — the opposite of every other rail text
+   token — purely for contrast on that one fill; see the AA check in
+   mhdCategoryTheme.test.ts. Hover and selected states get their own
+   explicit text-color tokens (--mhd-rail-hover-text /
+   --mhd-rail-selected-text) rather than reusing the global
+   --mhd-accent-on, because that token flips dark under .dark for the app's
+   light card surfaces — the rail itself never changes with the theme, so
+   its text tokens must not follow that flip either. */
 :root {
-  --mhd-rail-surface: var(--mhd-accent-soft);
-  --mhd-rail-hover: var(--mhd-accent-soft);
-  --mhd-rail-selected: var(--mhd-accent);
-  --mhd-rail-border: var(--color-border);
-  --mhd-rail-text: var(--color-muted-foreground);
-  --mhd-rail-muted: var(--color-muted-foreground);
+  --mhd-rail-surface: #0a2499;
+  --mhd-rail-hover: #12299e;
+  --mhd-rail-hover-text: #ffffff;
+  --mhd-rail-selected: #ffffff;
+  --mhd-rail-selected-text: #111827;
+  --mhd-rail-border: rgb(255 255 255 / 0.14);
+  --mhd-rail-text: #ffffff;
+  --mhd-rail-muted: #ffffff;
 
   --mhd-accent: #0003aa;
-  --mhd-rail: var(--color-card);
+  --mhd-rail: #00157a;
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -76,7 +90,7 @@
    without reintroducing per-module colors. */
 [data-mhd-theme='dashboard'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: var(--color-card);
+  --mhd-rail: #00157a;
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -88,7 +102,7 @@
 
 [data-mhd-theme='people-org'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: var(--color-card);
+  --mhd-rail: #00157a;
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -100,7 +114,7 @@
 
 [data-mhd-theme='time-leave'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: var(--color-card);
+  --mhd-rail: #00157a;
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -112,7 +126,7 @@
 
 [data-mhd-theme='talent'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: var(--color-card);
+  --mhd-rail: #00157a;
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -124,7 +138,7 @@
 
 [data-mhd-theme='employee-relations'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: var(--color-card);
+  --mhd-rail: #00157a;
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -136,7 +150,7 @@
 
 [data-mhd-theme='work-tools'] {
   --mhd-accent: #0003aa;
-  --mhd-rail: var(--color-card);
+  --mhd-rail: #00157a;
   --mhd-accent-hover: #00038f;
   --mhd-accent-pressed: #000278;
   --mhd-accent-tint: #e0e0f6;
@@ -146,8 +160,52 @@
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 }
 
-/* Dark mode. The RAIL keeps the exact brand #000479 — it sits on its own dark
-   surface and anchors the brand. The interactive accent family (text, links,
+/* Thin white scrollbar for the nav rail's scrollable item list — replaces
+   the default OS scrollbar (light-gray-on-navy) with a white thumb and
+   (where the browser honors the legacy pseudo-elements) up/down buttons on
+   a transparent track. Each gets the same raised-bevel box-shadow formula
+   as the active-row selector (outer drop shadow + inset light top edge +
+   inset dark bottom edge) for a matching pushed-out 3D look, rather than a
+   flat color chip. Firefox reads scrollbar-width/scrollbar-color (flat
+   color only — no shadow support in the standard property, so Firefox gets
+   solid white with no bevel); the ::-webkit-scrollbar rules add the bevel
+   for Chrome/Edge/Safari, though some Chromium builds prioritize the
+   standard properties and never render the ::-webkit-scrollbar-*
+   pseudo-elements at all — in that case only the flat white thumb/track
+   shows, not the bevel or the arrow buttons. */
+.mhd-rail-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.85) transparent;
+}
+.mhd-rail-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.mhd-rail-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.4);
+}
+.mhd-rail-scroll::-webkit-scrollbar-thumb {
+  background-color: #ffffff;
+  border-radius: 9999px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+.mhd-rail-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #ffffff;
+  opacity: 0.9;
+}
+.mhd-rail-scroll::-webkit-scrollbar-button {
+  background-color: #ffffff;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode. The RAIL is already dark navy (#00157A) in both modes, so it
+   needs no separate override here. The interactive accent family (text, links,
    statuses, solid buttons, focus) brightens to a periwinkle derivative of the
    brand blue because #0003AA is unreadable against dark surfaces (~1.4:1 on
    the dark card). #7d82fa holds ≥5:1 on the dark card/background, and its
@@ -318,16 +376,11 @@
 }
 
 :root {
-  /* "Inter Variable" is shipped via @fontsource-variable/inter (main.tsx);
-     plain "Inter" covers a locally-installed copy, then system fallbacks. */
   font-family:
-    'Inter Variable',
-    Inter,
+    Arial,
+    Helvetica,
+    'Helvetica Neue',
     ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
     sans-serif;
   color: var(--color-foreground);
   background: var(--color-background);
@@ -349,14 +402,23 @@ body {
   background: var(--color-background);
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
+/* Root-cause fix (2026-07-30): these two resets used to sit outside any
+   @layer, so per CSS Cascade Layers they always beat Tailwind's
+   `@layer utilities` — e.g. `font: inherit` silently defeated any
+   `text-[...]`/`text-sm` size utility applied directly to a <button>,
+   regardless of that utility's specificity. Wrapping them in @layer base
+   (same convention as the border-color reset above) restores the normal
+   cascade, so utilities win as expected. */
+@layer base {
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
 
-button,
-[role='button'] {
-  text-transform: capitalize;
+  button,
+  [role='button'] {
+    text-transform: capitalize;
+  }
 }

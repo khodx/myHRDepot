@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { MhdModal } from '@/components/ui/MhdModal';
+import { Button } from '@/components/ui/Button';
 import { MhdNoteComposer } from './MhdNoteComposer';
 import { MhdNoteList } from './MhdNoteList';
 import { useMhdNotes } from '../Hook';
@@ -18,6 +21,7 @@ interface MhdTaskNotesPanelProps {
 export function MhdTaskNotesPanel({ taskId }: MhdTaskNotesPanelProps) {
   const { profile } = useMhdAuth();
   const notesState = useMhdNotes('TASK', taskId, Boolean(profile?.userId));
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
 
   async function handleCreate(
     noteRichText: unknown,
@@ -25,6 +29,7 @@ export function MhdTaskNotesPanel({ taskId }: MhdTaskNotesPanelProps) {
     visibility: MhdNoteVisibility,
   ) {
     await notesState.createNote(noteRichText, notePlainText, visibility);
+    setIsComposerOpen(false);
   }
 
   async function handleUpdate(
@@ -56,7 +61,17 @@ export function MhdTaskNotesPanel({ taskId }: MhdTaskNotesPanelProps) {
         </div>
       )}
 
-      <MhdNoteComposer isSaving={notesState.isSaving} onCreate={handleCreate} />
+      <div className="flex justify-start">
+        <Button type="button" onClick={() => setIsComposerOpen(true)}>
+          Add Note
+        </Button>
+      </div>
+
+      {isComposerOpen && (
+        <MhdModal onClose={() => setIsComposerOpen(false)} title="Add Note">
+          <MhdNoteComposer isSaving={notesState.isSaving} onCreate={handleCreate} />
+        </MhdModal>
+      )}
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">

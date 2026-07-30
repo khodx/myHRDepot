@@ -132,7 +132,7 @@ export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
                   {formatDueDate(task.dueDate)}
                 </MhdTd>
                 <MhdTd className="align-top">
-                  <MhdProgressBar percent={progress} showLabel />
+                  <MhdProgressBar percent={progress} tone="graduated" showLabel />
                 </MhdTd>
                 <MhdTableActions
                   viewTo={`/tasks/${task.id}`}

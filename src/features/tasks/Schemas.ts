@@ -29,6 +29,10 @@ export const mhdTaskFormSchema = z
     // nullability is validated here. descriptionPlainText remains the
     // fallback/searchable/notification-preview representation.
     descriptionRichText: z.unknown().nullable().optional(),
+    detailedInstructionsPlainText: z
+      .string()
+      .max(5000, 'Detailed instructions cannot exceed 5,000 characters.'),
+    detailedInstructionsRichText: z.unknown().nullable().optional(),
     statusId: z.string().min(1, 'Status is required.'),
     priorityId: z.string(),
     startDate: mhdNullableDateStringSchema,

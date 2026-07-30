@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 
-export type MhdPersonRecordTab = 'detail' | 'edit';
+export type MhdPersonRecordTab = 'detail';
 
 interface MhdPersonRecordTabsProps {
   personId: string;
@@ -10,13 +10,13 @@ interface MhdPersonRecordTabsProps {
 }
 
 /**
- * Sub-page nav for a single person record: Detail / Edit. Same route-linked
- * underline tab pattern as MhdFormRecordTabs.tsx.
+ * Sub-page nav for a single person record: Detail. Edit is a button
+ * (MhdDetailActions), not a tab, matching the platform-wide "edit is a
+ * button" convention for detail pages.
  */
 export function MhdPersonRecordTabs({ personId, active, className }: MhdPersonRecordTabsProps) {
   const tabs: Array<{ key: MhdPersonRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/people/${personId}` },
-    { key: 'edit', label: 'Edit', to: `/people/${personId}/edit` },
   ];
 
   return (

@@ -1,5 +1,13 @@
 import type { MhdCompanyId } from '@/features/companies/Types';
 
+/**
+ * The platform's own internal org ("SimplyHR"), seeded by
+ * 0094_task_layout_revisions.sql with this fixed id. Only users whose own
+ * company matches this one may edit a task's Company field — everyone else
+ * gets it read-only, defaulted to their own company. See MhdTaskForm.tsx.
+ */
+export const MHD_SIMPLYHR_COMPANY_ID: MhdCompanyId = 'cccc0000-0000-4000-8000-0000000000c1';
+
 // All *Id types below are Postgres `uuid`, not ULIDs. TypeScript still
 // models them as `string` (uuid renders as a string over the wire);
 // reference_id remains a separate branded `text` type.
@@ -34,12 +42,19 @@ export interface MhdTask {
   title: string;
   descriptionPlainText: string | null;
   descriptionRichText: unknown | null;
+  /** Optional rich text rendered under Description. Never null after create —
+   *  the form applies a sentinel default when left blank. */
+  detailedInstructionsPlainText: string | null;
+  detailedInstructionsRichText: unknown | null;
   statusId: MhdTaskStatusId;
   statusName: string;
   statusColorToken: string | null;
   priorityId: MhdTaskPriorityId | null;
   priorityName: string | null;
   priorityColorToken: string | null;
+  /** System-set at creation (current_date); immutable thereafter — never
+   *  sent by mhd_update_task. */
+  assignedDate: string;
   startDate: string | null;
   dueDate: string | null;
   completedDate: string | null;
@@ -97,6 +112,8 @@ export interface MhdCreateTaskInput {
   title: string;
   descriptionPlainText: string;
   descriptionRichText?: unknown | null;
+  detailedInstructionsPlainText: string;
+  detailedInstructionsRichText?: unknown | null;
   statusId: MhdTaskStatusId;
   priorityId: MhdTaskPriorityId | '';
   startDate: string;
