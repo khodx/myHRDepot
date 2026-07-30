@@ -39,8 +39,8 @@ const MHD_CONTENT_FORMAT_EXTENSION: Record<MhdDocumentContentFormat, string> = {
 // Every Generate/Upload button on this panel shares these two colors —
 // named here once so every instance (master card, per-row, and both modal
 // confirm buttons) stays in sync if the color is ever revised.
-const MHD_GENERATE_BUTTON_CLASS = 'bg-[#F57200] text-[#111827]';
-const MHD_UPLOAD_BUTTON_CLASS = 'bg-[#06D44B] text-[#111827]';
+const MHD_GENERATE_BUTTON_CLASS = 'bg-[#9C5600] text-white';
+const MHD_UPLOAD_BUTTON_CLASS = 'bg-[#17A100] text-white';
 
 function mhdDocumentStatusClass(status: string): string {
   switch (status) {
