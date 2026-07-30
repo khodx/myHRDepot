@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import type { MhdCompany } from '@/features/companies/Types';
 import {
   MHD_DOCUMENT_CONTENT_FORMATS,
+  MHD_DOCUMENT_TEMPLATE_ENTITY_TYPES,
   MHD_DOCUMENT_TEMPLATE_TYPES,
   type MhdDocumentMergeField,
   type MhdDocumentMergeFieldSource,
@@ -46,6 +47,7 @@ export function MhdDocumentTemplateEditor({
   const [companyId, setCompanyId] = useState<string | null>(companies[0]?.id ?? null);
   const [name, setName] = useState('');
   const [templateType, setTemplateType] = useState<string>(MHD_DOCUMENT_TEMPLATE_TYPES[0]);
+  const [applicableEntityType, setApplicableEntityType] = useState<string>('');
   const [contentFormat, setContentFormat] = useState<string>(MHD_DOCUMENT_CONTENT_FORMATS[0]);
   const [content, setContent] = useState('');
   const [description, setDescription] = useState('');
@@ -60,6 +62,7 @@ export function MhdDocumentTemplateEditor({
       setCompanyId(selectedTemplate.companyId);
       setName(selectedTemplate.name);
       setTemplateType(selectedTemplate.templateType);
+      setApplicableEntityType(selectedTemplate.applicableEntityType ?? '');
       setContentFormat(selectedTemplate.contentFormat);
       setContent(selectedTemplate.content);
       setDescription(selectedTemplate.description ?? '');
@@ -70,6 +73,7 @@ export function MhdDocumentTemplateEditor({
       setCompanyId(companies[0]?.id ?? null);
       setName('');
       setTemplateType(MHD_DOCUMENT_TEMPLATE_TYPES[0]);
+      setApplicableEntityType('');
       setContentFormat(MHD_DOCUMENT_CONTENT_FORMATS[0]);
       setContent('');
       setDescription('');
@@ -93,6 +97,7 @@ export function MhdDocumentTemplateEditor({
       companyId,
       name,
       templateType,
+      applicableEntityType: applicableEntityType || null,
       contentFormat,
       content,
       mergeFields,
@@ -177,6 +182,22 @@ export function MhdDocumentTemplateEditor({
             {MHD_DOCUMENT_TEMPLATE_TYPES.map((type) => (
               <option key={type} value={type}>
                 {type}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-sm font-medium text-foreground">
+          Module
+          <select
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={applicableEntityType}
+            onChange={(event) => setApplicableEntityType(event.target.value)}
+          >
+            <option value="">Unassigned (admin library only)</option>
+            {MHD_DOCUMENT_TEMPLATE_ENTITY_TYPES.map((entityType) => (
+              <option key={entityType.value} value={entityType.value}>
+                {entityType.label}
               </option>
             ))}
           </select>

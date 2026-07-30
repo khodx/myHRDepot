@@ -90,7 +90,7 @@ export function MhdDocumentGenerationPanel({
   );
 
   const masterTemplateQuery = useMhdDocumentTemplateByKey(masterTemplateKey ?? null, companyId);
-  const templatesQuery = useMhdDocumentTemplates(companyId);
+  const templatesQuery = useMhdDocumentTemplates(companyId, undefined, false, entityType);
   const generationsQuery = useMhdDocumentGenerations(entityType, entityId);
   const { generate, uploadCompleted } = useMhdDocumentGenerationActions(
     entityType,

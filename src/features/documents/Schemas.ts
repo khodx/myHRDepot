@@ -23,6 +23,7 @@ export const mhdDocumentTemplateFormSchema = z.object({
   description: z.string().trim().max(500).optional(),
   requiresSignature: z.boolean().default(false),
   isActive: z.boolean().default(true),
+  applicableEntityType: z.string().trim().optional().nullable(),
 });
 
 export type MhdDocumentTemplateFormValues = z.infer<typeof mhdDocumentTemplateFormSchema>;

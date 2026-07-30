@@ -33,6 +33,7 @@ type MhdDocumentTemplateRow = {
   company_id: string | null;
   name: string;
   template_type: string;
+  applicable_entity_type: string | null;
   description: string | null;
   content_format: string;
   merge_fields: Json;
@@ -80,6 +81,7 @@ function mapTemplateRow(row: MhdDocumentTemplateRow): MhdDocumentTemplate {
     companyId: row.company_id,
     name: row.name,
     templateType: row.template_type as MhdDocumentTemplate['templateType'],
+    applicableEntityType: row.applicable_entity_type,
     description: row.description,
     contentFormat: row.content_format as MhdDocumentTemplate['contentFormat'],
     mergeFields: (row.merge_fields ?? []) as unknown as MhdDocumentTemplate['mergeFields'],
@@ -112,12 +114,14 @@ export const mhdDocumentService = {
     companyId: string | null,
     templateType?: string,
     includeInactive = false,
+    entityType?: string,
   ): Promise<MhdDocumentTemplate[]> {
     const { data, error } = await supabaseClient
       .rpc('mhd_list_document_templates', {
         p_company_id: companyId ?? undefined,
         p_template_type: templateType,
         p_include_inactive: includeInactive,
+        p_entity_type: entityType,
       })
       .returns<MhdDocumentTemplateRow[]>();
 
@@ -188,6 +192,7 @@ export const mhdDocumentService = {
         p_description: input.description ?? undefined,
         p_requires_signature: input.requiresSignature ?? false,
         p_actor_user_id: context.actorUserId,
+        p_applicable_entity_type: input.applicableEntityType ?? undefined,
       })
       .returns<{ id: string; reference_id: string }[]>();
 
@@ -218,6 +223,7 @@ export const mhdDocumentService = {
         p_requires_signature: input.requiresSignature ?? false,
         p_is_active: input.isActive,
         p_actor_user_id: context.actorUserId,
+        p_applicable_entity_type: input.applicableEntityType ?? undefined,
       })
       .returns<{ id: string; reference_id: string; version: number }[]>();
 

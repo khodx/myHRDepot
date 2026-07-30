@@ -26,6 +26,20 @@ export const MHD_DOCUMENT_TEMPLATE_TYPES: MhdDocumentTemplateType[] = [
   'REPORT',
 ];
 
+/** The known entity_type values a module passes to filter its own report
+ *  section (see MhdDocumentGenerationPanel's `entityType` prop) — kept here
+ *  as the editor's dropdown options so tagging stays consistent with what
+ *  each module's generation calls already use. Not a closed enum in the
+ *  database; a template can be tagged with any non-empty string. */
+export const MHD_DOCUMENT_TEMPLATE_ENTITY_TYPES: { value: string; label: string }[] = [
+  { value: 'TASK', label: 'Task' },
+  { value: 'CONDUCT_ACTION', label: 'Conduct' },
+  { value: 'OFFBOARDING_CASE', label: 'Offboarding' },
+  { value: 'PERFORMANCE_REVIEW', label: 'Performance' },
+  { value: 'CASE_DOCUMENT', label: 'Case Documents' },
+  { value: 'ONBOARDING', label: 'Onboarding' },
+];
+
 export type MhdDocumentContentFormat = 'HTML' | 'DOCX' | 'MARKDOWN';
 
 export const MHD_DOCUMENT_CONTENT_FORMATS: MhdDocumentContentFormat[] = [
@@ -54,6 +68,11 @@ export interface MhdDocumentTemplate {
   companyId: string | null;
   name: string;
   templateType: MhdDocumentTemplateType;
+  /** The entity_type a module-embedded MhdDocumentGenerationPanel filters
+   *  by (e.g. TASK, CONDUCT_ACTION, OFFBOARDING_CASE, PERFORMANCE_REVIEW,
+   *  CASE_DOCUMENT). Null = not yet tagged to a module — hidden from every
+   *  module-filtered list, still visible in the admin template library. */
+  applicableEntityType: string | null;
   description: string | null;
   contentFormat: MhdDocumentContentFormat;
   mergeFields: MhdDocumentMergeField[];
@@ -92,6 +111,7 @@ export interface MhdCreateDocumentTemplateInput {
   mergeFields: MhdDocumentMergeField[];
   description?: string | null;
   requiresSignature?: boolean;
+  applicableEntityType?: string | null;
 }
 
 export interface MhdUpdateDocumentTemplateInput extends MhdCreateDocumentTemplateInput {

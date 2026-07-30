@@ -25,6 +25,7 @@ export function MhdDocumentTemplateList({
             <p className="truncate text-sm font-medium text-foreground">{template.name}</p>
             <p className="text-xs text-muted-foreground">
               {template.referenceId} · {template.templateType} · v{template.version}
+              {template.applicableEntityType ? ` · ${template.applicableEntityType}` : ' · Unassigned'}
               {template.companyId === null ? ' · Platform-level' : ''}
             </p>
           </div>

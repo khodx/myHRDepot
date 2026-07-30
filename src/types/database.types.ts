@@ -3554,6 +3554,7 @@ export type Database = {
       }
       document_templates: {
         Row: {
+          applicable_entity_type: string | null
           company_id: string | null
           compliance_content_key: string | null
           compliance_module_key: string | null
@@ -3579,6 +3580,7 @@ export type Database = {
           version: number
         }
         Insert: {
+          applicable_entity_type?: string | null
           company_id?: string | null
           compliance_content_key?: string | null
           compliance_module_key?: string | null
@@ -3604,6 +3606,7 @@ export type Database = {
           version?: number
         }
         Update: {
+          applicable_entity_type?: string | null
           company_id?: string | null
           compliance_content_key?: string | null
           compliance_module_key?: string | null
@@ -21201,6 +21204,7 @@ export type Database = {
       mhd_create_document_template: {
         Args: {
           p_actor_user_id?: string
+          p_applicable_entity_type?: string
           p_company_id: string
           p_content: string
           p_content_format: string
@@ -21773,6 +21777,7 @@ export type Database = {
       mhd_get_document_template: {
         Args: { p_template_id: string }
         Returns: {
+          applicable_entity_type: string
           company_id: string
           content: string
           content_format: string
@@ -23253,10 +23258,12 @@ export type Database = {
       mhd_list_document_templates: {
         Args: {
           p_company_id?: string
+          p_entity_type?: string
           p_include_inactive?: boolean
           p_template_type?: string
         }
         Returns: {
+          applicable_entity_type: string
           company_id: string
           content_format: string
           created_at: string
@@ -25523,6 +25530,7 @@ export type Database = {
       mhd_update_document_template: {
         Args: {
           p_actor_user_id?: string
+          p_applicable_entity_type?: string
           p_content: string
           p_content_format: string
           p_description?: string

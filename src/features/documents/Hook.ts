@@ -8,8 +8,12 @@ import type {
 } from './Types';
 
 const mhdDocumentQueryKeys = {
-  templates: (companyId: string | null, templateType?: string, includeInactive?: boolean) =>
-    ['mhd-document-templates', companyId, templateType, includeInactive] as const,
+  templates: (
+    companyId: string | null,
+    templateType?: string,
+    includeInactive?: boolean,
+    entityType?: string,
+  ) => ['mhd-document-templates', companyId, templateType, includeInactive, entityType] as const,
   template: (templateId: string | null) => ['mhd-document-template', templateId] as const,
   templateByKey: (templateKey: string | null, companyId: string | null) =>
     ['mhd-document-template-by-key', templateKey, companyId] as const,
@@ -21,10 +25,12 @@ export function useMhdDocumentTemplates(
   companyId: string | null,
   templateType?: string,
   includeInactive = false,
+  entityType?: string,
 ) {
   return useQuery({
-    queryKey: mhdDocumentQueryKeys.templates(companyId, templateType, includeInactive),
-    queryFn: () => mhdDocumentService.listTemplates(companyId, templateType, includeInactive),
+    queryKey: mhdDocumentQueryKeys.templates(companyId, templateType, includeInactive, entityType),
+    queryFn: () =>
+      mhdDocumentService.listTemplates(companyId, templateType, includeInactive, entityType),
   });
 }
 
