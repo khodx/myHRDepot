@@ -20438,6 +20438,7 @@ export type Database = {
         Args: { p_task_id: string }
         Returns: undefined
       }
+      mhd_assert_task_audit_timeline_access: { Args: never; Returns: undefined }
       mhd_assert_task_company_access: {
         Args: { p_company_id: string }
         Returns: undefined
@@ -22064,6 +22065,25 @@ export type Database = {
           task_id: string
           updated_at: string
           values: Json
+        }[]
+      }
+      mhd_get_task_audit_timeline: {
+        Args: { p_task_id: string }
+        Returns: {
+          action_type: string
+          entity_id: string
+          entity_type: string
+          field_name: string
+          id: string
+          ip_address: string
+          metadata: Json
+          new_value: string
+          old_value: string
+          performed_at: string
+          performed_by: string
+          source_module: string
+          summary: string
+          user_agent: string
         }[]
       }
       mhd_get_task_by_id: {
@@ -25806,6 +25826,21 @@ export type Database = {
           p_user_id: string
         }
         Returns: boolean
+      }
+      mhd_write_audit_event: {
+        Args: {
+          p_action_type: string
+          p_company_id: string
+          p_entity_id: string
+          p_entity_type: string
+          p_field_name?: string
+          p_metadata?: Json
+          p_new_value?: string
+          p_old_value?: string
+          p_source_module?: string
+          p_summary?: string
+        }
+        Returns: string
       }
     }
     Enums: {

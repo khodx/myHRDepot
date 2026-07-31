@@ -60,7 +60,7 @@ type MhdDocumentGenerationRow = {
   created_at: string;
 };
 
-type MhdDocumentGenerationDetailRow = {
+export type MhdDocumentGenerationDetailRow = {
   id: string;
   reference_id: string;
   template_id: string;

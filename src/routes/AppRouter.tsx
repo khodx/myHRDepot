@@ -22,6 +22,7 @@ import { MhdActivityDetailPage } from '@/features/activities/components/MhdActiv
 import { MhdTaskActivitiesPage } from '@/features/activities/components/MhdTaskActivitiesPage';
 import { MhdTaskAttachmentsPage } from '@/features/attachments/components/MhdTaskAttachmentsPage';
 import { MhdTaskReportsPage } from '@/features/documents/components/MhdTaskReportsPage';
+import { MhdTaskAuditPage } from '@/features/audit/components/MhdTaskAuditPage';
 import { MhdDocumentsPage } from '@/features/documents/components/MhdDocumentsPage';
 import { MhdFormsPage } from '@/features/forms/components/MhdFormsPage';
 import { MhdFormDetailPage } from '@/features/forms/components/MhdFormDetailPage';
@@ -158,6 +159,11 @@ function MhdAppRoutes() {
               <Route path="/tasks/:taskId/activities" element={<MhdTaskActivitiesPage />} />
               <Route path="/tasks/:taskId/attachments" element={<MhdTaskAttachmentsPage />} />
               <Route path="/tasks/:taskId/reports" element={<MhdTaskReportsPage />} />
+              {/* Platform Admin / HR Partner only — see the dedicated
+                  '/tasks/:taskId/audit' segment-pattern rule in
+                  mhdRouteAccess.ts, which precedes the general '/tasks'
+                  'ALL' rule above via array order. */}
+              <Route path="/tasks/:taskId/audit" element={<MhdTaskAuditPage />} />
               <Route path="/activities" element={<MhdActivitiesPage />} />
               <Route path="/activities/:activityId" element={<MhdActivityDetailPage />} />
               <Route path="/reports" element={<MhdDocumentsPage />} />

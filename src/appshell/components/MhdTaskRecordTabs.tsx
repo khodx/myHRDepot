@@ -2,9 +2,24 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Pencil, Trash2 } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { useMhdAuth } from '@/features/authentication/Hook';
+import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { cn } from '@/utils/cn';
 
-export type MhdTaskRecordTab = 'detail' | 'notes' | 'activities' | 'attachments' | 'reports';
+export type MhdTaskRecordTab =
+  | 'detail'
+  | 'notes'
+  | 'activities'
+  | 'attachments'
+  | 'reports'
+  | 'audit';
+
+// Same privileged set as the /tasks/:taskId/audit route rule in
+// mhdRouteAccess.ts and the RPC's own server-side check
+// (mhd_assert_task_audit_timeline_access, 42501 for anyone else). Hiding the
+// tab here is UX only — the route guard and the RPC are the enforcement —
+// mirroring how MhdFormsPage hides its builder link for non-privileged roles.
+const MHD_TASK_AUDIT_TAB_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner'];
 
 interface MhdTaskRecordTabsProps {
   taskId: string;
@@ -19,12 +34,14 @@ interface MhdTaskRecordTabsProps {
 
 /**
  * Record-nav buttons for a single task: Detail / Notes / Activities /
- * Attachments / Reports — each its own routed page. Rendered as buttons
- * (primary when active, secondary otherwise), not underlined tabs, matching
- * the platform-wide "these are buttons" convention. Edit and Delete render
- * to the right of Reports, same height/text size as the nav buttons but
- * keeping their established warning/destructive colors so they still read
- * as distinct actions rather than navigation.
+ * Attachments / Reports / Audit — each its own routed page. Audit is
+ * appended last and only for Platform Admin / HR Partner (see
+ * MHD_TASK_AUDIT_TAB_ROLES above). Rendered as buttons (primary when active,
+ * secondary otherwise), not underlined tabs, matching the platform-wide
+ * "these are buttons" convention. Edit and Delete render to the right of the
+ * nav buttons, same height/text size but keeping their established
+ * warning/destructive colors so they still read as distinct actions rather
+ * than navigation.
  */
 export function MhdTaskRecordTabs({
   taskId,
@@ -35,6 +52,8 @@ export function MhdTaskRecordTabs({
   deleteConfirmMessage = 'Delete this task? This cannot be undone.',
 }: MhdTaskRecordTabsProps) {
   const [deleting, setDeleting] = useState(false);
+  const { roles } = useMhdAuth();
+  const canViewAudit = MHD_TASK_AUDIT_TAB_ROLES.some((role) => roles.includes(role));
 
   const tabs: Array<{ key: MhdTaskRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/tasks/${taskId}` },
@@ -42,6 +61,9 @@ export function MhdTaskRecordTabs({
     { key: 'activities', label: 'Activities', to: `/tasks/${taskId}/activities` },
     { key: 'attachments', label: 'Attachments', to: `/tasks/${taskId}/attachments` },
     { key: 'reports', label: 'Reports', to: `/tasks/${taskId}/reports` },
+    ...(canViewAudit
+      ? [{ key: 'audit' as const, label: 'Audit', to: `/tasks/${taskId}/audit` }]
+      : []),
   ];
 
   async function handleDelete() {

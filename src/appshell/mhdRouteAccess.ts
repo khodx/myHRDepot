@@ -13,6 +13,21 @@ export interface MhdRouteAccessRule {
  */
 export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/dashboard', roles: 'ALL' },
+  // Task Audit/History. The sole /tasks sub-route NOT open to 'ALL' — the
+  // audit timeline exposes IP addresses, user agents, and full field-level
+  // change history, so it is restricted to Platform Admin / HR Partner,
+  // mirroring mhd_get_task_audit_timeline's server-side check
+  // (mhd_assert_task_audit_timeline_access, 42501 for anyone else). The
+  // ':taskId' segment is a placeholder mhdRoutePathMatches expands to match
+  // any single path segment (see below); it is NOT a literal string in the
+  // real URL. This rule MUST precede the general '/tasks' rule below, which
+  // otherwise catches every /tasks/* path via prefix match and is open to
+  // 'ALL' — the same "specific rule before general rule" ordering discipline
+  // used throughout this file (e.g. /attendance/policy before /attendance).
+  // The Audit tab is hidden client-side for other roles in
+  // MhdTaskRecordTabs, mirroring how MhdFormsPage hides its builder link for
+  // non-privileged roles.
+  { path: '/tasks/:taskId/audit', roles: ['Platform Admin', 'HR Partner'] },
   { path: '/tasks', roles: 'ALL' },
   {
     path: '/activities',
@@ -198,14 +213,43 @@ export function mhdRouteRoles(path: string): MhdAuthRoleName[] | 'ALL' {
 }
 
 /**
- * Matches `path` against the longest applicable rule (exact match or a
- * `/parent/child` route under a guarded parent, e.g. `/companies/:companyId`
- * inherits the `/companies` rule) and checks it against `userRoles`.
- * Routes with no matching rule are treated as accessible to any
- * authenticated user — MhdProtectedRoute already gates authentication.
+ * Matches `path` against a single rule. Two shapes:
+ *
+ * - A plain rule (no `:` segment) matches by exact equality or as a
+ *   `/parent/child` route under a guarded parent (e.g. `/companies/:companyId`
+ *   inherits the `/companies` rule via a literal prefix match) — this is the
+ *   original, most common shape used throughout MHD_ROUTE_ACCESS.
+ * - A rule containing a `:name` path segment (e.g. `/tasks/:taskId/audit`) is
+ *   a segment-pattern rule: `:name` matches exactly one non-empty path
+ *   segment (never spans a `/`), every other segment must match literally,
+ *   and the match is exact-length (no further prefix match past the
+ *   pattern) — needed when a restricted sub-route sits BEHIND a dynamic id
+ *   segment inside a parent that is otherwise open to 'ALL'.
+ */
+function mhdRoutePathMatchesRule(rulePath: string, path: string): boolean {
+  if (!rulePath.includes(':')) {
+    return path === rulePath || path.startsWith(`${rulePath}/`);
+  }
+
+  const ruleSegments = rulePath.split('/');
+  const pathSegments = path.split('/');
+  if (ruleSegments.length !== pathSegments.length) return false;
+
+  return ruleSegments.every((segment, index) => {
+    if (segment.startsWith(':')) return pathSegments[index].length > 0;
+    return segment === pathSegments[index];
+  });
+}
+
+/**
+ * Matches `path` against the FIRST applicable rule in array order (so more
+ * specific rules must precede more general ones — see the comments on
+ * individual rules above) and checks it against `userRoles`. Routes with no
+ * matching rule are treated as accessible to any authenticated user —
+ * MhdProtectedRoute already gates authentication.
  */
 export function mhdCanAccessRoute(path: string, userRoles: MhdAuthRoleName[]): boolean {
-  const rule = MHD_ROUTE_ACCESS.find((r) => path === r.path || path.startsWith(`${r.path}/`));
+  const rule = MHD_ROUTE_ACCESS.find((r) => mhdRoutePathMatchesRule(r.path, path));
 
   if (!rule || rule.roles === 'ALL') {
     return true;
