@@ -1,4 +1,5 @@
 import { LayoutGrid, List } from 'lucide-react';
+import { buttonVariantClasses } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
 
 export type MhdViewMode = 'list' | 'board';
@@ -34,7 +35,7 @@ export function MhdViewToggle({ value, onChange, className }: MhdViewToggleProps
         className={cn(
           'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
           value === 'list'
-            ? 'bg-accent text-accent-on'
+            ? buttonVariantClasses.primary
             : 'text-muted-foreground hover:text-foreground',
         )}
       >
@@ -48,7 +49,7 @@ export function MhdViewToggle({ value, onChange, className }: MhdViewToggleProps
         className={cn(
           'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
           value === 'board'
-            ? 'bg-accent text-accent-on'
+            ? buttonVariantClasses.primary
             : 'text-muted-foreground hover:text-foreground',
         )}
       >
@@ -59,14 +60,14 @@ export function MhdViewToggle({ value, onChange, className }: MhdViewToggleProps
   );
 }
 
-/** Read a persisted view mode from `localStorage`, defaulting to `board` per module convention. */
+/** Read a persisted view mode from `localStorage`, defaulting to `list` per module convention. */
 export function mhdReadPersistedViewMode(key: string): MhdViewMode {
   try {
     const raw = window.localStorage.getItem(key);
-    return raw === 'list' || raw === 'board' ? raw : 'board';
+    return raw === 'list' || raw === 'board' ? raw : 'list';
   } catch {
-    // localStorage unavailable (private mode / non-browser env) — default to board.
-    return 'board';
+    // localStorage unavailable (private mode / non-browser env) — default to list.
+    return 'list';
   }
 }
 
