@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdFilterBar, MhdFilterInput } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { cn } from '@/utils/cn';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdPeople } from '@/features/people/Hook';
 import { MhdPersonCompanySelect } from '@/features/people/components/MhdPersonCompanySelect';
@@ -23,7 +25,7 @@ export function MhdPeoplePage() {
         actions={
           <Link
             to="/people/new"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-on transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
+            className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
           >
             Add person
           </Link>

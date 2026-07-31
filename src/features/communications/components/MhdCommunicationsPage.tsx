@@ -5,6 +5,8 @@ import { MhdTable, MhdTableFooter, MhdTd, MhdTh, MhdTr } from '@/components/ui/M
 import { useMhdNotifications } from '@/features/notifications/Hook';
 import { MHD_NOTIFICATION_TYPE_LABELS } from '@/features/notifications/Types';
 import { MhdCommunicationsTabs } from '@/appshell/components/MhdCommunicationsTabs';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { cn } from '@/utils/cn';
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString();
@@ -27,7 +29,7 @@ export function MhdCommunicationsPage() {
             <button
               type="button"
               onClick={refetch}
-              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-accent-border bg-card px-4 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft"
+              className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'gap-1.5')}
             >
               <RefreshCw className="h-4 w-4" aria-hidden />
               Refresh
@@ -36,7 +38,7 @@ export function MhdCommunicationsPage() {
               type="button"
               onClick={markAllRead}
               disabled={unreadCount === 0}
-              className="inline-flex h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-on transition-colors hover:bg-accent-hover disabled:pointer-events-none disabled:opacity-50"
+              className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
             >
               Mark All Read
             </button>

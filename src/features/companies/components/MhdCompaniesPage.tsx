@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterInput } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { cn } from '@/utils/cn';
 import { MhdCompanyList } from '@/features/companies/components/MhdCompanyList';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import type { MhdCompany, MhdCompanyListFilters } from '@/features/companies/Types';
@@ -22,7 +24,7 @@ export function MhdCompaniesPage() {
         actions={
           <Link
             to="/companies/new"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-on transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
+            className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
           >
             New Company
           </Link>

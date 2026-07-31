@@ -5,6 +5,8 @@ import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTableFooter, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdNotifications } from '@/features/notifications/Hook';
 import { MhdCommunicationsTabs } from '@/appshell/components/MhdCommunicationsTabs';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { cn } from '@/utils/cn';
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString();
@@ -25,7 +27,7 @@ export function MhdSystemAlertsPage() {
           <button
             type="button"
             onClick={refetch}
-            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-sm font-semibold text-accent-on transition-colors hover:bg-accent-hover"
+            className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'gap-1.5')}
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
             Refresh Alerts

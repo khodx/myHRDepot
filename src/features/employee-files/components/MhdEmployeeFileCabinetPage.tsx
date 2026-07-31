@@ -2,9 +2,11 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { FileText, FolderLock, ShieldAlert } from 'lucide-react';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTableFooter, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import { cn } from '@/utils/cn';
 import { mhdFormService } from '@/features/forms/Service';
 import type { MhdEmployeeFileSubmissionRecord } from '@/features/forms/Types';
 import { mhdPersonService } from '@/features/people/Service';
@@ -45,7 +47,7 @@ function EmployeeFileTable({
           </div>
           <Link
             to={`/employees/${personId}/files/new?category=${encodeURIComponent(fileType.key)}`}
-            className="inline-flex h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-on transition-colors hover:bg-accent-hover"
+            className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
           >
             New Record
           </Link>

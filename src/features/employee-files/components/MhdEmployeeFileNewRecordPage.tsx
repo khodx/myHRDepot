@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { ClipboardList } from 'lucide-react';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -13,6 +14,7 @@ import {
   MhdTh,
   MhdTr,
 } from '@/components/ui/MhdTable';
+import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdFormService } from '@/features/forms/Service';
 import { mhdPersonService } from '@/features/people/Service';
@@ -124,7 +126,7 @@ export function MhdEmployeeFileNewRecordPage() {
             action={
               <Link
                 to="/forms/new"
-                className="inline-flex h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-on transition-colors hover:bg-accent-hover"
+                className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
               >
                 Create Form
               </Link>
