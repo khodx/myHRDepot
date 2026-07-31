@@ -37,7 +37,7 @@ export function MhdFeedbackInvitationsPage() {
 
   if (openInvitation) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-[62.4rem]">
         <div>
           <button
             type="button"
@@ -67,7 +67,7 @@ export function MhdFeedbackInvitationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-[62.4rem]">
       <MhdMyFeedbackInvitations onOpen={setOpenParticipantId} />
     </div>
   );

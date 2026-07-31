@@ -18,7 +18,7 @@ export function MhdMessagingPage() {
   const activeThreadId = selectedThreadId ?? threads.data?.[0]?.id ?? null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto max-w-[104rem] space-y-6">
       <MhdPageHeader
         title="Messaging"
         description="Direct and module-related conversations."

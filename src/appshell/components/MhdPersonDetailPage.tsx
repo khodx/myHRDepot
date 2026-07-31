@@ -149,7 +149,7 @@ export function MhdPersonDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="mx-auto max-w-[93.6rem] space-y-6 p-6">
       <MhdBreadcrumb items={[{ label: 'People', to: '/people' }, { label: person.displayName }]} />
 
       <MhdPersonRecordTabs personId={person.id} active="detail" />

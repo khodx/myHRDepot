@@ -127,7 +127,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
   if (!token) {
     return (
       <main className="min-h-screen bg-muted px-6 py-10">
-        <div className="mx-auto max-w-2xl rounded-3xl border border-rose-200 bg-card p-8 shadow-sm">
+        <div className="mx-auto max-w-[54.6rem] rounded-3xl border border-rose-200 bg-card p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-rose-700">
             Apply Link Unavailable
           </p>
@@ -144,7 +144,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
 
   return (
     <main className="min-h-screen bg-muted px-6 py-10">
-      <div className="mx-auto max-w-3xl space-y-6">
+      <div className="mx-auto max-w-[62.4rem] space-y-6">
         <section className="rounded-3xl border border-border bg-card p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">
             My HR Depot Application

@@ -161,7 +161,7 @@ export function MhdPublicSigningPage() {
   if (!token) {
     return (
       <main className="min-h-screen bg-muted px-6 py-10">
-        <MhdCard className="mx-auto max-w-3xl rounded-3xl border-rose-200 p-8">
+        <MhdCard className="mx-auto max-w-[62.4rem] rounded-3xl border-rose-200 p-8">
           <div className="flex items-start gap-3">
             <CircleAlert className="mt-1 h-6 w-6 text-rose-600" />
             <div>
@@ -192,7 +192,7 @@ export function MhdPublicSigningPage() {
   if (loadError || !request) {
     return (
       <main className="min-h-screen bg-muted px-6 py-10">
-        <MhdCard className="mx-auto max-w-3xl rounded-3xl border-rose-200 p-8">
+        <MhdCard className="mx-auto max-w-[62.4rem] rounded-3xl border-rose-200 p-8">
           <div className="flex items-start gap-3">
             <CircleAlert className="mt-1 h-6 w-6 text-rose-600" />
             <div>
@@ -214,7 +214,7 @@ export function MhdPublicSigningPage() {
 
   return (
     <main className="min-h-screen bg-muted px-6 py-10">
-      <div className="mx-auto max-w-7xl space-y-6">
+      <div className="mx-auto max-w-[104rem] space-y-6">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
           <MhdCard className="rounded-3xl p-6">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">

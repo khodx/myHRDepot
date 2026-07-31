@@ -57,7 +57,7 @@ export function MhdCompanyDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 p-6">
+    <div className="mx-auto max-w-[62.4rem] space-y-4 p-6">
       <MhdBreadcrumb
         items={[{ label: 'Companies', to: '/companies' }, { label: company.companyName }]}
       />

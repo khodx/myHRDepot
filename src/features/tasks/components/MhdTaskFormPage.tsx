@@ -40,7 +40,7 @@ export function MhdTaskFormPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-[83.2rem] space-y-6">
       <MhdPageHeader
         title={isEdit ? 'Edit Task' : 'New Task'}
         description={

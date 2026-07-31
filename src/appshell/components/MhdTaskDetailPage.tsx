@@ -111,7 +111,7 @@ export function MhdTaskDetailPage() {
   const progressPercent = task.calculatedProgressPercent ?? task.manualProgressPercent;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="mx-auto max-w-[93.6rem] space-y-6 p-6">
       <MhdBreadcrumb items={[{ label: 'Tasks', to: '/tasks' }, { label: task.referenceId }]} />
 
       <MhdTaskRecordTabs

@@ -23,7 +23,7 @@ export function MhdPersonFormPage() {
   });
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-[72.8rem] space-y-6">
       <MhdPageHeader
         title={isEdit ? 'Edit Person' : 'New Person'}
         description={
