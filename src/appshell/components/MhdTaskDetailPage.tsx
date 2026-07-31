@@ -115,7 +115,13 @@ export function MhdTaskDetailPage() {
     <div className="mx-auto max-w-6xl space-y-6 p-6">
       <MhdBreadcrumb items={[{ label: 'Tasks', to: '/tasks' }, { label: task.referenceId }]} />
 
-      <MhdTaskRecordTabs taskId={task.id} active="detail" />
+      <MhdTaskRecordTabs
+        taskId={task.id}
+        active="detail"
+        editTo={`/tasks/${task.id}/edit`}
+        onDelete={profile?.userId ? handleDeleteTask : undefined}
+        deleteConfirmMessage={`Delete task "${task.title}"? This cannot be undone.`}
+      />
 
       <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
@@ -125,11 +131,6 @@ export function MhdTaskDetailPage() {
             <p className="mt-1 text-sm text-neutral-500">{task.companyName}</p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-3">
-            <MhdDetailActions
-              editTo={`/tasks/${task.id}/edit`}
-              onDelete={profile?.userId ? handleDeleteTask : undefined}
-              deleteConfirmMessage={`Delete task "${task.title}"? This cannot be undone.`}
-            />
             <MhdStatusTransitionButton
               taskId={task.id}
               currentStatusId={task.statusId}

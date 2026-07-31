@@ -80,7 +80,10 @@ export function MhdStatusTransitionButton({
         className={`flex items-center gap-2 rounded-md px-3 py-2 font-medium transition-colors ${
           isTerminal
             ? 'cursor-not-allowed bg-muted text-muted-foreground'
-            : 'bg-accent-tint text-accent-hover hover:opacity-80 disabled:opacity-50'
+            : // Complementary to the project's navy theme accent (#0003AA): amber
+              // sits opposite blue on the wheel, and reads distinctly from the
+              // yellow Edit and red Delete actions now beside it in the tab row.
+              'bg-amber-100 text-amber-800 hover:opacity-80 disabled:opacity-50'
         }`}
       >
         <span>{currentStatusName}</span>

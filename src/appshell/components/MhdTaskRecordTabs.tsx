@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Pencil, Trash2 } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
 
@@ -8,18 +10,32 @@ interface MhdTaskRecordTabsProps {
   taskId: string;
   active: MhdTaskRecordTab;
   className?: string;
+  /** Route to the task's edit form. Omit to hide the Edit action. */
+  editTo?: string;
+  /** Omit to hide the Delete action. */
+  onDelete?: () => void | Promise<void>;
+  deleteConfirmMessage?: string;
 }
 
 /**
  * Record-nav buttons for a single task: Detail / Notes / Activities /
  * Attachments / Reports — each its own routed page. Rendered as buttons
  * (primary when active, secondary otherwise), not underlined tabs, matching
- * the platform-wide "these are buttons" convention (same reasoning that
- * moved Edit off a tab and onto MhdDetailActions). The only modals in this
- * flow are the "new/create" forms inside each page (Add Note, Add Activity,
- * Generate Report) — these buttons always navigate to a full page.
+ * the platform-wide "these are buttons" convention. Edit and Delete render
+ * to the right of Reports, same height/text size as the nav buttons but
+ * keeping their established warning/destructive colors so they still read
+ * as distinct actions rather than navigation.
  */
-export function MhdTaskRecordTabs({ taskId, active, className }: MhdTaskRecordTabsProps) {
+export function MhdTaskRecordTabs({
+  taskId,
+  active,
+  className,
+  editTo,
+  onDelete,
+  deleteConfirmMessage = 'Delete this task? This cannot be undone.',
+}: MhdTaskRecordTabsProps) {
+  const [deleting, setDeleting] = useState(false);
+
   const tabs: Array<{ key: MhdTaskRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/tasks/${taskId}` },
     { key: 'notes', label: 'Notes', to: `/tasks/${taskId}/notes` },
@@ -28,8 +44,19 @@ export function MhdTaskRecordTabs({ taskId, active, className }: MhdTaskRecordTa
     { key: 'reports', label: 'Reports', to: `/tasks/${taskId}/reports` },
   ];
 
+  async function handleDelete() {
+    if (!onDelete || deleting) return;
+    if (!window.confirm(deleteConfirmMessage)) return;
+    setDeleting(true);
+    try {
+      await onDelete();
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
-    <div className={cn('flex flex-wrap gap-2', className)}>
+    <div className={cn('flex flex-wrap items-center gap-2', className)}>
       {tabs.map((tab) => {
         const isActive = tab.key === active;
         return (
@@ -47,6 +74,38 @@ export function MhdTaskRecordTabs({ taskId, active, className }: MhdTaskRecordTa
           </Link>
         );
       })}
+      {editTo || onDelete ? (
+        <div className="ml-auto flex items-center gap-2 border-l border-neutral-200 pl-2">
+          {editTo ? (
+            <Link
+              to={editTo}
+              className={cn(
+                buttonBaseClasses,
+                buttonVariantClasses.warning,
+                'h-9 px-3 text-[16.8px]',
+              )}
+            >
+              <Pencil className="h-4 w-4" aria-hidden />
+              Edit
+            </Link>
+          ) : null}
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={() => void handleDelete()}
+              disabled={deleting}
+              className={cn(
+                buttonBaseClasses,
+                buttonVariantClasses.destructive,
+                'h-9 px-3 text-[16.8px]',
+              )}
+            >
+              <Trash2 className="h-4 w-4" aria-hidden />
+              {deleting ? 'Deleting…' : 'Delete'}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
