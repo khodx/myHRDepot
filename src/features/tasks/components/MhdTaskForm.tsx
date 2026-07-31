@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { MhdMultiSelectCombobox } from '@/components/ui/MhdMultiSelectCombobox';
@@ -364,6 +365,7 @@ export function MhdTaskForm({
             value={values.manualProgressPercent}
             onChange={(event) => updateValue('manualProgressPercent', Number(event.target.value))}
           />
+          <MhdProgressBar percent={values.manualProgressPercent} tone="graduated" showLabel />
           {selectedTask && (
             <span className="mt-1 block text-xs font-normal text-muted-foreground">
               {selectedTask.calculatedProgressPercent !== null
