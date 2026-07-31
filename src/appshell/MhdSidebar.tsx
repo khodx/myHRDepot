@@ -560,7 +560,7 @@ function MhdNavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
       to={item.route}
       title={collapsed ? item.label : undefined}
       className={({ isActive }) =>
-        `relative flex min-h-10 items-center rounded-md text-[17px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${
+        `relative flex min-h-10 items-center rounded-full text-[17px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${
           collapsed ? 'justify-center px-0' : 'gap-3 px-3'
         } ${
           isActive
