@@ -81,6 +81,7 @@ function entry(overrides: Partial<MhdTaskAuditEntry>): MhdTaskAuditEntry {
     newValue: 'In Progress',
     summary: null,
     performedBy: 'user-1',
+    performedByName: 'Test User',
     performedAt: '2026-07-29T12:00:00.000Z',
     ipAddress: '10.0.0.1',
     userAgent: 'Mozilla/5.0',

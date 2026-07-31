@@ -35,6 +35,7 @@ function mapAuditRow(row: MhdTaskAuditTimelineRpcRow): MhdTaskAuditEntry {
     newValue: row.new_value ?? null,
     summary: row.summary ?? null,
     performedBy: row.performed_by ?? null,
+    performedByName: row.actor_name ?? null,
     performedAt: row.performed_at,
     ipAddress: row.ip_address ?? null,
     userAgent: row.user_agent ?? null,

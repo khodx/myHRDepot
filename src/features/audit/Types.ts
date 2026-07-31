@@ -25,6 +25,7 @@ export interface MhdTaskAuditTimelineRpcRow {
   new_value: string;
   summary: string;
   performed_by: string;
+  actor_name: string;
   performed_at: string;
   ip_address: string;
   user_agent: string;
@@ -41,9 +42,14 @@ export interface MhdTaskAuditEntry {
   oldValue: string | null;
   newValue: string | null;
   summary: string | null;
-  /** Actor id (auth user). No display-name join exists on this RPC yet —
-   *  rendered as the raw id in the timeline table. */
+  /** Actor id (auth user). See performedByName for the resolved display
+   *  name — mhd_get_task_audit_timeline (migration 0103) joins users ->
+   *  people the same way mhd_list_audit_events does. */
   performedBy: string | null;
+  /** Resolved display name (users -> people join), falls back to 'System'
+   *  server-side when there's no linked person. Falls back to the raw
+   *  performedBy id client-side only if this is ever unset. */
+  performedByName: string | null;
   performedAt: string;
   ipAddress: string | null;
   userAgent: string | null;

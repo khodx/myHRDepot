@@ -7,9 +7,11 @@ import {
 
 /** Normalized shape both MhdTaskAuditEntry (per-task) and MhdAuditEvent
  *  (company-wide) satisfy, so this table never needs to know which page it
- *  is rendering for. `performedByName` is optional because the per-task RPC
- *  (mhd_get_task_audit_timeline) has no actor-name join yet — only the
- *  company-wide RPC (mhd_list_audit_events) provides one. */
+ *  is rendering for. `performedByName` is optional on this shared interface
+ *  for defensiveness only — both mhd_get_task_audit_timeline (migration
+ *  0103) and mhd_list_audit_events resolve it via the same users -> people
+ *  join today; the `?? performedBy` fallback below just guards against a
+ *  future RPC in this shape that doesn't. */
 export interface MhdAuditTimelineRow {
   id: string;
   entityType: string;

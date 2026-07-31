@@ -22072,6 +22072,7 @@ export type Database = {
         Args: { p_task_id: string }
         Returns: {
           action_type: string
+          actor_name: string
           entity_id: string
           entity_type: string
           field_name: string
