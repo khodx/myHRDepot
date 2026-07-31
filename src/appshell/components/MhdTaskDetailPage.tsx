@@ -16,7 +16,6 @@ import { MhdWorkflowTransitionHistory } from '@/features/workflow/components/Mhd
 import { mhdCanMutateWorkflowApprovals } from '@/appshell/mhdRouteAccess';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml } from '@/components/ui/MhdRichTextUtils';
-import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
 import { MhdModal } from '@/components/ui/MhdModal';
@@ -275,14 +274,6 @@ export function MhdTaskDetailPage() {
         updatedAt={task.updatedAt}
         updatedBy={task.updatedBy}
       />
-
-      <div className="flex justify-end border-t border-neutral-200 pt-4">
-        <MhdDetailActions
-          editTo={`/tasks/${task.id}/edit`}
-          onDelete={profile?.userId ? handleDeleteTask : undefined}
-          deleteConfirmMessage={`Delete task "${task.title}"? This cannot be undone.`}
-        />
-      </div>
     </div>
   );
 }

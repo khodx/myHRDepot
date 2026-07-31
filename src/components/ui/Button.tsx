@@ -18,7 +18,8 @@ export const buttonVariantClasses: Record<ButtonVariant, string> = {
   destructive: 'bg-red-700 text-white focus-visible:ring-red-700',
   // Record-detail Edit action (2026-07-26) — deliberately yellow, distinct from
   // the navy category accent, so Edit reads as its own affordance next to Delete.
-  warning: 'bg-yellow-400 text-yellow-950 focus-visible:ring-yellow-400',
+  // Darkened 30% off base yellow-400 (#facc15 -> #af8f0f) with white text, 2026-07-30.
+  warning: 'bg-[#af8f0f] text-white focus-visible:ring-[#af8f0f]',
 };
 
 export const buttonBaseClasses =
