@@ -39,7 +39,7 @@ export function MhdTaskRecordTabs({ taskId, active, className }: MhdTaskRecordTa
             to={tab.to}
             className={cn(
               buttonBaseClasses,
-              'h-9 px-3 text-sm',
+              'h-9 px-3 text-[16.8px]',
               isActive ? buttonVariantClasses.primary : buttonVariantClasses.secondary,
             )}
           >
