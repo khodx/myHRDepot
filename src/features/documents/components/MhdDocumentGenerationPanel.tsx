@@ -36,11 +36,12 @@ const MHD_CONTENT_FORMAT_EXTENSION: Record<MhdDocumentContentFormat, string> = {
   MARKDOWN: 'md',
 };
 
-// Every Generate/Upload button on this panel shares these two colors —
-// named here once so every instance (master card, per-row, and both modal
-// confirm buttons) stays in sync if the color is ever revised.
-const MHD_GENERATE_BUTTON_CLASS = 'bg-[#9C5600] text-white';
-const MHD_UPLOAD_BUTTON_CLASS = 'bg-[#17A100] text-white';
+// The project-wide Customize/Generate/Upload button colors (2026-07-31) — named
+// here once so every instance (master card and both modal confirm buttons)
+// stays in sync if the color is ever revised.
+const MHD_CUSTOMIZE_BUTTON_CLASS = 'bg-[#00007A] text-white font-bold';
+const MHD_GENERATE_BUTTON_CLASS = 'bg-[#D6A300] text-white font-bold';
+const MHD_UPLOAD_BUTTON_CLASS = 'bg-[#397822] text-white font-bold';
 
 function mhdDocumentStatusClass(status: string): string {
   switch (status) {
@@ -227,8 +228,12 @@ export function MhdDocumentGenerationPanel({
             <p className="mt-1 text-xs text-muted-foreground">{masterTemplate.description}</p>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button type="button" onClick={() => void handleDownload(masterTemplate.id)}>
-              Download to Customize
+            <Button
+              type="button"
+              onClick={() => void handleDownload(masterTemplate.id)}
+              className={MHD_CUSTOMIZE_BUTTON_CLASS}
+            >
+              Customize
             </Button>
             <Button
               type="button"
