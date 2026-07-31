@@ -22,7 +22,7 @@ export const buttonVariantClasses: Record<ButtonVariant, string> = {
 };
 
 export const buttonBaseClasses =
-  'inline-flex h-10 items-center justify-center gap-1.5 rounded-md px-4 text-sm font-semibold transition-opacity hover:opacity-80 active:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+  'inline-flex h-10 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-opacity hover:opacity-80 active:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
 
 export function Button({ className, variant = 'primary', type = 'button', ...props }: ButtonProps) {
   return (

@@ -23,7 +23,7 @@ export function MhdViewToggle({ value, onChange, className }: MhdViewToggleProps
       role="group"
       aria-label="Switch between list and board view"
       className={cn(
-        'inline-flex items-center rounded-md border border-border bg-card p-0.5 shadow-sm',
+        'inline-flex items-center rounded-full border border-border bg-card p-0.5 shadow-sm',
         className,
       )}
     >
@@ -32,7 +32,7 @@ export function MhdViewToggle({ value, onChange, className }: MhdViewToggleProps
         aria-pressed={value === 'list'}
         onClick={() => onChange('list')}
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-[5px] px-3 py-1.5 text-xs font-semibold transition-colors',
+          'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
           value === 'list'
             ? 'bg-accent text-accent-on'
             : 'text-muted-foreground hover:text-foreground',
@@ -46,7 +46,7 @@ export function MhdViewToggle({ value, onChange, className }: MhdViewToggleProps
         aria-pressed={value === 'board'}
         onClick={() => onChange('board')}
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-[5px] px-3 py-1.5 text-xs font-semibold transition-colors',
+          'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
           value === 'board'
             ? 'bg-accent text-accent-on'
             : 'text-muted-foreground hover:text-foreground',

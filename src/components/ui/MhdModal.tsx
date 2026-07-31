@@ -83,7 +83,7 @@ export function MhdModal({ onClose, title, children, className }: MhdModalProps)
           type="button"
           onClick={onClose}
           aria-label="Close dialog"
-          className="absolute right-3 top-3 z-10 rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          className="absolute right-3 top-3 z-10 rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
