@@ -24,7 +24,12 @@ export function MhdTaskReportsPage() {
 
   return (
     <div className="space-y-6">
-      <MhdPageHeader backTo={`/tasks/${taskId}`} backLabel="Task" title="Task Reports" />
+      <MhdPageHeader
+        backTo={`/tasks/${taskId}`}
+        backLabel="Task"
+        title="Task Reports"
+        description="Templates and generation history for this task. Download, generate, or upload completed reports using the task's current data."
+      />
 
       <MhdTaskRecordTabs taskId={taskId} active="reports" />
 

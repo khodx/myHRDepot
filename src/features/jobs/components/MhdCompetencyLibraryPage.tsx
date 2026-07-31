@@ -25,7 +25,12 @@ export function MhdCompetencyLibraryPage() {
 
   return (
     <div className="space-y-6">
-      <MhdPageHeader title="Competency library" backTo="/jobs" backLabel="All jobs" />
+      <MhdPageHeader
+        title="Competency library"
+        backTo="/jobs"
+        backLabel="All jobs"
+        description="Seeded and company-specific competencies by industry, including regulated expectations used by job descriptions."
+      />
       <MhdCompetencyLibraryPanel
         companyId={companyId}
         isPlatformAdmin={isPlatformAdmin}

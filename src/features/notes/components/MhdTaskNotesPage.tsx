@@ -16,7 +16,12 @@ export function MhdTaskNotesPage() {
 
   return (
     <div className="space-y-6">
-      <MhdPageHeader backTo="/tasks" backLabel="Tasks" title="Task Notes & Comments" />
+      <MhdPageHeader
+        backTo="/tasks"
+        backLabel="Tasks"
+        title="Task Notes & Comments"
+        description="Task comments and internal notes in timeline order, with visibility, editing, and deletion handled per note."
+      />
 
       <MhdTaskRecordTabs taskId={taskId} active="notes" />
 

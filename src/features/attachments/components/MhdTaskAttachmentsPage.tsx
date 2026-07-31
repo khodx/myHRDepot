@@ -16,7 +16,12 @@ export function MhdTaskAttachmentsPage() {
 
   return (
     <div className="space-y-6">
-      <MhdPageHeader backTo={`/tasks/${taskId}`} backLabel="Task" title="Task Attachments" />
+      <MhdPageHeader
+        backTo={`/tasks/${taskId}`}
+        backLabel="Task"
+        title="Task Attachments"
+        description="Files uploaded for this task, with descriptions, download links, and row-level delete permissions."
+      />
 
       <MhdTaskRecordTabs taskId={taskId} active="attachments" />
 

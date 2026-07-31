@@ -26,7 +26,12 @@ export function MhdTaskActivitiesPage() {
 
   return (
     <div className="space-y-6">
-      <MhdPageHeader backTo={`/tasks/${taskId}`} backLabel="Task" title="Task Activities" />
+      <MhdPageHeader
+        backTo={`/tasks/${taskId}`}
+        backLabel="Task"
+        title="Task Activities"
+        description="Activities linked to this task, including sessions, calls, visits, participants, notes, and outcomes."
+      />
 
       <MhdTaskRecordTabs taskId={taskId} active="activities" />
 
