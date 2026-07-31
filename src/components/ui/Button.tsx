@@ -11,7 +11,11 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 // hover:opacity-80 / active:opacity-70) rather than a per-variant color swap
 // — every variant below defines only its resting fill/text/focus-ring color.
 export const buttonVariantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-accent text-accent-on focus-visible:ring-focus-ring',
+  // Cobalt 900 (#081549), matching the task-detail status pill. Hardcoded
+  // rather than bg-accent/--mhd-accent since this only recolors buttons —
+  // bg-accent still drives non-button brand surfaces (borders, tints, focus
+  // rings) at the original navy #0003AA.
+  primary: 'bg-[#081549] text-white focus-visible:ring-[#081549]',
   secondary: 'bg-slate-100 text-slate-950 focus-visible:ring-slate-500',
   ghost: 'bg-transparent text-slate-950 focus-visible:ring-slate-500',
   // Semantic error red (design system §5), independent of the category accent.
