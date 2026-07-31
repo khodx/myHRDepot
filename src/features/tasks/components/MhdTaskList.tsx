@@ -39,12 +39,18 @@ function initialsFor(names: string[]) {
   );
 }
 
-function formatDueDate(dueDate: string | null) {
-  if (!dueDate) return 'No due date';
-  const date = new Date(`${dueDate}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return dueDate;
+function formatTaskDate(dateValue: string | null, emptyLabel: string) {
+  if (!dateValue) return emptyLabel;
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateValue;
   return date.toLocaleDateString();
 }
+
+function formatDueDate(dueDate: string | null) {
+  return formatTaskDate(dueDate, 'No due date');
+}
+
+const alertBadgeClass = 'inline-flex rounded-full border px-2 py-1 text-xs font-semibold';
 
 export function MhdTaskList({
   tasks,
@@ -74,6 +80,7 @@ export function MhdTaskList({
   const selectedIdSet = new Set(selectedIds);
   const allVisibleSelected =
     visibleTaskIds.length > 0 && visibleTaskIds.every((taskId) => selectedIdSet.has(taskId));
+  const todayIso = new Date().toISOString().slice(0, 10);
 
   return (
     <MhdCard className="overflow-hidden p-0">
@@ -90,19 +97,24 @@ export function MhdTaskList({
               />
             </MhdTh>
             <MhdTh>Task Name</MhdTh>
-            <MhdTh>Company</MhdTh>
+            <MhdTh>Assigned</MhdTh>
+            <MhdTh>Start Date</MhdTh>
             <MhdTh>Assignee</MhdTh>
-            <MhdTh>Department</MhdTh>
             <MhdTh>Priority</MhdTh>
             <MhdTh>Status</MhdTh>
             <MhdTh>Due</MhdTh>
             <MhdTh>Progress</MhdTh>
+            <MhdTh>Flags</MhdTh>
             <MhdActionsTh />
           </tr>
         </thead>
         <tbody>
           {visibleTasks.map((task) => {
             const progress = task.calculatedProgressPercent ?? task.manualProgressPercent;
+            const isOverdue = Boolean(
+              task.dueDate && !task.completedDate && task.dueDate < todayIso,
+            );
+            const isUnassigned = task.assignedUserIds.length === 0;
             return (
               <MhdTr key={task.id} to={`/tasks/${task.id}`}>
                 <MhdTd className="align-top">
@@ -120,7 +132,12 @@ export function MhdTaskList({
                     {task.referenceId} - {task.noteCount} notes - {task.attachmentCount} files
                   </div>
                 </MhdTd>
-                <MhdTd className="align-top text-sm">{task.companyName}</MhdTd>
+                <MhdTd className="whitespace-nowrap align-top text-sm">
+                  {formatTaskDate(task.assignedDate, '')}
+                </MhdTd>
+                <MhdTd className="whitespace-nowrap align-top text-sm">
+                  {formatTaskDate(task.startDate, 'Not started')}
+                </MhdTd>
                 <MhdTd className="align-top">
                   <div className="flex items-center gap-2">
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-tint text-xs font-semibold text-accent-hover">
@@ -133,7 +150,6 @@ export function MhdTaskList({
                     </span>
                   </div>
                 </MhdTd>
-                <MhdTd className="align-top text-sm text-muted-foreground">-</MhdTd>
                 <MhdTd className="align-top">
                   <MhdTaskPriorityBadge
                     priorityName={task.priorityName}
@@ -151,6 +167,22 @@ export function MhdTaskList({
                 </MhdTd>
                 <MhdTd className="align-top">
                   <MhdProgressBar percent={progress} tone="graduated" showLabel />
+                </MhdTd>
+                <MhdTd className="align-top">
+                  <div className="flex flex-wrap gap-1.5">
+                    {isOverdue ? (
+                      <span className={`${alertBadgeClass} bg-red-100 text-red-700 border-red-200`}>
+                        Overdue
+                      </span>
+                    ) : null}
+                    {isUnassigned ? (
+                      <span
+                        className={`${alertBadgeClass} bg-neutral-100 text-neutral-700 border-neutral-200`}
+                      >
+                        Unassigned
+                      </span>
+                    ) : null}
+                  </div>
                 </MhdTd>
                 <MhdTableActions
                   viewTo={`/tasks/${task.id}`}
