@@ -40,8 +40,8 @@ const MHD_CONTENT_FORMAT_EXTENSION: Record<MhdDocumentContentFormat, string> = {
 // here once so every instance (master card and both modal confirm buttons)
 // stays in sync if the color is ever revised.
 const MHD_CUSTOMIZE_BUTTON_CLASS = 'bg-[#00007A] text-white font-bold';
-const MHD_GENERATE_BUTTON_CLASS = 'bg-[#D6A300] text-white font-bold';
-const MHD_UPLOAD_BUTTON_CLASS = 'bg-[#397822] text-white font-bold';
+const MHD_GENERATE_BUTTON_CLASS = 'bg-[#823200] text-white font-bold';
+const MHD_UPLOAD_BUTTON_CLASS = 'bg-[#235324] text-white font-bold';
 
 function mhdDocumentStatusClass(status: string): string {
   switch (status) {
