@@ -38,6 +38,7 @@ import {
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Link } from 'react-router-dom';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { MhdPersonRecordTabs } from '@/features/people/components/MhdPersonRecordTabs';
 
 export function MhdPersonDetailPage() {
@@ -422,6 +423,15 @@ export function MhdPersonDetailPage() {
       <div className="flex justify-end border-t border-neutral-200 pt-4">
         <MhdDetailActions editTo={`/people/${person.id}/edit`} />
       </div>
+
+      <MhdSystemFieldsCard
+        id={person.id}
+        referenceId={person.referenceId}
+        createdAt={person.createdAt}
+        createdBy={person.createdBy}
+        updatedAt={person.updatedAt}
+        updatedBy={person.updatedBy}
+      />
     </div>
   );
 }

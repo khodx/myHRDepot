@@ -17,6 +17,7 @@ import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities } from '@/features/activities/Hook';
@@ -713,6 +714,15 @@ export function MhdReviewDetailPage() {
           />
         </div>
       ) : null}
+
+      <MhdSystemFieldsCard
+        id={review.id}
+        referenceId={review.referenceId}
+        createdAt={review.createdAt}
+        createdBy={review.createdBy}
+        updatedAt={review.updatedAt}
+        updatedBy={review.updatedBy}
+      />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
   BarChart3,
   Accessibility,
@@ -427,25 +427,8 @@ export function MhdMobileNavDrawer({ onClose }: { onClose: () => void }) {
 /** Shared rail content: logo band, company card, and the grouped navigation. */
 function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
   const { roles, profile } = useMhdAuth();
-  const location = useLocation();
-  // Collapsed group labels, remembered per user. Default (empty) = all expanded.
+  // Collapsed group labels, remembered per user. Missing storage = all collapsed.
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>(() => readCollapsedGroups());
-
-  // Landing on Dashboard collapses every group back down, since Dashboard is
-  // the "everything tucked away" home view. This only fires on arrival —
-  // once there, groups still expand/collapse normally on click, so a module
-  // stays reachable without leaving the page.
-  useEffect(() => {
-    if (location.pathname !== '/dashboard') return;
-    const allLabels = NAV_SECTIONS.map((section) => section.label);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- package pattern: sync collapsed state from route arrival
-    setCollapsedGroups(allLabels);
-    try {
-      window.localStorage.setItem(MHD_NAV_COLLAPSE_KEY, JSON.stringify(allLabels));
-    } catch {
-      // localStorage unavailable — collapse state stays in-memory only.
-    }
-  }, [location.pathname]);
 
   const hasRole = (item: NavItem) =>
     item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role));
@@ -487,7 +470,7 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
         {collapsed ? null : (
           <span
             title="Your one stop shop for everything HR."
-            className="overflow-hidden text-ellipsis whitespace-nowrap text-[10px] leading-tight tracking-tight text-rail-muted"
+            className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] leading-tight tracking-tight text-rail-muted"
           >
             Your one stop shop for everything HR.
           </span>

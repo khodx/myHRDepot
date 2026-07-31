@@ -5,6 +5,7 @@ import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { MhdRichTextEditor, MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { useState, type FormEvent } from 'react';
@@ -767,6 +768,15 @@ export function MhdActivityDetailPage() {
           />
         </div>
       ) : null}
+
+      <MhdSystemFieldsCard
+        id={activity.id}
+        referenceId={activity.referenceId}
+        createdAt={activity.createdAt}
+        createdBy={activity.createdBy}
+        updatedAt={activity.updatedAt}
+        updatedBy={activity.updatedBy}
+      />
     </div>
   );
 }

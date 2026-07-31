@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { mhdCanMutateOffboarding } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -841,6 +842,15 @@ export function MhdOffboardingCaseDetailPage() {
           />
         </div>
       ) : null}
+
+      <MhdSystemFieldsCard
+        id={offboardingCase.id}
+        referenceId={offboardingCase.referenceId}
+        createdAt={offboardingCase.createdAt}
+        createdBy={offboardingCase.createdBy}
+        updatedAt={offboardingCase.updatedAt}
+        updatedBy={offboardingCase.updatedBy}
+      />
     </div>
   );
 }

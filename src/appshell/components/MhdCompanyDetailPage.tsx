@@ -17,6 +17,7 @@ import { Users, ClipboardList } from 'lucide-react';
 import { MhdBreadcrumb } from './MhdBreadcrumb';
 import { mhdCompanyService } from '@/features/companies/Service';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { MhdCompanyRecordTabs } from '@/features/companies/components/MhdCompanyRecordTabs';
 
 export function MhdCompanyDetailPage() {
@@ -104,6 +105,15 @@ export function MhdCompanyDetailPage() {
       <div className="flex justify-end border-t border-neutral-100 pt-4">
         <MhdDetailActions editTo={`/companies/${company.id}/edit`} />
       </div>
+
+      <MhdSystemFieldsCard
+        id={company.id}
+        referenceId={company.referenceId}
+        createdAt={company.createdAt}
+        createdBy={company.createdBy}
+        updatedAt={company.updatedAt}
+        updatedBy={company.updatedBy}
+      />
     </div>
   );
 }

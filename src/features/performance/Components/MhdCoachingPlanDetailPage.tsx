@@ -16,6 +16,7 @@ import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities, useMhdActivityActions } from '@/features/activities/Hook';
@@ -748,6 +749,15 @@ export function MhdCoachingPlanDetailPage() {
           />
         </div>
       ) : null}
+
+      <MhdSystemFieldsCard
+        id={plan.id}
+        referenceId={plan.referenceId}
+        createdAt={plan.createdAt}
+        createdBy={plan.createdBy}
+        updatedAt={plan.updatedAt}
+        updatedBy={plan.updatedBy}
+      />
     </div>
   );
 }
