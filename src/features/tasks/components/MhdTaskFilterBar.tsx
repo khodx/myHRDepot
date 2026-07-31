@@ -1,4 +1,6 @@
+import { MhdDateRangePresets } from '@/components/ui/MhdDateRangePresets';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdMultiSelectCombobox } from '@/components/ui/MhdMultiSelectCombobox';
 import type { MhdCompany } from '@/features/companies/Types';
 import type {
   MhdTaskAssignableUser,
@@ -14,6 +16,8 @@ interface MhdTaskFilterBarProps {
   assignableUsers: MhdTaskAssignableUser[];
   filters: MhdTaskListFilters;
   onChange: (filters: MhdTaskListFilters) => void;
+  canEditCompany: boolean;
+  currentUserCompanyId: string;
 }
 
 export function MhdTaskFilterBar({
@@ -23,90 +27,111 @@ export function MhdTaskFilterBar({
   assignableUsers,
   filters,
   onChange,
+  canEditCompany,
+  currentUserCompanyId,
 }: MhdTaskFilterBarProps) {
+  const companyValue = canEditCompany ? filters.companyId : currentUserCompanyId || filters.companyId;
+  const assigneeOptions = assignableUsers.map((user) => ({
+    id: user.id,
+    label: user.displayName,
+    sublabel: user.email || undefined,
+  }));
+
   return (
-    <MhdFilterBar
-      onClear={() =>
-        onChange({
-          companyId: 'ALL',
-          statusId: 'ALL',
-          priorityId: 'ALL',
-          assignedUserId: 'ALL',
-          searchTerm: '',
-          dueFrom: '',
-          dueTo: '',
-        })
-      }
-    >
-      <MhdFilterSelect
-        label="Company"
-        value={filters.companyId}
-        onChange={(event) => onChange({ ...filters, companyId: event.target.value })}
+    <div className="space-y-3">
+      <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+        <MhdFilterInput
+          label="Search"
+          value={filters.searchTerm}
+          onChange={(event) => onChange({ ...filters, searchTerm: event.target.value })}
+          placeholder="Task, company, reference"
+        />
+      </div>
+
+      <MhdFilterBar
+        onClear={() =>
+          onChange({
+            companyId: canEditCompany ? 'ALL' : currentUserCompanyId,
+            statusId: 'ALL',
+            priorityId: 'ALL',
+            assignedUserIds: [],
+            searchTerm: '',
+            dueFrom: '',
+            dueTo: '',
+          })
+        }
       >
-        <option value="ALL">All companies</option>
-        {companies.map((company) => (
-          <option key={company.id} value={company.id}>
-            {company.companyName}
-          </option>
-        ))}
-      </MhdFilterSelect>
-      <MhdFilterSelect
-        label="Status"
-        value={filters.statusId}
-        onChange={(event) => onChange({ ...filters, statusId: event.target.value })}
-      >
-        <option value="ALL">All statuses</option>
-        {statuses.map((status) => (
-          <option key={status.id} value={status.id}>
-            {status.statusName}
-          </option>
-        ))}
-      </MhdFilterSelect>
-      <MhdFilterSelect
-        label="Priority"
-        value={filters.priorityId}
-        onChange={(event) => onChange({ ...filters, priorityId: event.target.value })}
-      >
-        <option value="ALL">All priorities</option>
-        {priorities.map((priority) => (
-          <option key={priority.id} value={priority.id}>
-            {priority.priorityName}
-          </option>
-        ))}
-      </MhdFilterSelect>
-      <MhdFilterSelect label="Department" value="ALL" disabled>
-        <option value="ALL">Not assigned</option>
-      </MhdFilterSelect>
-      <MhdFilterSelect
-        label="Assignee"
-        value={filters.assignedUserId}
-        onChange={(event) => onChange({ ...filters, assignedUserId: event.target.value })}
-      >
-        <option value="ALL">Anyone</option>
-        {assignableUsers.map((user) => (
-          <option key={user.id} value={user.id}>
-            {user.displayName}
-          </option>
-        ))}
-      </MhdFilterSelect>
-      <MhdFilterInput
-        type="date"
-        label="Due From"
-        value={filters.dueFrom}
-        onChange={(event) => onChange({ ...filters, dueFrom: event.target.value })}
-      />
-      <MhdFilterInput
-        type="date"
-        label="Due To"
-        value={filters.dueTo}
-        onChange={(event) => onChange({ ...filters, dueTo: event.target.value })}
-      />
-      <MhdFilterInput
-        label="Search"
-        value={filters.searchTerm}
-        onChange={(event) => onChange({ ...filters, searchTerm: event.target.value })}
-        placeholder="Task, company, reference"
-      />
-    </MhdFilterBar>
+        <MhdFilterSelect
+          label="Company"
+          value={companyValue}
+          disabled={!canEditCompany}
+          onChange={(event) => onChange({ ...filters, companyId: event.target.value })}
+        >
+          <option value="ALL">All companies</option>
+          {companies.map((company) => (
+            <option key={company.id} value={company.id}>
+              {company.companyName}
+            </option>
+          ))}
+        </MhdFilterSelect>
+
+        <label className="flex min-w-0 flex-col gap-1">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Assignee
+          </span>
+          <MhdMultiSelectCombobox
+            options={assigneeOptions}
+            value={filters.assignedUserIds}
+            onChange={(next) => onChange({ ...filters, assignedUserIds: next })}
+            placeholder="Anyone"
+            emptyMessage="No assignable users match your search."
+          />
+        </label>
+
+        <MhdFilterSelect
+          label="Status"
+          value={filters.statusId}
+          onChange={(event) => onChange({ ...filters, statusId: event.target.value })}
+        >
+          <option value="ALL">All statuses</option>
+          {statuses.map((status) => (
+            <option key={status.id} value={status.id}>
+              {status.statusName}
+            </option>
+          ))}
+        </MhdFilterSelect>
+
+        <MhdFilterSelect
+          label="Priority"
+          value={filters.priorityId}
+          onChange={(event) => onChange({ ...filters, priorityId: event.target.value })}
+        >
+          <option value="ALL">All priorities</option>
+          {priorities.map((priority) => (
+            <option key={priority.id} value={priority.id}>
+              {priority.priorityName}
+            </option>
+          ))}
+        </MhdFilterSelect>
+
+        <MhdDateRangePresets
+          onSelect={(dueFrom, dueTo) => onChange({ ...filters, dueFrom, dueTo })}
+        />
+
+        <MhdFilterInput
+          type="date"
+          label="Due From"
+          value={filters.dueFrom}
+          onChange={(event) => onChange({ ...filters, dueFrom: event.target.value })}
+        />
+
+        <MhdFilterInput
+          type="date"
+          label="Due To"
+          value={filters.dueTo}
+          onChange={(event) => onChange({ ...filters, dueTo: event.target.value })}
+        />
+      </MhdFilterBar>
+    </div>
   );
 }

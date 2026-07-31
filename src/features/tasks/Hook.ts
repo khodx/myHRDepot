@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { mhdTaskService } from './Service';
+import type { MhdCompanyId } from '@/features/companies/Types';
 import type {
   MhdCreateTaskInput,
   MhdTask,
@@ -15,13 +16,16 @@ const DEFAULT_FILTERS: MhdTaskListFilters = {
   companyId: 'ALL',
   statusId: 'ALL',
   priorityId: 'ALL',
-  assignedUserId: 'ALL',
+  assignedUserIds: [],
   searchTerm: '',
   dueFrom: '',
   dueTo: '',
 };
 
-export function useMhdTasks(context: MhdTaskMutationContext | null) {
+export function useMhdTasks(
+  context: MhdTaskMutationContext | null,
+  initialCompanyId?: MhdCompanyId | '',
+) {
   const [tasks, setTasks] = useState<MhdTask[]>([]);
   const [statuses, setStatuses] = useState<MhdTaskStatusOption[]>([]);
   const [priorities, setPriorities] = useState<MhdTaskPriorityOption[]>([]);
@@ -30,6 +34,15 @@ export function useMhdTasks(context: MhdTaskMutationContext | null) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const initialCompanyAppliedRef = useRef(false);
+
+  useEffect(() => {
+    if (initialCompanyAppliedRef.current || !initialCompanyId) return;
+    setFilters((current) => {
+      initialCompanyAppliedRef.current = true;
+      return current.companyId === 'ALL' ? { ...current, companyId: initialCompanyId } : current;
+    });
+  }, [initialCompanyId]);
 
   const loadReferences = useCallback(async () => {
     const [statusRows, priorityRows, userRows] = await Promise.all([
@@ -109,6 +122,20 @@ export function useMhdTasks(context: MhdTaskMutationContext | null) {
     [context, loadTasks],
   );
 
+  const deleteTasks = useCallback(
+    async (taskIds: string[]) => {
+      if (!context) throw new Error('Cannot delete tasks without an authenticated user context.');
+      setIsSaving(true);
+      try {
+        await Promise.all(taskIds.map((taskId) => mhdTaskService.deleteTask(taskId, context)));
+        await loadTasks();
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [context, loadTasks],
+  );
+
   const summary = useMemo(() => {
     return {
       total: tasks.length,
@@ -140,5 +167,6 @@ export function useMhdTasks(context: MhdTaskMutationContext | null) {
     createTask,
     updateTask,
     deleteTask,
+    deleteTasks,
   };
 }

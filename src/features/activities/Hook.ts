@@ -16,7 +16,7 @@ const DEFAULT_TASK_FILTERS = {
   companyId: 'ALL',
   statusId: 'ALL',
   priorityId: 'ALL',
-  assignedUserId: 'ALL',
+  assignedUserIds: [],
   searchTerm: '',
   dueFrom: '',
   dueTo: '',
@@ -87,6 +87,7 @@ export function useMhdActivityTasks(companyId: string | null, enabled = true) {
     queryFn: () =>
       mhdTaskService.listTasks({
         ...DEFAULT_TASK_FILTERS,
+        assignedUserIds: [],
         companyId: companyId ?? 'ALL',
       }),
     enabled: enabled && Boolean(companyId),

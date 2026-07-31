@@ -20,6 +20,9 @@ interface MhdTaskListProps {
   tasks: MhdTask[];
   isLoading: boolean;
   onDelete: (taskId: string) => Promise<void>;
+  selectedIds: string[];
+  onToggleSelect: (taskId: string) => void;
+  onToggleSelectAll: (taskIds: string[]) => void;
 }
 
 const PAGE_SIZE = 10;
@@ -43,7 +46,14 @@ function formatDueDate(dueDate: string | null) {
   return date.toLocaleDateString();
 }
 
-export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
+export function MhdTaskList({
+  tasks,
+  isLoading,
+  onDelete,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
+}: MhdTaskListProps) {
   if (isLoading)
     return <MhdCard className="p-6 text-sm text-muted-foreground">Loading tasks...</MhdCard>;
   if (tasks.length === 0) {
@@ -60,6 +70,10 @@ export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
 
   const visibleTasks = tasks.slice(0, PAGE_SIZE);
   const rangeEnd = Math.min(PAGE_SIZE, tasks.length);
+  const visibleTaskIds = visibleTasks.map((task) => task.id);
+  const selectedIdSet = new Set(selectedIds);
+  const allVisibleSelected =
+    visibleTaskIds.length > 0 && visibleTaskIds.every((taskId) => selectedIdSet.has(taskId));
 
   return (
     <MhdCard className="overflow-hidden p-0">
@@ -67,7 +81,13 @@ export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
         <thead>
           <tr>
             <MhdTh className="w-10">
-              <input type="checkbox" aria-label="Select all tasks" className="h-4 w-4 rounded" />
+              <input
+                type="checkbox"
+                aria-label="Select all visible tasks"
+                className="h-4 w-4 rounded"
+                checked={allVisibleSelected}
+                onChange={() => onToggleSelectAll(visibleTaskIds)}
+              />
             </MhdTh>
             <MhdTh>Task Name</MhdTh>
             <MhdTh>Company</MhdTh>
@@ -90,6 +110,8 @@ export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
                     type="checkbox"
                     aria-label={`Select ${task.title}`}
                     className="h-4 w-4 rounded"
+                    checked={selectedIdSet.has(task.id)}
+                    onChange={() => onToggleSelect(task.id)}
                   />
                 </MhdTd>
                 <MhdTd className="align-top">

@@ -101,7 +101,7 @@ export interface MhdTaskListFilters {
   companyId: MhdCompanyId | 'ALL';
   statusId: MhdTaskStatusId | 'ALL';
   priorityId: MhdTaskPriorityId | 'ALL';
-  assignedUserId: MhdUserId | 'ALL';
+  assignedUserIds: MhdUserId[];
   searchTerm: string;
   dueFrom: string;
   dueTo: string;

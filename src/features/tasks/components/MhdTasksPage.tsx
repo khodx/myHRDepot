@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, Layers, Plus, Save } from 'lucide-react';
 import { Button, buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
+import { MhdModal } from '@/components/ui/MhdModal';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   MhdViewToggle,
@@ -16,8 +17,74 @@ import { MhdTaskList } from '@/features/tasks/components/MhdTaskList';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdTasks } from '@/features/tasks/Hook';
+import {
+  MHD_SIMPLYHR_COMPANY_ID,
+  type MhdTask,
+  type MhdTaskListFilters,
+} from '@/features/tasks/Types';
 
 const MHD_TASKS_VIEW_KEY = 'mhd:tasks:view';
+const MHD_TASKS_SAVED_VIEWS_KEY = 'mhd:tasks:savedViews';
+
+interface MhdSavedTaskView {
+  id: string;
+  name: string;
+  filters: MhdTaskListFilters;
+}
+
+function readSavedViews(): MhdSavedTaskView[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(MHD_TASKS_SAVED_VIEWS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSavedViews(views: MhdSavedTaskView[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(MHD_TASKS_SAVED_VIEWS_KEY, JSON.stringify(views));
+  } catch {
+    // localStorage unavailable; saved views stay in-memory for this session.
+  }
+}
+
+function createSavedViewId(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `view-${Date.now()}`;
+}
+
+function escapeCsvCell(value: string | number | null | undefined): string {
+  const text = value === null || value === undefined ? '' : String(value);
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function buildTasksCsv(tasks: MhdTask[]): string {
+  const headers = [
+    'Reference ID',
+    'Title',
+    'Company',
+    'Assignees',
+    'Priority',
+    'Status',
+    'Due Date',
+    'Progress',
+  ];
+  const rows = tasks.map((task) => [
+    task.referenceId,
+    task.title,
+    task.companyName,
+    task.assignedDisplayNames.join('; '),
+    task.priorityName ?? '',
+    task.statusName,
+    task.dueDate ?? '',
+    task.calculatedProgressPercent ?? task.manualProgressPercent,
+  ]);
+  return [headers, ...rows].map((row) => row.map(escapeCsvCell).join(',')).join('\n');
+}
 
 export function MhdTasksPage() {
   const { profile } = useMhdAuth();
@@ -37,7 +104,85 @@ export function MhdTasksPage() {
   // (not the actor-context state hook this page originally assumed).
   const companiesQuery = useMhdCompanies({ searchTerm: '' });
   const companies = useMemo(() => companiesQuery.data ?? [], [companiesQuery.data]);
-  const taskState = useMhdTasks(actorContext);
+  const taskState = useMhdTasks(actorContext, profile?.companyId ?? '');
+  const canEditCompany = profile?.companyId === MHD_SIMPLYHR_COMPANY_ID;
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isSaveViewModalOpen, setIsSaveViewModalOpen] = useState(false);
+  const [saveViewName, setSaveViewName] = useState('');
+  const [savedViews, setSavedViews] = useState<MhdSavedTaskView[]>(readSavedViews);
+
+  // Derived rather than synced via effect: stale ids (from a deleted task or
+  // a filter change that drops a row) simply drop out of this list on the
+  // next render instead of needing an explicit reset.
+  const validSelectedIds = useMemo(
+    () => selectedIds.filter((id) => taskState.tasks.some((task) => task.id === id)),
+    [selectedIds, taskState.tasks],
+  );
+
+  const toggleSelect = useCallback((taskId: string) => {
+    setSelectedIds((current) =>
+      current.includes(taskId) ? current.filter((id) => id !== taskId) : [...current, taskId],
+    );
+  }, []);
+
+  const toggleSelectAll = useCallback((taskIds: string[]) => {
+    setSelectedIds((current) => {
+      const allSelected = taskIds.every((taskId) => current.includes(taskId));
+      if (allSelected) return current.filter((taskId) => !taskIds.includes(taskId));
+      return Array.from(new Set([...current, ...taskIds]));
+    });
+  }, []);
+
+  async function handleDeleteSelected() {
+    if (validSelectedIds.length === 0) return;
+    await taskState.deleteTasks(validSelectedIds);
+    setSelectedIds([]);
+    setIsBulkModalOpen(false);
+  }
+
+  function handleSaveView(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const name = saveViewName.trim();
+    if (!name) return;
+    const nextViews = [
+      ...savedViews,
+      { id: createSavedViewId(), name, filters: taskState.filters },
+    ];
+    setSavedViews(nextViews);
+    writeSavedViews(nextViews);
+    setSaveViewName('');
+    setIsSaveViewModalOpen(false);
+  }
+
+  function handleApplySavedView(viewId: string) {
+    const view = savedViews.find((savedView) => savedView.id === viewId);
+    if (!view) return;
+    taskState.setFilters({
+      ...view.filters,
+      companyId: canEditCompany ? view.filters.companyId : profile?.companyId ?? view.filters.companyId,
+    });
+  }
+
+  function handleDeleteSavedView(viewId: string) {
+    const nextViews = savedViews.filter((view) => view.id !== viewId);
+    setSavedViews(nextViews);
+    writeSavedViews(nextViews);
+  }
+
+  function handleExport() {
+    const csv = buildTasksCsv(taskState.tasks);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const today = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `tasks-export-${today}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="space-y-6">
@@ -53,15 +198,29 @@ export function MhdTasksPage() {
               <Plus className="h-4 w-4" aria-hidden />
               New Task
             </Link>
-            <Button variant="secondary" className="gap-1.5">
+            <Button
+              variant="secondary"
+              className="gap-1.5"
+              disabled={validSelectedIds.length === 0 || taskState.isSaving}
+              onClick={() => setIsBulkModalOpen(true)}
+            >
               <Layers className="h-4 w-4" aria-hidden />
               Bulk Actions
             </Button>
-            <Button variant="secondary" className="gap-1.5">
+            <Button
+              variant="secondary"
+              className="gap-1.5"
+              onClick={() => setIsSaveViewModalOpen(true)}
+            >
               <Save className="h-4 w-4" aria-hidden />
               Save View
             </Button>
-            <Button variant="secondary" className="gap-1.5">
+            <Button
+              variant="secondary"
+              className="gap-1.5"
+              disabled={taskState.tasks.length === 0}
+              onClick={handleExport}
+            >
               <Download className="h-4 w-4" aria-hidden />
               Export
             </Button>
@@ -82,7 +241,41 @@ export function MhdTasksPage() {
         assignableUsers={taskState.assignableUsers}
         filters={taskState.filters}
         onChange={taskState.setFilters}
+        canEditCompany={canEditCompany}
+        currentUserCompanyId={profile?.companyId ?? ''}
       />
+
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4 shadow-sm">
+        <label className="flex min-w-64 flex-1 flex-col gap-1">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Saved views
+          </span>
+          <select
+            className="h-10 rounded-md border border-border bg-card px-3 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value=""
+            onChange={(event) => handleApplySavedView(event.target.value)}
+          >
+            <option value="">Select saved view</option>
+            {savedViews.map((view) => (
+              <option key={view.id} value={view.id}>
+                {view.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {savedViews.map((view) => (
+            <Button
+              key={view.id}
+              variant="ghost"
+              className="h-8 px-3 text-xs"
+              onClick={() => handleDeleteSavedView(view.id)}
+            >
+              Delete {view.name}
+            </Button>
+          ))}
+        </div>
+      </div>
 
       <div className="flex justify-end">
         <MhdViewToggle value={viewMode} onChange={handleViewModeChange} />
@@ -99,7 +292,58 @@ export function MhdTasksPage() {
           tasks={taskState.tasks}
           isLoading={taskState.isLoading}
           onDelete={taskState.deleteTask}
+          selectedIds={validSelectedIds}
+          onToggleSelect={toggleSelect}
+          onToggleSelectAll={toggleSelectAll}
         />
+      )}
+
+      {isBulkModalOpen && (
+        <MhdModal onClose={() => setIsBulkModalOpen(false)} title="Bulk Actions">
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-foreground">Bulk Actions</h2>
+            <p className="text-sm text-muted-foreground">
+              Delete {validSelectedIds.length} selected task{validSelectedIds.length === 1 ? '' : 's'}?
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setIsBulkModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={taskState.isSaving}
+                onClick={() => void handleDeleteSelected()}
+              >
+                Delete selected
+              </Button>
+            </div>
+          </div>
+        </MhdModal>
+      )}
+
+      {isSaveViewModalOpen && (
+        <MhdModal onClose={() => setIsSaveViewModalOpen(false)} title="Save View">
+          <form className="space-y-4" onSubmit={(event) => handleSaveView(event)}>
+            <h2 className="text-lg font-semibold text-foreground">Save View</h2>
+            <label className="block text-sm font-medium text-foreground">
+              Name
+              <input
+                autoFocus
+                value={saveViewName}
+                onChange={(event) => setSaveViewName(event.target.value)}
+                className="mt-1 h-10 w-full rounded-md border border-border bg-card px-3 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+            </label>
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setIsSaveViewModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saveViewName.trim().length === 0}>
+                Save view
+              </Button>
+            </div>
+          </form>
+        </MhdModal>
       )}
     </div>
   );

@@ -122,6 +122,12 @@ function mapTaskRow(row: MhdTaskBoardRow): MhdTask {
   };
 }
 
+function matchesAssignedUsers(task: MhdTask, assignedUserIds: string[]): boolean {
+  if (assignedUserIds.length === 0) return true;
+  const selectedIds = new Set(assignedUserIds);
+  return task.assignedUserIds.some((assignedId) => selectedIds.has(assignedId));
+}
+
 export const mhdTaskService = {
   async getTaskById(taskId: string): Promise<MhdTask> {
     const { data, error } = await supabaseClient
@@ -146,7 +152,6 @@ export const mhdTaskService = {
         p_company_id: filters.companyId === 'ALL' ? undefined : filters.companyId,
         p_status_id: filters.statusId === 'ALL' ? undefined : filters.statusId,
         p_priority_id: filters.priorityId === 'ALL' ? undefined : filters.priorityId,
-        p_assigned_user_id: filters.assignedUserId === 'ALL' ? undefined : filters.assignedUserId,
         p_search_term: emptyToUndefined(filters.searchTerm),
         p_due_from: dateToUndefined(filters.dueFrom),
         p_due_to: dateToUndefined(filters.dueTo),
@@ -157,7 +162,9 @@ export const mhdTaskService = {
       throw new Error(`Unable to load tasks: ${error.message}`);
     }
 
-    return (data ?? []).map(mapTaskRow);
+    return (data ?? [])
+      .map(mapTaskRow)
+      .filter((task) => matchesAssignedUsers(task, filters.assignedUserIds));
   },
 
   async listStatusOptions(): Promise<MhdTaskStatusOption[]> {
