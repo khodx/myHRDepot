@@ -1,9 +1,8 @@
 import { ListChecks } from 'lucide-react';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
-import { cn } from '@/utils/cn';
 import {
   MhdActionsTh,
   MhdTable,
@@ -98,11 +97,6 @@ export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
                   <div className="mt-1 text-xs text-muted-foreground">
                     {task.referenceId} - {task.noteCount} notes - {task.attachmentCount} files
                   </div>
-                  {task.descriptionPlainText && (
-                    <div className="mt-1 max-w-xl truncate text-sm text-muted-foreground">
-                      {task.descriptionPlainText}
-                    </div>
-                  )}
                 </MhdTd>
                 <MhdTd className="align-top text-sm">{task.companyName}</MhdTd>
                 <MhdTd className="align-top">
@@ -147,21 +141,15 @@ export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
         </tbody>
       </MhdTable>
       <MhdTableFooter summary={`Showing 1 to ${rangeEnd} of ${tasks.length} tasks`}>
-        <button
-          className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-7 px-2 text-xs')}
-          disabled
-        >
+        <Button variant="secondary" className="h-7 px-2 text-xs" disabled>
           Previous
-        </button>
-        <button className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'h-7 px-2.5 text-xs')}>
+        </Button>
+        <Button className="h-7 px-2.5 text-xs">
           1
-        </button>
-        <button
-          className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-7 px-2 text-xs')}
-          disabled={tasks.length <= PAGE_SIZE}
-        >
+        </Button>
+        <Button variant="secondary" className="h-7 px-2 text-xs" disabled={tasks.length <= PAGE_SIZE}>
           Next
-        </button>
+        </Button>
       </MhdTableFooter>
     </MhdCard>
   );

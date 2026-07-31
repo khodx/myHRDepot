@@ -42,8 +42,8 @@ export function MhdTasksPage() {
   return (
     <div className="space-y-6">
       <MhdPageHeader
-        title="Tasks"
-        description="Create, assign, filter, and track client work."
+        title="Task Dashboard"
+        description="Create, assign, filter, and track client work across companies. Use list and board views to monitor ownership, progress, and upcoming due dates."
         actions={
           <>
             <Link
