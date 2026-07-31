@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
+import { cn } from '@/utils/cn';
 import { useMhdRateCompetency, useMhdReviewCompetencies, useMhdSeedCompetencies } from '../Hook-v2';
 import { mhdUnratedCompetencies } from '../Types-v2';
 
@@ -66,7 +68,7 @@ export function MhdReviewCompetencyPanel({ reviewId, canRate }: Props) {
             type="button"
             disabled={seed.isPending}
             onClick={() => void seed.mutateAsync()}
-            className="rounded-md bg-accent hover:bg-accent-hover px-3 py-1.5 text-sm font-medium text-accent-on disabled:opacity-50"
+            className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'h-9 px-3')}
           >
             {seed.isPending ? 'Loading…' : 'Load from job description'}
           </button>

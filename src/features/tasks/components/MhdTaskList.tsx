@@ -1,7 +1,9 @@
 import { ListChecks } from 'lucide-react';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
+import { cn } from '@/utils/cn';
 import {
   MhdActionsTh,
   MhdTable,
@@ -146,16 +148,16 @@ export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
       </MhdTable>
       <MhdTableFooter summary={`Showing 1 to ${rangeEnd} of ${tasks.length} tasks`}>
         <button
-          className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground"
+          className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-7 px-2 text-xs')}
           disabled
         >
           Previous
         </button>
-        <button className="rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-accent-on">
+        <button className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'h-7 px-2.5 text-xs')}>
           1
         </button>
         <button
-          className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground"
+          className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-7 px-2 text-xs')}
           disabled={tasks.length <= PAGE_SIZE}
         >
           Next

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { cn } from '@/utils/cn';
 import type { MhdFormField, MhdFormLogicRule } from '../Types';
 
 interface MhdFormLogicEditorProps {
@@ -125,7 +127,7 @@ export function MhdFormLogicEditor({ fields, rules, onChange }: MhdFormLogicEdit
         <button
           type="button"
           onClick={handleAddRule}
-          className="mt-3 rounded-md bg-accent px-3 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover"
+          className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'mt-3 h-9 px-3')}
         >
           Add Rule
         </button>

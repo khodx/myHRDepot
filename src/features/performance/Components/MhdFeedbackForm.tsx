@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { cn } from '@/utils/cn';
 import { useMhdDeclineParticipation, useMhdSubmitFeedback } from '../Hook-v2';
 import {
   mhdFeedbackRaterNotice,
@@ -166,7 +168,7 @@ export function MhdFeedbackForm({
             type="button"
             disabled={submit.isPending}
             onClick={() => void handleSubmit()}
-            className="rounded-md bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-accent-on disabled:opacity-50"
+            className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
           >
             {submit.isPending ? 'Submitting…' : 'Submit feedback'}
           </button>

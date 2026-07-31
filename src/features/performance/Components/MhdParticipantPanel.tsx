@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { cn } from '@/utils/cn';
 import {
   useMhdApproveParticipant,
   useMhdCloseFeedback,
@@ -139,7 +141,7 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
           type="button"
           disabled={invite.isPending}
           onClick={() => void submitInvite()}
-          className="rounded-md bg-accent hover:bg-accent-hover px-3 py-1.5 text-sm font-medium text-accent-on disabled:opacity-50"
+          className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'h-9 px-3')}
         >
           {invite.isPending ? 'Inviting…' : 'Invite'}
         </button>
@@ -167,7 +169,7 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
                   type="button"
                   disabled={approve.isPending}
                   onClick={() => void approve.mutateAsync(participant.id)}
-                  className="rounded-md border border-border px-3 py-1 text-sm text-foreground disabled:opacity-50"
+                  className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-8 px-3')}
                 >
                   Approve
                 </button>
@@ -198,7 +200,7 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
             <button
               type="button"
               onClick={() => setIsClosing(false)}
-              className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
+              className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-9 px-3')}
             >
               Cancel
             </button>
@@ -206,7 +208,7 @@ export function MhdParticipantPanel({ reviewId, people, onCloseFeedback }: Props
               type="button"
               disabled={close.isPending}
               onClick={() => void submitClose()}
-              className="rounded-md bg-accent hover:bg-accent-hover px-3 py-1.5 text-sm font-medium text-accent-on disabled:opacity-50"
+              className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'h-9 px-3')}
             >
               {close.isPending ? 'Closing…' : 'Close collection'}
             </button>

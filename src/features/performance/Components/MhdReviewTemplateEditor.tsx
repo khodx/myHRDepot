@@ -1,5 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { cn } from '@/utils/cn';
 import {
   useMhdCreateReviewTemplate,
   useMhdPublishReviewTemplate,
@@ -121,7 +123,7 @@ export function MhdReviewTemplateEditor({ companyId, isPlatformAdmin }: Props) {
                     type="button"
                     onClick={() => publishTemplate.mutate({ templateId: template.id })}
                     disabled={publishTemplate.isPending}
-                    className="shrink-0 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground disabled:opacity-50"
+                    className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-9 shrink-0 px-3')}
                   >
                     {publishTemplate.isPending ? 'Publishing…' : 'Publish'}
                   </button>
@@ -273,7 +275,7 @@ export function MhdReviewTemplateEditor({ companyId, isPlatformAdmin }: Props) {
           <button
             type="submit"
             disabled={createTemplate.isPending}
-            className="rounded-md bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-accent-on disabled:opacity-50"
+            className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
           >
             {createTemplate.isPending ? 'Creating…' : 'Create draft'}
           </button>

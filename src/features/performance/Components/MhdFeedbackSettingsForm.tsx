@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { cn } from '@/utils/cn';
 import { useMhdFeedbackSettings, useMhdUpsertFeedbackSettings } from '../Hook-v2';
 import { MHD_FEEDBACK_THRESHOLD_FLOOR } from '../Types-v2';
 import { mhdFeedbackSettingsSchema, type MhdFeedbackSettingsFormValues } from '../Schemas-v2';
@@ -123,7 +125,7 @@ export function MhdFeedbackSettingsForm({ companyId }: Props) {
         <button
           type="submit"
           disabled={upsertSettings.isPending}
-          className="rounded-md bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-accent-on disabled:opacity-50"
+          className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
         >
           {upsertSettings.isPending ? 'Saving…' : 'Save settings'}
         </button>

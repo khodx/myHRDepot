@@ -1,3 +1,5 @@
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { cn } from '@/utils/cn';
 import { useMhdMyInvitations } from '../Hook-v2';
 import { mhdFormatParticipantType } from '../Types-v2';
 
@@ -54,7 +56,7 @@ export function MhdMyFeedbackInvitations({ onOpen }: Props) {
               <button
                 type="button"
                 onClick={() => onOpen(invitation.participantId)}
-                className="rounded-md bg-accent hover:bg-accent-hover px-3 py-1.5 text-sm font-medium text-accent-on"
+                className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'h-9 px-3')}
               >
                 Give feedback
               </button>

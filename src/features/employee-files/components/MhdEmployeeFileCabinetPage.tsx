@@ -96,7 +96,7 @@ function EmployeeFileTable({
                 <MhdTd>
                   <Link
                     to={`/forms/${record.formId}/submissions?submissionId=${record.id}`}
-                    className="rounded-md border border-accent-border px-2.5 py-1.5 text-xs font-semibold text-accent hover:bg-accent-soft"
+                    className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-8 px-2.5 text-xs')}
                   >
                     View
                   </Link>
