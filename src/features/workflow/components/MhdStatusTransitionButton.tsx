@@ -77,13 +77,14 @@ export function MhdStatusTransitionButton({
         type="button"
         onClick={() => void handleOpenDropdown()}
         disabled={disabled || isTerminal || isLoading}
-        className={`flex items-center gap-2 rounded-md px-3 py-2 font-medium transition-colors ${
+        className={`flex items-center gap-2 rounded-full px-4 py-2 font-medium transition-colors ${
           isTerminal
             ? 'cursor-not-allowed bg-muted text-muted-foreground'
-            : // Complementary to the project's navy theme accent (#0003AA): amber
-              // sits opposite blue on the wheel, and reads distinctly from the
-              // yellow Edit and red Delete actions now beside it in the tab row.
-              'bg-amber-100 text-amber-800 hover:opacity-80 disabled:opacity-50'
+            : // Cobalt 900 (#081549) — a deep blue adjacent to the project's navy
+              // theme accent (#0003AA), reading as its own color next to the
+              // yellow Edit and red Delete actions beside it in the tab row.
+              // The inset highlight/shadow lines give the pill a beveled edge.
+              'bg-[#081549] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-1px_0_rgba(0,0,0,0.35),0_1px_3px_rgba(0,0,0,0.35)] hover:opacity-80 disabled:opacity-50'
         }`}
       >
         <span>{currentStatusName}</span>
@@ -102,7 +103,7 @@ export function MhdStatusTransitionButton({
       ) : null}
 
       {isOpen && !isTerminal ? (
-        <div className="absolute left-0 top-full z-50 mt-2 min-w-max rounded-md border border-border bg-card shadow-lg">
+        <div className="absolute left-0 top-full z-50 mt-2 min-w-max overflow-hidden rounded-xl border border-border bg-card shadow-[0_2px_4px_rgba(0,0,0,0.08),0_8px_16px_rgba(0,0,0,0.12)]">
           {availableTransitions.length === 0 ? (
             <div className="px-4 py-2 text-sm text-muted-foreground">No transitions available</div>
           ) : (
