@@ -23,6 +23,7 @@ import { MhdTaskActivitiesPage } from '@/features/activities/components/MhdTaskA
 import { MhdTaskAttachmentsPage } from '@/features/attachments/components/MhdTaskAttachmentsPage';
 import { MhdTaskReportsPage } from '@/features/documents/components/MhdTaskReportsPage';
 import { MhdTaskAuditPage } from '@/features/audit/components/MhdTaskAuditPage';
+import { MhdAuditReportsPage } from '@/features/audit/components/MhdAuditReportsPage';
 import { MhdDocumentsPage } from '@/features/documents/components/MhdDocumentsPage';
 import { MhdFormsPage } from '@/features/forms/components/MhdFormsPage';
 import { MhdFormDetailPage } from '@/features/forms/components/MhdFormDetailPage';
@@ -267,6 +268,12 @@ function MhdAppRoutes() {
                   pages read useMhdAuth/useParams themselves. */}
               <Route path="/investigations" element={<MhdInvestigationsPage />} />
               <Route path="/investigations/:caseId" element={<MhdInvestigationCaseDetailPage />} />
+              {/* Audit Reports — company-wide counterpart to
+                  /tasks/:taskId/audit. Platform Admin / HR Partner only, same
+                  gate as the per-task timeline (see mhdRouteAccess.ts and
+                  mhd_list_audit_events's server-side 42501 check). No
+                  subject-facing route, same as Investigations/Conduct. */}
+              <Route path="/audit-reports" element={<MhdAuditReportsPage />} />
               {/* Training & Development. Two SEPARATE routes, never one filtered
                   surface: /training is the admin catalog + compliance board
                   (Platform Admin / HR Partner / Client Admin), /my-training is the

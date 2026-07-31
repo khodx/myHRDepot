@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { MhdTaskRecordTabs } from '@/appshell/components/MhdTaskRecordTabs';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdTaskService } from '@/features/tasks/Service';
 import { useMhdRequestTaskAuditReport, useMhdTaskAuditTimeline } from '../Hook';
 import type { MhdTaskAuditEntityType, MhdTaskAuditFilters } from '../Types';
 import { MHD_TASK_AUDIT_DEFAULT_FILTERS } from '../Types';
+import { MhdAuditTimelineTable } from './MhdAuditTimelineTable';
 
 const MHD_TASK_AUDIT_ENTITY_TYPES: MhdTaskAuditEntityType[] = [
   'TASK',
@@ -19,11 +19,6 @@ const MHD_TASK_AUDIT_ENTITY_TYPES: MhdTaskAuditEntityType[] = [
   'ATTACHMENT',
   'ACTIVITY',
 ];
-
-function formatDateTime(value: string): string {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
-}
 
 /**
  * Route: /tasks/:taskId/audit
@@ -222,54 +217,22 @@ export function MhdTaskAuditPage() {
         </MhdFilterSelect>
       </MhdFilterBar>
 
-      <MhdCard className="overflow-hidden p-0">
+      <MhdCard className="overflow-hidden p-0 -mx-4 w-[calc(100%+2rem)] md:-mx-5 md:w-[calc(100%+2.5rem)] lg:-mx-7 lg:w-[calc(100%+3.5rem)]">
         {timelineLoading ? (
           <p className="p-4 text-sm text-muted-foreground">Loading audit timeline...</p>
         ) : timelineError ? (
           <p className="p-4 text-sm text-red-700">
             {(timelineError as Error).message ?? 'Unable to load the audit timeline.'}
           </p>
-        ) : filteredEntries.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">No audit entries match the current filters.</p>
         ) : (
-          <MhdTable>
-            <thead>
-              <tr>
-                <MhdTh>Performed At</MhdTh>
-                <MhdTh>Performed By</MhdTh>
-                <MhdTh>Entity</MhdTh>
-                <MhdTh>Action</MhdTh>
-                <MhdTh>Field</MhdTh>
-                <MhdTh>Old Value</MhdTh>
-                <MhdTh>New Value</MhdTh>
-                <MhdTh>Source Module</MhdTh>
-                <MhdTh>IP Address</MhdTh>
-                <MhdTh>User Agent</MhdTh>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEntries.map((entry) => (
-                <MhdTr key={entry.id}>
-                  <MhdTd className="whitespace-nowrap">{formatDateTime(entry.performedAt)}</MhdTd>
-                  <MhdTd>{entry.performedBy ?? '—'}</MhdTd>
-                  <MhdTd>{entry.entityType}</MhdTd>
-                  <MhdTd>{entry.actionType}</MhdTd>
-                  <MhdTd>{entry.fieldName ?? '—'}</MhdTd>
-                  <MhdTd className="max-w-xs truncate" title={entry.oldValue ?? undefined}>
-                    {entry.oldValue ?? '—'}
-                  </MhdTd>
-                  <MhdTd className="max-w-xs truncate" title={entry.newValue ?? undefined}>
-                    {entry.newValue ?? '—'}
-                  </MhdTd>
-                  <MhdTd>{entry.sourceModule ?? '—'}</MhdTd>
-                  <MhdTd>{entry.ipAddress ?? '—'}</MhdTd>
-                  <MhdTd className="max-w-xs truncate" title={entry.userAgent ?? undefined}>
-                    {entry.userAgent ?? '—'}
-                  </MhdTd>
-                </MhdTr>
-              ))}
-            </tbody>
-          </MhdTable>
+          // taskId is already known from the route param, so NOTE/ATTACHMENT
+          // rows always resolve here (unlike the company-wide Audit Reports
+          // page, which has no parent-task lookup available).
+          <MhdAuditTimelineTable
+            entries={filteredEntries}
+            emptyMessage="No audit entries match the current filters."
+            linkContext={{ taskId }}
+          />
         )}
       </MhdCard>
     </div>

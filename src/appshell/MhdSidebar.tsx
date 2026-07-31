@@ -17,6 +17,7 @@ import {
   ClipboardCheck,
   ClipboardList,
   DoorOpen,
+  FileSearch,
   FileSignature,
   FileText,
   FolderOpen,
@@ -235,6 +236,17 @@ const NAV_SECTIONS: NavSection[] = [
         route: '/offboarding',
         icon: DoorOpen,
         roles: mhdRouteRoles('/offboarding'),
+      },
+      // Platform Admin / HR Partner only — same strictly-gated,
+      // no-subject-facing precedent as Conduct/Investigations above. The
+      // audit trail it reads (mhd_list_audit_events) spans every task,
+      // note, attachment, and activity across the company, including IP
+      // addresses and user agents.
+      {
+        label: 'Audit Reports',
+        route: '/audit-reports',
+        icon: FileSearch,
+        roles: mhdRouteRoles('/audit-reports'),
       },
     ],
   },

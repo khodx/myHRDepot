@@ -154,6 +154,14 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // gated separately, on the grant-filtered list returning ≥1 row (never on a
   // role) — see MhdSidebar.
   { path: '/investigations', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  // Audit Reports — company-wide counterpart to /tasks/:taskId/audit. Same
+  // restriction (Platform Admin / HR Partner only) for the same reason: the
+  // underlying data exposes IP addresses, user agents, and full field-level
+  // change history across every task/note/attachment/activity in the
+  // company, not just one record. mhd_list_audit_events enforces this
+  // server-side (42501 for anyone else); this route rule and the sidebar
+  // entry are UX only, mirroring the Task Audit rule's own comment above.
+  { path: '/audit-reports', roles: ['Platform Admin', 'HR Partner'] },
   // Training & Development. Two separate routes, never one filtered surface.
   // /training is the admin catalog + company compliance board — Platform Admin /
   // HR Partner / Client Admin. /my-training is the employee's OWN assignments and

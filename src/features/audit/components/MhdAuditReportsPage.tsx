@@ -1,0 +1,248 @@
+import { useMemo, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { useMhdAuth } from '@/features/authentication/Hook';
+import { useMhdAuditEvents, useMhdRequestAuditReport } from '../Hook';
+import type { MhdAuditEvent, MhdAuditEventFilters } from '../Types';
+import { MHD_AUDIT_EVENT_DEFAULT_FILTERS } from '../Types';
+import { MhdAuditTimelineTable } from './MhdAuditTimelineTable';
+
+/**
+ * Route: /audit-reports
+ * Platform Admin / HR Partner only — mhd_list_audit_events enforces this
+ * server-side (42501 for anyone else, same as mhd_get_task_audit_timeline);
+ * the route guard in mhdRouteAccess.ts and the sidebar's visibility are UX
+ * only, not the actual access control.
+ *
+ * Company-wide counterpart to MhdTaskAuditPage. entityType/actionType/date
+ * range are server-side filters (mhd_list_audit_events params); sourceModule
+ * has no server param, so it is applied client-side against the fetched set.
+ */
+export function MhdAuditReportsPage() {
+  const { profile, roles } = useMhdAuth();
+  const [filters, setFilters] = useState<MhdAuditEventFilters>(MHD_AUDIT_EVENT_DEFAULT_FILTERS);
+  const [reportError, setReportError] = useState<string | null>(null);
+  const [rowNotice, setRowNotice] = useState<string | null>(null);
+
+  const companyId = profile?.companyId ?? null;
+
+  const {
+    data: events,
+    isLoading: eventsLoading,
+    error: eventsError,
+  } = useMhdAuditEvents(companyId, {
+    entityType: filters.entityType,
+    actionType: filters.actionType,
+    from: filters.from,
+    to: filters.to,
+  });
+
+  const actorContext = useMemo(
+    () => (profile?.userId ? { actorUserId: profile.userId } : null),
+    [profile],
+  );
+  const requestReport = useMhdRequestAuditReport(actorContext);
+
+  // Option lists are derived from the currently loaded (server-filtered) set,
+  // matching MhdTaskAuditPage's precedent for its Action Type/Performed By
+  // selects — narrowing entityType/actionType server-side does mean these
+  // lists can shrink after a selection is made; acceptable trade-off, same
+  // as the per-task page.
+  const entityTypes = useMemo(() => {
+    const set = new Set<string>();
+    for (const event of events ?? []) set.add(event.entityType);
+    return Array.from(set).sort();
+  }, [events]);
+
+  const actionTypes = useMemo(() => {
+    const set = new Set<string>();
+    for (const event of events ?? []) set.add(event.actionType);
+    return Array.from(set).sort();
+  }, [events]);
+
+  const sourceModules = useMemo(() => {
+    const set = new Set<string>();
+    for (const event of events ?? []) {
+      if (event.sourceModule) set.add(event.sourceModule);
+    }
+    return Array.from(set).sort();
+  }, [events]);
+
+  const displayedEvents = useMemo(() => {
+    return (events ?? []).filter((event) => {
+      if (filters.sourceModule !== 'ALL' && event.sourceModule !== filters.sourceModule) return false;
+      return true;
+    });
+  }, [events, filters.sourceModule]);
+
+  async function handleGenerateReport() {
+    if (!companyId) return;
+    setReportError(null);
+    try {
+      const generatedByDisplayName = profile?.displayName ?? profile?.email ?? '';
+      const generation = await requestReport.mutateAsync({
+        companyId,
+        filters,
+        allEvents: events ?? [],
+        displayedEvents,
+        generatedByDisplayName,
+      });
+      if (generation.status === 'FAILED') {
+        setReportError('Report generation failed — see below for details.');
+      }
+    } catch (error) {
+      setReportError(error instanceof Error ? error.message : 'Unable to generate audit report.');
+    }
+  }
+
+  // Belt-and-suspenders: the route guard (mhdRouteAccess.ts) already keeps a
+  // non-Platform-Admin/HR-Partner caller from reaching this route, and the
+  // sidebar entry is hidden for them in MhdSidebar. This redirect covers a
+  // stale bookmark or a role change mid-session — mirrors MhdTaskAuditPage.
+  const canViewAudit = roles.includes('Platform Admin') || roles.includes('HR Partner');
+  if (!canViewAudit) return <Navigate to="/404" replace />;
+
+  const generation = requestReport.data;
+
+  function handleUnresolvedRowClick(entry: MhdAuditEvent) {
+    // NOTE/ATTACHMENT rows on this page have no parent-task lookup available
+    // (see resolveAuditRowLink.ts) — entity_id here is the note/attachment's
+    // own id, not a task id, and no RPC resolves one to the other today. The
+    // codebase has no toast system, so this surfaces as an inline message
+    // near the table rather than a silent no-op or a broken link.
+    setRowNotice(
+      `This ${entry.entityType.toLowerCase()} entry can't be opened directly from here — open its parent task's ${
+        entry.entityType === 'NOTE' ? 'Notes' : 'Attachments'
+      } tab instead.`,
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <MhdPageHeader
+        title="Audit Reports"
+        actions={
+          <Button
+            type="button"
+            disabled={!companyId || requestReport.isPending}
+            onClick={() => void handleGenerateReport()}
+          >
+            {requestReport.isPending ? 'Generating…' : 'Generate Report'}
+          </Button>
+        }
+      />
+
+      {reportError && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {reportError}
+        </div>
+      )}
+
+      {rowNotice && (
+        <div className="flex items-start justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          <span>{rowNotice}</span>
+          <button
+            type="button"
+            onClick={() => setRowNotice(null)}
+            className="font-medium underline"
+            data-row-click-ignore
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {generation && generation.status !== 'FAILED' && (
+        <div className="flex flex-wrap items-center gap-3 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+          <span>
+            {generation.status === 'PENDING'
+              ? 'Report is still generating…'
+              : 'Audit report generated.'}
+          </span>
+          {generation.output_drive_file_id ? (
+            <a
+              href={`https://drive.google.com/file/d/${generation.output_drive_file_id}/view`}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium underline"
+            >
+              Download
+            </a>
+          ) : null}
+        </div>
+      )}
+
+      <MhdFilterBar onClear={() => setFilters(MHD_AUDIT_EVENT_DEFAULT_FILTERS)}>
+        <MhdFilterInput
+          type="date"
+          label="From"
+          value={filters.from}
+          onChange={(event) => setFilters((prev) => ({ ...prev, from: event.target.value }))}
+        />
+        <MhdFilterInput
+          type="date"
+          label="To"
+          value={filters.to}
+          onChange={(event) => setFilters((prev) => ({ ...prev, to: event.target.value }))}
+        />
+        <MhdFilterSelect
+          label="Entity Type"
+          value={filters.entityType}
+          onChange={(event) => setFilters((prev) => ({ ...prev, entityType: event.target.value }))}
+        >
+          <option value="ALL">All entities</option>
+          {entityTypes.map((entityType) => (
+            <option key={entityType} value={entityType}>
+              {entityType}
+            </option>
+          ))}
+        </MhdFilterSelect>
+        <MhdFilterSelect
+          label="Action Type"
+          value={filters.actionType}
+          onChange={(event) => setFilters((prev) => ({ ...prev, actionType: event.target.value }))}
+        >
+          <option value="ALL">All actions</option>
+          {actionTypes.map((actionType) => (
+            <option key={actionType} value={actionType}>
+              {actionType}
+            </option>
+          ))}
+        </MhdFilterSelect>
+        <MhdFilterSelect
+          label="Source Module"
+          value={filters.sourceModule}
+          onChange={(event) => setFilters((prev) => ({ ...prev, sourceModule: event.target.value }))}
+        >
+          <option value="ALL">All modules</option>
+          {sourceModules.map((sourceModule) => (
+            <option key={sourceModule} value={sourceModule}>
+              {sourceModule}
+            </option>
+          ))}
+        </MhdFilterSelect>
+      </MhdFilterBar>
+
+      <MhdCard className="overflow-hidden p-0">
+        {eventsLoading ? (
+          <p className="p-4 text-sm text-muted-foreground">Loading audit events...</p>
+        ) : eventsError ? (
+          <p className="p-4 text-sm text-red-700">
+            {(eventsError as Error).message ?? 'Unable to load audit events.'}
+          </p>
+        ) : (
+          // No linkContext.taskId here — this page isn't scoped to one task,
+          // so NOTE/ATTACHMENT rows fall back to onUnresolvedRowClick.
+          <MhdAuditTimelineTable
+            entries={displayedEvents}
+            emptyMessage="No audit events match the current filters."
+            onUnresolvedRowClick={handleUnresolvedRowClick}
+          />
+        )}
+      </MhdCard>
+    </div>
+  );
+}

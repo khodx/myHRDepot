@@ -20366,6 +20366,7 @@ export type Database = {
         Args: { p_person_id: string }
         Returns: undefined
       }
+      mhd_assert_audit_access: { Args: never; Returns: undefined }
       mhd_assert_case_document_access: {
         Args: { p_case_document_id: string }
         Returns: undefined
