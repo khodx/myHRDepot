@@ -58,8 +58,8 @@ export function MhdTaskRecordTabs({
   const tabs: Array<{ key: MhdTaskRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/tasks/${taskId}` },
     { key: 'notes', label: 'Notes', to: `/tasks/${taskId}/notes` },
-    { key: 'activities', label: 'Activities', to: `/tasks/${taskId}/activities` },
     { key: 'attachments', label: 'Attachments', to: `/tasks/${taskId}/attachments` },
+    { key: 'activities', label: 'Activities', to: `/tasks/${taskId}/activities` },
     { key: 'reports', label: 'Reports', to: `/tasks/${taskId}/reports` },
     ...(canViewAudit
       ? [{ key: 'audit' as const, label: 'Audit', to: `/tasks/${taskId}/audit` }]

@@ -145,7 +145,13 @@ export function MhdTaskDetailPage() {
 
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-neutral-100 pt-4 text-sm text-neutral-500">
           <span>Assigned: {new Date(task.assignedDate).toLocaleDateString()}</span>
+          {task.startDate ? (
+            <span>Start: {new Date(task.startDate).toLocaleDateString()}</span>
+          ) : null}
           {task.dueDate ? <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span> : null}
+          {task.completedDate ? (
+            <span>Completed: {new Date(task.completedDate).toLocaleDateString()}</span>
+          ) : null}
           {task.assignedDisplayNames.length > 0 ? (
             <span>Assignees: {task.assignedDisplayNames.join(', ')}</span>
           ) : null}
