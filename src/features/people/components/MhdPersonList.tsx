@@ -33,7 +33,7 @@ export function MhdPersonList({
 
   if (people.length === 0) {
     return (
-      <MhdCard className="border-dashed">
+      <MhdCard className="border border-dashed border-border">
         <MhdEmptyState
           icon={Users}
           title="No people found"

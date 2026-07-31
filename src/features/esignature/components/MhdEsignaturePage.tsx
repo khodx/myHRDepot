@@ -275,7 +275,7 @@ export function MhdEsignaturePage() {
           <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]">
             <div className="space-y-3">
               {generatedDocuments.length === 0 ? (
-                <MhdCard className="border-dashed">
+                <MhdCard className="border border-dashed border-border">
                   <MhdEmptyState
                     icon={FileCheck2}
                     title="No documents ready for signature"
@@ -674,7 +674,7 @@ export function MhdEsignaturePage() {
             ))}
 
             {!requestsQuery.isLoading && filteredRequests.length === 0 ? (
-              <MhdCard className="border-dashed">
+              <MhdCard className="border border-dashed border-border">
                 <MhdEmptyState
                   icon={Mail}
                   title="No signature requests"

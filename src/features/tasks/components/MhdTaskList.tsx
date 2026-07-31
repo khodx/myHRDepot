@@ -49,7 +49,7 @@ export function MhdTaskList({ tasks, isLoading, onDelete }: MhdTaskListProps) {
     return <MhdCard className="p-6 text-sm text-muted-foreground">Loading tasks...</MhdCard>;
   if (tasks.length === 0) {
     return (
-      <MhdCard className="border-dashed">
+      <MhdCard className="border border-dashed border-border">
         <MhdEmptyState
           icon={ListChecks}
           title="No tasks found"

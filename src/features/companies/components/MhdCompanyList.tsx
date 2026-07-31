@@ -25,7 +25,7 @@ export function MhdCompanyList({
 }: MhdCompanyListProps) {
   if (companies.length === 0) {
     return (
-      <MhdCard className="border-dashed">
+      <MhdCard className="border border-dashed border-border">
         <MhdEmptyState
           icon={Building2}
           title="No companies found"

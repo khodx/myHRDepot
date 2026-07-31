@@ -32,7 +32,7 @@ export function MhdPropertyInventoryList({
 
   if (items.length === 0) {
     return (
-      <MhdCard className="border-dashed">
+      <MhdCard className="border border-dashed border-border">
         <MhdEmptyState
           icon={Package}
           title="No property items found"

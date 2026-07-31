@@ -217,7 +217,7 @@ export function MhdTaskAuditPage() {
         </MhdFilterSelect>
       </MhdFilterBar>
 
-      <MhdCard className="overflow-hidden p-0 -mx-4 w-[calc(100%+2rem)] md:-mx-5 md:w-[calc(100%+2.5rem)] lg:-mx-7 lg:w-[calc(100%+3.5rem)]">
+      <MhdCard className="overflow-hidden p-0">
         {timelineLoading ? (
           <p className="p-4 text-sm text-muted-foreground">Loading audit timeline...</p>
         ) : timelineError ? (

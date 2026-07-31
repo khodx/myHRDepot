@@ -36,7 +36,7 @@ export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: 
     return <MhdCard className="text-sm text-muted-foreground">Loading notes...</MhdCard>;
   if (notes.length === 0) {
     return (
-      <MhdCard className="border-dashed">
+      <MhdCard className="border border-dashed border-border">
         <MhdEmptyState
           icon={MessageSquare}
           title="No notes yet"

@@ -128,7 +128,7 @@ export function MhdEmployeeFilesPage() {
       {peopleState.isLoading ? (
         <MhdCard className="p-6 text-sm text-muted-foreground">Loading Employees...</MhdCard>
       ) : filteredPeople.length === 0 ? (
-        <MhdCard className="border-dashed">
+        <MhdCard className="border border-dashed border-border">
           <MhdEmptyState
             icon={Users}
             title="No Employees Found"

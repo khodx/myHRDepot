@@ -41,7 +41,7 @@ export function MhdFormList({ forms, isLoading }: MhdFormListProps) {
 
   if (forms.length === 0) {
     return (
-      <MhdCard className="border-dashed">
+      <MhdCard className="border border-dashed border-border">
         <MhdEmptyState
           icon={FileText}
           title="No forms found"

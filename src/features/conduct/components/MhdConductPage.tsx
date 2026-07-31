@@ -336,7 +336,7 @@ export function MhdConductPage() {
           Loading conduct cases…
         </MhdCard>
       ) : cases.length === 0 ? (
-        <MhdCard className="border-dashed">
+        <MhdCard className="border border-dashed border-border">
           <MhdEmptyState
             icon={Gavel}
             title="No conduct cases found"

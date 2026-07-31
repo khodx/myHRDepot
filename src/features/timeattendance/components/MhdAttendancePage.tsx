@@ -282,7 +282,7 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
             {occurrences.isLoading ? (
               <p className="text-sm text-muted-foreground">Loading…</p>
             ) : (occurrences.data ?? []).length === 0 ? (
-              <MhdCard className="border-dashed">
+              <MhdCard className="border border-dashed border-border">
                 <MhdEmptyState icon={CalendarClock} title="No occurrences on record." />
               </MhdCard>
             ) : (

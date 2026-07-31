@@ -25,7 +25,7 @@ function renderLifecycleSummary(assignment: MhdPropertyAssignment): string {
 export function MhdPropertyAssignmentHistory({ assignments }: MhdPropertyAssignmentHistoryProps) {
   if (assignments.length === 0) {
     return (
-      <MhdCard className="border-dashed">
+      <MhdCard className="border border-dashed border-border">
         <MhdEmptyState icon={History} title="No assignment history yet." />
       </MhdCard>
     );

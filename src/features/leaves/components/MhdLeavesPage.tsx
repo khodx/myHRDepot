@@ -155,7 +155,7 @@ export function MhdLeavesPage() {
       {cases.isLoading ? (
         <MhdCard className="p-6 text-sm text-muted-foreground">Loading…</MhdCard>
       ) : (cases.data ?? []).length === 0 ? (
-        <MhdCard className="border-dashed">
+        <MhdCard className="border border-dashed border-border">
           <MhdEmptyState icon={CalendarOff} title="No leave cases on record." />
         </MhdCard>
       ) : viewMode === 'board' ? (

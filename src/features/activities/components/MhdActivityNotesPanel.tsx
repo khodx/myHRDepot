@@ -262,7 +262,7 @@ export function MhdActivityNotesPanel({ activityId, readOnly = false }: Props) {
           <div className="py-8 text-sm text-muted-foreground">Loading notes…</div>
         ) : null}
         {!notesState.isLoading && notesState.notes.length === 0 ? (
-          <MhdCard className="border-dashed">
+          <MhdCard className="border border-dashed border-border">
             <MhdEmptyState icon={MessageSquare} title="No notes yet." />
           </MhdCard>
         ) : null}

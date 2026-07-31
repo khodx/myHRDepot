@@ -133,7 +133,7 @@ export function MhdInvestigationsPage() {
       ) : (cases.data ?? []).length === 0 ? (
         // Honest, non-disclosing empty state. It says only that the viewer has
         // access to nothing — never that hidden cases exist beyond their grants.
-        <MhdCard className="border-dashed">
+        <MhdCard className="border border-dashed border-border">
           <MhdEmptyState icon={ShieldQuestion} title="No investigations you have access to." />
         </MhdCard>
       ) : (

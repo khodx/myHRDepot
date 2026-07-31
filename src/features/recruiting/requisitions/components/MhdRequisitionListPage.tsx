@@ -116,7 +116,7 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
       {requisitions.isLoading ? (
         <MhdCard className="p-6 text-sm text-muted-foreground">Loading requisitions…</MhdCard>
       ) : (requisitions.data ?? []).length === 0 ? (
-        <MhdCard className="border-dashed">
+        <MhdCard className="border border-dashed border-border">
           <MhdEmptyState icon={Briefcase} title="No requisitions in this view." />
         </MhdCard>
       ) : (

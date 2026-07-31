@@ -28,7 +28,7 @@ function formatDate(value: string | null): string {
 export function MhdReviewList({ reviews }: Props) {
   if (reviews.length === 0) {
     return (
-      <MhdCard className="border-dashed">
+      <MhdCard className="border border-dashed border-border">
         <MhdEmptyState
           icon={ClipboardCheck}
           title="No reviews found"

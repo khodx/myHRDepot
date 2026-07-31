@@ -292,7 +292,7 @@ export function MhdPropertyDetailPage() {
         </MhdCard>
 
         {activeAssignments.length === 0 ? (
-          <MhdCard className="border-dashed">
+          <MhdCard className="border border-dashed border-border">
             <MhdEmptyState className="py-10" title="No active assignments for this item." />
           </MhdCard>
         ) : (

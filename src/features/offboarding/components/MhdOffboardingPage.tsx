@@ -320,7 +320,7 @@ export function MhdOffboardingPage() {
           Loading offboarding cases…
         </MhdCard>
       ) : cases.length === 0 ? (
-        <MhdCard className="border-dashed">
+        <MhdCard className="border border-dashed border-border">
           <MhdEmptyState
             icon={DoorOpen}
             title="No offboarding cases found"

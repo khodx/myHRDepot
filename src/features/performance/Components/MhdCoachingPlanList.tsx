@@ -25,7 +25,7 @@ function formatDate(value: string | null): string {
 export function MhdCoachingPlanList({ plans }: Props) {
   if (plans.length === 0) {
     return (
-      <MhdCard className="border-dashed">
+      <MhdCard className="border border-dashed border-border">
         <MhdEmptyState
           icon={Target}
           title="No coaching plans found"

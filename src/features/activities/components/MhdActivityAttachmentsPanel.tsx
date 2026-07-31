@@ -59,7 +59,7 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
       )}
 
       {attachments.length === 0 ? (
-        <MhdCard className="border-dashed">
+        <MhdCard className="border border-dashed border-border">
           <MhdEmptyState icon={Paperclip} title="No attachments yet." />
         </MhdCard>
       ) : (

@@ -118,7 +118,7 @@ export function MhdEmployeeFileNewRecordPage() {
       ) : null}
 
       {matchingForms.length === 0 ? (
-        <MhdCard className="border-dashed">
+        <MhdCard className="border border-dashed border-border">
           <MhdEmptyState
             icon={ClipboardList}
             title="No Active Forms For This File Type"

@@ -159,7 +159,7 @@ export function MhdOnboardingIndexPage() {
           Loading onboarding roster...
         </MhdCard>
       ) : visibleRows.length === 0 ? (
-        <MhdCard className="border-dashed">
+        <MhdCard className="border border-dashed border-border">
           <MhdEmptyState
             icon={UserPlus}
             title="No people found"
