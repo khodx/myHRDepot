@@ -11,10 +11,15 @@ interface UseMhdAttachmentsState {
 
 interface UseMhdAttachmentsReturn extends UseMhdAttachmentsState {
   refetch: () => Promise<void>;
-  // Takes only the raw File: entityType/entityId are already bound via the hook's own arguments,
-  // and driveFileId/driveFolderId/etc. do not exist yet at call time -- mhdAttachmentService
-  // .uploadAttachment() performs the Drive upload itself before calling mhd_create_attachment.
-  uploadAttachment: (file: File) => Promise<void>;
+  // entityType/entityId are already bound via the hook's own arguments, and driveFileId/
+  // driveFolderId/etc. do not exist yet at call time -- mhdAttachmentService.uploadAttachment()
+  // performs the Drive upload itself before calling mhd_create_attachment. descriptionRichText/
+  // descriptionPlainText are required (the uploaded record's description).
+  uploadAttachment: (
+    file: File,
+    descriptionRichText: unknown,
+    descriptionPlainText: string,
+  ) => Promise<void>;
   deleteAttachment: (attachmentId: string) => Promise<void>;
   downloadAttachment: (attachment: MhdAttachment) => Promise<void>;
 }
@@ -50,10 +55,16 @@ export function useMhdAttachments(
   }, [fetchAttachments]);
 
   const uploadAttachment = useCallback(
-    async (file: File) => {
+    async (file: File, descriptionRichText: unknown, descriptionPlainText: string) => {
       setState((prev) => ({ ...prev, isUploading: true, error: null }));
       try {
-        await mhdAttachmentService.uploadAttachment(entityType, entityId, file);
+        await mhdAttachmentService.uploadAttachment(
+          entityType,
+          entityId,
+          file,
+          descriptionRichText,
+          descriptionPlainText,
+        );
         await fetchAttachments();
       } catch (err) {
         setState((prev) => ({

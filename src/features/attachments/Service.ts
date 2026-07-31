@@ -4,6 +4,7 @@
 
 import { appConfig } from '@/config/appConfig';
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
+import type { Json } from '@/types/database.types';
 import type {
   MhdAttachment,
   MhdAttachmentEntityType,
@@ -32,6 +33,8 @@ type MhdAttachmentRow = {
   file_size_bytes: number;
   version_number: number | null;
   is_current_version: boolean | null;
+  description_rich_text: unknown;
+  description_plain_text: string;
   uploaded_by: string;
   uploaded_at: string;
   created_at: string;
@@ -64,6 +67,8 @@ function mapAttachmentRow(row: MhdAttachmentRow): MhdAttachment {
     fileSizeBytes: row.file_size_bytes,
     versionNumber: row.version_number,
     isCurrentVersion: row.is_current_version,
+    descriptionRichText: row.description_rich_text,
+    descriptionPlainText: row.description_plain_text,
     uploadedBy: row.uploaded_by,
     uploadedAt: row.uploaded_at,
     createdAt: row.created_at,
@@ -119,9 +124,12 @@ export const mhdAttachmentService = {
     entityType: MhdAttachmentEntityType,
     entityId: string,
     file: File,
+    descriptionRichText: unknown,
+    descriptionPlainText: string,
   ): Promise<MhdAttachmentUploadResult> {
     const validation = mhdValidateAttachment(file);
     if (!validation.valid) throw new Error(validation.error);
+    if (!descriptionPlainText.trim()) throw new Error('A description is required for this upload.');
 
     // 1. Upload the file bytes to Google Drive via the edge function.
     const drive = await uploadFileToGoogleDrive(file, entityType, entityId);
@@ -137,13 +145,16 @@ export const mhdAttachmentService = {
       originalFileName: file.name,
       mimeType: file.type,
       fileSizeBytes: file.size,
+      descriptionRichText,
+      descriptionPlainText,
       fileExtension: mhdGetFileExtension(file.name),
       storedFileName: drive.storedFileName ?? null,
     };
 
     // The generated RPC signature requires the web link args as strings; the truly optional
     // args (p_file_extension, p_stored_file_name, p_version_number) are omitted when absent
-    // rather than passed as null.
+    // rather than passed as null. p_description_rich_text/p_description_plain_text are required
+    // (no default on the RPC), so they are always included.
     const { data, error } = await supabaseClient
       .rpc('mhd_create_attachment', {
         p_entity_type: input.entityType,
@@ -155,6 +166,8 @@ export const mhdAttachmentService = {
         p_original_file_name: input.originalFileName,
         p_mime_type: input.mimeType,
         p_file_size_bytes: input.fileSizeBytes,
+        p_description_rich_text: input.descriptionRichText as Json,
+        p_description_plain_text: input.descriptionPlainText,
         ...(input.fileExtension ? { p_file_extension: input.fileExtension } : {}),
         ...(input.storedFileName ? { p_stored_file_name: input.storedFileName } : {}),
         ...(input.versionNumber != null ? { p_version_number: input.versionNumber } : {}),

@@ -1003,6 +1003,8 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string
+          description_plain_text: string
+          description_rich_text: Json
           drive_file_id: string
           drive_folder_id: string
           drive_web_content_link: string | null
@@ -1033,6 +1035,8 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by: string
+          description_plain_text: string
+          description_rich_text: Json
           drive_file_id: string
           drive_folder_id: string
           drive_web_content_link?: string | null
@@ -1063,6 +1067,8 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string
+          description_plain_text?: string
+          description_rich_text?: Json
           drive_file_id?: string
           drive_folder_id?: string
           drive_web_content_link?: string | null
@@ -21135,6 +21141,8 @@ export type Database = {
       }
       mhd_create_attachment: {
         Args: {
+          p_description_plain_text: string
+          p_description_rich_text: Json
           p_drive_file_id: string
           p_drive_folder_id: string
           p_drive_web_content_link: string
@@ -23098,6 +23106,8 @@ export type Database = {
         Returns: {
           can_delete: boolean
           created_at: string
+          description_plain_text: string
+          description_rich_text: Json
           drive_file_id: string
           drive_folder_id: string
           drive_web_content_link: string

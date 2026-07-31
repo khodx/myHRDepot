@@ -1,7 +1,7 @@
 import { useMhdAttachments } from '../Hook';
 import type { MhdAttachment } from '../Types';
 import { MhdAttachmentList } from './MhdAttachmentList';
-import { MhdAttachmentUploader } from './MhdAttachmentUploader';
+import { MhdAttachmentUploader } from '@/components/ui/MhdAttachmentUploader';
 
 interface Props {
   taskId: string;
@@ -41,8 +41,8 @@ export function MhdTaskAttachmentsPanel({ taskId }: Props) {
     }
   }
 
-  function handleUpload(file: File) {
-    uploadAttachment(file).catch(() => {
+  function handleUpload(file: File, descriptionRichText: unknown, descriptionPlainText: string) {
+    uploadAttachment(file, descriptionRichText, descriptionPlainText).catch(() => {
       // Surfaced via the hook's error state (e.g. Drive edge function not configured yet).
     });
   }

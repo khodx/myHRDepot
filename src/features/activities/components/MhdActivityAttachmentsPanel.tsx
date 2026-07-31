@@ -2,8 +2,11 @@ import { Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
+import { mhdDocumentToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { useMhdAttachments } from '@/features/attachments/Hook';
 import { mhdFormatFileSize, type MhdAttachment } from '@/features/attachments/Types';
+import { MhdAttachmentUploader } from '@/components/ui/MhdAttachmentUploader';
 
 interface Props {
   activityId: string;
@@ -30,8 +33,8 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
     }
   }
 
-  function handleUpload(file: File) {
-    uploadAttachment(file).catch(() => {
+  function handleUpload(file: File, descriptionRichText: unknown, descriptionPlainText: string) {
+    uploadAttachment(file, descriptionRichText, descriptionPlainText).catch(() => {
       // Surfaced through the hook's error state.
     });
   }
@@ -52,23 +55,7 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
           You have read-only access to activity attachments.
         </div>
       ) : (
-        <label className="block rounded-md border border-dashed border-border bg-muted p-4 text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">
-            {isUploading ? 'Uploading…' : 'Upload attachment'}
-          </span>
-          <input
-            type="file"
-            className="mt-2 block text-sm"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) {
-                handleUpload(file);
-                event.target.value = '';
-              }
-            }}
-            disabled={isUploading}
-          />
-        </label>
+        <MhdAttachmentUploader isUploading={isUploading} onUpload={handleUpload} />
       )}
 
       {attachments.length === 0 ? (
@@ -89,6 +76,15 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
                     {new Date(attachment.uploadedAt).toLocaleString()}
                     {attachment.uploaderDisplayName ? ` by ${attachment.uploaderDisplayName}` : ''}
                   </p>
+                  {attachment.descriptionPlainText && (
+                    <MhdRichTextRenderer
+                      html={mhdDocumentToRichHtml(
+                        attachment.descriptionRichText,
+                        attachment.descriptionPlainText,
+                      )}
+                      className="mt-1 line-clamp-2 text-xs"
+                    />
+                  )}
                 </div>
 
                 <div className="flex gap-2">

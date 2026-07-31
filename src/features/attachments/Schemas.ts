@@ -16,6 +16,13 @@ export const mhdAttachmentUploadSchema = z.object({
   // mhd_resolve_attachment_company_id(entityType, entityId); it is never client-supplied.
   entityType: z.enum(['TASK', 'SUBTASK', 'NOTE']),
   entityId: z.string().min(1, 'Entity ID is required'),
+  // RT-001 rich text document (unknown shape) plus its generated plain-text companion, matching
+  // the notes feature's own rich-text/plain-text pair. Required: the uploaded record must carry
+  // a description.
+  descriptionRichText: z.unknown().refine((value) => value !== null && value !== undefined, {
+    message: 'A description is required for this upload',
+  }),
+  descriptionPlainText: z.string().trim().min(1, 'A description is required for this upload'),
 });
 
 export type MhdAttachmentUploadSchemaInput = z.infer<typeof mhdAttachmentUploadSchema>;

@@ -1,7 +1,9 @@
 import { Download, Trash2 } from 'lucide-react';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
+import { mhdDocumentToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { mhdFormatFileSize } from '../Types';
 import type { MhdAttachment } from '../Types';
-import { MhdAttachmentFileIcon } from './MhdAttachmentFileIcon';
+import { MhdAttachmentFileIcon } from '@/components/ui/MhdAttachmentFileIcon';
 
 interface Props {
   attachment: MhdAttachment;
@@ -30,6 +32,12 @@ export function MhdAttachmentItem({ attachment, onDownload, onDelete }: Props) {
           {mhdFormatFileSize(attachment.fileSizeBytes)} · {attachment.uploaderDisplayName} ·{' '}
           {uploadedAt}
         </p>
+        {attachment.descriptionPlainText && (
+          <MhdRichTextRenderer
+            html={mhdDocumentToRichHtml(attachment.descriptionRichText, attachment.descriptionPlainText)}
+            className="mt-1 line-clamp-2 text-xs"
+          />
+        )}
       </div>
 
       <div className="flex shrink-0 items-center gap-1">

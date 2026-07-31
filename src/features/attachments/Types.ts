@@ -28,6 +28,10 @@ export interface MhdAttachment {
   fileSizeBytes: number;
   versionNumber: number | null;
   isCurrentVersion: boolean | null;
+  /** RT-001 rich text editor document describing the uploaded record. */
+  descriptionRichText: unknown;
+  /** Generated plain-text companion of descriptionRichText, used for search/reporting/audit. */
+  descriptionPlainText: string;
   uploadedBy: string;
   uploadedAt: string;
   createdAt: string;
@@ -48,6 +52,8 @@ export interface MhdCreateAttachmentInput {
   originalFileName: string;
   mimeType: string;
   fileSizeBytes: number;
+  descriptionRichText: unknown;
+  descriptionPlainText: string;
   fileExtension?: string | null;
   storedFileName?: string | null;
   versionNumber?: number | null;

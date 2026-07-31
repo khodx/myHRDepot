@@ -58,6 +58,8 @@ describe('mhdAttachmentService', () => {
           uploaded_by: 'user-1',
           uploaded_at: '2026-07-01T10:00:00Z',
           created_at: '2026-07-01T10:00:00Z',
+          description_rich_text: { type: 'mhd_rich_text', version: 1, html: '<p>Notes</p>', plainText: 'Notes' },
+          description_plain_text: 'Notes',
           uploader_display_name: 'Jane Doe',
           can_delete: true,
         },
@@ -104,7 +106,13 @@ describe('mhdAttachmentService', () => {
       error: null,
     });
 
-    const result = await mhdAttachmentService.uploadAttachment('TASK', 'task-1', file);
+    const result = await mhdAttachmentService.uploadAttachment(
+      'TASK',
+      'task-1',
+      file,
+      { type: 'mhd_rich_text', version: 1, html: '<p>Notes</p>', plainText: 'Notes' },
+      'Notes',
+    );
 
     expect(mockInvoke).toHaveBeenCalledTimes(1);
     expect(mockInvoke.mock.calls[0][0]).toBe('mhd-drive-upload');
@@ -116,9 +124,20 @@ describe('mhdAttachmentService', () => {
         p_drive_file_id: 'drive-file-123',
         p_drive_folder_id: 'drive-folder-456',
         p_original_file_name: 'offer-letter.pdf',
+        p_description_rich_text: { type: 'mhd_rich_text', version: 1, html: '<p>Notes</p>', plainText: 'Notes' },
+        p_description_plain_text: 'Notes',
       }),
     );
     expect(result.referenceId).toBe('FILE-000001');
+  });
+
+  it('rejects an upload with a blank description before calling Drive', async () => {
+    const file = new File(['hello'], 'offer-letter.pdf', { type: 'application/pdf' });
+
+    await expect(
+      mhdAttachmentService.uploadAttachment('TASK', 'task-1', file, null, '   '),
+    ).rejects.toThrow('description is required');
+    expect(mockInvoke).not.toHaveBeenCalled();
   });
 
   it('omits optional metadata args rather than passing null', async () => {
@@ -147,7 +166,13 @@ describe('mhdAttachmentService', () => {
       error: null,
     });
 
-    await mhdAttachmentService.uploadAttachment('TASK', 'task-1', file);
+    await mhdAttachmentService.uploadAttachment(
+      'TASK',
+      'task-1',
+      file,
+      { type: 'mhd_rich_text', version: 1, html: '', plainText: 'Notes' },
+      'Notes',
+    );
 
     const createArgs = mockRpc.mock.calls.find(
       (call) => call[0] === 'mhd_create_attachment',
@@ -166,9 +191,15 @@ describe('mhdAttachmentService', () => {
       error: { message: 'Drive credentials missing' },
     });
 
-    await expect(mhdAttachmentService.uploadAttachment('TASK', 'task-1', file)).rejects.toThrow(
-      'Drive credentials missing',
-    );
+    await expect(
+      mhdAttachmentService.uploadAttachment(
+        'TASK',
+        'task-1',
+        file,
+        { type: 'mhd_rich_text', version: 1, html: '', plainText: 'Notes' },
+        'Notes',
+      ),
+    ).rejects.toThrow('Drive credentials missing');
     expect(mockRpc).not.toHaveBeenCalled();
   });
 });
