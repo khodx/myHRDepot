@@ -1,5 +1,7 @@
 import type { MhdFormPage as MhdFormPageType } from '../Types';
 import { mhdFormLogicEngine } from '../Service';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { cn } from '@/utils/cn';
 
 interface MhdFormPageManagerProps {
   pages: MhdFormPageType[];
@@ -42,7 +44,7 @@ export function MhdFormPageManager({
         type="button"
         onClick={() => onNavigate(Math.max(0, currentPageIndex - 1))}
         disabled={currentPageIndex === 0}
-        className="rounded-md border border-border px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
+        className={cn(buttonBaseClasses, buttonVariantClasses.secondary)}
       >
         Previous
       </button>
@@ -59,7 +61,7 @@ export function MhdFormPageManager({
             onNavigate(resolveNextPageIndex());
           }}
           disabled={isSubmitting}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:opacity-50"
+          className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
         >
           {isLastPage ? (isSubmitting ? 'Submitting...' : 'Submit') : 'Next'}
         </button>

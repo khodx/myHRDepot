@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { FileCheck2, FileSignature, Mail, Plus, Send, ShieldCheck } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdStatCard } from '@/components/ui/MhdStatCard';
+import { cn } from '@/utils/cn';
 import { mhdCanMutateEsignature } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
@@ -330,7 +331,7 @@ export function MhdEsignaturePage() {
                             href={driveUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground"
+                            className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-9 px-3')}
                           >
                             Open Document
                           </a>
@@ -338,7 +339,7 @@ export function MhdEsignaturePage() {
                         {generation.esignatureRequestId ? (
                           <Link
                             to={`/esignature/${generation.esignatureRequestId}`}
-                            className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover"
+                            className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'h-9 px-3')}
                           >
                             Open Request
                           </Link>
@@ -350,7 +351,7 @@ export function MhdEsignaturePage() {
                               setActionError(null);
                               setActionMessage(null);
                             }}
-                            className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover"
+                            className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'h-9 px-3')}
                           >
                             Use for Request
                           </button>
@@ -463,7 +464,7 @@ export function MhdEsignaturePage() {
                           onClick={() =>
                             setSigners((current) => [...current, createSignerRow('internal')])
                           }
-                          className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground"
+                          className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-8 gap-1 px-3 text-xs')}
                         >
                           <Plus className="h-3.5 w-3.5" />
                           Internal
@@ -473,7 +474,7 @@ export function MhdEsignaturePage() {
                           onClick={() =>
                             setSigners((current) => [...current, createSignerRow('external')])
                           }
-                          className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground"
+                          className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-8 gap-1 px-3 text-xs')}
                         >
                           <Plus className="h-3.5 w-3.5" />
                           External
@@ -585,7 +586,7 @@ export function MhdEsignaturePage() {
                     type="button"
                     onClick={() => void handleCreateRequest()}
                     disabled={actions.createRequestFromGeneratedDocument.isPending}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                    className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'w-full gap-2')}
                   >
                     <Send className="h-4 w-4" />
                     {actions.createRequestFromGeneratedDocument.isPending

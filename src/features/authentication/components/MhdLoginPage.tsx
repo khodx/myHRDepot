@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { MhdAuthLayout } from './MhdAuthLayout';
 import { MhdAuthCard } from './MhdAuthCard';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { cn } from '@/utils/cn';
 import { mhdLoginSchema, type MhdLoginFormValues } from '../Schemas';
 import { useMhdAuth } from '../Hook';
 import { mhdToUserFacingAuthError } from '../AuthErrors';
@@ -87,7 +89,7 @@ export function MhdLoginPage() {
           <button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:opacity-60"
+            className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'w-full')}
           >
             {form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
           </button>

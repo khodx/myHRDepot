@@ -183,7 +183,7 @@ export function MhdEmployeeFileCabinetPage() {
         actions={
           <Link
             to={`/people/${person.id}`}
-            className="inline-flex h-10 items-center justify-center rounded-md border border-accent-border bg-card px-4 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft"
+            className={cn(buttonBaseClasses, buttonVariantClasses.secondary)}
           >
             View Person Profile
           </Link>

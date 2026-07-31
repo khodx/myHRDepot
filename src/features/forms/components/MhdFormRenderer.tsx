@@ -9,6 +9,8 @@ import { MhdFormPage } from './MhdFormPage';
 import { MhdFormPageManager } from './MhdFormPageManager';
 import { MhdFormProgress } from './MhdFormProgress';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { cn } from '@/utils/cn';
 
 interface MhdFormRendererProps {
   formId: string;
@@ -394,7 +396,7 @@ export function MhdFormRenderer({
             }
           }}
           disabled={isSubmitting}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:opacity-50"
+          className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
         >
           {isSubmitting ? 'Submitting...' : 'Submit'}
         </button>

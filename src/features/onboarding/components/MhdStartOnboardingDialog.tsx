@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdStartOnboardingPacket } from '../Hook';
 import {
@@ -155,7 +157,7 @@ export function MhdStartOnboardingDialog({ row, onClose }: MhdStartOnboardingDia
             type="button"
             onClick={onClose}
             disabled={startPacket.isPending}
-            className="rounded-md border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted disabled:opacity-50"
+            className={cn(buttonBaseClasses, buttonVariantClasses.secondary)}
           >
             Cancel
           </button>
@@ -163,7 +165,7 @@ export function MhdStartOnboardingDialog({ row, onClose }: MhdStartOnboardingDia
             type="button"
             onClick={handleSubmit}
             disabled={startPacket.isPending || selected.size === 0}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:opacity-50"
+            className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
           >
             {startPacket.isPending ? 'Starting...' : 'Start Onboarding'}
           </button>

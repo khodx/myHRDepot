@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdApprovalService } from '../Service';
 import { MhdApprovalChain } from './MhdApprovalChain';
@@ -238,7 +240,7 @@ export function MhdApprovalDetailPage() {
                 type="button"
                 onClick={() => void handleApprove()}
                 disabled={isActing || approval.status !== 'PENDING'}
-                className="w-full rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className={cn(buttonBaseClasses, 'w-full bg-green-600 text-white focus-visible:ring-green-600')}
               >
                 Approve
               </button>
@@ -253,7 +255,7 @@ export function MhdApprovalDetailPage() {
                 type="button"
                 onClick={() => void handleReject()}
                 disabled={isActing || approval.status !== 'PENDING'}
-                className="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className={cn(buttonBaseClasses, buttonVariantClasses.destructive, 'w-full')}
               >
                 Reject
               </button>
@@ -281,7 +283,7 @@ export function MhdApprovalDetailPage() {
                 type="button"
                 onClick={() => void handleAddComment()}
                 disabled={isActing}
-                className="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover disabled:opacity-50"
+                className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'w-full')}
               >
                 Add Comment
               </button>

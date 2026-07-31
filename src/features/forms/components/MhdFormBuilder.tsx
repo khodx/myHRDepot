@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Plus, Save, UploadCloud } from 'lucide-react';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
+import { cn } from '@/utils/cn';
 import { mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { MHD_EMPLOYEE_FILE_TYPES, mhdIsEmployeeFileTypeKey } from '@/features/employee-files/Types';
 import { mhdCreateFormInputSchema } from '../Schemas';
@@ -490,7 +492,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
               type="button"
               onClick={() => void handleSave()}
               disabled={isSaving}
-              className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              className={cn(buttonBaseClasses, 'gap-2 bg-emerald-600 text-white focus-visible:ring-emerald-600')}
             >
               <Save className="h-4 w-4" />
               {isSaving ? 'Saving...' : 'Save Draft'}
@@ -500,7 +502,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
               type="button"
               onClick={() => void handlePublish()}
               disabled={isPublishing}
-              className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover active:bg-accent-pressed disabled:opacity-50"
+              className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'gap-2')}
             >
               <UploadCloud className="h-4 w-4" />
               {isPublishing ? 'Publishing...' : 'Publish'}
@@ -562,7 +564,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
               <button
                 type="button"
                 onClick={() => addField('text')}
-                className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium text-slate-700"
+                className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-9 gap-2 px-3')}
               >
                 <Plus className="h-4 w-4" />
                 Add Field

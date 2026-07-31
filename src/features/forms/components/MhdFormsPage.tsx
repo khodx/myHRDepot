@@ -1,7 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
 import { useMhdFormsIndex } from '../Hook';
@@ -30,7 +32,7 @@ export function MhdFormsPage() {
           canMutate ? (
             <Link
               to="/forms/new"
-              className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-on hover:bg-accent-hover"
+              className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
             >
               Create Form
             </Link>
