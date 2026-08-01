@@ -128,6 +128,12 @@ function matchesAssignedUsers(task: MhdTask, assignedUserIds: string[]): boolean
   return task.assignedUserIds.some((assignedId) => selectedIds.has(assignedId));
 }
 
+function matchesAssignedDateRange(task: MhdTask, assignedFrom: string, assignedTo: string): boolean {
+  if (assignedFrom && task.assignedDate < assignedFrom) return false;
+  if (assignedTo && task.assignedDate > assignedTo) return false;
+  return true;
+}
+
 export const mhdTaskService = {
   async getTaskById(taskId: string): Promise<MhdTask> {
     const { data, error } = await supabaseClient
@@ -164,7 +170,8 @@ export const mhdTaskService = {
 
     return (data ?? [])
       .map(mapTaskRow)
-      .filter((task) => matchesAssignedUsers(task, filters.assignedUserIds));
+      .filter((task) => matchesAssignedUsers(task, filters.assignedUserIds))
+      .filter((task) => matchesAssignedDateRange(task, filters.assignedFrom, filters.assignedTo));
   },
 
   async listStatusOptions(): Promise<MhdTaskStatusOption[]> {

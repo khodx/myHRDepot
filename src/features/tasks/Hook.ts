@@ -20,6 +20,8 @@ const DEFAULT_FILTERS: MhdTaskListFilters = {
   searchTerm: '',
   dueFrom: '',
   dueTo: '',
+  assignedFrom: '',
+  assignedTo: '',
 };
 
 export function useMhdTasks(

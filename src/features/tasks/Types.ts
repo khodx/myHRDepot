@@ -105,6 +105,8 @@ export interface MhdTaskListFilters {
   searchTerm: string;
   dueFrom: string;
   dueTo: string;
+  assignedFrom: string;
+  assignedTo: string;
 }
 
 export interface MhdCreateTaskInput {

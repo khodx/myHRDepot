@@ -20,6 +20,8 @@ const DEFAULT_TASK_FILTERS = {
   searchTerm: '',
   dueFrom: '',
   dueTo: '',
+  assignedFrom: '',
+  assignedTo: '',
 } as const;
 
 export const mhdActivityQueryKeys = {

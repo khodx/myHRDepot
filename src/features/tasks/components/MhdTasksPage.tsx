@@ -1,10 +1,9 @@
 import { useCallback, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, Layers, Plus, Save } from 'lucide-react';
+import { Download, Layers, Plus, Save, Trash2 } from 'lucide-react';
 import { Button, buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
 import { MhdModal } from '@/components/ui/MhdModal';
-import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   MhdViewToggle,
   mhdReadPersistedViewMode,
@@ -111,6 +110,7 @@ export function MhdTasksPage() {
   const [isSaveViewModalOpen, setIsSaveViewModalOpen] = useState(false);
   const [saveViewName, setSaveViewName] = useState('');
   const [savedViews, setSavedViews] = useState<MhdSavedTaskView[]>(readSavedViews);
+  const [selectedSavedViewId, setSelectedSavedViewId] = useState('');
 
   // Derived rather than synced via effect: stale ids (from a deleted task or
   // a filter change that drops a row) simply drop out of this list on the
@@ -156,6 +156,7 @@ export function MhdTasksPage() {
   }
 
   function handleApplySavedView(viewId: string) {
+    setSelectedSavedViewId(viewId);
     const view = savedViews.find((savedView) => savedView.id === viewId);
     if (!view) return;
     taskState.setFilters({
@@ -168,6 +169,7 @@ export function MhdTasksPage() {
     const nextViews = savedViews.filter((view) => view.id !== viewId);
     setSavedViews(nextViews);
     writeSavedViews(nextViews);
+    if (selectedSavedViewId === viewId) setSelectedSavedViewId('');
   }
 
   function handleExport() {
@@ -186,47 +188,84 @@ export function MhdTasksPage() {
 
   return (
     <div className="space-y-6">
-      <MhdPageHeader
-        title="Task Dashboard"
-        description="Create, assign, filter, and track client work across companies. Use list and board views to monitor ownership, progress, and upcoming due dates."
-        actions={
-          <>
-            <Link
-              to="/tasks/new"
-              className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'gap-1.5')}
-            >
-              <Plus className="h-4 w-4" aria-hidden />
-              New Task
-            </Link>
+      <header className="space-y-2">
+        {/* Row 1: title left-justified, Saved Views right-justified. */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-[32px] font-semibold leading-tight text-foreground">Task Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Saved Views
+              </span>
+              <select
+                className="h-10 w-56 rounded-md border border-border bg-card px-3 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                value={selectedSavedViewId}
+                onChange={(event) => handleApplySavedView(event.target.value)}
+              >
+                <option value="">Select saved view</option>
+                {savedViews.map((view) => (
+                  <option key={view.id} value={view.id}>
+                    {view.name}
+                  </option>
+                ))}
+              </select>
+            </label>
             <Button
-              variant="secondary"
-              className="gap-1.5"
-              disabled={validSelectedIds.length === 0 || taskState.isSaving}
-              onClick={() => setIsBulkModalOpen(true)}
+              type="button"
+              variant="ghost"
+              className="h-10 w-10 px-0"
+              disabled={!selectedSavedViewId}
+              onClick={() => handleDeleteSavedView(selectedSavedViewId)}
+              aria-label="Delete selected saved view"
             >
-              <Layers className="h-4 w-4" aria-hidden />
-              Bulk Actions
+              <Trash2 className="h-4 w-4" aria-hidden />
             </Button>
-            <Button
-              variant="secondary"
-              className="gap-1.5"
-              onClick={() => setIsSaveViewModalOpen(true)}
-            >
-              <Save className="h-4 w-4" aria-hidden />
-              Save View
-            </Button>
-            <Button
-              variant="secondary"
-              className="gap-1.5"
-              disabled={taskState.tasks.length === 0}
-              onClick={handleExport}
-            >
-              <Download className="h-4 w-4" aria-hidden />
-              Export
-            </Button>
-          </>
-        }
-      />
+          </div>
+        </div>
+
+        {/* Row 2: plain description text. */}
+        <p className="max-w-4xl text-[15px] text-muted-foreground">
+          Create, assign, filter, and track client work across companies. Use list and board views
+          to monitor ownership, progress, and upcoming due dates.
+        </p>
+
+        {/* Row 3: New Task, Bulk Actions, Save View, Export. */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <Link
+            to="/tasks/new"
+            className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'gap-1.5')}
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            New Task
+          </Link>
+          <Button
+            variant="secondary"
+            className="gap-1.5"
+            disabled={validSelectedIds.length === 0 || taskState.isSaving}
+            onClick={() => setIsBulkModalOpen(true)}
+          >
+            <Layers className="h-4 w-4" aria-hidden />
+            Bulk Actions
+          </Button>
+          <Button
+            variant="secondary"
+            className="gap-1.5"
+            onClick={() => setIsSaveViewModalOpen(true)}
+          >
+            <Save className="h-4 w-4" aria-hidden />
+            Save View
+          </Button>
+          <Button
+            variant="secondary"
+            className="gap-1.5"
+            disabled={taskState.tasks.length === 0}
+            onClick={handleExport}
+          >
+            <Download className="h-4 w-4" aria-hidden />
+            Export
+          </Button>
+        </div>
+      </header>
 
       {taskState.errorMessage && (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -244,38 +283,6 @@ export function MhdTasksPage() {
         canEditCompany={canEditCompany}
         currentUserCompanyId={profile?.companyId ?? ''}
       />
-
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4 shadow-sm">
-        <label className="flex min-w-64 flex-1 flex-col gap-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Saved views
-          </span>
-          <select
-            className="h-10 rounded-md border border-border bg-card px-3 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            value=""
-            onChange={(event) => handleApplySavedView(event.target.value)}
-          >
-            <option value="">Select saved view</option>
-            {savedViews.map((view) => (
-              <option key={view.id} value={view.id}>
-                {view.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {savedViews.map((view) => (
-            <Button
-              key={view.id}
-              variant="ghost"
-              className="h-8 px-3 text-xs"
-              onClick={() => handleDeleteSavedView(view.id)}
-            >
-              Delete {view.name}
-            </Button>
-          ))}
-        </div>
-      </div>
 
       <div className="flex justify-end">
         <MhdViewToggle value={viewMode} onChange={handleViewModeChange} />
