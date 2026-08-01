@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTaskWorkspaceNav } from '@/appshell/components/MhdTaskWorkspaceNav';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdAuditEvents, useMhdRequestAuditReport } from '../Hook';
 import type { MhdAuditEvent, MhdAuditEventFilters } from '../Types';
@@ -125,6 +126,8 @@ export function MhdAuditReportsPage() {
 
   return (
     <div className="space-y-6">
+      <MhdTaskWorkspaceNav />
+
       <MhdPageHeader
         title="Audit Reports"
         description="Company-wide audit events across records and modules. Filter by date, entity, action, or source module before generating a report."

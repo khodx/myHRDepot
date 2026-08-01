@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdTaskWorkspaceNav } from '@/appshell/components/MhdTaskWorkspaceNav';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateDocumentTemplates } from '@/appshell/mhdRouteAccess';
 import { useMhdCompanies } from '@/features/companies/Hook';
@@ -68,6 +69,8 @@ export function MhdDocumentsPage() {
 
   return (
     <div className="space-y-6">
+      <MhdTaskWorkspaceNav />
+
       <MhdPageHeader
         title="Reports"
         description="Report templates and generation, shared across every module — the same library any task, case, or record can generate a report from."

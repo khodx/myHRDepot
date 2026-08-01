@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState, type FormEvent } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Download, FileSearch, FileText, Layers, Plus, Save, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Download, Layers, Plus, Save, Trash2 } from 'lucide-react';
 import { Button, buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
 import { MhdModal } from '@/components/ui/MhdModal';
+import { MhdTaskWorkspaceNav } from '@/appshell/components/MhdTaskWorkspaceNav';
 import {
   MhdViewToggle,
   mhdReadPersistedViewMode,
@@ -14,7 +15,6 @@ import { MhdTaskBoard } from '@/features/tasks/components/MhdTaskBoard';
 import { MhdTaskFilterBar } from '@/features/tasks/components/MhdTaskFilterBar';
 import { MhdTaskList } from '@/features/tasks/components/MhdTaskList';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdTasks } from '@/features/tasks/Hook';
 import {
@@ -25,11 +25,6 @@ import {
 
 const MHD_TASKS_VIEW_KEY = 'mhd:tasks:view';
 const MHD_TASKS_SAVED_VIEWS_KEY = 'mhd:tasks:savedViews';
-
-// Same privileged set as the /audit-reports route rule in mhdRouteAccess.ts
-// and the RPC's own server-side check — hiding the link here is UX only,
-// mirroring MhdTaskRecordTabs' own Audit tab gate.
-const MHD_AUDIT_REPORTS_LINK_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner'];
 
 interface MhdSavedTaskView {
   id: string;
@@ -92,11 +87,7 @@ function buildTasksCsv(tasks: MhdTask[]): string {
 }
 
 export function MhdTasksPage() {
-  const { profile, roles } = useMhdAuth();
-  const location = useLocation();
-  const isReportsActive = location.pathname === '/reports';
-  const isAuditReportsActive = location.pathname === '/audit-reports';
-  const canViewAuditReports = MHD_AUDIT_REPORTS_LINK_ROLES.some((role) => roles.includes(role));
+  const { profile } = useMhdAuth();
   const [viewMode, setViewMode] = useState<MhdViewMode>(() =>
     mhdReadPersistedViewMode(MHD_TASKS_VIEW_KEY),
   );
@@ -198,6 +189,8 @@ export function MhdTasksPage() {
 
   return (
     <div className="space-y-6">
+      <MhdTaskWorkspaceNav />
+
       <header className="space-y-2">
         {/* Row 1: title left-justified, Saved Views right-justified. */}
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -239,10 +232,11 @@ export function MhdTasksPage() {
           to monitor ownership, progress, and upcoming due dates.
         </p>
 
-        {/* Row 3: New Task, Bulk Actions, Save View, Export, Task Reports,
-            Audit Reports — sized/spaced to match the record-detail tab row
-            (MhdTaskRecordTabs: h-9, px-3, text-[16.8px], primary/secondary
-            pills) rather than the default h-10 action-button size. */}
+        {/* Row 3: New Task, Bulk Actions, Save View, Export — sized/spaced to
+            match the record-detail tab row (MhdTaskRecordTabs: h-9, px-3,
+            text-[16.8px], primary/secondary pills) rather than the default
+            h-10 action-button size. Task Reports/Audit Reports now live in
+            the persistent MhdTaskWorkspaceNav above instead of this row. */}
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <Link
             to="/tasks/new"
@@ -277,32 +271,6 @@ export function MhdTasksPage() {
             <Download className="h-4 w-4" aria-hidden />
             Export
           </Button>
-          <Link
-            to="/reports"
-            aria-current={isReportsActive ? 'page' : undefined}
-            className={cn(
-              buttonBaseClasses,
-              isReportsActive ? buttonVariantClasses.primary : buttonVariantClasses.secondary,
-              'h-9 gap-1.5 px-3 text-[16.8px]',
-            )}
-          >
-            <FileText className="h-4 w-4" aria-hidden />
-            Task Reports
-          </Link>
-          {canViewAuditReports && (
-            <Link
-              to="/audit-reports"
-              aria-current={isAuditReportsActive ? 'page' : undefined}
-              className={cn(
-                buttonBaseClasses,
-                isAuditReportsActive ? buttonVariantClasses.primary : buttonVariantClasses.secondary,
-                'h-9 gap-1.5 px-3 text-[16.8px]',
-              )}
-            >
-              <FileSearch className="h-4 w-4" aria-hidden />
-              Audit Reports
-            </Link>
-          )}
         </div>
       </header>
 
