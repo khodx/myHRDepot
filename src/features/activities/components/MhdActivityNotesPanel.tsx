@@ -122,12 +122,15 @@ function MhdActivityNoteItem({
   note,
   isSaving,
   readOnly,
+  isReply = false,
   onUpdate,
   onDelete,
+  onReply,
 }: {
   note: MhdNote;
   isSaving: boolean;
   readOnly: boolean;
+  isReply?: boolean;
   onUpdate: (
     noteId: string,
     noteRichText: unknown,
@@ -135,8 +138,16 @@ function MhdActivityNoteItem({
     visibility: MhdNoteVisibility,
   ) => Promise<void>;
   onDelete: (noteId: string) => Promise<void>;
+  /** Omit (or leave undefined on a reply) to disable the Reply action. */
+  onReply?: (
+    parentNoteId: string,
+    noteRichText: unknown,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) => Promise<void>;
 }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isReplying, setIsReplying] = useState(false);
 
   if (isEditing) {
     return (
@@ -166,8 +177,17 @@ function MhdActivityNoteItem({
           </p>
         </div>
 
-        {!readOnly && (note.canEdit || note.canDelete) ? (
+        {!readOnly ? (
           <div className="flex gap-2">
+            {!isReply && onReply && !isReplying ? (
+              <Button
+                variant="secondary"
+                className="px-3 py-1.5"
+                onClick={() => setIsReplying(true)}
+              >
+                Reply
+              </Button>
+            ) : null}
             {note.canEdit ? (
               <Button
                 variant="secondary"
@@ -194,6 +214,19 @@ function MhdActivityNoteItem({
         html={mhdDocumentToRichHtml(note.noteRichText, note.notePlainText)}
         className="mt-3 text-foreground"
       />
+
+      {!isReply && onReply && isReplying ? (
+        <div className="mt-3">
+          <MhdActivityNoteEditor
+            isSaving={isSaving}
+            onSave={async (noteRichText, notePlainText, visibility) => {
+              await onReply(note.id, noteRichText, notePlainText, visibility);
+              setIsReplying(false);
+            }}
+            onCancel={() => setIsReplying(false)}
+          />
+        </div>
+      ) : null}
     </MhdCard>
   );
 }
@@ -208,6 +241,15 @@ export function MhdActivityNotesPanel({ activityId, readOnly = false }: Props) {
     visibility: MhdNoteVisibility,
   ) {
     await notesState.createNote(noteRichText, notePlainText, visibility);
+  }
+
+  async function handleReply(
+    parentNoteId: string,
+    noteRichText: unknown,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) {
+    await notesState.createNote(noteRichText, notePlainText, visibility, parentNoteId);
   }
 
   async function handleUpdate(
@@ -229,6 +271,15 @@ export function MhdActivityNotesPanel({ activityId, readOnly = false }: Props) {
     } catch {
       // Surfaced through notesState.errorMessage.
     }
+  }
+
+  const topLevelNotes = notesState.notes.filter((note) => !note.parentNoteId);
+  const repliesByParent = new Map<string, MhdNote[]>();
+  for (const note of notesState.notes) {
+    if (!note.parentNoteId) continue;
+    const siblings = repliesByParent.get(note.parentNoteId) ?? [];
+    siblings.push(note);
+    repliesByParent.set(note.parentNoteId, siblings);
   }
 
   return (
@@ -267,16 +318,36 @@ export function MhdActivityNotesPanel({ activityId, readOnly = false }: Props) {
           </MhdCard>
         ) : null}
         <div className="space-y-3">
-          {notesState.notes.map((note) => (
-            <MhdActivityNoteItem
-              key={note.id}
-              note={note}
-              isSaving={notesState.isSaving}
-              readOnly={readOnly}
-              onUpdate={handleUpdate}
-              onDelete={handleDelete}
-            />
-          ))}
+          {topLevelNotes.map((note) => {
+            const replies = repliesByParent.get(note.id) ?? [];
+            return (
+              <div key={note.id} className="space-y-3">
+                <MhdActivityNoteItem
+                  note={note}
+                  isSaving={notesState.isSaving}
+                  readOnly={readOnly}
+                  onUpdate={handleUpdate}
+                  onDelete={handleDelete}
+                  onReply={readOnly ? undefined : handleReply}
+                />
+                {replies.length > 0 && (
+                  <div className="ml-8 space-y-3 border-l-2 border-border pl-4">
+                    {replies.map((reply) => (
+                      <MhdActivityNoteItem
+                        key={reply.id}
+                        note={reply}
+                        isReply
+                        isSaving={notesState.isSaving}
+                        readOnly={readOnly}
+                        onUpdate={handleUpdate}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>

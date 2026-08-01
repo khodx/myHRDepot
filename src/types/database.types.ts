@@ -12398,6 +12398,7 @@ export type Database = {
           id: string
           note_plain_text: string
           note_rich_text: Json
+          parent_note_id: string | null
           reference_id: string
           updated_at: string
           updated_by: string
@@ -12412,6 +12413,7 @@ export type Database = {
           id?: string
           note_plain_text: string
           note_rich_text: Json
+          parent_note_id?: string | null
           reference_id: string
           updated_at?: string
           updated_by: string
@@ -12426,6 +12428,7 @@ export type Database = {
           id?: string
           note_plain_text?: string
           note_rich_text?: Json
+          parent_note_id?: string | null
           reference_id?: string
           updated_at?: string
           updated_by?: string
@@ -12437,6 +12440,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_parent_note_id_fkey"
+            columns: ["parent_note_id"]
+            isOneToOne: false
+            referencedRelation: "notes"
             referencedColumns: ["id"]
           },
         ]
@@ -21265,6 +21275,7 @@ export type Database = {
           p_entity_type: string
           p_note_plain_text: string
           p_note_rich_text: Json
+          p_parent_note_id?: string
           p_visibility?: string
         }
         Returns: {
@@ -23449,6 +23460,7 @@ export type Database = {
           id: string
           note_plain_text: string
           note_rich_text: Json
+          parent_note_id: string
           reference_id: string
           updated_at: string
           updated_by: string

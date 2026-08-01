@@ -23,14 +23,106 @@ interface MhdNoteListProps {
     visibility: MhdNoteVisibility,
   ) => Promise<void>;
   onDelete: (noteId: string) => Promise<void>;
+  /** Omit to disable replying — the entity may not support threading yet. */
+  onReply?: (
+    parentNoteId: string,
+    noteRichText: unknown,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) => Promise<void>;
 }
 
-export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: MhdNoteListProps) {
+interface MhdReplyComposerProps {
+  isSaving: boolean;
+  onSave: (
+    noteRichText: unknown,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) => Promise<void>;
+  onCancel: () => void;
+}
+
+function MhdReplyComposer({ isSaving, onSave, onCancel }: MhdReplyComposerProps) {
+  const [text, setText] = useState('');
+  const [html, setHtml] = useState('');
+  const [richText, setRichText] = useState<unknown>(null);
+  const [visibility, setVisibility] = useState<MhdNoteVisibility>('PUBLIC');
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  async function handleSave() {
+    const trimmed = text.trim();
+    if (!trimmed) {
+      setLocalError('Enter a reply before saving.');
+      return;
+    }
+    setLocalError(null);
+    await onSave(
+      richText ?? mhdRichTextToDocument(html || mhdPlainTextToRichHtml(trimmed), trimmed),
+      trimmed,
+      visibility,
+    );
+  }
+
+  return (
+    <div className="space-y-2 rounded-lg border border-border bg-muted p-3">
+      <MhdRichTextEditor
+        label="Reply"
+        html={html}
+        onChange={(nextHtml, plainText, document) => {
+          setHtml(nextHtml);
+          setText(plainText);
+          setRichText(document);
+        }}
+        minHeightClassName="min-h-20"
+        placeholder="Write a reply..."
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          className="rounded-md border border-border bg-card px-2 py-1.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          value={visibility}
+          onChange={(event) => setVisibility(event.target.value as MhdNoteVisibility)}
+        >
+          <option value="PUBLIC">Public</option>
+          <option value="ADMIN">Admin</option>
+          <option value="PRIVATE">Private</option>
+        </select>
+        <div className="ml-auto flex gap-2">
+          <button
+            type="button"
+            className="rounded-md border border-border px-3 py-1.5 text-xs"
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+          <Button
+            className="px-3 py-1.5 text-xs font-semibold"
+            disabled={isSaving || !text.trim()}
+            type="button"
+            onClick={() => void handleSave()}
+          >
+            Reply
+          </Button>
+        </div>
+      </div>
+      {localError && <p className="text-xs text-red-600">{localError}</p>}
+    </div>
+  );
+}
+
+export function MhdNoteList({
+  notes,
+  isLoading,
+  isSaving,
+  onUpdate,
+  onDelete,
+  onReply,
+}: MhdNoteListProps) {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [draftText, setDraftText] = useState('');
   const [draftHtml, setDraftHtml] = useState('');
   const [draftRichText, setDraftRichText] = useState<unknown>(null);
   const [draftVisibility, setDraftVisibility] = useState<MhdNoteVisibility>('PUBLIC');
+  const [replyingToNoteId, setReplyingToNoteId] = useState<string | null>(null);
 
   if (isLoading)
     return <MhdCard className="text-sm text-muted-foreground">Loading notes...</MhdCard>;
@@ -44,6 +136,15 @@ export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: 
         />
       </MhdCard>
     );
+  }
+
+  const topLevelNotes = notes.filter((note) => !note.parentNoteId);
+  const repliesByParent = new Map<string, MhdNote[]>();
+  for (const note of notes) {
+    if (!note.parentNoteId) continue;
+    const siblings = repliesByParent.get(note.parentNoteId) ?? [];
+    siblings.push(note);
+    repliesByParent.set(note.parentNoteId, siblings);
   }
 
   function startEdit(note: MhdNote) {
@@ -69,89 +170,131 @@ export function MhdNoteList({ notes, isLoading, isSaving, onUpdate, onDelete }: 
     setDraftRichText(null);
   }
 
+  function renderNote(note: MhdNote, isReply: boolean) {
+    const isEditing = editingNoteId === note.id;
+    return (
+      <article
+        key={note.id}
+        className={
+          isReply
+            ? 'rounded-lg border border-border bg-card p-3 shadow-sm'
+            : 'rounded-xl border border-border bg-card p-4 shadow-sm'
+        }
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-foreground">{note.createdByDisplayName}</p>
+              <MhdNoteVisibilityBadge visibility={note.visibility} />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {note.referenceId} · {new Date(note.createdAt).toLocaleString()}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {!isReply && onReply && replyingToNoteId !== note.id && (
+              <button
+                className="text-sm font-semibold text-accent hover:text-accent-hover"
+                onClick={() => setReplyingToNoteId(note.id)}
+              >
+                Reply
+              </button>
+            )}
+            {note.canEdit && !isEditing && (
+              <button
+                className="text-sm font-semibold text-accent hover:text-accent-hover"
+                onClick={() => startEdit(note)}
+              >
+                Edit
+              </button>
+            )}
+            {note.canDelete && (
+              <button
+                className="text-sm font-semibold text-red-700 hover:text-red-800"
+                disabled={isSaving}
+                onClick={() => void onDelete(note.id)}
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        </div>
+
+        {isEditing ? (
+          <div className="mt-3 space-y-3">
+            <select
+              className="rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              value={draftVisibility}
+              onChange={(event) => setDraftVisibility(event.target.value as MhdNoteVisibility)}
+            >
+              <option value="PUBLIC">Public</option>
+              <option value="ADMIN">Admin</option>
+              <option value="PRIVATE">Private</option>
+            </select>
+            <MhdRichTextEditor
+              label="Note"
+              html={draftHtml}
+              onChange={(html, plainText, document) => {
+                setDraftHtml(html);
+                setDraftText(plainText);
+                setDraftRichText(document);
+              }}
+              minHeightClassName="min-h-28"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="rounded-md border border-border px-3 py-2 text-sm"
+                type="button"
+                onClick={() => setEditingNoteId(null)}
+              >
+                Cancel
+              </button>
+              <Button
+                className="px-3 py-2 font-semibold"
+                disabled={isSaving || !draftText.trim()}
+                type="button"
+                onClick={() => void saveEdit(note.id)}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <MhdRichTextRenderer
+            html={mhdDocumentToRichHtml(note.noteRichText, note.notePlainText)}
+            className="mt-3 leading-6 text-foreground"
+          />
+        )}
+
+        {!isReply && onReply && replyingToNoteId === note.id && (
+          <div className="mt-3">
+            <MhdReplyComposer
+              isSaving={isSaving}
+              onCancel={() => setReplyingToNoteId(null)}
+              onSave={async (richText, plainText, visibility) => {
+                await onReply(note.id, richText, plainText, visibility);
+                setReplyingToNoteId(null);
+              }}
+            />
+          </div>
+        )}
+      </article>
+    );
+  }
+
   return (
     <div className="space-y-3">
-      {notes.map((note) => {
-        const isEditing = editingNoteId === note.id;
+      {topLevelNotes.map((note) => {
+        const replies = repliesByParent.get(note.id) ?? [];
         return (
-          <article key={note.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-foreground">{note.createdByDisplayName}</p>
-                  <MhdNoteVisibilityBadge visibility={note.visibility} />
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {note.referenceId} · {new Date(note.createdAt).toLocaleString()}
-                </p>
+          <div key={note.id} className="space-y-3">
+            {renderNote(note, false)}
+            {replies.length > 0 && (
+              <div className="ml-8 space-y-3 border-l-2 border-border pl-4">
+                {replies.map((reply) => renderNote(reply, true))}
               </div>
-              <div className="flex gap-2">
-                {note.canEdit && !isEditing && (
-                  <button
-                    className="text-sm font-semibold text-accent hover:text-accent-hover"
-                    onClick={() => startEdit(note)}
-                  >
-                    Edit
-                  </button>
-                )}
-                {note.canDelete && (
-                  <button
-                    className="text-sm font-semibold text-red-700 hover:text-red-800"
-                    disabled={isSaving}
-                    onClick={() => void onDelete(note.id)}
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {isEditing ? (
-              <div className="mt-3 space-y-3">
-                <select
-                  className="rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  value={draftVisibility}
-                  onChange={(event) => setDraftVisibility(event.target.value as MhdNoteVisibility)}
-                >
-                  <option value="PUBLIC">Public</option>
-                  <option value="ADMIN">Admin</option>
-                  <option value="PRIVATE">Private</option>
-                </select>
-                <MhdRichTextEditor
-                  label="Note"
-                  html={draftHtml}
-                  onChange={(html, plainText, document) => {
-                    setDraftHtml(html);
-                    setDraftText(plainText);
-                    setDraftRichText(document);
-                  }}
-                  minHeightClassName="min-h-28"
-                />
-                <div className="flex justify-end gap-2">
-                  <button
-                    className="rounded-md border border-border px-3 py-2 text-sm"
-                    type="button"
-                    onClick={() => setEditingNoteId(null)}
-                  >
-                    Cancel
-                  </button>
-                  <Button
-                    className="px-3 py-2 font-semibold"
-                    disabled={isSaving || !draftText.trim()}
-                    type="button"
-                    onClick={() => void saveEdit(note.id)}
-                  >
-                    Save
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <MhdRichTextRenderer
-                html={mhdDocumentToRichHtml(note.noteRichText, note.notePlainText)}
-                className="mt-3 leading-6 text-foreground"
-              />
             )}
-          </article>
+          </div>
         );
       })}
     </div>

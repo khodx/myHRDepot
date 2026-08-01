@@ -24,6 +24,7 @@ export const mhdCreateNoteSchema = z.object({
   noteRichText: noteRichTextSchema,
   notePlainText: notePlainTextSchema,
   visibility: mhdNoteVisibilitySchema.default('PUBLIC'),
+  parentNoteId: z.string().trim().min(1).nullish(),
 });
 
 export const mhdUpdateNoteSchema = z.object({

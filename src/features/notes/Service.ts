@@ -32,6 +32,7 @@ type MhdNoteRow = {
   company_id: string;
   entity_type: MhdNoteEntityType;
   entity_id: string;
+  parent_note_id: string | null;
   note_rich_text: unknown;
   note_plain_text: string;
   visibility: MhdNote['visibility'];
@@ -51,6 +52,7 @@ function mapNoteRow(row: MhdNoteRow): MhdNote {
     companyId: row.company_id,
     entityType: row.entity_type,
     entityId: row.entity_id,
+    parentNoteId: row.parent_note_id,
     noteRichText: row.note_rich_text,
     notePlainText: row.note_plain_text,
     visibility: row.visibility,
@@ -86,6 +88,7 @@ export async function mhdCreateNote(input: MhdCreateNoteInput): Promise<MhdNoteM
     p_note_rich_text: parsed.noteRichText as Json,
     p_note_plain_text: parsed.notePlainText,
     p_visibility: parsed.visibility,
+    ...(parsed.parentNoteId ? { p_parent_note_id: parsed.parentNoteId } : {}),
   });
   if (error) throw normalizeSupabaseError(error);
   const row = (data ?? [])[0];

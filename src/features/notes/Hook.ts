@@ -41,7 +41,12 @@ export function useMhdNotes(
   }, [loadNotes]);
 
   const createNote = useCallback(
-    async (noteRichText: unknown, notePlainText: string, visibility: MhdNoteVisibility) => {
+    async (
+      noteRichText: unknown,
+      notePlainText: string,
+      visibility: MhdNoteVisibility,
+      parentNoteId?: string | null,
+    ) => {
       if (!entityId) throw new Error('Entity ID is required to create a note.');
       if (!isAuthenticated) throw new Error('Authenticated actor is required to create a note.');
       setIsSaving(true);
@@ -53,6 +58,7 @@ export function useMhdNotes(
           noteRichText,
           notePlainText,
           visibility,
+          parentNoteId,
         };
         await mhdCreateNote(input);
         await loadNotes();

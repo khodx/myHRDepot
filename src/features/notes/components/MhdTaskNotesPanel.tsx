@@ -32,6 +32,15 @@ export function MhdTaskNotesPanel({ taskId }: MhdTaskNotesPanelProps) {
     setIsComposerOpen(false);
   }
 
+  async function handleReply(
+    parentNoteId: string,
+    noteRichText: unknown,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) {
+    await notesState.createNote(noteRichText, notePlainText, visibility, parentNoteId);
+  }
+
   async function handleUpdate(
     noteId: string,
     noteRichText: unknown,
@@ -89,6 +98,7 @@ export function MhdTaskNotesPanel({ taskId }: MhdTaskNotesPanelProps) {
           isSaving={notesState.isSaving}
           onUpdate={handleUpdate}
           onDelete={handleDelete}
+          onReply={handleReply}
         />
       </section>
     </div>
