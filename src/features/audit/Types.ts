@@ -12,6 +12,7 @@ export type MhdTaskAuditEntityType =
   | 'NOTE'
   | 'ATTACHMENT'
   | 'ACTIVITY'
+  | 'SUBTASK'
   | 'DOCUMENT_GENERATION';
 
 /** Raw RPC row shape (mhd_get_task_audit_timeline), per the generated

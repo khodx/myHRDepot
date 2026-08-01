@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Download, FileSearch, FileText, Layers, Plus, Save, Trash2 } from 'lucide-react';
 import { Button, buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
@@ -93,6 +93,9 @@ function buildTasksCsv(tasks: MhdTask[]): string {
 
 export function MhdTasksPage() {
   const { profile, roles } = useMhdAuth();
+  const location = useLocation();
+  const isReportsActive = location.pathname === '/reports';
+  const isAuditReportsActive = location.pathname === '/audit-reports';
   const canViewAuditReports = MHD_AUDIT_REPORTS_LINK_ROLES.some((role) => roles.includes(role));
   const [viewMode, setViewMode] = useState<MhdViewMode>(() =>
     mhdReadPersistedViewMode(MHD_TASKS_VIEW_KEY),
@@ -276,9 +279,10 @@ export function MhdTasksPage() {
           </Button>
           <Link
             to="/reports"
+            aria-current={isReportsActive ? 'page' : undefined}
             className={cn(
               buttonBaseClasses,
-              buttonVariantClasses.secondary,
+              isReportsActive ? buttonVariantClasses.primary : buttonVariantClasses.secondary,
               'h-9 gap-1.5 px-3 text-[16.8px]',
             )}
           >
@@ -288,9 +292,10 @@ export function MhdTasksPage() {
           {canViewAuditReports && (
             <Link
               to="/audit-reports"
+              aria-current={isAuditReportsActive ? 'page' : undefined}
               className={cn(
                 buttonBaseClasses,
-                buttonVariantClasses.secondary,
+                isAuditReportsActive ? buttonVariantClasses.primary : buttonVariantClasses.secondary,
                 'h-9 gap-1.5 px-3 text-[16.8px]',
               )}
             >

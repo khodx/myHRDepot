@@ -29,6 +29,7 @@ const MHD_TASK_AUDIT_ENTITY_TYPES: MhdTaskAuditEntityType[] = [
   'NOTE',
   'ATTACHMENT',
   'ACTIVITY',
+  'SUBTASK',
   'DOCUMENT_GENERATION',
 ];
 
@@ -115,7 +116,7 @@ export function MhdTaskAuditPage() {
         backTo={`/tasks/${taskId}`}
         backLabel="Task"
         title="Task Audit"
-        description="Timeline of changes tied to this task, including task, note, attachment, and activity events. Filter by date, action, performer, or linked entity before generating a report."
+        description="Timeline of changes tied to this task, including task, note, attachment, subtask, and activity events. Filter by date, action, performer, or linked entity before generating a report."
       />
 
       <MhdTaskRecordTabs taskId={taskId} active="audit" />

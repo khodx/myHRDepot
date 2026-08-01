@@ -190,6 +190,37 @@ describe('MhdTaskAuditPage — timeline rendering', () => {
     expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(3);
   });
 
+  it('renders the Description column from entry.summary, falling back to "—" when null', async () => {
+    timelineRef.current = [
+      entry({
+        id: 'audit-1',
+        entityType: 'TASK',
+        actionType: 'FIELD_CHANGED',
+        summary: 'Task status changed from Open to In Progress',
+      }),
+      entry({
+        id: 'audit-2',
+        entityType: 'NOTE',
+        entityId: 'note-1',
+        actionType: 'CREATED',
+        fieldName: null,
+        oldValue: null,
+        newValue: null,
+        summary: null,
+        performedAt: '2026-07-28T09:00:00.000Z',
+      }),
+    ];
+    renderPage();
+
+    await waitForTaskLoaded();
+    expect(
+      screen.getByText('Task status changed from Open to In Progress'),
+    ).toBeInTheDocument();
+    // The null-summary row's Description cell falls back to the same "—"
+    // placeholder used by the other null-capable columns.
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1);
+  });
+
   it('shows an empty-state message when there are no entries', async () => {
     timelineRef.current = [];
     renderPage();

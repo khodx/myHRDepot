@@ -20,6 +20,7 @@ export interface MhdAuditTimelineRow {
   fieldName: string | null;
   oldValue: string | null;
   newValue: string | null;
+  summary: string | null;
   performedBy: string | null;
   performedByName?: string | null;
   performedAt: string;
@@ -58,6 +59,10 @@ const MHD_AUDIT_COLUMNS: { label: string; description: string }[] = [
   {
     label: 'Action',
     description: 'What happened — e.g. a field change, a creation, or a deletion.',
+  },
+  {
+    label: 'Description',
+    description: 'A human-readable one-line summary of this event.',
   },
   {
     label: 'Field',
@@ -144,6 +149,9 @@ export function MhdAuditTimelineTable<T extends MhdAuditTimelineRow>({
               <MhdTd>{entry.performedByName ?? entry.performedBy ?? '—'}</MhdTd>
               <MhdTd>{entry.entityType}</MhdTd>
               <MhdTd>{entry.actionType}</MhdTd>
+              <MhdTd className="max-w-xs truncate" title={entry.summary ?? undefined}>
+                {entry.summary ?? '—'}
+              </MhdTd>
               <MhdTd>{entry.fieldName ?? '—'}</MhdTd>
               <MhdTd className="max-w-xs truncate" title={entry.oldValue ?? undefined}>
                 {entry.oldValue ?? '—'}
