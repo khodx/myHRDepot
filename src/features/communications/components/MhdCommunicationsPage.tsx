@@ -1,9 +1,13 @@
-import { RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { MessageSquare, RefreshCw } from 'lucide-react';
+import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTableFooter, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdNotifications } from '@/features/notifications/Hook';
 import { MHD_NOTIFICATION_TYPE_LABELS } from '@/features/notifications/Types';
+import { useMhdMessageThreads } from '@/features/messaging/Hook';
 import { MhdCommunicationsTabs } from '@/appshell/components/MhdCommunicationsTabs';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
@@ -12,12 +16,25 @@ function formatDate(value: string) {
   return new Date(value).toLocaleString();
 }
 
+function formatWhen(value: string | null) {
+  if (!value) return 'No messages';
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
+
 export function MhdCommunicationsPage() {
   const { notifications, unreadCount, isLoading, error, markAllRead, refetch } =
     useMhdNotifications();
   const systemAlerts = notifications.filter(
     (notification) => notification.notificationType === 'SYSTEM',
   );
+  const messagesQuery = useMhdMessageThreads({ limit: 5 });
+  const recentThreads = messagesQuery.data ?? [];
+  const unreadMessageCount = recentThreads.reduce((sum, thread) => sum + thread.unreadCount, 0);
 
   return (
     <div className="space-y-6">
@@ -48,7 +65,14 @@ export function MhdCommunicationsPage() {
 
       <MhdCommunicationsTabs active="overview" />
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Link to="/communications/messaging">
+          <MhdCard className="p-5 transition-colors hover:border-accent">
+            <p className="text-xs font-semibold uppercase tracking-wide text-accent">Messages</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">{recentThreads.length}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{unreadMessageCount} Unread</p>
+          </MhdCard>
+        </Link>
         <MhdCard className="p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-accent">Notifications</p>
           <p className="mt-2 text-3xl font-bold text-foreground">{notifications.length}</p>
@@ -68,6 +92,58 @@ export function MhdCommunicationsPage() {
       ) : null}
 
       <MhdCard className="overflow-hidden p-0">
+        <div className="flex items-center justify-between border-b border-border p-4">
+          <h2 className="text-sm font-semibold text-foreground">Recent Messages</h2>
+          <Link
+            to="/communications/messaging"
+            className="text-sm font-semibold text-accent hover:text-accent-hover"
+          >
+            Open Inbox
+          </Link>
+        </div>
+        {messagesQuery.isLoading ? (
+          <p className="p-4 text-sm text-muted-foreground">Loading messages…</p>
+        ) : recentThreads.length === 0 ? (
+          <MhdEmptyState
+            icon={MessageSquare}
+            title="No conversations yet"
+            description="Start a direct message with another user from the Messaging tab."
+            className="px-4 py-6"
+          />
+        ) : (
+          <div className="divide-y divide-border">
+            {recentThreads.map((thread) => (
+              <Link
+                key={thread.id}
+                to="/communications/messaging"
+                className="grid gap-1 px-4 py-3 transition-colors hover:bg-slate-50"
+              >
+                <span className="flex min-w-0 items-center justify-between gap-3">
+                  <span className="truncate text-sm font-semibold text-foreground">
+                    {thread.subject || thread.lastMessageBody || 'Direct message'}
+                  </span>
+                  {thread.unreadCount > 0 && (
+                    <MhdBadge variant="accent" className="shrink-0">
+                      {thread.unreadCount}
+                    </MhdBadge>
+                  )}
+                </span>
+                <span className="line-clamp-1 text-xs text-muted-foreground">
+                  {thread.lastMessageBody ?? 'No messages yet'}
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {formatWhen(thread.lastMessageAt)}
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </MhdCard>
+
+      <MhdCard className="overflow-hidden p-0">
+        <div className="border-b border-border p-4">
+          <h2 className="text-sm font-semibold text-foreground">Recent Notifications</h2>
+        </div>
         <MhdTable>
           <thead>
             <tr>
