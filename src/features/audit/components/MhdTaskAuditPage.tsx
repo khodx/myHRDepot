@@ -19,6 +19,7 @@ const MHD_TASK_AUDIT_ENTITY_TYPES: MhdTaskAuditEntityType[] = [
   'NOTE',
   'ATTACHMENT',
   'ACTIVITY',
+  'DOCUMENT_GENERATION',
 ];
 
 /**

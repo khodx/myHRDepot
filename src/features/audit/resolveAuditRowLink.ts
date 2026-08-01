@@ -49,6 +49,18 @@ export function resolveMhdAuditRowLink(
         context.taskId ?? context.resolveParentTaskId?.('ATTACHMENT', entry.entityId) ?? null;
       return taskId ? `/tasks/${taskId}/attachments` : null;
     }
+    case 'DOCUMENT_GENERATION': {
+      // A document_generations row has no standalone detail page of its own
+      // — its full Download/Customize/Generate/Upload actions and
+      // Generation History (with a Download link per generation) already
+      // live on the requesting record's Reports tab (MhdDocumentGenerationPanel,
+      // src/features/documents/components/), same reasoning as NOTE/ATTACHMENT.
+      // Company-wide audit_events rows for a generation don't carry the
+      // requesting task's own id (only the generation's own id), so this
+      // only resolves when the per-task page's taskId context is already
+      // known — same limitation as NOTE/ATTACHMENT on the company-wide page.
+      return context.taskId ? `/tasks/${context.taskId}/reports` : null;
+    }
     default:
       return null;
   }
@@ -60,6 +72,11 @@ export function resolveMhdAuditRowLink(
  *  to still attach a click handler that surfaces the "no detail view
  *  available" fallback message, versus leaving the row inert. */
 export function mhdAuditRowHasKnownLinkShape(entityType: string): boolean {
-  return entityType === 'TASK' || entityType === 'ACTIVITY' || entityType === 'NOTE' ||
-    entityType === 'ATTACHMENT';
+  return (
+    entityType === 'TASK' ||
+    entityType === 'ACTIVITY' ||
+    entityType === 'NOTE' ||
+    entityType === 'ATTACHMENT' ||
+    entityType === 'DOCUMENT_GENERATION'
+  );
 }

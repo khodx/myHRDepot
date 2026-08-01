@@ -7,7 +7,12 @@
 
 /** The polymorphic entity a timeline row actually describes — the task
  *  itself, or one of its linked notes/attachments/activities. */
-export type MhdTaskAuditEntityType = 'TASK' | 'NOTE' | 'ATTACHMENT' | 'ACTIVITY';
+export type MhdTaskAuditEntityType =
+  | 'TASK'
+  | 'NOTE'
+  | 'ATTACHMENT'
+  | 'ACTIVITY'
+  | 'DOCUMENT_GENERATION';
 
 /** Raw RPC row shape (mhd_get_task_audit_timeline), per the generated
  *  Database['public']['Functions'] Returns type. The generator marks every

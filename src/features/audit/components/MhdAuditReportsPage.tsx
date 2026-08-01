@@ -108,16 +108,22 @@ export function MhdAuditReportsPage() {
 
   const generation = requestReport.data;
 
+  // Which parent-task tab to point the user toward per entity type, when this
+  // page has no parent-task lookup available (see resolveAuditRowLink.ts) —
+  // entity_id here is the note/attachment/generation's own id, not a task
+  // id, and no RPC resolves one to the other today.
+  const MHD_UNRESOLVED_ROW_TARGET_TAB: Partial<Record<MhdAuditEvent['entityType'], string>> = {
+    NOTE: 'Notes',
+    ATTACHMENT: 'Attachments',
+    DOCUMENT_GENERATION: 'Reports',
+  };
+
   function handleUnresolvedRowClick(entry: MhdAuditEvent) {
-    // NOTE/ATTACHMENT rows on this page have no parent-task lookup available
-    // (see resolveAuditRowLink.ts) — entity_id here is the note/attachment's
-    // own id, not a task id, and no RPC resolves one to the other today. The
-    // codebase has no toast system, so this surfaces as an inline message
-    // near the table rather than a silent no-op or a broken link.
+    // The codebase has no toast system, so this surfaces as an inline
+    // message near the table rather than a silent no-op or a broken link.
+    const targetTab = MHD_UNRESOLVED_ROW_TARGET_TAB[entry.entityType] ?? 'relevant';
     setRowNotice(
-      `This ${entry.entityType.toLowerCase()} entry can't be opened directly from here — open its parent task's ${
-        entry.entityType === 'NOTE' ? 'Notes' : 'Attachments'
-      } tab instead.`,
+      `This ${entry.entityType.toLowerCase()} entry can't be opened directly from here — open its parent task's ${targetTab} tab instead.`,
     );
   }
 
