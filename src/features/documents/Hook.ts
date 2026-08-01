@@ -7,7 +7,12 @@ import type {
   MhdUpdateDocumentTemplateInput,
 } from './Types';
 
-const mhdDocumentQueryKeys = {
+// Exported so a caller that drives its own generation flow outside
+// useMhdDocumentGenerationActions (e.g. mhdAuditService.requestTaskAuditReport,
+// which needs dynamic array merge_data this hook's mutation can't carry) can
+// still invalidate the Generation History list afterward, the same way this
+// file's own `generate`/`uploadCompleted` mutations already do.
+export const mhdDocumentQueryKeys = {
   templates: (
     companyId: string | null,
     templateType?: string,

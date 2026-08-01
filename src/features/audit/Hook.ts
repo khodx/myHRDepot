@@ -28,6 +28,7 @@ export function useMhdRequestTaskAuditReport(context: MhdDocumentMutationContext
     mutationFn: ({
       task,
       generatedByDisplayName,
+      templateKey,
     }: {
       task: Pick<
         MhdTask,
@@ -42,11 +43,20 @@ export function useMhdRequestTaskAuditReport(context: MhdDocumentMutationContext
         | 'statusName'
       >;
       generatedByDisplayName: string;
+      /** Defaults to the master TASK_AUDIT_REPORT inside the service when
+       *  omitted — pass one of the system report set's keys to generate a
+       *  filtered lens instead (see TASK_AUDIT_REPORT_ROW_FILTER, Service.ts). */
+      templateKey?: string;
     }) => {
       if (!context) {
         throw new Error('Cannot generate an audit report without an authenticated user.');
       }
-      return mhdAuditService.requestTaskAuditReport(task, context, generatedByDisplayName);
+      return mhdAuditService.requestTaskAuditReport(
+        task,
+        context,
+        generatedByDisplayName,
+        templateKey,
+      );
     },
   });
 }

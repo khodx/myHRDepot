@@ -24,6 +24,27 @@ const TASK_AUDIT_REPORT_TEMPLATE_KEY = 'TASK_AUDIT_REPORT';
 // applicable_entity_type = null — not tied to a single module's entity.
 const AUDIT_REPORT_TEMPLATE_KEY = 'AUDIT_REPORT';
 
+// The Task Audit system report set (migration 0105_task_audit_system_reports.sql):
+// three additional Task-scoped templates alongside the full TASK_AUDIT_REPORT
+// (master). Each reuses the exact same mhd_get_task_audit_timeline data and
+// {{#each audit.timeline}} mechanism — only which rows get passed as
+// audit.timeline differs, filtered client-side per template_key below. No new
+// RPC needed: same data, three additional lenses on it.
+export const TASK_AUDIT_STATUS_HISTORY_REPORT_TEMPLATE_KEY = 'TASK_AUDIT_STATUS_HISTORY_REPORT';
+export const TASK_AUDIT_FIELD_CHANGE_REPORT_TEMPLATE_KEY = 'TASK_AUDIT_FIELD_CHANGE_REPORT';
+export const TASK_AUDIT_SECURITY_REPORT_TEMPLATE_KEY = 'TASK_AUDIT_SECURITY_REPORT';
+
+/** Row filter per template_key. A template with no entry here (including the
+ *  master TASK_AUDIT_REPORT and the company-wide AUDIT_REPORT) gets the full,
+ *  unfiltered timeline — these three narrow it to one lens. */
+const TASK_AUDIT_REPORT_ROW_FILTER: Record<string, (entry: MhdTaskAuditEntry) => boolean> = {
+  [TASK_AUDIT_STATUS_HISTORY_REPORT_TEMPLATE_KEY]: (entry) =>
+    entry.actionType.toUpperCase().includes('STATUS'),
+  [TASK_AUDIT_FIELD_CHANGE_REPORT_TEMPLATE_KEY]: (entry) => Boolean(entry.fieldName),
+  [TASK_AUDIT_SECURITY_REPORT_TEMPLATE_KEY]: (entry) =>
+    Boolean(entry.ipAddress) || Boolean(entry.userAgent),
+};
+
 function mapAuditRow(row: MhdTaskAuditTimelineRpcRow): MhdTaskAuditEntry {
   return {
     id: row.id,
@@ -82,14 +103,19 @@ export const mhdAuditService = {
   },
 
   /**
-   * Requests a TASK_AUDIT_REPORT generation. Copies the request/render/poll
-   * sequence from mhdDocumentService.generateAndPoll exactly (see
-   * src/features/documents/Service.ts) — the only addition is building the
-   * `audit.*` merge_data the template's `{{#each audit.timeline}}` block and
-   * summary fields need, by re-fetching the FULL (unfiltered) timeline right
+   * Requests a Task Audit report generation — the master TASK_AUDIT_REPORT by
+   * default, or one of the system report set
+   * (TASK_AUDIT_STATUS_HISTORY_REPORT / TASK_AUDIT_FIELD_CHANGE_REPORT /
+   * TASK_AUDIT_SECURITY_REPORT) when templateKey is passed. Copies the
+   * request/render/poll sequence from mhdDocumentService.generateAndPoll
+   * exactly (see src/features/documents/Service.ts) — the addition is
+   * building the `audit.*` merge_data by re-fetching the FULL timeline right
    * before generating, independent of whatever date/action/performer filters
-   * are active on the page. A report is meant to be the complete record, not
-   * whatever slice happens to be on screen.
+   * are active on the page (a report is meant to be the complete record, not
+   * whatever slice happens to be on screen), then applying
+   * TASK_AUDIT_REPORT_ROW_FILTER for templateKey on top of that full fetch —
+   * so "complete record" and "one filtered lens on the complete record" are
+   * both honored, never a stale on-screen filter.
    */
   async requestTaskAuditReport(
     task: Pick<
@@ -98,18 +124,16 @@ export const mhdAuditService = {
     >,
     context: MhdDocumentMutationContext,
     generatedByDisplayName: string,
+    templateKey: string = TASK_AUDIT_REPORT_TEMPLATE_KEY,
   ): Promise<MhdDocumentGenerationDetailRow> {
-    const template = await mhdDocumentService.getTemplateByKey(
-      TASK_AUDIT_REPORT_TEMPLATE_KEY,
-      task.companyId,
-    );
+    const template = await mhdDocumentService.getTemplateByKey(templateKey, task.companyId);
     if (!template) {
-      throw new Error(
-        `No "${TASK_AUDIT_REPORT_TEMPLATE_KEY}" report template is available for this company.`,
-      );
+      throw new Error(`No "${templateKey}" report template is available for this company.`);
     }
 
-    const timeline = await mhdAuditService.listTaskAuditTimeline(task.id);
+    const fullTimeline = await mhdAuditService.listTaskAuditTimeline(task.id);
+    const rowFilter = TASK_AUDIT_REPORT_ROW_FILTER[templateKey];
+    const timeline = rowFilter ? fullTimeline.filter(rowFilter) : fullTimeline;
     const timelineRows: MhdTaskAuditReportTimelineRow[] = timeline.map((entry) => ({
       performed_at: entry.performedAt,
       performed_by: entry.performedBy ?? '',
@@ -139,7 +163,7 @@ export const mhdAuditService = {
           'task.due_date': task.dueDate ?? '',
           'task.completed_date': task.completedDate ?? '',
           'task.status_name': task.statusName,
-          'audit.total_entry_count': String(timeline.length),
+          'audit.total_entry_count': String(fullTimeline.length),
           'audit.displayed_entry_count': String(timeline.length),
           'audit.first_performed_at': firstPerformedAt,
           'audit.latest_performed_at': latestPerformedAt,

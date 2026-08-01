@@ -1,18 +1,28 @@
 import { useMemo, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTaskRecordTabs } from '@/appshell/components/MhdTaskRecordTabs';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdTaskService } from '@/features/tasks/Service';
+import {
+  TASK_AUDIT_FIELD_CHANGE_REPORT_TEMPLATE_KEY,
+  TASK_AUDIT_SECURITY_REPORT_TEMPLATE_KEY,
+  TASK_AUDIT_STATUS_HISTORY_REPORT_TEMPLATE_KEY,
+} from '../Service';
 import { useMhdRequestTaskAuditReport, useMhdTaskAuditTimeline } from '../Hook';
 import type { MhdTaskAuditEntityType, MhdTaskAuditFilters } from '../Types';
 import { MHD_TASK_AUDIT_DEFAULT_FILTERS } from '../Types';
-import { MhdAuditReportCustomizeUpload } from './MhdAuditReportCustomizeUpload';
+import { MhdAuditReportPanel } from './MhdAuditReportPanel';
 import { MhdAuditTimelineTable } from './MhdAuditTimelineTable';
+
+const MHD_TASK_AUDIT_SYSTEM_REPORT_KEYS = [
+  TASK_AUDIT_STATUS_HISTORY_REPORT_TEMPLATE_KEY,
+  TASK_AUDIT_FIELD_CHANGE_REPORT_TEMPLATE_KEY,
+  TASK_AUDIT_SECURITY_REPORT_TEMPLATE_KEY,
+];
 
 const MHD_TASK_AUDIT_ENTITY_TYPES: MhdTaskAuditEntityType[] = [
   'TASK',
@@ -33,7 +43,6 @@ export function MhdTaskAuditPage() {
   const { taskId } = useParams<{ taskId: string }>();
   const { profile, roles } = useMhdAuth();
   const [filters, setFilters] = useState<MhdTaskAuditFilters>(MHD_TASK_AUDIT_DEFAULT_FILTERS);
-  const [reportError, setReportError] = useState<string | null>(null);
 
   const {
     data: task,
@@ -85,18 +94,10 @@ export function MhdTaskAuditPage() {
     });
   }, [timeline, filters]);
 
-  async function handleGenerateReport() {
+  async function handleGenerateTemplate(templateKey: string) {
     if (!task) return;
-    setReportError(null);
-    try {
-      const generatedByDisplayName = profile?.displayName ?? profile?.email ?? '';
-      const generation = await requestReport.mutateAsync({ task, generatedByDisplayName });
-      if (generation.status === 'FAILED') {
-        setReportError('Report generation failed — see below for details.');
-      }
-    } catch (error) {
-      setReportError(error instanceof Error ? error.message : 'Unable to generate audit report.');
-    }
+    const generatedByDisplayName = profile?.displayName ?? profile?.email ?? '';
+    return requestReport.mutateAsync({ task, generatedByDisplayName, templateKey });
   }
 
   if (!taskId) return <Navigate to="/tasks" replace />;
@@ -108,8 +109,6 @@ export function MhdTaskAuditPage() {
   const canViewAudit = roles.includes('Platform Admin') || roles.includes('HR Partner');
   if (!canViewAudit) return <Navigate to="/404" replace />;
 
-  const generation = requestReport.data;
-
   return (
     <div className="space-y-6">
       <MhdPageHeader
@@ -117,25 +116,6 @@ export function MhdTaskAuditPage() {
         backLabel="Task"
         title="Task Audit"
         description="Timeline of changes tied to this task, including task, note, attachment, and activity events. Filter by date, action, performer, or linked entity before generating a report."
-        actions={
-          <>
-            {task && (
-              <MhdAuditReportCustomizeUpload
-                templateKey="TASK_AUDIT_REPORT"
-                entityType="TASK"
-                entityId={task.id}
-                companyId={task.companyId}
-              />
-            )}
-            <Button
-              type="button"
-              disabled={!task || requestReport.isPending}
-              onClick={() => void handleGenerateReport()}
-            >
-              {requestReport.isPending ? 'Generating…' : 'Generate Report'}
-            </Button>
-          </>
-        }
       />
 
       <MhdTaskRecordTabs taskId={taskId} active="audit" />
@@ -146,32 +126,24 @@ export function MhdTaskAuditPage() {
         <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {(taskError as Error)?.message ?? 'Task not found'}
         </p>
-      ) : null}
-
-      {reportError && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {reportError}
-        </div>
-      )}
-
-      {generation && generation.status !== 'FAILED' && (
-        <div className="flex flex-wrap items-center gap-3 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-          <span>
-            {generation.status === 'PENDING'
-              ? 'Report is still generating…'
-              : 'Audit report generated.'}
-          </span>
-          {generation.output_drive_file_id ? (
-            <a
-              href={`https://drive.google.com/file/d/${generation.output_drive_file_id}/view`}
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium underline"
-            >
-              Download
-            </a>
-          ) : null}
-        </div>
+      ) : (
+        <MhdCard>
+          <h2 className="text-sm font-semibold text-foreground">Reports</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Download a template to customize offline, generate directly from this task's current
+            audit data, or upload a finished document back.
+          </p>
+          <div className="mt-4">
+            <MhdAuditReportPanel
+              masterTemplateKey="TASK_AUDIT_REPORT"
+              systemReportTemplateKeys={MHD_TASK_AUDIT_SYSTEM_REPORT_KEYS}
+              entityType="TASK"
+              entityId={task.id}
+              companyId={task.companyId}
+              onGenerateTemplate={handleGenerateTemplate}
+            />
+          </div>
+        </MhdCard>
       )}
 
       <MhdFilterBar onClear={() => setFilters(MHD_TASK_AUDIT_DEFAULT_FILTERS)}>

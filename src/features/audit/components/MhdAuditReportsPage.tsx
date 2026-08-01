@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -8,8 +7,13 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdAuditEvents, useMhdRequestAuditReport } from '../Hook';
 import type { MhdAuditEvent, MhdAuditEventFilters } from '../Types';
 import { MHD_AUDIT_EVENT_DEFAULT_FILTERS } from '../Types';
-import { MhdAuditReportCustomizeUpload } from './MhdAuditReportCustomizeUpload';
+import { MhdAuditReportPanel } from './MhdAuditReportPanel';
 import { MhdAuditTimelineTable } from './MhdAuditTimelineTable';
+
+// No narrower system report set exists company-wide yet (the system report
+// set from migration 0105 is Task-module-scoped — see MhdTaskAuditPage) —
+// this stays empty until/unless a company-wide equivalent is built.
+const MHD_COMPANY_WIDE_AUDIT_SYSTEM_REPORT_KEYS: string[] = [];
 
 /**
  * Route: /audit-reports
@@ -25,7 +29,6 @@ import { MhdAuditTimelineTable } from './MhdAuditTimelineTable';
 export function MhdAuditReportsPage() {
   const { profile, roles } = useMhdAuth();
   const [filters, setFilters] = useState<MhdAuditEventFilters>(MHD_AUDIT_EVENT_DEFAULT_FILTERS);
-  const [reportError, setReportError] = useState<string | null>(null);
   const [rowNotice, setRowNotice] = useState<string | null>(null);
 
   const companyId = profile?.companyId ?? null;
@@ -79,24 +82,19 @@ export function MhdAuditReportsPage() {
     });
   }, [events, filters.sourceModule]);
 
-  async function handleGenerateReport() {
+  // templateKey is unused today (only AUDIT_REPORT exists company-wide, no
+  // system report set here yet — see MHD_COMPANY_WIDE_AUDIT_SYSTEM_REPORT_KEYS
+  // above), but the panel's onGenerateTemplate contract always passes one.
+  async function handleGenerateTemplate() {
     if (!companyId) return;
-    setReportError(null);
-    try {
-      const generatedByDisplayName = profile?.displayName ?? profile?.email ?? '';
-      const generation = await requestReport.mutateAsync({
-        companyId,
-        filters,
-        allEvents: events ?? [],
-        displayedEvents,
-        generatedByDisplayName,
-      });
-      if (generation.status === 'FAILED') {
-        setReportError('Report generation failed — see below for details.');
-      }
-    } catch (error) {
-      setReportError(error instanceof Error ? error.message : 'Unable to generate audit report.');
-    }
+    const generatedByDisplayName = profile?.displayName ?? profile?.email ?? '';
+    return requestReport.mutateAsync({
+      companyId,
+      filters,
+      allEvents: events ?? [],
+      displayedEvents,
+      generatedByDisplayName,
+    });
   }
 
   // Belt-and-suspenders: the route guard (mhdRouteAccess.ts) already keeps a
@@ -105,8 +103,6 @@ export function MhdAuditReportsPage() {
   // stale bookmark or a role change mid-session — mirrors MhdTaskAuditPage.
   const canViewAudit = roles.includes('Platform Admin') || roles.includes('HR Partner');
   if (!canViewAudit) return <Navigate to="/404" replace />;
-
-  const generation = requestReport.data;
 
   // Which parent-task tab to point the user toward per entity type, when this
   // page has no parent-task lookup available (see resolveAuditRowLink.ts) —
@@ -132,31 +128,26 @@ export function MhdAuditReportsPage() {
       <MhdPageHeader
         title="Audit Reports"
         description="Company-wide audit events across records and modules. Filter by date, entity, action, or source module before generating a report."
-        actions={
-          <>
-            {companyId && (
-              <MhdAuditReportCustomizeUpload
-                templateKey="AUDIT_REPORT"
-                entityType="AUDIT_REPORT"
-                entityId={companyId}
-                companyId={companyId}
-              />
-            )}
-            <Button
-              type="button"
-              disabled={!companyId || requestReport.isPending}
-              onClick={() => void handleGenerateReport()}
-            >
-              {requestReport.isPending ? 'Generating…' : 'Generate Report'}
-            </Button>
-          </>
-        }
       />
 
-      {reportError && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {reportError}
-        </div>
+      {companyId && (
+        <MhdCard>
+          <h2 className="text-sm font-semibold text-foreground">Reports</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Download a template to customize offline, generate directly from the current filtered
+            audit data, or upload a finished document back.
+          </p>
+          <div className="mt-4">
+            <MhdAuditReportPanel
+              masterTemplateKey="AUDIT_REPORT"
+              systemReportTemplateKeys={MHD_COMPANY_WIDE_AUDIT_SYSTEM_REPORT_KEYS}
+              entityType="AUDIT_REPORT"
+              entityId={companyId}
+              companyId={companyId}
+              onGenerateTemplate={handleGenerateTemplate}
+            />
+          </div>
+        </MhdCard>
       )}
 
       {rowNotice && (
@@ -170,26 +161,6 @@ export function MhdAuditReportsPage() {
           >
             Dismiss
           </button>
-        </div>
-      )}
-
-      {generation && generation.status !== 'FAILED' && (
-        <div className="flex flex-wrap items-center gap-3 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-          <span>
-            {generation.status === 'PENDING'
-              ? 'Report is still generating…'
-              : 'Audit report generated.'}
-          </span>
-          {generation.output_drive_file_id ? (
-            <a
-              href={`https://drive.google.com/file/d/${generation.output_drive_file_id}/view`}
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium underline"
-            >
-              Download
-            </a>
-          ) : null}
         </div>
       )}
 

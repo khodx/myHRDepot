@@ -45,6 +45,37 @@ vi.mock('../Hook', () => ({
   }),
 }));
 
+// MhdAuditReportPanel (rendered unconditionally once the task loads) pulls
+// these from the documents feature's public Hook/Service — mocked here the
+// same way mhdAuditService.test.ts mocks them, so Generate/Download/Upload
+// never make real Supabase calls in this page-level test.
+vi.mock('@/features/documents/Hook', () => ({
+  useMhdDocumentTemplateByKey: (templateKey: string | null) =>
+    templateKey
+      ? {
+          data: {
+            id: `template-${templateKey}`,
+            name: templateKey,
+            templateType: 'REPORT',
+            contentFormat: 'HTML',
+            description: null,
+          },
+        }
+      : { data: undefined },
+  useMhdDocumentGenerations: () => ({ data: [] }),
+  useMhdDocumentGenerationActions: () => ({
+    uploadCompleted: { mutateAsync: vi.fn(), isPending: false },
+  }),
+  mhdDocumentQueryKeys: {
+    generations: (entityType: string, entityId: string | null) =>
+      ['mhd-document-generations', entityType, entityId] as const,
+  },
+}));
+
+vi.mock('@/features/documents/Service', () => ({
+  mhdDocumentService: { getTemplate: vi.fn() },
+}));
+
 const { MhdTaskAuditPage } = await import('../components/MhdTaskAuditPage');
 
 const task: Pick<
@@ -213,16 +244,19 @@ describe('MhdTaskAuditPage — filters', () => {
   });
 });
 
-describe('MhdTaskAuditPage — Generate Report', () => {
-  it('triggers the report mutation with the loaded task and the caller display name', async () => {
+describe('MhdTaskAuditPage — Reports panel (Generate)', () => {
+  it('triggers the report mutation for the master template, the loaded task, and the caller display name', async () => {
     renderPage();
     await waitForTaskLoaded();
 
-    fireEvent.click(screen.getByRole('button', { name: /generate report/i }));
+    // Master template's Generate button renders first, ahead of the three
+    // system report rows' own "Generate" buttons in "All Templates".
+    fireEvent.click(screen.getAllByRole('button', { name: 'Generate' })[0]);
 
     expect(mutateAsyncMock).toHaveBeenCalledWith({
       task,
       generatedByDisplayName: 'Harper HR',
+      templateKey: 'TASK_AUDIT_REPORT',
     });
   });
 
@@ -231,32 +265,49 @@ describe('MhdTaskAuditPage — Generate Report', () => {
     renderPage();
     await waitForTaskLoaded();
 
-    fireEvent.click(screen.getByRole('button', { name: /generate report/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Generate' })[0]);
 
     expect(mutateAsyncMock).toHaveBeenCalledWith({
       task,
       generatedByDisplayName: 'harper@fixtures.myhr.local',
+      templateKey: 'TASK_AUDIT_REPORT',
     });
   });
 
-  it('shows a download link once the report has generated', async () => {
-    mutationDataRef.current = { status: 'GENERATED', output_drive_file_id: 'drive-1' };
+  it('triggers a system report template by its own key when its row Generate is clicked', async () => {
     renderPage();
     await waitForTaskLoaded();
 
-    expect(screen.getByText('Audit report generated.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Download' })).toHaveAttribute(
-      'href',
-      'https://drive.google.com/file/d/drive-1/view',
-    );
+    // Row order in "All Templates" matches MHD_TASK_AUDIT_SYSTEM_REPORT_KEYS:
+    // status history, field change, then security.
+    fireEvent.click(screen.getAllByRole('button', { name: 'Generate' })[1]);
+
+    expect(mutateAsyncMock).toHaveBeenCalledWith({
+      task,
+      generatedByDisplayName: 'Harper HR',
+      templateKey: 'TASK_AUDIT_STATUS_HISTORY_REPORT',
+    });
   });
 
-  it('disables the button while the mutation is pending', async () => {
-    isPendingRef.current = true;
+  it('shows "Generating…" and disables only the clicked template while its mutation is pending', async () => {
+    let resolveMutation: (value: { status: string; output_drive_file_id: string | null }) => void =
+      () => {};
+    mutateAsyncMock.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveMutation = resolve;
+      }),
+    );
     renderPage();
     await waitForTaskLoaded();
 
-    expect(screen.getByRole('button', { name: /generating/i })).toBeDisabled();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Generate' })[0]);
+
+    expect(await screen.findByRole('button', { name: 'Generating…' })).toBeDisabled();
+
+    resolveMutation({ status: 'GENERATED', output_drive_file_id: 'drive-1' });
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Generating…' })).not.toBeInTheDocument(),
+    );
   });
 });
 
