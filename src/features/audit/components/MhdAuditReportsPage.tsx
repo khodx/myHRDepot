@@ -8,6 +8,7 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdAuditEvents, useMhdRequestAuditReport } from '../Hook';
 import type { MhdAuditEvent, MhdAuditEventFilters } from '../Types';
 import { MHD_AUDIT_EVENT_DEFAULT_FILTERS } from '../Types';
+import { MhdAuditReportCustomizeUpload } from './MhdAuditReportCustomizeUpload';
 import { MhdAuditTimelineTable } from './MhdAuditTimelineTable';
 
 /**
@@ -124,14 +125,25 @@ export function MhdAuditReportsPage() {
     <div className="space-y-6">
       <MhdPageHeader
         title="Audit Reports"
+        description="Company-wide audit events across records and modules. Filter by date, entity, action, or source module before generating a report."
         actions={
-          <Button
-            type="button"
-            disabled={!companyId || requestReport.isPending}
-            onClick={() => void handleGenerateReport()}
-          >
-            {requestReport.isPending ? 'Generating…' : 'Generate Report'}
-          </Button>
+          <>
+            {companyId && (
+              <MhdAuditReportCustomizeUpload
+                templateKey="AUDIT_REPORT"
+                entityType="AUDIT_REPORT"
+                entityId={companyId}
+                companyId={companyId}
+              />
+            )}
+            <Button
+              type="button"
+              disabled={!companyId || requestReport.isPending}
+              onClick={() => void handleGenerateReport()}
+            >
+              {requestReport.isPending ? 'Generating…' : 'Generate Report'}
+            </Button>
+          </>
         }
       />
 

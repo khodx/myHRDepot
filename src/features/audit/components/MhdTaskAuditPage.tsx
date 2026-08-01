@@ -11,6 +11,7 @@ import { mhdTaskService } from '@/features/tasks/Service';
 import { useMhdRequestTaskAuditReport, useMhdTaskAuditTimeline } from '../Hook';
 import type { MhdTaskAuditEntityType, MhdTaskAuditFilters } from '../Types';
 import { MHD_TASK_AUDIT_DEFAULT_FILTERS } from '../Types';
+import { MhdAuditReportCustomizeUpload } from './MhdAuditReportCustomizeUpload';
 import { MhdAuditTimelineTable } from './MhdAuditTimelineTable';
 
 const MHD_TASK_AUDIT_ENTITY_TYPES: MhdTaskAuditEntityType[] = [
@@ -114,14 +115,25 @@ export function MhdTaskAuditPage() {
         backTo={`/tasks/${taskId}`}
         backLabel="Task"
         title="Task Audit"
+        description="Timeline of changes tied to this task, including task, note, attachment, and activity events. Filter by date, action, performer, or linked entity before generating a report."
         actions={
-          <Button
-            type="button"
-            disabled={!task || requestReport.isPending}
-            onClick={() => void handleGenerateReport()}
-          >
-            {requestReport.isPending ? 'Generating…' : 'Generate Report'}
-          </Button>
+          <>
+            {task && (
+              <MhdAuditReportCustomizeUpload
+                templateKey="TASK_AUDIT_REPORT"
+                entityType="TASK"
+                entityId={task.id}
+                companyId={task.companyId}
+              />
+            )}
+            <Button
+              type="button"
+              disabled={!task || requestReport.isPending}
+              onClick={() => void handleGenerateReport()}
+            >
+              {requestReport.isPending ? 'Generating…' : 'Generate Report'}
+            </Button>
+          </>
         }
       />
 
