@@ -71,17 +71,19 @@ export function MhdPublicSigningPage() {
   const consentRecorded = !!request?.consentedAt;
   const terminal = isTerminalState(request);
 
-  const loadRequest = useCallback(async () => {
-    if (!token) return;
+  const loadRequest = useCallback(async (): Promise<MhdSignatureRequestByToken | null> => {
+    if (!token) return null;
 
     try {
       const nextRequest = await mhdEsignatureService.getRequestByToken(token);
       setRequest(nextRequest);
       setLoadError(null);
       setTypedSignatureName((current) => current || nextRequest.signerName || '');
+      return nextRequest;
     } catch (error) {
       setRequest(null);
       setLoadError(error instanceof Error ? error.message : 'Unable to load the signing link.');
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -114,6 +116,40 @@ export function MhdPublicSigningPage() {
     }
   }
 
+  async function handleCompletedRequestSideEffects(completedRequest: MhdSignatureRequestByToken) {
+    if (!completedRequest.companyId) {
+      console.error(
+        'Audit certificate generation skipped because the signing-token response did not include company_id',
+      );
+      return;
+    }
+
+    try {
+      const certificate = await mhdEsignatureService.createAuditCertificateForRequest({
+        requestId: completedRequest.requestId,
+        companyId: completedRequest.companyId,
+        sourceDocumentHash: completedRequest.documentHash,
+        sourceDriveFileId:
+          completedRequest.signedDriveFileId ?? completedRequest.documentDriveFileId ?? null,
+      });
+
+      await mhdEsignatureService.renderAuditCertificate(certificate.id);
+
+      const noticeResults = await Promise.allSettled([
+        mhdEsignatureService.sendAllSignedNotice(completedRequest.requestId),
+        mhdEsignatureService.sendCertificateReadyNotice(certificate.id),
+      ]);
+
+      noticeResults.forEach((result) => {
+        if (result.status === 'rejected') {
+          console.error('Post-signature completion notification failed', result.reason);
+        }
+      });
+    } catch (error) {
+      console.error('Audit certificate generation failed after signature completion', error);
+    }
+  }
+
   async function handleSign() {
     if (!token || !request) return;
 
@@ -130,7 +166,10 @@ export function MhdPublicSigningPage() {
         userAgent: navigator.userAgent,
       });
       setActionMessage('Signature recorded successfully.');
-      await loadRequest();
+      const nextRequest = await loadRequest();
+      if (nextRequest?.requestStatus === 'COMPLETED') {
+        void handleCompletedRequestSideEffects(nextRequest);
+      }
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to record the signature.');
     } finally {
@@ -139,7 +178,7 @@ export function MhdPublicSigningPage() {
   }
 
   async function handleDecline() {
-    if (!token) return;
+    if (!token || !request) return;
 
     setActionError(null);
     setActionMessage(null);
@@ -152,6 +191,9 @@ export function MhdPublicSigningPage() {
         userAgent: navigator.userAgent,
       });
       setActionMessage('This request has been declined.');
+      mhdEsignatureService.sendDeclinedNotice(request.signerId).catch((error) => {
+        console.error('Declined signature notification failed', error);
+      });
       await loadRequest();
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to decline this request.');

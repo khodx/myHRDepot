@@ -4,6 +4,8 @@ import { mhdTaskService } from '@/features/tasks/Service';
 import type {
   MhdCreateEsignatureRequestFromGenerationInput,
   MhdCreateEsignatureRequestResult,
+  MhdAuditCertificate,
+  MhdAuditCertificateVerification,
   MhdEsignatureAssignableUser,
   MhdEsignatureEvent,
   MhdEsignatureGeneratedDocument,
@@ -12,6 +14,8 @@ import type {
   MhdSignatureConsentRecord,
   MhdSignatureRequestByToken,
 } from './Types';
+
+const RENDER_AUDIT_CERTIFICATE_FUNCTION_NAME = 'render-audit-certificate';
 
 interface SignerRow {
   id: string;
@@ -74,6 +78,25 @@ interface SignatureEmailResponse {
   error?: string;
 }
 
+interface RenderAuditCertificateResponse {
+  success?: boolean;
+  error?: string;
+}
+
+interface AuditCertificateRow {
+  id: string;
+  reference_id: string;
+  verification_code: string;
+  entity_type: string;
+  entity_id: string;
+  status: string;
+  generated_at: string | null;
+  digitally_signed: boolean | null;
+  certificate_drive_file_id?: string | null;
+  drive_file_id?: string | null;
+  merged_drive_file_id?: string | null;
+}
+
 function mapSigner(row: SignerRow): MhdEsignatureSigner {
   return {
     id: row.id,
@@ -133,6 +156,21 @@ function mapGeneratedDocument(row: GeneratedDocumentRow): MhdEsignatureGenerated
     generatedAt: row.generated_at,
     esignatureRequestId: row.esignature_request_id,
     mergeData: row.merge_data ?? {},
+  };
+}
+
+function mapAuditCertificate(row: AuditCertificateRow): MhdAuditCertificate {
+  return {
+    id: row.id,
+    referenceId: row.reference_id,
+    verificationCode: row.verification_code,
+    entityType: row.entity_type,
+    entityId: row.entity_id,
+    status: row.status,
+    generatedAt: row.generated_at,
+    digitallySigned: row.digitally_signed ?? false,
+    certificateDriveFileId:
+      row.certificate_drive_file_id ?? row.merged_drive_file_id ?? row.drive_file_id ?? null,
   };
 }
 
@@ -382,6 +420,116 @@ export const mhdEsignatureService = {
     if (error) {
       throw new Error(`Unable to void signature request: ${error.message}`);
     }
+
+    await invokeSignatureEmail({ request_id: requestId, voided_notice: true });
+  },
+
+  async createAuditCertificateForRequest(input: {
+    requestId: string;
+    companyId: string;
+    sourceDocumentHash: string | null;
+    sourceDriveFileId: string | null;
+    sourceDocumentGenerationId?: string | null;
+  }): Promise<{ id: string; referenceId: string; verificationCode: string }> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_create_audit_certificate', {
+        p_company_id: input.companyId,
+        p_entity_type: 'ESIGNATURE_REQUEST',
+        p_entity_id: input.requestId,
+        ...(input.sourceDocumentGenerationId
+          ? { p_source_document_generation_id: input.sourceDocumentGenerationId }
+          : {}),
+        ...(input.sourceDocumentHash ? { p_source_document_hash: input.sourceDocumentHash } : {}),
+        ...(input.sourceDriveFileId ? { p_source_drive_file_id: input.sourceDriveFileId } : {}),
+      })
+      .returns<Array<{ id: string; reference_id: string; verification_code: string }>>();
+
+    if (error) {
+      throw new Error(`Unable to create audit certificate: ${error.message}`);
+    }
+
+    const row = data?.[0];
+    if (!row?.id) {
+      throw new Error('Unable to create audit certificate: no certificate id returned.');
+    }
+
+    return {
+      id: row.id,
+      referenceId: row.reference_id,
+      verificationCode: row.verification_code,
+    };
+  },
+
+  async renderAuditCertificate(certificateId: string): Promise<void> {
+    const { data, error } =
+      await supabaseClient.functions.invoke<RenderAuditCertificateResponse>(
+        RENDER_AUDIT_CERTIFICATE_FUNCTION_NAME,
+        { body: { certificate_id: certificateId } },
+      );
+
+    if (error) {
+      throw new Error(`Audit certificate render failed: ${error.message}`);
+    }
+    if (data?.success === false) {
+      throw new Error(
+        `Audit certificate render failed: ${data.error ?? 'unknown render error.'}`,
+      );
+    }
+  },
+
+  async sendAllSignedNotice(requestId: string): Promise<void> {
+    await invokeSignatureEmail({ request_id: requestId, all_signed_notice: true });
+  },
+
+  async sendDeclinedNotice(signerId: string): Promise<void> {
+    await invokeSignatureEmail({ signer_id: signerId, declined_notice: true });
+  },
+
+  async sendCertificateReadyNotice(certificateId: string): Promise<void> {
+    await invokeSignatureEmail({ certificate_id: certificateId, certificate_ready: true });
+  },
+
+  async listAuditCertificatesForRequest(requestId: string): Promise<MhdAuditCertificate[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_audit_certificates_for_entity', {
+        p_entity_type: 'ESIGNATURE_REQUEST',
+        p_entity_id: requestId,
+      })
+      .returns<AuditCertificateRow[]>();
+
+    if (error) {
+      throw new Error(`Unable to load audit certificates: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapAuditCertificate);
+  },
+
+  async verifyAuditCertificateByCode(
+    verificationCode: string,
+  ): Promise<MhdAuditCertificateVerification> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_verify_audit_certificate_by_code', {
+        p_verification_code: verificationCode.trim(),
+      })
+      .maybeSingle<{
+        is_valid: boolean;
+        entity_type: string | null;
+        status: string | null;
+        generated_at: string | null;
+        digitally_signed: boolean | null;
+      }>();
+
+    if (error) {
+      throw new Error(`Unable to verify audit certificate: ${error.message}`);
+    }
+
+    return {
+      isValid: data?.is_valid ?? false,
+      entityType: data?.entity_type ?? null,
+      status: data?.status ?? null,
+      generatedAt: data?.generated_at ?? null,
+      digitallySigned: data?.digitally_signed ?? false,
+    };
   },
 
   async getRequestByToken(signingToken: string): Promise<MhdSignatureRequestByToken> {
@@ -399,6 +547,7 @@ export const mhdEsignatureService = {
     const row = data as {
       request_id: string;
       reference_id: string;
+      company_id?: string | null;
       document_name: string;
       document_drive_file_id: string;
       document_hash: string | null;
@@ -417,6 +566,7 @@ export const mhdEsignatureService = {
     return {
       requestId: row.request_id,
       referenceId: row.reference_id,
+      companyId: row.company_id ?? null,
       documentName: row.document_name,
       documentDriveFileId: row.document_drive_file_id,
       documentHash: row.document_hash,

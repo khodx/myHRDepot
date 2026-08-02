@@ -110,6 +110,7 @@ export interface MhdCreateEsignatureRequestResult {
 export interface MhdSignatureRequestByToken {
   requestId: string;
   referenceId: string;
+  companyId: string | null;
   documentName: string;
   documentDriveFileId: string;
   documentHash: string | null;
@@ -129,6 +130,26 @@ export interface MhdSignatureConsentRecord {
   requestId: string;
   signerId: string;
   consentedAt: string;
+}
+
+export interface MhdAuditCertificate {
+  id: string;
+  referenceId: string;
+  verificationCode: string;
+  entityType: string;
+  entityId: string;
+  status: string;
+  generatedAt: string | null;
+  digitallySigned: boolean;
+  certificateDriveFileId: string | null;
+}
+
+export interface MhdAuditCertificateVerification {
+  isValid: boolean;
+  entityType: string | null;
+  status: string | null;
+  generatedAt: string | null;
+  digitallySigned: boolean;
 }
 
 export function mhdBuildGoogleDriveViewUrl(fileId: string | null | undefined): string | null {

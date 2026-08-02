@@ -36,6 +36,7 @@ import { MhdPropertyDetailPage } from '@/features/property/components/MhdPropert
 import { MhdEsignaturePage } from '@/features/esignature/components/MhdEsignaturePage';
 import { MhdEsignatureDetailPage } from '@/features/esignature/components/MhdEsignatureDetailPage';
 import { MhdPublicSigningPage } from '@/features/esignature/components/MhdPublicSigningPage';
+import { MhdCertificateVerificationPage } from '@/features/esignature/components/MhdCertificateVerificationPage';
 import { MhdCommunicationsPage } from '@/features/communications/components/MhdCommunicationsPage';
 import { MhdMessagingPage } from '@/features/messaging/components/MhdMessagingPage';
 import { MhdSystemAlertsPage } from '@/features/communications/components/MhdSystemAlertsPage';
@@ -139,6 +140,7 @@ function MhdAppRoutes() {
         <Route path="/auth/callback" element={<MhdAuthCallbackPage />} />
         <Route element={<PublicLayout />}>
           <Route path="/sign/:token" element={<MhdPublicSigningPage />} />
+          <Route path="/verify/:code" element={<MhdCertificateVerificationPage />} />
           {/* The public, UNAUTHENTICATED applicant apply page. It sits OUTSIDE the
               MhdProtectedRoute guard entirely — no session, no role guard — and
               reads its single-use invite token from the ?token= query string,

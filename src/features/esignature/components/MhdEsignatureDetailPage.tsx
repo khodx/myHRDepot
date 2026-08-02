@@ -7,7 +7,12 @@ import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdEsignatureRecordTabs } from '@/appshell/components/MhdEsignatureRecordTabs';
 import { mhdCanMutateEsignature } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { useMhdEsignatureActions, useMhdEsignatureEvents, useMhdEsignatureRequest } from '../Hook';
+import {
+  useMhdEsignatureActions,
+  useMhdEsignatureAuditCertificates,
+  useMhdEsignatureEvents,
+  useMhdEsignatureRequest,
+} from '../Hook';
 import { mhdBuildGoogleDriveViewUrl } from '../Types';
 
 const STATUS_VARIANTS: Record<string, MhdBadgeVariant> = {
@@ -28,12 +33,14 @@ export function MhdEsignatureDetailPage() {
   const canMutate = mhdCanMutateEsignature(roles);
   const requestQuery = useMhdEsignatureRequest(requestId ?? null);
   const eventsQuery = useMhdEsignatureEvents(requestId ?? null);
+  const certificatesQuery = useMhdEsignatureAuditCertificates(requestId ?? null);
   const actions = useMhdEsignatureActions();
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const request = requestQuery.data ?? null;
   const events = eventsQuery.data ?? [];
+  const certificates = certificatesQuery.data ?? [];
   const driveUrl = mhdBuildGoogleDriveViewUrl(
     request?.signedDriveFileId ?? request?.documentDriveFileId,
   );
@@ -167,6 +174,79 @@ export function MhdEsignatureDetailPage() {
             <p className="mt-2 break-all font-mono text-xs text-foreground">
               {request.signedDocumentHash ?? 'Pending completion'}
             </p>
+          </div>
+        </MhdCard>
+
+        <MhdCard className="rounded-2xl p-5">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-accent" />
+            <h2 className="text-lg font-semibold text-foreground">Audit Certificate</h2>
+          </div>
+          {certificatesQuery.error ? (
+            <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+              {certificatesQuery.error instanceof Error
+                ? certificatesQuery.error.message
+                : 'Unable to load audit certificates.'}
+            </div>
+          ) : null}
+          <div className="mt-4 space-y-3">
+            {certificates.map((certificate) => {
+              const certificateUrl = mhdBuildGoogleDriveViewUrl(certificate.certificateDriveFileId);
+
+              return (
+                <div
+                  key={certificate.id}
+                  className="rounded-xl border border-border bg-muted p-4"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-semibold text-foreground">
+                          {certificate.referenceId}
+                        </p>
+                        <MhdBadge variant={STATUS_VARIANTS[certificate.status] ?? 'neutral'}>
+                          {certificate.status}
+                        </MhdBadge>
+                        <MhdBadge variant={certificate.digitallySigned ? 'success' : 'warning'}>
+                          {certificate.digitallySigned
+                            ? 'Digitally signed'
+                            : 'Hash-verified only'}
+                        </MhdBadge>
+                      </div>
+                      <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+                        <p>
+                          Generated:{' '}
+                          {certificate.generatedAt
+                            ? new Date(certificate.generatedAt).toLocaleString()
+                            : 'Pending'}
+                        </p>
+                        <p className="break-all">Verification: {certificate.verificationCode}</p>
+                      </div>
+                    </div>
+                    {certificateUrl ? (
+                      <a
+                        href={certificateUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground"
+                      >
+                        Open Certificate
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+            {certificatesQuery.isLoading ? (
+              <div className="rounded-xl border border-dashed border-border bg-muted p-4 text-sm text-muted-foreground">
+                Loading audit certificate status...
+              </div>
+            ) : null}
+            {!certificatesQuery.isLoading && certificates.length === 0 && !certificatesQuery.error ? (
+              <div className="rounded-xl border border-dashed border-border bg-muted p-4 text-sm text-muted-foreground">
+                No audit certificate has been generated for this request yet.
+              </div>
+            ) : null}
           </div>
         </MhdCard>
 

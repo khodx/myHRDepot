@@ -1622,6 +1622,111 @@ export type Database = {
           },
         ]
       }
+      audit_certificates: {
+        Row: {
+          certificate_document_generation_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          digitally_signed: boolean
+          entity_id: string
+          entity_type: string
+          generated_at: string | null
+          id: string
+          merged_document_hash: string | null
+          merged_drive_file_id: string | null
+          reference_id: string
+          signing_certificate_fingerprint: string | null
+          source_document_generation_id: string | null
+          source_document_hash: string | null
+          source_drive_file_id: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          verification_code: string
+        }
+        Insert: {
+          certificate_document_generation_id?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          digitally_signed?: boolean
+          entity_id: string
+          entity_type: string
+          generated_at?: string | null
+          id?: string
+          merged_document_hash?: string | null
+          merged_drive_file_id?: string | null
+          reference_id: string
+          signing_certificate_fingerprint?: string | null
+          source_document_generation_id?: string | null
+          source_document_hash?: string | null
+          source_drive_file_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          verification_code: string
+        }
+        Update: {
+          certificate_document_generation_id?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          digitally_signed?: boolean
+          entity_id?: string
+          entity_type?: string
+          generated_at?: string | null
+          id?: string
+          merged_document_hash?: string | null
+          merged_drive_file_id?: string | null
+          reference_id?: string
+          signing_certificate_fingerprint?: string | null
+          source_document_generation_id?: string | null
+          source_document_hash?: string | null
+          source_drive_file_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          verification_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_certificates_certificate_document_generation_id_fkey"
+            columns: ["certificate_document_generation_id"]
+            isOneToOne: false
+            referencedRelation: "document_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_certificates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_certificates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_certificates_source_document_generation_id_fkey"
+            columns: ["source_document_generation_id"]
+            isOneToOne: false
+            referencedRelation: "document_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_certificates_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_events: {
         Row: {
           action_type: string | null
@@ -3330,6 +3435,50 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_retention_schedules: {
+        Row: {
+          company_id: string
+          computed_at: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          retention_basis: string
+          retention_expires_at: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          computed_at?: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          retention_basis: string
+          retention_expires_at: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          computed_at?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          retention_basis?: string
+          retention_expires_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_retention_schedules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -20933,6 +21082,20 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_complete_audit_certificate: {
+        Args: {
+          p_certificate_document_generation_id: string
+          p_certificate_id: string
+          p_digitally_signed?: boolean
+          p_merged_document_hash: string
+          p_merged_drive_file_id: string
+          p_signing_certificate_fingerprint?: string
+        }
+        Returns: {
+          id: string
+          status: string
+        }[]
+      }
       mhd_complete_document_generation: {
         Args: {
           p_actor_user_id?: string
@@ -21005,6 +21168,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      mhd_compute_i9_retention_date: {
+        Args: { p_hire_date: string; p_termination_date?: string }
+        Returns: string
       }
       mhd_conduct_create_action: {
         Args: {
@@ -21173,6 +21340,22 @@ export type Database = {
           drive_web_view_link: string
           id: string
           reference_id: string
+        }[]
+      }
+      mhd_create_audit_certificate: {
+        Args: {
+          p_actor_user_id?: string
+          p_company_id: string
+          p_entity_id: string
+          p_entity_type: string
+          p_source_document_generation_id?: string
+          p_source_document_hash?: string
+          p_source_drive_file_id?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+          verification_code: string
         }[]
       }
       mhd_create_case_document: {
@@ -21724,6 +21907,37 @@ export type Database = {
           user_id: string
         }[]
       }
+      mhd_get_audit_certificate: {
+        Args: { p_certificate_id: string }
+        Returns: {
+          certificate_document_generation_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          digitally_signed: boolean
+          entity_id: string
+          entity_type: string
+          generated_at: string | null
+          id: string
+          merged_document_hash: string | null
+          merged_drive_file_id: string | null
+          reference_id: string
+          signing_certificate_fingerprint: string | null
+          source_document_generation_id: string | null
+          source_document_hash: string | null
+          source_drive_file_id: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          verification_code: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "audit_certificates"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       mhd_get_audit_timeline_for_entity: {
         Args: { p_entity_id: string; p_entity_type: string; p_limit?: number }
         Returns: {
@@ -22043,6 +22257,7 @@ export type Database = {
       mhd_get_signature_request_by_token: {
         Args: { p_signing_token: string }
         Returns: {
+          company_id: string
           consented_at: string
           disclosure_text: string
           disclosure_version: string
@@ -23161,6 +23376,37 @@ export type Database = {
           uploader_display_name: string
           version_number: number
         }[]
+      }
+      mhd_list_audit_certificates_for_entity: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: {
+          certificate_document_generation_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          digitally_signed: boolean
+          entity_id: string
+          entity_type: string
+          generated_at: string | null
+          id: string
+          merged_document_hash: string | null
+          merged_drive_file_id: string | null
+          reference_id: string
+          signing_certificate_fingerprint: string | null
+          source_document_generation_id: string | null
+          source_document_hash: string | null
+          source_drive_file_id: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          verification_code: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "audit_certificates"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       mhd_list_audit_events: {
         Args: {
@@ -24463,6 +24709,18 @@ export type Database = {
         Args: { p_task_id: string }
         Returns: undefined
       }
+      mhd_record_attestation_acknowledgment: {
+        Args: {
+          p_ip_address?: string
+          p_signing_token: string
+          p_user_agent?: string
+        }
+        Returns: {
+          acknowledged_at: string
+          request_id: string
+          signer_id: string
+        }[]
+      }
       mhd_record_esign_consent: {
         Args: {
           p_company_id: string
@@ -24476,6 +24734,14 @@ export type Database = {
           p_subject_table?: string
         }
         Returns: string
+      }
+      mhd_record_printed_confirmation_delivered: {
+        Args: { p_drive_file_id?: string; p_signer_id: string }
+        Returns: {
+          delivered_at: string
+          request_id: string
+          signer_id: string
+        }[]
       }
       mhd_record_required_notice_ack_detail: {
         Args: {
@@ -25755,6 +26021,19 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_upsert_document_retention_schedule: {
+        Args: {
+          p_company_id: string
+          p_entity_id: string
+          p_entity_type: string
+          p_retention_basis: string
+          p_retention_expires_at: string
+        }
+        Returns: {
+          id: string
+          retention_expires_at: string
+        }[]
+      }
       mhd_upsert_onboarding_checklist_item: {
         Args: {
           p_actor_user_id: string
@@ -25778,6 +26057,16 @@ export type Database = {
         }[]
       }
       mhd_user_has_role: { Args: { p_role_name: string }; Returns: boolean }
+      mhd_verify_audit_certificate_by_code: {
+        Args: { p_verification_code: string }
+        Returns: {
+          digitally_signed: boolean
+          entity_type: string
+          generated_at: string
+          is_valid: boolean
+          status: string
+        }[]
+      }
       mhd_void_signature_request: {
         Args: { p_actor_user_id?: string; p_request_id: string }
         Returns: {

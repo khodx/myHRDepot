@@ -6,6 +6,8 @@ const esignatureKeys = {
   requests: (companyId: string | null) => ['esignature-requests', companyId ?? ''] as const,
   request: (requestId: string | null) => ['esignature-request', requestId ?? ''] as const,
   events: (requestId: string | null) => ['esignature-events', requestId ?? ''] as const,
+  auditCertificates: (requestId: string | null) =>
+    ['esignature-audit-certificates', requestId ?? ''] as const,
   generatedDocuments: (companyId: string | null, personId: string | null) =>
     ['esignature-generated-documents', companyId ?? '', personId ?? ''] as const,
   users: (companyId: string | null) => ['esignature-users', companyId ?? ''] as const,
@@ -31,6 +33,14 @@ export function useMhdEsignatureEvents(requestId: string | null) {
   return useQuery({
     queryKey: esignatureKeys.events(requestId),
     queryFn: () => mhdEsignatureService.getEvents(requestId!),
+    enabled: !!requestId,
+  });
+}
+
+export function useMhdEsignatureAuditCertificates(requestId: string | null) {
+  return useQuery({
+    queryKey: esignatureKeys.auditCertificates(requestId),
+    queryFn: () => mhdEsignatureService.listAuditCertificatesForRequest(requestId!),
     enabled: !!requestId,
   });
 }
@@ -62,6 +72,7 @@ export function useMhdEsignatureActions() {
       queryClient.invalidateQueries({ queryKey: ['esignature-requests'] }),
       queryClient.invalidateQueries({ queryKey: ['esignature-request'] }),
       queryClient.invalidateQueries({ queryKey: ['esignature-events'] }),
+      queryClient.invalidateQueries({ queryKey: ['esignature-audit-certificates'] }),
       queryClient.invalidateQueries({ queryKey: ['esignature-generated-documents'] }),
     ]);
   }
