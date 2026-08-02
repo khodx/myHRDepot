@@ -18,6 +18,7 @@ import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { cn } from '@/utils/cn';
+import { MhdCoachingPlanRecordTabs } from '@/appshell/components/MhdCoachingPlanRecordTabs';
 import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities, useMhdActivityActions } from '@/features/activities/Hook';
@@ -372,6 +373,11 @@ export function MhdCoachingPlanDetailPage() {
           </>
         }
         chips={<MhdCoachingStatusBadge status={plan.status} />}
+      />
+
+      <MhdCoachingPlanRecordTabs
+        planId={plan.id}
+        active="detail"
         actions={
           canMutate && isPlanActive ? (
             <>

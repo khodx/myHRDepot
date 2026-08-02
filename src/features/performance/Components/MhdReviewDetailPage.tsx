@@ -19,6 +19,7 @@ import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { cn } from '@/utils/cn';
+import { MhdReviewRecordTabs } from '@/appshell/components/MhdReviewRecordTabs';
 import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities } from '@/features/activities/Hook';
@@ -312,6 +313,11 @@ export function MhdReviewDetailPage() {
             <MhdReviewStatusBadge status={review.status} />
           </>
         }
+      />
+
+      <MhdReviewRecordTabs
+        reviewId={review.id}
+        active="detail"
         actions={
           canMutate ? (
             <>

@@ -12,6 +12,7 @@ import { useState, type FormEvent } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { Json } from '@/types/database.types';
+import { MhdActivityRecordTabs } from '@/appshell/components/MhdActivityRecordTabs';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { mhdCanMutateActivities } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -431,6 +432,11 @@ export function MhdActivityDetailPage() {
             ) : null}
           </>
         }
+      />
+
+      <MhdActivityRecordTabs
+        activityId={activity.id}
+        active="detail"
         actions={
           canMutate ? (
             <>
@@ -756,18 +762,6 @@ export function MhdActivityDetailPage() {
           </section>
         </div>
       </section>
-
-      {canMutate ? (
-        <div className="flex justify-end gap-2 border-t border-border pt-4">
-          <Button variant="warning" onClick={() => setIsEditing((current) => !current)}>
-            {isEditing ? 'Close Edit' : 'Edit Activity'}
-          </Button>
-          <MhdDetailActions
-            onDelete={handleDelete}
-            deleteConfirmMessage={`Delete activity ${activity.referenceId}? Sub-activities and participants are deleted with it.`}
-          />
-        </div>
-      ) : null}
 
       <MhdSystemFieldsCard
         id={activity.id}
