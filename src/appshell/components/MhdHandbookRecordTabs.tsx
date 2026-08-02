@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 
 export type MhdHandbookRecordTab = 'detail' | 'acknowledgments';

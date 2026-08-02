@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 import { useMhdDeclineParticipation, useMhdSubmitFeedback } from '../Hook-v2';
 import {

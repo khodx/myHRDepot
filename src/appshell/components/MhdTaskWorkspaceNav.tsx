@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { CheckSquare, FileSearch, FileText } from 'lucide-react';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { cn } from '@/utils/cn';
 import { MHD_AUDIT_REPORTS_LINK_ROLES } from './MhdTaskWorkspaceNavConstants';

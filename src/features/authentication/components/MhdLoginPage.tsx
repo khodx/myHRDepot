@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { MhdAuthLayout } from './MhdAuthLayout';
 import { MhdAuthCard } from './MhdAuthCard';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 import { mhdLoginSchema, type MhdLoginFormValues } from '../Schemas';
 import { useMhdAuth } from '../Hook';

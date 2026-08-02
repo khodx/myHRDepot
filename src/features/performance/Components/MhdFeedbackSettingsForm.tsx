@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 import { useMhdFeedbackSettings, useMhdUpsertFeedbackSettings } from '../Hook-v2';
 import { MHD_FEEDBACK_THRESHOLD_FLOOR } from '../Types-v2';

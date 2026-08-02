@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Pencil, Trash2 } from 'lucide-react';
-import { Button, buttonBaseClasses, buttonVariantClasses } from './Button';
+import { Button } from './Button';
+import { buttonBaseClasses, buttonVariantClasses } from './buttonStyles';
 import { cn } from '@/utils/cn';
 
 interface MhdDetailActionsProps {

@@ -5,7 +5,7 @@ import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTableFooter, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdNotifications } from '@/features/notifications/Hook';
 import { MhdCommunicationsTabs } from '@/appshell/components/MhdCommunicationsTabs';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 
 function formatDate(value: string) {

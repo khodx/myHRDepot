@@ -1,5 +1,5 @@
 import { LayoutGrid, List } from 'lucide-react';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 import type { MhdViewMode } from './MhdViewToggleUtils';
 

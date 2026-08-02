@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, Layers, Plus, Save, Trash2 } from 'lucide-react';
-import { Button, buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { MhdTaskWorkspaceNav } from '@/appshell/components/MhdTaskWorkspaceNav';

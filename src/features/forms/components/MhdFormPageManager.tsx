@@ -1,6 +1,6 @@
 import type { MhdFormPage as MhdFormPageType } from '../Types';
 import { mhdFormLogicEngine } from '../Service';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 
 interface MhdFormPageManagerProps {

@@ -9,7 +9,7 @@ import { MhdFormPage } from './MhdFormPage';
 import { MhdFormPageManager } from './MhdFormPageManager';
 import { MhdFormProgress } from './MhdFormProgress';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 
 interface MhdFormRendererProps {

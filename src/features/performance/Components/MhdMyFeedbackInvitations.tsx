@@ -1,4 +1,4 @@
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 import { useMhdMyInvitations } from '../Hook-v2';
 import { mhdFormatParticipantType } from '../Types-v2';
