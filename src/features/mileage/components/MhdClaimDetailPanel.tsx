@@ -13,7 +13,8 @@ interface Props {
   isPrivileged: boolean;
   isLoading?: boolean;
   isSubmitting?: boolean;
-  onClose: () => void;
+  /** Omit when the panel is the whole body of a detail page (no inline "Close" affordance needed — the page's own back link covers it). */
+  onClose?: () => void;
   onSubmitClaim?: (claimId: string) => Promise<void>;
   onDecide?: (values: MhdClaimDecisionFormValues) => Promise<void>;
   onCancelClaim?: (input: { claimId: string; reason: string }) => Promise<void>;
@@ -110,22 +111,24 @@ export function MhdClaimDetailPanel({
 
   return (
     <section className="space-y-6 rounded-xl border border-border bg-card p-4 shadow-sm">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">
-            {claim.referenceId}
-            <span className="ml-3 align-middle">
-              <MhdClaimStatusBadge status={claim.status} />
-            </span>
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {claim.personDisplayName} · {claim.periodStart} — {claim.periodEnd}
-          </p>
-        </div>
-        <Button variant="secondary" className="px-3 py-1.5" onClick={onClose}>
-          Close
-        </Button>
-      </header>
+      {onClose ? (
+        <header className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">
+              {claim.referenceId}
+              <span className="ml-3 align-middle">
+                <MhdClaimStatusBadge status={claim.status} />
+              </span>
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {claim.personDisplayName} · {claim.periodStart} — {claim.periodEnd}
+            </p>
+          </div>
+          <Button variant="secondary" className="px-3 py-1.5" onClick={onClose}>
+            Close
+          </Button>
+        </header>
+      ) : null}
 
       {!isStamped ? (
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">

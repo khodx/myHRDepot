@@ -3,9 +3,17 @@ import { Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import {
   useMhdCreateRequisition,
   useMhdRecruitingPeople,
@@ -92,7 +100,7 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
         }
       />
 
-      <MhdCard className="grid gap-3 md:grid-cols-3">
+      <MhdFilterBar>
         <MhdFilterSelect
           label="Status"
           id="statusFilter"
@@ -111,7 +119,7 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
             </option>
           ))}
         </MhdFilterSelect>
-      </MhdCard>
+      </MhdFilterBar>
 
       {requisitions.isLoading ? (
         <MhdCard className="p-6 text-sm text-muted-foreground">Loading requisitions…</MhdCard>
@@ -131,7 +139,7 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
                 <MhdTh>Openings</MhdTh>
                 <MhdTh>Active applicants</MhdTh>
                 <MhdTh>Status</MhdTh>
-                <MhdTh />
+                <MhdActionsTh />
               </tr>
             </thead>
             <tbody>
@@ -152,19 +160,14 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
                   <MhdTd>
                     <MhdRequisitionStatusBadge status={requisition.status} />
                   </MhdTd>
-                  <MhdTd className="text-right">
-                    <button
-                      type="button"
-                      onClick={() => onOpenRequisition(requisition.id)}
-                      className="text-sm font-medium text-accent hover:text-accent-hover"
-                    >
-                      Open
-                    </button>
-                  </MhdTd>
+                  <MhdTableActions viewTo={`/recruiting/requisitions/${requisition.id}`} />
                 </MhdTr>
               ))}
             </tbody>
           </MhdTable>
+          <MhdTableFooter
+            summary={`Showing 1 to ${(requisitions.data ?? []).length} of ${(requisitions.data ?? []).length} requisitions`}
+          />
         </MhdCard>
       )}
 

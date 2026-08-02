@@ -3,6 +3,10 @@ import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
+  MhdHandbookRecordTabs,
+  type MhdHandbookRecordTab,
+} from '@/appshell/components/MhdHandbookRecordTabs';
+import {
   useMhdArchiveHandbook,
   useMhdHandbookPreview,
   useMhdHandbookSections,
@@ -22,6 +26,8 @@ interface Props {
   companyId: string;
   /** Governs the edit/publish/archive affordances. The RPCs re-check the role regardless. */
   canManage: boolean;
+  /** Which record tab this route renders. Defaults to 'detail'. */
+  activeTab?: MhdHandbookRecordTab;
   /**
    * APP-LAYER publish ceremony hook. When provided, the host route renders the
    * handbook document (doc-gen) and resolves to its id, forwarded to `publish` as
@@ -51,6 +57,7 @@ export function MhdHandbookWizard({
   handbook,
   companyId,
   canManage,
+  activeTab = 'detail',
   onGenerateDocument,
   onRequestSignature,
 }: Props) {
@@ -71,16 +78,27 @@ export function MhdHandbookWizard({
         description={<span className="font-mono text-xs">{handbook.referenceId}</span>}
       />
 
+      <MhdHandbookRecordTabs handbookId={handbook.id} active={activeTab} />
+
       {isDraft ? (
-        <MhdHandbookDraftEditor
-          handbook={handbook}
-          canManage={canManage}
-          onGenerateDocument={onGenerateDocument}
-        />
+        activeTab === 'acknowledgments' ? (
+          <MhdCard>
+            <p className="text-sm text-muted-foreground">
+              Acknowledgments become available once this handbook is published.
+            </p>
+          </MhdCard>
+        ) : (
+          <MhdHandbookDraftEditor
+            handbook={handbook}
+            canManage={canManage}
+            onGenerateDocument={onGenerateDocument}
+          />
+        )
       ) : (
         <MhdHandbookPublishedView
           handbook={handbook}
           companyId={companyId}
+          activeTab={activeTab}
           onRequestSignature={onRequestSignature}
         />
       )}
@@ -218,26 +236,44 @@ function MhdHandbookDraftEditor({ handbook, canManage, onGenerateDocument }: Dra
 interface PublishedProps {
   handbook: MhdHandbook;
   companyId: string;
+  activeTab: MhdHandbookRecordTab;
   onRequestSignature?: (personId: string) => Promise<string | null>;
 }
 
-function MhdHandbookPublishedView({ handbook, companyId, onRequestSignature }: PublishedProps) {
+function MhdHandbookPublishedView({
+  handbook,
+  companyId,
+  activeTab,
+  onRequestSignature,
+}: PublishedProps) {
   const archive = useMhdArchiveHandbook();
   const versionId = handbook.currentVersionId;
+
+  if (activeTab === 'acknowledgments') {
+    if (versionId && handbook.status === 'PUBLISHED') {
+      return (
+        <MhdHandbookAckBoard
+          companyId={companyId}
+          versionId={versionId}
+          onRequestSignature={onRequestSignature}
+        />
+      );
+    }
+    return (
+      <MhdCard>
+        <p className="text-sm text-muted-foreground">
+          {handbook.status === 'PUBLISHED'
+            ? 'This handbook has no published version.'
+            : 'Acknowledgments are only tracked while a handbook is published.'}
+        </p>
+      </MhdCard>
+    );
+  }
 
   return (
     <div className="space-y-8">
       {versionId ? (
-        <>
-          <MhdHandbookVersionView versionId={versionId} />
-          {handbook.status === 'PUBLISHED' ? (
-            <MhdHandbookAckBoard
-              companyId={companyId}
-              versionId={versionId}
-              onRequestSignature={onRequestSignature}
-            />
-          ) : null}
-        </>
+        <MhdHandbookVersionView versionId={versionId} />
       ) : (
         <p className="text-sm text-muted-foreground">This handbook has no published version.</p>
       )}

@@ -1,9 +1,15 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { mhdHandbookIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { Button } from '@/components/ui/Button';
+import type { MhdHandbookRecordTab } from '@/appshell/components/MhdHandbookRecordTabs';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdHandbooks } from '../Hook';
 import { MhdHandbookWizard } from './MhdHandbookWizard';
+
+interface MhdHandbookDetailPageProps {
+  /** Which record tab this route renders. Defaults to 'detail'. */
+  tab?: MhdHandbookRecordTab;
+}
 
 /**
  * `/handbooks/:handbookId` route entry — the handbook wizard (draft editor while a
@@ -22,7 +28,7 @@ import { MhdHandbookWizard } from './MhdHandbookWizard';
  * assigned with no signature request (the shell path) — the components handle the
  * absence gracefully.
  */
-export function MhdHandbookDetailPage() {
+export function MhdHandbookDetailPage({ tab = 'detail' }: MhdHandbookDetailPageProps) {
   const { profile, roles } = useMhdAuth();
   const navigate = useNavigate();
   const { handbookId = '' } = useParams<{ handbookId: string }>();
@@ -59,5 +65,12 @@ export function MhdHandbookDetailPage() {
     );
   }
 
-  return <MhdHandbookWizard handbook={handbook} companyId={companyId} canManage={canManage} />;
+  return (
+    <MhdHandbookWizard
+      handbook={handbook}
+      companyId={companyId}
+      canManage={canManage}
+      activeTab={tab}
+    />
+  );
 }

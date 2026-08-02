@@ -9,6 +9,7 @@ import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
+import { MhdConductCaseRecordTabs } from '@/appshell/components/MhdConductCaseRecordTabs';
 import { mhdCanMutateConduct } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
@@ -646,6 +647,16 @@ export function MhdConductCaseDetailPage() {
         items={[{ label: 'Conduct', to: '/conduct' }, { label: conductCase.referenceId }]}
       />
 
+      <MhdConductCaseRecordTabs
+        caseId={conductCase.id}
+        active="detail"
+        onDelete={
+          canMutate && isOpen ? () => setIsRescinding((current) => !current) : undefined
+        }
+        deleteLabel={isRescinding ? 'Close Rescind' : 'Rescind Case'}
+        skipConfirm
+      />
+
       {actionError ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {actionError}
@@ -669,30 +680,21 @@ export function MhdConductCaseDetailPage() {
         }
         actions={
           canMutate && isOpen ? (
-            <>
-              <span
-                title={
-                  closeable
-                    ? undefined
-                    : `Cannot close: ${nonTerminalCount} action(s) not yet terminal.`
-                }
+            <span
+              title={
+                closeable ? undefined : `Cannot close: ${nonTerminalCount} action(s) not yet terminal.`
+              }
+            >
+              <button
+                type="button"
+                onClick={() => void handleClose()}
+                disabled={!closeable || mutations.transitionCase.isPending}
+                aria-disabled={!closeable}
+                className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
               >
-                <button
-                  type="button"
-                  onClick={() => void handleClose()}
-                  disabled={!closeable || mutations.transitionCase.isPending}
-                  aria-disabled={!closeable}
-                  className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  {mutations.transitionCase.isPending ? 'Working…' : 'Close Case'}
-                </button>
-              </span>
-              <MhdDetailActions
-                onDelete={() => setIsRescinding((current) => !current)}
-                deleteLabel={isRescinding ? 'Close Rescind' : 'Rescind Case'}
-                skipConfirm
-              />
-            </>
+                {mutations.transitionCase.isPending ? 'Working…' : 'Close Case'}
+              </button>
+            </span>
           ) : undefined
         }
         description={

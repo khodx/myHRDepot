@@ -169,7 +169,11 @@ export function MhdEmployeeFileNewRecordPage() {
                         person.id,
                       )}&employeeFileCategory=${encodeURIComponent(category)}`}
                       state={{ backgroundLocation: location }}
-                      className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-8 px-2.5 text-xs')}
+                      className={cn(
+                        buttonBaseClasses,
+                        buttonVariantClasses.secondary,
+                        'h-9 px-3 text-[16.8px]',
+                      )}
                     >
                       Use Form
                     </Link>

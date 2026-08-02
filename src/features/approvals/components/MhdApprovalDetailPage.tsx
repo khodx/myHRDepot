@@ -6,12 +6,33 @@ import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import {
+  MhdApprovalRecordTabs,
+  type MhdApprovalRecordTab,
+} from '@/appshell/components/MhdApprovalRecordTabs';
 import { mhdApprovalService } from '../Service';
 import { MhdApprovalChain } from './MhdApprovalChain';
 import { MhdApprovalStatus } from './MhdApprovalStatus';
 import type { MhdApproval, MhdApprovalComment } from '@/types/approval';
 
-export function MhdApprovalDetailPage() {
+interface MhdApprovalDetailPageProps {
+  /** Which record tab this route renders. Defaults to 'detail'. */
+  tab?: MhdApprovalRecordTab;
+}
+
+/**
+ * `/approvals/:approvalId` (Detail) and `/approvals/:approvalId/timeline`
+ * (Timeline) share this component, switched by the `tab` prop the route
+ * passes in — both need the same approval + comments fetch, so splitting
+ * into two page components would only duplicate that loading logic.
+ *
+ * Detail holds the request itself: overview, approval chain, and the
+ * approve/reject decision actions. Timeline holds the running comment
+ * conversation: existing comments plus the add-comment form. This mirrors
+ * MhdTaskRecordTabs' pattern of real routed sub-pages rather than in-page
+ * client-state tabs.
+ */
+export function MhdApprovalDetailPage({ tab = 'detail' }: MhdApprovalDetailPageProps) {
   const { approvalId } = useParams<{ approvalId: string }>();
   const navigate = useNavigate();
   const { profile } = useMhdAuth();
@@ -175,31 +196,12 @@ export function MhdApprovalDetailPage() {
         }
       />
 
-      <MhdCard className="p-6">
-        <div className="grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
-          <p>Requester: {approval.requesterName || approval.requesterId}</p>
-          <p>
-            Current level: {approval.currentLevel} of {approval.totalLevels}
-          </p>
-          <p>Created: {format(new Date(approval.createdAt), 'PPp')}</p>
-          <p>Updated: {approval.updatedAt ? format(new Date(approval.updatedAt), 'PPp') : '—'}</p>
-          <p>Type: {approval.approvalType}</p>
-          <p>Viewer: {profile?.displayName || profile?.email || 'Unknown user'}</p>
-        </div>
+      <MhdApprovalRecordTabs approvalId={approval.id} active={tab} />
 
-        {approval.reason ? (
-          <p className="mt-4 rounded-md bg-muted p-3 text-sm text-foreground">{approval.reason}</p>
-        ) : null}
-        {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
-      </MhdCard>
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-      <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="space-y-6">
-          <MhdCard className="p-6">
-            <MhdCardHeader title="Chain" />
-            <MhdApprovalChain approvalId={approval.id} />
-          </MhdCard>
-
+      {tab === 'timeline' ? (
+        <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
           <MhdCard className="p-6">
             <MhdCardHeader title="Comments" />
             <div className="space-y-3">
@@ -222,43 +224,6 @@ export function MhdApprovalDetailPage() {
                   <p className="mt-2 text-sm text-foreground">{comment.comment}</p>
                 </div>
               ))}
-            </div>
-          </MhdCard>
-        </div>
-
-        <div className="space-y-6">
-          <MhdCard className="p-6">
-            <MhdCardHeader title="Decision" />
-            <div className="space-y-3">
-              <textarea
-                value={approveComment}
-                onChange={(event) => setApproveComment(event.target.value)}
-                placeholder="Approval comment (optional)"
-                className="min-h-24 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              />
-              <button
-                type="button"
-                onClick={() => void handleApprove()}
-                disabled={isActing || approval.status !== 'PENDING'}
-                className={cn(buttonBaseClasses, 'w-full bg-green-600 text-white focus-visible:ring-green-600')}
-              >
-                Approve
-              </button>
-
-              <textarea
-                value={rejectReason}
-                onChange={(event) => setRejectReason(event.target.value)}
-                placeholder="Rejection reason"
-                className="min-h-24 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              />
-              <button
-                type="button"
-                onClick={() => void handleReject()}
-                disabled={isActing || approval.status !== 'PENDING'}
-                className={cn(buttonBaseClasses, buttonVariantClasses.destructive, 'w-full')}
-              >
-                Reject
-              </button>
             </div>
           </MhdCard>
 
@@ -289,8 +254,76 @@ export function MhdApprovalDetailPage() {
               </button>
             </div>
           </MhdCard>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <>
+          <MhdCard className="p-6">
+            <div className="grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
+              <p>Requester: {approval.requesterName || approval.requesterId}</p>
+              <p>
+                Current level: {approval.currentLevel} of {approval.totalLevels}
+              </p>
+              <p>Created: {format(new Date(approval.createdAt), 'PPp')}</p>
+              <p>
+                Updated: {approval.updatedAt ? format(new Date(approval.updatedAt), 'PPp') : '—'}
+              </p>
+              <p>Type: {approval.approvalType}</p>
+              <p>Viewer: {profile?.displayName || profile?.email || 'Unknown user'}</p>
+            </div>
+
+            {approval.reason ? (
+              <p className="mt-4 rounded-md bg-muted p-3 text-sm text-foreground">
+                {approval.reason}
+              </p>
+            ) : null}
+          </MhdCard>
+
+          <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+            <MhdCard className="p-6">
+              <MhdCardHeader title="Chain" />
+              <MhdApprovalChain approvalId={approval.id} />
+            </MhdCard>
+
+            <MhdCard className="p-6">
+              <MhdCardHeader title="Decision" />
+              <div className="space-y-3">
+                <textarea
+                  value={approveComment}
+                  onChange={(event) => setApproveComment(event.target.value)}
+                  placeholder="Approval comment (optional)"
+                  className="min-h-24 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleApprove()}
+                  disabled={isActing || approval.status !== 'PENDING'}
+                  className={cn(
+                    buttonBaseClasses,
+                    'w-full bg-green-600 text-white focus-visible:ring-green-600',
+                  )}
+                >
+                  Approve
+                </button>
+
+                <textarea
+                  value={rejectReason}
+                  onChange={(event) => setRejectReason(event.target.value)}
+                  placeholder="Rejection reason"
+                  className="min-h-24 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleReject()}
+                  disabled={isActing || approval.status !== 'PENDING'}
+                  className={cn(buttonBaseClasses, buttonVariantClasses.destructive, 'w-full')}
+                >
+                  Reject
+                </button>
+              </div>
+            </MhdCard>
+          </section>
+        </>
+      )}
     </div>
   );
 }

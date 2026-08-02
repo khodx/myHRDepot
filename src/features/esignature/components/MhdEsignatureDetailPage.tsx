@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BellRing, Clock3, FileClock, ShieldCheck } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdEsignatureRecordTabs } from '@/appshell/components/MhdEsignatureRecordTabs';
 import { mhdCanMutateEsignature } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdEsignatureActions, useMhdEsignatureEvents, useMhdEsignatureRequest } from '../Hook';
@@ -103,27 +103,27 @@ export function MhdEsignatureDetailPage() {
           </>
         }
         actions={
-          <>
-            {driveUrl ? (
-              <a
-                href={driveUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
-              >
-                Open Document
-              </a>
-            ) : null}
-            {canMutate && ['PENDING', 'IN_PROGRESS'].includes(request.status) ? (
-              <Button
-                onClick={() => void handleVoidRequest()}
-                disabled={actions.voidRequest.isPending}
-              >
-                {actions.voidRequest.isPending ? 'Voiding...' : 'Void Request'}
-              </Button>
-            ) : null}
-          </>
+          driveUrl ? (
+            <a
+              href={driveUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+            >
+              Open Document
+            </a>
+          ) : undefined
         }
+      />
+      <MhdEsignatureRecordTabs
+        requestId={request.id}
+        active="detail"
+        onVoid={
+          canMutate && ['PENDING', 'IN_PROGRESS'].includes(request.status)
+            ? handleVoidRequest
+            : undefined
+        }
+        voidConfirmMessage={`Void the signature request for "${request.documentName}"? This cannot be undone.`}
       />
       <div className="space-y-6">
         {actionMessage ? (

@@ -1,19 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTabs } from '@/components/ui/MhdTabs';
 import { mhdCanManageMileageRates, mhdMileageIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
-  useMhdAddTripToClaim,
-  useMhdCancelClaim,
   useMhdCreateClaim,
   useMhdConfirmRate,
-  useMhdDecideClaim,
   useMhdEffectiveRate,
-  useMhdMileageClaim,
   useMhdMileageClaims,
   useMhdMileagePeople,
   useMhdMileageRates,
@@ -21,26 +18,22 @@ import {
   useMhdProposeRate,
   useMhdRecordTrip,
   useMhdSetCompanyRatePolicy,
-  useMhdSubmitClaim,
   useMhdUpdateTrip,
   useMhdVoidTrip,
 } from '../Hook';
 import {
   mhdClaimPeriodSchema,
-  type MhdClaimDecisionFormValues,
   type MhdClaimPeriodFormValues,
   type MhdCompanyRatePolicyFormValues,
   type MhdRateProposalFormValues,
   type MhdTripFormValues,
 } from '../Schemas';
-import {
-  mhdIsTripClaimable,
-  type MhdMileageClaimFilters,
-  type MhdMileageRateFilters,
-  type MhdMileageTrip,
-  type MhdMileageTripFilters,
+import type {
+  MhdMileageClaimFilters,
+  MhdMileageRateFilters,
+  MhdMileageTrip,
+  MhdMileageTripFilters,
 } from '../Types';
-import { MhdClaimDetailPanel } from './MhdClaimDetailPanel';
 import { MhdClaimListPanel } from './MhdClaimListPanel';
 import { MhdCompanyRatePolicyForm } from './MhdCompanyRatePolicyForm';
 import { MhdMileageRatesPanel } from './MhdMileageRatesPanel';
@@ -113,11 +106,11 @@ function MhdMileageBoard({
   canManageRates = false,
   selfPersonId,
 }: BoardProps) {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('trips');
   const [editingTrip, setEditingTrip] = useState<MhdMileageTrip | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isCreatingClaim, setIsCreatingClaim] = useState(false);
-  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 
   const [tripFilters, setTripFilters] = useState<MhdMileageTripFilters>({
     companyId,
@@ -139,7 +132,6 @@ function MhdMileageBoard({
 
   const trips = useMhdMileageTrips(tripFilters);
   const claims = useMhdMileageClaims(claimFilters);
-  const claimDetail = useMhdMileageClaim(selectedClaimId);
   const rates = useMhdMileageRates(rateFilters);
   const effectiveRate = useMhdEffectiveRate(companyId);
   const people = useMhdMileagePeople(isPrivileged ? companyId : null);
@@ -148,10 +140,6 @@ function MhdMileageBoard({
   const updateTrip = useMhdUpdateTrip();
   const voidTrip = useMhdVoidTrip();
   const createClaim = useMhdCreateClaim();
-  const addTripToClaim = useMhdAddTripToClaim();
-  const submitClaim = useMhdSubmitClaim();
-  const decideClaim = useMhdDecideClaim();
-  const cancelClaim = useMhdCancelClaim();
   const proposeRate = useMhdProposeRate();
   const confirmRate = useMhdConfirmRate();
   const setPolicy = useMhdSetCompanyRatePolicy();
@@ -173,23 +161,6 @@ function MhdMileageBoard({
       periodEnd: '',
     },
   });
-
-  const openClaim = claimDetail.data ?? null;
-
-  // Trips a DRAFT claim can still take: inside its period, belonging to its
-  // claimant, and not already spoken for. The database guarantees the rule with
-  // a unique index; offering only eligible rows is what keeps the user from
-  // meeting it as a save error.
-  const addableTrips = useMemo(() => {
-    if (!openClaim || openClaim.status !== 'DRAFT') return [];
-    return (trips.data ?? []).filter(
-      (trip) =>
-        trip.personId === openClaim.personId &&
-        trip.tripDate >= openClaim.periodStart &&
-        trip.tripDate <= openClaim.periodEnd &&
-        mhdIsTripClaimable(trip),
-    );
-  }, [openClaim, trips.data]);
 
   async function handleTripSubmit(values: MhdTripFormValues) {
     // Editing never re-records. The update RPC keeps the trip's identity, which
@@ -240,8 +211,9 @@ function MhdMileageBoard({
     });
     claimForm.reset();
     setIsCreatingClaim(false);
-    setSelectedClaimId(created.id);
-    setTab('claims');
+    // The new claim is opened on its own detail page rather than selected
+    // inline — see MhdMileageClaimDetailPage.
+    navigate(`/mileage/claims/${created.id}`);
   }
 
   async function handleProposeRate(values: MhdRateProposalFormValues) {
@@ -263,14 +235,6 @@ function MhdMileageBoard({
       rateMode: values.rateMode,
       fixedRatePerMile: values.fixedRatePerMile ?? null,
       policyNote: values.policyNote ?? null,
-    });
-  }
-
-  async function handleDecide(values: MhdClaimDecisionFormValues) {
-    await decideClaim.mutateAsync({
-      claimId: values.claimId,
-      decision: values.decision,
-      decisionNote: values.decisionNote ?? null,
     });
   }
 
@@ -410,72 +374,14 @@ function MhdMileageBoard({
       ) : null}
 
       {tab === 'claims' ? (
-        <div className="space-y-6">
-          <MhdClaimListPanel
-            claims={claims.data ?? []}
-            filters={claimFilters}
-            onFiltersChange={setClaimFilters}
-            people={peopleOptions}
-            isPrivileged={isPrivileged}
-            selectedClaimId={selectedClaimId}
-            isLoading={claims.isLoading}
-            onSelect={setSelectedClaimId}
-          />
-
-          {selectedClaimId && openClaim ? (
-            <>
-              <MhdClaimDetailPanel
-                claim={openClaim}
-                isPrivileged={isPrivileged}
-                isLoading={claimDetail.isLoading}
-                isSubmitting={
-                  submitClaim.isPending || decideClaim.isPending || cancelClaim.isPending
-                }
-                onClose={() => setSelectedClaimId(null)}
-                onSubmitClaim={(claimId) => submitClaim.mutateAsync(claimId)}
-                onDecide={handleDecide}
-                onCancelClaim={(input) => cancelClaim.mutateAsync(input)}
-              />
-
-              {openClaim.status === 'DRAFT' ? (
-                <section className="space-y-2">
-                  <h3 className="text-sm font-medium text-foreground">
-                    Trips available for this period
-                  </h3>
-                  {addableTrips.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      No unclaimed trips fall inside this claim's period.
-                    </p>
-                  ) : (
-                    <ul className="space-y-1 text-sm text-foreground">
-                      {addableTrips.map((trip) => (
-                        <li key={trip.id} className="flex items-center justify-between gap-3">
-                          <span>
-                            {trip.tripDate} · {trip.origin} → {trip.destination} ·{' '}
-                            {trip.reimbursableMiles} mi
-                          </span>
-                          <Button
-                            variant="secondary"
-                            className="px-3 py-1"
-                            disabled={addTripToClaim.isPending}
-                            onClick={() =>
-                              void addTripToClaim.mutateAsync({
-                                claimId: openClaim.id,
-                                tripId: trip.id,
-                              })
-                            }
-                          >
-                            Add
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-              ) : null}
-            </>
-          ) : null}
-        </div>
+        <MhdClaimListPanel
+          claims={claims.data ?? []}
+          filters={claimFilters}
+          onFiltersChange={setClaimFilters}
+          people={peopleOptions}
+          isPrivileged={isPrivileged}
+          isLoading={claims.isLoading}
+        />
       ) : null}
 
       {/*

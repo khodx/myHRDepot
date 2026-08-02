@@ -105,7 +105,14 @@ export function MhdAccommodationsPage() {
       <MhdPageHeader
         title="Reasonable accommodations"
         description="Requests, interactive process, options, decisions, implementation, and review."
-        actions={<Button onClick={() => setCreating((value) => !value)}>Open request</Button>}
+        actions={
+          <Button
+            onClick={() => setCreating((value) => !value)}
+            className="h-9 px-3 text-[16.8px]"
+          >
+            Open Request
+          </Button>
+        }
       />
       <MhdComplianceGateBanner readiness={readiness.data} />
 

@@ -17,6 +17,7 @@ import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
+import { MhdOffboardingCaseRecordTabs } from '@/appshell/components/MhdOffboardingCaseRecordTabs';
 import { mhdCanMutateOffboarding } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities } from '@/features/activities/Hook';
@@ -414,6 +415,18 @@ export function MhdOffboardingCaseDetailPage() {
         ]}
       />
 
+      <MhdOffboardingCaseRecordTabs
+        caseId={offboardingCase.id}
+        active="detail"
+        onEdit={
+          canMutate && isActive ? () => setIsEditing((current) => !current) : undefined
+        }
+        editLabel={isEditing ? 'Close Edit' : 'Edit Case'}
+        onDelete={canMutate && isActive && !hasCompletedItems ? handleDelete : undefined}
+        deleteLabel="Delete Case"
+        deleteConfirmMessage={`Delete case ${offboardingCase.referenceId}? This cannot be undone.`}
+      />
+
       {actionError ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {actionError}
@@ -436,47 +449,27 @@ export function MhdOffboardingCaseDetailPage() {
           </>
         }
         actions={
-          canMutate ? (
+          canMutate && isActive ? (
             <>
-              {isActive ? (
-                <span title={completeBlockedTooltip}>
-                  <button
-                    type="button"
-                    onClick={() => void handleComplete()}
-                    disabled={completeBlocked || actions.transitionCase.isPending}
-                    aria-disabled={completeBlocked}
-                    className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                  >
-                    {actions.transitionCase.isPending ? 'Completing…' : 'Complete Case'}
-                  </button>
-                </span>
-              ) : null}
-
-              {isActive ? (
-                <Button
-                  type="button"
-                  variant="warning"
-                  onClick={() => setIsEditing((current) => !current)}
-                >
-                  {isEditing ? 'Close Edit' : 'Edit Case'}
-                </Button>
-              ) : null}
-
-              {isActive ? (
+              <span title={completeBlockedTooltip}>
                 <button
                   type="button"
-                  onClick={() => setIsCancelling((current) => !current)}
-                  className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700"
+                  onClick={() => void handleComplete()}
+                  disabled={completeBlocked || actions.transitionCase.isPending}
+                  aria-disabled={completeBlocked}
+                  className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
-                  {isCancelling ? 'Close Cancel' : 'Cancel Case'}
+                  {actions.transitionCase.isPending ? 'Completing…' : 'Complete Case'}
                 </button>
-              ) : null}
+              </span>
 
-              <MhdDetailActions
-                onDelete={isActive && !hasCompletedItems ? handleDelete : undefined}
-                deleteLabel="Delete Case"
-                deleteConfirmMessage={`Delete case ${offboardingCase.referenceId}? This cannot be undone.`}
-              />
+              <button
+                type="button"
+                onClick={() => setIsCancelling((current) => !current)}
+                className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700"
+              >
+                {isCancelling ? 'Close Cancel' : 'Cancel Case'}
+              </button>
             </>
           ) : undefined
         }

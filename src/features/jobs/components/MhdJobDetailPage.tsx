@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { mhdCanMutateJobs, mhdCanSeeJobPay } from '@/appshell/mhdRouteAccess';
+import { MhdJobRecordTabs } from '@/appshell/components/MhdJobRecordTabs';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
@@ -180,6 +181,11 @@ export function MhdJobDetailPage() {
             · {mhdFormatIndustry(job.industry)}
           </>
         }
+      />
+
+      <MhdJobRecordTabs
+        jobId={job.id}
+        active="detail"
         actions={
           <div className="flex flex-wrap items-center gap-3">
             <MhdPayRangeField
@@ -475,22 +481,6 @@ export function MhdJobDetailPage() {
           )}
         </section>
       )}
-
-      {canMutate ? (
-        <div className="flex justify-end gap-2 border-t border-border pt-4">
-          <Button
-            variant="warning"
-            onClick={() => (isEditingJob ? setIsEditingJob(false) : startEditingJob())}
-          >
-            {isEditingJob ? 'Cancel Edit' : 'Edit Job'}
-          </Button>
-          <MhdDetailActions
-            onDelete={handleDeleteJob}
-            deleteLabel="Delete Job"
-            deleteConfirmMessage="Delete this job? This cannot be undone."
-          />
-        </div>
-      ) : null}
     </div>
   );
 }

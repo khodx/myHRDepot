@@ -1,19 +1,19 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { mhdRecruitingIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdRequisitionDetailPage } from '../requisitions/components/MhdRequisitionDetailPage';
-import { MhdInterviewGuideBuilder } from '../interviews/components/MhdInterviewGuideBuilder';
 
 /**
- * `/recruiting/requisitions/:reqId` — a requisition's detail, its invite panel and
- * pipeline board (package 1), plus the interview guide builder (package 2), which
- * derives its job-specific questions from the requisition's job's published-JD
- * competencies. Reads `useMhdAuth()` itself; inherits the `/recruiting` role rule.
+ * `/recruiting/requisitions/:reqId` — the requisition's Detail tab: its own
+ * fields and status transition. The pipeline (invite + board) and interview
+ * guide builder now live on their own routed tabs — see
+ * `MhdRequisitionPipelineRoutePage` and `MhdRequisitionInterviewGuideRoutePage`,
+ * wired together by `MhdRequisitionRecordTabs`. Reads `useMhdAuth()` itself;
+ * inherits the `/recruiting` role rule.
  */
 export function MhdRequisitionDetailRoutePage() {
   const { reqId } = useParams<{ reqId: string }>();
   const { profile, roles } = useMhdAuth();
-  const navigate = useNavigate();
   const companyId = profile?.companyId ?? null;
   const canManage = mhdRecruitingIsPrivileged(roles);
 
@@ -26,21 +26,6 @@ export function MhdRequisitionDetailRoutePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <MhdRequisitionDetailPage
-        companyId={companyId}
-        requisitionId={reqId}
-        canManage={canManage}
-        onBack={() => navigate('/recruiting')}
-        onOpenApplication={(applicationId) => navigate(`/recruiting/applications/${applicationId}`)}
-      />
-      {canManage ? (
-        <MhdInterviewGuideBuilder
-          companyId={companyId}
-          requisitionId={reqId}
-          canManage={canManage}
-        />
-      ) : null}
-    </div>
+    <MhdRequisitionDetailPage companyId={companyId} requisitionId={reqId} canManage={canManage} />
   );
 }

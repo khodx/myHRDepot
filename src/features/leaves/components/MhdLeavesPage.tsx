@@ -106,7 +106,9 @@ export function MhdLeavesPage() {
         }
         actions={
           isPrivileged ? (
-            <Button onClick={() => setIsCreating(true)}>Open leave case</Button>
+            <Button onClick={() => setIsCreating(true)} className="h-9 px-3 text-[16.8px]">
+              Open Leave Case
+            </Button>
           ) : undefined
         }
       />

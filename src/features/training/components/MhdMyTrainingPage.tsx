@@ -202,16 +202,16 @@ function MhdMyTrainingAssignmentRow({ assignment, course, onAttachCertificate }:
             {isAttaching
               ? 'Attaching…'
               : attachmentId
-                ? 'Certificate attached ✓'
-                : 'Attach certificate'}
+                ? 'Certificate Attached ✓'
+                : 'Attach Certificate'}
           </Button>
         ) : null}
         <Button onClick={() => void handleComplete()} disabled={complete.isPending}>
           {complete.isPending
             ? 'Recording…'
             : attachmentId
-              ? 'Complete with certificate'
-              : 'Attest completion'}
+              ? 'Complete With Certificate'
+              : 'Attest Completion'}
         </Button>
       </div>
 

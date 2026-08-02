@@ -6,6 +6,7 @@ import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { mhdCanMutateOnboarding } from '@/appshell/mhdRouteAccess';
+import { MhdOnboardingRecordTabs } from '@/appshell/components/MhdOnboardingRecordTabs';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdPersonService } from '@/features/people/Service';
 import { useMhdCancelOnboarding, useMhdOnboardingPacket } from '../Hook';
@@ -94,6 +95,11 @@ export function MhdOnboardingPersonPage() {
         description="New-hire packet status, and the form behind each packet item."
         backTo="/onboarding"
         backLabel="Onboarding"
+      />
+
+      <MhdOnboardingRecordTabs
+        personId={person.id}
+        active="detail"
         actions={
           showCancelAction ? (
             <MhdDetailActions
@@ -157,16 +163,6 @@ export function MhdOnboardingPersonPage() {
         isLoading={packet.isLoading}
         errorMessage={packet.errorMessage}
       />
-
-      {showCancelAction ? (
-        <div className="flex justify-end border-t border-border pt-4">
-          <MhdDetailActions
-            deleteLabel="Cancel Onboarding"
-            onDelete={() => setIsCancelling(true)}
-            skipConfirm
-          />
-        </div>
-      ) : null}
     </div>
   );
 }

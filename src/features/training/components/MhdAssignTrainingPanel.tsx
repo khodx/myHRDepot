@@ -118,7 +118,7 @@ export function MhdAssignTrainingPanel({
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Assigning…' : 'Assign training'}
+          {isSubmitting ? 'Assigning…' : 'Assign Training'}
         </Button>
       </div>
     </form>

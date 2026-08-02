@@ -216,7 +216,7 @@ export function MhdConductPage() {
             <Button
               type="button"
               onClick={() => setIsCreating((current) => !current)}
-              className="gap-1.5"
+              className="h-9 gap-1.5 px-3 text-[16.8px]"
             >
               <Plus className="h-4 w-4" />
               {isCreating ? 'Close Form' : 'New Case'}

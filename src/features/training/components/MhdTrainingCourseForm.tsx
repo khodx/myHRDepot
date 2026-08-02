@@ -242,7 +242,7 @@ export function MhdTrainingCourseForm({
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving…' : isEdit ? 'Save course' : 'Create course'}
+          {isSubmitting ? 'Saving…' : isEdit ? 'Save Course' : 'Create Course'}
         </Button>
       </div>
     </form>

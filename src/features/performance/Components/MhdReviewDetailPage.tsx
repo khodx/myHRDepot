@@ -13,11 +13,12 @@ import {
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
+import { cn } from '@/utils/cn';
 import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities } from '@/features/activities/Hook';
@@ -87,14 +88,14 @@ function MhdWaiverForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded bg-amber-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className={cn(buttonBaseClasses, 'bg-amber-700 text-white focus-visible:ring-amber-700')}
         >
           {isSubmitting ? 'Completing…' : 'Complete via Waiver'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50"
+          className={cn(buttonBaseClasses, buttonVariantClasses.secondary)}
         >
           Cancel
         </button>
@@ -292,41 +293,28 @@ export function MhdReviewDetailPage() {
 
   return (
     <div className="space-y-6">
-      <MhdBreadcrumb
-        items={[{ label: 'Performance', to: '/performance' }, { label: review.referenceId }]}
-      />
-
-      {actionError ? (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {actionError}
-        </div>
-      ) : null}
-
-      <MhdCard className="p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground">{review.referenceId}</p>
-            <h1 className="mt-1 text-3xl font-bold text-foreground">
-              {review.personDisplayName ?? 'Performance Review'}
-            </h1>
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              <MhdReviewTypeBadge reviewType={review.reviewType} />
-              <MhdReviewStatusBadge status={review.status} />
-              <span>
-                Subject{' '}
-                <Link
-                  to={`/people/${review.personId}`}
-                  className="text-accent hover:text-accent-hover"
-                >
-                  {review.personDisplayName ?? 'View person'}
-                </Link>
-              </span>
-              <span>Reviewer: {review.reviewerDisplayName ?? '—'}</span>
-            </div>
-          </div>
-
-          {canMutate ? (
-            <div className="flex flex-wrap gap-3">
+      <MhdPageHeader
+        backTo="/performance"
+        backLabel="Performance"
+        title={review.personDisplayName ?? 'Performance Review'}
+        description={
+          <>
+            {review.referenceId} · Subject{' '}
+            <Link to={`/people/${review.personId}`} className="text-accent hover:text-accent-hover">
+              {review.personDisplayName ?? 'View person'}
+            </Link>{' '}
+            · Reviewer: {review.reviewerDisplayName ?? '—'}
+          </>
+        }
+        chips={
+          <>
+            <MhdReviewTypeBadge reviewType={review.reviewType} />
+            <MhdReviewStatusBadge status={review.status} />
+          </>
+        }
+        actions={
+          canMutate ? (
+            <>
               {review.status === 'DRAFT' ? (
                 <Button
                   onClick={() => void handleTransition('IN_REVIEW')}
@@ -352,7 +340,10 @@ export function MhdReviewDetailPage() {
                   type="button"
                   onClick={() => void handleTransition('COMPLETED')}
                   disabled={actions.transitionReview.isPending}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                  className={cn(
+                    buttonBaseClasses,
+                    'bg-emerald-700 text-white focus-visible:ring-emerald-700',
+                  )}
                 >
                   {actions.transitionReview.isPending ? 'Completing…' : 'Complete Review (Signed)'}
                 </button>
@@ -362,7 +353,10 @@ export function MhdReviewDetailPage() {
                 <button
                   type="button"
                   onClick={() => setIsWaiving((current) => !current)}
-                  className="rounded-md border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800"
+                  className={cn(
+                    buttonBaseClasses,
+                    'border border-amber-300 bg-amber-50 text-amber-800 focus-visible:ring-amber-700',
+                  )}
                 >
                   {isWaiving ? 'Close Waiver' : 'Complete via Waiver'}
                 </button>
@@ -383,7 +377,10 @@ export function MhdReviewDetailPage() {
                   type="button"
                   onClick={() => void handleTransition('CANCELLED')}
                   disabled={actions.transitionReview.isPending}
-                  className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
+                  className={cn(
+                    buttonBaseClasses,
+                    'border border-rose-300 bg-card text-rose-700 focus-visible:ring-rose-700',
+                  )}
                 >
                   Cancel Review
                 </button>
@@ -394,11 +391,19 @@ export function MhdReviewDetailPage() {
                 deleteLabel="Delete Draft"
                 deleteConfirmMessage={`Delete draft review ${review.referenceId}? This cannot be undone.`}
               />
-            </div>
-          ) : null}
-        </div>
+            </>
+          ) : null
+        }
+      />
 
-        <div className="mt-6 grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
+      {actionError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      ) : null}
+
+      <MhdCard className="p-6">
+        <div className="grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-md bg-muted p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Review Period
@@ -481,7 +486,7 @@ export function MhdReviewDetailPage() {
               <button
                 type="button"
                 onClick={() => finalize.reset()}
-                className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+                className={cn(buttonBaseClasses, buttonVariantClasses.secondary)}
               >
                 Dismiss
               </button>
@@ -562,7 +567,7 @@ export function MhdReviewDetailPage() {
               </p>
               <Link
                 to={`/performance?tab=coaching&fromReview=${review.id}`}
-                className="mt-3 inline-flex rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+                className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'mt-3')}
               >
                 Start Coaching Plan from this Review
               </Link>
@@ -694,25 +699,6 @@ export function MhdReviewDetailPage() {
             </MhdCard>
           </div>
         </section>
-      ) : null}
-
-      {canMutate ? (
-        <div className="flex flex-wrap items-center gap-2">
-          {isContentEditable ? (
-            <Button
-              type="button"
-              variant="warning"
-              onClick={() => setIsEditing((current) => !current)}
-            >
-              {isEditing ? 'Close Edit' : 'Edit Review'}
-            </Button>
-          ) : null}
-          <MhdDetailActions
-            onDelete={review.status === 'DRAFT' ? handleDelete : undefined}
-            deleteLabel="Delete Draft"
-            deleteConfirmMessage={`Delete draft review ${review.referenceId}? This cannot be undone.`}
-          />
-        </div>
       ) : null}
 
       <MhdSystemFieldsCard

@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { CheckCircle2, XCircle } from 'lucide-react';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import { cn } from '@/utils/cn';
 import { mhdApprovalService } from '../Service';
 import { MhdApprovalStatus } from './MhdApprovalStatus';
 import type { MhdApproval } from '@/types/approval';
@@ -9,6 +13,13 @@ export interface MhdApprovalCenterProps {
   userId: string;
 }
 
+/**
+ * The pending-approvals table for the signed-in user, on the `/approvals`
+ * list page. Uses the platform table convention (MhdTable/MhdTh/MhdTr/MhdTd)
+ * and pill-styled action buttons (buttonBaseClasses + buttonVariantClasses,
+ * h-9/px-3/text-[16.8px]) matching the Task Dashboard's action row, rather
+ * than the earlier ad-hoc bordered-div cards.
+ */
 export function MhdApprovalCenter({ userId }: MhdApprovalCenterProps) {
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [rejectReasonById, setRejectReasonById] = useState<Record<string, string>>({});
@@ -55,71 +66,94 @@ export function MhdApprovalCenter({ userId }: MhdApprovalCenterProps) {
     }
   }
 
-  if (isLoading) return <div>Loading approvals...</div>;
+  if (isLoading) return <div className="text-sm text-muted-foreground">Loading approvals...</div>;
 
   return (
     <div className="space-y-4">
       {error ? <p className="text-sm text-red-600">{error.message}</p> : null}
       {actionError ? <p className="text-sm text-red-600">{actionError}</p> : null}
       {approvals.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No pending approvals</p>
+        <MhdEmptyState title="No pending approvals" description="You're all caught up." />
       ) : (
-        approvals.map((approval) => (
-          <div key={approval.id} className="space-y-2 rounded border border-border p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <Link
-                  to={`/approvals/${approval.id}`}
-                  className="font-semibold text-accent hover:text-accent-hover"
-                >
-                  {approval.referenceId}
-                </Link>
-                <p className="text-xs text-muted-foreground">
-                  {approval.entityType} · {approval.entityId} · Level {approval.currentLevel} of{' '}
-                  {approval.totalLevels}
-                </p>
-              </div>
-              <MhdApprovalStatus status={approval.status} />
-            </div>
-            {approval.reason ? (
-              <p className="text-sm text-muted-foreground">{approval.reason}</p>
-            ) : null}
-            <p className="text-xs text-muted-foreground">
-              Requested by {approval.requesterName || approval.requesterId}
-            </p>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => void handleApprove(approval.id)}
-                disabled={actioningId === approval.id}
-                className="rounded bg-green-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-              >
-                Approve
-              </button>
-              <input
-                type="text"
-                value={rejectReasonById[approval.id] ?? ''}
-                onChange={(event) =>
-                  setRejectReasonById((current) => ({
-                    ...current,
-                    [approval.id]: event.target.value,
-                  }))
-                }
-                placeholder="Rejection reason"
-                className="flex-1 rounded border border-border bg-card px-2 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              />
-              <button
-                type="button"
-                onClick={() => void handleReject(approval.id)}
-                disabled={actioningId === approval.id}
-                className="rounded bg-red-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-              >
-                Reject
-              </button>
-            </div>
-          </div>
-        ))
+        <MhdTable>
+          <thead>
+            <tr>
+              <MhdTh>Reference</MhdTh>
+              <MhdTh>Entity</MhdTh>
+              <MhdTh>Level</MhdTh>
+              <MhdTh>Status</MhdTh>
+              <MhdTh>Requested By</MhdTh>
+              <MhdTh>Reject Reason</MhdTh>
+              <MhdTh />
+            </tr>
+          </thead>
+          <tbody>
+            {approvals.map((approval) => (
+              <MhdTr key={approval.id} to={`/approvals/${approval.id}`}>
+                <MhdTd className="font-semibold text-foreground">{approval.referenceId}</MhdTd>
+                <MhdTd>
+                  <p className="text-foreground">{approval.entityType}</p>
+                  <p className="text-xs text-muted-foreground">{approval.entityId}</p>
+                  {approval.reason ? (
+                    <p className="mt-1 text-xs text-muted-foreground">{approval.reason}</p>
+                  ) : null}
+                </MhdTd>
+                <MhdTd className="whitespace-nowrap text-muted-foreground">
+                  {approval.currentLevel} of {approval.totalLevels}
+                </MhdTd>
+                <MhdTd>
+                  <MhdApprovalStatus status={approval.status} />
+                </MhdTd>
+                <MhdTd className="whitespace-nowrap text-muted-foreground">
+                  {approval.requesterName || approval.requesterId}
+                </MhdTd>
+                <MhdTd data-row-click-ignore>
+                  <input
+                    type="text"
+                    value={rejectReasonById[approval.id] ?? ''}
+                    onChange={(event) =>
+                      setRejectReasonById((current) => ({
+                        ...current,
+                        [approval.id]: event.target.value,
+                      }))
+                    }
+                    placeholder="Rejection reason"
+                    className="h-9 w-full min-w-40 rounded-md border border-border bg-card px-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  />
+                </MhdTd>
+                <MhdTd className="whitespace-nowrap" data-row-click-ignore>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleApprove(approval.id)}
+                      disabled={actioningId === approval.id}
+                      className={cn(
+                        buttonBaseClasses,
+                        'h-9 gap-1.5 bg-green-600 px-3 text-[16.8px] text-white focus-visible:ring-green-600',
+                      )}
+                    >
+                      <CheckCircle2 className="h-4 w-4" aria-hidden />
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleReject(approval.id)}
+                      disabled={actioningId === approval.id}
+                      className={cn(
+                        buttonBaseClasses,
+                        buttonVariantClasses.destructive,
+                        'h-9 gap-1.5 px-3 text-[16.8px]',
+                      )}
+                    >
+                      <XCircle className="h-4 w-4" aria-hidden />
+                      Reject
+                    </button>
+                  </div>
+                </MhdTd>
+              </MhdTr>
+            ))}
+          </tbody>
+        </MhdTable>
       )}
     </div>
   );

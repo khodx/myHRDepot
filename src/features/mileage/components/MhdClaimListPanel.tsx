@@ -1,6 +1,6 @@
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
-import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import { MhdTable, MhdTableActions, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import {
   MHD_MILEAGE_CLAIM_STATUSES,
   mhdFormatClaimStatus,
@@ -20,9 +20,7 @@ interface Props {
   onFiltersChange: (filters: MhdMileageClaimFilters) => void;
   people: PersonOption[];
   isPrivileged: boolean;
-  selectedClaimId?: string | null;
   isLoading?: boolean;
-  onSelect: (claimId: string) => void;
 }
 
 const currencyFormatter = new Intl.NumberFormat(undefined, {
@@ -44,9 +42,7 @@ export function MhdClaimListPanel({
   onFiltersChange,
   people,
   isPrivileged,
-  selectedClaimId,
   isLoading = false,
-  onSelect,
 }: Props) {
   return (
     <section className="space-y-4">
@@ -116,11 +112,7 @@ export function MhdClaimListPanel({
             </thead>
             <tbody>
               {claims.map((claim) => (
-                <MhdTr
-                  key={claim.id}
-                  onClick={() => onSelect(claim.id)}
-                  className={selectedClaimId === claim.id ? 'bg-accent-tint' : undefined}
-                >
+                <MhdTr key={claim.id} to={`/mileage/claims/${claim.id}`}>
                   <MhdTd className="whitespace-nowrap font-medium">{claim.referenceId}</MhdTd>
                   {isPrivileged ? (
                     <MhdTd className="whitespace-nowrap">{claim.personDisplayName}</MhdTd>
@@ -139,15 +131,7 @@ export function MhdClaimListPanel({
                       currencyFormatter.format(claim.totalCompanyAmount)
                     )}
                   </MhdTd>
-                  <MhdTd className="text-right">
-                    <button
-                      type="button"
-                      onClick={() => onSelect(claim.id)}
-                      className="text-sm font-medium text-accent hover:text-accent-hover"
-                    >
-                      Open
-                    </button>
-                  </MhdTd>
+                  <MhdTableActions viewTo={`/mileage/claims/${claim.id}`} />
                 </MhdTr>
               ))}
             </tbody>

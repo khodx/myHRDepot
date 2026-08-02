@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdTrainingComplianceMatrix } from '../Hook';
 import {
@@ -48,7 +49,8 @@ export function MhdTrainingComplianceBoard({ companyId }: Props) {
             the frozen completion records — never stored.
           </p>
         </div>
-        <select
+        <MhdFilterSelect
+          label="Category"
           value={filters.category ?? 'ALL'}
           onChange={(event) =>
             setFilters((previous) => ({
@@ -56,7 +58,7 @@ export function MhdTrainingComplianceBoard({ companyId }: Props) {
               category: event.target.value as MhdTrainingComplianceMatrixFilters['category'],
             }))
           }
-          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-56"
         >
           <option value="ALL">All categories</option>
           {MHD_TRAINING_CATEGORIES.map((category) => (
@@ -64,7 +66,7 @@ export function MhdTrainingComplianceBoard({ companyId }: Props) {
               {mhdFormatTrainingCategory(category)}
             </option>
           ))}
-        </select>
+        </MhdFilterSelect>
       </div>
 
       {matrix.isLoading ? (

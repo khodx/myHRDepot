@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdInvestigationCaseRecordTabs } from '@/appshell/components/MhdInvestigationCaseRecordTabs';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
   useMhdAddInvestigationParty,
@@ -163,13 +164,14 @@ export function MhdInvestigationCaseDetailPage() {
             {detail.closedAt ? ` · closed ${detail.closedAt}` : ''}
           </>
         }
-        actions={
-          <MhdDetailActions
-            onDelete={openCloseFlow}
-            deleteLabel="Close Case"
-            skipConfirm
-          />
-        }
+      />
+
+      <MhdInvestigationCaseRecordTabs
+        caseId={caseId}
+        active="detail"
+        onDelete={openCloseFlow}
+        deleteLabel="Close Case"
+        skipConfirm
       />
 
       {/* ----- The reveal-gated allegation ----- */}

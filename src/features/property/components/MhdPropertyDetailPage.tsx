@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { MhdPropertyRecordTabs } from '@/appshell/components/MhdPropertyRecordTabs';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
@@ -179,6 +180,28 @@ export function MhdPropertyDetailPage() {
       <MhdPageHeader
         title={item.name}
         chips={<MhdPropertyStatusBadge status={item.status} />}
+        description={
+          <>
+            <span>{item.referenceId}</span>
+            <span className="mx-2">·</span>
+            <span>{item.category}</span>
+            <span className="mx-2">·</span>
+            <span>
+              {item.quantityAvailable} available / {item.quantityTotal} total
+            </span>
+            {item.serialNumber ? (
+              <>
+                <span className="mx-2">·</span>
+                <span>Serial: {item.serialNumber}</span>
+              </>
+            ) : null}
+          </>
+        }
+      />
+
+      <MhdPropertyRecordTabs
+        itemId={item.id}
+        active="detail"
         actions={
           canMutate ? (
             <>
@@ -204,23 +227,6 @@ export function MhdPropertyDetailPage() {
               />
             </>
           ) : undefined
-        }
-        description={
-          <>
-            <span>{item.referenceId}</span>
-            <span className="mx-2">·</span>
-            <span>{item.category}</span>
-            <span className="mx-2">·</span>
-            <span>
-              {item.quantityAvailable} available / {item.quantityTotal} total
-            </span>
-            {item.serialNumber ? (
-              <>
-                <span className="mx-2">·</span>
-                <span>Serial: {item.serialNumber}</span>
-              </>
-            ) : null}
-          </>
         }
       />
 
@@ -388,23 +394,6 @@ export function MhdPropertyDetailPage() {
 
         <MhdPropertyAssignmentHistory assignments={assignments} />
       </section>
-
-      {canMutate ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="warning"
-            onClick={() => setIsEditingItem((current) => !current)}
-          >
-            {isEditingItem ? 'Close Edit' : 'Edit Item'}
-          </Button>
-          <MhdDetailActions
-            onDelete={handleDeleteItem}
-            deleteLabel="Delete Item"
-            deleteConfirmMessage={`Delete property item ${item.referenceId}? This is a soft delete and will fail if the item is still issued.`}
-          />
-        </div>
-      ) : null}
     </div>
   );
 }

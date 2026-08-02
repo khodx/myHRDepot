@@ -12,11 +12,12 @@ import {
 import { useMemo, useState, type FormEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonBaseClasses } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
+import { cn } from '@/utils/cn';
 import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities, useMhdActivityActions } from '@/features/activities/Hook';
@@ -341,34 +342,21 @@ export function MhdCoachingPlanDetailPage() {
 
   return (
     <div className="space-y-6">
-      <MhdBreadcrumb
-        items={[{ label: 'Performance', to: '/performance' }, { label: plan.referenceId }]}
-      />
-
-      {actionError ? (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {actionError}
-        </div>
-      ) : null}
-
-      <MhdCard className="p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground">{plan.referenceId}</p>
-            <h1 className="mt-1 text-3xl font-bold text-foreground">{plan.title}</h1>
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              <MhdCoachingStatusBadge status={plan.status} />
-              <span>
-                Coaching{' '}
-                <Link
-                  to={`/people/${plan.personId}`}
-                  className="text-accent hover:text-accent-hover"
-                >
-                  {plan.personDisplayName ?? 'View person'}
-                </Link>
-              </span>
-              <span>Coach: {plan.coachDisplayName ?? '—'}</span>
-              {plan.sourceReviewId ? (
+      <MhdPageHeader
+        backTo="/performance"
+        backLabel="Performance"
+        title={plan.title}
+        description={
+          <>
+            {plan.referenceId} · Coaching{' '}
+            <Link to={`/people/${plan.personId}`} className="text-accent hover:text-accent-hover">
+              {plan.personDisplayName ?? 'View person'}
+            </Link>{' '}
+            · Coach: {plan.coachDisplayName ?? '—'}
+            {plan.sourceReviewId ? (
+              <>
+                {' '}
+                ·{' '}
                 <span className="inline-flex items-center gap-1">
                   <ClipboardCheck className="h-3.5 w-3.5 text-muted-foreground" />
                   From review{' '}
@@ -379,49 +367,61 @@ export function MhdCoachingPlanDetailPage() {
                     {plan.sourceReviewReferenceId ?? 'View review'}
                   </Link>
                 </span>
-              ) : null}
-            </div>
-          </div>
+              </>
+            ) : null}
+          </>
+        }
+        chips={<MhdCoachingStatusBadge status={plan.status} />}
+        actions={
+          canMutate && isPlanActive ? (
+            <>
+              <Button
+                type="button"
+                variant="warning"
+                onClick={() => setIsEditing((current) => !current)}
+              >
+                {isEditing ? 'Close Edit' : 'Edit Plan'}
+              </Button>
+              <button
+                type="button"
+                onClick={() => void handleTransition('COMPLETED')}
+                disabled={actions.transitionPlan.isPending}
+                className={cn(
+                  buttonBaseClasses,
+                  'bg-emerald-700 text-white focus-visible:ring-emerald-700',
+                )}
+              >
+                Complete Plan
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleTransition('CANCELLED')}
+                disabled={actions.transitionPlan.isPending}
+                className={cn(
+                  buttonBaseClasses,
+                  'border border-rose-300 bg-card text-rose-700 focus-visible:ring-rose-700',
+                )}
+              >
+                Cancel Plan
+              </button>
+              <MhdDetailActions
+                onDelete={completedItemCount === 0 ? handleDeletePlan : undefined}
+                deleteLabel="Delete"
+                deleteConfirmMessage={`Delete coaching plan ${plan.referenceId}? This cannot be undone.`}
+              />
+            </>
+          ) : null
+        }
+      />
 
-          {canMutate ? (
-            <div className="flex flex-wrap gap-3">
-              {isPlanActive ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="warning"
-                    onClick={() => setIsEditing((current) => !current)}
-                  >
-                    {isEditing ? 'Close Edit' : 'Edit Plan'}
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={() => void handleTransition('COMPLETED')}
-                    disabled={actions.transitionPlan.isPending}
-                    className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                  >
-                    Complete Plan
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleTransition('CANCELLED')}
-                    disabled={actions.transitionPlan.isPending}
-                    className="rounded-md border border-rose-300 bg-card px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
-                  >
-                    Cancel Plan
-                  </button>
-                  <MhdDetailActions
-                    onDelete={completedItemCount === 0 ? handleDeletePlan : undefined}
-                    deleteLabel="Delete"
-                    deleteConfirmMessage={`Delete coaching plan ${plan.referenceId}? This cannot be undone.`}
-                  />
-                </>
-              ) : null}
-            </div>
-          ) : null}
+      {actionError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {actionError}
         </div>
+      ) : null}
 
-        <div className="mt-6 grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
+      <MhdCard className="p-6">
+        <div className="grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-md bg-muted p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Start
@@ -503,14 +503,15 @@ export function MhdCoachingPlanDetailPage() {
             Checkpoints
           </h2>
           {canMutate && isPlanActive && !isAddingCheckpoint ? (
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              className="h-9 gap-1.5 px-3 text-[16.8px]"
               onClick={() => setIsAddingCheckpoint(true)}
-              className="inline-flex items-center gap-1 rounded border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted/50"
             >
               <Plus className="h-4 w-4" />
-              Add checkpoint
-            </button>
+              Add Checkpoint
+            </Button>
           ) : null}
         </div>
 
@@ -732,23 +733,6 @@ export function MhdCoachingPlanDetailPage() {
           })}
         </ol>
       </MhdCard>
-
-      {canMutate && isPlanActive ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="warning"
-            onClick={() => setIsEditing((current) => !current)}
-          >
-            {isEditing ? 'Close Edit' : 'Edit Plan'}
-          </Button>
-          <MhdDetailActions
-            onDelete={completedItemCount === 0 ? handleDeletePlan : undefined}
-            deleteLabel="Delete"
-            deleteConfirmMessage={`Delete coaching plan ${plan.referenceId}? This cannot be undone.`}
-          />
-        </div>
-      ) : null}
 
       <MhdSystemFieldsCard
         id={plan.id}

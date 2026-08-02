@@ -5,6 +5,7 @@ import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTabs } from '@/components/ui/MhdTabs';
+import { MhdAccommodationCaseRecordTabs } from '@/appshell/components/MhdAccommodationCaseRecordTabs';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
   mhdAccommodationsCanSeeMedical,
@@ -179,16 +180,16 @@ export function MhdAccommodationCaseDetailPage() {
         description={`${mhdFormatAccommodationValue(record.case.request_source)} · ${new Date(
           record.case.requested_at,
         ).toLocaleDateString()} · ${mhdFormatAccommodationValue(record.case.status)}`}
-        actions={
-          canCloseCase ? (
-            <MhdDetailActions
-              deleteLabel="Close Case"
-              onDelete={() => setClosingCase(true)}
-              skipConfirm
-            />
-          ) : undefined
-        }
       />
+
+      <MhdAccommodationCaseRecordTabs
+        caseId={record.case.id}
+        active="detail"
+        onDelete={canCloseCase ? () => setClosingCase(true) : undefined}
+        deleteLabel="Close Case"
+        skipConfirm
+      />
+
       <MhdComplianceGateBanner readiness={readiness.data} />
 
       {closingCase ? (

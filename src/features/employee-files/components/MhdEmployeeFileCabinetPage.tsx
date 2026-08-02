@@ -5,7 +5,15 @@ import { FileText, FolderLock, ShieldAlert } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { MhdTable, MhdTableFooter, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import { cn } from '@/utils/cn';
 import { mhdFormService } from '@/features/forms/Service';
 import type { MhdEmployeeFileSubmissionRecord } from '@/features/forms/Types';
@@ -62,7 +70,7 @@ function EmployeeFileTable({
             <MhdTh>Submitted By</MhdTh>
             <MhdTh>Submitted</MhdTh>
             <MhdTh>Attachments</MhdTh>
-            <MhdTh>Actions</MhdTh>
+            <MhdActionsTh />
           </tr>
         </thead>
         <tbody>
@@ -93,14 +101,9 @@ function EmployeeFileTable({
                   {formatDate(record.submittedAt)}
                 </MhdTd>
                 <MhdTd>{record.attachmentCount}</MhdTd>
-                <MhdTd>
-                  <Link
-                    to={`/forms/${record.formId}/submissions?submissionId=${record.id}`}
-                    className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-8 px-2.5 text-xs')}
-                  >
-                    View
-                  </Link>
-                </MhdTd>
+                <MhdTableActions
+                  viewTo={`/forms/${record.formId}/submissions?submissionId=${record.id}`}
+                />
               </MhdTr>
             ))
           )}

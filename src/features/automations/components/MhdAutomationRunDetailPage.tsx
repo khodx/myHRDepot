@@ -4,6 +4,7 @@ import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import { MhdAutomationRunRecordTabs } from '@/appshell/components/MhdAutomationRunRecordTabs';
 import { useMhdAutomationRun } from '../Hook';
 import { mhdAutomationRunVariant, mhdAutomationSensitivityVariant } from '../mhdAutomationBadges';
 
@@ -59,6 +60,8 @@ export function MhdAutomationRunDetailPage() {
           </>
         }
       />
+
+      <MhdAutomationRunRecordTabs runId={detail.id} active="detail" />
 
       {detail.errorText && (
         <MhdCard className="p-4">

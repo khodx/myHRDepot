@@ -101,8 +101,12 @@ export function MhdInvestigationsPage() {
         description="Cases you have been granted access to. Access is per case, by grant — never by role."
         actions={
           canOpenCase && companyId ? (
-            <Button type="button" onClick={() => setIsCreating(true)}>
-              New investigation
+            <Button
+              type="button"
+              onClick={() => setIsCreating(true)}
+              className="h-9 px-3 text-[16.8px]"
+            >
+              New Investigation
             </Button>
           ) : undefined
         }

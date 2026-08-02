@@ -72,6 +72,7 @@ import { MhdCompetencyLibraryPage } from '@/features/jobs/components/MhdCompeten
 import { MhdJobDetailPage } from '@/features/jobs/components/MhdJobDetailPage';
 import { MhdMyJobPage } from '@/features/jobs/components/MhdMyJobPage';
 import { MhdMileagePage } from '@/features/mileage/components/MhdMileagePage';
+import { MhdMileageClaimDetailPage } from '@/features/mileage/components/MhdMileageClaimDetailPage';
 import { MhdLeavesPage } from '@/features/leaves/components/MhdLeavesPage';
 import { MhdLeaveCaseDetailPage } from '@/features/leaves/components/MhdLeaveCaseDetailPage';
 import { MhdAccommodationsPage } from '@/features/accommodations/components/MhdAccommodationsPage';
@@ -86,7 +87,12 @@ import { MhdMyHandbooksRoutePage } from '@/features/handbook/components/MhdMyHan
 import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
 import { MhdRecruitingRoutePage } from '@/features/recruiting/components/MhdRecruitingRoutePage';
 import { MhdRequisitionDetailRoutePage } from '@/features/recruiting/components/MhdRequisitionDetailRoutePage';
+import { MhdRequisitionPipelineRoutePage } from '@/features/recruiting/components/MhdRequisitionPipelineRoutePage';
+import { MhdRequisitionInterviewGuideRoutePage } from '@/features/recruiting/components/MhdRequisitionInterviewGuideRoutePage';
 import { MhdApplicationDetailRoutePage } from '@/features/recruiting/components/MhdApplicationDetailRoutePage';
+import { MhdApplicationInterviewsRoutePage } from '@/features/recruiting/components/MhdApplicationInterviewsRoutePage';
+import { MhdApplicationEvaluationRoutePage } from '@/features/recruiting/components/MhdApplicationEvaluationRoutePage';
+import { MhdApplicationOfferRoutePage } from '@/features/recruiting/components/MhdApplicationOfferRoutePage';
 import { MhdInterviewWorksheetRoutePage } from '@/features/recruiting/components/MhdInterviewWorksheetRoutePage';
 import { MhdQuestionBankRoutePage } from '@/features/recruiting/components/MhdQuestionBankRoutePage';
 import { MhdEeoReportRoutePage } from '@/features/recruiting/components/MhdEeoReportRoutePage';
@@ -203,6 +209,14 @@ function MhdAppRoutes() {
               <Route path="/companies/:companyId" element={<MhdCompanyDetailPage />} />
               <Route path="/approvals" element={<MhdApprovalsPage />} />
               <Route path="/approvals/:approvalId" element={<MhdApprovalDetailPage />} />
+              {/* Timeline is the second record tab (MhdApprovalRecordTabs) —
+                  the comment conversation, split out of the single-page
+                  detail view. It inherits the /approvals access rule via the
+                  guard's prefix match. */}
+              <Route
+                path="/approvals/:approvalId/timeline"
+                element={<MhdApprovalDetailPage tab="timeline" />}
+              />
               <Route path="/performance" element={<MhdPerformancePage />} />
               {/* v2 (PRF2) surfaces. /performance/invitations is the rater-facing
                   route — it never loads the review, only the caller's own
@@ -243,11 +257,16 @@ function MhdAppRoutes() {
               <Route path="/jobs/competencies" element={<MhdCompetencyLibraryPage />} />
               <Route path="/jobs/:jobId" element={<MhdJobDetailPage />} />
               <Route path="/my-job" element={<MhdMyJobPage />} />
-              {/* Mileage & Reimbursement. A single tabbed route; the page reads
+              {/* Mileage & Reimbursement. /mileage is the tabbed Trips/Claims/
+                  IRS rates/Company rate list surface; the page reads
                   useMhdAuth and renders the privileged company view or the
                   employee's own trips/claims. Viewer is excluded via
-                  mhdRouteAccess. */}
+                  mhdRouteAccess. /mileage/claims/:claimId is a single claim's
+                  own detail page (lines, totals, and workflow actions) and
+                  inherits the /mileage access rule via the guard's prefix
+                  match. */}
               <Route path="/mileage" element={<MhdMileagePage />} />
+              <Route path="/mileage/claims/:claimId" element={<MhdMileageClaimDetailPage />} />
               {/* Leaves of Absence. /leaves/:caseId inherits the /leaves rule via
                   the guard's prefix match. Both pages read useMhdAuth themselves:
                   privileged roles administer the company board, a Client User sees
@@ -295,6 +314,14 @@ function MhdAppRoutes() {
                   attorney-flagged placeholder. All pages read useMhdAuth themselves. */}
               <Route path="/handbooks" element={<MhdHandbooksPage />} />
               <Route path="/handbooks/:handbookId" element={<MhdHandbookDetailPage />} />
+              {/* Acknowledgments is the second record tab
+                  (MhdHandbookRecordTabs) — the ack board split out of the
+                  single-page wizard view. It inherits the /handbooks access
+                  rule via the guard's prefix match. */}
+              <Route
+                path="/handbooks/:handbookId/acknowledgments"
+                element={<MhdHandbookDetailPage tab="acknowledgments" />}
+              />
               <Route path="/my-handbooks" element={<MhdMyHandbooksRoutePage />} />
               {/* Recruiting / ATS. Static child routes (/recruiting/eeo,
                   /recruiting/questions, /recruiting/interviews/:id) are ranked
@@ -306,7 +333,14 @@ function MhdAppRoutes() {
                   Partner / Client Admin. The public /apply page is a SEPARATE
                   route in the public block above, outside this guard entirely. All
                   route-entry pages read useMhdAuth themselves. NO EEO renders on
-                  any recruiter/HM/interviewer surface. */}
+                  any recruiter/HM/interviewer surface.
+
+                  Each of the requisition and application record pages is now
+                  split into its own routed tabs (MhdRequisitionRecordTabs /
+                  MhdApplicationRecordTabs), mirroring MhdTaskRecordTabs:
+                  requisition Detail/Pipeline/Interview Guide and application
+                  Detail/Interviews/Evaluation/Offer. Every sub-route inherits
+                  the parent's access rule via the guard's prefix match. */}
               <Route path="/recruiting" element={<MhdRecruitingRoutePage />} />
               <Route path="/recruiting/eeo" element={<MhdEeoReportRoutePage />} />
               <Route path="/recruiting/questions" element={<MhdQuestionBankRoutePage />} />
@@ -319,8 +353,28 @@ function MhdAppRoutes() {
                 element={<MhdRequisitionDetailRoutePage />}
               />
               <Route
+                path="/recruiting/requisitions/:reqId/pipeline"
+                element={<MhdRequisitionPipelineRoutePage />}
+              />
+              <Route
+                path="/recruiting/requisitions/:reqId/interview-guide"
+                element={<MhdRequisitionInterviewGuideRoutePage />}
+              />
+              <Route
                 path="/recruiting/applications/:appId"
                 element={<MhdApplicationDetailRoutePage />}
+              />
+              <Route
+                path="/recruiting/applications/:appId/interviews"
+                element={<MhdApplicationInterviewsRoutePage />}
+              />
+              <Route
+                path="/recruiting/applications/:appId/evaluation"
+                element={<MhdApplicationEvaluationRoutePage />}
+              />
+              <Route
+                path="/recruiting/applications/:appId/offer"
+                element={<MhdApplicationOfferRoutePage />}
               />
             </Route>
           </Route>

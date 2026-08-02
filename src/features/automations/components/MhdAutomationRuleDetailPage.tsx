@@ -1,11 +1,11 @@
 import { useParams } from 'react-router-dom';
-import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanArmAutomations } from '@/appshell/mhdRouteAccess';
+import { MhdAutomationRuleRecordTabs } from '@/appshell/components/MhdAutomationRuleRecordTabs';
 import { useMhdAutomationRule, useMhdSetAutomationRuleActive } from '../Hook';
 import { mhdAutomationSensitivityVariant } from '../mhdAutomationBadges';
 
@@ -79,16 +79,16 @@ export function MhdAutomationRuleDetailPage() {
             </MhdBadge>
           </>
         }
-        actions={
-          canArm ? (
-            <Button
-              variant={detail.isActive ? 'secondary' : 'primary'}
-              disabled={setActive.isPending}
-              onClick={() => setActive.mutate({ ruleId: detail.id, isActive: !detail.isActive })}
-            >
-              {detail.isActive ? 'Disarm Rule' : 'Arm Rule'}
-            </Button>
-          ) : undefined
+      />
+
+      <MhdAutomationRuleRecordTabs
+        ruleId={detail.id}
+        active="detail"
+        isActive={detail.isActive}
+        canArm={canArm}
+        isToggling={setActive.isPending}
+        onToggleActive={() =>
+          setActive.mutate({ ruleId: detail.id, isActive: !detail.isActive })
         }
       />
 

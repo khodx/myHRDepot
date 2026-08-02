@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdApplicationRecordTabs } from '@/appshell/components/MhdApplicationRecordTabs';
 import {
   useMhdMoveApplicationStage,
   useMhdRecruitingApplication,
@@ -17,7 +19,6 @@ interface Props {
   companyId: string;
   applicationId: string;
   canManage: boolean;
-  onBack?: () => void;
 }
 
 function formatDateTime(value: string | null): string {
@@ -38,15 +39,17 @@ function formatPayRate(value: number | null): string {
 }
 
 /**
- * A single application's detail — its stage, lifecycle, the structured applicant
- * fields (`application_get`), and the append-only stage timeline
- * (`application_history`), plus the move / reject controls.
+ * `/recruiting/applications/:appId` — the Detail tab: the applicant's
+ * structured fields (`application_get`), the append-only stage timeline
+ * (`application_history`), and the move / reject controls. Interviews,
+ * evaluation, and the offer/hire handoff now live on their own routed tabs —
+ * see `MhdApplicationRecordTabs`.
  *
  * EEO NOTE: this decision surface renders NO EEO self-identification data. Neither
  * `application_get` nor `application_history` carries it — that partition is
  * write-only from the app's perspective (the aggregate report aside).
  */
-export function MhdApplicationDetailPage({ companyId, applicationId, canManage, onBack }: Props) {
+export function MhdApplicationDetailPage({ companyId, applicationId, canManage }: Props) {
   const [rejecting, setRejecting] = useState(false);
 
   const application = useMhdRecruitingApplication(applicationId);
@@ -78,19 +81,13 @@ export function MhdApplicationDetailPage({ companyId, applicationId, canManage, 
 
   if (application.isError || !detail) {
     return (
-      <div>
-        {onBack ? (
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-sm font-medium text-accent hover:text-accent-hover"
-          >
-            ← Back to pipeline
-          </button>
-        ) : null}
-        <p className="mt-4 text-sm text-muted-foreground">
-          This application could not be found, or you do not have access to it.
-        </p>
+      <div className="space-y-6">
+        <MhdPageHeader
+          backTo="/recruiting"
+          backLabel="Requisitions"
+          title="Application"
+          description="This application could not be found, or you do not have access to it."
+        />
       </div>
     );
   }
@@ -99,24 +96,20 @@ export function MhdApplicationDetailPage({ companyId, applicationId, canManage, 
 
   return (
     <div className="space-y-6">
-      {onBack ? (
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-sm font-medium text-accent hover:text-accent-hover"
-        >
-          ← Back to pipeline
-        </button>
-      ) : null}
+      <MhdPageHeader
+        backTo={`/recruiting/requisitions/${detail.requisitionId}/pipeline`}
+        backLabel="Pipeline"
+        title={detail.personDisplayName}
+        chips={<MhdApplicationStatusBadge lifecycle={detail.lifecycle} />}
+        description={
+          <>
+            <span className="font-mono">{detail.referenceId}</span> · Requisition:{' '}
+            {detail.requisitionTitle}
+          </>
+        }
+      />
 
-      <header className="space-y-2">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-foreground">{detail.personDisplayName}</h1>
-          <MhdApplicationStatusBadge lifecycle={detail.lifecycle} />
-        </div>
-        <p className="font-mono text-xs text-muted-foreground">{detail.referenceId}</p>
-        <p className="text-sm text-muted-foreground">Requisition: {detail.requisitionTitle}</p>
-      </header>
+      <MhdApplicationRecordTabs appId={applicationId} active="detail" showOfferTab={canManage} />
 
       <MhdCard>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm md:grid-cols-3">

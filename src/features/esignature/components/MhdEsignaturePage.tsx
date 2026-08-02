@@ -5,8 +5,18 @@ import { Button, buttonBaseClasses, buttonVariantClasses } from '@/components/ui
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdFilterBar, MhdFilterInput } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdStatCard } from '@/components/ui/MhdStatCard';
+import {
+  MhdActionsTh,
+  MhdTable,
+  MhdTableActions,
+  MhdTableFooter,
+  MhdTd,
+  MhdTh,
+  MhdTr,
+} from '@/components/ui/MhdTable';
 import { cn } from '@/utils/cn';
 import { mhdCanMutateEsignature } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -599,91 +609,95 @@ export function MhdEsignaturePage() {
           </div>
         </MhdCard>
 
-        <MhdCard className="rounded-2xl p-5">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Mail className="h-5 w-5 text-accent" />
-                <h2 className="text-lg font-semibold text-foreground">Request List</h2>
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Open any request to inspect the signer chain, consent trail, and chronological event
-                history.
-              </p>
-            </div>
-            <label className="block text-sm font-medium text-foreground">
-              Search
-              <input
-                value={requestSearchTerm}
-                onChange={(event) => setRequestSearchTerm(event.target.value)}
-                placeholder="Reference, document, or status"
-                className="mt-1 w-full min-w-72 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              />
-            </label>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Mail className="h-5 w-5 text-accent" />
+            <h2 className="text-lg font-semibold text-foreground">Request List</h2>
           </div>
+          <p className="text-sm text-muted-foreground">
+            Open any request to inspect the signer chain, consent trail, and chronological event
+            history.
+          </p>
+
+          <MhdFilterBar>
+            <MhdFilterInput
+              label="Search"
+              value={requestSearchTerm}
+              onChange={(event) => setRequestSearchTerm(event.target.value)}
+              placeholder="Reference, document, or status"
+              className="min-w-72"
+            />
+          </MhdFilterBar>
 
           {requestsQuery.error ? (
-            <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+            <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
               {requestsQuery.error instanceof Error
                 ? requestsQuery.error.message
                 : 'Unable to load signature requests.'}
             </div>
           ) : null}
 
-          <div className="mt-5 grid gap-3">
-            {filteredRequests.map((request) => (
-              <Link
-                key={request.id}
-                to={`/esignature/${request.id}`}
-                className="rounded-2xl border border-border bg-muted/70 p-4 transition-colors hover:border-accent hover:bg-accent-tint/60"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-semibold text-foreground">
-                        {request.documentName}
-                      </h3>
-                      <MhdBadge variant={STATUS_VARIANTS[request.status] ?? 'neutral'}>
-                        {request.status}
-                      </MhdBadge>
-                    </div>
-                    <p className="mt-1 text-sm text-muted-foreground">{request.referenceId}</p>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span className="rounded-full bg-card px-2.5 py-1">
-                        Order: {request.signingOrder}
-                      </span>
-                      {request.completedAt ? (
-                        <span className="rounded-full bg-card px-2.5 py-1">
-                          Completed: {new Date(request.completedAt).toLocaleString()}
-                        </span>
-                      ) : null}
-                      {request.expiresAt ? (
-                        <span className="rounded-full bg-card px-2.5 py-1">
-                          Expires: {new Date(request.expiresAt).toLocaleString()}
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div className="text-right text-xs text-muted-foreground">
-                    <p>Created {new Date(request.createdAt).toLocaleString()}</p>
-                    <p className="mt-1 font-medium text-accent">Open detail</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-
-            {!requestsQuery.isLoading && filteredRequests.length === 0 ? (
-              <MhdCard className="border border-dashed border-border">
-                <MhdEmptyState
-                  icon={Mail}
-                  title="No signature requests"
-                  description="No signature requests match the current filter."
-                />
-              </MhdCard>
-            ) : null}
-          </div>
-        </MhdCard>
+          {!requestsQuery.isLoading && filteredRequests.length === 0 ? (
+            <MhdCard className="border border-dashed border-border">
+              <MhdEmptyState
+                icon={Mail}
+                title="No signature requests"
+                description="No signature requests match the current filter."
+              />
+            </MhdCard>
+          ) : (
+            <MhdCard className="overflow-hidden p-0">
+              <MhdTable>
+                <thead>
+                  <tr>
+                    <MhdTh>Reference</MhdTh>
+                    <MhdTh>Document</MhdTh>
+                    <MhdTh>Status</MhdTh>
+                    <MhdTh>Signing Order</MhdTh>
+                    <MhdTh>Created</MhdTh>
+                    <MhdActionsTh />
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRequests.map((request) => (
+                    <MhdTr key={request.id} to={`/esignature/${request.id}`}>
+                      <MhdTd className="whitespace-nowrap font-mono text-xs">
+                        {request.referenceId}
+                      </MhdTd>
+                      <MhdTd>
+                        <p className="font-medium text-foreground">{request.documentName}</p>
+                        {request.completedAt ? (
+                          <p className="text-xs text-muted-foreground">
+                            Completed {new Date(request.completedAt).toLocaleString()}
+                          </p>
+                        ) : request.expiresAt ? (
+                          <p className="text-xs text-muted-foreground">
+                            Expires {new Date(request.expiresAt).toLocaleString()}
+                          </p>
+                        ) : null}
+                      </MhdTd>
+                      <MhdTd>
+                        <MhdBadge variant={STATUS_VARIANTS[request.status] ?? 'neutral'}>
+                          {request.status}
+                        </MhdBadge>
+                      </MhdTd>
+                      <MhdTd className="whitespace-nowrap text-muted-foreground">
+                        {request.signingOrder}
+                      </MhdTd>
+                      <MhdTd className="whitespace-nowrap text-muted-foreground">
+                        {new Date(request.createdAt).toLocaleDateString()}
+                      </MhdTd>
+                      <MhdTableActions viewTo={`/esignature/${request.id}`} />
+                    </MhdTr>
+                  ))}
+                </tbody>
+              </MhdTable>
+              <MhdTableFooter
+                summary={`Showing 1 to ${filteredRequests.length} of ${filteredRequests.length} request${filteredRequests.length === 1 ? '' : 's'}`}
+              />
+            </MhdCard>
+          )}
+        </div>
       </div>
     </div>
   );

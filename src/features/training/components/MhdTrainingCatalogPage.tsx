@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Plus, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
@@ -125,10 +126,24 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
         actions={
           canManage ? (
             <>
-              <Button variant="secondary" onClick={() => setIsAssigning(true)}>
-                Assign training
+              {/* Sized to match the record-detail tab row (MhdTaskRecordTabs:
+                  h-9, px-3, text-[16.8px], primary/secondary pills) rather
+                  than the default h-10 action-button size. */}
+              <Button
+                variant="secondary"
+                className="h-9 gap-1.5 px-3 text-[16.8px]"
+                onClick={() => setIsAssigning(true)}
+              >
+                <UserPlus className="h-4 w-4" aria-hidden />
+                Assign Training
               </Button>
-              <Button onClick={() => setIsCreating(true)}>New course</Button>
+              <Button
+                className="h-9 gap-1.5 px-3 text-[16.8px]"
+                onClick={() => setIsCreating(true)}
+              >
+                <Plus className="h-4 w-4" aria-hidden />
+                New Course
+              </Button>
             </>
           ) : undefined
         }
@@ -243,7 +258,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
       {isCreating && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
           <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-foreground">New course</h2>
+            <h2 className="mb-4 text-base font-semibold text-foreground">New Course</h2>
             <MhdTrainingCourseForm
               companyId={companyId}
               onSubmit={handleCreate}
@@ -257,7 +272,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
       {editing && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
           <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-foreground">Edit course</h2>
+            <h2 className="mb-4 text-base font-semibold text-foreground">Edit Course</h2>
             <MhdTrainingCourseForm
               companyId={companyId}
               course={editing}
@@ -272,7 +287,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
       {isAssigning && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
           <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-foreground">Assign training</h2>
+            <h2 className="mb-4 text-base font-semibold text-foreground">Assign Training</h2>
             <MhdAssignTrainingPanel
               companyId={companyId}
               courses={activeCourses}

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdFeedbackThreshold, useMhdMyInvitations } from '../Hook-v2';
 import { MHD_FEEDBACK_THRESHOLD_FLOOR } from '../Types-v2';
@@ -37,7 +38,7 @@ export function MhdFeedbackInvitationsPage() {
 
   if (openInvitation) {
     return (
-      <div className="mx-auto max-w-[62.4rem]">
+      <div className="mx-auto max-w-[62.4rem] space-y-6">
         <div>
           <button
             type="button"
@@ -67,7 +68,11 @@ export function MhdFeedbackInvitationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[62.4rem]">
+    <div className="mx-auto max-w-[62.4rem] space-y-6">
+      <MhdPageHeader
+        title="Feedback Requests"
+        description="360 feedback invitations awaiting your response."
+      />
       <MhdMyFeedbackInvitations onOpen={setOpenParticipantId} />
     </div>
   );

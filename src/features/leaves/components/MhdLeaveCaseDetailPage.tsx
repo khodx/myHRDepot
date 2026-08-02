@@ -5,6 +5,7 @@ import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import { MhdLeaveCaseRecordTabs } from '@/appshell/components/MhdLeaveCaseRecordTabs';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdLeavesCanSeeMedical, mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
 import {
@@ -226,18 +227,19 @@ export function MhdLeaveCaseDetailPage() {
         }
         actions={
           isPrivileged ? (
-            <>
-              <Button variant="warning" onClick={toggleEditingBases}>
-                {isEditingBases ? 'Cancel Edit Bases' : 'Edit Bases'}
-              </Button>
-              <MhdDetailActions
-                onDelete={openCancelFlow}
-                deleteLabel="Cancel Case"
-                skipConfirm
-              />
-            </>
+            <Button variant="warning" onClick={toggleEditingBases}>
+              {isEditingBases ? 'Cancel Edit Bases' : 'Edit Bases'}
+            </Button>
           ) : undefined
         }
+      />
+
+      <MhdLeaveCaseRecordTabs
+        caseId={leaveCase.id}
+        active="detail"
+        onDelete={isPrivileged ? openCancelFlow : undefined}
+        deleteLabel="Cancel Case"
+        skipConfirm
       />
 
       {/* ----- Status transition (privileged) ----- */}
