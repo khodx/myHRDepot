@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { FileText, FolderLock, ShieldAlert } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
@@ -24,6 +25,17 @@ import { MHD_EMPLOYEE_FILE_TYPES } from '../Types';
 function formatDate(value: string | null) {
   return value ? new Date(value).toLocaleString() : 'Not Submitted';
 }
+
+// SME review addition (Stage 6b review): audit_certificates.status only ever
+// takes 'PENDING' | 'GENERATED' | 'MERGED' | 'FAILED' (migration 0108's
+// check constraint) — 'MERGED' is the actual terminal success status
+// mhd_complete_audit_certificate sets, not 'COMPLETED', which never occurs.
+const CERTIFICATE_STATUS_VARIANTS: Record<string, MhdBadgeVariant> = {
+  PENDING: 'warning',
+  GENERATED: 'success',
+  MERGED: 'success',
+  FAILED: 'error',
+};
 
 function EmployeeFileTable({
   fileType,
@@ -95,7 +107,34 @@ function EmployeeFileTable({
                     </div>
                   </div>
                 </MhdTd>
-                <MhdTd>{record.status}</MhdTd>
+                <MhdTd>
+                  <div className="space-y-2">
+                    <p>{record.status}</p>
+                    {record.certificateStatus ? (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <MhdBadge
+                          variant={
+                            CERTIFICATE_STATUS_VARIANTS[record.certificateStatus] ?? 'neutral'
+                          }
+                        >
+                          {record.certificateStatus}
+                        </MhdBadge>
+                        <MhdBadge
+                          variant={record.certificateDigitallySigned ? 'success' : 'warning'}
+                        >
+                          {record.certificateDigitallySigned
+                            ? 'Digitally signed'
+                            : 'Hash-verified only'}
+                        </MhdBadge>
+                        {record.certificateVerificationCode ? (
+                          <span className="break-all text-xs text-muted-foreground">
+                            {record.certificateVerificationCode}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                </MhdTd>
                 <MhdTd>{record.submitterDisplayName}</MhdTd>
                 <MhdTd className="whitespace-nowrap text-muted-foreground">
                   {formatDate(record.submittedAt)}

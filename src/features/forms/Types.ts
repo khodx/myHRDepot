@@ -351,6 +351,8 @@ export interface MhdForm {
   description?: string;
   status: MhdFormStatus;
   employeeFileCategory: MhdEmployeeFileTypeKey | null;
+  requiresEsignature: boolean;
+  esignatureDocumentTemplateId: string | null;
   definition: MhdFormDefinition;
   version: number;
   previousVersionId: string | null;
@@ -425,6 +427,8 @@ export interface MhdCreateFormInput {
   name: string;
   description?: string;
   employeeFileCategory?: MhdEmployeeFileTypeKey | null;
+  requiresEsignature?: boolean;
+  esignatureDocumentTemplateId?: string | null;
   definition: MhdFormDefinition;
 }
 
@@ -432,6 +436,8 @@ export interface MhdUpdateFormInput {
   name?: string;
   description?: string;
   employeeFileCategory?: MhdEmployeeFileTypeKey | null;
+  requiresEsignature?: boolean;
+  esignatureDocumentTemplateId?: string | null;
   definition?: MhdFormDefinition;
 }
 
@@ -457,6 +463,10 @@ export interface MhdEmployeeFileSubmissionRecord {
   createdAt: string;
   updatedAt: string | null;
   attachmentCount: number;
+  esignatureRequestId: string | null;
+  certificateStatus: string | null;
+  certificateDigitallySigned: boolean;
+  certificateVerificationCode: string | null;
 }
 
 export interface MhdFormsIndexFilters {

@@ -26,6 +26,8 @@ export const mhdCreateFormInputSchema = z.object({
     .max(1000, 'Description must be 1000 characters or fewer')
     .optional(),
   employeeFileCategory: mhdEmployeeFileCategorySchema.nullable().optional(),
+  requiresEsignature: z.boolean().optional(),
+  esignatureDocumentTemplateId: z.string().uuid().nullable().optional(),
   definition: z.record(z.string(), z.unknown()),
 });
 

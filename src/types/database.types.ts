@@ -8248,6 +8248,7 @@ export type Database = {
           employee_file_category: string | null
           employee_file_person_id: string | null
           employee_file_user_id: string | null
+          esignature_request_id: string | null
           form_id: string
           id: string
           is_draft: boolean
@@ -8310,6 +8311,7 @@ export type Database = {
           employee_file_category?: string | null
           employee_file_person_id?: string | null
           employee_file_user_id?: string | null
+          esignature_request_id?: string | null
           form_id: string
           id?: string
           is_draft?: boolean
@@ -8372,6 +8374,7 @@ export type Database = {
           employee_file_category?: string | null
           employee_file_person_id?: string | null
           employee_file_user_id?: string | null
+          esignature_request_id?: string | null
           form_id?: string
           id?: string
           is_draft?: boolean
@@ -8443,6 +8446,13 @@ export type Database = {
             columns: ["employee_file_user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_submissions_esignature_request_id_fkey"
+            columns: ["esignature_request_id"]
+            isOneToOne: false
+            referencedRelation: "esignature_requests"
             referencedColumns: ["id"]
           },
           {
@@ -9024,6 +9034,7 @@ export type Database = {
           description: string | null
           employee_facing_flag: boolean
           employee_file_category: string | null
+          esignature_document_template_id: string | null
           estimated_completion_time_minutes: number | null
           external_dependency_flag: boolean
           external_reference_number: string | null
@@ -9074,6 +9085,7 @@ export type Database = {
           record_impact_type: string | null
           reference_id: string
           regulatory_category: string | null
+          requires_esignature: boolean
           risk_level: string | null
           risk_score: number | null
           sensitivity_level: string
@@ -9113,6 +9125,7 @@ export type Database = {
           description?: string | null
           employee_facing_flag?: boolean
           employee_file_category?: string | null
+          esignature_document_template_id?: string | null
           estimated_completion_time_minutes?: number | null
           external_dependency_flag?: boolean
           external_reference_number?: string | null
@@ -9163,6 +9176,7 @@ export type Database = {
           record_impact_type?: string | null
           reference_id: string
           regulatory_category?: string | null
+          requires_esignature?: boolean
           risk_level?: string | null
           risk_score?: number | null
           sensitivity_level?: string
@@ -9202,6 +9216,7 @@ export type Database = {
           description?: string | null
           employee_facing_flag?: boolean
           employee_file_category?: string | null
+          esignature_document_template_id?: string | null
           estimated_completion_time_minutes?: number | null
           external_dependency_flag?: boolean
           external_reference_number?: string | null
@@ -9252,6 +9267,7 @@ export type Database = {
           record_impact_type?: string | null
           reference_id?: string
           regulatory_category?: string | null
+          requires_esignature?: boolean
           risk_level?: string | null
           risk_score?: number | null
           sensitivity_level?: string
@@ -9280,6 +9296,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forms_esignature_document_template_id_fkey"
+            columns: ["esignature_document_template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
             referencedColumns: ["id"]
           },
           {
@@ -21428,7 +21451,9 @@ export type Database = {
           p_definition?: Json
           p_description?: string
           p_employee_file_category?: string
+          p_esignature_document_template_id?: string
           p_name: string
+          p_requires_esignature?: boolean
         }
         Returns: {
           id: string
@@ -21805,6 +21830,7 @@ export type Database = {
         Returns: string
       }
       mhd_encrypt_field_value: { Args: { p_plain: string }; Returns: string }
+      mhd_esignature_send_expiring_soon: { Args: never; Returns: number }
       mhd_export_audit_events: {
         Args: { p_company_id: string; p_date_from: string; p_date_to: string }
         Returns: {
@@ -22044,12 +22070,14 @@ export type Database = {
           definition: Json
           description: string
           employee_file_category: string
+          esignature_document_template_id: string
           id: string
           name: string
           previous_version_id: string
           published_at: string
           published_by: string
           reference_id: string
+          requires_esignature: boolean
           status: string
           updated_at: string
           updated_by: string
@@ -23240,6 +23268,13 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_link_submission_esignature_request: {
+        Args: { p_esignature_request_id: string; p_submission_id: string }
+        Returns: {
+          esignature_request_id: string
+          id: string
+        }[]
+      }
       mhd_list_activity_board: {
         Args: {
           p_activity_type?: string
@@ -23572,10 +23607,14 @@ export type Database = {
         Args: { p_person_id: string }
         Returns: {
           attachment_count: number
+          certificate_digitally_signed: boolean
+          certificate_status: string
+          certificate_verification_code: string
           created_at: string
           employee_file_category: string
           employee_file_person_id: string
           employee_file_user_id: string
+          esignature_request_id: string
           form_id: string
           form_name: string
           id: string
@@ -23596,12 +23635,14 @@ export type Database = {
           definition: Json
           description: string
           employee_file_category: string
+          esignature_document_template_id: string
           id: string
           name: string
           previous_version_id: string
           published_at: string
           published_by: string
           reference_id: string
+          requires_esignature: boolean
           status: string
           updated_at: string
           updated_by: string
@@ -25198,6 +25239,14 @@ export type Database = {
           status: string
         }[]
       }
+      mhd_request_submission_document_generation: {
+        Args: { p_submission_id: string }
+        Returns: {
+          generation_id: string
+          generation_reference_id: string
+          status: string
+        }[]
+      }
       mhd_resolve_activity_company_id: {
         Args: { p_activity_id: string }
         Returns: string
@@ -25862,8 +25911,10 @@ export type Database = {
           p_definition?: Json
           p_description?: string
           p_employee_file_category?: string
+          p_esignature_document_template_id?: string
           p_form_id: string
           p_name?: string
+          p_requires_esignature?: boolean
         }
         Returns: undefined
       }

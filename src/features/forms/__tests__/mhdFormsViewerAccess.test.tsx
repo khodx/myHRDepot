@@ -38,6 +38,12 @@ vi.mock('../Service', async () => {
   };
 });
 
+vi.mock('@/features/documents/Service', () => ({
+  mhdDocumentService: {
+    listTemplates: vi.fn().mockResolvedValue([]),
+  },
+}));
+
 const { mhdFormService } = await import('../Service');
 const { MhdFormsPage } = await import('../components/MhdFormsPage');
 const { MhdFormRenderer } = await import('../components/MhdFormRenderer');
@@ -52,6 +58,8 @@ const baseForm: MhdForm = {
   description: 'New hire onboarding form',
   status: 'ACTIVE',
   employeeFileCategory: null,
+  requiresEsignature: false,
+  esignatureDocumentTemplateId: null,
   version: 1,
   previousVersionId: null,
   createdAt: '2026-07-17T00:00:00Z',

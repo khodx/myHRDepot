@@ -4,16 +4,81 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
+import { supabaseClient } from '@/lib/supabase/supabaseClient';
+import { mhdEsignatureService } from '@/features/esignature/Service';
 import { mhdOnboardingService } from '@/features/onboarding/Service';
 import {
   MHD_ONBOARDING_PACKET_BY_KEY,
   mhdIsOnboardingDocumentKey,
 } from '@/features/onboarding/Types';
 import { mhdIsEmployeeFileTypeKey } from '@/features/employee-files/Types';
-import type { MhdFormSubmission } from '../Types';
+import type { MhdForm, MhdFormSubmission } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormRenderer } from './MhdFormRenderer';
 import { MhdFormResumeDrafts } from './MhdFormDraftSave';
+
+const RENDER_DOCUMENT_FUNCTION_NAME = 'render-document';
+const DEFAULT_GENERATION_POLL_ATTEMPTS = 10;
+const DEFAULT_GENERATION_POLL_INTERVAL_MS = 1500;
+
+interface RenderDocumentResponse {
+  success?: boolean;
+  error?: string;
+}
+
+interface SubmissionGenerationPollRow {
+  id: string;
+  status: string;
+  output_drive_file_id: string | null;
+  output_document_hash: string | null;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function trimmedOrUndefined(value?: string | null): string | undefined {
+  if (value == null) return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+async function fetchSubmissionGenerationUntilGenerated(
+  generationId: string,
+): Promise<SubmissionGenerationPollRow> {
+  let generation: SubmissionGenerationPollRow | null = null;
+
+  for (let attempt = 0; attempt < DEFAULT_GENERATION_POLL_ATTEMPTS; attempt += 1) {
+    if (attempt > 0) {
+      await delay(DEFAULT_GENERATION_POLL_INTERVAL_MS);
+    }
+
+    const { data, error } = await supabaseClient
+      .from('document_generations')
+      .select('id, status, output_drive_file_id, output_document_hash')
+      .eq('id', generationId)
+      .maybeSingle<SubmissionGenerationPollRow>();
+
+    if (error) {
+      throw new Error(`Unable to check document generation status: ${error.message}`);
+    }
+    if (!data) {
+      throw new Error(`Document generation not found: ${generationId}`);
+    }
+
+    generation = data;
+    if (generation.status === 'GENERATED') {
+      return generation;
+    }
+    if (generation.status === 'FAILED') {
+      throw new Error('Document generation failed - see generation history for details.');
+    }
+  }
+
+  throw new Error(
+    `Document generation did not complete in time (last status: ${generation?.status ?? 'PENDING'}).`,
+  );
+}
 
 interface MhdFormRendererPageProps {
   /**
@@ -79,6 +144,15 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
   const onboardingPacket = onboardingDocumentKey
     ? MHD_ONBOARDING_PACKET_BY_KEY[onboardingDocumentKey]
     : null;
+  // SME review addition (Stage 6b review): MHD_ONBOARDING_PACKET_BY_KEY is a
+  // static frontend config, entirely decoupled from the new forms.requires_esignature
+  // DB column added in 0113/0115. Several onboarding packets have
+  // requiresSignature: true here without any form having its own new
+  // "Requires E-Signature" toggle configured yet, so the automatic
+  // generate-and-sign trigger below won't fire for them. Restoring this
+  // pre-submission guidance so those flows aren't left with zero signal
+  // once a form is actually configured via the Builder, this banner and
+  // the automatic trigger simply both apply — redundant, not harmful.
   const shouldRouteToEsignature =
     !!onboardingPersonId &&
     !!onboardingPacket?.requiresSignature &&
@@ -93,8 +167,9 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
     [profile],
   );
 
-  async function handleSubmissionSuccess(nextSubmissionId: string) {
+  async function handleSubmissionSuccess(nextSubmissionId: string, submittedForm: MhdForm) {
     setSyncError(null);
+    let nextMessage = 'Submission submitted successfully.';
 
     if (onboardingPersonId && onboardingDocumentKey && profile?.userId && profile?.companyId) {
       try {
@@ -105,15 +180,104 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
           submissionId: nextSubmissionId,
           actorUserId: profile.userId,
         });
-        setMessage('Submission submitted and onboarding checklist updated.');
+        nextMessage = 'Submission submitted and onboarding checklist updated.';
       } catch (error) {
-        setMessage('Submission submitted successfully.');
         setSyncError(
           error instanceof Error ? error.message : 'Unable to sync onboarding checklist.',
         );
       }
-    } else {
-      setMessage('Submission submitted successfully.');
+    }
+
+    setMessage(nextMessage);
+
+    try {
+      if (!submittedForm.requiresEsignature) return;
+
+      if (!profile?.companyId) {
+        throw new Error('Unable to create signature request: no company context is available.');
+      }
+      if (!profile.email) {
+        throw new Error('Unable to create signature request: your profile has no email address.');
+      }
+
+      const { data: generationData, error: generationError } = await supabaseClient
+        .rpc('mhd_request_submission_document_generation', {
+          p_submission_id: nextSubmissionId,
+        })
+        .returns<
+          Array<{ generation_id: string; generation_reference_id: string; status: string }>
+        >();
+
+      if (generationError) {
+        throw new Error(`Document generation request failed: ${generationError.message}`);
+      }
+
+      const generationId = generationData?.[0]?.generation_id;
+      if (!generationId) {
+        throw new Error('Document generation request failed: no generation id returned.');
+      }
+
+      const { data: renderData, error: renderError } =
+        await supabaseClient.functions.invoke<RenderDocumentResponse>(
+          RENDER_DOCUMENT_FUNCTION_NAME,
+          { body: { generation_id: generationId } },
+        );
+
+      if (renderError) {
+        throw new Error(`Document render failed: ${renderError.message}`);
+      }
+      if (renderData?.success === false) {
+        throw new Error(`Document render failed: ${renderData.error ?? 'unknown render error.'}`);
+      }
+
+      const generation = await fetchSubmissionGenerationUntilGenerated(generationId);
+      const documentHash = trimmedOrUndefined(generation.output_document_hash);
+      if (!documentHash) {
+        throw new Error('Document generation completed without an output document hash.');
+      }
+
+      const signerName =
+        trimmedOrUndefined(profile.displayName) ??
+        trimmedOrUndefined(`${profile.firstName ?? ''} ${profile.lastName ?? ''}`) ??
+        profile.email;
+      const result = await mhdEsignatureService.createRequestFromGeneratedDocument({
+        companyId: profile.companyId,
+        generationId,
+        documentHash,
+        signers: [
+          {
+            kind: 'external',
+            externalEmail: profile.email,
+            externalName: signerName,
+          },
+        ],
+        signingOrder: 'SEQUENTIAL',
+      });
+
+      const { error: linkError } = await supabaseClient.rpc(
+        'mhd_link_submission_esignature_request',
+        {
+          p_submission_id: nextSubmissionId,
+          p_esignature_request_id: result.request.id,
+        },
+      );
+
+      if (linkError) {
+        throw new Error(`Unable to link signature request to submission: ${linkError.message}`);
+      }
+
+      setMessage('Submission submitted - a signature request has been sent to your email.');
+      if (result.invitationErrors.length > 0) {
+        setSyncError(
+          `Signature request created, but email delivery reported: ${result.invitationErrors.join('; ')}`,
+        );
+      }
+    } catch (error) {
+      setSyncError(
+        error instanceof Error
+          ? `Submission submitted, but e-signature routing failed: ${error.message}`
+          : 'Submission submitted, but e-signature routing failed.',
+      );
     }
 
     const allDrafts = await mhdFormService.listMyDraftSubmissions();
@@ -182,8 +346,9 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
             </p>
             {shouldRouteToEsignature ? (
               <p className="mt-2">
-                This packet item also requires a generated document plus a Stage 6 e-signature
-                request. Once the document is generated, route it from the{' '}
+                This packet item also requires a generated document plus an e-signature
+                request. If this form has not been configured with the Builder&apos;s
+                &quot;Requires E-Signature&quot; option yet, route it manually from the{' '}
                 <Link
                   to={`/esignature?personId=${encodeURIComponent(onboardingPersonId)}&personName=${encodeURIComponent(onboardingPersonName ?? 'Person')}`}
                   className="font-semibold text-accent underline hover:text-accent-hover"
@@ -193,23 +358,6 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
                 .
               </p>
             ) : null}
-          </div>
-        ) : null}
-
-        {shouldRouteToEsignature ? (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            <p className="font-semibold">Post-submit handoff</p>
-            <p className="mt-1">
-              Submitting this form does not itself create the signature request. After document
-              generation completes, use the{' '}
-              <Link
-                to={`/esignature?personId=${encodeURIComponent(onboardingPersonId!)}&personName=${encodeURIComponent(onboardingPersonName ?? 'Person')}`}
-                className="font-semibold underline"
-              >
-                E-Signature Center
-              </Link>{' '}
-              to route the generated document into the signer workflow.
-            </p>
           </div>
         ) : null}
 
@@ -240,8 +388,8 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
             employeeFileCategory={employeeFileCategory}
             readOnly={!canMutate}
             userPrefillValues={userPrefillValues}
-            onSubmitted={(nextSubmissionId) => {
-              void handleSubmissionSuccess(nextSubmissionId);
+            onSubmitted={(nextSubmissionId, submittedForm) => {
+              void handleSubmissionSuccess(nextSubmissionId, submittedForm);
             }}
           />
         </MhdCard>

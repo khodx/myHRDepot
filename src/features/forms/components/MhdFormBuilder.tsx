@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, Save, UploadCloud } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
 import { cn } from '@/utils/cn';
 import { mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
+import { mhdDocumentService } from '@/features/documents/Service';
+import type { MhdDocumentTemplate } from '@/features/documents/Types';
 import { MHD_EMPLOYEE_FILE_TYPES, mhdIsEmployeeFileTypeKey } from '@/features/employee-files/Types';
 import { mhdCreateFormInputSchema } from '../Schemas';
 import { mhdFormService } from '../Service';
@@ -174,6 +176,14 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
   const [employeeFileCategory, setEmployeeFileCategory] = useState(
     initialForm?.employeeFileCategory ?? '',
   );
+  const [requiresEsignature, setRequiresEsignature] = useState(
+    initialForm?.requiresEsignature ?? false,
+  );
+  const [esignatureDocumentTemplateId, setEsignatureDocumentTemplateId] = useState<string | null>(
+    initialForm?.esignatureDocumentTemplateId ?? null,
+  );
+  const [documentTemplates, setDocumentTemplates] = useState<MhdDocumentTemplate[]>([]);
+  const [templateLoadError, setTemplateLoadError] = useState<string | null>(null);
   const [pages, setPages] = useState<MhdFormPage[]>(initialForm?.definition.pages ?? []);
   const [fields, setFields] = useState<MhdFormField[]>(initialForm?.definition.fields ?? []);
   const [logic, setLogic] = useState<MhdFormDefinition['logic']>(
@@ -210,6 +220,36 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
   );
 
   const fieldsById = useMemo(() => new Map(fields.map((field) => [field.id, field])), [fields]);
+
+  useEffect(() => {
+    if (!companyId) return;
+
+    let isCancelled = false;
+
+    const loadTemplates = async () => {
+      try {
+        const templates = await mhdDocumentService.listTemplates(companyId);
+        if (!isCancelled) {
+          setDocumentTemplates(templates);
+          setTemplateLoadError(null);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setDocumentTemplates([]);
+          setTemplateLoadError(
+            error instanceof Error ? error.message : 'Unable to load document templates.',
+          );
+        }
+      }
+    };
+
+    void loadTemplates();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [companyId]);
+
   // Canvas lists the active page's fields in page order; before any page
   // exists (a brand-new form) it falls back to the flat field list.
   const canvasFields = useMemo(() => {
@@ -375,10 +415,21 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
       const selectedEmployeeFileCategory = mhdIsEmployeeFileTypeKey(employeeFileCategory)
         ? employeeFileCategory
         : null;
+      const selectedEsignatureDocumentTemplateId = requiresEsignature
+        ? esignatureDocumentTemplateId
+        : null;
+
+      if (requiresEsignature && !selectedEsignatureDocumentTemplateId) {
+        setSaveError('Select a document template before requiring e-signature.');
+        return null;
+      }
+
       const parsed = mhdCreateFormInputSchema.safeParse({
         name: formName,
         description,
         employeeFileCategory: selectedEmployeeFileCategory,
+        requiresEsignature,
+        esignatureDocumentTemplateId: selectedEsignatureDocumentTemplateId,
         definition,
       });
 
@@ -392,6 +443,8 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
             name: formName,
             description,
             employeeFileCategory: selectedEmployeeFileCategory,
+            requiresEsignature,
+            esignatureDocumentTemplateId: selectedEsignatureDocumentTemplateId,
             definition,
           })
         : await mhdFormService.createForm(
@@ -399,6 +452,8 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
               name: formName,
               description,
               employeeFileCategory: selectedEmployeeFileCategory,
+              requiresEsignature,
+              esignatureDocumentTemplateId: selectedEsignatureDocumentTemplateId,
               definition,
             },
             companyId,
@@ -484,6 +539,62 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
                 Submitted records from this form appear in the matching employee file when rendered
                 with an employee context.
               </p>
+            </div>
+
+            <div className="space-y-3 rounded-md border border-border bg-muted p-3">
+              <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <input
+                  type="checkbox"
+                  checked={requiresEsignature}
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    setRequiresEsignature(checked);
+                    if (!checked) {
+                      setEsignatureDocumentTemplateId(null);
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-border text-accent"
+                />
+                Requires E-Signature
+              </label>
+
+              {requiresEsignature ? (
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-foreground">
+                    Document Template
+                  </label>
+                  <select
+                    value={esignatureDocumentTemplateId ?? ''}
+                    onChange={(event) =>
+                      setEsignatureDocumentTemplateId(event.target.value || null)
+                    }
+                    className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
+                  >
+                    <option value="">Select a template</option>
+                    {documentTemplates
+                      .filter((template) => template.requiresSignature)
+                      .map((template) => (
+                        <option key={template.id} value={template.id}>
+                          {template.name}
+                        </option>
+                      ))}
+                  </select>
+                  {templateLoadError ? (
+                    <p className="mt-1 text-xs text-red-600">{templateLoadError}</p>
+                  ) : documentTemplates.length > 0 &&
+                    documentTemplates.every((template) => !template.requiresSignature) ? (
+                    <p className="mt-1 text-xs text-red-600">
+                      No document templates for this company are marked as requiring a
+                      signature yet. Enable &quot;Requires Signature&quot; on a template first.
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Only templates marked &quot;Requires Signature&quot; are shown — the
+                      selected template is generated after submit and routed to the submitter.
+                    </p>
+                  )}
+                </div>
+              ) : null}
             </div>
           </div>
 

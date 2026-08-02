@@ -40,6 +40,8 @@ type MhdCreateFormResultRow = DbFunctions['mhd_create_form']['Returns'][number];
 type MhdCreateSubmissionResultRow = DbFunctions['mhd_create_submission']['Returns'][number];
 type MhdCreateRevisionResultRow = DbFunctions['mhd_create_form_revision']['Returns'][number];
 
+const MHD_UNCHANGED_UUID_SENTINEL = '00000000-0000-0000-0000-000000000000';
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -354,6 +356,8 @@ function mapFormRow(row: MhdRpcFormRow | MhdRpcFormsListRow): MhdForm {
     description: row.description ?? undefined,
     status: row.status as MhdFormStatus,
     employeeFileCategory,
+    requiresEsignature: row.requires_esignature,
+    esignatureDocumentTemplateId: row.esignature_document_template_id ?? null,
     definition: mapDefinition(row.definition, {
       id: row.id,
       name: row.name,
@@ -416,6 +420,10 @@ function mapEmployeeFileSubmissionRow(
     createdAt: row.created_at,
     updatedAt: row.updated_at ?? null,
     attachmentCount: Number(row.attachment_count ?? 0),
+    esignatureRequestId: row.esignature_request_id ?? null,
+    certificateStatus: row.certificate_status ?? null,
+    certificateDigitallySigned: row.certificate_digitally_signed ?? false,
+    certificateVerificationCode: row.certificate_verification_code ?? null,
   };
 }
 
@@ -432,12 +440,23 @@ function toJsonValue(value: unknown): Json {
 export const mhdFormService = {
   async createForm(input: MhdCreateFormInput, companyId: string): Promise<MhdForm> {
     const description = stringToUndefined(input.description);
+    // SME review addition (Stage 6b review): mhd_create_form has no prior row
+    // to preserve, so the MHD_UNCHANGED_UUID_SENTINEL used by updateForm
+    // doesn't apply here — mhd_create_form's own SQL default for this arg is
+    // plain NULL. Omitting the key when not provided (matching
+    // p_employee_file_category's existing conditional-spread pattern just
+    // below) lets Postgres's own default resolve it, instead of inserting a
+    // bogus all-zero UUID that would violate the document_templates FK.
     const { data, error } = await supabaseClient
       .rpc('mhd_create_form', {
         p_company_id: companyId,
         p_name: input.name.trim(),
         p_definition: toJsonValue(input.definition),
         p_employee_file_category: input.employeeFileCategory ?? null,
+        p_requires_esignature: input.requiresEsignature ?? false,
+        ...(Object.prototype.hasOwnProperty.call(input, 'esignatureDocumentTemplateId')
+          ? { p_esignature_document_template_id: input.esignatureDocumentTemplateId ?? null }
+          : {}),
         ...(description ? { p_description: description } : {}),
         // Postgres uses NULL to mean "no employee-file destination"; gen:types
         // currently omits null from defaulted RPC arguments even though the
@@ -465,6 +484,14 @@ export const mhdFormService = {
       input,
       'employeeFileCategory',
     );
+    const shouldUpdateRequiresEsignature = Object.prototype.hasOwnProperty.call(
+      input,
+      'requiresEsignature',
+    );
+    const shouldUpdateEsignatureDocumentTemplateId = Object.prototype.hasOwnProperty.call(
+      input,
+      'esignatureDocumentTemplateId',
+    );
 
     const { error } = await supabaseClient.rpc('mhd_update_form', {
       p_form_id: formId,
@@ -474,6 +501,12 @@ export const mhdFormService = {
       ...(shouldUpdateEmployeeFileCategory
         ? { p_employee_file_category: input.employeeFileCategory ?? null }
         : {}),
+      ...(shouldUpdateRequiresEsignature
+        ? { p_requires_esignature: input.requiresEsignature ?? null }
+        : {}),
+      p_esignature_document_template_id: shouldUpdateEsignatureDocumentTemplateId
+        ? (input.esignatureDocumentTemplateId ?? null)
+        : MHD_UNCHANGED_UUID_SENTINEL,
     } as never);
 
     if (error) {

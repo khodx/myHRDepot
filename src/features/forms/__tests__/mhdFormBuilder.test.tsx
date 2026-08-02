@@ -19,6 +19,12 @@ vi.mock('../Service', async () => {
   };
 });
 
+vi.mock('@/features/documents/Service', () => ({
+  mhdDocumentService: {
+    listTemplates: vi.fn().mockResolvedValue([]),
+  },
+}));
+
 describe('MhdFormBuilder', () => {
   beforeEach(() => {
     mockCreateForm.mockReset();
@@ -134,6 +140,8 @@ describe('MhdFormBuilder', () => {
     description: 'Direct deposit setup for new hires.',
     status: 'DRAFT',
     employeeFileCategory: null,
+    requiresEsignature: false,
+    esignatureDocumentTemplateId: null,
     definition: seededSinglePageDefinition,
     version: 1,
     previousVersionId: null,
