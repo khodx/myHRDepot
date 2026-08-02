@@ -15,12 +15,12 @@ import {
   MhdTh,
   MhdTr,
 } from '@/components/ui/MhdTable';
+import { MhdViewToggle } from '@/components/ui/MhdViewToggle';
 import {
-  MhdViewToggle,
   mhdReadPersistedViewMode,
   mhdWritePersistedViewMode,
   type MhdViewMode,
-} from '@/components/ui/MhdViewToggle';
+} from '@/components/ui/MhdViewToggleUtils';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdCreateLeaveCase, useMhdLeaveCases, useMhdLeavePeople } from '../Hook';

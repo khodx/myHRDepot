@@ -1,8 +1,7 @@
 import { LayoutGrid, List } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
-
-export type MhdViewMode = 'list' | 'board';
+import type { MhdViewMode } from './MhdViewToggleUtils';
 
 interface MhdViewToggleProps {
   value: MhdViewMode;
@@ -60,22 +59,3 @@ export function MhdViewToggle({ value, onChange, className }: MhdViewToggleProps
   );
 }
 
-/** Read a persisted view mode from `localStorage`, defaulting to `list` per module convention. */
-export function mhdReadPersistedViewMode(key: string): MhdViewMode {
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw === 'list' || raw === 'board' ? raw : 'list';
-  } catch {
-    // localStorage unavailable (private mode / non-browser env) — default to list.
-    return 'list';
-  }
-}
-
-/** Persist a view mode choice to `localStorage`, tolerating unavailable storage. */
-export function mhdWritePersistedViewMode(key: string, mode: MhdViewMode) {
-  try {
-    window.localStorage.setItem(key, mode);
-  } catch {
-    // localStorage unavailable — view mode stays in-memory only for this session.
-  }
-}

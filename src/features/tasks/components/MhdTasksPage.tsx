@@ -5,12 +5,12 @@ import { Button, buttonBaseClasses, buttonVariantClasses } from '@/components/ui
 import { cn } from '@/utils/cn';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { MhdTaskWorkspaceNav } from '@/appshell/components/MhdTaskWorkspaceNav';
+import { MhdViewToggle } from '@/components/ui/MhdViewToggle';
 import {
-  MhdViewToggle,
   mhdReadPersistedViewMode,
   mhdWritePersistedViewMode,
   type MhdViewMode,
-} from '@/components/ui/MhdViewToggle';
+} from '@/components/ui/MhdViewToggleUtils';
 import { MhdTaskBoard } from '@/features/tasks/components/MhdTaskBoard';
 import { MhdTaskFilterBar } from '@/features/tasks/components/MhdTaskFilterBar';
 import { MhdTaskList } from '@/features/tasks/components/MhdTaskList';

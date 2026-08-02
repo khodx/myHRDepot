@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import type { Location } from 'react-router-dom';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { MhdProtectedRoute } from '@/features/authentication/components/MhdProtectedRoute';
@@ -6,105 +7,461 @@ import { MhdAppShell } from '@/appshell/MhdAppShell';
 import { PublicLayout } from '@/layouts/PublicLayout';
 
 // Auth pages (scaffold's existing authentication feature — canonical)
-import { MhdLoginPage } from '@/features/authentication/components/MhdLoginPage';
-import { MhdForgotPasswordPage } from '@/features/authentication/components/MhdForgotPasswordPage';
-import { MhdResetPasswordPage } from '@/features/authentication/components/MhdResetPasswordPage';
-import { MhdAuthCallbackPage } from '@/features/authentication/components/MhdAuthCallbackPage';
+const MhdLoginPage = lazy(() =>
+  import('@/features/authentication/components/MhdLoginPage').then((module) => ({
+    default: module.MhdLoginPage,
+  })),
+);
+const MhdForgotPasswordPage = lazy(() =>
+  import('@/features/authentication/components/MhdForgotPasswordPage').then((module) => ({
+    default: module.MhdForgotPasswordPage,
+  })),
+);
+const MhdResetPasswordPage = lazy(() =>
+  import('@/features/authentication/components/MhdResetPasswordPage').then((module) => ({
+    default: module.MhdResetPasswordPage,
+  })),
+);
+const MhdAuthCallbackPage = lazy(() =>
+  import('@/features/authentication/components/MhdAuthCallbackPage').then((module) => ({
+    default: module.MhdAuthCallbackPage,
+  })),
+);
 
 // App pages
-import { MhdDashboardPage } from '@/features/dashboard/components/MhdDashboardPage';
-import { MhdTasksPage } from '@/features/tasks/components/MhdTasksPage';
-import { MhdTaskFormPage } from '@/features/tasks/components/MhdTaskFormPage';
-import { MhdTaskDetailPage } from '@/appshell/components/MhdTaskDetailPage';
-import { MhdTaskNotesPage } from '@/features/notes/components/MhdTaskNotesPage';
-import { MhdActivitiesPage } from '@/features/activities/components/MhdActivitiesPage';
-import { MhdActivityDetailPage } from '@/features/activities/components/MhdActivityDetailPage';
-import { MhdTaskActivitiesPage } from '@/features/activities/components/MhdTaskActivitiesPage';
-import { MhdTaskAttachmentsPage } from '@/features/attachments/components/MhdTaskAttachmentsPage';
-import { MhdTaskReportsPage } from '@/features/documents/components/MhdTaskReportsPage';
-import { MhdTaskAuditPage } from '@/features/audit/components/MhdTaskAuditPage';
-import { MhdAuditReportsPage } from '@/features/audit/components/MhdAuditReportsPage';
-import { MhdDocumentsPage } from '@/features/documents/components/MhdDocumentsPage';
-import { MhdFormsPage } from '@/features/forms/components/MhdFormsPage';
-import { MhdFormDetailPage } from '@/features/forms/components/MhdFormDetailPage';
-import { MhdFormBuilderPage } from '@/features/forms/components/MhdFormBuilderPage';
-import { MhdFormRendererPage } from '@/features/forms/components/MhdFormRendererPage';
-import { MhdFormModalRoute } from '@/features/forms/components/MhdFormModalRoute';
-import { MhdFormSubmissionsPage } from '@/features/forms/components/MhdFormSubmissionsPage';
-import { MhdPropertyPage } from '@/features/property/components/MhdPropertyPage';
-import { MhdPropertyDetailPage } from '@/features/property/components/MhdPropertyDetailPage';
-import { MhdEsignaturePage } from '@/features/esignature/components/MhdEsignaturePage';
-import { MhdEsignatureDetailPage } from '@/features/esignature/components/MhdEsignatureDetailPage';
-import { MhdPublicSigningPage } from '@/features/esignature/components/MhdPublicSigningPage';
-import { MhdCertificateVerificationPage } from '@/features/esignature/components/MhdCertificateVerificationPage';
-import { MhdCommunicationsPage } from '@/features/communications/components/MhdCommunicationsPage';
-import { MhdMessagingPage } from '@/features/messaging/components/MhdMessagingPage';
-import { MhdSystemAlertsPage } from '@/features/communications/components/MhdSystemAlertsPage';
-import { MhdAutomationsPage } from '@/features/automations/components/MhdAutomationsPage';
-import { MhdAutomationRuleDetailPage } from '@/features/automations/components/MhdAutomationRuleDetailPage';
-import { MhdAutomationRunDetailPage } from '@/features/automations/components/MhdAutomationRunDetailPage';
-import { MhdEmployeeFilesPage } from '@/features/employee-files/components/MhdEmployeeFilesPage';
-import { MhdEmployeeFileCabinetPage } from '@/features/employee-files/components/MhdEmployeeFileCabinetPage';
-import { MhdEmployeeFileNewRecordPage } from '@/features/employee-files/components/MhdEmployeeFileNewRecordPage';
-import { MhdPeoplePage } from '@/features/people/components/MhdPeoplePage';
-import { MhdPersonFormPage } from '@/features/people/components/MhdPersonFormPage';
-import { MhdPersonDetailPage } from '@/appshell/components/MhdPersonDetailPage';
-import { MhdCompaniesPage } from '@/features/companies/components/MhdCompaniesPage';
-import { MhdCompanyFormPage } from '@/features/companies/components/MhdCompanyFormPage';
-import { MhdCompanyDetailPage } from '@/appshell/components/MhdCompanyDetailPage';
-import { MhdApprovalsPage } from '@/features/approvals/components/MhdApprovalsPage';
-import { MhdPerformancePage } from '@/features/performance/Components/MhdPerformancePage';
-import { MhdReviewDetailPage } from '@/features/performance/Components/MhdReviewDetailPage';
-import { MhdCoachingPlanDetailPage } from '@/features/performance/Components/MhdCoachingPlanDetailPage';
-import { MhdFeedbackInvitationsPage } from '@/features/performance/Components/MhdFeedbackInvitationsPage';
-import { MhdReviewTemplatesPage } from '@/features/performance/Components/MhdReviewTemplatesPage';
-import { MhdFeedbackSettingsPage } from '@/features/performance/Components/MhdFeedbackSettingsPage';
-import { MhdOnboardingIndexPage } from '@/features/onboarding/components/MhdOnboardingIndexPage';
-import { MhdOnboardingPersonPage } from '@/features/onboarding/components/MhdOnboardingPersonPage';
-import { MhdOffboardingPage } from '@/features/offboarding/components/MhdOffboardingPage';
-import { MhdOffboardingCaseDetailPage } from '@/features/offboarding/components/MhdOffboardingCaseDetailPage';
-import { MhdConductPage } from '@/features/conduct/components/MhdConductPage';
-import { MhdConductCaseDetailPage } from '@/features/conduct/components/MhdConductCaseDetailPage';
-import { MhdSchedulePage } from '@/features/timeattendance/components/MhdSchedulePage';
-import { MhdAttendancePage } from '@/features/timeattendance/components/MhdAttendancePage';
-import { MhdAttendancePolicyPage } from '@/features/timeattendance/components/MhdAttendancePolicyPage';
-import { MhdJobsPage } from '@/features/jobs/components/MhdJobsPage';
-import { MhdCompetencyLibraryPage } from '@/features/jobs/components/MhdCompetencyLibraryPage';
-import { MhdJobDetailPage } from '@/features/jobs/components/MhdJobDetailPage';
-import { MhdMyJobPage } from '@/features/jobs/components/MhdMyJobPage';
-import { MhdMileagePage } from '@/features/mileage/components/MhdMileagePage';
-import { MhdMileageClaimDetailPage } from '@/features/mileage/components/MhdMileageClaimDetailPage';
-import { MhdLeavesPage } from '@/features/leaves/components/MhdLeavesPage';
-import { MhdLeaveCaseDetailPage } from '@/features/leaves/components/MhdLeaveCaseDetailPage';
-import { MhdAccommodationsPage } from '@/features/accommodations/components/MhdAccommodationsPage';
-import { MhdAccommodationCaseDetailPage } from '@/features/accommodations/components/MhdAccommodationCaseDetailPage';
-import { MhdInvestigationsPage } from '@/features/investigations/components/MhdInvestigationsPage';
-import { MhdInvestigationCaseDetailPage } from '@/features/investigations/components/MhdInvestigationCaseDetailPage';
-import { MhdTrainingPage } from '@/features/training/components/MhdTrainingPage';
-import { MhdMyTrainingRoutePage } from '@/features/training/components/MhdMyTrainingRoutePage';
-import { MhdHandbooksPage } from '@/features/handbook/components/MhdHandbooksPage';
-import { MhdHandbookDetailPage } from '@/features/handbook/components/MhdHandbookDetailPage';
-import { MhdMyHandbooksRoutePage } from '@/features/handbook/components/MhdMyHandbooksRoutePage';
-import { MhdApprovalDetailPage } from '@/features/approvals/components/MhdApprovalDetailPage';
-import { MhdRecruitingRoutePage } from '@/features/recruiting/components/MhdRecruitingRoutePage';
-import { MhdRequisitionDetailRoutePage } from '@/features/recruiting/components/MhdRequisitionDetailRoutePage';
-import { MhdRequisitionPipelineRoutePage } from '@/features/recruiting/components/MhdRequisitionPipelineRoutePage';
-import { MhdRequisitionInterviewGuideRoutePage } from '@/features/recruiting/components/MhdRequisitionInterviewGuideRoutePage';
-import { MhdApplicationDetailRoutePage } from '@/features/recruiting/components/MhdApplicationDetailRoutePage';
-import { MhdApplicationInterviewsRoutePage } from '@/features/recruiting/components/MhdApplicationInterviewsRoutePage';
-import { MhdApplicationEvaluationRoutePage } from '@/features/recruiting/components/MhdApplicationEvaluationRoutePage';
-import { MhdApplicationOfferRoutePage } from '@/features/recruiting/components/MhdApplicationOfferRoutePage';
-import { MhdInterviewWorksheetRoutePage } from '@/features/recruiting/components/MhdInterviewWorksheetRoutePage';
-import { MhdQuestionBankRoutePage } from '@/features/recruiting/components/MhdQuestionBankRoutePage';
-import { MhdEeoReportRoutePage } from '@/features/recruiting/components/MhdEeoReportRoutePage';
-import { MhdApplyPage } from '@/features/recruiting/requisitions/components/MhdApplyPage';
-import { MhdNotFoundPage } from '@/appshell/components/MhdNotFoundPage';
+const MhdDashboardPage = lazy(() =>
+  import('@/features/dashboard/components/MhdDashboardPage').then((module) => ({
+    default: module.MhdDashboardPage,
+  })),
+);
+const MhdTasksPage = lazy(() =>
+  import('@/features/tasks/components/MhdTasksPage').then((module) => ({ default: module.MhdTasksPage })),
+);
+const MhdTaskFormPage = lazy(() =>
+  import('@/features/tasks/components/MhdTaskFormPage').then((module) => ({
+    default: module.MhdTaskFormPage,
+  })),
+);
+const MhdTaskDetailPage = lazy(() =>
+  import('@/appshell/components/MhdTaskDetailPage').then((module) => ({
+    default: module.MhdTaskDetailPage,
+  })),
+);
+const MhdTaskNotesPage = lazy(() =>
+  import('@/features/notes/components/MhdTaskNotesPage').then((module) => ({
+    default: module.MhdTaskNotesPage,
+  })),
+);
+const MhdActivitiesPage = lazy(() =>
+  import('@/features/activities/components/MhdActivitiesPage').then((module) => ({
+    default: module.MhdActivitiesPage,
+  })),
+);
+const MhdActivityDetailPage = lazy(() =>
+  import('@/features/activities/components/MhdActivityDetailPage').then((module) => ({
+    default: module.MhdActivityDetailPage,
+  })),
+);
+const MhdTaskActivitiesPage = lazy(() =>
+  import('@/features/activities/components/MhdTaskActivitiesPage').then((module) => ({
+    default: module.MhdTaskActivitiesPage,
+  })),
+);
+const MhdTaskAttachmentsPage = lazy(() =>
+  import('@/features/attachments/components/MhdTaskAttachmentsPage').then((module) => ({
+    default: module.MhdTaskAttachmentsPage,
+  })),
+);
+const MhdTaskReportsPage = lazy(() =>
+  import('@/features/documents/components/MhdTaskReportsPage').then((module) => ({
+    default: module.MhdTaskReportsPage,
+  })),
+);
+const MhdTaskAuditPage = lazy(() =>
+  import('@/features/audit/components/MhdTaskAuditPage').then((module) => ({
+    default: module.MhdTaskAuditPage,
+  })),
+);
+const MhdAuditReportsPage = lazy(() =>
+  import('@/features/audit/components/MhdAuditReportsPage').then((module) => ({
+    default: module.MhdAuditReportsPage,
+  })),
+);
+const MhdDocumentsPage = lazy(() =>
+  import('@/features/documents/components/MhdDocumentsPage').then((module) => ({
+    default: module.MhdDocumentsPage,
+  })),
+);
+const MhdFormsPage = lazy(() =>
+  import('@/features/forms/components/MhdFormsPage').then((module) => ({ default: module.MhdFormsPage })),
+);
+const MhdFormDetailPage = lazy(() =>
+  import('@/features/forms/components/MhdFormDetailPage').then((module) => ({
+    default: module.MhdFormDetailPage,
+  })),
+);
+const MhdFormBuilderPage = lazy(() =>
+  import('@/features/forms/components/MhdFormBuilderPage').then((module) => ({
+    default: module.MhdFormBuilderPage,
+  })),
+);
+const MhdFormRendererPage = lazy(() =>
+  import('@/features/forms/components/MhdFormRendererPage').then((module) => ({
+    default: module.MhdFormRendererPage,
+  })),
+);
+const MhdFormModalRoute = lazy(() =>
+  import('@/features/forms/components/MhdFormModalRoute').then((module) => ({
+    default: module.MhdFormModalRoute,
+  })),
+);
+const MhdFormSubmissionsPage = lazy(() =>
+  import('@/features/forms/components/MhdFormSubmissionsPage').then((module) => ({
+    default: module.MhdFormSubmissionsPage,
+  })),
+);
+const MhdPropertyPage = lazy(() =>
+  import('@/features/property/components/MhdPropertyPage').then((module) => ({
+    default: module.MhdPropertyPage,
+  })),
+);
+const MhdPropertyDetailPage = lazy(() =>
+  import('@/features/property/components/MhdPropertyDetailPage').then((module) => ({
+    default: module.MhdPropertyDetailPage,
+  })),
+);
+const MhdEsignaturePage = lazy(() =>
+  import('@/features/esignature/components/MhdEsignaturePage').then((module) => ({
+    default: module.MhdEsignaturePage,
+  })),
+);
+const MhdEsignatureDetailPage = lazy(() =>
+  import('@/features/esignature/components/MhdEsignatureDetailPage').then((module) => ({
+    default: module.MhdEsignatureDetailPage,
+  })),
+);
+const MhdPublicSigningPage = lazy(() =>
+  import('@/features/esignature/components/MhdPublicSigningPage').then((module) => ({
+    default: module.MhdPublicSigningPage,
+  })),
+);
+const MhdCertificateVerificationPage = lazy(() =>
+  import('@/features/esignature/components/MhdCertificateVerificationPage').then((module) => ({
+    default: module.MhdCertificateVerificationPage,
+  })),
+);
+const MhdCommunicationsPage = lazy(() =>
+  import('@/features/communications/components/MhdCommunicationsPage').then((module) => ({
+    default: module.MhdCommunicationsPage,
+  })),
+);
+const MhdMessagingPage = lazy(() =>
+  import('@/features/messaging/components/MhdMessagingPage').then((module) => ({
+    default: module.MhdMessagingPage,
+  })),
+);
+const MhdSystemAlertsPage = lazy(() =>
+  import('@/features/communications/components/MhdSystemAlertsPage').then((module) => ({
+    default: module.MhdSystemAlertsPage,
+  })),
+);
+const MhdAutomationsPage = lazy(() =>
+  import('@/features/automations/components/MhdAutomationsPage').then((module) => ({
+    default: module.MhdAutomationsPage,
+  })),
+);
+const MhdAutomationRuleDetailPage = lazy(() =>
+  import('@/features/automations/components/MhdAutomationRuleDetailPage').then((module) => ({
+    default: module.MhdAutomationRuleDetailPage,
+  })),
+);
+const MhdAutomationRunDetailPage = lazy(() =>
+  import('@/features/automations/components/MhdAutomationRunDetailPage').then((module) => ({
+    default: module.MhdAutomationRunDetailPage,
+  })),
+);
+const MhdEmployeeFilesPage = lazy(() =>
+  import('@/features/employee-files/components/MhdEmployeeFilesPage').then((module) => ({
+    default: module.MhdEmployeeFilesPage,
+  })),
+);
+const MhdEmployeeFileCabinetPage = lazy(() =>
+  import('@/features/employee-files/components/MhdEmployeeFileCabinetPage').then((module) => ({
+    default: module.MhdEmployeeFileCabinetPage,
+  })),
+);
+const MhdEmployeeFileNewRecordPage = lazy(() =>
+  import('@/features/employee-files/components/MhdEmployeeFileNewRecordPage').then((module) => ({
+    default: module.MhdEmployeeFileNewRecordPage,
+  })),
+);
+const MhdPeoplePage = lazy(() =>
+  import('@/features/people/components/MhdPeoplePage').then((module) => ({ default: module.MhdPeoplePage })),
+);
+const MhdPersonFormPage = lazy(() =>
+  import('@/features/people/components/MhdPersonFormPage').then((module) => ({
+    default: module.MhdPersonFormPage,
+  })),
+);
+const MhdPersonDetailPage = lazy(() =>
+  import('@/appshell/components/MhdPersonDetailPage').then((module) => ({
+    default: module.MhdPersonDetailPage,
+  })),
+);
+const MhdCompaniesPage = lazy(() =>
+  import('@/features/companies/components/MhdCompaniesPage').then((module) => ({
+    default: module.MhdCompaniesPage,
+  })),
+);
+const MhdCompanyFormPage = lazy(() =>
+  import('@/features/companies/components/MhdCompanyFormPage').then((module) => ({
+    default: module.MhdCompanyFormPage,
+  })),
+);
+const MhdCompanyDetailPage = lazy(() =>
+  import('@/appshell/components/MhdCompanyDetailPage').then((module) => ({
+    default: module.MhdCompanyDetailPage,
+  })),
+);
+const MhdApprovalsPage = lazy(() =>
+  import('@/features/approvals/components/MhdApprovalsPage').then((module) => ({
+    default: module.MhdApprovalsPage,
+  })),
+);
+const MhdApprovalDetailPage = lazy(() =>
+  import('@/features/approvals/components/MhdApprovalDetailPage').then((module) => ({
+    default: module.MhdApprovalDetailPage,
+  })),
+);
+const MhdPerformancePage = lazy(() =>
+  import('@/features/performance/Components/MhdPerformancePage').then((module) => ({
+    default: module.MhdPerformancePage,
+  })),
+);
+const MhdReviewDetailPage = lazy(() =>
+  import('@/features/performance/Components/MhdReviewDetailPage').then((module) => ({
+    default: module.MhdReviewDetailPage,
+  })),
+);
+const MhdCoachingPlanDetailPage = lazy(() =>
+  import('@/features/performance/Components/MhdCoachingPlanDetailPage').then((module) => ({
+    default: module.MhdCoachingPlanDetailPage,
+  })),
+);
+const MhdFeedbackInvitationsPage = lazy(() =>
+  import('@/features/performance/Components/MhdFeedbackInvitationsPage').then((module) => ({
+    default: module.MhdFeedbackInvitationsPage,
+  })),
+);
+const MhdReviewTemplatesPage = lazy(() =>
+  import('@/features/performance/Components/MhdReviewTemplatesPage').then((module) => ({
+    default: module.MhdReviewTemplatesPage,
+  })),
+);
+const MhdFeedbackSettingsPage = lazy(() =>
+  import('@/features/performance/Components/MhdFeedbackSettingsPage').then((module) => ({
+    default: module.MhdFeedbackSettingsPage,
+  })),
+);
+const MhdOnboardingIndexPage = lazy(() =>
+  import('@/features/onboarding/components/MhdOnboardingIndexPage').then((module) => ({
+    default: module.MhdOnboardingIndexPage,
+  })),
+);
+const MhdOnboardingPersonPage = lazy(() =>
+  import('@/features/onboarding/components/MhdOnboardingPersonPage').then((module) => ({
+    default: module.MhdOnboardingPersonPage,
+  })),
+);
+const MhdOffboardingPage = lazy(() =>
+  import('@/features/offboarding/components/MhdOffboardingPage').then((module) => ({
+    default: module.MhdOffboardingPage,
+  })),
+);
+const MhdOffboardingCaseDetailPage = lazy(() =>
+  import('@/features/offboarding/components/MhdOffboardingCaseDetailPage').then((module) => ({
+    default: module.MhdOffboardingCaseDetailPage,
+  })),
+);
+const MhdConductPage = lazy(() =>
+  import('@/features/conduct/components/MhdConductPage').then((module) => ({ default: module.MhdConductPage })),
+);
+const MhdConductCaseDetailPage = lazy(() =>
+  import('@/features/conduct/components/MhdConductCaseDetailPage').then((module) => ({
+    default: module.MhdConductCaseDetailPage,
+  })),
+);
+const MhdSchedulePage = lazy(() =>
+  import('@/features/timeattendance/components/MhdSchedulePage').then((module) => ({
+    default: module.MhdSchedulePage,
+  })),
+);
+const MhdAttendancePage = lazy(() =>
+  import('@/features/timeattendance/components/MhdAttendancePage').then((module) => ({
+    default: module.MhdAttendancePage,
+  })),
+);
+const MhdAttendancePolicyPage = lazy(() =>
+  import('@/features/timeattendance/components/MhdAttendancePolicyPage').then((module) => ({
+    default: module.MhdAttendancePolicyPage,
+  })),
+);
+const MhdJobsPage = lazy(() =>
+  import('@/features/jobs/components/MhdJobsPage').then((module) => ({ default: module.MhdJobsPage })),
+);
+const MhdCompetencyLibraryPage = lazy(() =>
+  import('@/features/jobs/components/MhdCompetencyLibraryPage').then((module) => ({
+    default: module.MhdCompetencyLibraryPage,
+  })),
+);
+const MhdJobDetailPage = lazy(() =>
+  import('@/features/jobs/components/MhdJobDetailPage').then((module) => ({ default: module.MhdJobDetailPage })),
+);
+const MhdMyJobPage = lazy(() =>
+  import('@/features/jobs/components/MhdMyJobPage').then((module) => ({ default: module.MhdMyJobPage })),
+);
+const MhdMileagePage = lazy(() =>
+  import('@/features/mileage/components/MhdMileagePage').then((module) => ({ default: module.MhdMileagePage })),
+);
+const MhdMileageClaimDetailPage = lazy(() =>
+  import('@/features/mileage/components/MhdMileageClaimDetailPage').then((module) => ({
+    default: module.MhdMileageClaimDetailPage,
+  })),
+);
+const MhdLeavesPage = lazy(() =>
+  import('@/features/leaves/components/MhdLeavesPage').then((module) => ({ default: module.MhdLeavesPage })),
+);
+const MhdLeaveCaseDetailPage = lazy(() =>
+  import('@/features/leaves/components/MhdLeaveCaseDetailPage').then((module) => ({
+    default: module.MhdLeaveCaseDetailPage,
+  })),
+);
+const MhdAccommodationsPage = lazy(() =>
+  import('@/features/accommodations/components/MhdAccommodationsPage').then((module) => ({
+    default: module.MhdAccommodationsPage,
+  })),
+);
+const MhdAccommodationCaseDetailPage = lazy(() =>
+  import('@/features/accommodations/components/MhdAccommodationCaseDetailPage').then((module) => ({
+    default: module.MhdAccommodationCaseDetailPage,
+  })),
+);
+const MhdInvestigationsPage = lazy(() =>
+  import('@/features/investigations/components/MhdInvestigationsPage').then((module) => ({
+    default: module.MhdInvestigationsPage,
+  })),
+);
+const MhdInvestigationCaseDetailPage = lazy(() =>
+  import('@/features/investigations/components/MhdInvestigationCaseDetailPage').then((module) => ({
+    default: module.MhdInvestigationCaseDetailPage,
+  })),
+);
+const MhdTrainingPage = lazy(() =>
+  import('@/features/training/components/MhdTrainingPage').then((module) => ({ default: module.MhdTrainingPage })),
+);
+const MhdMyTrainingRoutePage = lazy(() =>
+  import('@/features/training/components/MhdMyTrainingRoutePage').then((module) => ({
+    default: module.MhdMyTrainingRoutePage,
+  })),
+);
+const MhdHandbooksPage = lazy(() =>
+  import('@/features/handbook/components/MhdHandbooksPage').then((module) => ({
+    default: module.MhdHandbooksPage,
+  })),
+);
+const MhdHandbookDetailPage = lazy(() =>
+  import('@/features/handbook/components/MhdHandbookDetailPage').then((module) => ({
+    default: module.MhdHandbookDetailPage,
+  })),
+);
+const MhdMyHandbooksRoutePage = lazy(() =>
+  import('@/features/handbook/components/MhdMyHandbooksRoutePage').then((module) => ({
+    default: module.MhdMyHandbooksRoutePage,
+  })),
+);
+const MhdRecruitingRoutePage = lazy(() =>
+  import('@/features/recruiting/components/MhdRecruitingRoutePage').then((module) => ({
+    default: module.MhdRecruitingRoutePage,
+  })),
+);
+const MhdRequisitionDetailRoutePage = lazy(() =>
+  import('@/features/recruiting/components/MhdRequisitionDetailRoutePage').then((module) => ({
+    default: module.MhdRequisitionDetailRoutePage,
+  })),
+);
+const MhdRequisitionPipelineRoutePage = lazy(() =>
+  import('@/features/recruiting/components/MhdRequisitionPipelineRoutePage').then((module) => ({
+    default: module.MhdRequisitionPipelineRoutePage,
+  })),
+);
+const MhdRequisitionInterviewGuideRoutePage = lazy(() =>
+  import('@/features/recruiting/components/MhdRequisitionInterviewGuideRoutePage').then((module) => ({
+    default: module.MhdRequisitionInterviewGuideRoutePage,
+  })),
+);
+const MhdApplicationDetailRoutePage = lazy(() =>
+  import('@/features/recruiting/components/MhdApplicationDetailRoutePage').then((module) => ({
+    default: module.MhdApplicationDetailRoutePage,
+  })),
+);
+const MhdApplicationInterviewsRoutePage = lazy(() =>
+  import('@/features/recruiting/components/MhdApplicationInterviewsRoutePage').then((module) => ({
+    default: module.MhdApplicationInterviewsRoutePage,
+  })),
+);
+const MhdApplicationEvaluationRoutePage = lazy(() =>
+  import('@/features/recruiting/components/MhdApplicationEvaluationRoutePage').then((module) => ({
+    default: module.MhdApplicationEvaluationRoutePage,
+  })),
+);
+const MhdApplicationOfferRoutePage = lazy(() =>
+  import('@/features/recruiting/components/MhdApplicationOfferRoutePage').then((module) => ({
+    default: module.MhdApplicationOfferRoutePage,
+  })),
+);
+const MhdInterviewWorksheetRoutePage = lazy(() =>
+  import('@/features/recruiting/components/MhdInterviewWorksheetRoutePage').then((module) => ({
+    default: module.MhdInterviewWorksheetRoutePage,
+  })),
+);
+const MhdQuestionBankRoutePage = lazy(() =>
+  import('@/features/recruiting/components/MhdQuestionBankRoutePage').then((module) => ({
+    default: module.MhdQuestionBankRoutePage,
+  })),
+);
+const MhdEeoReportRoutePage = lazy(() =>
+  import('@/features/recruiting/components/MhdEeoReportRoutePage').then((module) => ({
+    default: module.MhdEeoReportRoutePage,
+  })),
+);
+const MhdApplyPage = lazy(() =>
+  import('@/features/recruiting/requisitions/components/MhdApplyPage').then((module) => ({
+    default: module.MhdApplyPage,
+  })),
+);
+const MhdNotFoundPage = lazy(() =>
+  import('@/appshell/components/MhdNotFoundPage').then((module) => ({
+    default: module.MhdNotFoundPage,
+  })),
+);
 
 export function AppRouter() {
   return (
     <BrowserRouter>
       <MhdAppRoutes />
     </BrowserRouter>
+  );
+}
+
+function MhdRouteFallback() {
+  return (
+    <div
+      className="flex min-h-[240px] items-center justify-center text-sm text-muted-foreground"
+      role="status"
+      aria-live="polite"
+    >
+      Loading...
+    </div>
   );
 }
 
@@ -132,7 +489,8 @@ function MhdAppRoutes() {
 
   return (
     <>
-      <Routes location={backgroundLocation || location}>
+      <Suspense fallback={<MhdRouteFallback />}>
+        <Routes location={backgroundLocation || location}>
         {/* Public auth routes */}
         <Route path="/login" element={<MhdLoginPage />} />
         <Route path="/forgot-password" element={<MhdForgotPasswordPage />} />
@@ -385,11 +743,13 @@ function MhdAppRoutes() {
         {/* Fallback */}
         <Route path="/404" element={<MhdNotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
-      </Routes>
+        </Routes>
+      </Suspense>
 
       {backgroundLocation ? (
-        <Routes>
-          {/* Same guard nesting as the canonical route above (MhdProtectedRoute
+        <Suspense fallback={<MhdRouteFallback />}>
+          <Routes>
+            {/* Same guard nesting as the canonical route above (MhdProtectedRoute
               then MhdRoleGuardedRoute) — this second <Routes> tree is a
               separate route match, so the auth/role check has to be applied
               here explicitly rather than inherited. Deliberately excludes
@@ -397,12 +757,13 @@ function MhdAppRoutes() {
               above, already inside its own MhdAppShell) supplies the
               sidebar/top bar chrome, and the modal is only ever an overlay
               on top of it. */}
-          <Route element={<MhdProtectedRoute />}>
-            <Route element={<MhdRoleGuardedRoute />}>
-              <Route path="/forms/:formId/render" element={<MhdFormModalRoute />} />
+            <Route element={<MhdProtectedRoute />}>
+              <Route element={<MhdRoleGuardedRoute />}>
+                <Route path="/forms/:formId/render" element={<MhdFormModalRoute />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
+          </Routes>
+        </Suspense>
       ) : null}
     </>
   );

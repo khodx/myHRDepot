@@ -2,15 +2,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { CheckSquare, FileSearch, FileText } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/Button';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { cn } from '@/utils/cn';
-
-// Same privileged set as the /audit-reports route rule in mhdRouteAccess.ts
-// and the RPC's own server-side check — hiding the link here is UX only,
-// mirroring MhdTaskRecordTabs' own Audit tab gate. Exported so MhdTasksPage
-// (and anything else needing this gate) shares one source of truth instead
-// of duplicating the literal role array.
-export const MHD_AUDIT_REPORTS_LINK_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner'];
+import { MHD_AUDIT_REPORTS_LINK_ROLES } from './MhdTaskWorkspaceNavConstants';
 
 interface MhdTaskWorkspaceNavItem {
   key: string;

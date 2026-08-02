@@ -230,98 +230,98 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('MhdAppRouter', () => {
-  it('redirects "/" to "/dashboard" when authenticated', () => {
+  it('redirects "/" to "/dashboard" when authenticated', async () => {
     mockAuth({ isAuthenticated: true });
     setUrl('/');
 
     render(<MhdAppRouter />);
 
-    expect(screen.getByText('Dashboard Page')).toBeInTheDocument();
+    expect(await screen.findByText('Dashboard Page')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/dashboard');
   });
 
-  it('renders the login page at "/login" without authentication', () => {
+  it('renders the login page at "/login" without authentication', async () => {
     mockAuth({ isAuthenticated: false });
     setUrl('/login');
 
     render(<MhdAppRouter />);
 
-    expect(screen.getByText('Login Page')).toBeInTheDocument();
+    expect(await screen.findByText('Login Page')).toBeInTheDocument();
     expect(screen.getByTestId('auth-layout')).toBeInTheDocument();
   });
 
-  it('renders the public signing route without requiring authentication', () => {
+  it('renders the public signing route without requiring authentication', async () => {
     mockAuth({ isAuthenticated: false });
     setUrl('/sign/test-token');
 
     render(<MhdAppRouter />);
 
-    expect(screen.getByText('Public Signing Page')).toBeInTheDocument();
+    expect(await screen.findByText('Public Signing Page')).toBeInTheDocument();
     expect(screen.queryByText('Login Page')).not.toBeInTheDocument();
     expect(window.location.pathname).toBe('/sign/test-token');
   });
 
-  it('redirects an unauthenticated user away from a protected route to "/login"', () => {
+  it('redirects an unauthenticated user away from a protected route to "/login"', async () => {
     mockAuth({ isAuthenticated: false });
     setUrl('/dashboard');
 
     render(<MhdAppRouter />);
 
-    expect(screen.getByText('Login Page')).toBeInTheDocument();
+    expect(await screen.findByText('Login Page')).toBeInTheDocument();
     expect(screen.queryByText('Dashboard Page')).not.toBeInTheDocument();
     expect(window.location.pathname).toBe('/login');
   });
 
-  it('renders a protected route for an authenticated user', () => {
+  it('renders a protected route for an authenticated user', async () => {
     mockAuth({ isAuthenticated: true });
     setUrl('/tasks');
 
     render(<MhdAppRouter />);
 
-    expect(screen.getByText('Tasks Page')).toBeInTheDocument();
+    expect(await screen.findByText('Tasks Page')).toBeInTheDocument();
     expect(screen.getByTestId('app-shell')).toBeInTheDocument();
   });
 
-  it('renders "/forms" for an authenticated Client User', () => {
+  it('renders "/forms" for an authenticated Client User', async () => {
     mockAuth({ isAuthenticated: true, roles: ['Client User'] });
     setUrl('/forms');
 
     render(<MhdAppRouter />);
 
-    expect(screen.getByText('Forms Page')).toBeInTheDocument();
+    expect(await screen.findByText('Forms Page')).toBeInTheDocument();
   });
 
-  it('shows the loading state instead of redirecting while auth is resolving', () => {
+  it('shows the loading state instead of redirecting while auth is resolving', async () => {
     mockAuth({ isAuthenticated: false, isLoading: true });
     setUrl('/dashboard');
 
     render(<MhdAppRouter />);
 
-    expect(screen.getByText('Loading My HR Depot...')).toBeInTheDocument();
+    expect(await screen.findByText('Loading My HR Depot...')).toBeInTheDocument();
     expect(screen.queryByText('Login Page')).not.toBeInTheDocument();
   });
 
-  it('redirects an unknown URL ("*") to the not-found page', () => {
+  it('redirects an unknown URL ("*") to the not-found page', async () => {
     mockAuth({ isAuthenticated: true });
     setUrl('/this-route-does-not-exist');
 
     render(<MhdAppRouter />);
 
-    expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+    expect(await screen.findByText('Page Not Found')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/404');
   });
 
-  it('renders the not-found page directly at "/404" regardless of auth state', () => {
+  it('renders the not-found page directly at "/404" regardless of auth state', async () => {
     mockAuth({ isAuthenticated: false });
     setUrl('/404');
 
     render(<MhdAppRouter />);
 
-    expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+    expect(await screen.findByText('Page Not Found')).toBeInTheDocument();
   });
 
   describe('role-gated navigation (router-level enforcement)', () => {
-    it('redirects an authenticated Client User away from "/companies" to "/404"', () => {
+    it('redirects an authenticated Client User away from "/companies" to "/404"', async () => {
       // Specification.md restricts /companies to Platform Admin and HR
       // Partner. MhdRoleGuardedRoute (mhdRouteAccess.ts) enforces this at
       // the router level, independent of whether the sidebar link is
@@ -332,181 +332,181 @@ describe('MhdAppRouter', () => {
       render(<MhdAppRouter />);
 
       expect(screen.queryByText('Companies Page')).not.toBeInTheDocument();
-      expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+      expect(await screen.findByText('Page Not Found')).toBeInTheDocument();
       expect(window.location.pathname).toBe('/404');
     });
 
-    it('redirects an authenticated Client User away from "/companies/:companyId" to "/404"', () => {
+    it('redirects an authenticated Client User away from "/companies/:companyId" to "/404"', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Client User'] });
       setUrl('/companies/company-1');
 
       render(<MhdAppRouter />);
 
       expect(screen.queryByText('Company Detail Page')).not.toBeInTheDocument();
-      expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+      expect(await screen.findByText('Page Not Found')).toBeInTheDocument();
     });
 
-    it('renders "/companies" for a Platform Admin', () => {
+    it('renders "/companies" for a Platform Admin', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Platform Admin'] });
       setUrl('/companies');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Companies Page')).toBeInTheDocument();
+      expect(await screen.findByText('Companies Page')).toBeInTheDocument();
     });
 
-    it('renders "/companies" for an HR Partner', () => {
+    it('renders "/companies" for an HR Partner', async () => {
       mockAuth({ isAuthenticated: true, roles: ['HR Partner'] });
       setUrl('/companies');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Companies Page')).toBeInTheDocument();
+      expect(await screen.findByText('Companies Page')).toBeInTheDocument();
     });
 
-    it('renders "/tasks/:taskId/notes" for a Client User (inherits the /tasks ALL rule)', () => {
+    it('renders "/tasks/:taskId/notes" for a Client User (inherits the /tasks ALL rule)', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Client User'] });
       setUrl('/tasks/task-1/notes');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Task Notes Page')).toBeInTheDocument();
+      expect(await screen.findByText('Task Notes Page')).toBeInTheDocument();
     });
 
-    it('renders "/forms" for an authenticated Viewer (read-only forms access)', () => {
+    it('renders "/forms" for an authenticated Viewer (read-only forms access)', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/forms');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Forms Page')).toBeInTheDocument();
+      expect(await screen.findByText('Forms Page')).toBeInTheDocument();
       expect(window.location.pathname).toBe('/forms');
     });
 
-    it('renders "/forms/:formId" for a Viewer (detail view, inherits the /forms rule)', () => {
+    it('renders "/forms/:formId" for a Viewer (detail view, inherits the /forms rule)', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/forms/form-1');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Form Detail Page')).toBeInTheDocument();
+      expect(await screen.findByText('Form Detail Page')).toBeInTheDocument();
     });
 
-    it('renders "/forms/:formId/edit" for a forms admin', () => {
+    it('renders "/forms/:formId/edit" for a forms admin', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Client Admin' as MhdAuthRoleName] });
       setUrl('/forms/form-1/edit');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Form Builder Page')).toBeInTheDocument();
+      expect(await screen.findByText('Form Builder Page')).toBeInTheDocument();
     });
 
-    it('renders "/forms/:formId/submissions" for a Viewer', () => {
+    it('renders "/forms/:formId/submissions" for a Viewer', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/forms/form-1/submissions');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Form Submissions Page')).toBeInTheDocument();
+      expect(await screen.findByText('Form Submissions Page')).toBeInTheDocument();
     });
 
-    it('renders "/activities" for an authenticated Viewer (read-only activities access)', () => {
+    it('renders "/activities" for an authenticated Viewer (read-only activities access)', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/activities');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Activities Page')).toBeInTheDocument();
+      expect(await screen.findByText('Activities Page')).toBeInTheDocument();
       expect(window.location.pathname).toBe('/activities');
     });
 
-    it('renders "/activities/:activityId" for a Viewer (read-only detail access)', () => {
+    it('renders "/activities/:activityId" for a Viewer (read-only detail access)', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/activities/activity-1');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Activity Detail Page')).toBeInTheDocument();
+      expect(await screen.findByText('Activity Detail Page')).toBeInTheDocument();
     });
 
-    it('renders "/property" for an authenticated Viewer (read-only property access)', () => {
+    it('renders "/property" for an authenticated Viewer (read-only property access)', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/property');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Property Page')).toBeInTheDocument();
+      expect(await screen.findByText('Property Page')).toBeInTheDocument();
       expect(window.location.pathname).toBe('/property');
     });
 
-    it('renders "/property/:itemId" for a Viewer (read-only detail access)', () => {
+    it('renders "/property/:itemId" for a Viewer (read-only detail access)', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/property/item-1');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Property Detail Page')).toBeInTheDocument();
+      expect(await screen.findByText('Property Detail Page')).toBeInTheDocument();
     });
 
-    it('still redirects a Viewer away from "/people" to "/404"', () => {
+    it('still redirects a Viewer away from "/people" to "/404"', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/people');
 
       render(<MhdAppRouter />);
 
       expect(screen.queryByText('People Page')).not.toBeInTheDocument();
-      expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+      expect(await screen.findByText('Page Not Found')).toBeInTheDocument();
     });
 
-    it('renders "/approvals" for a Client User', () => {
+    it('renders "/approvals" for a Client User', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Client User'] });
       setUrl('/approvals');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Approvals Page')).toBeInTheDocument();
+      expect(await screen.findByText('Approvals Page')).toBeInTheDocument();
       expect(window.location.pathname).toBe('/approvals');
     });
 
-    it('redirects a Viewer away from "/approvals" to "/404"', () => {
+    it('redirects a Viewer away from "/approvals" to "/404"', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/approvals');
 
       render(<MhdAppRouter />);
 
       expect(screen.queryByText('Approvals Page')).not.toBeInTheDocument();
-      expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+      expect(await screen.findByText('Page Not Found')).toBeInTheDocument();
       expect(window.location.pathname).toBe('/404');
     });
 
-    it('renders "/performance" for a Client User', () => {
+    it('renders "/performance" for a Client User', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Client User'] });
       setUrl('/performance');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Performance Page')).toBeInTheDocument();
+      expect(await screen.findByText('Performance Page')).toBeInTheDocument();
       expect(window.location.pathname).toBe('/performance');
     });
 
-    it('redirects a Viewer away from "/performance" to "/404"', () => {
+    it('redirects a Viewer away from "/performance" to "/404"', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/performance');
 
       render(<MhdAppRouter />);
 
       expect(screen.queryByText('Performance Page')).not.toBeInTheDocument();
-      expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+      expect(await screen.findByText('Page Not Found')).toBeInTheDocument();
       expect(window.location.pathname).toBe('/404');
     });
 
-    it('renders "/offboarding" for a Client Admin', () => {
+    it('renders "/offboarding" for a Client Admin', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Client Admin'] });
       setUrl('/offboarding');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Offboarding Page')).toBeInTheDocument();
+      expect(await screen.findByText('Offboarding Page')).toBeInTheDocument();
       expect(window.location.pathname).toBe('/offboarding');
     });
 
@@ -514,14 +514,14 @@ describe('MhdAppRouter', () => {
     // record) but exclude Viewer entirely.
     it.each(['/schedule', '/attendance'])(
       'renders "%s" for a Client User (own-record surface)',
-      (path) => {
+      async (path) => {
         mockAuth({ isAuthenticated: true, roles: ['Client User'] });
         setUrl(path);
 
         render(<MhdAppRouter />);
 
         expect(
-          screen.getByText(path === '/schedule' ? 'Schedule Page' : 'Attendance Page'),
+          await screen.findByText(path === '/schedule' ? 'Schedule Page' : 'Attendance Page'),
         ).toBeInTheDocument();
         expect(window.location.pathname).toBe(path);
       },
@@ -539,11 +539,11 @@ describe('MhdAppRouter', () => {
       expect(window.location.pathname).toBe('/404');
     });
 
-    it('renders "/attendance/policy" for a Client Admin but not a Client User', () => {
+    it('renders "/attendance/policy" for a Client Admin but not a Client User', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Client Admin'] });
       setUrl('/attendance/policy');
       const { unmount } = render(<MhdAppRouter />);
-      expect(screen.getByText('Attendance Policy Page')).toBeInTheDocument();
+      expect(await screen.findByText('Attendance Policy Page')).toBeInTheDocument();
       unmount();
 
       // Client User reaches /attendance but NOT /attendance/policy — the
@@ -570,13 +570,13 @@ describe('MhdAppRouter', () => {
       },
     );
 
-    it('applies the offboarding role rule to case detail routes', () => {
+    it('applies the offboarding role rule to case detail routes', async () => {
       mockAuth({ isAuthenticated: true, roles: ['HR Partner'] });
       setUrl('/offboarding/case-1');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Offboarding Case Detail Page')).toBeInTheDocument();
+      expect(await screen.findByText('Offboarding Case Detail Page')).toBeInTheDocument();
     });
 
     // Leaves of Absence and Reasonable Accommodations — the same audience
@@ -590,13 +590,13 @@ describe('MhdAppRouter', () => {
       ['/leaves/case-1', 'Leave Case Detail Page'],
       ['/accommodations', 'Accommodations Page'],
       ['/accommodations/case-1', 'Accommodation Case Detail Page'],
-    ])('renders "%s" for a Client User (own-case surface)', (path, text) => {
+    ])('renders "%s" for a Client User (own-case surface)', async (path, text) => {
       mockAuth({ isAuthenticated: true, roles: ['Client User'] });
       setUrl(path);
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText(text)).toBeInTheDocument();
+      expect(await screen.findByText(text)).toBeInTheDocument();
       expect(window.location.pathname).toBe(path);
     });
 
@@ -628,13 +628,13 @@ describe('MhdAppRouter', () => {
       },
     );
 
-    it('does not restrict "/tasks", which has no role rule (ALL)', () => {
+    it('does not restrict "/tasks", which has no role rule (ALL)', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Client User'] });
       setUrl('/tasks');
 
       render(<MhdAppRouter />);
 
-      expect(screen.getByText('Tasks Page')).toBeInTheDocument();
+      expect(await screen.findByText('Tasks Page')).toBeInTheDocument();
     });
   });
 });

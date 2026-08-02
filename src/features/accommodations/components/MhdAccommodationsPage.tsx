@@ -7,12 +7,12 @@ import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTableActions, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import { MhdViewToggle } from '@/components/ui/MhdViewToggle';
 import {
-  MhdViewToggle,
   mhdReadPersistedViewMode,
   mhdWritePersistedViewMode,
   type MhdViewMode,
-} from '@/components/ui/MhdViewToggle';
+} from '@/components/ui/MhdViewToggleUtils';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdAccommodationsIsPrivileged } from '@/appshell/mhdRouteAccess';
 import {
