@@ -6,6 +6,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -70,6 +71,10 @@ export function MhdLeavesPage() {
   }
 
   const cases = useMhdLeaveCases(filters);
+  const casesData = cases.data ?? [];
+  const pagination = useMhdPagination(casesData.length, {
+    resetKey: `${casesData.length}:${casesData[0]?.id ?? ''}`,
+  });
   const people = useMhdLeavePeople(isPrivileged ? companyId || null : null);
   const createCase = useMhdCreateLeaveCase(companyId || null);
 
@@ -156,7 +161,7 @@ export function MhdLeavesPage() {
 
       {cases.isLoading ? (
         <MhdCard className="p-6 text-sm text-muted-foreground">Loading…</MhdCard>
-      ) : (cases.data ?? []).length === 0 ? (
+      ) : casesData.length === 0 ? (
         <MhdCard className="border border-dashed border-border">
           <MhdEmptyState icon={CalendarOff} title="No leave cases on record." />
         </MhdCard>
@@ -177,7 +182,7 @@ export function MhdLeavesPage() {
               </tr>
             </thead>
             <tbody>
-              {(cases.data ?? []).map((leaveCase) => (
+              {pagination.sliceItems(casesData).map((leaveCase) => (
                 <MhdTr key={leaveCase.id} to={`/leaves/${leaveCase.id}`}>
                   <MhdTd className="whitespace-nowrap font-mono text-xs">
                     {leaveCase.referenceId}
@@ -202,9 +207,9 @@ export function MhdLeavesPage() {
               ))}
             </tbody>
           </MhdTable>
-          <MhdTableFooter
-            summary={`Showing 1 to ${(cases.data ?? []).length} of ${(cases.data ?? []).length} leave cases`}
-          />
+          <MhdTableFooter summary={mhdPaginationSummary(pagination, casesData.length, 'leave cases')}>
+            <MhdPaginationControls pagination={pagination} />
+          </MhdTableFooter>
         </MhdCard>
       )}
 

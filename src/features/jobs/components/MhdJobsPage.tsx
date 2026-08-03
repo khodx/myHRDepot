@@ -6,6 +6,7 @@ import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterInput } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -60,6 +61,10 @@ export function MhdJobsPage() {
 
   const jobs = useMhdJobs(companyId, search || null, activeOnly);
   const createJob = useMhdCreateJob();
+  const jobsData = jobs.data ?? [];
+  const pagination = useMhdPagination(jobsData.length, {
+    resetKey: `${jobsData.length}:${jobsData[0]?.id ?? ''}`,
+  });
 
   if (!companyId) {
     return (
@@ -228,7 +233,7 @@ export function MhdJobsPage() {
 
       {jobs.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : (jobs.data ?? []).length === 0 ? (
+      ) : jobsData.length === 0 ? (
         <p className="text-sm text-muted-foreground">No jobs match.</p>
       ) : (
         <MhdCard className="overflow-hidden p-0">
@@ -245,7 +250,7 @@ export function MhdJobsPage() {
               </tr>
             </thead>
             <tbody>
-              {(jobs.data ?? []).map((job) => (
+              {pagination.sliceItems(jobsData).map((job) => (
                 <MhdTr
                   key={job.id}
                   to={`/jobs/${job.id}`}
@@ -289,9 +294,9 @@ export function MhdJobsPage() {
               ))}
             </tbody>
           </MhdTable>
-          <MhdTableFooter
-            summary={`Showing 1 to ${(jobs.data ?? []).length} of ${(jobs.data ?? []).length} jobs`}
-          />
+          <MhdTableFooter summary={mhdPaginationSummary(pagination, jobsData.length, 'jobs')}>
+            <MhdPaginationControls pagination={pagination} />
+          </MhdTableFooter>
         </MhdCard>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { Building2 } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -23,6 +24,10 @@ export function MhdCompanyList({
   selectedCompanyId,
   onSelectCompany,
 }: MhdCompanyListProps) {
+  const pagination = useMhdPagination(companies.length, {
+    resetKey: `${companies.length}:${companies[0]?.id ?? ''}`,
+  });
+
   if (companies.length === 0) {
     return (
       <MhdCard className="border border-dashed border-border">
@@ -55,7 +60,7 @@ export function MhdCompanyList({
           </tr>
         </thead>
         <tbody>
-          {companies.map((company) => (
+          {pagination.sliceItems(companies).map((company) => (
             <MhdTr
               key={company.id}
               to={`/companies/${company.id}`}
@@ -96,9 +101,9 @@ export function MhdCompanyList({
           ))}
         </tbody>
       </MhdTable>
-      <MhdTableFooter
-        summary={`Showing 1 to ${companies.length} of ${companies.length} companies`}
-      />
+      <MhdTableFooter summary={mhdPaginationSummary(pagination, companies.length, 'companies')}>
+        <MhdPaginationControls pagination={pagination} />
+      </MhdTableFooter>
     </MhdCard>
   );
 }

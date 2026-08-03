@@ -1,6 +1,7 @@
 import { Package } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -24,6 +25,10 @@ export function MhdPropertyInventoryList({
   isLoading,
   canMutate,
 }: MhdPropertyInventoryListProps) {
+  const pagination = useMhdPagination(items.length, {
+    resetKey: `${items.length}:${items[0]?.id ?? ''}`,
+  });
+
   if (isLoading) {
     return (
       <MhdCard className="p-6 text-sm text-muted-foreground">Loading property inventory...</MhdCard>
@@ -55,7 +60,7 @@ export function MhdPropertyInventoryList({
           </tr>
         </thead>
         <tbody>
-          {items.map((item) => (
+          {pagination.sliceItems(items).map((item) => (
             <MhdTr key={item.id} to={`/property/${item.id}`} className="align-top">
               <MhdTd>
                 <div className="font-medium text-foreground">{item.name}</div>
@@ -79,7 +84,9 @@ export function MhdPropertyInventoryList({
           ))}
         </tbody>
       </MhdTable>
-      <MhdTableFooter summary={`Showing 1 to ${items.length} of ${items.length} property items`} />
+      <MhdTableFooter summary={mhdPaginationSummary(pagination, items.length, 'property items')}>
+        <MhdPaginationControls pagination={pagination} />
+      </MhdTableFooter>
     </MhdCard>
   );
 }

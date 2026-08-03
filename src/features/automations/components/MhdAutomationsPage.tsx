@@ -4,6 +4,7 @@ import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import { MhdTable, MhdTableFooter, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { MhdTabs } from '@/components/ui/MhdTabs';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -43,7 +44,25 @@ export function MhdAutomationsPage() {
   const runs = useMhdAutomationRuns(companyId);
   const catalog = useMhdAutomationCatalog();
 
-  const activeCount = (rules.data ?? []).filter((rule) => rule.isActive).length;
+  const rulesData = rules.data ?? [];
+  const runsData = runs.data ?? [];
+  const actionTypes = catalog.data?.actionTypes ?? [];
+  const channels = catalog.data?.channels ?? [];
+
+  const rulesPagination = useMhdPagination(rulesData.length, {
+    resetKey: `${rulesData.length}:${rulesData[0]?.id ?? ''}`,
+  });
+  const runsPagination = useMhdPagination(runsData.length, {
+    resetKey: `${runsData.length}:${runsData[0]?.id ?? ''}`,
+  });
+  const actionTypesPagination = useMhdPagination(actionTypes.length, {
+    resetKey: `${actionTypes.length}:${actionTypes[0]?.key ?? ''}`,
+  });
+  const channelsPagination = useMhdPagination(channels.length, {
+    resetKey: `${channels.length}:${channels[0]?.key ?? ''}`,
+  });
+
+  const activeCount = rulesData.filter((rule) => rule.isActive).length;
 
   return (
     <div className="space-y-6">
@@ -60,7 +79,7 @@ export function MhdAutomationsPage() {
             <p className="p-6 text-sm text-muted-foreground">Loading Rules…</p>
           ) : rules.error ? (
             <p className="p-6 text-sm text-red-600">{(rules.error as Error).message}</p>
-          ) : (rules.data ?? []).length === 0 ? (
+          ) : rulesData.length === 0 ? (
             <MhdEmptyState
               icon={Bot}
               title="No Automation Rules Yet"
@@ -79,7 +98,7 @@ export function MhdAutomationsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(rules.data ?? []).map((rule) => (
+                  {rulesPagination.sliceItems(rulesData).map((rule) => (
                     <MhdTr key={rule.id} to={`/automations/rules/${rule.id}`}>
                       <MhdTd className="font-semibold">
                         {rule.name}
@@ -104,10 +123,10 @@ export function MhdAutomationsPage() {
                 </tbody>
               </MhdTable>
               <MhdTableFooter
-                summary={`Showing ${(rules.data ?? []).length} Rule${
-                  (rules.data ?? []).length === 1 ? '' : 's'
-                }, ${activeCount} Armed`}
-              />
+                summary={`${mhdPaginationSummary(rulesPagination, rulesData.length, rulesData.length === 1 ? 'Rule' : 'Rules')}, ${activeCount} Armed`}
+              >
+                <MhdPaginationControls pagination={rulesPagination} />
+              </MhdTableFooter>
             </>
           )}
         </MhdCard>
@@ -119,7 +138,7 @@ export function MhdAutomationsPage() {
             <p className="p-6 text-sm text-muted-foreground">Loading Run History…</p>
           ) : runs.error ? (
             <p className="p-6 text-sm text-red-600">{(runs.error as Error).message}</p>
-          ) : (runs.data ?? []).length === 0 ? (
+          ) : runsData.length === 0 ? (
             <MhdEmptyState
               icon={Bot}
               title="Nothing Has Run Yet"
@@ -138,7 +157,7 @@ export function MhdAutomationsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(runs.data ?? []).map((run) => (
+                  {runsPagination.sliceItems(runsData).map((run) => (
                     <MhdTr key={run.id} to={`/automations/runs/${run.id}`}>
                       <MhdTd className="font-semibold">{run.ruleName}</MhdTd>
                       <MhdTd className="text-muted-foreground">
@@ -166,7 +185,9 @@ export function MhdAutomationsPage() {
                   ))}
                 </tbody>
               </MhdTable>
-              <MhdTableFooter summary={`Showing ${(runs.data ?? []).length} Recent Runs`} />
+              <MhdTableFooter summary={mhdPaginationSummary(runsPagination, runsData.length, 'Recent Runs')}>
+                <MhdPaginationControls pagination={runsPagination} />
+              </MhdTableFooter>
             </>
           )}
         </MhdCard>
@@ -190,7 +211,7 @@ export function MhdAutomationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {(catalog.data?.actionTypes ?? []).map((action) => (
+                {actionTypesPagination.sliceItems(actionTypes).map((action) => (
                   <MhdTr key={action.key}>
                     <MhdTd className="font-semibold">{action.label}</MhdTd>
                     <MhdTd className="text-muted-foreground">{action.description}</MhdTd>
@@ -206,7 +227,9 @@ export function MhdAutomationsPage() {
                 ))}
               </tbody>
             </MhdTable>
-            <MhdTableFooter summary="Actions An Automation Can Take" />
+            <MhdTableFooter summary={mhdPaginationSummary(actionTypesPagination, actionTypes.length, 'Actions An Automation Can Take')}>
+              <MhdPaginationControls pagination={actionTypesPagination} />
+            </MhdTableFooter>
           </MhdCard>
 
           <MhdCard className="overflow-hidden p-0">
@@ -219,7 +242,7 @@ export function MhdAutomationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {(catalog.data?.channels ?? []).map((channel) => (
+                {channelsPagination.sliceItems(channels).map((channel) => (
                   <MhdTr key={channel.key}>
                     <MhdTd className="font-semibold">{channel.label}</MhdTd>
                     <MhdTd className="text-muted-foreground">{channel.description}</MhdTd>
@@ -232,7 +255,9 @@ export function MhdAutomationsPage() {
                 ))}
               </tbody>
             </MhdTable>
-            <MhdTableFooter summary="Ways An Automation Can Reach Someone" />
+            <MhdTableFooter summary={mhdPaginationSummary(channelsPagination, channels.length, 'Ways An Automation Can Reach Someone')}>
+              <MhdPaginationControls pagination={channelsPagination} />
+            </MhdTableFooter>
           </MhdCard>
         </div>
       )}

@@ -5,6 +5,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -40,6 +41,9 @@ export function MhdEmployeeFilesPage() {
       }),
     [peopleState.people, searchTerm, selectedCompanyId],
   );
+  const pagination = useMhdPagination(filteredPeople.length, {
+    resetKey: `${filteredPeople.length}:${filteredPeople[0]?.id ?? ''}`,
+  });
 
   return (
     <div className="space-y-6">
@@ -148,7 +152,7 @@ export function MhdEmployeeFilesPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredPeople.map((person) => (
+              {pagination.sliceItems(filteredPeople).map((person) => (
                 <MhdTr key={person.id} to={`/employees/${person.id}`}>
                   <MhdTd>
                     <Link
@@ -169,9 +173,9 @@ export function MhdEmployeeFilesPage() {
               ))}
             </tbody>
           </MhdTable>
-          <MhdTableFooter
-            summary={`Showing 1 To ${filteredPeople.length} Of ${filteredPeople.length} Employees`}
-          />
+          <MhdTableFooter summary={mhdPaginationSummary(pagination, filteredPeople.length, 'Employees')}>
+            <MhdPaginationControls pagination={pagination} />
+          </MhdTableFooter>
         </MhdCard>
       )}
     </div>

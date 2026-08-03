@@ -6,6 +6,7 @@ import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -178,6 +179,9 @@ export function MhdConductPage() {
   const peopleQuery = useMhdConductPeople(selectedCompanyId);
 
   const cases = useMemo(() => casesQuery.data ?? [], [casesQuery.data]);
+  const pagination = useMhdPagination(cases.length, {
+    resetKey: `${cases.length}:${cases[0]?.id ?? ''}`,
+  });
 
   const companyOptions = canCrossCompanyFilter
     ? (companiesQuery.data ?? []).map((company) => ({ id: company.id, label: company.companyName }))
@@ -357,7 +361,7 @@ export function MhdConductPage() {
               </tr>
             </thead>
             <tbody>
-              {cases.map((conductCase) => (
+              {pagination.sliceItems(cases).map((conductCase) => (
                 <MhdTr key={conductCase.id} to={`/conduct/${conductCase.id}`}>
                   <MhdTd>
                     <Link
@@ -389,9 +393,9 @@ export function MhdConductPage() {
               ))}
             </tbody>
           </MhdTable>
-          <MhdTableFooter
-            summary={`Showing 1 to ${cases.length} of ${cases.length} conduct cases`}
-          />
+          <MhdTableFooter summary={mhdPaginationSummary(pagination, cases.length, 'conduct cases')}>
+            <MhdPaginationControls pagination={pagination} />
+          </MhdTableFooter>
         </MhdCard>
       )}
     </div>

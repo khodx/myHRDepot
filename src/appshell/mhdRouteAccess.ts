@@ -107,6 +107,11 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // Client Admin until a backend per-file-type policy layer exists.
   { path: '/employees', roles: ['Platform Admin', 'HR Partner'] },
   { path: '/people', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  // Users. Lists `public.users` login accounts across the tenant, including
+  // the `is_admin` flag — the same PA/HRP-only audience as /companies and
+  // /employees, for the same reason: this is platform-account administration,
+  // not an HR record any Client Admin/User should browse.
+  { path: '/users', roles: ['Platform Admin', 'HR Partner'] },
   { path: '/companies', roles: ['Platform Admin', 'HR Partner'] },
   { path: '/approvals', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   // Job Descriptions. /jobs (and its sub-routes /jobs/:jobId, /jobs/competencies)

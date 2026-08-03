@@ -3,6 +3,7 @@ import { FileText } from 'lucide-react';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import {
   MhdActionsTh,
@@ -34,6 +35,9 @@ function statusBadgeVariant(status: MhdForm['status']): MhdBadgeVariant {
 
 export function MhdFormList({ forms, isLoading }: MhdFormListProps) {
   const location = useLocation();
+  const pagination = useMhdPagination(forms.length, {
+    resetKey: `${forms.length}:${forms[0]?.id ?? ''}`,
+  });
 
   if (isLoading) {
     return <MhdCard className="p-6 text-sm text-muted-foreground">Loading forms...</MhdCard>;
@@ -64,7 +68,7 @@ export function MhdFormList({ forms, isLoading }: MhdFormListProps) {
           </tr>
         </thead>
         <tbody>
-          {forms.map((form) => (
+          {pagination.sliceItems(forms).map((form) => (
             <MhdTr key={form.id} to={`/forms/${form.id}`}>
               <MhdTd>
                 <div>
@@ -106,7 +110,9 @@ export function MhdFormList({ forms, isLoading }: MhdFormListProps) {
           ))}
         </tbody>
       </MhdTable>
-      <MhdTableFooter summary={`Showing 1 to ${forms.length} of ${forms.length} forms`} />
+      <MhdTableFooter summary={mhdPaginationSummary(pagination, forms.length, 'forms')}>
+        <MhdPaginationControls pagination={pagination} />
+      </MhdTableFooter>
     </MhdCard>
   );
 }

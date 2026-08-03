@@ -5,7 +5,7 @@ interface MhdDateRangePresetsProps {
   className?: string;
 }
 
-type MhdDateRangePresetId =
+export type MhdDateRangePresetId =
   | 'this-week'
   | 'this-month'
   | 'last-quarter'
@@ -13,7 +13,7 @@ type MhdDateRangePresetId =
   | 'last-6-months'
   | 'this-year';
 
-const PRESETS: Array<{ id: MhdDateRangePresetId; label: string }> = [
+export const MHD_DATE_RANGE_PRESETS: Array<{ id: MhdDateRangePresetId; label: string }> = [
   { id: 'this-week', label: 'This week' },
   { id: 'this-month', label: 'This month' },
   { id: 'last-quarter', label: 'Last quarter' },
@@ -21,6 +21,7 @@ const PRESETS: Array<{ id: MhdDateRangePresetId; label: string }> = [
   { id: 'last-6-months', label: 'Last 6 months' },
   { id: 'this-year', label: 'This year' },
 ];
+const PRESETS = MHD_DATE_RANGE_PRESETS;
 
 function toIsoDate(date: Date): string {
   const year = date.getFullYear();
@@ -37,7 +38,7 @@ function endOfQuarter(year: number, quarterIndex: number): Date {
   return new Date(year, quarterIndex * 3 + 3, 0);
 }
 
-function computeDateRange(presetId: MhdDateRangePresetId, now: Date): [string, string] {
+export function computeMhdDateRangePreset(presetId: MhdDateRangePresetId, now: Date): [string, string] {
   const year = now.getFullYear();
   const month = now.getMonth();
   const quarterIndex = Math.floor(month / 3);
@@ -89,7 +90,7 @@ export function MhdDateRangePresets({ onSelect, className }: MhdDateRangePresets
       onChange={(event) => {
         const value = event.target.value as MhdDateRangePresetId | '';
         if (!value) return;
-        const [dueFrom, dueTo] = computeDateRange(value, new Date());
+        const [dueFrom, dueTo] = computeMhdDateRangePreset(value, new Date());
         onSelect(dueFrom, dueTo);
         event.currentTarget.value = '';
       }}

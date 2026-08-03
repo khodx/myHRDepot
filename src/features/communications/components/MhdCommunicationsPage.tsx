@@ -4,6 +4,7 @@ import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import { MhdTable, MhdTableFooter, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdNotifications } from '@/features/notifications/Hook';
 import { MHD_NOTIFICATION_TYPE_LABELS } from '@/features/notifications/Types';
@@ -29,6 +30,9 @@ function formatWhen(value: string | null) {
 export function MhdCommunicationsPage() {
   const { notifications, unreadCount, isLoading, error, markAllRead, refetch } =
     useMhdNotifications();
+  const notificationsPagination = useMhdPagination(notifications.length, {
+    resetKey: `${notifications.length}:${notifications[0]?.id ?? ''}`,
+  });
   const systemAlerts = notifications.filter(
     (notification) => notification.notificationType === 'SYSTEM',
   );
@@ -167,7 +171,7 @@ export function MhdCommunicationsPage() {
                 </MhdTd>
               </MhdTr>
             ) : (
-              notifications.map((notification) => (
+              notificationsPagination.sliceItems(notifications).map((notification) => (
                 <MhdTr key={notification.id}>
                   <MhdTd>
                     <p className="font-semibold text-foreground">{notification.title}</p>
@@ -186,10 +190,10 @@ export function MhdCommunicationsPage() {
           </tbody>
         </MhdTable>
         <MhdTableFooter
-          summary={`Showing ${notifications.length === 0 ? 0 : 1} To ${notifications.length} Of ${
-            notifications.length
-          } Communications`}
-        />
+          summary={mhdPaginationSummary(notificationsPagination, notifications.length, 'Communications')}
+        >
+          <MhdPaginationControls pagination={notificationsPagination} />
+        </MhdTableFooter>
       </MhdCard>
     </div>
   );

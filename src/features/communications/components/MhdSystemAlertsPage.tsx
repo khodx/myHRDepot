@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Bell, RefreshCw } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import { MhdTable, MhdTableFooter, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdNotifications } from '@/features/notifications/Hook';
 import { MhdCommunicationsTabs } from '@/appshell/components/MhdCommunicationsTabs';
@@ -15,6 +16,9 @@ function formatDate(value: string) {
 export function MhdSystemAlertsPage() {
   const { notifications, isLoading, error, refetch } = useMhdNotifications();
   const alerts = notifications.filter((notification) => notification.notificationType === 'SYSTEM');
+  const pagination = useMhdPagination(alerts.length, {
+    resetKey: `${alerts.length}:${alerts[0]?.id ?? ''}`,
+  });
 
   return (
     <div className="space-y-6">
@@ -71,7 +75,7 @@ export function MhdSystemAlertsPage() {
                 </MhdTd>
               </MhdTr>
             ) : (
-              alerts.map((alert) => (
+              pagination.sliceItems(alerts).map((alert) => (
                 <MhdTr key={alert.id}>
                   <MhdTd>
                     <p className="font-semibold text-foreground">{alert.title}</p>
@@ -101,11 +105,9 @@ export function MhdSystemAlertsPage() {
             )}
           </tbody>
         </MhdTable>
-        <MhdTableFooter
-          summary={`Showing ${alerts.length === 0 ? 0 : 1} To ${alerts.length} Of ${
-            alerts.length
-          } System Alerts`}
-        />
+        <MhdTableFooter summary={mhdPaginationSummary(pagination, alerts.length, 'System Alerts')}>
+          <MhdPaginationControls pagination={pagination} />
+        </MhdTableFooter>
       </MhdCard>
     </div>
   );

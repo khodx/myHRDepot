@@ -8,6 +8,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterInput } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import { MhdStatCard } from '@/components/ui/MhdStatCard';
 import {
   MhdActionsTh,
@@ -144,6 +145,9 @@ export function MhdEsignaturePage() {
       );
     });
   }, [requestSearchTerm, requests]);
+  const requestsPagination = useMhdPagination(filteredRequests.length, {
+    resetKey: `${filteredRequests.length}:${filteredRequests[0]?.id ?? ''}`,
+  });
 
   function resetComposer(generation?: MhdEsignatureGeneratedDocument | null) {
     setActionError(null);
@@ -660,7 +664,7 @@ export function MhdEsignaturePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRequests.map((request) => (
+                  {requestsPagination.sliceItems(filteredRequests).map((request) => (
                     <MhdTr key={request.id} to={`/esignature/${request.id}`}>
                       <MhdTd className="whitespace-nowrap font-mono text-xs">
                         {request.referenceId}
@@ -694,8 +698,14 @@ export function MhdEsignaturePage() {
                 </tbody>
               </MhdTable>
               <MhdTableFooter
-                summary={`Showing 1 to ${filteredRequests.length} of ${filteredRequests.length} request${filteredRequests.length === 1 ? '' : 's'}`}
-              />
+                summary={mhdPaginationSummary(
+                  requestsPagination,
+                  filteredRequests.length,
+                  filteredRequests.length === 1 ? 'request' : 'requests',
+                )}
+              >
+                <MhdPaginationControls pagination={requestsPagination} />
+              </MhdTableFooter>
             </MhdCard>
           )}
         </div>

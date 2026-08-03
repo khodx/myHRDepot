@@ -6,6 +6,7 @@ import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonS
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -46,6 +47,10 @@ function EmployeeFileTable({
   records: MhdEmployeeFileSubmissionRecord[];
   personId: string;
 }) {
+  const pagination = useMhdPagination(records.length, {
+    resetKey: `${records.length}:${records[0]?.id ?? ''}`,
+  });
+
   return (
     <MhdCard className="overflow-hidden p-0">
       <div className="border-b border-border bg-card px-5 py-4">
@@ -93,7 +98,7 @@ function EmployeeFileTable({
               </MhdTd>
             </MhdTr>
           ) : (
-            records.map((record) => (
+            pagination.sliceItems(records).map((record) => (
               <MhdTr
                 key={record.id}
                 to={`/forms/${record.formId}/submissions?submissionId=${record.id}`}
@@ -149,10 +154,10 @@ function EmployeeFileTable({
         </tbody>
       </MhdTable>
       <MhdTableFooter
-        summary={`Showing ${records.length === 0 ? 0 : 1} To ${records.length} Of ${
-          records.length
-        } ${fileType.label} Records`}
-      />
+        summary={mhdPaginationSummary(pagination, records.length, `${fileType.label} Records`)}
+      >
+        <MhdPaginationControls pagination={pagination} />
+      </MhdTableFooter>
     </MhdCard>
   );
 }

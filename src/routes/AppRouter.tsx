@@ -208,6 +208,26 @@ const MhdPersonDetailPage = lazy(() =>
     default: module.MhdPersonDetailPage,
   })),
 );
+const MhdUsersPage = lazy(() =>
+  import('@/features/users/components/MhdUsersPage').then((module) => ({
+    default: module.MhdUsersPage,
+  })),
+);
+const MhdUserInvitePage = lazy(() =>
+  import('@/features/users/components/MhdUserInvitePage').then((module) => ({
+    default: module.MhdUserInvitePage,
+  })),
+);
+const MhdUserDetailPage = lazy(() =>
+  import('@/features/users/components/MhdUserDetailPage').then((module) => ({
+    default: module.MhdUserDetailPage,
+  })),
+);
+const MhdUserFormPage = lazy(() =>
+  import('@/features/users/components/MhdUserFormPage').then((module) => ({
+    default: module.MhdUserFormPage,
+  })),
+);
 const MhdCompaniesPage = lazy(() =>
   import('@/features/companies/components/MhdCompaniesPage').then((module) => ({
     default: module.MhdCompaniesPage,
@@ -563,6 +583,10 @@ function MhdAppRoutes() {
               <Route path="/people/new" element={<MhdPersonFormPage />} />
               <Route path="/people/:personId/edit" element={<MhdPersonFormPage />} />
               <Route path="/people/:personId" element={<MhdPersonDetailPage />} />
+              <Route path="/users" element={<MhdUsersPage />} />
+              <Route path="/users/new" element={<MhdUserInvitePage />} />
+              <Route path="/users/:userId/edit" element={<MhdUserFormPage />} />
+              <Route path="/users/:userId" element={<MhdUserDetailPage />} />
               <Route path="/companies" element={<MhdCompaniesPage />} />
               <Route path="/companies/new" element={<MhdCompanyFormPage />} />
               <Route path="/companies/:companyId/edit" element={<MhdCompanyFormPage />} />

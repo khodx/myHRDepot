@@ -1,7 +1,7 @@
 import { ListChecks } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
 import {
   MhdActionsTh,
@@ -24,8 +24,6 @@ interface MhdTaskListProps {
   onToggleSelect: (taskId: string) => void;
   onToggleSelectAll: (taskIds: string[]) => void;
 }
-
-const PAGE_SIZE = 10;
 
 function initialsFor(names: string[]) {
   const source = names[0] ?? 'Unassigned';
@@ -60,6 +58,10 @@ export function MhdTaskList({
   onToggleSelect,
   onToggleSelectAll,
 }: MhdTaskListProps) {
+  const pagination = useMhdPagination(tasks.length, {
+    resetKey: `${tasks.length}:${tasks[0]?.id ?? ''}`,
+  });
+
   if (isLoading)
     return <MhdCard className="p-6 text-sm text-muted-foreground">Loading tasks...</MhdCard>;
   if (tasks.length === 0) {
@@ -74,8 +76,7 @@ export function MhdTaskList({
     );
   }
 
-  const visibleTasks = tasks.slice(0, PAGE_SIZE);
-  const rangeEnd = Math.min(PAGE_SIZE, tasks.length);
+  const visibleTasks = pagination.sliceItems(tasks);
   const visibleTaskIds = visibleTasks.map((task) => task.id);
   const selectedIdSet = new Set(selectedIds);
   const allVisibleSelected =
@@ -194,16 +195,8 @@ export function MhdTaskList({
           })}
         </tbody>
       </MhdTable>
-      <MhdTableFooter summary={`Showing 1 to ${rangeEnd} of ${tasks.length} tasks`}>
-        <Button variant="secondary" className="h-7 px-2 text-xs" disabled>
-          Previous
-        </Button>
-        <Button className="h-7 px-2.5 text-xs">
-          1
-        </Button>
-        <Button variant="secondary" className="h-7 px-2 text-xs" disabled={tasks.length <= PAGE_SIZE}>
-          Next
-        </Button>
+      <MhdTableFooter summary={mhdPaginationSummary(pagination, tasks.length, 'tasks')}>
+        <MhdPaginationControls pagination={pagination} />
       </MhdTableFooter>
     </MhdCard>
   );

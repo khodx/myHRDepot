@@ -1,6 +1,7 @@
 import { AlarmClock, CalendarClock, ListChecks, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -23,6 +24,10 @@ interface Props {
 }
 
 export function MhdActivityList({ activities, canMutate = false, onDelete }: Props) {
+  const pagination = useMhdPagination(activities.length, {
+    resetKey: `${activities.length}:${activities[0]?.id ?? ''}`,
+  });
+
   if (activities.length === 0) {
     return <MhdEmptyState icon={CalendarClock} title="No activities match the current filters." />;
   }
@@ -43,7 +48,7 @@ export function MhdActivityList({ activities, canMutate = false, onDelete }: Pro
           </tr>
         </thead>
         <tbody>
-          {activities.slice(0, 10).map((activity) => {
+          {pagination.sliceItems(activities).map((activity) => {
             const isOverdue = mhdIsActivityOverdue(activity);
             return (
               <MhdTr key={activity.id} to={`/activities/${activity.id}`}>
@@ -112,9 +117,9 @@ export function MhdActivityList({ activities, canMutate = false, onDelete }: Pro
           })}
         </tbody>
       </MhdTable>
-      <MhdTableFooter
-        summary={`Showing 1 to ${Math.min(10, activities.length)} of ${activities.length} activities`}
-      />
+      <MhdTableFooter summary={mhdPaginationSummary(pagination, activities.length, 'activities')}>
+        <MhdPaginationControls pagination={pagination} />
+      </MhdTableFooter>
     </>
   );
 }

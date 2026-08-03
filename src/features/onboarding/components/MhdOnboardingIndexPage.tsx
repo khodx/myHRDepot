@@ -5,6 +5,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -85,6 +86,9 @@ export function MhdOnboardingIndexPage() {
       );
     });
   }, [roster.rows, searchTerm, statusFilter]);
+  const pagination = useMhdPagination(visibleRows.length, {
+    resetKey: `${visibleRows.length}:${visibleRows[0]?.personId ?? ''}`,
+  });
 
   const counts = useMemo(
     () => ({
@@ -180,7 +184,7 @@ export function MhdOnboardingIndexPage() {
               </tr>
             </thead>
             <tbody>
-              {visibleRows.map((row) => {
+              {pagination.sliceItems(visibleRows).map((row) => {
                 const status = rosterStatus(row);
                 const completed = row.progress?.requiredCompleted ?? 0;
 
@@ -226,9 +230,9 @@ export function MhdOnboardingIndexPage() {
               })}
             </tbody>
           </MhdTable>
-          <MhdTableFooter
-            summary={`Showing 1 to ${visibleRows.length} of ${visibleRows.length} people`}
-          />
+          <MhdTableFooter summary={mhdPaginationSummary(pagination, visibleRows.length, 'people')}>
+            <MhdPaginationControls pagination={pagination} />
+          </MhdTableFooter>
         </MhdCard>
       )}
 

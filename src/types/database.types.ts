@@ -4359,6 +4359,8 @@ export type Database = {
           id: string
           ip_address: string | null
           request_id: string
+          signature_color: string
+          signature_font: string
           signature_name: string | null
           signed_at: string | null
           signer_order: number | null
@@ -4375,6 +4377,8 @@ export type Database = {
           id?: string
           ip_address?: string | null
           request_id: string
+          signature_color?: string
+          signature_font?: string
           signature_name?: string | null
           signed_at?: string | null
           signer_order?: number | null
@@ -4391,6 +4395,8 @@ export type Database = {
           id?: string
           ip_address?: string | null
           request_id?: string
+          signature_color?: string
+          signature_font?: string
           signature_name?: string | null
           signed_at?: string | null
           signer_order?: number | null
@@ -19904,6 +19910,8 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string
+          deactivated_at: string | null
+          deactivated_by: string | null
           email: string
           id: string
           is_admin: boolean | null
@@ -19913,6 +19921,8 @@ export type Database = {
         Insert: {
           company_id: string
           created_at?: string
+          deactivated_at?: string | null
+          deactivated_by?: string | null
           email: string
           id: string
           is_admin?: boolean | null
@@ -19922,6 +19932,8 @@ export type Database = {
         Update: {
           company_id?: string
           created_at?: string
+          deactivated_at?: string | null
+          deactivated_by?: string | null
           email?: string
           id?: string
           is_admin?: boolean | null
@@ -19934,6 +19946,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_deactivated_by_fkey"
+            columns: ["deactivated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -22295,6 +22314,8 @@ export type Database = {
           reference_id: string
           request_id: string
           request_status: string
+          signature_color: string
+          signature_font: string
           signed_drive_file_id: string
           signer_id: string
           signer_name: string
@@ -25542,6 +25563,8 @@ export type Database = {
           p_intent_to_sign: boolean
           p_ip_address?: string
           p_presented_document_hash: string
+          p_signature_color?: string
+          p_signature_font?: string
           p_signing_token: string
           p_typed_signature_name: string
           p_user_agent?: string

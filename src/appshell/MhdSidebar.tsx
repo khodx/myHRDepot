@@ -34,6 +34,7 @@ import {
   Stamp,
   UserSearch,
   UserPlus,
+  UserCog,
   Users,
   TrendingUp,
   X,
@@ -102,6 +103,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'People & Org',
     items: [
       { label: 'People', route: '/people', icon: Users, roles: mhdRouteRoles('/people') },
+      { label: 'Users', route: '/users', icon: UserCog, roles: mhdRouteRoles('/users') },
       // The new-hire packet roster. Sits beside People rather than next to
       // Offboarding because it is the hire-side intake surface and reads the
       // same people directory; Employee Relations covers conduct and exit.

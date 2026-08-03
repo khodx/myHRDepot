@@ -6,6 +6,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -63,6 +64,10 @@ export function MhdInvestigationsPage() {
   });
 
   const cases = useMhdInvestigationCases(filters);
+  const casesData = cases.data ?? [];
+  const pagination = useMhdPagination(casesData.length, {
+    resetKey: `${casesData.length}:${casesData[0]?.id ?? ''}`,
+  });
   // People are only needed to populate the investigator picker on the create
   // form, which only the privileged set can open.
   const people = useMhdInvestigationPeople(canOpenCase && companyId ? companyId : null);
@@ -134,7 +139,7 @@ export function MhdInvestigationsPage() {
 
       {cases.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : (cases.data ?? []).length === 0 ? (
+      ) : casesData.length === 0 ? (
         // Honest, non-disclosing empty state. It says only that the viewer has
         // access to nothing — never that hidden cases exist beyond their grants.
         <MhdCard className="border border-dashed border-border">
@@ -154,7 +159,7 @@ export function MhdInvestigationsPage() {
               </tr>
             </thead>
             <tbody>
-              {(cases.data ?? []).map((investigation) => (
+              {pagination.sliceItems(casesData).map((investigation) => (
                 <MhdTr key={investigation.id} to={`/investigations/${investigation.id}`}>
                   <MhdTd className="whitespace-nowrap font-mono text-xs">
                     {investigation.referenceId}
@@ -179,9 +184,9 @@ export function MhdInvestigationsPage() {
               ))}
             </tbody>
           </MhdTable>
-          <MhdTableFooter
-            summary={`Showing 1 to ${(cases.data ?? []).length} of ${(cases.data ?? []).length} investigations`}
-          />
+          <MhdTableFooter summary={mhdPaginationSummary(pagination, casesData.length, 'investigations')}>
+            <MhdPaginationControls pagination={pagination} />
+          </MhdTableFooter>
         </MhdCard>
       )}
 

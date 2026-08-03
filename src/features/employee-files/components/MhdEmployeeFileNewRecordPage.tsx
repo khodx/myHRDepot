@@ -6,6 +6,7 @@ import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonS
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -47,6 +48,9 @@ export function MhdEmployeeFileNewRecordPage() {
     () => (formsQuery.data ?? []).filter((form) => form.employeeFileCategory === category),
     [category, formsQuery.data],
   );
+  const pagination = useMhdPagination(matchingForms.length, {
+    resetKey: `${matchingForms.length}:${matchingForms[0]?.id ?? ''}`,
+  });
 
   if (!personId || !category) {
     return (
@@ -146,7 +150,7 @@ export function MhdEmployeeFileNewRecordPage() {
               </tr>
             </thead>
             <tbody>
-              {matchingForms.map((form) => (
+              {pagination.sliceItems(matchingForms).map((form) => (
                 <MhdTr
                   key={form.id}
                   to={`/forms/${form.id}/render?employeeFilePersonId=${encodeURIComponent(
@@ -182,9 +186,9 @@ export function MhdEmployeeFileNewRecordPage() {
               ))}
             </tbody>
           </MhdTable>
-          <MhdTableFooter
-            summary={`Showing 1 To ${matchingForms.length} Of ${matchingForms.length} Forms`}
-          />
+          <MhdTableFooter summary={mhdPaginationSummary(pagination, matchingForms.length, 'Forms')}>
+            <MhdPaginationControls pagination={pagination} />
+          </MhdTableFooter>
         </MhdCard>
       )}
 

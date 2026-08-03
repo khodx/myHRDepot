@@ -2,6 +2,7 @@ import { Users } from 'lucide-react';
 import { MhdAvatar } from '@/components/ui/MhdAvatar';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -27,6 +28,10 @@ export function MhdPersonList({
   isLoading,
   onSelectPerson,
 }: MhdPersonListProps) {
+  const pagination = useMhdPagination(people.length, {
+    resetKey: `${people.length}:${people[0]?.id ?? ''}`,
+  });
+
   if (isLoading) {
     return <MhdCard className="text-sm text-muted-foreground">Loading people...</MhdCard>;
   }
@@ -43,7 +48,7 @@ export function MhdPersonList({
     );
   }
 
-  const visiblePeople = people.slice(0, 10);
+  const visiblePeople = pagination.sliceItems(people);
 
   return (
     <MhdCard className="overflow-hidden p-0">
@@ -107,9 +112,9 @@ export function MhdPersonList({
           })}
         </tbody>
       </MhdTable>
-      <MhdTableFooter
-        summary={`Showing 1 to ${Math.min(10, people.length)} of ${people.length} people`}
-      />
+      <MhdTableFooter summary={mhdPaginationSummary(pagination, people.length, 'people')}>
+        <MhdPaginationControls pagination={pagination} />
+      </MhdTableFooter>
     </MhdCard>
   );
 }

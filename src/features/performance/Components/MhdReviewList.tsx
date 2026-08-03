@@ -2,6 +2,7 @@ import { AlarmClock, ClipboardCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -26,6 +27,10 @@ function formatDate(value: string | null): string {
 }
 
 export function MhdReviewList({ reviews }: Props) {
+  const pagination = useMhdPagination(reviews.length, {
+    resetKey: `${reviews.length}:${reviews[0]?.id ?? ''}`,
+  });
+
   if (reviews.length === 0) {
     return (
       <MhdCard className="border border-dashed border-border">
@@ -54,7 +59,7 @@ export function MhdReviewList({ reviews }: Props) {
           </tr>
         </thead>
         <tbody>
-          {reviews.map((review) => {
+          {pagination.sliceItems(reviews).map((review) => {
             const isOverdue = mhdIsReviewOverdue(review);
             return (
               <MhdTr key={review.id} to={`/performance/reviews/${review.id}`}>
@@ -101,7 +106,9 @@ export function MhdReviewList({ reviews }: Props) {
           })}
         </tbody>
       </MhdTable>
-      <MhdTableFooter summary={`Showing 1 to ${reviews.length} of ${reviews.length} reviews`} />
+      <MhdTableFooter summary={mhdPaginationSummary(pagination, reviews.length, 'reviews')}>
+        <MhdPaginationControls pagination={pagination} />
+      </MhdTableFooter>
     </MhdCard>
   );
 }

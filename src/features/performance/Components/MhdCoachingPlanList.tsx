@@ -2,6 +2,7 @@ import { ListChecks, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -23,6 +24,10 @@ function formatDate(value: string | null): string {
 }
 
 export function MhdCoachingPlanList({ plans }: Props) {
+  const pagination = useMhdPagination(plans.length, {
+    resetKey: `${plans.length}:${plans[0]?.id ?? ''}`,
+  });
+
   if (plans.length === 0) {
     return (
       <MhdCard className="border border-dashed border-border">
@@ -50,7 +55,7 @@ export function MhdCoachingPlanList({ plans }: Props) {
           </tr>
         </thead>
         <tbody>
-          {plans.map((plan) => (
+          {pagination.sliceItems(plans).map((plan) => (
             <MhdTr key={plan.id} to={`/performance/coaching/${plan.id}`}>
               <MhdTd>
                 <Link
@@ -85,7 +90,9 @@ export function MhdCoachingPlanList({ plans }: Props) {
           ))}
         </tbody>
       </MhdTable>
-      <MhdTableFooter summary={`Showing 1 to ${plans.length} of ${plans.length} coaching plans`} />
+      <MhdTableFooter summary={mhdPaginationSummary(pagination, plans.length, 'coaching plans')}>
+        <MhdPaginationControls pagination={pagination} />
+      </MhdTableFooter>
     </MhdCard>
   );
 }

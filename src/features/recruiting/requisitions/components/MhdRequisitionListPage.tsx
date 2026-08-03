@@ -5,6 +5,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -52,6 +53,10 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
   const [filters, setFilters] = useState<MhdRequisitionFilters>({ companyId, status: 'ALL' });
 
   const requisitions = useMhdRecruitingRequisitions(filters);
+  const requisitionsData = requisitions.data ?? [];
+  const pagination = useMhdPagination(requisitionsData.length, {
+    resetKey: `${requisitionsData.length}:${requisitionsData[0]?.id ?? ''}`,
+  });
   const people = useMhdRecruitingPeople(canManage ? companyId : null);
   const createRequisition = useMhdCreateRequisition();
 
@@ -123,7 +128,7 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
 
       {requisitions.isLoading ? (
         <MhdCard className="p-6 text-sm text-muted-foreground">Loading requisitions…</MhdCard>
-      ) : (requisitions.data ?? []).length === 0 ? (
+      ) : requisitionsData.length === 0 ? (
         <MhdCard className="border border-dashed border-border">
           <MhdEmptyState icon={Briefcase} title="No requisitions in this view." />
         </MhdCard>
@@ -143,7 +148,7 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
               </tr>
             </thead>
             <tbody>
-              {(requisitions.data ?? []).map((requisition) => (
+              {pagination.sliceItems(requisitionsData).map((requisition) => (
                 <MhdTr key={requisition.id} to={`/recruiting/requisitions/${requisition.id}`}>
                   <MhdTd className="whitespace-nowrap font-mono text-xs text-muted-foreground">
                     {requisition.referenceId}
@@ -165,9 +170,9 @@ export function MhdRequisitionListPage({ companyId, canManage, onOpenRequisition
               ))}
             </tbody>
           </MhdTable>
-          <MhdTableFooter
-            summary={`Showing 1 to ${(requisitions.data ?? []).length} of ${(requisitions.data ?? []).length} requisitions`}
-          />
+          <MhdTableFooter summary={mhdPaginationSummary(pagination, requisitionsData.length, 'requisitions')}>
+            <MhdPaginationControls pagination={pagination} />
+          </MhdTableFooter>
         </MhdCard>
       )}
 

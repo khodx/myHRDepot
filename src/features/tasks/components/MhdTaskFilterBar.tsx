@@ -1,4 +1,4 @@
-import { MhdDateRangePresets } from '@/components/ui/MhdDateRangePresets';
+import { MhdDateRangeField } from '@/components/ui/MhdDateRangeField';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdMultiSelectCombobox } from '@/components/ui/MhdMultiSelectCombobox';
 import type { MhdCompany } from '@/features/companies/Types';
@@ -122,36 +122,26 @@ export function MhdTaskFilterBar({
           ))}
         </MhdFilterSelect>
 
-        <MhdDateRangePresets
-          onSelect={(dueFrom, dueTo) => onChange({ ...filters, dueFrom, dueTo })}
+        <MhdDateRangeField
+          label="Due Date"
+          className="lg:col-span-2"
+          from={filters.dueFrom}
+          to={filters.dueTo}
+          onChangeFrom={(dueFrom) => onChange({ ...filters, dueFrom })}
+          onChangeTo={(dueTo) => onChange({ ...filters, dueTo })}
+          onPresetSelect={(dueFrom, dueTo) => onChange({ ...filters, dueFrom, dueTo })}
         />
 
-        <MhdFilterInput
-          type="date"
-          label="Due From"
-          value={filters.dueFrom}
-          onChange={(event) => onChange({ ...filters, dueFrom: event.target.value })}
-        />
-
-        <MhdFilterInput
-          type="date"
-          label="Due To"
-          value={filters.dueTo}
-          onChange={(event) => onChange({ ...filters, dueTo: event.target.value })}
-        />
-
-        <MhdFilterInput
-          type="date"
-          label="Assigned From"
-          value={filters.assignedFrom}
-          onChange={(event) => onChange({ ...filters, assignedFrom: event.target.value })}
-        />
-
-        <MhdFilterInput
-          type="date"
-          label="Assigned To"
-          value={filters.assignedTo}
-          onChange={(event) => onChange({ ...filters, assignedTo: event.target.value })}
+        <MhdDateRangeField
+          label="Assigned Date"
+          className="lg:col-span-2"
+          from={filters.assignedFrom}
+          to={filters.assignedTo}
+          onChangeFrom={(assignedFrom) => onChange({ ...filters, assignedFrom })}
+          onChangeTo={(assignedTo) => onChange({ ...filters, assignedTo })}
+          onPresetSelect={(assignedFrom, assignedTo) =>
+            onChange({ ...filters, assignedFrom, assignedTo })
+          }
         />
       </MhdFilterBar>
     </div>
