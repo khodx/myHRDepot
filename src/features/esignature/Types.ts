@@ -124,7 +124,60 @@ export interface MhdSignatureRequestByToken {
   signerStatus: MhdEsignatureSignerStatus;
   signerOrderPosition: number;
   consentedAt: string | null;
+  signatureFont: MhdSignatureFontKey;
+  signatureColor: MhdSignatureColorKey;
 }
+
+export type MhdSignatureFontKey =
+  | 'helvetica'
+  | 'times_roman'
+  | 'courier'
+  | 'dancing_script'
+  | 'pacifico'
+  | 'great_vibes'
+  | 'alex_brush'
+  | 'sacramento'
+  | 'allura'
+  | 'petit_formal_script';
+
+export type MhdSignatureColorKey = 'black' | 'blue';
+
+// Mirrors the font vocabulary enforced by esignature_signers_signature_font_check
+// (migration 0116) and the fonts render-audit-certificate embeds via fontkit
+// (npm:@pdf-lib/fontkit) from ./fonts/*.ttf. cssFontFamily/googleFontsFamily
+// drive the on-screen live preview only; the PDF embed is independent and uses
+// the bundled .ttf files directly, not a web font load.
+export interface MhdSignatureFontOption {
+  key: MhdSignatureFontKey;
+  label: string;
+  category: 'standard' | 'script';
+  cssFontFamily: string;
+  googleFontsFamily: string | null;
+}
+
+export const MHD_SIGNATURE_FONT_OPTIONS: MhdSignatureFontOption[] = [
+  { key: 'helvetica', label: 'Helvetica', category: 'standard', cssFontFamily: 'Helvetica, Arial, sans-serif', googleFontsFamily: null },
+  { key: 'times_roman', label: 'Times New Roman', category: 'standard', cssFontFamily: '"Times New Roman", Times, serif', googleFontsFamily: null },
+  { key: 'courier', label: 'Courier', category: 'standard', cssFontFamily: '"Courier New", Courier, monospace', googleFontsFamily: null },
+  { key: 'dancing_script', label: 'Dancing Script', category: 'script', cssFontFamily: '"Dancing Script", cursive', googleFontsFamily: 'Dancing+Script' },
+  { key: 'pacifico', label: 'Pacifico', category: 'script', cssFontFamily: '"Pacifico", cursive', googleFontsFamily: 'Pacifico' },
+  { key: 'great_vibes', label: 'Great Vibes', category: 'script', cssFontFamily: '"Great Vibes", cursive', googleFontsFamily: 'Great+Vibes' },
+  { key: 'alex_brush', label: 'Alex Brush', category: 'script', cssFontFamily: '"Alex Brush", cursive', googleFontsFamily: 'Alex+Brush' },
+  { key: 'sacramento', label: 'Sacramento', category: 'script', cssFontFamily: '"Sacramento", cursive', googleFontsFamily: 'Sacramento' },
+  { key: 'allura', label: 'Allura', category: 'script', cssFontFamily: '"Allura", cursive', googleFontsFamily: 'Allura' },
+  { key: 'petit_formal_script', label: 'Petit Formal Script', category: 'script', cssFontFamily: '"Petit Formal Script", cursive', googleFontsFamily: 'Petit+Formal+Script' },
+];
+
+export interface MhdSignatureColorOption {
+  key: MhdSignatureColorKey;
+  label: string;
+  cssColor: string;
+}
+
+export const MHD_SIGNATURE_COLOR_OPTIONS: MhdSignatureColorOption[] = [
+  { key: 'black', label: 'Black', cssColor: '#0d0d14' },
+  { key: 'blue', label: 'Blue', cssColor: '#0f1f8c' },
+];
 
 export interface MhdSignatureConsentRecord {
   requestId: string;

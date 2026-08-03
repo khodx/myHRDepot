@@ -2742,6 +2742,7 @@ export type Database = {
           headquarters_location: string | null
           id: string
           industry: string | null
+          is_platform_org: boolean
           reference_id: string
           updated_at: string
           updated_by: string
@@ -2754,6 +2755,7 @@ export type Database = {
           headquarters_location?: string | null
           id?: string
           industry?: string | null
+          is_platform_org?: boolean
           reference_id: string
           updated_at?: string
           updated_by: string
@@ -2766,6 +2768,7 @@ export type Database = {
           headquarters_location?: string | null
           id?: string
           industry?: string | null
+          is_platform_org?: boolean
           reference_id?: string
           updated_at?: string
           updated_by?: string

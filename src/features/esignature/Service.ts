@@ -561,6 +561,8 @@ export const mhdEsignatureService = {
       signer_status: string;
       signer_order_position: number;
       consented_at: string | null;
+      signature_font: string | null;
+      signature_color: string | null;
     };
 
     return {
@@ -580,6 +582,8 @@ export const mhdEsignatureService = {
       signerStatus: row.signer_status as MhdSignatureRequestByToken['signerStatus'],
       signerOrderPosition: row.signer_order_position,
       consentedAt: row.consented_at,
+      signatureFont: (row.signature_font ?? 'helvetica') as MhdSignatureRequestByToken['signatureFont'],
+      signatureColor: (row.signature_color ?? 'black') as MhdSignatureRequestByToken['signatureColor'],
     };
   },
 
@@ -624,6 +628,8 @@ export const mhdEsignatureService = {
     intentToSign: boolean;
     presentedDocumentHash: string;
     userAgent?: string;
+    signatureFont?: MhdSignatureRequestByToken['signatureFont'];
+    signatureColor?: MhdSignatureRequestByToken['signatureColor'];
   }): Promise<void> {
     const { error } = await supabaseClient.rpc('mhd_sign_via_token', {
       p_signing_token: input.signingToken,
@@ -631,6 +637,8 @@ export const mhdEsignatureService = {
       p_intent_to_sign: input.intentToSign,
       p_presented_document_hash: input.presentedDocumentHash.trim(),
       ...(input.userAgent ? { p_user_agent: input.userAgent } : {}),
+      p_signature_font: input.signatureFont ?? 'helvetica',
+      p_signature_color: input.signatureColor ?? 'black',
     });
 
     if (error) {

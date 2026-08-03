@@ -9,8 +9,18 @@ import { mhdEsignatureService } from '../Service';
 import {
   mhdBuildGoogleDrivePreviewUrl,
   mhdBuildGoogleDriveViewUrl,
+  MHD_SIGNATURE_COLOR_OPTIONS,
+  MHD_SIGNATURE_FONT_OPTIONS,
+  type MhdSignatureColorKey,
+  type MhdSignatureFontKey,
   type MhdSignatureRequestByToken,
 } from '../Types';
+
+const SIGNATURE_GOOGLE_FONTS_HREF =
+  'https://fonts.googleapis.com/css2?' +
+  MHD_SIGNATURE_FONT_OPTIONS.filter((option) => option.googleFontsFamily)
+    .map((option) => `family=${option.googleFontsFamily}&display=swap`)
+    .join('&');
 
 interface ConsentState {
   consentedToElectronicRecords: boolean;
@@ -53,6 +63,8 @@ export function MhdPublicSigningPage() {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [consent, setConsent] = useState<ConsentState>(INITIAL_CONSENT_STATE);
   const [typedSignatureName, setTypedSignatureName] = useState('');
+  const [signatureFont, setSignatureFont] = useState<MhdSignatureFontKey>('helvetica');
+  const [signatureColor, setSignatureColor] = useState<MhdSignatureColorKey>('black');
   const [intentToSign, setIntentToSign] = useState(false);
   const [declineReason, setDeclineReason] = useState('');
   const [isSubmittingConsent, setIsSubmittingConsent] = useState(false);
@@ -79,6 +91,8 @@ export function MhdPublicSigningPage() {
       setRequest(nextRequest);
       setLoadError(null);
       setTypedSignatureName((current) => current || nextRequest.signerName || '');
+      setSignatureFont(nextRequest.signatureFont ?? 'helvetica');
+      setSignatureColor(nextRequest.signatureColor ?? 'black');
       return nextRequest;
     } catch (error) {
       setRequest(null);
@@ -93,6 +107,14 @@ export function MhdPublicSigningPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- package pattern: fetch-on-mount with loading state
     void loadRequest();
   }, [loadRequest]);
+
+  useEffect(() => {
+    if (document.querySelector(`link[href="${SIGNATURE_GOOGLE_FONTS_HREF}"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = SIGNATURE_GOOGLE_FONTS_HREF;
+    document.head.appendChild(link);
+  }, []);
 
   async function handleCaptureConsent() {
     if (!token) return;
@@ -164,6 +186,8 @@ export function MhdPublicSigningPage() {
         intentToSign,
         presentedDocumentHash: request.documentHash ?? '',
         userAgent: navigator.userAgent,
+        signatureFont,
+        signatureColor,
       });
       setActionMessage('Signature recorded successfully.');
       const nextRequest = await loadRequest();
@@ -492,6 +516,74 @@ export function MhdPublicSigningPage() {
                         className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                       />
                     </label>
+
+                    <div className="rounded-2xl border border-border bg-card p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                        Signature Style
+                      </p>
+                      <div
+                        className="mt-3 flex min-h-[4.5rem] items-center justify-center rounded-md border border-dashed border-border bg-muted px-4 py-3"
+                        style={{
+                          fontFamily: MHD_SIGNATURE_FONT_OPTIONS.find(
+                            (option) => option.key === signatureFont,
+                          )?.cssFontFamily,
+                          color: MHD_SIGNATURE_COLOR_OPTIONS.find(
+                            (option) => option.key === signatureColor,
+                          )?.cssColor,
+                          fontSize: '2rem',
+                          lineHeight: 1.1,
+                        }}
+                      >
+                        {typedSignatureName.trim() || 'Your Signature'}
+                      </div>
+
+                      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                        Font
+                      </p>
+                      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {MHD_SIGNATURE_FONT_OPTIONS.map((option) => (
+                          <button
+                            key={option.key}
+                            type="button"
+                            onClick={() => setSignatureFont(option.key)}
+                            style={{ fontFamily: option.cssFontFamily }}
+                            className={cn(
+                              'truncate rounded-md border px-3 py-2 text-left text-sm',
+                              signatureFont === option.key
+                                ? 'border-accent bg-accent/10 text-foreground'
+                                : 'border-border bg-card text-muted-foreground hover:border-accent',
+                            )}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                        Ink Color
+                      </p>
+                      <div className="mt-2 flex gap-2">
+                        {MHD_SIGNATURE_COLOR_OPTIONS.map((option) => (
+                          <button
+                            key={option.key}
+                            type="button"
+                            onClick={() => setSignatureColor(option.key)}
+                            className={cn(
+                              'flex items-center gap-2 rounded-md border px-3 py-2 text-sm',
+                              signatureColor === option.key
+                                ? 'border-accent bg-accent/10 text-foreground'
+                                : 'border-border bg-card text-muted-foreground hover:border-accent',
+                            )}
+                          >
+                            <span
+                              className="h-3 w-3 rounded-full"
+                              style={{ backgroundColor: option.cssColor }}
+                            />
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
                     <label className="flex items-start gap-3 rounded-2xl border border-border bg-muted p-4 text-sm text-foreground">
                       <input
