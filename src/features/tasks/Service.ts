@@ -4,6 +4,7 @@ import type {
   MhdCreateTaskInput,
   MhdTask,
   MhdTaskAssignableUser,
+  MhdTaskDateFilterField,
   MhdTaskListFilters,
   MhdTaskMutationContext,
   MhdTaskPriorityOption,
@@ -128,9 +129,29 @@ function matchesAssignedUsers(task: MhdTask, assignedUserIds: string[]): boolean
   return task.assignedUserIds.some((assignedId) => selectedIds.has(assignedId));
 }
 
-function matchesAssignedDateRange(task: MhdTask, assignedFrom: string, assignedTo: string): boolean {
-  if (assignedFrom && task.assignedDate < assignedFrom) return false;
-  if (assignedTo && task.assignedDate > assignedTo) return false;
+// Resolves the date string a given MhdTaskDateFilterField reads off a task.
+// createdAt is a full timestamp, not a date-only string like the others, so
+// it's sliced to YYYY-MM-DD before comparing against the (date-only) filter
+// inputs.
+const MHD_TASK_DATE_FIELD_ACCESSORS: Record<MhdTaskDateFilterField, (task: MhdTask) => string | null> = {
+  due: (task) => task.dueDate,
+  assigned: (task) => task.assignedDate,
+  start: (task) => task.startDate,
+  completed: (task) => task.completedDate,
+  created: (task) => task.createdAt.slice(0, 10),
+};
+
+function matchesDateRange(
+  task: MhdTask,
+  field: MhdTaskDateFilterField,
+  from: string,
+  to: string,
+): boolean {
+  if (!from && !to) return true;
+  const value = MHD_TASK_DATE_FIELD_ACCESSORS[field](task);
+  if (!value) return false;
+  if (from && value < from) return false;
+  if (to && value > to) return false;
   return true;
 }
 
@@ -153,14 +174,19 @@ export const mhdTaskService = {
   },
 
   async listTasks(filters: MhdTaskListFilters): Promise<MhdTask[]> {
+    // The RPC only accepts a due-date range server-side; every other date
+    // field filters client-side below via matchesDateRange, so only forward
+    // p_due_from/p_due_to when that's actually the field selected.
+    const isDueDateFilter = filters.dateFilterField === 'due';
+
     const { data, error } = await supabaseClient
       .rpc('mhd_list_task_board', {
         p_company_id: filters.companyId === 'ALL' ? undefined : filters.companyId,
         p_status_id: filters.statusId === 'ALL' ? undefined : filters.statusId,
         p_priority_id: filters.priorityId === 'ALL' ? undefined : filters.priorityId,
         p_search_term: emptyToUndefined(filters.searchTerm),
-        p_due_from: dateToUndefined(filters.dueFrom),
-        p_due_to: dateToUndefined(filters.dueTo),
+        p_due_from: isDueDateFilter ? dateToUndefined(filters.dateFrom) : undefined,
+        p_due_to: isDueDateFilter ? dateToUndefined(filters.dateTo) : undefined,
       })
       .returns<MhdTaskBoardRow[]>();
 
@@ -171,7 +197,9 @@ export const mhdTaskService = {
     return (data ?? [])
       .map(mapTaskRow)
       .filter((task) => matchesAssignedUsers(task, filters.assignedUserIds))
-      .filter((task) => matchesAssignedDateRange(task, filters.assignedFrom, filters.assignedTo));
+      .filter((task) =>
+        matchesDateRange(task, filters.dateFilterField, filters.dateFrom, filters.dateTo),
+      );
   },
 
   async listStatusOptions(): Promise<MhdTaskStatusOption[]> {

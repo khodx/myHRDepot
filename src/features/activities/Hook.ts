@@ -18,10 +18,9 @@ const DEFAULT_TASK_FILTERS = {
   priorityId: 'ALL',
   assignedUserIds: [],
   searchTerm: '',
-  dueFrom: '',
-  dueTo: '',
-  assignedFrom: '',
-  assignedTo: '',
+  dateFilterField: 'due',
+  dateFrom: '',
+  dateTo: '',
 } as const;
 
 export const mhdActivityQueryKeys = {

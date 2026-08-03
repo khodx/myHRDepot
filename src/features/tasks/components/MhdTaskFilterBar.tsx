@@ -4,10 +4,23 @@ import { MhdMultiSelectCombobox } from '@/components/ui/MhdMultiSelectCombobox';
 import type { MhdCompany } from '@/features/companies/Types';
 import type {
   MhdTaskAssignableUser,
+  MhdTaskDateFilterField,
   MhdTaskListFilters,
   MhdTaskPriorityOption,
   MhdTaskStatusOption,
 } from '@/features/tasks/Types';
+
+// Options for the single cascading date filter — the From/To range and
+// presets below apply to whichever of these is selected, so adding another
+// filterable date column later is one more entry here, not another pair of
+// boxes in the filter bar.
+const DATE_FILTER_FIELD_OPTIONS: Array<{ id: MhdTaskDateFilterField; label: string }> = [
+  { id: 'due', label: 'Due Date' },
+  { id: 'assigned', label: 'Assigned Date' },
+  { id: 'start', label: 'Start Date' },
+  { id: 'completed', label: 'Completed Date' },
+  { id: 'created', label: 'Created Date' },
+];
 
 interface MhdTaskFilterBarProps {
   companies: MhdCompany[];
@@ -38,6 +51,9 @@ export function MhdTaskFilterBar({
     label: user.displayName,
     sublabel: user.email || undefined,
   }));
+  const dateFilterFieldLabel =
+    DATE_FILTER_FIELD_OPTIONS.find((option) => option.id === filters.dateFilterField)?.label ??
+    'Date';
 
   return (
     <div className="space-y-3">
@@ -76,10 +92,9 @@ export function MhdTaskFilterBar({
             priorityId: 'ALL',
             assignedUserIds: [],
             searchTerm: '',
-            dueFrom: '',
-            dueTo: '',
-            assignedFrom: '',
-            assignedTo: '',
+            dateFilterField: 'due',
+            dateFrom: '',
+            dateTo: '',
           })
         }
       >
@@ -122,26 +137,31 @@ export function MhdTaskFilterBar({
           ))}
         </MhdFilterSelect>
 
-        <MhdDateRangeField
-          label="Due Date"
-          className="lg:col-span-2"
-          from={filters.dueFrom}
-          to={filters.dueTo}
-          onChangeFrom={(dueFrom) => onChange({ ...filters, dueFrom })}
-          onChangeTo={(dueTo) => onChange({ ...filters, dueTo })}
-          onPresetSelect={(dueFrom, dueTo) => onChange({ ...filters, dueFrom, dueTo })}
-        />
+        <MhdFilterSelect
+          label="Date Field"
+          value={filters.dateFilterField}
+          onChange={(event) =>
+            onChange({
+              ...filters,
+              dateFilterField: event.target.value as MhdTaskDateFilterField,
+            })
+          }
+        >
+          {DATE_FILTER_FIELD_OPTIONS.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </MhdFilterSelect>
 
         <MhdDateRangeField
-          label="Assigned Date"
+          label={dateFilterFieldLabel}
           className="lg:col-span-2"
-          from={filters.assignedFrom}
-          to={filters.assignedTo}
-          onChangeFrom={(assignedFrom) => onChange({ ...filters, assignedFrom })}
-          onChangeTo={(assignedTo) => onChange({ ...filters, assignedTo })}
-          onPresetSelect={(assignedFrom, assignedTo) =>
-            onChange({ ...filters, assignedFrom, assignedTo })
-          }
+          from={filters.dateFrom}
+          to={filters.dateTo}
+          onChangeFrom={(dateFrom) => onChange({ ...filters, dateFrom })}
+          onChangeTo={(dateTo) => onChange({ ...filters, dateTo })}
+          onPresetSelect={(dateFrom, dateTo) => onChange({ ...filters, dateFrom, dateTo })}
         />
       </MhdFilterBar>
     </div>

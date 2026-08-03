@@ -97,16 +97,20 @@ export interface MhdTaskAssignableUser {
   email: string;
 }
 
+// Which task date column the single date-range filter applies to — the
+// range/preset controls cascade onto whichever of these is selected, rather
+// than each date column getting its own dedicated pair of boxes.
+export type MhdTaskDateFilterField = 'due' | 'assigned' | 'start' | 'completed' | 'created';
+
 export interface MhdTaskListFilters {
   companyId: MhdCompanyId | 'ALL';
   statusId: MhdTaskStatusId | 'ALL';
   priorityId: MhdTaskPriorityId | 'ALL';
   assignedUserIds: MhdUserId[];
   searchTerm: string;
-  dueFrom: string;
-  dueTo: string;
-  assignedFrom: string;
-  assignedTo: string;
+  dateFilterField: MhdTaskDateFilterField;
+  dateFrom: string;
+  dateTo: string;
 }
 
 export interface MhdCreateTaskInput {

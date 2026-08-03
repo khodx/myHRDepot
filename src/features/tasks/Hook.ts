@@ -18,10 +18,9 @@ const DEFAULT_FILTERS: MhdTaskListFilters = {
   priorityId: 'ALL',
   assignedUserIds: [],
   searchTerm: '',
-  dueFrom: '',
-  dueTo: '',
-  assignedFrom: '',
-  assignedTo: '',
+  dateFilterField: 'due',
+  dateFrom: '',
+  dateTo: '',
 };
 
 export function useMhdTasks(
