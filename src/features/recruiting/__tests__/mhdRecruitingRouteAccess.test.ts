@@ -3,7 +3,9 @@ import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import {
   mhdCanAccessRoute,
   mhdCanReadEeoReport,
+  mhdIsRouteComingSoon,
   mhdRecruitingIsPrivileged,
+  mhdRouteStatus,
 } from '@/appshell/mhdRouteAccess';
 
 /**
@@ -101,5 +103,20 @@ describe('recruiting route access', () => {
         expect(mhdCanAccessRoute('/recruiting/eeo', single)).toBe(false);
       }
     }
+  });
+
+  it('marks authenticated recruiting surfaces as coming soon for non-Platform Admins', () => {
+    for (const path of [
+      '/recruiting',
+      '/recruiting/eeo',
+      '/recruiting/interviews',
+    ] as const) {
+      expect(mhdRouteStatus(path)).toBe('comingSoon');
+      expect(mhdIsRouteComingSoon(path, ['Platform Admin'])).toBe(false);
+    }
+
+    expect(mhdIsRouteComingSoon('/recruiting', ['HR Partner'])).toBe(true);
+    expect(mhdIsRouteComingSoon('/recruiting', ['Client Admin'])).toBe(true);
+    expect(mhdIsRouteComingSoon('/recruiting/interviews/iv-1', ['Client User'])).toBe(true);
   });
 });

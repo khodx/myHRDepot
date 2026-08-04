@@ -1,6 +1,7 @@
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { mhdIsRouteComingSoon, mhdRouteStatus } from '@/appshell/mhdRouteAccess';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import type { MhdPropertyAssignment, MhdPropertyItem } from '../Types';
 
@@ -146,6 +147,13 @@ beforeEach(() => {
 });
 
 describe('MhdPropertyPage role gating', () => {
+  it('marks /property as coming soon for non-Platform Admin route access', () => {
+    expect(mhdRouteStatus('/property')).toBe('comingSoon');
+    expect(mhdIsRouteComingSoon('/property', ['HR Partner'])).toBe(true);
+    expect(mhdIsRouteComingSoon('/property', ['Client Admin'])).toBe(true);
+    expect(mhdIsRouteComingSoon('/property', ['Platform Admin'])).toBe(false);
+  });
+
   it('hides the create affordance for a Viewer', () => {
     mockAuth(['Viewer']);
 

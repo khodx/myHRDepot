@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { MHD_ROUTE_ACCESS, mhdCanAccessRoute } from '@/appshell/mhdRouteAccess';
+import {
+  MHD_ROUTE_ACCESS,
+  mhdCanAccessRoute,
+  mhdIsRouteComingSoon,
+  mhdRouteStatus,
+} from '@/appshell/mhdRouteAccess';
 import { MHD_ONBOARDING_PACKET_DEFINITIONS } from '../Types';
 
 /**
@@ -37,12 +42,39 @@ describe('onboarding route access', () => {
     expect(mhdCanAccessRoute('/onboarding/abc-123', ['Viewer'])).toBe(false);
   });
 
+  it('marks /onboarding as coming soon for non-Platform Admin route access', () => {
+    expect(mhdRouteStatus('/onboarding')).toBe('comingSoon');
+    expect(mhdIsRouteComingSoon('/onboarding', ['HR Partner'])).toBe(true);
+    expect(mhdIsRouteComingSoon('/onboarding', ['Client Admin'])).toBe(true);
+    expect(mhdIsRouteComingSoon('/onboarding', ['Platform Admin'])).toBe(false);
+  });
+
+  it('lets /onboarding/:personId inherit the coming soon status via prefix match', () => {
+    expect(mhdIsRouteComingSoon('/onboarding/abc-123', ['Client Admin'])).toBe(true);
+    expect(mhdIsRouteComingSoon('/onboarding/abc-123', ['Platform Admin'])).toBe(false);
+  });
+
+  it('keeps live routes live regardless of role', () => {
+    for (const path of ['/tasks', '/dashboard'] as const) {
+      expect(mhdRouteStatus(path)).toBe('live');
+      expect(mhdIsRouteComingSoon(path, ['Client Admin'])).toBe(false);
+      expect(mhdIsRouteComingSoon(path, ['Platform Admin'])).toBe(false);
+    }
+  });
+
   it('does not let /onboarding capture /offboarding', () => {
     // Both rules exist and both are privileged, so a prefix collision would not
     // change behaviour today — assert they resolve independently anyway, since
     // the two audiences are free to diverge later.
     expect(MHD_ROUTE_ACCESS.some((rule) => rule.path === '/offboarding')).toBe(true);
     expect(mhdCanAccessRoute('/offboarding', ['Client Admin'])).toBe(true);
+  });
+
+  it('marks /offboarding as coming soon for non-Platform Admin route access', () => {
+    expect(mhdRouteStatus('/offboarding')).toBe('comingSoon');
+    expect(mhdIsRouteComingSoon('/offboarding', ['HR Partner'])).toBe(true);
+    expect(mhdIsRouteComingSoon('/offboarding', ['Client Admin'])).toBe(true);
+    expect(mhdIsRouteComingSoon('/offboarding', ['Platform Admin'])).toBe(false);
   });
 });
 

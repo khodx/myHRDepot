@@ -3,6 +3,7 @@ import type { MhdAuthRoleName } from '@/features/authentication/Types';
 export interface MhdRouteAccessRule {
   path: string;
   roles: MhdAuthRoleName[] | 'ALL';
+  status?: 'live' | 'comingSoon';
 }
 
 /**
@@ -49,6 +50,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   {
     path: '/property',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+    status: 'comingSoon',
   },
   {
     path: '/esignature',
@@ -69,21 +71,42 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // audience as /performance. The review and coaching detail sub-routes
   // (/performance/reviews/:id, /performance/coaching/:id) deliberately inherit
   // the general /performance rule below.
-  { path: '/performance/templates', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
-  { path: '/performance/settings', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  {
+    path: '/performance/templates',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    status: 'comingSoon',
+  },
+  {
+    path: '/performance/settings',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    status: 'comingSoon',
+  },
   {
     path: '/performance/invitations',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
+    status: 'comingSoon',
   },
-  { path: '/performance', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  {
+    path: '/performance',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
+    status: 'comingSoon',
+  },
   // Onboarding. Same audience as /offboarding: new-hire packets carry
   // RESTRICTED-tier documents (I-9, W-4, direct deposit banking, consumer
   // report disclosures), so Client User and Viewer are both excluded.
   // /onboarding/:personId inherits this rule via the prefix match, and it
   // matches the role check inside mhd_list_onboarding_progress_for_company —
   // hiding a nav link is not access control, the router guard and the RPC are.
-  { path: '/onboarding', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
-  { path: '/offboarding', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  {
+    path: '/onboarding',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    status: 'comingSoon',
+  },
+  {
+    path: '/offboarding',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    status: 'comingSoon',
+  },
   // Conduct — the strictest module. Corrective-action cases carry RESTRICTED-tier
   // discipline narratives, so only Platform Admin / HR Partner / Client Admin
   // reach /conduct and /conduct/:caseId (the latter inherits this rule via the
@@ -212,12 +235,17 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   //   surface: Platform Admin / HR Partner / Client Admin. A hiring manager sees
   //   only their own requisitions (RLS). Viewer is excluded from every
   //   authenticated recruiting surface.
-  { path: '/recruiting/eeo', roles: ['Platform Admin'] },
+  { path: '/recruiting/eeo', roles: ['Platform Admin'], status: 'comingSoon' },
   {
     path: '/recruiting/interviews',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
+    status: 'comingSoon',
   },
-  { path: '/recruiting', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  {
+    path: '/recruiting',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    status: 'comingSoon',
+  },
   // Admin Settings and Lab/Sandbox. Platform Admin ONLY — no exception. `roles`
   // here is read from the (impersonation-aware) auth context, so while a real
   // Platform Admin is impersonating a lower role, these routes correctly
@@ -278,6 +306,17 @@ export function mhdCanAccessRoute(path: string, userRoles: MhdAuthRoleName[]): b
   }
 
   return rule.roles.some((requiredRole) => userRoles.includes(requiredRole));
+}
+
+export function mhdIsRouteComingSoon(path: string, userRoles: MhdAuthRoleName[]): boolean {
+  const rule = MHD_ROUTE_ACCESS.find((r) => mhdRoutePathMatchesRule(r.path, path));
+  if (!rule || rule.status !== 'comingSoon') return false;
+  return !userRoles.includes('Platform Admin');
+}
+
+export function mhdRouteStatus(path: string): 'live' | 'comingSoon' {
+  const rule = MHD_ROUTE_ACCESS.find((r) => r.path === path);
+  return rule?.status ?? 'live';
 }
 
 /**

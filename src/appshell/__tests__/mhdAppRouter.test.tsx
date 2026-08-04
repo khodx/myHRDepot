@@ -155,6 +155,12 @@ vi.mock('@/features/offboarding/components/MhdOffboardingPage', () => ({
 vi.mock('@/features/offboarding/components/MhdOffboardingCaseDetailPage', () => ({
   MhdOffboardingCaseDetailPage: () => <div>Offboarding Case Detail Page</div>,
 }));
+vi.mock('@/features/onboarding/components/MhdOnboardingIndexPage', () => ({
+  MhdOnboardingIndexPage: () => <div>Onboarding Page</div>,
+}));
+vi.mock('@/features/onboarding/components/MhdOnboardingPersonPage', () => ({
+  MhdOnboardingPersonPage: () => <div>Onboarding Person Page</div>,
+}));
 vi.mock('@/features/timeattendance/components/MhdSchedulePage', () => ({
   MhdSchedulePage: () => <div>Schedule Page</div>,
 }));
@@ -429,23 +435,25 @@ describe('MhdAppRouter', () => {
       expect(await screen.findByText('Activity Detail Page')).toBeInTheDocument();
     });
 
-    it('renders "/property" for an authenticated Viewer (read-only property access)', async () => {
+    it('renders the coming soon placeholder for a Viewer reaching "/property"', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/property');
 
       render(<MhdAppRouter />);
 
-      expect(await screen.findByText('Property Page')).toBeInTheDocument();
+      expect(await screen.findByTestId('mhd-coming-soon-placeholder')).toBeInTheDocument();
+      expect(screen.queryByText('Property Page')).not.toBeInTheDocument();
       expect(window.location.pathname).toBe('/property');
     });
 
-    it('renders "/property/:itemId" for a Viewer (read-only detail access)', async () => {
+    it('renders the coming soon placeholder for a Viewer reaching "/property/:itemId"', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/property/item-1');
 
       render(<MhdAppRouter />);
 
-      expect(await screen.findByText('Property Detail Page')).toBeInTheDocument();
+      expect(await screen.findByTestId('mhd-coming-soon-placeholder')).toBeInTheDocument();
+      expect(screen.queryByText('Property Detail Page')).not.toBeInTheDocument();
     });
 
     it('still redirects a Viewer away from "/people" to "/404"', async () => {
@@ -479,13 +487,14 @@ describe('MhdAppRouter', () => {
       expect(window.location.pathname).toBe('/404');
     });
 
-    it('renders "/performance" for a Client User', async () => {
+    it('renders the coming soon placeholder for a Client User reaching "/performance"', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Client User'] });
       setUrl('/performance');
 
       render(<MhdAppRouter />);
 
-      expect(await screen.findByText('Performance Page')).toBeInTheDocument();
+      expect(await screen.findByTestId('mhd-coming-soon-placeholder')).toBeInTheDocument();
+      expect(screen.queryByText('Performance Page')).not.toBeInTheDocument();
       expect(window.location.pathname).toBe('/performance');
     });
 
@@ -500,14 +509,37 @@ describe('MhdAppRouter', () => {
       expect(window.location.pathname).toBe('/404');
     });
 
-    it('renders "/offboarding" for a Client Admin', async () => {
+    it('renders the coming soon placeholder for a Client Admin reaching "/offboarding"', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Client Admin'] });
       setUrl('/offboarding');
 
       render(<MhdAppRouter />);
 
-      expect(await screen.findByText('Offboarding Page')).toBeInTheDocument();
+      expect(await screen.findByTestId('mhd-coming-soon-placeholder')).toBeInTheDocument();
+      expect(screen.queryByText('Offboarding Page')).not.toBeInTheDocument();
       expect(window.location.pathname).toBe('/offboarding');
+    });
+
+    it('renders the coming soon placeholder for a Client Admin reaching "/onboarding"', async () => {
+      mockAuth({ isAuthenticated: true, roles: ['Client Admin'] });
+      setUrl('/onboarding');
+
+      render(<MhdAppRouter />);
+
+      expect(await screen.findByTestId('mhd-coming-soon-placeholder')).toBeInTheDocument();
+      expect(screen.queryByText('Onboarding Page')).not.toBeInTheDocument();
+      expect(window.location.pathname).toBe('/onboarding');
+    });
+
+    it('renders "/onboarding" for a Platform Admin without the coming soon placeholder', async () => {
+      mockAuth({ isAuthenticated: true, roles: ['Platform Admin'] });
+      setUrl('/onboarding');
+
+      render(<MhdAppRouter />);
+
+      expect(await screen.findByText('Onboarding Page')).toBeInTheDocument();
+      expect(screen.queryByTestId('mhd-coming-soon-placeholder')).not.toBeInTheDocument();
+      expect(window.location.pathname).toBe('/onboarding');
     });
 
     // Time & Attendance — /schedule and /attendance admit Client User (own
@@ -570,13 +602,14 @@ describe('MhdAppRouter', () => {
       },
     );
 
-    it('applies the offboarding role rule to case detail routes', async () => {
+    it('applies the offboarding coming soon status to case detail routes', async () => {
       mockAuth({ isAuthenticated: true, roles: ['HR Partner'] });
       setUrl('/offboarding/case-1');
 
       render(<MhdAppRouter />);
 
-      expect(await screen.findByText('Offboarding Case Detail Page')).toBeInTheDocument();
+      expect(await screen.findByTestId('mhd-coming-soon-placeholder')).toBeInTheDocument();
+      expect(screen.queryByText('Offboarding Case Detail Page')).not.toBeInTheDocument();
     });
 
     // Leaves of Absence and Reasonable Accommodations — the same audience
