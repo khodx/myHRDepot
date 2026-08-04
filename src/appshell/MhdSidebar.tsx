@@ -45,7 +45,7 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { mhdRouteRoles, mhdRouteStatus } from './mhdRouteAccess';
 
-interface NavItem {
+export interface NavItem {
   label: string;
   route: string;
   icon: React.ElementType;
@@ -53,7 +53,7 @@ interface NavItem {
   status?: 'live' | 'comingSoon';
 }
 
-interface NavSection {
+export interface NavSection {
   label: string;
   items: NavItem[];
 }
@@ -74,7 +74,7 @@ const DASHBOARD_ITEM: NavItem = {
 // localStorage) so a large module set stays manageable. The five groups plus
 // Dashboard are exactly the six category themes — the rail color follows the
 // active route's category via the shell's data-mhd-theme stamp.
-const NAV_SECTIONS: NavSection[] = [
+export const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Work Tools',
     items: [

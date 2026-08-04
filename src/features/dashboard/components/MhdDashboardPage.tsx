@@ -6,6 +6,7 @@ import { MhdStatCard } from '@/components/ui/MhdStatCard';
 import { useMhdDashboard } from '../Hook';
 import { MhdDashboardMyTasks } from './MhdDashboardMyTasks';
 import { MhdDashboardActivity } from './MhdDashboardActivity';
+import { MhdDashboardModuleLinks } from './MhdDashboardModuleLinks';
 
 export function MhdDashboardPage() {
   const { isLoading, error, taskSummary, myTasks, recentActivity, lastRefreshed, refetch } =
@@ -77,6 +78,8 @@ export function MhdDashboardPage() {
           />
         </div>
       )}
+
+      <MhdDashboardModuleLinks />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <MhdCard>
