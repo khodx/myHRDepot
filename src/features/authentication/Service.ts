@@ -3,6 +3,7 @@ import { appConfig } from '@/config/appConfig';
 import { supabaseClient as mhdSupabase } from '@/lib/supabase/supabaseClient';
 import type {
   MhdAuthRoleName,
+  MhdCompleteProfileInput,
   MhdCurrentUserProfile,
   MhdForgotPasswordInput,
   MhdLoginInput,
@@ -102,4 +103,27 @@ export async function mhdLoadCurrentUserProfile(
     lastName: userRow.people?.last_name ?? null,
     roleNames: (roleNames ?? []) as MhdAuthRoleName[],
   };
+}
+
+/**
+ * Self-service "complete your profile" step (mhd_self_complete_profile) for
+ * a user invited with no linked person. Throws if the account is already
+ * linked — the RPC only allows this once. Caller must call refreshProfile()
+ * (useMhdAuth) afterward so profile.personId picks up the new link; this
+ * function only performs the write.
+ */
+export async function mhdCompleteOwnProfile(input: MhdCompleteProfileInput): Promise<void> {
+  const { error } = await mhdSupabase.rpc('mhd_self_complete_profile', {
+    p_first_name: input.firstName.trim(),
+    p_last_name: input.lastName.trim(),
+    p_middle_name: input.middleName.trim().length > 0 ? input.middleName.trim() : undefined,
+    p_preferred_name:
+      input.preferredName.trim().length > 0 ? input.preferredName.trim() : undefined,
+    p_phone: input.phone.trim().length > 0 ? input.phone.trim() : undefined,
+    p_mobile: input.mobile.trim().length > 0 ? input.mobile.trim() : undefined,
+  });
+
+  if (error) {
+    throw new Error(`Unable to complete profile: ${error.message}`);
+  }
 }

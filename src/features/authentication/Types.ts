@@ -54,3 +54,16 @@ export interface MhdResetPasswordInput {
   password: string;
   confirmPassword: string;
 }
+
+// The self-service "complete your profile" step for a user invited with no
+// linked person (users.person_id null) — see mhd_self_complete_profile.
+// No email field: the primary email contact method is seeded server-side
+// from the caller's own login email, not retyped here.
+export interface MhdCompleteProfileInput {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  preferredName: string;
+  phone: string;
+  mobile: string;
+}

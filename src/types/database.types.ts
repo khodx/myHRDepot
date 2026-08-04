@@ -25553,6 +25553,33 @@ export type Database = {
           title: string
         }[]
       }
+      mhd_self_complete_profile: {
+        Args: {
+          p_first_name: string
+          p_last_name: string
+          p_middle_name?: string
+          p_mobile?: string
+          p_phone?: string
+          p_preferred_name?: string
+        }
+        Returns: {
+          company_id: string
+          created_at: string
+          created_by: string
+          display_name: string
+          first_name: string
+          id: string
+          last_name: string
+          middle_name: string
+          preferred_name: string
+          primary_email: string
+          primary_mobile: string
+          primary_phone: string
+          reference_id: string
+          updated_at: string
+          updated_by: string
+        }[]
+      }
       mhd_send_message: {
         Args: { p_body: string; p_thread_id: string }
         Returns: string

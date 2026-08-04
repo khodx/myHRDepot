@@ -27,6 +27,11 @@ const MhdAuthCallbackPage = lazy(() =>
     default: module.MhdAuthCallbackPage,
   })),
 );
+const MhdCompleteProfilePage = lazy(() =>
+  import('@/features/authentication/components/MhdCompleteProfilePage').then((module) => ({
+    default: module.MhdCompleteProfilePage,
+  })),
+);
 
 // App pages
 const MhdDashboardPage = lazy(() =>
@@ -530,6 +535,11 @@ function MhdAppRoutes() {
 
         {/* Protected app routes */}
         <Route element={<MhdProtectedRoute />}>
+          {/* Outside MhdAppShell deliberately — a focused, chrome-free form,
+              not a sidebar/nav page. MhdProtectedRoute redirects here for any
+              authenticated login with no linked person (see that file's own
+              gate) before it can reach anything below. */}
+          <Route path="/complete-profile" element={<MhdCompleteProfilePage />} />
           <Route element={<MhdAppShell />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             {/* Role enforcement lives once in mhdRouteAccess.ts and is applied
