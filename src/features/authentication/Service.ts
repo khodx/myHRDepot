@@ -6,6 +6,8 @@ import type {
   MhdCompleteProfileInput,
   MhdCurrentUserProfile,
   MhdForgotPasswordInput,
+  MhdImpersonationCompanyOption,
+  MhdImpersonationStatus,
   MhdLoginInput,
   MhdResetPasswordInput,
 } from './Types';
@@ -87,22 +89,111 @@ export async function mhdLoadCurrentUserProfile(
   if (userError) throw userError;
   if (!userRow) return null;
 
-  const { data: roleNames, error: roleError } = await mhdSupabase.rpc('mhd_current_user_roles');
+  const [{ data: roleNames, error: roleError }, impersonation] = await Promise.all([
+    mhdSupabase.rpc('mhd_current_user_roles'),
+    mhdGetImpersonationStatus(),
+  ]);
   if (roleError) throw roleError;
+
+  // While impersonating, present the impersonated identity everywhere a
+  // component reads `profile.*` for role/company/admin gating — that's what
+  // makes "View As" a real functional test rather than a cosmetic label.
+  // realIsAdmin is the one field deliberately never overridden (see Types.ts).
+  const effectiveCompanyId = impersonation.isImpersonating
+    ? (impersonation.companyId ?? userRow.company_id)
+    : userRow.company_id;
+  const effectiveCompanyName = impersonation.isImpersonating
+    ? (impersonation.companyName ?? userRow.companies?.company_name ?? null)
+    : (userRow.companies?.company_name ?? null);
+  const effectiveIsAdmin = impersonation.isImpersonating
+    ? impersonation.role === 'Platform Admin'
+    : (userRow.is_admin ?? false);
+  const effectiveCompanyIsPlatformOrg = impersonation.isImpersonating
+    ? impersonation.role === 'Platform Admin'
+    : (userRow.companies?.is_platform_org ?? false);
 
   return {
     userId: userRow.id,
     email: userRow.email,
-    companyId: userRow.company_id,
-    companyName: userRow.companies?.company_name ?? null,
-    companyIsPlatformOrg: userRow.companies?.is_platform_org ?? false,
-    isAdmin: userRow.is_admin ?? false,
+    companyId: effectiveCompanyId,
+    companyName: effectiveCompanyName,
+    companyIsPlatformOrg: effectiveCompanyIsPlatformOrg,
+    isAdmin: effectiveIsAdmin,
     personId: userRow.person_id,
     displayName: userRow.people?.display_name ?? null,
     firstName: userRow.people?.first_name ?? null,
     lastName: userRow.people?.last_name ?? null,
     roleNames: (roleNames ?? []) as MhdAuthRoleName[],
+    realIsAdmin: userRow.is_admin ?? false,
+    impersonation,
   };
+}
+
+const mhdEmptyImpersonationStatus: MhdImpersonationStatus = {
+  isImpersonating: false,
+  sessionId: null,
+  role: null,
+  companyId: null,
+  companyName: null,
+  startedAt: null,
+};
+
+/** Reads mhd_get_impersonation_status(). Always resolves — an unauthenticated
+ *  or non-impersonating caller just gets the empty/false shape back. */
+export async function mhdGetImpersonationStatus(): Promise<MhdImpersonationStatus> {
+  const { data, error } = await mhdSupabase.rpc('mhd_get_impersonation_status');
+  if (error) throw error;
+
+  const row = data?.[0];
+  if (!row || !row.is_impersonating) return mhdEmptyImpersonationStatus;
+
+  return {
+    isImpersonating: true,
+    sessionId: row.session_id,
+    role: row.impersonated_role as MhdAuthRoleName,
+    companyId: row.impersonated_company_id,
+    companyName: row.impersonated_company_name,
+    startedAt: row.started_at,
+  };
+}
+
+/**
+ * Starts a "View As" session (Platform Admin only, enforced server-side by
+ * mhd_start_impersonation). `companyId` is required for every role except
+ * Platform Admin. Caller must call refreshProfile() (useMhdAuth) afterward —
+ * this only performs the write, same convention as mhdCompleteOwnProfile.
+ */
+export async function mhdStartImpersonation(
+  role: MhdAuthRoleName,
+  companyId: string | null,
+): Promise<void> {
+  const { error } = await mhdSupabase.rpc('mhd_start_impersonation', {
+    p_role: role,
+    p_company_id: companyId ?? undefined,
+  });
+  if (error) throw new Error(`Unable to start impersonation: ${error.message}`);
+}
+
+/** Ends the caller's own active impersonation session, if any. */
+export async function mhdEndImpersonation(): Promise<void> {
+  const { error } = await mhdSupabase.rpc('mhd_end_impersonation');
+  if (error) throw new Error(`Unable to end impersonation: ${error.message}`);
+}
+
+/** Company picker for the "View As" menu — real Platform Admins only,
+ *  works regardless of any currently active impersonation session. */
+export async function mhdListCompaniesForImpersonation(): Promise<
+  MhdImpersonationCompanyOption[]
+> {
+  const { data, error } = await mhdSupabase.rpc('mhd_list_companies_for_impersonation');
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    companyName: row.company_name,
+    referenceId: row.reference_id,
+    isPlatformOrg: row.is_platform_org,
+  }));
 }
 
 /**

@@ -52,6 +52,8 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/esignature', 'work-tools'],
   ['/communications', 'work-tools'],
   ['/automations', 'work-tools'],
+  ['/admin', 'work-tools'],
+  ['/lab', 'work-tools'],
   ['/payroll', 'work-tools'], // non-nav compatibility route
 ] as const satisfies ReadonlyArray<readonly [string, MhdCategoryTheme]>;
 

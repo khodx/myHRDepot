@@ -26,8 +26,38 @@ export interface MhdCurrentUserProfile {
   lastName: string | null;
   /** From the mhd_current_user_roles() RPC. Does not include an implicit
    *  "Platform Admin" role for every is_admin=true user beyond what that
-   *  function itself returns — see Database.sql for the exact semantics. */
+   *  function itself returns — see Database.sql for the exact semantics.
+   *  While impersonating, this (and every other field above except
+   *  `realIsAdmin`) reflects the IMPERSONATED identity, not the real one —
+   *  that's what makes route access / RLS actually behave like that role. */
   roleNames: MhdAuthRoleName[];
+  /** users.is_admin for the REAL signed-in account, never overridden by an
+   *  active impersonation session. Use this (not `isAdmin`) to decide
+   *  whether to show impersonation controls themselves — otherwise a
+   *  Platform Admin impersonating a lower role would lose the ability to
+   *  see the "View As" menu / exit banner while using it. */
+  realIsAdmin: boolean;
+  impersonation: MhdImpersonationStatus;
+}
+
+/** Mirrors mhd_get_impersonation_status(). `role`/`companyId`/`companyName`/
+ *  `startedAt`/`sessionId` are all null when `isImpersonating` is false. */
+export interface MhdImpersonationStatus {
+  isImpersonating: boolean;
+  sessionId: string | null;
+  role: MhdAuthRoleName | null;
+  companyId: string | null;
+  companyName: string | null;
+  startedAt: string | null;
+}
+
+/** One row from mhd_list_companies_for_impersonation() — the company picker
+ *  shown in the "View As" menu for company-scoped roles. */
+export interface MhdImpersonationCompanyOption {
+  id: string;
+  companyName: string;
+  referenceId: string;
+  isPlatformOrg: boolean;
 }
 
 export interface MhdAuthState {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { MhdImpersonationBanner } from '@/features/authentication/components/MhdImpersonationBanner';
 import { MhdMobileNavDrawer, MhdSidebar } from './MhdSidebar';
 import { MhdTopBar } from './MhdTopBar';
 import { mhdCategoryThemeForPath } from './mhdModuleAccent';
@@ -39,6 +40,7 @@ export function MhdAppShell() {
       <MhdSidebar />
       {mobileNavOpen ? <MhdMobileNavDrawer onClose={() => setNavOpenedAt(null)} /> : null}
       <div className="flex flex-1 flex-col overflow-hidden">
+        <MhdImpersonationBanner />
         <MhdTopBar onOpenNav={() => setNavOpenedAt(pathname)} />
         <main className="flex-1 overflow-y-auto p-4 md:p-5 lg:p-7">
           <Outlet />

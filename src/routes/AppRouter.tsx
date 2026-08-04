@@ -185,6 +185,16 @@ const MhdAutomationRunDetailPage = lazy(() =>
     default: module.MhdAutomationRunDetailPage,
   })),
 );
+const MhdAdminSettingsPage = lazy(() =>
+  import('@/features/admin/components/MhdAdminSettingsPage').then((module) => ({
+    default: module.MhdAdminSettingsPage,
+  })),
+);
+const MhdLabPage = lazy(() =>
+  import('@/features/lab/components/MhdLabPage').then((module) => ({
+    default: module.MhdLabPage,
+  })),
+);
 const MhdEmployeeFilesPage = lazy(() =>
   import('@/features/employee-files/components/MhdEmployeeFilesPage').then((module) => ({
     default: module.MhdEmployeeFilesPage,
@@ -583,6 +593,13 @@ function MhdAppRoutes() {
                   on mhdCanArmAutomations (Platform Admin only). */}
               <Route path="/automations/rules/:ruleId" element={<MhdAutomationRuleDetailPage />} />
               <Route path="/automations/runs/:runId" element={<MhdAutomationRunDetailPage />} />
+              {/* Platform Admin only (mhdRouteAccess) — impersonation ("View
+                  As"), user/company management hub, compliance gate status,
+                  and privileged activity log. */}
+              <Route path="/admin" element={<MhdAdminSettingsPage />} />
+              {/* Platform Admin only (mhdRouteAccess) — QA test-data tools,
+                  a shared-component preview, and a raw RPC console. */}
+              <Route path="/lab" element={<MhdLabPage />} />
               <Route path="/employees" element={<MhdEmployeeFilesPage />} />
               <Route
                 path="/employees/:personId/files/new"

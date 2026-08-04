@@ -20,6 +20,7 @@ import {
   FileSearch,
   FileSignature,
   FileText,
+  FlaskConical,
   FolderOpen,
   Gavel,
   GraduationCap,
@@ -30,6 +31,7 @@ import {
   Package2,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings,
   ShieldAlert,
   Stamp,
   UserSearch,
@@ -272,6 +274,16 @@ const NAV_SECTIONS: NavSection[] = [
         icon: Bot,
         roles: mhdRouteRoles('/automations'),
       },
+    ],
+  },
+  // Platform Admin only — see mhdRouteAccess.ts. Deliberately its own group at
+  // the bottom of the rail rather than folded into Work Tools, so it reads as
+  // platform operator tooling, not an HR module.
+  {
+    label: 'Administration',
+    items: [
+      { label: 'Admin Settings', route: '/admin', icon: Settings, roles: mhdRouteRoles('/admin') },
+      { label: 'Lab & Sandbox', route: '/lab', icon: FlaskConical, roles: mhdRouteRoles('/lab') },
     ],
   },
 ];

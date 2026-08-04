@@ -2,11 +2,14 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { supabaseClient as mhdSupabase } from '@/lib/supabase/supabaseClient';
 import {
+  mhdEndImpersonation,
   mhdGetCurrentAuthSession,
+  mhdListCompaniesForImpersonation,
   mhdLoadCurrentUserProfile,
   mhdSendPasswordReset,
   mhdSignInWithPassword,
   mhdSignOut,
+  mhdStartImpersonation,
   mhdUpdatePassword,
 } from '../Service';
 import type { MhdAuthState } from '../Types';
@@ -86,6 +89,15 @@ export function MhdAuthProvider({ children }: { children: ReactNode }) {
       },
       sendPasswordReset: mhdSendPasswordReset,
       updatePassword: mhdUpdatePassword,
+      startImpersonation: async (role, companyId) => {
+        await mhdStartImpersonation(role, companyId);
+        await refreshProfile();
+      },
+      endImpersonation: async () => {
+        await mhdEndImpersonation();
+        await refreshProfile();
+      },
+      listCompaniesForImpersonation: mhdListCompaniesForImpersonation,
     }),
     [applySession, authState, refreshProfile],
   );

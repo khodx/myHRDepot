@@ -218,6 +218,15 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
   },
   { path: '/recruiting', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  // Admin Settings and Lab/Sandbox. Platform Admin ONLY — no exception. `roles`
+  // here is read from the (impersonation-aware) auth context, so while a real
+  // Platform Admin is impersonating a lower role, these routes correctly
+  // disappear/403 just like they would for that role in real life; ending the
+  // "View As" session (via the top bar banner, which is NOT gated by this
+  // route table) restores access. Impersonating 'Platform Admin' itself still
+  // passes, since that role check still matches.
+  { path: '/admin', roles: ['Platform Admin'] },
+  { path: '/lab', roles: ['Platform Admin'] },
 ];
 
 export function mhdRouteRoles(path: string): MhdAuthRoleName[] | 'ALL' {

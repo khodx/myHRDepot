@@ -12065,6 +12065,48 @@ export type Database = {
           },
         ]
       }
+      mhd_impersonation_sessions: {
+        Row: {
+          admin_user_id: string
+          ended_at: string | null
+          id: string
+          impersonated_company_id: string | null
+          impersonated_role: string
+          started_at: string
+        }
+        Insert: {
+          admin_user_id: string
+          ended_at?: string | null
+          id?: string
+          impersonated_company_id?: string | null
+          impersonated_role: string
+          started_at?: string
+        }
+        Update: {
+          admin_user_id?: string
+          ended_at?: string | null
+          id?: string
+          impersonated_company_id?: string | null
+          impersonated_role?: string
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mhd_impersonation_sessions_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mhd_impersonation_sessions_impersonated_company_id_fkey"
+            columns: ["impersonated_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mhd_reference_sequences: {
         Row: {
           current_value: number
@@ -20451,6 +20493,14 @@ export type Database = {
         Args: { p_packet_version_id: string }
         Returns: string
       }
+      mhd_active_impersonation: {
+        Args: never
+        Returns: {
+          impersonated_company_id: string
+          impersonated_role: string
+          session_id: string
+        }[]
+      }
       mhd_add_activity_participant: {
         Args: {
           p_activity_id: string
@@ -21852,6 +21902,7 @@ export type Database = {
         Returns: string
       }
       mhd_encrypt_field_value: { Args: { p_plain: string }; Returns: string }
+      mhd_end_impersonation: { Args: never; Returns: undefined }
       mhd_esignature_send_expiring_soon: { Args: never; Returns: number }
       mhd_export_audit_events: {
         Args: { p_company_id: string; p_date_from: string; p_date_to: string }
@@ -22104,6 +22155,17 @@ export type Database = {
           updated_at: string
           updated_by: string
           version: number
+        }[]
+      }
+      mhd_get_impersonation_status: {
+        Args: never
+        Returns: {
+          impersonated_company_id: string
+          impersonated_company_name: string
+          impersonated_role: string
+          is_impersonating: boolean
+          session_id: string
+          started_at: string
         }[]
       }
       mhd_get_message_thread: { Args: { p_thread_id: string }; Returns: Json }
@@ -22822,6 +22884,7 @@ export type Database = {
       }
       mhd_is_medical_administrator: { Args: never; Returns: boolean }
       mhd_is_platform_admin: { Args: never; Returns: boolean }
+      mhd_is_real_platform_admin: { Args: never; Returns: boolean }
       mhd_issue_property: {
         Args: {
           p_employee_ack_maintain: boolean
@@ -23571,6 +23634,15 @@ export type Database = {
           updated_by: string
         }[]
       }
+      mhd_list_companies_for_impersonation: {
+        Args: never
+        Returns: {
+          company_name: string
+          id: string
+          is_platform_org: boolean
+          reference_id: string
+        }[]
+      }
       mhd_list_contact_methods_for_person: {
         Args: { p_person_id: string }
         Returns: {
@@ -23671,6 +23743,19 @@ export type Database = {
           updated_at: string
           updated_by: string
           version: number
+        }[]
+      }
+      mhd_list_impersonation_sessions: {
+        Args: { p_limit?: number }
+        Returns: {
+          admin_display_name: string
+          admin_user_id: string
+          ended_at: string
+          id: string
+          impersonated_company_id: string
+          impersonated_company_name: string
+          impersonated_role: string
+          started_at: string
         }[]
       }
       mhd_list_medical_provider_designations: {
@@ -25604,6 +25689,10 @@ export type Database = {
           request_status: string
           signer_status: string
         }[]
+      }
+      mhd_start_impersonation: {
+        Args: { p_company_id?: string; p_role: string }
+        Returns: string
       }
       mhd_start_onboarding_packet: {
         Args: {

@@ -1,7 +1,9 @@
 import { createContext } from 'react';
 import type {
+  MhdAuthRoleName,
   MhdAuthState,
   MhdForgotPasswordInput,
+  MhdImpersonationCompanyOption,
   MhdLoginInput,
   MhdResetPasswordInput,
 } from './Types';
@@ -12,6 +14,12 @@ export interface MhdAuthContextValue extends MhdAuthState {
   signOut: () => Promise<void>;
   sendPasswordReset: (input: MhdForgotPasswordInput) => Promise<void>;
   updatePassword: (input: MhdResetPasswordInput) => Promise<void>;
+  /** Starts a "View As" session and refreshes the profile in one step. */
+  startImpersonation: (role: MhdAuthRoleName, companyId: string | null) => Promise<void>;
+  /** Ends the active "View As" session and refreshes the profile. */
+  endImpersonation: () => Promise<void>;
+  /** Loads the company picker options for the "View As" menu. */
+  listCompaniesForImpersonation: () => Promise<MhdImpersonationCompanyOption[]>;
 }
 
 export const MhdAuthContext = createContext<MhdAuthContextValue | null>(null);

@@ -1,5 +1,6 @@
-import { ChevronDown, CircleHelp, LogOut, Menu, Search } from 'lucide-react';
+import { CircleHelp, LogOut, Menu, Search } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { MhdImpersonationMenu } from '@/features/authentication/components/MhdImpersonationMenu';
 import { MhdNotificationBell } from '@/features/notifications/components/MhdNotificationBell';
 import { MhdThemeToggle } from './MhdThemeToggle';
 
@@ -9,11 +10,7 @@ import { MhdThemeToggle } from './MhdThemeToggle';
  * lives on the rail's company card.
  */
 export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
-  const { profile, signOut } = useMhdAuth();
-
-  const initials = profile
-    ? `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase() || '??'
-    : '??';
+  const { signOut } = useMhdAuth();
 
   return (
     <header className="flex h-[72px] shrink-0 items-center justify-between gap-4 border-b bg-card px-4 lg:px-6">
@@ -56,18 +53,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
           <CircleHelp className="h-4.5 w-4.5" aria-hidden />
         </button>
         <MhdNotificationBell />
-        <div className="hidden items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 shadow-sm sm:flex">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-on">
-            {initials}
-          </div>
-          <div className="hidden max-w-44 flex-col gap-0.5 lg:flex">
-            <span className="truncate text-sm font-semibold">{profile?.displayName ?? 'User'}</span>
-            <span className="truncate text-xs text-muted-foreground">
-              {profile?.roleNames.join(', ') ?? ''}
-            </span>
-          </div>
-          <ChevronDown className="h-4 w-4 text-muted-foreground" aria-hidden />
-        </div>
+        <MhdImpersonationMenu />
         <button
           type="button"
           onClick={() => signOut()}
