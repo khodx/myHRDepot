@@ -7,6 +7,7 @@ import {
   mhdListCompaniesForImpersonation,
   mhdLoadCurrentUserProfile,
   mhdSendPasswordReset,
+  mhdSignInWithMagicLink,
   mhdSignInWithPassword,
   mhdSignOut,
   mhdStartImpersonation,
@@ -88,6 +89,7 @@ export function MhdAuthProvider({ children }: { children: ReactNode }) {
         setAuthState({ ...mhdInitialAuthState, isLoading: false });
       },
       sendPasswordReset: mhdSendPasswordReset,
+      signInWithMagicLink: mhdSignInWithMagicLink,
       updatePassword: mhdUpdatePassword,
       startImpersonation: async (role, companyId) => {
         await mhdStartImpersonation(role, companyId);

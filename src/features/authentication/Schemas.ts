@@ -9,6 +9,10 @@ export const mhdForgotPasswordSchema = z.object({
   email: z.string().trim().email('Enter a valid email address.'),
 });
 
+export const mhdMagicLinkSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address.'),
+});
+
 export const mhdResetPasswordSchema = z
   .object({
     password: z.string().min(8, 'Password must be at least 8 characters.'),
@@ -21,4 +25,5 @@ export const mhdResetPasswordSchema = z
 
 export type MhdLoginFormValues = z.infer<typeof mhdLoginSchema>;
 export type MhdForgotPasswordFormValues = z.infer<typeof mhdForgotPasswordSchema>;
+export type MhdMagicLinkFormValues = z.infer<typeof mhdMagicLinkSchema>;
 export type MhdResetPasswordFormValues = z.infer<typeof mhdResetPasswordSchema>;

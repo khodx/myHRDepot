@@ -5,6 +5,7 @@ import type {
   MhdForgotPasswordInput,
   MhdImpersonationCompanyOption,
   MhdLoginInput,
+  MhdMagicLinkInput,
   MhdResetPasswordInput,
 } from './Types';
 
@@ -13,6 +14,8 @@ export interface MhdAuthContextValue extends MhdAuthState {
   signIn: (input: MhdLoginInput) => Promise<void>;
   signOut: () => Promise<void>;
   sendPasswordReset: (input: MhdForgotPasswordInput) => Promise<void>;
+  /** Sends a passwordless sign-in link to the user's email address. */
+  signInWithMagicLink: (input: MhdMagicLinkInput) => Promise<void>;
   updatePassword: (input: MhdResetPasswordInput) => Promise<void>;
   /** Starts a "View As" session and refreshes the profile in one step. */
   startImpersonation: (role: MhdAuthRoleName, companyId: string | null) => Promise<void>;

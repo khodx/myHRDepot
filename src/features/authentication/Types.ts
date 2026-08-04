@@ -80,6 +80,10 @@ export interface MhdForgotPasswordInput {
   email: string;
 }
 
+export interface MhdMagicLinkInput {
+  email: string;
+}
+
 export interface MhdResetPasswordInput {
   password: string;
   confirmPassword: string;

@@ -5,6 +5,7 @@ const { mockSupabase } = vi.hoisted(() => ({
     auth: {
       getSession: vi.fn(),
       signInWithPassword: vi.fn(),
+      signInWithOtp: vi.fn(),
       signOut: vi.fn(),
       resetPasswordForEmail: vi.fn(),
       updateUser: vi.fn(),
@@ -18,7 +19,12 @@ vi.mock('@/lib/supabase/supabaseClient', () => ({
   supabaseClient: mockSupabase,
 }));
 
-import { mhdGetCurrentAuthSession, mhdSignInWithPassword } from '../Service';
+import { appConfig } from '@/config/appConfig';
+import {
+  mhdGetCurrentAuthSession,
+  mhdSignInWithMagicLink,
+  mhdSignInWithPassword,
+} from '../Service';
 
 describe('mhdAuthService', () => {
   beforeEach(() => {
@@ -46,6 +52,22 @@ describe('mhdAuthService', () => {
     expect(mockSupabase.auth.signInWithPassword).toHaveBeenCalledWith({
       email: 'admin@example.com',
       password: 'Password123!',
+    });
+  });
+
+  it('sends a magic link sign-in email', async () => {
+    const emailRedirectTo = `${appConfig.appUrl.replace(/\/$/, '')}/`;
+
+    mockSupabase.auth.signInWithOtp.mockResolvedValue({
+      data: {},
+      error: null,
+    });
+
+    await mhdSignInWithMagicLink({ email: 'admin@example.com' });
+
+    expect(mockSupabase.auth.signInWithOtp).toHaveBeenCalledWith({
+      email: 'admin@example.com',
+      options: { emailRedirectTo },
     });
   });
 });

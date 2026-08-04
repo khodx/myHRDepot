@@ -9,6 +9,7 @@ import type {
   MhdImpersonationCompanyOption,
   MhdImpersonationStatus,
   MhdLoginInput,
+  MhdMagicLinkInput,
   MhdResetPasswordInput,
 } from './Types';
 
@@ -48,6 +49,17 @@ export async function mhdSignOut(): Promise<void> {
 export async function mhdSendPasswordReset(input: MhdForgotPasswordInput): Promise<void> {
   const redirectTo = `${appConfig.appUrl.replace(/\/$/, '')}/reset-password`;
   const { error } = await mhdSupabase.auth.resetPasswordForEmail(input.email, { redirectTo });
+  if (error) throw error;
+}
+
+// Supabase detects the session from the redirect URL client-side
+// (detectSessionInUrl), and MhdAuthProvider's listener picks it up.
+export async function mhdSignInWithMagicLink(input: MhdMagicLinkInput): Promise<void> {
+  const emailRedirectTo = `${appConfig.appUrl.replace(/\/$/, '')}/`;
+  const { error } = await mhdSupabase.auth.signInWithOtp({
+    email: input.email,
+    options: { emailRedirectTo },
+  });
   if (error) throw error;
 }
 
