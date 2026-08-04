@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -155,6 +155,28 @@ describe('MhdSidebar rail', () => {
     expect(JSON.parse(window.localStorage.getItem('mhd:nav:collapsed')!)).toEqual(
       expect.arrayContaining(['Work Tools', 'People & Org']),
     );
+  });
+
+  it('shows coming soon badges without changing nav link destinations', async () => {
+    const user = userEvent.setup();
+    const { MhdSidebar } = await import('../MhdSidebar');
+    render(
+      <MemoryRouter initialEntries={['/tasks']}>
+        <MhdSidebar />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Work Tools/i }));
+
+    const tasksLink = screen.getByRole('link', { name: 'Tasks' });
+    expect(tasksLink).toHaveAttribute('href', '/tasks');
+    expect(within(tasksLink).queryByText('Coming Soon')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /People & Org/i }));
+
+    const onboardingLink = screen.getByRole('link', { name: /Onboarding/i });
+    expect(onboardingLink).toHaveAttribute('href', '/onboarding');
+    expect(within(onboardingLink).getByText('Coming Soon')).toBeInTheDocument();
   });
 });
 

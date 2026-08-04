@@ -43,13 +43,14 @@ import {
 } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
-import { mhdRouteRoles } from './mhdRouteAccess';
+import { mhdRouteRoles, mhdRouteStatus } from './mhdRouteAccess';
 
 interface NavItem {
   label: string;
   route: string;
   icon: React.ElementType;
   roles: MhdAuthRoleName[] | 'ALL';
+  status?: 'live' | 'comingSoon';
 }
 
 interface NavSection {
@@ -92,7 +93,13 @@ const NAV_SECTIONS: NavSection[] = [
         icon: FileText,
         roles: mhdRouteRoles('/reports'),
       },
-      { label: 'Property', route: '/property', icon: Package2, roles: mhdRouteRoles('/property') },
+      {
+        label: 'Property',
+        route: '/property',
+        icon: Package2,
+        roles: mhdRouteRoles('/property'),
+        status: mhdRouteStatus('/property'),
+      },
       {
         label: 'E-Signature',
         route: '/esignature',
@@ -114,6 +121,7 @@ const NAV_SECTIONS: NavSection[] = [
         route: '/onboarding',
         icon: UserPlus,
         roles: mhdRouteRoles('/onboarding'),
+        status: mhdRouteStatus('/onboarding'),
       },
       {
         label: 'Employee Files',
@@ -171,6 +179,7 @@ const NAV_SECTIONS: NavSection[] = [
         route: '/performance',
         icon: TrendingUp,
         roles: mhdRouteRoles('/performance'),
+        status: mhdRouteStatus('/performance'),
       },
       // 360 feedback requests addressed to the signed-in user. A SEPARATE route
       // from /performance because a rater cannot load the review behind their
@@ -180,12 +189,14 @@ const NAV_SECTIONS: NavSection[] = [
         route: '/performance/invitations',
         icon: MessageSquare,
         roles: mhdRouteRoles('/performance/invitations'),
+        status: mhdRouteStatus('/performance/invitations'),
       },
       {
         label: 'Recruiting',
         route: '/recruiting',
         icon: UserSearch,
         roles: mhdRouteRoles('/recruiting'),
+        status: mhdRouteStatus('/recruiting'),
       },
       // Platform-Admin ONLY — the sole read path into the hard-restricted EEO
       // partition, aggregate counts only.
@@ -194,6 +205,7 @@ const NAV_SECTIONS: NavSection[] = [
         route: '/recruiting/eeo',
         icon: BarChart3,
         roles: mhdRouteRoles('/recruiting/eeo'),
+        status: mhdRouteStatus('/recruiting/eeo'),
       },
       {
         label: 'Training',
@@ -240,6 +252,7 @@ const NAV_SECTIONS: NavSection[] = [
         route: '/offboarding',
         icon: DoorOpen,
         roles: mhdRouteRoles('/offboarding'),
+        status: mhdRouteStatus('/offboarding'),
       },
       // Platform Admin / HR Partner only — same strictly-gated,
       // no-subject-facing precedent as Conduct/Investigations above. The
@@ -564,10 +577,17 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
 
 function MhdNavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const Icon = item.icon;
+  const title =
+    collapsed && item.status === 'comingSoon'
+      ? `${item.label} (Coming Soon)`
+      : collapsed
+        ? item.label
+        : undefined;
+
   return (
     <NavLink
       to={item.route}
-      title={collapsed ? item.label : undefined}
+      title={title}
       className={({ isActive }) =>
         `relative flex min-h-10 items-center rounded-full text-[17px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${
           collapsed ? 'justify-center px-0' : 'gap-3 px-3'
@@ -588,6 +608,11 @@ function MhdNavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
         <>
           <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
           {collapsed ? null : <span className="truncate">{item.label}</span>}
+          {item.status === 'comingSoon' && !collapsed ? (
+            <span className="ml-auto shrink-0 rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
+              Coming Soon
+            </span>
+          ) : null}
         </>
       )}
     </NavLink>

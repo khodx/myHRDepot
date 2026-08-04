@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanAccessRoute, mhdIsRouteComingSoon } from './mhdRouteAccess';
+import { MhdComingSoonPage } from './components/MhdComingSoonPage';
 
 /**
  * Route-level enforcement of MHD_ROUTE_ACCESS. MhdSidebar hiding a nav link
@@ -9,7 +10,7 @@ import { mhdCanAccessRoute, mhdIsRouteComingSoon } from './mhdRouteAccess';
  * /companies, following a stale bookmark, or pasting a shared link) is
  * redirected to /404 rather than rendering the restricted page. Must sit
  * inside MhdProtectedRoute so `roles` is guaranteed to be populated. Routes
- * marked comingSoon render an in-place placeholder for non-Platform Admins.
+ * marked comingSoon render the placeholder page for non-Platform Admins.
  */
 export function MhdRoleGuardedRoute() {
   const location = useLocation();
@@ -20,7 +21,7 @@ export function MhdRoleGuardedRoute() {
   }
 
   if (mhdIsRouteComingSoon(location.pathname, roles)) {
-    return <div data-testid="mhd-coming-soon-placeholder">Coming Soon</div>;
+    return <MhdComingSoonPage />;
   }
 
   return <Outlet />;

@@ -847,3 +847,24 @@ describe('MhdNotFoundPage', () => {
     // without throwing.
   });
 });
+
+// ---------------------------------------------------------------------------
+// MhdComingSoonPage
+// ---------------------------------------------------------------------------
+
+describe('MhdComingSoonPage', () => {
+  it('renders the heading and dashboard action', async () => {
+    const { MhdComingSoonPage } = await import('../components/MhdComingSoonPage');
+    const { MemoryRouter } = await import('react-router-dom');
+
+    render(
+      <MemoryRouter initialEntries={['/onboarding']}>
+        <MhdComingSoonPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId('mhd-coming-soon-placeholder')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Coming Soon' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /go to dashboard/i })).toBeInTheDocument();
+  });
+});
