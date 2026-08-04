@@ -76,7 +76,7 @@ export async function mhdLoadCurrentUserProfile(
       company_id,
       is_admin,
       person_id,
-      companies:company_id ( company_name ),
+      companies:company_id ( company_name, is_platform_org ),
       people:person_id ( first_name, last_name, display_name )
     `,
     )
@@ -94,6 +94,7 @@ export async function mhdLoadCurrentUserProfile(
     email: userRow.email,
     companyId: userRow.company_id,
     companyName: userRow.companies?.company_name ?? null,
+    companyIsPlatformOrg: userRow.companies?.is_platform_org ?? false,
     isAdmin: userRow.is_admin ?? false,
     personId: userRow.person_id,
     displayName: userRow.people?.display_name ?? null,

@@ -1,12 +1,10 @@
 import type { MhdCompanyId } from '@/features/companies/Types';
 
-/**
- * The platform's own internal org ("SimplyHR"), seeded by
- * 0094_task_layout_revisions.sql with this fixed id. Only users whose own
- * company matches this one may edit a task's Company field — everyone else
- * gets it read-only, defaulted to their own company. See MhdTaskForm.tsx.
- */
-export const MHD_SIMPLYHR_COMPANY_ID: MhdCompanyId = 'cccc0000-0000-4000-8000-0000000000c1';
+// Whether a user may edit a task's Company field (instead of it being
+// read-only, defaulted to their own company) is decided by
+// profile.companyIsPlatformOrg — companies.is_platform_org on their own
+// company row — NOT a hardcoded company id. See MhdTasksPage.tsx /
+// MhdTaskFilterBar.tsx and migration 0119_companies_platform_org_flag.sql.
 
 // All *Id types below are Postgres `uuid`, not ULIDs. TypeScript still
 // models them as `string` (uuid renders as a string over the wire);

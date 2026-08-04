@@ -18,11 +18,7 @@ import { MhdTaskList } from '@/features/tasks/components/MhdTaskList';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdTasks } from '@/features/tasks/Hook';
-import {
-  MHD_SIMPLYHR_COMPANY_ID,
-  type MhdTask,
-  type MhdTaskListFilters,
-} from '@/features/tasks/Types';
+import type { MhdTask, MhdTaskListFilters } from '@/features/tasks/Types';
 
 const MHD_TASKS_VIEW_KEY = 'mhd:tasks:view';
 const MHD_TASKS_SAVED_VIEWS_KEY = 'mhd:tasks:savedViews';
@@ -106,7 +102,7 @@ export function MhdTasksPage() {
   const companiesQuery = useMhdCompanies({ searchTerm: '' });
   const companies = useMemo(() => companiesQuery.data ?? [], [companiesQuery.data]);
   const taskState = useMhdTasks(actorContext, profile?.companyId ?? '');
-  const canEditCompany = profile?.companyId === MHD_SIMPLYHR_COMPANY_ID;
+  const canEditCompany = profile?.companyIsPlatformOrg ?? false;
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [isSaveViewModalOpen, setIsSaveViewModalOpen] = useState(false);

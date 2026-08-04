@@ -5,7 +5,6 @@ import { MhdTaskForm } from '@/features/tasks/components/MhdTaskForm';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdTasks } from '@/features/tasks/Hook';
-import { MHD_SIMPLYHR_COMPANY_ID } from '@/features/tasks/Types';
 
 export function MhdTaskFormPage() {
   const { taskId } = useParams<{ taskId?: string }>();
@@ -69,7 +68,7 @@ export function MhdTaskFormPage() {
         selectedTask={selectedTask}
         isSaving={taskState.isSaving}
         currentUserCompanyId={profile?.companyId ?? ''}
-        canEditCompany={profile?.companyId === MHD_SIMPLYHR_COMPANY_ID}
+        canEditCompany={profile?.companyIsPlatformOrg ?? false}
         onCreate={async (input) => {
           await taskState.createTask(input);
           navigate('/tasks');

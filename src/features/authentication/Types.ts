@@ -13,6 +13,12 @@ export interface MhdCurrentUserProfile {
   email: string;
   companyId: string;
   companyName: string | null;
+  /** companies.is_platform_org for this user's own company — true for a
+   *  user belonging to the platform's own operating org (e.g. "SimplyHR"),
+   *  who may act across every tenant. Not the same as isAdmin, which is a
+   *  per-company "this user is that company's admin" flag (see Database.sql
+   *  notes on mhd_user_has_role's is_admin bypass semantics). */
+  companyIsPlatformOrg: boolean;
   isAdmin: boolean;
   personId: string | null;
   displayName: string | null;
