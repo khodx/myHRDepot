@@ -6,6 +6,7 @@
 // when `is_admin = true`); INSERT/UPDATE/DELETE additionally require the
 // caller to hold 'Client Admin' (or be an admin, which implicitly holds every
 // role) via `mhd_user_has_role`.
+import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import type { MhdCompanyId } from '@/features/companies/Types';
 import type { MhdPersonId } from '@/features/people/Types';
 
@@ -43,6 +44,12 @@ export interface MhdInvitePlatformUserInput {
   companyId: MhdCompanyId;
   personId: MhdPersonId | null;
   isAdmin: boolean;
+  /** Initial role assignment (user_role_assignments), granted by the
+   *  invite-user Edge Function against the matching GLOBAL role row.
+   *  Assigning 'Platform Admin' is further restricted server-side to a
+   *  caller who is themselves is_admin. Null = no role granted (the invited
+   *  account has none until an admin assigns one). */
+  roleName: MhdAuthRoleName | null;
 }
 
 export interface MhdPlatformUserMutationContext {

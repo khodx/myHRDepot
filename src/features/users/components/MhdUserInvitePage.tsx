@@ -7,6 +7,7 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdPeople } from '@/features/people/Hook';
 import { mhdPersonService } from '@/features/people/Service';
+import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { useMhdInvitePlatformUser } from '@/features/users/Hook';
 import { mhdInvitePlatformUserSchema } from '@/features/users/Schemas';
 
@@ -17,6 +18,19 @@ import { mhdInvitePlatformUserSchema } from '@/features/users/Schemas';
 // MhdCompleteProfilePage / mhd_self_complete_profile).
 type MhdInvitePersonMode = 'none' | 'existing' | 'new';
 
+// Mirrors invite-user's VALID_ROLE_NAMES. Assigning 'Platform Admin' is
+// further restricted server-side to a caller who is themselves an admin —
+// not gated here, since the edge function is the actual authority and every
+// other privileged action in this form (isAdmin) follows the same
+// let-the-server-reject convention rather than duplicating the check client-side.
+const ROLE_NAME_OPTIONS: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+  'Client User',
+  'Viewer',
+];
+
 const inputClass =
   'mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 
@@ -26,6 +40,7 @@ export function MhdUserInvitePage() {
   const [email, setEmail] = useState('');
   const [companyId, setCompanyId] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [roleName, setRoleName] = useState<MhdAuthRoleName | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   const [personMode, setPersonMode] = useState<MhdInvitePersonMode>('none');
@@ -109,7 +124,13 @@ export function MhdUserInvitePage() {
       }
     }
 
-    const result = mhdInvitePlatformUserSchema.safeParse({ email, companyId, personId, isAdmin });
+    const result = mhdInvitePlatformUserSchema.safeParse({
+      email,
+      companyId,
+      personId,
+      isAdmin,
+      roleName,
+    });
 
     if (!result.success) {
       setFormError(result.error.issues[0]?.message ?? 'Please review the user form.');
@@ -334,6 +355,34 @@ export function MhdUserInvitePage() {
               </div>
             ) : null}
           </fieldset>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700" htmlFor="mhd-user-role">
+              Initial role
+            </label>
+            <select
+              id="mhd-user-role"
+              className={inputClass}
+              value={roleName ?? ''}
+              onChange={(event) =>
+                setRoleName(
+                  event.target.value.length > 0 ? (event.target.value as MhdAuthRoleName) : null,
+                )
+              }
+              disabled={isSubmitting}
+            >
+              <option value="">No role (assign later)</option>
+              {ROLE_NAME_OPTIONS.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Without a role, the login can sign in but can't reach any role-gated page until one
+              is assigned.
+            </p>
+          </div>
 
           <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
             <input

@@ -181,6 +181,7 @@ export const mhdPlatformUserService = {
           companyId: input.companyId,
           personId: input.personId,
           isAdmin: input.isAdmin,
+          roleName: input.roleName,
         },
       },
     );
