@@ -3,15 +3,19 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { supabaseClient as mhdSupabase } from '@/lib/supabase/supabaseClient';
 import {
   mhdEndImpersonation,
+  mhdEnrollTotpFactor,
   mhdGetCurrentAuthSession,
   mhdListCompaniesForImpersonation,
+  mhdListMfaFactors,
   mhdLoadCurrentUserProfile,
   mhdSendPasswordReset,
   mhdSignInWithMagicLink,
   mhdSignInWithPassword,
   mhdSignOut,
   mhdStartImpersonation,
+  mhdUnenrollMfaFactor,
   mhdUpdatePassword,
+  mhdVerifyTotpFactor,
 } from '../Service';
 import type { MhdAuthState } from '../Types';
 import { MhdAuthContext, type MhdAuthContextValue } from '../MhdAuthContext';
@@ -91,6 +95,10 @@ export function MhdAuthProvider({ children }: { children: ReactNode }) {
       sendPasswordReset: mhdSendPasswordReset,
       signInWithMagicLink: mhdSignInWithMagicLink,
       updatePassword: mhdUpdatePassword,
+      enrollTotpFactor: mhdEnrollTotpFactor,
+      verifyTotpFactor: mhdVerifyTotpFactor,
+      listMfaFactors: mhdListMfaFactors,
+      unenrollMfaFactor: mhdUnenrollMfaFactor,
       startImpersonation: async (role, companyId) => {
         await mhdStartImpersonation(role, companyId);
         await refreshProfile();

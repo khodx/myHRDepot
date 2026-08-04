@@ -60,6 +60,18 @@ export interface MhdImpersonationCompanyOption {
   isPlatformOrg: boolean;
 }
 
+export interface MhdTotpEnrollment {
+  factorId: string;
+  qrCodeSvg: string;
+  secret: string;
+}
+
+export interface MhdMfaFactor {
+  id: string;
+  status: 'verified' | 'unverified';
+  friendlyName: string | null;
+}
+
 export interface MhdAuthState {
   isLoading: boolean;
   isAuthenticated: boolean;

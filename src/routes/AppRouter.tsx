@@ -32,6 +32,16 @@ const MhdCompleteProfilePage = lazy(() =>
     default: module.MhdCompleteProfilePage,
   })),
 );
+const MhdEnrollMfaPage = lazy(() =>
+  import('@/features/authentication/components/MhdEnrollMfaPage').then((module) => ({
+    default: module.MhdEnrollMfaPage,
+  })),
+);
+const MhdMfaChallengePage = lazy(() =>
+  import('@/features/authentication/components/MhdMfaChallengePage').then((module) => ({
+    default: module.MhdMfaChallengePage,
+  })),
+);
 
 // App pages
 const MhdDashboardPage = lazy(() =>
@@ -550,6 +560,8 @@ function MhdAppRoutes() {
               authenticated login with no linked person (see that file's own
               gate) before it can reach anything below. */}
           <Route path="/complete-profile" element={<MhdCompleteProfilePage />} />
+          <Route path="/enroll-mfa" element={<MhdEnrollMfaPage />} />
+          <Route path="/mfa-challenge" element={<MhdMfaChallengePage />} />
           <Route element={<MhdAppShell />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             {/* Role enforcement lives once in mhdRouteAccess.ts and is applied

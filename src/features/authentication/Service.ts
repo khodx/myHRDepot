@@ -10,7 +10,9 @@ import type {
   MhdImpersonationStatus,
   MhdLoginInput,
   MhdMagicLinkInput,
+  MhdMfaFactor,
   MhdResetPasswordInput,
+  MhdTotpEnrollment,
 } from './Types';
 
 export interface MhdAuthSessionResult {
@@ -65,6 +67,41 @@ export async function mhdSignInWithMagicLink(input: MhdMagicLinkInput): Promise<
 
 export async function mhdUpdatePassword(input: MhdResetPasswordInput): Promise<void> {
   const { error } = await mhdSupabase.auth.updateUser({ password: input.password });
+  if (error) throw error;
+}
+
+export async function mhdEnrollTotpFactor(): Promise<MhdTotpEnrollment> {
+  const { data, error } = await mhdSupabase.auth.mfa.enroll({ factorType: 'totp' });
+  if (error) throw error;
+  if (!data?.id || !data.totp?.qr_code || !data.totp.secret) {
+    throw new Error('Unable to enroll authenticator app.');
+  }
+
+  return {
+    factorId: data.id,
+    qrCodeSvg: data.totp.qr_code,
+    secret: data.totp.secret,
+  };
+}
+
+export async function mhdVerifyTotpFactor(factorId: string, code: string): Promise<void> {
+  const { error } = await mhdSupabase.auth.mfa.challengeAndVerify({ factorId, code });
+  if (error) throw error;
+}
+
+export async function mhdListMfaFactors(): Promise<MhdMfaFactor[]> {
+  const { data, error } = await mhdSupabase.auth.mfa.listFactors();
+  if (error) throw error;
+
+  return (data?.totp ?? []).map((factor) => ({
+    id: factor.id,
+    status: factor.status,
+    friendlyName: factor.friendly_name ?? null,
+  }));
+}
+
+export async function mhdUnenrollMfaFactor(factorId: string): Promise<void> {
+  const { error } = await mhdSupabase.auth.mfa.unenroll({ factorId });
   if (error) throw error;
 }
 
