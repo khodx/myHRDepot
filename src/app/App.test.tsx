@@ -12,6 +12,40 @@ const mockListMfaFactors = vi.hoisted(() =>
   vi.fn().mockResolvedValue([{ id: 'factor-1', status: 'verified', friendlyName: 'Authenticator' }]),
 );
 
+// MhdProtectedRoute calls mhdSupabase.auth.mfa.getAuthenticatorAssuranceLevel()
+// directly (not through useMhdAuth()). Left unmocked, that hits a REAL
+// supabase-js GoTrueClient (see src/lib/supabase/supabaseClient.ts) pointed at
+// the fake URL below — persistSession/autoRefreshToken are on, so the client
+// runs its own internal _initialize() before the call resolves. That's fast
+// and deterministic in isolation, but under this suite's full parallel run
+// (100+ files, many workers) it occasionally took long enough to exceed
+// Testing Library's default 1000ms findBy* timeout, flaking this test only
+// under load — reproduced 2026-08-05. Mocking the client keeps this smoke
+// test hermetic (same reasoning as mocking the dashboard hook below) and
+// removes the real async client from the test entirely, rather than papering
+// over the race with a longer timeout.
+//
+// MhdAuthProvider (still rendered in App's tree — mocking the Hook above
+// doesn't remove the Provider itself) independently calls auth.getSession()
+// and auth.onAuthStateChange() on mount, regardless of the Hook mock, so
+// those need stubs too or the provider's own effect throws.
+vi.mock('@/lib/supabase/supabaseClient', () => ({
+  supabaseClient: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      onAuthStateChange: vi.fn().mockReturnValue({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      }),
+      mfa: {
+        getAuthenticatorAssuranceLevel: vi.fn().mockResolvedValue({
+          data: { currentLevel: 'aal2', nextLevel: 'aal2' },
+          error: null,
+        }),
+      },
+    },
+  },
+}));
+
 vi.mock('@/config/env', () => ({
   runtimeEnv: {
     VITE_APP_NAME: 'My HR Depot',
@@ -82,7 +116,16 @@ describe('App foundation', () => {
     // all render. ("myHRDepot" is the category-spec wordmark.)
     expect(await screen.findByText('myHRDepot')).toBeInTheDocument();
     expect(screen.getByText('Acme Co')).toBeInTheDocument();
-    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
+    // MhdDashboardPage is React.lazy()-loaded (see AppRouter.tsx); the
+    // default 1000ms findBy* timeout is tight enough that this dynamic
+    // import's resolution can exceed it under this suite's full parallel
+    // run (100+ files across several workers), even though it resolves
+    // comfortably fast standalone or under light load — reproduced
+    // 2026-08-05. A longer timeout here is the correct fix for a real
+    // Suspense/lazy-chunk boundary, not a timing race to paper over.
+    expect(
+      await screen.findByRole('heading', { name: /dashboard/i }, { timeout: 5000 }),
+    ).toBeInTheDocument();
     expect(screen.getByText('Admin User')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/dashboard');
   });
