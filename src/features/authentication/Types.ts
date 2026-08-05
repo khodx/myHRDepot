@@ -72,6 +72,14 @@ export interface MhdMfaFactor {
   friendlyName: string | null;
 }
 
+export interface MhdTrustedDevice {
+  id: string;
+  label: string | null;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  revokedAt: string | null;
+}
+
 export interface MhdAuthState {
   isLoading: boolean;
   isAuthenticated: boolean;

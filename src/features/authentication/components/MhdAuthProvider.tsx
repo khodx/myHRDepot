@@ -2,13 +2,18 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { supabaseClient as mhdSupabase } from '@/lib/supabase/supabaseClient';
 import {
+  mhdConsumeMfaRecoveryCode,
+  mhdCountUnusedRecoveryCodes,
   mhdEndImpersonation,
   mhdEnrollTotpFactor,
+  mhdGenerateMfaRecoveryCodes,
   mhdGetCurrentAuthSession,
   mhdListCompaniesForImpersonation,
   mhdListMfaFactors,
+  mhdListTrustedDevices,
   mhdLoadCurrentUserProfile,
   mhdRegisterTrustedDevice,
+  mhdRevokeTrustedDevice,
   mhdSendPasswordReset,
   mhdSignInWithMagicLink,
   mhdSignInWithPassword,
@@ -99,6 +104,11 @@ export function MhdAuthProvider({ children }: { children: ReactNode }) {
       enrollTotpFactor: mhdEnrollTotpFactor,
       verifyTotpFactor: mhdVerifyTotpFactor,
       registerTrustedDevice: mhdRegisterTrustedDevice,
+      listTrustedDevices: mhdListTrustedDevices,
+      revokeTrustedDevice: mhdRevokeTrustedDevice,
+      generateMfaRecoveryCodes: mhdGenerateMfaRecoveryCodes,
+      countUnusedRecoveryCodes: mhdCountUnusedRecoveryCodes,
+      consumeMfaRecoveryCode: mhdConsumeMfaRecoveryCode,
       listMfaFactors: mhdListMfaFactors,
       unenrollMfaFactor: mhdUnenrollMfaFactor,
       startImpersonation: async (role, companyId) => {

@@ -8,6 +8,7 @@ import type {
   MhdMagicLinkInput,
   MhdMfaFactor,
   MhdResetPasswordInput,
+  MhdTrustedDevice,
   MhdTotpEnrollment,
 } from './Types';
 
@@ -22,6 +23,11 @@ export interface MhdAuthContextValue extends MhdAuthState {
   enrollTotpFactor: () => Promise<MhdTotpEnrollment>;
   verifyTotpFactor: (factorId: string, code: string) => Promise<void>;
   registerTrustedDevice: (label?: string) => Promise<void>;
+  listTrustedDevices: () => Promise<MhdTrustedDevice[]>;
+  revokeTrustedDevice: (deviceId: string) => Promise<void>;
+  generateMfaRecoveryCodes: () => Promise<string[]>;
+  countUnusedRecoveryCodes: () => Promise<number>;
+  consumeMfaRecoveryCode: (code: string) => Promise<void>;
   listMfaFactors: () => Promise<MhdMfaFactor[]>;
   unenrollMfaFactor: (factorId: string) => Promise<void>;
   /** Starts a "View As" session and refreshes the profile in one step. */

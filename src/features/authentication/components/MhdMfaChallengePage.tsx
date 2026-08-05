@@ -13,9 +13,18 @@ const inputClass =
 export function MhdMfaChallengePage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { listMfaFactors, verifyTotpFactor, registerTrustedDevice, refreshProfile } = useMhdAuth();
+  const {
+    listMfaFactors,
+    verifyTotpFactor,
+    registerTrustedDevice,
+    refreshProfile,
+    consumeMfaRecoveryCode,
+    unenrollMfaFactor,
+  } = useMhdAuth();
   const [factorId, setFactorId] = useState<string | null>(null);
   const [code, setCode] = useState('');
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [challengeMode, setChallengeMode] = useState<'totp' | 'recovery-code'>('totp');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -80,40 +89,129 @@ export function MhdMfaChallengePage() {
     }
   }
 
+  // Recovery codes do not create an aal2 session to refresh; this proves ownership,
+  // removes stale factors, and sends the user to set up a replacement.
+  async function handleRecoveryCodeSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (recoveryCode.trim().length === 0) {
+      setFormError('Enter a recovery code.');
+      return;
+    }
+
+    setFormError(null);
+    setIsSubmitting(true);
+    try {
+      await consumeMfaRecoveryCode(recoveryCode.trim());
+      const factors = await listMfaFactors();
+      for (const factor of factors) {
+        try {
+          await unenrollMfaFactor(factor.id);
+        } catch (error) {
+          console.error('Unable to remove MFA factor during recovery-code reset.', error);
+        }
+      }
+      navigate('/enroll-mfa', { replace: true });
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Unable to verify your recovery code.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function showTotpForm() {
+    setChallengeMode('totp');
+    setFormError(null);
+  }
+
+  function showRecoveryCodeForm() {
+    setChallengeMode('recovery-code');
+    setFormError(null);
+  }
+
   return (
     <MhdAuthLayout>
       <MhdAuthCard
         title="Enter your authentication code"
         description="Open your authenticator app and enter the current code."
       >
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label className="block text-sm font-medium text-foreground" htmlFor="mhd-mfa-code">
-              Authentication code
-            </label>
-            <input
-              id="mhd-mfa-code"
-              className={inputClass}
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
+        {challengeMode === 'totp' ? (
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label className="block text-sm font-medium text-foreground" htmlFor="mhd-mfa-code">
+                Authentication code
+              </label>
+              <input
+                id="mhd-mfa-code"
+                className={inputClass}
+                value={code}
+                onChange={(event) => setCode(event.target.value)}
+                disabled={isLoading || isSubmitting || !factorId}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                required
+              />
+            </div>
+
+            {formError && (
+              <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">{formError}</p>
+            )}
+
+            <button
+              type="submit"
               disabled={isLoading || isSubmitting || !factorId}
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              required
-            />
-          </div>
+              className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'w-full')}
+            >
+              {isSubmitting ? 'Verifying...' : 'Verify'}
+            </button>
+            <div className="text-center text-sm">
+              <button
+                type="button"
+                className="text-accent hover:underline"
+                onClick={showRecoveryCodeForm}
+              >
+                Lost your device? Use a recovery code
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form className="space-y-4" onSubmit={handleRecoveryCodeSubmit}>
+            <div>
+              <label
+                className="block text-sm font-medium text-foreground"
+                htmlFor="mhd-mfa-recovery-code"
+              >
+                Recovery code
+              </label>
+              <input
+                id="mhd-mfa-recovery-code"
+                className={inputClass}
+                value={recoveryCode}
+                onChange={(event) => setRecoveryCode(event.target.value)}
+                disabled={isSubmitting}
+                autoComplete="one-time-code"
+                required
+              />
+            </div>
 
-          {formError && <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">{formError}</p>}
+            {formError && (
+              <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">{formError}</p>
+            )}
 
-          <button
-            type="submit"
-            disabled={isLoading || isSubmitting || !factorId}
-            className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'w-full')}
-          >
-            {isSubmitting ? 'Verifying...' : 'Verify'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'w-full')}
+            >
+              {isSubmitting ? 'Verifying...' : 'Verify recovery code'}
+            </button>
+            <div className="text-center text-sm">
+              <button type="button" className="text-accent hover:underline" onClick={showTotpForm}>
+                Use an authenticator code instead
+              </button>
+            </div>
+          </form>
+        )}
       </MhdAuthCard>
     </MhdAuthLayout>
   );

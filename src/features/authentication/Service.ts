@@ -13,6 +13,7 @@ import type {
   MhdMagicLinkInput,
   MhdMfaFactor,
   MhdResetPasswordInput,
+  MhdTrustedDevice,
   MhdTotpEnrollment,
 } from './Types';
 
@@ -112,6 +113,45 @@ export async function mhdRegisterTrustedDevice(label?: string): Promise<void> {
     p_label: label,
   });
   if (error) throw new Error(`Unable to register trusted device: ${error.message}`);
+}
+
+export async function mhdListTrustedDevices(): Promise<MhdTrustedDevice[]> {
+  const { data, error } = await mhdSupabase.rpc('mhd_list_trusted_devices');
+  if (error) throw new Error(`Unable to list trusted devices: ${error.message}`);
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    label: row.label,
+    firstSeenAt: row.first_seen_at,
+    lastSeenAt: row.last_seen_at,
+    revokedAt: row.revoked_at,
+  }));
+}
+
+export async function mhdRevokeTrustedDevice(deviceId: string): Promise<void> {
+  const { error } = await mhdSupabase.rpc('mhd_revoke_trusted_device', {
+    p_device_id: deviceId,
+  });
+  if (error) throw new Error(`Unable to revoke trusted device: ${error.message}`);
+}
+
+export async function mhdGenerateMfaRecoveryCodes(): Promise<string[]> {
+  const { data, error } = await mhdSupabase.rpc('mhd_generate_mfa_recovery_codes');
+  if (error) throw new Error(`Unable to generate MFA recovery codes: ${error.message}`);
+  return data ?? [];
+}
+
+export async function mhdCountUnusedRecoveryCodes(): Promise<number> {
+  const { data, error } = await mhdSupabase.rpc('mhd_count_unused_recovery_codes');
+  if (error) throw new Error(`Unable to count unused MFA recovery codes: ${error.message}`);
+  return data ?? 0;
+}
+
+export async function mhdConsumeMfaRecoveryCode(code: string): Promise<void> {
+  const { error } = await mhdSupabase.rpc('mhd_consume_mfa_recovery_code', {
+    p_code: code,
+  });
+  if (error) throw new Error(`Unable to verify MFA recovery code: ${error.message}`);
 }
 
 /**

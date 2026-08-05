@@ -42,6 +42,11 @@ const MhdMfaChallengePage = lazy(() =>
     default: module.MhdMfaChallengePage,
   })),
 );
+const MhdAccountSecurityPage = lazy(() =>
+  import('@/features/authentication/components/MhdAccountSecurityPage').then((module) => ({
+    default: module.MhdAccountSecurityPage,
+  })),
+);
 
 // App pages
 const MhdDashboardPage = lazy(() =>
@@ -569,6 +574,7 @@ function MhdAppRoutes() {
                 access control, this guard is. */}
             <Route element={<MhdRoleGuardedRoute />}>
               <Route path="/dashboard" element={<MhdDashboardPage />} />
+              <Route path="/account/security" element={<MhdAccountSecurityPage />} />
               <Route path="/tasks" element={<MhdTasksPage />} />
               <Route path="/tasks/new" element={<MhdTaskFormPage />} />
               <Route path="/tasks/:taskId/edit" element={<MhdTaskFormPage />} />

@@ -19929,6 +19929,38 @@ export type Database = {
           },
         ]
       }
+      user_mfa_recovery_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_mfa_recovery_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_role_assignments: {
         Row: {
           created_at: string
@@ -21442,6 +21474,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      mhd_consume_mfa_recovery_code: {
+        Args: { p_code: string }
+        Returns: undefined
+      }
+      mhd_count_unused_recovery_codes: { Args: never; Returns: number }
       mhd_create_activity: {
         Args: {
           p_activity_type: string
@@ -21996,6 +22033,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      mhd_generate_mfa_recovery_codes: { Args: never; Returns: string[] }
       mhd_get_active_notice_packet_version: {
         Args: { p_company_id?: string; p_packet_key: string }
         Returns: string

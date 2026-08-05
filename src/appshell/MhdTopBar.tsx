@@ -1,4 +1,5 @@
-import { CircleHelp, LogOut, Menu, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CircleHelp, LogOut, Menu, Search, ShieldCheck } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdImpersonationMenu } from '@/features/authentication/components/MhdImpersonationMenu';
 import { MhdNotificationBell } from '@/features/notifications/components/MhdNotificationBell';
@@ -44,6 +45,14 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
 
       <div className="flex items-center gap-3">
         <MhdThemeToggle />
+        <Link
+          to="/account/security"
+          title="Account security"
+          aria-label="Account security"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+        >
+          <ShieldCheck className="h-4.5 w-4.5" aria-hidden />
+        </Link>
         <button
           type="button"
           title="Help Center"
