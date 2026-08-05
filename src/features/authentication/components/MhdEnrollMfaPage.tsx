@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 import { useMhdAuth } from '../Hook';
+import { mhdGetDeviceLabel } from '../deviceToken';
 import type { MhdTotpEnrollment } from '../Types';
 import { MhdAuthLayout } from './MhdAuthLayout';
 import { MhdAuthCard } from './MhdAuthCard';
@@ -12,7 +13,8 @@ const inputClass =
 
 export function MhdEnrollMfaPage() {
   const navigate = useNavigate();
-  const { enrollTotpFactor, verifyTotpFactor, refreshProfile } = useMhdAuth();
+  const { enrollTotpFactor, verifyTotpFactor, registerTrustedDevice, refreshProfile } =
+    useMhdAuth();
   const [enrollment, setEnrollment] = useState<MhdTotpEnrollment | null>(null);
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -62,6 +64,11 @@ export function MhdEnrollMfaPage() {
     setIsSubmitting(true);
     try {
       await verifyTotpFactor(enrollment.factorId, code.trim());
+      try {
+        await registerTrustedDevice(mhdGetDeviceLabel());
+      } catch (error) {
+        console.error('Unable to register trusted device after MFA enrollment.', error);
+      }
       await refreshProfile();
       navigate('/dashboard', { replace: true });
     } catch (error) {

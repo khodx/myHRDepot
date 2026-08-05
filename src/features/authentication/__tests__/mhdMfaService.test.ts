@@ -10,6 +10,7 @@ const { mockSupabase } = vi.hoisted(() => ({
         unenroll: vi.fn(),
       },
     },
+    rpc: vi.fn(),
   },
 }));
 
@@ -20,6 +21,7 @@ vi.mock('@/lib/supabase/supabaseClient', () => ({
 import {
   mhdEnrollTotpFactor,
   mhdListMfaFactors,
+  mhdRegisterTrustedDevice,
   mhdUnenrollMfaFactor,
   mhdVerifyTotpFactor,
 } from '../Service';
@@ -111,5 +113,30 @@ describe('mhdMfaService', () => {
     await mhdUnenrollMfaFactor('factor-id');
 
     expect(mockSupabase.auth.mfa.unenroll).toHaveBeenCalledWith({ factorId: 'factor-id' });
+  });
+
+  it('registers a trusted device with a generated browser token and label', async () => {
+    mockSupabase.rpc.mockResolvedValue({
+      data: 'trusted-device-id',
+      error: null,
+    });
+
+    await mhdRegisterTrustedDevice('Chrome on Windows');
+
+    expect(mockSupabase.rpc).toHaveBeenCalledWith('mhd_register_trusted_device', {
+      p_device_token: expect.any(String),
+      p_label: 'Chrome on Windows',
+    });
+  });
+
+  it('wraps trusted device RPC errors', async () => {
+    mockSupabase.rpc.mockResolvedValue({
+      data: null,
+      error: { message: 'RPC failed' },
+    });
+
+    await expect(mhdRegisterTrustedDevice('Chrome on Windows')).rejects.toThrow(
+      'Unable to register trusted device: RPC failed',
+    );
   });
 });

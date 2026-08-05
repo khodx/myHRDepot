@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 import { useMhdAuth } from '../Hook';
+import { mhdGetDeviceLabel } from '../deviceToken';
 import { MhdAuthLayout } from './MhdAuthLayout';
 import { MhdAuthCard } from './MhdAuthCard';
 
@@ -12,7 +13,7 @@ const inputClass =
 export function MhdMfaChallengePage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { listMfaFactors, verifyTotpFactor, refreshProfile } = useMhdAuth();
+  const { listMfaFactors, verifyTotpFactor, registerTrustedDevice, refreshProfile } = useMhdAuth();
   const [factorId, setFactorId] = useState<string | null>(null);
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -65,6 +66,11 @@ export function MhdMfaChallengePage() {
     setIsSubmitting(true);
     try {
       await verifyTotpFactor(factorId, code.trim());
+      try {
+        await registerTrustedDevice(mhdGetDeviceLabel());
+      } catch (error) {
+        console.error('Unable to register trusted device after MFA challenge.', error);
+      }
       await refreshProfile();
       navigate(from, { replace: true });
     } catch (error) {

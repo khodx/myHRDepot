@@ -21,6 +21,7 @@ export interface MhdAuthContextValue extends MhdAuthState {
   updatePassword: (input: MhdResetPasswordInput) => Promise<void>;
   enrollTotpFactor: () => Promise<MhdTotpEnrollment>;
   verifyTotpFactor: (factorId: string, code: string) => Promise<void>;
+  registerTrustedDevice: (label?: string) => Promise<void>;
   listMfaFactors: () => Promise<MhdMfaFactor[]>;
   unenrollMfaFactor: (factorId: string) => Promise<void>;
   /** Starts a "View As" session and refreshes the profile in one step. */

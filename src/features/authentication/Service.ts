@@ -1,6 +1,7 @@
 import type { Session, User } from '@supabase/supabase-js';
 import { appConfig } from '@/config/appConfig';
 import { supabaseClient as mhdSupabase } from '@/lib/supabase/supabaseClient';
+import { mhdGetOrCreateDeviceToken } from './deviceToken';
 import type {
   MhdAuthRoleName,
   MhdCompleteProfileInput,
@@ -103,6 +104,14 @@ export async function mhdListMfaFactors(): Promise<MhdMfaFactor[]> {
 export async function mhdUnenrollMfaFactor(factorId: string): Promise<void> {
   const { error } = await mhdSupabase.auth.mfa.unenroll({ factorId });
   if (error) throw error;
+}
+
+export async function mhdRegisterTrustedDevice(label?: string): Promise<void> {
+  const { error } = await mhdSupabase.rpc('mhd_register_trusted_device', {
+    p_device_token: mhdGetOrCreateDeviceToken(),
+    p_label: label,
+  });
+  if (error) throw new Error(`Unable to register trusted device: ${error.message}`);
 }
 
 /**

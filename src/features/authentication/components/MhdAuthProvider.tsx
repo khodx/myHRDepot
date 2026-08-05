@@ -8,6 +8,7 @@ import {
   mhdListCompaniesForImpersonation,
   mhdListMfaFactors,
   mhdLoadCurrentUserProfile,
+  mhdRegisterTrustedDevice,
   mhdSendPasswordReset,
   mhdSignInWithMagicLink,
   mhdSignInWithPassword,
@@ -97,6 +98,7 @@ export function MhdAuthProvider({ children }: { children: ReactNode }) {
       updatePassword: mhdUpdatePassword,
       enrollTotpFactor: mhdEnrollTotpFactor,
       verifyTotpFactor: mhdVerifyTotpFactor,
+      registerTrustedDevice: mhdRegisterTrustedDevice,
       listMfaFactors: mhdListMfaFactors,
       unenrollMfaFactor: mhdUnenrollMfaFactor,
       startImpersonation: async (role, companyId) => {

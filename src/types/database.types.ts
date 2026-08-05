@@ -19092,6 +19092,30 @@ export type Database = {
           },
         ]
       }
+      role_auth_policies: {
+        Row: {
+          allowed_factors: string[]
+          notes: string | null
+          requires_mfa: boolean
+          role_name: string
+          updated_at: string
+        }
+        Insert: {
+          allowed_factors?: string[]
+          notes?: string | null
+          requires_mfa?: boolean
+          role_name: string
+          updated_at?: string
+        }
+        Update: {
+          allowed_factors?: string[]
+          notes?: string | null
+          requires_mfa?: boolean
+          role_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       roles: {
         Row: {
           company_id: string | null
@@ -19944,6 +19968,44 @@ export type Database = {
           },
           {
             foreignKeyName: "user_role_assignments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_trusted_devices: {
+        Row: {
+          device_token: string
+          first_seen_at: string
+          id: string
+          label: string | null
+          last_seen_at: string
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          device_token: string
+          first_seen_at?: string
+          id?: string
+          label?: string | null
+          last_seen_at?: string
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          device_token?: string
+          first_seen_at?: string
+          id?: string
+          label?: string | null
+          last_seen_at?: string
+          revoked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_trusted_devices_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -21145,6 +21207,10 @@ export type Database = {
           p_subject_table: string
         }
         Returns: string
+      }
+      mhd_check_trusted_device: {
+        Args: { p_device_token: string }
+        Returns: boolean
       }
       mhd_competency_list: {
         Args: {
@@ -24307,6 +24373,16 @@ export type Database = {
           status_name: string
         }[]
       }
+      mhd_list_trusted_devices: {
+        Args: never
+        Returns: {
+          first_seen_at: string
+          id: string
+          label: string
+          last_seen_at: string
+          revoked_at: string
+        }[]
+      }
       mhd_mark_all_notifications_read: { Args: never; Returns: undefined }
       mhd_mark_notification_read: {
         Args: { p_notification_id: string }
@@ -25257,6 +25333,10 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_register_trusted_device: {
+        Args: { p_device_token: string; p_label?: string }
+        Returns: string
+      }
       mhd_reject_approval_step: {
         Args: {
           p_actor_user_id?: string
@@ -25356,6 +25436,7 @@ export type Database = {
           status: string
         }[]
       }
+      mhd_require_aal2: { Args: never; Returns: undefined }
       mhd_resolve_activity_company_id: {
         Args: { p_activity_id: string }
         Returns: string
@@ -25415,6 +25496,10 @@ export type Database = {
       mhd_reveal_submission_field: {
         Args: { p_field_id: string; p_submission_id: string }
         Returns: string
+      }
+      mhd_revoke_trusted_device: {
+        Args: { p_device_id: string }
+        Returns: undefined
       }
       mhd_satisfy_compliance_deadline: {
         Args: { p_deadline_id: string; p_note?: string }
