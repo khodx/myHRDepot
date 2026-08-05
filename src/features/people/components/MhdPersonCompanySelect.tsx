@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react';
+import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import type { MhdCompany } from '@/features/companies/Types';
 
 interface MhdPersonCompanySelectProps {
@@ -7,6 +7,8 @@ interface MhdPersonCompanySelectProps {
   onChange: (companyId: string) => void;
   includeAllOption?: boolean;
   label?: string;
+  /** Locks the field to the current value, rendered as a static display — used when the signed-in user may not reassign a person's company. */
+  disabled?: boolean;
 }
 
 export function MhdPersonCompanySelect({
@@ -15,30 +17,25 @@ export function MhdPersonCompanySelect({
   onChange,
   includeAllOption = false,
   label = 'Company',
+  disabled = false,
 }: MhdPersonCompanySelectProps) {
-  function handleChange(event: ChangeEvent<HTMLSelectElement>) {
-    onChange(event.target.value);
-  }
+  const options = [
+    ...(includeAllOption ? [{ id: 'ALL', label: 'All companies' }] : []),
+    ...companies.map((company) => ({ id: company.id, label: company.companyName })),
+  ];
 
   return (
     <label className="block text-sm font-medium text-foreground">
       {label}
-      <select
-        className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      <MhdSearchableSelect
+        className="mt-1"
+        options={options}
         value={value}
-        onChange={handleChange}
-      >
-        {includeAllOption ? (
-          <option value="ALL">All companies</option>
-        ) : (
-          <option value="">Select company</option>
-        )}
-        {companies.map((company) => (
-          <option key={company.id} value={company.id}>
-            {company.companyName}
-          </option>
-        ))}
-      </select>
+        onChange={onChange}
+        disabled={disabled}
+        placeholder={includeAllOption ? 'All companies' : 'Select company'}
+        emptyMessage="No companies match your search."
+      />
     </label>
   );
 }

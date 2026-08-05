@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { FolderOpen, Users } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdFilterBar, MhdFilterInput } from '@/components/ui/MhdFilterBar';
+import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
@@ -98,19 +99,22 @@ export function MhdEmployeeFilesPage() {
       </MhdCard>
 
       <MhdFilterBar>
-        <MhdFilterSelect
-          label="Company"
-          id="mhd-employee-files-company"
-          value={selectedCompanyId}
-          onChange={(event) => setSelectedCompanyId(event.target.value)}
-        >
-          <option value="ALL">All Companies</option>
-          {companies.map((company) => (
-            <option key={company.id} value={company.id}>
-              {company.companyName}
-            </option>
-          ))}
-        </MhdFilterSelect>
+        <label className="flex min-w-0 flex-col gap-1">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Company
+          </span>
+          <MhdSearchableSelect
+            id="mhd-employee-files-company"
+            options={[
+              { id: 'ALL', label: 'All Companies' },
+              ...companies.map((company) => ({ id: company.id, label: company.companyName })),
+            ]}
+            value={selectedCompanyId}
+            onChange={(companyId) => setSelectedCompanyId(companyId)}
+            placeholder="All Companies"
+            emptyMessage="No companies match your search."
+          />
+        </label>
         <MhdFilterInput
           label="Search"
           placeholder="Search employees"

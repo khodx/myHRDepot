@@ -12,6 +12,8 @@ export function MhdPersonFormPage() {
   const navigate = useNavigate();
   const { profile } = useMhdAuth();
   const actorUserId = profile?.userId ?? '';
+  const canEditCompany = profile?.companyIsPlatformOrg ?? false;
+  const currentUserCompanyId = profile?.companyId ?? '';
   const isEdit = Boolean(personId);
   const companiesQuery = useMhdCompanies({ searchTerm: '' });
   const companies = useMemo(() => companiesQuery.data ?? [], [companiesQuery.data]);
@@ -49,7 +51,8 @@ export function MhdPersonFormPage() {
         <MhdPersonForm
           companies={companies}
           person={personQuery.data ?? null}
-          defaultCompanyId="ALL"
+          canEditCompany={canEditCompany}
+          currentUserCompanyId={currentUserCompanyId}
           onCreate={async (input) => {
             const person = await mhdPersonService.createPerson(input, { actorUserId });
             navigate(`/people/${person.id}`);

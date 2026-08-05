@@ -1,6 +1,7 @@
 import { MhdDateRangeField } from '@/components/ui/MhdDateRangeField';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdMultiSelectCombobox } from '@/components/ui/MhdMultiSelectCombobox';
+import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import type { MhdCompany } from '@/features/companies/Types';
 import type {
   MhdTaskAssignableUser,
@@ -59,19 +60,22 @@ export function MhdTaskFilterBar({
     <div className="space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="sm:w-[30%]">
-          <MhdFilterSelect
-            label="Company"
-            value={companyValue}
-            disabled={!canEditCompany}
-            onChange={(event) => onChange({ ...filters, companyId: event.target.value })}
-          >
-            <option value="ALL">All companies</option>
-            {companies.map((company) => (
-              <option key={company.id} value={company.id}>
-                {company.companyName}
-              </option>
-            ))}
-          </MhdFilterSelect>
+          <label className="flex min-w-0 flex-col gap-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Company
+            </span>
+            <MhdSearchableSelect
+              options={[
+                { id: 'ALL', label: 'All companies' },
+                ...companies.map((company) => ({ id: company.id, label: company.companyName })),
+              ]}
+              value={companyValue}
+              disabled={!canEditCompany}
+              onChange={(companyId) => onChange({ ...filters, companyId })}
+              placeholder="All companies"
+              emptyMessage="No companies match your search."
+            />
+          </label>
         </div>
 
         <div className="sm:w-[70%]">

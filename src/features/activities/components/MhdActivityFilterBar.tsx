@@ -1,4 +1,5 @@
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import {
   MHD_ACTIVITY_STATUSES,
   MHD_ACTIVITY_TYPES,
@@ -45,20 +46,23 @@ export function MhdActivityFilterBar({ filters, onChange, companies, people, tas
       />
 
       {companies.length > 0 ? (
-        <MhdFilterSelect
-          label="Company"
-          value={filters.companyId}
-          onChange={(event) =>
-            update({ companyId: event.target.value as MhdActivityBoardFilters['companyId'] })
-          }
-        >
-          <option value="ALL">All companies</option>
-          {companies.map((company) => (
-            <option key={company.id} value={company.id}>
-              {company.label}
-            </option>
-          ))}
-        </MhdFilterSelect>
+        <label className="flex min-w-0 flex-col gap-1">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Company
+          </span>
+          <MhdSearchableSelect
+            options={[
+              { id: 'ALL', label: 'All companies' },
+              ...companies.map((company) => ({ id: company.id, label: company.label })),
+            ]}
+            value={filters.companyId}
+            onChange={(companyId) =>
+              update({ companyId: companyId as MhdActivityBoardFilters['companyId'] })
+            }
+            placeholder="All companies"
+            emptyMessage="No companies match your search."
+          />
+        </label>
       ) : null}
 
       <MhdFilterSelect

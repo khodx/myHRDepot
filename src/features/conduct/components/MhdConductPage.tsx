@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
@@ -273,19 +274,19 @@ export function MhdConductPage() {
         />
 
         {companyOptions.length > 0 ? (
-          <MhdFilterSelect
-            label="Company"
-            id="mhd-conduct-filter-company"
-            value={filters.companyId}
-            onChange={(event) => update({ companyId: event.target.value })}
-          >
-            <option value="ALL">All companies</option>
-            {companyOptions.map((company) => (
-              <option key={company.id} value={company.id}>
-                {company.label}
-              </option>
-            ))}
-          </MhdFilterSelect>
+          <label className="flex min-w-0 flex-col gap-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Company
+            </span>
+            <MhdSearchableSelect
+              id="mhd-conduct-filter-company"
+              options={[{ id: 'ALL', label: 'All companies' }, ...companyOptions]}
+              value={filters.companyId}
+              onChange={(companyId) => update({ companyId })}
+              placeholder="All companies"
+              emptyMessage="No companies match your search."
+            />
+          </label>
         ) : null}
 
         <MhdFilterSelect

@@ -11,6 +11,7 @@ export function MhdUserFormPage() {
   const navigate = useNavigate();
   const { profile } = useMhdAuth();
   const actorUserId = profile?.userId ?? '';
+  const canEditCompany = profile?.companyIsPlatformOrg ?? false;
   const userQuery = useMhdPlatformUser(userId ?? '');
   const updateUser = useMhdUpdatePlatformUser(userId ?? '', { actorUserId });
 
@@ -41,6 +42,7 @@ export function MhdUserFormPage() {
           <MhdUserForm
             user={userQuery.data}
             isSubmitting={updateUser.isPending}
+            canEditCompany={canEditCompany}
             onSubmit={handleSubmit}
             onCancel={() => navigate(userId ? `/users/${userId}` : '/users')}
           />

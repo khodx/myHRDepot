@@ -4,6 +4,7 @@ import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { MhdMultiSelectCombobox } from '@/components/ui/MhdMultiSelectCombobox';
+import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import { mhdTaskFormSchema, type MhdTaskFormValues } from '@/features/tasks/Schemas';
 import { useMhdCompanyHolidays } from '@/features/timeattendance/Hook';
 import { addBusinessDays } from '@/utils/mhdBusinessDays';
@@ -202,25 +203,15 @@ export function MhdTaskForm({
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="text-sm font-medium text-foreground md:col-span-2">
           Company
-          {canEditCompany ? (
-            <select
-              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              value={values.companyId}
-              onChange={(event) => updateValue('companyId', event.target.value)}
-            >
-              <option value="">Select company</option>
-              {companies.map((company) => (
-                <option key={company.id} value={company.id}>
-                  {company.companyName}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <p className="mt-1 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
-              {companies.find((company) => company.id === values.companyId)?.companyName ??
-                'Your company'}
-            </p>
-          )}
+          <MhdSearchableSelect
+            className="mt-1"
+            options={companies.map((company) => ({ id: company.id, label: company.companyName }))}
+            value={values.companyId}
+            onChange={(companyId) => updateValue('companyId', companyId)}
+            disabled={!canEditCompany}
+            placeholder="Select company"
+            emptyMessage="No companies match your search."
+          />
         </label>
 
         <label className="text-sm font-medium text-foreground md:col-span-2">

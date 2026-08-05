@@ -8,7 +8,10 @@ import { MhdPersonCompanySelect } from './MhdPersonCompanySelect';
 interface MhdPersonFormProps {
   companies: MhdCompany[];
   person: MhdPerson | null;
-  defaultCompanyId: string;
+  /** The signed-in user's own company — the default for a new person's Company field. */
+  currentUserCompanyId: string;
+  /** Only platform-org members may change Company; everyone else gets it read-only. */
+  canEditCompany: boolean;
   onCreate: (input: MhdCreatePersonInput) => Promise<void>;
   onUpdate: (input: MhdUpdatePersonInput) => Promise<void>;
   onCancel: () => void;
@@ -28,7 +31,8 @@ const emptyValues: MhdPersonFormValues = {
 export function MhdPersonForm({
   companies,
   person,
-  defaultCompanyId,
+  currentUserCompanyId,
+  canEditCompany,
   onCreate,
   onUpdate,
   onCancel,
@@ -55,8 +59,11 @@ export function MhdPersonForm({
       return;
     }
 
-    setValues({ ...emptyValues, companyId: defaultCompanyId === 'ALL' ? '' : defaultCompanyId });
-  }, [defaultCompanyId, person]);
+    setValues({
+      ...emptyValues,
+      companyId: canEditCompany ? (companies[0]?.id ?? currentUserCompanyId) : currentUserCompanyId,
+    });
+  }, [canEditCompany, companies, currentUserCompanyId, person]);
 
   function updateField(field: keyof MhdPersonFormValues, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -103,6 +110,7 @@ export function MhdPersonForm({
             companies={companies}
             value={values.companyId}
             onChange={(companyId) => updateField('companyId', companyId)}
+            disabled={!canEditCompany}
           />
         </div>
         <label className="block text-sm font-medium text-foreground">

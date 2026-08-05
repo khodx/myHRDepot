@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdPeople } from '@/features/people/Hook';
 import { mhdUpdatePlatformUserSchema } from '@/features/users/Schemas';
@@ -8,11 +9,19 @@ import type { MhdPlatformUser, MhdUpdatePlatformUserInput } from '@/features/use
 interface MhdUserFormProps {
   user: MhdPlatformUser;
   isSubmitting: boolean;
+  /** Only platform-org members may change Company; everyone else gets it read-only. */
+  canEditCompany: boolean;
   onSubmit: (values: MhdUpdatePlatformUserInput) => void;
   onCancel?: () => void;
 }
 
-export function MhdUserForm({ user, isSubmitting, onSubmit, onCancel }: MhdUserFormProps) {
+export function MhdUserForm({
+  user,
+  isSubmitting,
+  canEditCompany,
+  onSubmit,
+  onCancel,
+}: MhdUserFormProps) {
   const [companyId, setCompanyId] = useState(user.companyId);
   const [personId, setPersonId] = useState<string | null>(user.personId);
   const [isAdmin, setIsAdmin] = useState(user.isAdmin);
@@ -67,19 +76,16 @@ export function MhdUserForm({ user, isSubmitting, onSubmit, onCancel }: MhdUserF
         <label className="block text-sm font-medium text-slate-700" htmlFor="mhd-user-company">
           Company
         </label>
-        <select
+        <MhdSearchableSelect
           id="mhd-user-company"
-          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="mt-1"
+          options={companies.map((company) => ({ id: company.id, label: company.companyName }))}
           value={companyId}
-          onChange={(event) => setCompanyId(event.target.value)}
-          disabled={isSubmitting}
-        >
-          {companies.map((company) => (
-            <option key={company.id} value={company.id}>
-              {company.companyName}
-            </option>
-          ))}
-        </select>
+          onChange={setCompanyId}
+          disabled={isSubmitting || !canEditCompany}
+          placeholder="Select company"
+          emptyMessage="No companies match your search."
+        />
       </div>
 
       <div>
