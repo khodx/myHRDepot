@@ -2,6 +2,16 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '@/app/App';
 
+// Hoisted so the mock factory below returns the SAME function reference on
+// every call. MhdProtectedRoute's mfaGate effect depends on `listMfaFactors`
+// by identity — a fresh vi.fn() per render (as an inline arrow-function
+// mock would produce) reruns the effect every render, which sets state,
+// which re-renders, which reruns the effect again: an infinite loop that
+// exhausts the test worker's heap instead of failing cleanly.
+const mockListMfaFactors = vi.hoisted(() =>
+  vi.fn().mockResolvedValue([{ id: 'factor-1', status: 'verified', friendlyName: 'Authenticator' }]),
+);
+
 vi.mock('@/config/env', () => ({
   runtimeEnv: {
     VITE_APP_NAME: 'My HR Depot',
@@ -39,6 +49,10 @@ vi.mock('@/features/authentication/Hook', () => ({
     signOut: vi.fn(),
     sendPasswordReset: vi.fn(),
     updatePassword: vi.fn(),
+    // MhdProtectedRoute's MFA gate calls this on mount; a verified factor
+    // keeps this smoke test on /dashboard instead of redirecting to
+    // /enroll-mfa. See MhdProtectedRoute.tsx's mfaGate effect.
+    listMfaFactors: mockListMfaFactors,
   }),
 }));
 
