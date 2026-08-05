@@ -119,5 +119,4 @@ export interface MhdCompleteProfileInput {
   lastName: string;
   preferredName: string;
   phone: string;
-  mobile: string;
 }

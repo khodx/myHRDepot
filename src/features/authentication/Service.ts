@@ -309,7 +309,6 @@ export async function mhdCompleteOwnProfile(input: MhdCompleteProfileInput): Pro
     p_preferred_name:
       input.preferredName.trim().length > 0 ? input.preferredName.trim() : undefined,
     p_phone: input.phone.trim().length > 0 ? input.phone.trim() : undefined,
-    p_mobile: input.mobile.trim().length > 0 ? input.mobile.trim() : undefined,
   });
 
   if (error) {
