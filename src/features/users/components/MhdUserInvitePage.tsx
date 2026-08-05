@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import {
+  MhdPersonIdentityFields,
+  mhdFormatPersonPhoneInput,
+  mhdValidatePersonIdentityFields,
+  type MhdPersonIdentityFieldsValues,
+} from '@/components/ui/MhdPersonIdentityFields';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdPeople } from '@/features/people/Hook';
@@ -50,7 +56,9 @@ export function MhdUserInvitePage() {
   const [newLastName, setNewLastName] = useState('');
   const [newPreferredName, setNewPreferredName] = useState('');
   const [newPhone, setNewPhone] = useState('');
-  const [newMobile, setNewMobile] = useState('');
+  const [newPersonFieldErrors, setNewPersonFieldErrors] = useState<
+    Partial<Record<keyof MhdPersonIdentityFieldsValues, string>>
+  >({});
   const [isCreatingPerson, setIsCreatingPerson] = useState(false);
 
   const companiesQuery = useMhdCompanies({ searchTerm: '' });
@@ -82,6 +90,33 @@ export function MhdUserInvitePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-check when the company's people list changes
   }, [peopleState.people]);
 
+  function clearNewPersonFieldError(field: keyof MhdPersonIdentityFieldsValues) {
+    setNewPersonFieldErrors((current) => {
+      if (!current[field]) {
+        return current;
+      }
+
+      const { [field]: _removed, ...next } = current;
+      return next;
+    });
+  }
+
+  function handleNewPersonFieldChange(field: keyof MhdPersonIdentityFieldsValues, value: string) {
+    if (field === 'firstName') {
+      setNewFirstName(value);
+    } else if (field === 'middleName') {
+      setNewMiddleName(value);
+    } else if (field === 'lastName') {
+      setNewLastName(value);
+    } else if (field === 'preferredName') {
+      setNewPreferredName(value);
+    } else {
+      setNewPhone(mhdFormatPersonPhoneInput(value));
+    }
+
+    clearNewPersonFieldError(field);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
@@ -91,10 +126,21 @@ export function MhdUserInvitePage() {
     if (personMode === 'existing') {
       personId = existingPersonId;
     } else if (personMode === 'new') {
-      if (newFirstName.trim().length === 0 || newLastName.trim().length === 0) {
-        setFormError('First and last name are required to create a new person.');
+      const nextNewPersonFieldErrors = mhdValidatePersonIdentityFields({
+        firstName: newFirstName,
+        middleName: newMiddleName,
+        lastName: newLastName,
+        preferredName: newPreferredName,
+        phone: newPhone,
+      });
+
+      if (Object.keys(nextNewPersonFieldErrors).length > 0) {
+        setNewPersonFieldErrors(nextNewPersonFieldErrors);
         return;
       }
+
+      setNewPersonFieldErrors({});
+
       if (!profile?.userId) {
         setFormError('Unable to determine the current user.');
         return;
@@ -111,7 +157,6 @@ export function MhdUserInvitePage() {
             preferredName: newPreferredName,
             email,
             phone: newPhone,
-            mobile: newMobile,
           },
           { actorUserId: profile.userId },
         );
@@ -251,107 +296,25 @@ export function MhdUserInvitePage() {
 
             {personMode === 'new' ? (
               <div className="space-y-3 rounded-md border border-border bg-muted/40 p-3">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label
-                      className="block text-xs font-medium text-slate-700"
-                      htmlFor="mhd-new-person-first-name"
-                    >
-                      First name
-                    </label>
-                    <input
-                      id="mhd-new-person-first-name"
-                      className={inputClass}
-                      value={newFirstName}
-                      onChange={(event) => setNewFirstName(event.target.value)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className="block text-xs font-medium text-slate-700"
-                      htmlFor="mhd-new-person-last-name"
-                    >
-                      Last name
-                    </label>
-                    <input
-                      id="mhd-new-person-last-name"
-                      className={inputClass}
-                      value={newLastName}
-                      onChange={(event) => setNewLastName(event.target.value)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label
-                      className="block text-xs font-medium text-slate-700"
-                      htmlFor="mhd-new-person-middle-name"
-                    >
-                      Middle name (optional)
-                    </label>
-                    <input
-                      id="mhd-new-person-middle-name"
-                      className={inputClass}
-                      value={newMiddleName}
-                      onChange={(event) => setNewMiddleName(event.target.value)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className="block text-xs font-medium text-slate-700"
-                      htmlFor="mhd-new-person-preferred-name"
-                    >
-                      Preferred name (optional)
-                    </label>
-                    <input
-                      id="mhd-new-person-preferred-name"
-                      className={inputClass}
-                      value={newPreferredName}
-                      onChange={(event) => setNewPreferredName(event.target.value)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label
-                      className="block text-xs font-medium text-slate-700"
-                      htmlFor="mhd-new-person-phone"
-                    >
-                      Phone (optional)
-                    </label>
-                    <input
-                      id="mhd-new-person-phone"
-                      type="tel"
-                      className={inputClass}
-                      value={newPhone}
-                      onChange={(event) => setNewPhone(event.target.value)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className="block text-xs font-medium text-slate-700"
-                      htmlFor="mhd-new-person-mobile"
-                    >
-                      Mobile (optional)
-                    </label>
-                    <input
-                      id="mhd-new-person-mobile"
-                      type="tel"
-                      className={inputClass}
-                      value={newMobile}
-                      onChange={(event) => setNewMobile(event.target.value)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  The email above is used as this person's primary email too.
-                </p>
+                <MhdPersonIdentityFields
+                  idPrefix="mhd-new-person"
+                  values={{
+                    firstName: newFirstName,
+                    middleName: newMiddleName,
+                    lastName: newLastName,
+                    preferredName: newPreferredName,
+                    phone: newPhone,
+                  }}
+                  onFieldChange={handleNewPersonFieldChange}
+                  fieldErrors={newPersonFieldErrors}
+                  disabled={isSubmitting}
+                  email={{
+                    value: email,
+                    label: 'entered above',
+                    helpText:
+                      "This becomes this person's primary email — it's the same address entered above for their login.",
+                  }}
+                />
               </div>
             ) : null}
           </fieldset>

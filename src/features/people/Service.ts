@@ -147,7 +147,7 @@ export const mhdPersonService = {
         p_preferred_name: normalizeOptionalText(input.preferredName),
         p_email: normalizeOptionalText(input.email),
         p_phone: normalizeOptionalText(input.phone),
-        p_mobile: normalizeOptionalText(input.mobile),
+        p_mobile: normalizeOptionalText(input.mobile ?? ''),
         p_actor_user_id: context.actorUserId,
       })
       .returns<MhdPersonMutationRow[]>();

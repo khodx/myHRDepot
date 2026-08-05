@@ -67,11 +67,12 @@ export interface MhdCreatePersonInput {
   preferredName: string;
   email: string;
   phone: string;
-  mobile: string;
+  mobile?: string;
 }
 
 export interface MhdUpdatePersonInput extends MhdCreatePersonInput {
   personId: MhdPersonId;
+  mobile: string;
 }
 
 export interface MhdPeopleListFilters {
