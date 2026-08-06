@@ -9,8 +9,7 @@ export function MhdTooltip({ label, children }: MhdTooltipProps) {
       <button
         type="button"
         aria-label={label}
-        title={children}
-        className="inline-flex size-4 items-center justify-center rounded-full border border-border bg-background text-[10px] font-semibold leading-none text-muted-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="inline-flex size-4 items-center justify-center rounded-full border border-muted-foreground/60 bg-background text-[10px] font-semibold leading-none text-muted-foreground transition-opacity hover:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         ?
       </button>
