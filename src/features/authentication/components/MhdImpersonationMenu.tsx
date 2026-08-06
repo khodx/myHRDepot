@@ -1,21 +1,43 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, LogOut } from 'lucide-react';
 import { useMhdAuth } from '../Hook';
-import type { MhdAuthRoleName, MhdImpersonationCompanyOption } from '../Types';
+import type {
+  MhdAuthRoleName,
+  MhdCurrentUserProfile,
+  MhdImpersonationCompanyOption,
+} from '../Types';
 
-const MHD_IMPERSONATION_ROLES: MhdAuthRoleName[] = [
-  'Platform Admin',
-  'HR Partner',
-  'Client Admin',
-  'Client User',
-  'Viewer',
-];
+type MhdImpersonationTier = 'platform-admin' | 'client-admin' | 'hr-partner';
 
 /**
- * "View As" control for the top bar user chip. Only a REAL Platform Admin
- * (profile.realIsAdmin — never the impersonation-overridden profile.isAdmin)
- * ever sees this open; everyone else keeps the plain, non-interactive chip
- * that was here before.
+ * Mirrors the server-side tiers in mhd_start_impersonation: Platform Admin
+ * (any role, any company), Client Admin (any company-scoped role, forced to
+ * their own company), HR Partner (their level and downward, forced to their
+ * own company). The server is still the real authority — this only decides
+ * what the UI offers, so a stale client can't offer a choice the RPC would
+ * reject anyway.
+ */
+function mhdGetImpersonationTier(
+  profile: MhdCurrentUserProfile | null,
+): MhdImpersonationTier | null {
+  if (!profile) return null;
+  if (profile.realIsAdmin) return 'platform-admin';
+  if (profile.realRoleNames.includes('Client Admin')) return 'client-admin';
+  if (profile.realRoleNames.includes('HR Partner')) return 'hr-partner';
+  return null;
+}
+
+const MHD_IMPERSONATION_ALLOWED_ROLES: Record<MhdImpersonationTier, MhdAuthRoleName[]> = {
+  'platform-admin': ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+  'client-admin': ['Client Admin', 'HR Partner', 'Client User', 'Viewer'],
+  'hr-partner': ['HR Partner', 'Client User', 'Viewer'],
+};
+
+/**
+ * "View As" control for the top bar user chip. Gated on the REAL role
+ * (never the impersonation-overridden profile.roleNames/isAdmin) so that
+ * whoever opened the menu keeps seeing it — and the same target roles —
+ * while actively impersonating.
  */
 export function MhdImpersonationMenu() {
   const { profile, startImpersonation, endImpersonation, listCompaniesForImpersonation } =
@@ -27,6 +49,8 @@ export function MhdImpersonationMenu() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const tier = mhdGetImpersonationTier(profile);
 
   const initials = profile
     ? `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase() || '??'
@@ -43,7 +67,7 @@ export function MhdImpersonationMenu() {
     return () => document.removeEventListener('mousedown', handleOutside);
   }, [isOpen]);
 
-  if (!profile?.realIsAdmin) {
+  if (!profile || !tier) {
     return (
       <div className="hidden items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 shadow-sm sm:flex">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-on">
@@ -59,10 +83,15 @@ export function MhdImpersonationMenu() {
     );
   }
 
+  const allowedRoles = MHD_IMPERSONATION_ALLOWED_ROLES[tier];
+
   async function handleOpen() {
     setIsOpen((prev) => !prev);
     setError(null);
-    if (!companies) {
+    // Only a Platform Admin needs the company picker — Client Admin/HR
+    // Partner are always forced to their own company server-side, and
+    // mhd_list_companies_for_impersonation() returns nothing for them anyway.
+    if (tier === 'platform-admin' && !companies) {
       try {
         setCompanies(await listCompaniesForImpersonation());
       } catch {
@@ -73,7 +102,7 @@ export function MhdImpersonationMenu() {
 
   function handlePickRole(role: MhdAuthRoleName) {
     setError(null);
-    if (role === 'Platform Admin') {
+    if (tier !== 'platform-admin' || role === 'Platform Admin') {
       void handleStart(role, null);
       return;
     }
@@ -158,10 +187,10 @@ export function MhdImpersonationMenu() {
           )}
 
           <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            View As
+            {tier === 'platform-admin' ? 'View As' : 'View As (within your company)'}
           </p>
           <div className="flex flex-col gap-1">
-            {MHD_IMPERSONATION_ROLES.map((role) => (
+            {allowedRoles.map((role) => (
               <button
                 key={role}
                 type="button"

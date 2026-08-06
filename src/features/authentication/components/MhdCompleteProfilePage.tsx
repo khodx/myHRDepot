@@ -90,6 +90,18 @@ export function MhdCompleteProfilePage() {
       await refreshProfile();
       navigate('/dashboard', { replace: true });
     } catch (error) {
+      // The RPC only allows this once; if the account got linked after this
+      // page's profile snapshot was fetched (e.g. an earlier successful
+      // submission in another tab), the server-side guard rejects the
+      // resubmit. Recover the same way MhdProtectedRoute's own gate would —
+      // refresh and move on — instead of leaving the user stuck resubmitting
+      // a form that can never succeed.
+      if (error instanceof Error && error.message.includes('already linked to a person record')) {
+        await refreshProfile();
+        navigate('/dashboard', { replace: true });
+        return;
+      }
+
       setFormError(error instanceof Error ? error.message : 'Unable to complete your profile.');
     } finally {
       setIsSubmitting(false);

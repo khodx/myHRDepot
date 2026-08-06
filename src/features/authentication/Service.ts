@@ -187,11 +187,27 @@ export async function mhdLoadCurrentUserProfile(
   if (userError) throw userError;
   if (!userRow) return null;
 
-  const [{ data: roleNames, error: roleError }, impersonation] = await Promise.all([
-    mhdSupabase.rpc('mhd_current_user_roles'),
-    mhdGetImpersonationStatus(),
-  ]);
+  const [{ data: roleNames, error: roleError }, { data: realRoleRows, error: realRoleError }, impersonation] =
+    await Promise.all([
+      mhdSupabase.rpc('mhd_current_user_roles'),
+      // Direct query, not the mhd_current_user_roles() RPC: that RPC coalesces
+      // to the impersonated role while a session is active. user_role_assignments'
+      // own SELECT policy allows `user_id = auth.uid()` unconditionally, so this
+      // always reflects the REAL account regardless of impersonation state — the
+      // same guarantee realIsAdmin already gives for the is_admin flag.
+      mhdSupabase.from('user_role_assignments').select('roles:role_id ( role_name )').eq('user_id', authUserId),
+      mhdGetImpersonationStatus(),
+    ]);
   if (roleError) throw roleError;
+  if (realRoleError) throw realRoleError;
+
+  const realRoleNames = (
+    realRoleRows && realRoleRows.length > 0
+      ? realRoleRows.map((row) => row.roles?.role_name).filter((name): name is string => Boolean(name))
+      : userRow.is_admin
+        ? ['Platform Admin']
+        : []
+  ) as MhdAuthRoleName[];
 
   // While impersonating, present the impersonated identity everywhere a
   // component reads `profile.*` for role/company/admin gating — that's what
@@ -223,6 +239,7 @@ export async function mhdLoadCurrentUserProfile(
     lastName: userRow.people?.last_name ?? null,
     roleNames: (roleNames ?? []) as MhdAuthRoleName[],
     realIsAdmin: userRow.is_admin ?? false,
+    realRoleNames,
     impersonation,
   };
 }

@@ -37,6 +37,13 @@ export interface MhdCurrentUserProfile {
    *  Platform Admin impersonating a lower role would lose the ability to
    *  see the "View As" menu / exit banner while using it. */
   realIsAdmin: boolean;
+  /** REAL role assignments for the signed-in account, never overridden by an
+   *  active impersonation session (unlike `roleNames`). Use this alongside
+   *  `realIsAdmin` to decide whether to show impersonation controls and
+   *  which roles this account is actually permitted to impersonate — the
+   *  server (mhd_start_impersonation) is still the real authority, this is
+   *  only for deciding what the UI offers. */
+  realRoleNames: MhdAuthRoleName[];
   impersonation: MhdImpersonationStatus;
 }
 
