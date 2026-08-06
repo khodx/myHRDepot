@@ -15,6 +15,15 @@ export const MHD_FIELD_INPUT_DISABLED_CLASS =
 export const MHD_FIELD_LABEL_CLASS =
   'flex flex-nowrap items-center gap-1.5 whitespace-nowrap text-sm font-medium text-foreground';
 
+/**
+ * The elevated "3D" card shell (radius, border, shadow) shared by every
+ * place a person-identity form is presented — the standalone Complete
+ * Profile page and the embedded new-person panel on Invite User — so a
+ * shadow/radius change only has to happen once.
+ */
+export const MHD_ELEVATED_CARD_CLASS =
+  'rounded-xl border border-border bg-card shadow-[0_24px_48px_-12px_rgba(0,0,0,0.28),0_10px_20px_-8px_rgba(0,0,0,0.18)]';
+
 interface MhdFieldLabelProps {
   htmlFor: string;
   required?: boolean;

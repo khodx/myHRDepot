@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
-import { MhdFieldLabel, MHD_FIELD_INPUT_CLASS } from '@/components/ui/MhdFieldLabel';
+import {
+  MhdFieldLabel,
+  MHD_ELEVATED_CARD_CLASS,
+  MHD_FIELD_INPUT_CLASS,
+} from '@/components/ui/MhdFieldLabel';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   MhdPersonIdentityFields,
@@ -17,6 +21,7 @@ import { mhdPersonService } from '@/features/people/Service';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { useMhdInvitePlatformUser } from '@/features/users/Hook';
 import { mhdInvitePlatformUserSchema } from '@/features/users/Schemas';
+import { cn } from '@/utils/cn';
 
 // The three ways to end up with a login+person: link one that already
 // exists, create the person as part of this same invite instead of a
@@ -291,7 +296,7 @@ export function MhdUserInvitePage() {
             ) : null}
 
             {personMode === 'new' ? (
-              <div className="space-y-3 rounded-md border border-border bg-muted/40 p-3">
+              <div className={cn(MHD_ELEVATED_CARD_CLASS, 'space-y-3 p-3')}>
                 <MhdPersonIdentityFields
                   idPrefix="mhd-new-person"
                   values={{
