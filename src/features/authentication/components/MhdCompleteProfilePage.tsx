@@ -94,7 +94,7 @@ export function MhdCompleteProfilePage() {
   return (
     <MhdAuthLayout maxWidthClassName="max-w-[47.32rem]">
       <MhdAuthCard
-        className="p-8"
+        className="px-8 py-[2.2rem]"
         title="Complete Your Profile"
         description={`Tell us who you are before continuing${profile?.email ? ` — you're signed in as ${profile.email}.` : '.'}`}
       >

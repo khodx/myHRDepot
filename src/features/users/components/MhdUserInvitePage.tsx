@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFieldLabel, MHD_FIELD_INPUT_CLASS } from '@/components/ui/MhdFieldLabel';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   MhdPersonIdentityFields,
@@ -36,9 +37,6 @@ const ROLE_NAME_OPTIONS: MhdAuthRoleName[] = [
   'Client User',
   'Viewer',
 ];
-
-const inputClass =
-  'mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 
 export function MhdUserInvitePage() {
   const navigate = useNavigate();
@@ -199,13 +197,13 @@ export function MhdUserInvitePage() {
       <MhdCard className="p-5">
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="mhd-user-email">
+            <MhdFieldLabel htmlFor="mhd-user-email" required>
               Email
-            </label>
+            </MhdFieldLabel>
             <input
               id="mhd-user-email"
               type="email"
-              className={inputClass}
+              className={MHD_FIELD_INPUT_CLASS}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               disabled={isSubmitting}
@@ -215,12 +213,10 @@ export function MhdUserInvitePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="mhd-user-company">
-              Company
-            </label>
+            <MhdFieldLabel htmlFor="mhd-user-company">Company</MhdFieldLabel>
             <select
               id="mhd-user-company"
-              className={inputClass}
+              className={MHD_FIELD_INPUT_CLASS}
               value={companyId}
               onChange={(event) => setCompanyId(event.target.value)}
               disabled={isSubmitting || companiesQuery.isLoading}
@@ -278,7 +274,7 @@ export function MhdUserInvitePage() {
             {personMode === 'existing' ? (
               <select
                 aria-label="Linked person"
-                className={inputClass}
+                className={MHD_FIELD_INPUT_CLASS}
                 value={existingPersonId ?? ''}
                 onChange={(event) =>
                   setExistingPersonId(event.target.value.length > 0 ? event.target.value : null)
@@ -310,7 +306,6 @@ export function MhdUserInvitePage() {
                   disabled={isSubmitting}
                   email={{
                     value: email,
-                    label: 'entered above',
                     helpText:
                       "This becomes this person's primary email — it's the same address entered above for their login.",
                   }}
@@ -320,12 +315,10 @@ export function MhdUserInvitePage() {
           </fieldset>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="mhd-user-role">
-              Initial role
-            </label>
+            <MhdFieldLabel htmlFor="mhd-user-role">Initial role</MhdFieldLabel>
             <select
               id="mhd-user-role"
-              className={inputClass}
+              className={MHD_FIELD_INPUT_CLASS}
               value={roleName ?? ''}
               onChange={(event) =>
                 setRoleName(

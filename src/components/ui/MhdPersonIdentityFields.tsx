@@ -1,4 +1,8 @@
-import { MhdTooltip } from '@/components/ui/MhdTooltip';
+import {
+  MHD_FIELD_INPUT_CLASS,
+  MHD_FIELD_INPUT_DISABLED_CLASS,
+  MhdFieldLabel,
+} from '@/components/ui/MhdFieldLabel';
 import { cn } from '@/utils/cn';
 
 export interface MhdPersonIdentityFieldsValues {
@@ -18,17 +22,9 @@ export interface MhdPersonIdentityFieldsProps {
   email?: {
     value: string;
     helpText: string;
-    label?: string;
   } | null;
 }
 
-const inputClass =
-  'mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
-const disabledInputClass =
-  'mt-1 w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground focus-visible:outline-none';
-const labelClass = 'flex flex-nowrap items-center gap-1.5 whitespace-nowrap text-sm font-medium text-foreground';
-const requiredNoteClass = 'text-xs font-normal text-muted-foreground';
-const optionalNoteClass = 'text-muted-foreground';
 const phoneErrorMessage = 'Enter a complete phone number, e.g. (555) 123-4567.';
 
 export const MHD_PERSON_IDENTITY_PHONE_PATTERN = /^\(\d{3}\) \d{3}-\d{4}$/;
@@ -85,17 +81,19 @@ export function MhdPersonIdentityFields({
     <>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-first-name`}>
+          <MhdFieldLabel
+            htmlFor={`${idPrefix}-first-name`}
+            required
+            tooltip={{
+              label: 'About first name',
+              children: 'Enter your legal or work profile first name for HR records.',
+            }}
+          >
             First name
-            <span className="ml-1 text-red-500">*</span>
-            <span className={requiredNoteClass}>(required)</span>
-            <MhdTooltip label="About first name">
-              Enter your legal or work profile first name for HR records.
-            </MhdTooltip>
-          </label>
+          </MhdFieldLabel>
           <input
             id={`${idPrefix}-first-name`}
-            className={cn(inputClass, fieldErrors.firstName && 'border-red-400')}
+            className={cn(MHD_FIELD_INPUT_CLASS, fieldErrors.firstName && 'border-red-400')}
             value={values.firstName}
             onChange={(event) => onFieldChange('firstName', event.target.value)}
             disabled={disabled}
@@ -114,15 +112,18 @@ export function MhdPersonIdentityFields({
           )}
         </div>
         <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-middle-name`}>
-            Middle name <span className={optionalNoteClass}>(optional)</span>
-            <MhdTooltip label="About middle name">
-              Add your middle name or initial if you use one in company records.
-            </MhdTooltip>
-          </label>
+          <MhdFieldLabel
+            htmlFor={`${idPrefix}-middle-name`}
+            tooltip={{
+              label: 'About middle name',
+              children: 'Add your middle name or initial if you use one in company records.',
+            }}
+          >
+            Middle name
+          </MhdFieldLabel>
           <input
             id={`${idPrefix}-middle-name`}
-            className={inputClass}
+            className={MHD_FIELD_INPUT_CLASS}
             value={values.middleName}
             onChange={(event) => onFieldChange('middleName', event.target.value)}
             disabled={disabled}
@@ -131,17 +132,19 @@ export function MhdPersonIdentityFields({
           />
         </div>
         <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-last-name`}>
+          <MhdFieldLabel
+            htmlFor={`${idPrefix}-last-name`}
+            required
+            tooltip={{
+              label: 'About last name',
+              children: 'Enter your family name so your employee profile can be matched accurately.',
+            }}
+          >
             Last name
-            <span className="ml-1 text-red-500">*</span>
-            <span className={requiredNoteClass}>(required)</span>
-            <MhdTooltip label="About last name">
-              Enter your family name so your employee profile can be matched accurately.
-            </MhdTooltip>
-          </label>
+          </MhdFieldLabel>
           <input
             id={`${idPrefix}-last-name`}
-            className={cn(inputClass, fieldErrors.lastName && 'border-red-400')}
+            className={cn(MHD_FIELD_INPUT_CLASS, fieldErrors.lastName && 'border-red-400')}
             value={values.lastName}
             onChange={(event) => onFieldChange('lastName', event.target.value)}
             disabled={disabled}
@@ -158,17 +161,19 @@ export function MhdPersonIdentityFields({
           )}
         </div>
         <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-preferred-name`}>
+          <MhdFieldLabel
+            htmlFor={`${idPrefix}-preferred-name`}
+            required
+            tooltip={{
+              label: 'About preferred name',
+              children: 'Use the name you want shown in everyday workflows and greetings.',
+            }}
+          >
             Preferred name
-            <span className="ml-1 text-red-500">*</span>
-            <span className={requiredNoteClass}>(required)</span>
-            <MhdTooltip label="About preferred name">
-              Use the name you want shown in everyday workflows and greetings.
-            </MhdTooltip>
-          </label>
+          </MhdFieldLabel>
           <input
             id={`${idPrefix}-preferred-name`}
-            className={cn(inputClass, fieldErrors.preferredName && 'border-red-400')}
+            className={cn(MHD_FIELD_INPUT_CLASS, fieldErrors.preferredName && 'border-red-400')}
             value={values.preferredName}
             onChange={(event) => onFieldChange('preferredName', event.target.value)}
             disabled={disabled}
@@ -190,18 +195,20 @@ export function MhdPersonIdentityFields({
 
       <div className={cn('grid gap-4', email ? 'sm:grid-cols-2' : 'sm:grid-cols-1')}>
         <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-phone`}>
+          <MhdFieldLabel
+            htmlFor={`${idPrefix}-phone`}
+            required
+            tooltip={{
+              label: 'About phone',
+              children: 'Provide a primary contact number for HR and account-related follow-up.',
+            }}
+          >
             Phone
-            <span className="ml-1 text-red-500">*</span>
-            <span className={requiredNoteClass}>(required)</span>
-            <MhdTooltip label="About phone">
-              Provide a primary contact number for HR and account-related follow-up.
-            </MhdTooltip>
-          </label>
+          </MhdFieldLabel>
           <input
             id={`${idPrefix}-phone`}
             type="tel"
-            className={cn(inputClass, fieldErrors.phone && 'border-red-400')}
+            className={cn(MHD_FIELD_INPUT_CLASS, fieldErrors.phone && 'border-red-400')}
             value={values.phone}
             onChange={(event) => onFieldChange('phone', event.target.value)}
             disabled={disabled}
@@ -219,16 +226,17 @@ export function MhdPersonIdentityFields({
         </div>
         {email ? (
           <div>
-            <label className={labelClass} htmlFor={`${idPrefix}-email`}>
+            <MhdFieldLabel
+              htmlFor={`${idPrefix}-email`}
+              required
+              tooltip={{ label: 'About email', children: email.helpText }}
+            >
               Email
-              <span className="ml-1 text-red-500">*</span>
-              <span className={requiredNoteClass}>(required, {email.label ?? 'from your account'})</span>
-              <MhdTooltip label="About email">{email.helpText}</MhdTooltip>
-            </label>
+            </MhdFieldLabel>
             <input
               id={`${idPrefix}-email`}
               type="email"
-              className={disabledInputClass}
+              className={MHD_FIELD_INPUT_DISABLED_CLASS}
               value={email.value}
               disabled
               readOnly
