@@ -13,7 +13,7 @@ export function MhdAuthCard({ title, description, children, className }: MhdAuth
   return (
     <div className={cn(MHD_ELEVATED_CARD_CLASS, 'p-6', className)}>
       <div className="mb-6">
-        <p className="text-[1.006rem] font-semibold uppercase tracking-wide text-accent">My HR Depot</p>
+        <p className="text-[1.138rem] font-semibold uppercase tracking-wide text-accent">My HR Depot</p>
         <h1 className="mt-2 text-2xl font-bold text-foreground">{title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
       </div>

@@ -22,7 +22,12 @@ import { MhdAuthCard } from './MhdAuthCard';
  */
 export function MhdCompleteProfilePage() {
   const navigate = useNavigate();
-  const { profile, refreshProfile } = useMhdAuth();
+  const { profile, userEmail, refreshProfile } = useMhdAuth();
+  // Prefer the live Supabase Auth session email over the mirrored
+  // public.users.email column: the session is always authoritative for
+  // who's actually logged in, while the mirrored column can be stale or
+  // unset (e.g. an invite row created before it was backfilled).
+  const displayEmail = userEmail ?? profile?.email ?? null;
   const [firstName, setFirstName] = useState('');
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -96,7 +101,7 @@ export function MhdCompleteProfilePage() {
       <MhdAuthCard
         className="px-8 py-[2.2rem]"
         title="Complete Your Profile"
-        description={`Tell us who you are before continuing${profile?.email ? ` — you're signed in as ${profile.email}.` : '.'}`}
+        description={`Tell us who you are before continuing${displayEmail ? ` — you're signed in as ${displayEmail}.` : '.'}`}
       >
         <div className="mb-6 flex justify-center text-accent" aria-hidden="true">
           <svg
@@ -132,7 +137,7 @@ export function MhdCompleteProfilePage() {
             fieldErrors={fieldErrors}
             disabled={isSubmitting}
             email={{
-              value: profile?.email ?? '',
+              value: displayEmail ?? '',
               helpText: "This is the email address tied to your login and can't be changed here.",
             }}
           />
