@@ -26,7 +26,7 @@ const inputClass =
   'mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 const disabledInputClass =
   'mt-1 w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground focus-visible:outline-none';
-const labelClass = 'flex flex-wrap items-center gap-1.5 text-sm font-medium text-foreground';
+const labelClass = 'flex flex-nowrap items-center gap-1.5 whitespace-nowrap text-sm font-medium text-foreground';
 const requiredNoteClass = 'text-xs font-normal text-muted-foreground';
 const optionalNoteClass = 'text-muted-foreground';
 const phoneErrorMessage = 'Enter a complete phone number, e.g. (555) 123-4567.';
@@ -220,7 +220,9 @@ export function MhdPersonIdentityFields({
         {email ? (
           <div>
             <label className={labelClass} htmlFor={`${idPrefix}-email`}>
-              Email <span className={optionalNoteClass}>({email.label ?? 'from your account'})</span>
+              Email
+              <span className="ml-1 text-red-500">*</span>
+              <span className={requiredNoteClass}>(required, {email.label ?? 'from your account'})</span>
               <MhdTooltip label="About email">{email.helpText}</MhdTooltip>
             </label>
             <input
@@ -231,6 +233,7 @@ export function MhdPersonIdentityFields({
               disabled
               readOnly
               aria-readonly="true"
+              aria-required="true"
               autoComplete="email"
               placeholder="jane.doe@example.com"
             />

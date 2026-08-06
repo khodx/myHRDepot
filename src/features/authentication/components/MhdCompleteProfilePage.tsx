@@ -92,7 +92,7 @@ export function MhdCompleteProfilePage() {
   }
 
   return (
-    <MhdAuthLayout maxWidthClassName="max-w-[36.4rem]">
+    <MhdAuthLayout maxWidthClassName="max-w-[47.32rem]">
       <MhdAuthCard
         className="p-8"
         title="Complete Your Profile"
