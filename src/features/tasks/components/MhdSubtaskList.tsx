@@ -2,6 +2,7 @@ import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
 import { MhdTaskStatusBadge } from './MhdTaskStatusBadge';
 import { MhdTaskPriorityBadge } from './MhdTaskPriorityBadge';
 import type { MhdSubtask } from '@/features/tasks/Types';
+import { mhdFormatDate } from '@/utils/mhdDateFormat';
 
 interface MhdSubtaskListProps {
   subtasks: MhdSubtask[];
@@ -34,7 +35,7 @@ export function MhdSubtaskList({ subtasks, onEdit, onDelete }: MhdSubtaskListPro
           />
           {subtask.dueDate ? (
             <span className="whitespace-nowrap text-xs text-muted-foreground">
-              Due {new Date(subtask.dueDate).toLocaleDateString()}
+              Due {mhdFormatDate(subtask.dueDate)}
             </span>
           ) : null}
           <MhdProgressBar

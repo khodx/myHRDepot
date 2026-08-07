@@ -38,8 +38,10 @@ import {
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Link } from 'react-router-dom';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { MhdPersonRecordTabs } from '@/features/people/components/MhdPersonRecordTabs';
+import { mhdFormatDate } from '@/utils/mhdDateFormat';
 
 export function MhdPersonDetailPage() {
   const { personId } = useParams<{ personId: string }>();
@@ -141,7 +143,7 @@ export function MhdPersonDetailPage() {
         <button
           type="button"
           onClick={() => navigate('/people')}
-          className="text-sm text-blue-600 hover:underline"
+          className="text-sm text-accent-hover hover:underline"
         >
           Back to People
         </button>
@@ -156,11 +158,11 @@ export function MhdPersonDetailPage() {
       <MhdPersonRecordTabs personId={person.id} active="detail" />
 
       {/* Profile card */}
-      <div className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
+      <MhdCard className="p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4">
             {/* Avatar initials */}
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-700">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-accent/10 text-lg font-semibold text-accent-hover">
               {person.firstName?.[0] ?? ''}
               {person.lastName?.[0] ?? ''}
             </div>
@@ -190,7 +192,7 @@ export function MhdPersonDetailPage() {
               <Mail className="h-4 w-4 text-neutral-400" />
               <a
                 href={`mailto:${person.primaryEmail}`}
-                className="hover:text-blue-600 hover:underline"
+                className="hover:text-accent-hover hover:underline"
               >
                 {person.primaryEmail}
               </a>
@@ -201,7 +203,7 @@ export function MhdPersonDetailPage() {
               <Phone className="h-4 w-4 text-neutral-400" />
               <a
                 href={`tel:${person.primaryPhone}`}
-                className="hover:text-blue-600 hover:underline"
+                className="hover:text-accent-hover hover:underline"
               >
                 {person.primaryPhone}
               </a>
@@ -212,7 +214,7 @@ export function MhdPersonDetailPage() {
               <Smartphone className="h-4 w-4 text-neutral-400" />
               <a
                 href={`tel:${person.primaryMobile}`}
-                className="hover:text-blue-600 hover:underline"
+                className="hover:text-accent-hover hover:underline"
               >
                 {person.primaryMobile}
               </a>
@@ -222,10 +224,10 @@ export function MhdPersonDetailPage() {
 
         {/* Timestamps */}
         <div className="mt-4 border-t border-neutral-100 pt-4 text-xs text-neutral-400">
-          <p>Added: {new Date(person.createdAt).toLocaleDateString()}</p>
-          <p>Updated: {new Date(person.updatedAt).toLocaleDateString()}</p>
+          <p>Added: {mhdFormatDate(person.createdAt)}</p>
+          <p>Updated: {mhdFormatDate(person.updatedAt)}</p>
         </div>
-      </div>
+      </MhdCard>
 
       <MhdOnboardingChecklistPage
         personId={person.id}
@@ -239,7 +241,7 @@ export function MhdPersonDetailPage() {
       />
 
       {canSeePerformance && (
-        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
+        <MhdCard className="p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-neutral-900">Performance</h2>
           {performanceQuery.isLoading ? (
             <p className="mt-2 text-sm text-neutral-500">Loading performance history…</p>
@@ -248,7 +250,7 @@ export function MhdPersonDetailPage() {
               {(performanceQuery.data ?? []).map((review) => (
                 <li key={review.id}>
                   <Link
-                    className="text-blue-700 hover:underline"
+                    className="text-accent-hover hover:underline"
                     to={`/performance/reviews/${review.id}`}
                   >
                     {review.referenceId} · {review.status}
@@ -260,11 +262,11 @@ export function MhdPersonDetailPage() {
               )}
             </ul>
           )}
-        </section>
+        </MhdCard>
       )}
 
       {canSeeOffboarding ? (
-        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
+        <MhdCard className="p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-neutral-900">Offboarding</h2>
           <p className="mt-1 text-sm text-neutral-500">
             Privileged separation cases for this person.
@@ -282,7 +284,7 @@ export function MhdPersonDetailPage() {
               {(offboardingQuery.data ?? []).map((offboardingCase) => (
                 <li key={offboardingCase.id}>
                   <Link
-                    className="text-blue-700 hover:underline"
+                    className="text-accent-hover hover:underline"
                     to={`/offboarding/${offboardingCase.id}`}
                   >
                     {offboardingCase.referenceId} · {offboardingCase.status}
@@ -294,14 +296,14 @@ export function MhdPersonDetailPage() {
               ) : null}
             </ul>
           )}
-        </section>
+        </MhdCard>
       ) : null}
 
       {canSeeConduct ? (
-        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
+        <MhdCard className="p-6 shadow-sm">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-neutral-900">Conduct</h2>
-            <Link className="text-sm text-blue-700 hover:underline" to="/conduct">
+            <Link className="text-sm text-accent-hover hover:underline" to="/conduct">
               Open Conduct
             </Link>
           </div>
@@ -321,7 +323,7 @@ export function MhdPersonDetailPage() {
             <ul className="mt-3 space-y-2 text-sm">
               {(conductQuery.data ?? []).map((conductCase) => (
                 <li key={conductCase.id}>
-                  <Link className="text-blue-700 hover:underline" to={`/conduct/${conductCase.id}`}>
+                  <Link className="text-accent-hover hover:underline" to={`/conduct/${conductCase.id}`}>
                     {conductCase.referenceId} · {conductCase.status}
                   </Link>
                 </li>
@@ -331,14 +333,14 @@ export function MhdPersonDetailPage() {
               ) : null}
             </ul>
           )}
-        </section>
+        </MhdCard>
       ) : null}
 
       {canSeeLeaves ? (
-        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
+        <MhdCard className="p-6 shadow-sm">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-neutral-900">Leaves of absence</h2>
-            <Link className="text-sm text-blue-700 hover:underline" to="/leaves">
+            <Link className="text-sm text-accent-hover hover:underline" to="/leaves">
               Open Leaves
             </Link>
           </div>
@@ -358,7 +360,7 @@ export function MhdPersonDetailPage() {
             <ul className="mt-3 space-y-2 text-sm">
               {(leavesQuery.data ?? []).map((leaveCase) => (
                 <li key={leaveCase.id}>
-                  <Link className="text-blue-700 hover:underline" to={`/leaves/${leaveCase.id}`}>
+                  <Link className="text-accent-hover hover:underline" to={`/leaves/${leaveCase.id}`}>
                     {leaveCase.referenceId} · {leaveCase.reasonCategory} · {leaveCase.status}
                   </Link>
                 </li>
@@ -368,17 +370,17 @@ export function MhdPersonDetailPage() {
               ) : null}
             </ul>
           )}
-        </section>
+        </MhdCard>
       ) : null}
 
       {canSeeJobs ? (
-        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
+        <MhdCard className="p-6 shadow-sm">
           <MhdJobAssignmentPanel companyId={person.companyId} personId={person.id} canAssign />
-        </section>
+        </MhdCard>
       ) : null}
 
       {canSeeAttendance ? (
-        <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
+        <MhdCard className="p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-neutral-900">Attendance</h2>
@@ -386,7 +388,7 @@ export function MhdPersonDetailPage() {
                 Current points and the append-only ledger for this person.
               </p>
             </div>
-            <Link className="text-sm text-blue-700 hover:underline" to="/attendance">
+            <Link className="text-sm text-accent-hover hover:underline" to="/attendance">
               Open Attendance
             </Link>
           </div>
@@ -396,10 +398,10 @@ export function MhdPersonDetailPage() {
             thresholds={attendancePolicy.data?.thresholds ?? []}
             isLoading={attendanceBalance.isLoading || attendanceLedger.isLoading}
           />
-        </section>
+        </MhdCard>
       ) : null}
 
-      <section className="rounded-lg border border-neutral-200 bg-card p-6 shadow-sm">
+      <MhdCard className="p-6 shadow-sm">
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-neutral-900">Activities</h2>
           <p className="mt-1 text-sm text-neutral-500">
@@ -418,7 +420,7 @@ export function MhdPersonDetailPage() {
         ) : (
           <MhdActivityList activities={activitiesQuery.data ?? []} />
         )}
-      </section>
+      </MhdCard>
 
       <div className="flex justify-end border-t border-neutral-200 pt-4">
         <MhdDetailActions editTo={`/people/${person.id}/edit`} />

@@ -40,8 +40,6 @@ type MhdCreateFormResultRow = DbFunctions['mhd_create_form']['Returns'][number];
 type MhdCreateSubmissionResultRow = DbFunctions['mhd_create_submission']['Returns'][number];
 type MhdCreateRevisionResultRow = DbFunctions['mhd_create_form_revision']['Returns'][number];
 
-const MHD_UNCHANGED_UUID_SENTINEL = '00000000-0000-0000-0000-000000000000';
-
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -441,12 +439,12 @@ export const mhdFormService = {
   async createForm(input: MhdCreateFormInput, companyId: string): Promise<MhdForm> {
     const description = stringToUndefined(input.description);
     // SME review addition (Stage 6b review): mhd_create_form has no prior row
-    // to preserve, so the MHD_UNCHANGED_UUID_SENTINEL used by updateForm
-    // doesn't apply here — mhd_create_form's own SQL default for this arg is
-    // plain NULL. Omitting the key when not provided (matching
-    // p_employee_file_category's existing conditional-spread pattern just
-    // below) lets Postgres's own default resolve it, instead of inserting a
-    // bogus all-zero UUID that would violate the document_templates FK.
+    // to preserve, so this arg's SQL default is plain NULL, unlike
+    // mhd_update_form's "unchanged" default (see updateForm below). Omitting
+    // the key when not provided (matching p_employee_file_category's
+    // conditional-spread pattern just below) lets Postgres's own default
+    // resolve it, instead of inserting a bogus all-zero UUID that would
+    // violate the document_templates FK.
     const { data, error } = await supabaseClient
       .rpc('mhd_create_form', {
         p_company_id: companyId,
@@ -504,9 +502,13 @@ export const mhdFormService = {
       ...(shouldUpdateRequiresEsignature
         ? { p_requires_esignature: input.requiresEsignature ?? null }
         : {}),
-      p_esignature_document_template_id: shouldUpdateEsignatureDocumentTemplateId
-        ? (input.esignatureDocumentTemplateId ?? null)
-        : MHD_UNCHANGED_UUID_SENTINEL,
+      // Omitting the key when not updating lets mhd_update_form's own SQL
+      // default resolve "unchanged" server-side (see 0115), the same
+      // conditional-spread pattern used for p_employee_file_category above —
+      // no fake/sentinel UUID literal needs to appear in client code.
+      ...(shouldUpdateEsignatureDocumentTemplateId
+        ? { p_esignature_document_template_id: input.esignatureDocumentTemplateId ?? null }
+        : {}),
     } as never);
 
     if (error) {

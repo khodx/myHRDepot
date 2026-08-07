@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { mhdPersonService } from '@/features/people/Service';
 import type {
   MhdAssignJobInput,
   MhdCreateJobInput,
@@ -18,7 +17,6 @@ export const mhdJobsQueryKeys = {
   assignments: (personId: string | null) => ['mhd-jobs', 'assignments', personId ?? ''] as const,
   publishedForPerson: (personId: string | null, asOf: string | null) =>
     ['mhd-jobs', 'published-for-person', personId ?? '', asOf ?? 'today'] as const,
-  people: (companyId: string | null) => ['mhd-jobs', 'people', companyId ?? 'ALL'] as const,
 };
 
 /**
@@ -249,17 +247,5 @@ export function useMhdPublishedJobForPerson(personId: string | null, asOf: strin
     queryKey: mhdJobsQueryKeys.publishedForPerson(personId, asOf),
     queryFn: () => mhdJobsService.getPublishedForPerson(personId!, asOf),
     enabled: Boolean(personId),
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Pickers
-// ---------------------------------------------------------------------------
-
-export function useMhdJobsPeople(companyId: string | null) {
-  return useQuery({
-    queryKey: mhdJobsQueryKeys.people(companyId),
-    queryFn: () => mhdPersonService.listPeople({ companyId: companyId!, searchTerm: '' }),
-    enabled: Boolean(companyId),
   });
 }

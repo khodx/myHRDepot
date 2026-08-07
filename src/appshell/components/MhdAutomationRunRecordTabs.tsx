@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
-import { cn } from '@/utils/cn';
+import { MhdRecordTabNav } from '@/components/ui/MhdRecordTabNav';
 
 export type MhdAutomationRunRecordTab = 'detail';
 
@@ -27,25 +25,5 @@ export function MhdAutomationRunRecordTabs({
     { key: 'detail', label: 'Detail', to: `/automations/runs/${runId}` },
   ];
 
-  return (
-    <div className={cn('flex flex-wrap items-center gap-2', className)}>
-      {tabs.map((tab) => {
-        const isCurrentTab = tab.key === active;
-        return (
-          <Link
-            key={tab.key}
-            aria-current={isCurrentTab ? 'page' : undefined}
-            to={tab.to}
-            className={cn(
-              buttonBaseClasses,
-              'h-9 px-3 text-[16.8px]',
-              isCurrentTab ? buttonVariantClasses.primary : buttonVariantClasses.secondary,
-            )}
-          >
-            {tab.label}
-          </Link>
-        );
-      })}
-    </div>
-  );
+  return <MhdRecordTabNav tabs={tabs} active={active} className={className} />;
 }

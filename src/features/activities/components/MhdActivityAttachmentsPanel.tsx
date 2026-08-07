@@ -7,6 +7,7 @@ import { mhdDocumentToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { useMhdAttachments } from '@/features/attachments/Hook';
 import { mhdFormatFileSize, type MhdAttachment } from '@/features/attachments/Types';
 import { MhdAttachmentUploader } from '@/components/ui/MhdAttachmentUploader';
+import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
 
 interface Props {
   activityId: string;
@@ -73,7 +74,7 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {mhdFormatFileSize(attachment.fileSizeBytes)} • Uploaded{' '}
-                    {new Date(attachment.uploadedAt).toLocaleString()}
+                    {mhdFormatDateTime(attachment.uploadedAt)}
                     {attachment.uploaderDisplayName ? ` by ${attachment.uploaderDisplayName}` : ''}
                   </p>
                   {attachment.descriptionPlainText && (

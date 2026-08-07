@@ -15,6 +15,7 @@ import {
 import { MhdTaskPriorityBadge } from '@/features/tasks/components/MhdTaskPriorityBadge';
 import { MhdTaskStatusBadge } from '@/features/tasks/components/MhdTaskStatusBadge';
 import type { MhdTask } from '@/features/tasks/Types';
+import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 
 interface MhdTaskListProps {
   tasks: MhdTask[];
@@ -81,7 +82,7 @@ export function MhdTaskList({
   const selectedIdSet = new Set(selectedIds);
   const allVisibleSelected =
     visibleTaskIds.length > 0 && visibleTaskIds.every((taskId) => selectedIdSet.has(taskId));
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = mhdToIsoDateString();
 
   return (
     <MhdCard className="overflow-hidden p-0">

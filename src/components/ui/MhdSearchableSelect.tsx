@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { useMhdClickOutside } from '@/utils/useMhdClickOutside';
 
 export interface MhdSearchableSelectOption {
   id: string;
@@ -40,16 +41,7 @@ export function MhdSearchableSelect({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
-  }, []);
+  useMhdClickOutside(containerRef, () => setOpen(false));
 
   const selectedOption = useMemo(
     () => options.find((option) => option.id === value) ?? null,

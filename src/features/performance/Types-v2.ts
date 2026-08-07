@@ -6,10 +6,13 @@
 // review templates, participants, and threshold-gated 360 feedback. The v1 review
 // and coaching-plan contracts stay in `Types.ts` and are unchanged.
 //
-// TODO(build-wave): retype from database.types.ts after 0035 gen:types —
-// replace these local interfaces with
-// `Database['public']['Functions']['mhd_performance_feedback_aggregate']['Returns'][number]`
-// et al. once the migration has shipped and types are regenerated.
+// Deliberately hand-maintained, not generated (checked 2026-08-06, migration
+// 0035 has long since shipped): gen:types marks every column on a
+// table-returning RPC function as non-null regardless of the underlying
+// table's real schema, and collapses PostgREST's numeric-as-string
+// serialization down to plain `number` — losing exactly the fact this
+// file's own comment below warns about. Adopting the generated type here
+// would silently reintroduce both.
 //
 // Numeric RPC columns (`mean_rating`, `response_count`) are typed `number | string`
 // because PostgREST serialises `numeric` as a string. Every mapper runs them

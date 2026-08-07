@@ -12,7 +12,6 @@ import {
   useMhdConfirmRate,
   useMhdEffectiveRate,
   useMhdMileageClaims,
-  useMhdMileagePeople,
   useMhdMileageRates,
   useMhdMileageTrips,
   useMhdProposeRate,
@@ -21,6 +20,7 @@ import {
   useMhdUpdateTrip,
   useMhdVoidTrip,
 } from '../Hook';
+import { useMhdPeoplePicker } from '@/features/people/Hook';
 import {
   mhdClaimPeriodSchema,
   type MhdClaimPeriodFormValues,
@@ -134,7 +134,7 @@ function MhdMileageBoard({
   const claims = useMhdMileageClaims(claimFilters);
   const rates = useMhdMileageRates(rateFilters);
   const effectiveRate = useMhdEffectiveRate(companyId);
-  const people = useMhdMileagePeople(isPrivileged ? companyId : null);
+  const people = useMhdPeoplePicker(isPrivileged ? companyId : null);
 
   const recordTrip = useMhdRecordTrip();
   const updateTrip = useMhdUpdateTrip();

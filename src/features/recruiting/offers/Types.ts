@@ -3,10 +3,13 @@
 //
 // RPC row shapes (local snake_case interfaces).
 //
-// TODO(build-wave): retype from database.types.ts after 0044 gen:types —
-// replace these local interfaces with
-// `Database['public']['Functions']['mhd_recruiting_offer_list']['Returns'][number]`
-// et al. once the migration has shipped and types are regenerated.
+// Deliberately hand-maintained, not generated (checked 2026-08-06, migration
+// 0044 has long since shipped): gen:types marks every column on a
+// table-returning RPC function as non-null regardless of the underlying
+// table's real schema, and collapses PostgREST's numeric-as-string
+// serialization down to plain `number` — losing exactly the fact this
+// file's own comment below warns about. Adopting the generated type here
+// would silently reintroduce both.
 //
 // The numeric business field `base_salary` (offer list + detail) is typed
 // `number | string | null` because PostgREST can serialise a numeric column as

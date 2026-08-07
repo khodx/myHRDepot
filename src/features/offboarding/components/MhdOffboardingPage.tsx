@@ -15,7 +15,7 @@ import {
   MhdTh,
   MhdTr,
 } from '@/components/ui/MhdTable';
-import { mhdCanMutateOffboarding } from '@/appshell/mhdRouteAccess';
+import { mhdCanMutateOffboarding, mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { type MhdCaseFormSchemaInput } from '../Schemas';
@@ -58,7 +58,7 @@ function formatDate(value: string | null): string {
 export function MhdOffboardingPage() {
   const { profile, roles } = useMhdAuth();
   const canMutate = mhdCanMutateOffboarding(roles);
-  const canCrossCompanyFilter = roles.includes('Platform Admin') || roles.includes('HR Partner');
+  const canCrossCompanyFilter = mhdIsPlatformAdminOrHrPartner(roles);
 
   const [filters, setFilters] = useState<MhdOffboardingCaseBoardFilters>(DEFAULT_FILTERS);
   const [isCreating, setIsCreating] = useState(false);

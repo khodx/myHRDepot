@@ -33,7 +33,7 @@ export function MhdLabTestDataSection() {
   const [seededCount, setSeededCount] = useState<Record<string, number>>({});
 
   const sandboxCompaniesQuery = useMhdCompanies({ searchTerm: MHD_SANDBOX_COMPANY_PREFIX });
-  const createCompany = useMhdCreateCompany({ actorUserId });
+  const createCompany = useMhdCreateCompany();
 
   async function handleCreateSandboxCompany() {
     setError(null);

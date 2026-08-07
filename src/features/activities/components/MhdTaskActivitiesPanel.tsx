@@ -5,6 +5,7 @@ import type { MhdCompanyId } from '@/features/companies/Types';
 import { useMhdActivities } from '../Hook';
 import { MhdActivityStatusBadge } from './MhdActivityStatusBadge';
 import { MhdActivityTypeBadge } from './MhdActivityTypeBadge';
+import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
 
 interface Props {
   taskId: string;
@@ -62,7 +63,7 @@ export function MhdTaskActivitiesPanel({ taskId, companyId }: Props) {
           <div className="mt-2 space-y-1 text-sm text-muted-foreground">
             <p>
               {activity.scheduledAt
-                ? `Scheduled: ${new Date(activity.scheduledAt).toLocaleString()}`
+                ? `Scheduled: ${mhdFormatDateTime(activity.scheduledAt)}`
                 : 'Unscheduled'}
             </p>
             {activity.personDisplayName ? <p>Person: {activity.personDisplayName}</p> : null}

@@ -1,11 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useMhdImpersonationSessions } from '../Hook';
-
-function formatTimestamp(value: string | null): string {
-  if (!value) return '—';
-  return new Date(value).toLocaleString();
-}
+import { mhdFormatDateTime as formatTimestamp } from '@/utils/mhdDateFormat';
 
 /**
  * Impersonation session history. The broader company audit trail (tasks,

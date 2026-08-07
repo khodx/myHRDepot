@@ -1,7 +1,12 @@
 import { appConfig } from '@/config/appConfig';
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { Json } from '@/types/database.types';
-import type { MhdDriveUploadResponse } from '@/features/attachments/Types';
+import {
+  MHD_ATTACHMENT_MAX_SIZE_BYTES,
+  MHD_ATTACHMENT_MAX_SIZE_MB,
+  type MhdDriveUploadResponse,
+} from '@/features/attachments/Types';
+import { mhdRenderDocumentGeneration } from './generationEngine';
 import type {
   MhdCreateDocumentTemplateInput,
   MhdDocumentGeneration,
@@ -12,20 +17,13 @@ import type {
   MhdUpdateDocumentTemplateInput,
 } from './Types';
 
-const RENDER_DOCUMENT_FUNCTION_NAME = 'render-document';
 const DEFAULT_POLL_ATTEMPTS = 10;
 const DEFAULT_POLL_INTERVAL_MS = 1500;
-const MHD_MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 const MHD_ALLOWED_UPLOAD_MIME_TYPES = [
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
-
-interface RenderDocumentResponse {
-  success?: boolean;
-  error?: string;
-}
 
 type MhdDocumentTemplateRow = {
   id: string;
@@ -323,17 +321,7 @@ export const mhdDocumentService = {
   ): Promise<MhdDocumentGenerationDetailRow> {
     const requested = await mhdDocumentService.requestGeneration(input, context);
 
-    const { data: renderData, error: renderError } =
-      await supabaseClient.functions.invoke<RenderDocumentResponse>(RENDER_DOCUMENT_FUNCTION_NAME, {
-        body: { generation_id: requested.id },
-      });
-
-    if (renderError) {
-      throw new Error(`Document render failed: ${renderError.message}`);
-    }
-    if (renderData?.success === false) {
-      throw new Error(`Document render failed: ${renderData.error ?? 'unknown render error.'}`);
-    }
+    await mhdRenderDocumentGeneration(requested.id, 'Document render');
 
     const attempts = options?.pollAttempts ?? DEFAULT_POLL_ATTEMPTS;
     const intervalMs = options?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
@@ -365,8 +353,8 @@ export const mhdDocumentService = {
     file: File,
     context: MhdDocumentMutationContext,
   ): Promise<MhdDocumentGenerationDetailRow> {
-    if (file.size > MHD_MAX_UPLOAD_BYTES) {
-      throw new Error('File is too large (25 MB maximum).');
+    if (file.size > MHD_ATTACHMENT_MAX_SIZE_BYTES) {
+      throw new Error(`File is too large (${MHD_ATTACHMENT_MAX_SIZE_MB} MB maximum).`);
     }
     if (!MHD_ALLOWED_UPLOAD_MIME_TYPES.includes(file.type)) {
       throw new Error('Only PDF or Word (.doc/.docx) files are accepted.');
@@ -426,3 +414,12 @@ export const mhdDocumentService = {
     }
   },
 };
+
+// Re-exported through the feature's public contract (Service.ts) rather than
+// importing generationEngine.ts directly cross-feature — the
+// mhd-feature-boundary/no-cross-feature-internals lint rule requires every
+// cross-feature import go through Service.ts/Types.ts/Hook.ts/Schemas.ts.
+// conduct, case-documents, offboarding, and performance each independently
+// reimplemented this render-invoke + poll pair before 2026-08-06 (audit
+// finding M2/M6); they now call these shared primitives instead.
+export { mhdRenderDocumentGeneration, mhdPollDocumentGenerationUntilGenerated } from './generationEngine';

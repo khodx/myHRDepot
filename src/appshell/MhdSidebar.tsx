@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   BarChart3,
@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
+import { useMhdFocusTrap } from '@/utils/useMhdFocusTrap';
 import { mhdRouteRoles, mhdRouteStatus } from './mhdRouteAccess';
 
 export interface NavItem {
@@ -381,50 +382,9 @@ export function MhdSidebar() {
  */
 export function MhdMobileNavDrawer({ onClose }: { onClose: () => void }) {
   const drawerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    const drawer = drawerRef.current;
-
-    const focusables = () =>
-      drawer
-        ? Array.from(
-            drawer.querySelectorAll<HTMLElement>(
-              'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
-            ),
-          )
-        : [];
-
-    focusables()[0]?.focus();
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        onClose();
-        return;
-      }
-      if (event.key !== 'Tab') return;
-      const items = focusables();
-      if (items.length === 0) return;
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener('keydown', onKeyDown);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = '';
-      previouslyFocused?.focus();
-    };
-  }, [onClose]);
+  useMhdFocusTrap(drawerRef, onClose, {
+    focusableSelector: 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  });
 
   return (
     <div className="fixed inset-0 z-50 lg:hidden">

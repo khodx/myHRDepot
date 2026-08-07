@@ -1,6 +1,7 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { useMhdFocusTrap } from '@/utils/useMhdFocusTrap';
 
 interface MhdModalProps {
   /** Called on Escape, backdrop click, or the built-in close button. */
@@ -15,55 +16,13 @@ interface MhdModalProps {
  * Portal-based modal dialog (renders to `document.body`). This is the app's
  * first real dialog primitive — every other overlay in the codebase is a
  * bespoke, non-portal `fixed inset-0 z-50` div. The focus-trap / Escape /
- * focus-restore logic here intentionally mirrors `MhdMobileNavDrawer` in
- * `src/appshell/MhdSidebar.tsx` rather than reinventing it.
+ * focus-restore logic is shared with `MhdMobileNavDrawer`
+ * (`src/appshell/MhdSidebar.tsx`) via `useMhdFocusTrap` — before 2026-08-06
+ * (audit finding M16) each component hand-rolled its own identical copy.
  */
 export function MhdModal({ onClose, title, children, className }: MhdModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    const dialog = dialogRef.current;
-
-    const focusables = () =>
-      dialog
-        ? Array.from(
-            dialog.querySelectorAll<HTMLElement>(
-              'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-            ),
-          )
-        : [];
-
-    focusables()[0]?.focus();
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        onClose();
-        return;
-      }
-      if (event.key !== 'Tab') return;
-      const items = focusables();
-      if (items.length === 0) return;
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener('keydown', onKeyDown);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = '';
-      previouslyFocused?.focus();
-    };
-  }, [onClose]);
+  useMhdFocusTrap(dialogRef, onClose);
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-10 md:pt-16">

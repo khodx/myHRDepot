@@ -12,6 +12,7 @@ import { useState, type FormEvent } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { Json } from '@/types/database.types';
+import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
 import { MhdActivityRecordTabs } from '@/appshell/components/MhdActivityRecordTabs';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { mhdCanMutateActivities } from '@/appshell/mhdRouteAccess';
@@ -483,21 +484,13 @@ export function MhdActivityDetailPage() {
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Scheduled
             </p>
-            <p className="mt-2">
-              {activity.scheduledAt
-                ? new Date(activity.scheduledAt).toLocaleString()
-                : 'Not scheduled'}
-            </p>
+            <p className="mt-2">{mhdFormatDateTime(activity.scheduledAt, 'Not scheduled')}</p>
           </div>
           <div className="rounded-md bg-muted p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Occurred
             </p>
-            <p className="mt-2">
-              {activity.occurredAt
-                ? new Date(activity.occurredAt).toLocaleString()
-                : 'Not yet recorded'}
-            </p>
+            <p className="mt-2">{mhdFormatDateTime(activity.occurredAt, 'Not yet recorded')}</p>
           </div>
           <div className="rounded-md bg-muted p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -533,8 +526,8 @@ export function MhdActivityDetailPage() {
         ) : null}
 
         <div className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
-          <p>Created: {new Date(activity.createdAt).toLocaleString()}</p>
-          <p>Updated: {new Date(activity.updatedAt).toLocaleString()}</p>
+          <p>Created: {mhdFormatDateTime(activity.createdAt)}</p>
+          <p>Updated: {mhdFormatDateTime(activity.updatedAt)}</p>
         </div>
       </MhdCard>
 

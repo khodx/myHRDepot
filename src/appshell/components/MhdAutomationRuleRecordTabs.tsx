@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
+import { MhdRecordTabNav } from '@/components/ui/MhdRecordTabNav';
 import { cn } from '@/utils/cn';
 
 export type MhdAutomationRuleRecordTab = 'detail';
@@ -46,24 +46,7 @@ export function MhdAutomationRuleRecordTabs({
   const showArmAction = canArm && Boolean(onToggleActive);
 
   return (
-    <div className={cn('flex flex-wrap items-center gap-2', className)}>
-      {tabs.map((tab) => {
-        const isCurrentTab = tab.key === active;
-        return (
-          <Link
-            key={tab.key}
-            aria-current={isCurrentTab ? 'page' : undefined}
-            to={tab.to}
-            className={cn(
-              buttonBaseClasses,
-              'h-9 px-3 text-[16.8px]',
-              isCurrentTab ? buttonVariantClasses.primary : buttonVariantClasses.secondary,
-            )}
-          >
-            {tab.label}
-          </Link>
-        );
-      })}
+    <MhdRecordTabNav tabs={tabs} active={active} className={className}>
       {showArmAction ? (
         <div className="ml-auto flex items-center gap-2 border-l border-neutral-200 pl-2">
           <button
@@ -80,6 +63,6 @@ export function MhdAutomationRuleRecordTabs({
           </button>
         </div>
       ) : null}
-    </div>
+    </MhdRecordTabNav>
   );
 }

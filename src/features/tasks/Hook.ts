@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { mhdTaskService } from './Service';
 import type { MhdCompanyId } from '@/features/companies/Types';
+import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 import type {
   MhdCreateTaskInput,
   MhdTask,
@@ -144,7 +145,7 @@ export function useMhdTasks(
         (task) =>
           task.dueDate &&
           !task.completedDate &&
-          task.dueDate < new Date().toISOString().slice(0, 10),
+          task.dueDate < mhdToIsoDateString(),
       ).length,
       completed: tasks.filter(
         (task) => task.completedDate !== null || task.statusName === 'Completed',

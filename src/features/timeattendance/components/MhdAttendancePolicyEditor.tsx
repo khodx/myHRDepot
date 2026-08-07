@@ -9,6 +9,7 @@ import {
   mhdFormatOccurrenceType,
   type MhdAttendancePolicy,
 } from '../Types';
+import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 
 interface Props {
   companyId: string;
@@ -53,7 +54,7 @@ export function MhdAttendancePolicyEditor({
     defaultValues: {
       companyId,
       policyName: current?.policyName ?? 'Attendance policy',
-      effectiveFrom: new Date().toISOString().slice(0, 10),
+      effectiveFrom: mhdToIsoDateString(),
       rollOffMonths: current?.rollOffMonths ?? 12,
       excusedUnpaidAccrues: current?.excusedUnpaidAccrues ?? false,
       excusedPaidAccrues: current?.excusedPaidAccrues ?? false,

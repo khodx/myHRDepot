@@ -18,6 +18,7 @@ import { MhdTaskList } from '@/features/tasks/components/MhdTaskList';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdTasks } from '@/features/tasks/Hook';
+import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 import type { MhdTask, MhdTaskListFilters } from '@/features/tasks/Types';
 
 const MHD_TASKS_VIEW_KEY = 'mhd:tasks:view';
@@ -175,7 +176,7 @@ export function MhdTasksPage() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    const today = new Date().toISOString().slice(0, 10);
+    const today = mhdToIsoDateString();
     link.href = url;
     link.download = `tasks-export-${today}.csv`;
     document.body.appendChild(link);

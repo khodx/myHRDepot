@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Clock } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 export function MhdComingSoonPage() {
   const navigate = useNavigate();
@@ -24,13 +25,9 @@ export function MhdComingSoonPage() {
         >
           Go back
         </button>
-        <button
-          type="button"
-          onClick={() => navigate('/dashboard')}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-        >
+        <Button type="button" onClick={() => navigate('/dashboard')}>
           Go to Dashboard
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTaskRecordTabs } from '@/appshell/components/MhdTaskRecordTabs';
+import { mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdTaskService } from '@/features/tasks/Service';
 import {
@@ -107,7 +108,7 @@ export function MhdTaskAuditPage() {
   // non-Platform-Admin/HR-Partner caller from reaching this route, and the
   // tab itself is hidden for them in MhdTaskRecordTabs. This redirect covers
   // a stale bookmark or a role change mid-session.
-  const canViewAudit = roles.includes('Platform Admin') || roles.includes('HR Partner');
+  const canViewAudit = mhdIsPlatformAdminOrHrPartner(roles);
   if (!canViewAudit) return <Navigate to="/404" replace />;
 
   return (

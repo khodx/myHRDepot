@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
-import { cn } from '@/utils/cn';
+import { MhdRecordTabNav } from '@/components/ui/MhdRecordTabNav';
 
 export type MhdJobRecordTab = 'detail';
 
@@ -32,29 +30,12 @@ export function MhdJobRecordTabs({ jobId, active, className, actions }: MhdJobRe
   ];
 
   return (
-    <div className={cn('flex flex-wrap items-center gap-2', className)}>
-      {tabs.map((tab) => {
-        const isActive = tab.key === active;
-        return (
-          <Link
-            key={tab.key}
-            aria-current={isActive ? 'page' : undefined}
-            to={tab.to}
-            className={cn(
-              buttonBaseClasses,
-              'h-9 px-3 text-[16.8px]',
-              isActive ? buttonVariantClasses.primary : buttonVariantClasses.secondary,
-            )}
-          >
-            {tab.label}
-          </Link>
-        );
-      })}
+    <MhdRecordTabNav tabs={tabs} active={active} className={className}>
       {actions ? (
         <div className="ml-auto flex flex-wrap items-center gap-2 border-l border-neutral-200 pl-2">
           {actions}
         </div>
       ) : null}
-    </div>
+    </MhdRecordTabNav>
   );
 }

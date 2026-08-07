@@ -17,7 +17,7 @@ import {
   MhdTh,
   MhdTr,
 } from '@/components/ui/MhdTable';
-import { mhdCanMutateConduct } from '@/appshell/mhdRouteAccess';
+import { mhdCanMutateConduct, mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -154,7 +154,7 @@ function MhdConductCaseCreateForm({
 export function MhdConductPage() {
   const { profile, roles } = useMhdAuth();
   const canMutate = mhdCanMutateConduct(roles);
-  const canCrossCompanyFilter = roles.includes('Platform Admin') || roles.includes('HR Partner');
+  const canCrossCompanyFilter = mhdIsPlatformAdminOrHrPartner(roles);
 
   const [filters, setFilters] = useState<MhdConductCaseFilters>(DEFAULT_FILTERS);
   const [isCreating, setIsCreating] = useState(false);

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/MhdTable';
 import type { MhdActivity } from '../Types';
 import { mhdIsActivityOverdue } from '../Types';
+import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
 import { MhdActivityParticipantChips } from './MhdActivityParticipantChips';
 import { MhdActivityStatusBadge } from './MhdActivityStatusBadge';
 import { MhdActivityTypeBadge } from './MhdActivityTypeBadge';
@@ -101,7 +102,7 @@ export function MhdActivityList({ activities, canMutate = false, onDelete }: Pro
                       className={`inline-flex items-center gap-1 ${isOverdue ? 'font-medium text-red-600' : 'text-muted-foreground'}`}
                     >
                       {isOverdue ? <AlarmClock className="h-4 w-4" aria-label="Overdue" /> : null}
-                      {new Date(activity.scheduledAt).toLocaleString()}
+                      {mhdFormatDateTime(activity.scheduledAt)}
                     </span>
                   ) : (
                     <span className="text-muted-foreground">Unscheduled</span>

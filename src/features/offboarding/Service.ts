@@ -1,10 +1,14 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
-import type { Database, Json } from '@/types/database.types';
+import type { Json } from '@/types/database.types';
 import { mhdActivityService } from '@/features/activities/Service';
 import { mhdEsignatureService } from '@/features/esignature/Service';
 import { mhdPropertyService } from '@/features/property/Service';
 import type { MhdActivity, MhdUpdateActivityInput } from '@/features/activities/Types';
 import type { MhdPropertyAssignment } from '@/features/property/Types';
+import {
+  mhdPollDocumentGenerationUntilGenerated,
+  mhdRenderDocumentGeneration,
+} from '@/features/documents/Service';
 import type {
   MhdCreateOffboardingCaseInput,
   MhdCreateOffboardingItemInput,
@@ -28,24 +32,8 @@ import { mhdFormatSeparationType } from './Types';
 // A direct call instantiates only the matching overload, so argument and return
 // types remain fully checked.
 
-// Edge function that performs the actual merge + Drive upload for a requested
-// generation (05 - Integration & Deployment / render-document). Body contract:
-// `{ generation_id: string }`; response `{ success, drive_file_id, file_name }`
-// or `{ success: false, error }`.
-const RENDER_DOCUMENT_FUNCTION_NAME = 'render-document';
-
 const DEFAULT_GENERATION_POLL_ATTEMPTS = 10;
 const DEFAULT_GENERATION_POLL_INTERVAL_MS = 1500;
-
-interface RenderDocumentResponse {
-  success?: boolean;
-  error?: string;
-}
-
-type DocumentGenerationPollRow = Pick<
-  Database['public']['Tables']['document_generations']['Row'],
-  'id' | 'status' | 'output_drive_file_id' | 'output_document_hash'
->;
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -56,10 +44,6 @@ function trimmedOrUndefined(value?: string | null): string | undefined {
 function filterValueOrUndefined(value?: string | null): string | undefined {
   if (!value || value === 'ALL') return undefined;
   return value;
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function mapCaseRow(row: MhdOffboardingCaseRpcRow): MhdOffboardingCase {
@@ -138,48 +122,6 @@ function buildExitAcknowledgmentMergeData(
     case_reference_id: offboardingCase.referenceId,
     generated_date: new Date().toISOString().slice(0, 10),
   };
-}
-
-async function fetchGenerationUntilGenerated(
-  generationId: string,
-  attempts: number,
-  intervalMs: number,
-): Promise<DocumentGenerationPollRow> {
-  let lastStatus = 'PENDING';
-
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    if (attempt > 0 && intervalMs > 0) {
-      await delay(intervalMs);
-    }
-
-    const { data, error } = await supabaseClient
-      .from('document_generations')
-      .select('id, status, output_drive_file_id, output_document_hash')
-      .eq('id', generationId)
-      .maybeSingle<DocumentGenerationPollRow>();
-
-    if (error) {
-      throw new Error(`Unable to check document generation status: ${error.message}`);
-    }
-    if (!data) {
-      throw new Error(`Document generation not found: ${generationId}`);
-    }
-
-    if (data.status === 'GENERATED') {
-      return data;
-    }
-    if (data.status === 'FAILED') {
-      throw new Error(
-        'Document generation failed — see the generation record for the failure reason.',
-      );
-    }
-
-    lastStatus = data.status;
-  }
-
-  throw new Error(
-    `Document generation did not complete in time (last status: ${lastStatus}). Retry the generate action once rendering finishes.`,
-  );
 }
 
 export const mhdOffboardingService = {
@@ -530,27 +472,15 @@ export const mhdOffboardingService = {
 
     input.onStep?.(2);
     // Step 2 — render the document via the edge function.
-    const { data: renderData, error: renderError } =
-      await supabaseClient.functions.invoke<RenderDocumentResponse>(RENDER_DOCUMENT_FUNCTION_NAME, {
-        body: { generation_id: generationId },
-      });
-
-    if (renderError) {
-      throw new Error(`Exit document step 2 (render document) failed: ${renderError.message}`);
-    }
-    if (renderData?.success === false) {
-      throw new Error(
-        `Exit document step 2 (render document) failed: ${renderData.error ?? 'unknown render error.'}`,
-      );
-    }
+    await mhdRenderDocumentGeneration(generationId, 'Exit document step 2 (render document)');
 
     input.onStep?.(3);
     // Step 3 — wait for the generation row to reach GENERATED.
-    const generation = await fetchGenerationUntilGenerated(
-      generationId,
-      input.pollAttempts ?? DEFAULT_GENERATION_POLL_ATTEMPTS,
-      input.pollIntervalMs ?? DEFAULT_GENERATION_POLL_INTERVAL_MS,
-    );
+    const generation = await mhdPollDocumentGenerationUntilGenerated(generationId, {
+      attempts: input.pollAttempts ?? DEFAULT_GENERATION_POLL_ATTEMPTS,
+      intervalMs: input.pollIntervalMs ?? DEFAULT_GENERATION_POLL_INTERVAL_MS,
+      timeoutHint: 'Retry the generate action once rendering finishes.',
+    });
 
     input.onStep?.(4);
     // Step 4 — resolve the document hash (04.8 auto-stamp, manual fallback).

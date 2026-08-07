@@ -43,7 +43,3 @@ export interface MhdUpdateCompanyInput {
 export interface MhdCompanyListFilters {
   searchTerm: string;
 }
-
-export interface MhdCompanyMutationContext {
-  actorUserId: string;
-}

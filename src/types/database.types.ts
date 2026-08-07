@@ -21602,6 +21602,26 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_create_company: {
+        Args: {
+          p_company_name: string
+          p_employee_count?: number
+          p_headquarters_location?: string
+          p_industry?: string
+        }
+        Returns: {
+          company_name: string
+          created_at: string
+          created_by: string
+          employee_count: number
+          headquarters_location: string
+          id: string
+          industry: string
+          reference_id: string
+          updated_at: string
+          updated_by: string
+        }[]
+      }
       mhd_create_document_template: {
         Args: {
           p_actor_user_id?: string
@@ -26130,6 +26150,27 @@ export type Database = {
           p_title?: string
         }
         Returns: undefined
+      }
+      mhd_update_company: {
+        Args: {
+          p_company_id: string
+          p_company_name: string
+          p_employee_count?: number
+          p_headquarters_location?: string
+          p_industry?: string
+        }
+        Returns: {
+          company_name: string
+          created_at: string
+          created_by: string
+          employee_count: number
+          headquarters_location: string
+          id: string
+          industry: string
+          reference_id: string
+          updated_at: string
+          updated_by: string
+        }[]
       }
       mhd_update_contact_method: {
         Args: {

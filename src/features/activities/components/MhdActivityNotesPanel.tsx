@@ -12,6 +12,7 @@ import {
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdNotes } from '@/features/notes/Hook';
 import { type MhdNote, type MhdNoteVisibility } from '@/features/notes/Types';
+import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
 
 interface Props {
   activityId: string;
@@ -173,7 +174,7 @@ function MhdActivityNoteItem({
             {note.createdByDisplayName ?? 'Unknown author'}
           </p>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            {note.visibility} • {new Date(note.createdAt).toLocaleString()}
+            {note.visibility} • {mhdFormatDateTime(note.createdAt)}
           </p>
         </div>
 

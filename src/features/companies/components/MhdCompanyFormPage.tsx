@@ -10,14 +10,13 @@ export function MhdCompanyFormPage() {
   const { companyId } = useParams<{ companyId?: string }>();
   const navigate = useNavigate();
   const { profile } = useMhdAuth();
-  const actorUserId = profile?.userId ?? '';
   const isEdit = Boolean(companyId);
   const companyQuery = useMhdCompany(companyId ?? '');
-  const createCompany = useMhdCreateCompany({ actorUserId });
-  const updateCompany = useMhdUpdateCompany(companyId ?? '', { actorUserId });
+  const createCompany = useMhdCreateCompany();
+  const updateCompany = useMhdUpdateCompany(companyId ?? '');
 
   function handleSubmit(values: MhdCreateCompanyInput | MhdUpdateCompanyInput) {
-    if (!actorUserId) return;
+    if (!profile?.userId) return;
 
     if (isEdit && companyId) {
       updateCompany.mutate(values as MhdUpdateCompanyInput, {

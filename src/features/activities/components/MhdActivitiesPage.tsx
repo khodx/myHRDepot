@@ -5,7 +5,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import type { Json } from '@/types/database.types';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdCanMutateActivities } from '@/appshell/mhdRouteAccess';
+import { mhdCanMutateActivities, mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { mhdActivityBoardFilterSchema, type MhdActivityFormSchemaInput } from '../Schemas';
 import {
@@ -32,7 +32,7 @@ function toActivityMutationInput(input: MhdActivityFormSchemaInput): MhdUpdateAc
 export function MhdActivitiesPage() {
   const { profile, roles } = useMhdAuth();
   const canMutate = mhdCanMutateActivities(roles);
-  const canCrossCompanyFilter = roles.includes('Platform Admin') || roles.includes('HR Partner');
+  const canCrossCompanyFilter = mhdIsPlatformAdminOrHrPartner(roles);
   const [filters, setFilters] = useState<MhdActivityBoardFilters>(DEFAULT_FILTERS);
   const [isCreating, setIsCreating] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);

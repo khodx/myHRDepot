@@ -320,6 +320,26 @@ export function mhdRouteStatus(path: string): 'live' | 'comingSoon' {
 }
 
 /**
+ * Before 2026-08-06 (audit finding L8), `roles.includes('Platform Admin')`
+ * was repeated ad hoc across several pages instead of going through this
+ * file's existing `mhdCanMutateX` helper convention.
+ */
+export function mhdIsPlatformAdmin(userRoles: MhdAuthRoleName[]): boolean {
+  return userRoles.includes('Platform Admin');
+}
+
+/**
+ * The generic "platform-wide visibility" check reused by several list pages'
+ * cross-company filter and by the audit-timeline pages' view gate — Platform
+ * Admin or HR Partner. Before 2026-08-06 (audit finding L8), each page
+ * independently repeated `roles.includes('Platform Admin') ||
+ * roles.includes('HR Partner')`.
+ */
+export function mhdIsPlatformAdminOrHrPartner(userRoles: MhdAuthRoleName[]): boolean {
+  return userRoles.includes('Platform Admin') || userRoles.includes('HR Partner');
+}
+
+/**
  * Roles that may create, edit, publish, archive, or submit forms. 'Viewer' is
  * deliberately absent: Viewers can reach /forms routes (see MHD_ROUTE_ACCESS)
  * but every mutating affordance — New Form, builder editing, publish/archive,

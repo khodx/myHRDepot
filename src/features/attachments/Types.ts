@@ -80,7 +80,8 @@ export interface MhdAttachmentValidationResult {
   error?: string;
 }
 
-export const MHD_ATTACHMENT_MAX_SIZE_BYTES = 26_214_400; // 25 MB
+export const MHD_ATTACHMENT_MAX_SIZE_MB = 25;
+export const MHD_ATTACHMENT_MAX_SIZE_BYTES = MHD_ATTACHMENT_MAX_SIZE_MB * 1024 * 1024;
 
 export const MHD_ATTACHMENT_ALLOWED_MIME_TYPES: string[] = [
   'image/jpeg',
@@ -115,7 +116,7 @@ export function mhdGetFileExtension(fileName: string): string {
 
 export function mhdValidateAttachment(file: File): MhdAttachmentValidationResult {
   if (file.size > MHD_ATTACHMENT_MAX_SIZE_BYTES) {
-    return { valid: false, error: `File exceeds maximum size of 25 MB` };
+    return { valid: false, error: `File exceeds maximum size of ${MHD_ATTACHMENT_MAX_SIZE_MB} MB` };
   }
   if (!MHD_ATTACHMENT_ALLOWED_MIME_TYPES.includes(file.type)) {
     return { valid: false, error: `File type "${file.type}" is not permitted` };

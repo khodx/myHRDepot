@@ -7,6 +7,7 @@ import {
   type MhdThresholdEvent,
   type MhdThresholdEventStatus,
 } from '../Types';
+import { mhdFormatDate } from '@/utils/mhdDateFormat';
 
 interface Props {
   events: MhdThresholdEvent[];
@@ -102,7 +103,7 @@ export function MhdThresholdEventPanel({
                   <p className="text-sm font-medium text-foreground">{event.personDisplayName}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     Crossed {event.pointsAt} at {event.pointsAtCrossing} points ·{' '}
-                    {new Date(event.crossedAt).toLocaleDateString()}
+                    {mhdFormatDate(event.crossedAt)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

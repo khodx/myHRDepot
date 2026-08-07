@@ -1,7 +1,11 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
-import type { Database, Json } from '@/types/database.types';
+import type { Json } from '@/types/database.types';
 import { mhdEsignatureService } from '@/features/esignature/Service';
 import { mhdPersonService } from '@/features/people/Service';
+import {
+  mhdPollDocumentGenerationUntilGenerated,
+  mhdRenderDocumentGeneration,
+} from '@/features/documents/Service';
 import type {
   MhdConductAction,
   MhdConductActionDocumentPayload,
@@ -18,7 +22,7 @@ import type {
   MhdTransitionConductCaseInput,
   MhdUpdateConductActionInput,
 } from './Types';
-import { mhdFormatConductSeverity, mhdToNumber } from './Types';
+import { mhdToNumber } from './Types';
 
 // supabaseClient.rpc is called directly rather than bound to a local alias.
 // Binding instantiates the whole generated rpc overload set at once, which now
@@ -26,24 +30,8 @@ import { mhdFormatConductSeverity, mhdToNumber } from './Types';
 // A direct call instantiates only the matching overload, so argument and return
 // types remain fully checked.
 
-// Edge function that performs the actual merge + Drive upload for a requested
-// generation (05 - Integration & Deployment / render-document). Body contract:
-// `{ generation_id: string }`; response `{ success, drive_file_id, file_name }`
-// or `{ success: false, error }`. Reused wholesale from the Offboarding ceremony.
-const RENDER_DOCUMENT_FUNCTION_NAME = 'render-document';
-
 const DEFAULT_GENERATION_POLL_ATTEMPTS = 10;
 const DEFAULT_GENERATION_POLL_INTERVAL_MS = 1500;
-
-interface RenderDocumentResponse {
-  success?: boolean;
-  error?: string;
-}
-
-type DocumentGenerationPollRow = Pick<
-  Database['public']['Tables']['document_generations']['Row'],
-  'id' | 'status' | 'output_drive_file_id' | 'output_document_hash'
->;
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -104,10 +92,6 @@ function filterValueOrUndefined(value?: string | null): string | undefined {
   return value;
 }
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function mapCaseRow(row: MhdConductCaseRpcRow): MhdConductCase {
   return {
     id: row.id,
@@ -142,12 +126,19 @@ function mapActionRow(row: MhdConductActionRpcRow): MhdConductAction {
 
 /**
  * Merge data for the seeded corrective-action document template. Keys mirror
- * the template's merge fields (subject, company, severity label, the action
- * narrative, the case reference, and the generated date). The template text
- * itself states that a signature records RECEIPT, not agreement — the receipt-
- * not-agreement rule lives in both the document and the UI.
- * TODO(build-wave): verify token names against the seeded template text in
- * Database.sql before ship.
+ * the template's merge fields (subject, company, the case reference, and the
+ * generated date). The template text itself states that a signature records
+ * RECEIPT, not agreement — the receipt-not-agreement rule lives in both the
+ * document and the UI.
+ *
+ * Verified 2026-08-06 against the live seeded template (migration 0079's
+ * `merge_fields` array and the HTML's own `{{...}}` tokens): every one of
+ * the template's 25 merge fields has an exact-matching key below, nested
+ * under the same `employee.` / `notice.` / `incident.` / `history.` /
+ * `improvement.` / `consequences.` / `extenuating.` groups. `severity` is
+ * not a template token — Section 2 hardcodes "Final Written Warning" as
+ * literal text, not `{{severity}}` — so it (and the other keys the template
+ * never renders) has been removed rather than left as dead merge data.
  */
 function buildCorrectiveActionMergeData(
   input: MhdIssueConductActionInput,
@@ -157,11 +148,7 @@ function buildCorrectiveActionMergeData(
   const today = new Date().toISOString().slice(0, 10);
   return {
     person_name: htmlText(subjectName),
-    company_id: htmlText(input.companyId),
     company_name: htmlText(payload.companyName, input.companyId),
-    severity: htmlText(mhdFormatConductSeverity(input.severity)),
-    action_summary: htmlText(input.actionSummary),
-    conduct_summary: htmlText(input.actionSummary),
     case_reference_id: htmlText(input.caseReferenceId),
     generated_date: today,
     employee: {
@@ -207,48 +194,6 @@ function buildCorrectiveActionMergeData(
       explanation: htmlText(payload.extenuatingCircumstancesExplanation),
     },
   };
-}
-
-async function fetchGenerationUntilGenerated(
-  generationId: string,
-  attempts: number,
-  intervalMs: number,
-): Promise<DocumentGenerationPollRow> {
-  let lastStatus = 'PENDING';
-
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    if (attempt > 0 && intervalMs > 0) {
-      await delay(intervalMs);
-    }
-
-    const { data, error } = await supabaseClient
-      .from('document_generations')
-      .select('id, status, output_drive_file_id, output_document_hash')
-      .eq('id', generationId)
-      .maybeSingle<DocumentGenerationPollRow>();
-
-    if (error) {
-      throw new Error(`Unable to check document generation status: ${error.message}`);
-    }
-    if (!data) {
-      throw new Error(`Document generation not found: ${generationId}`);
-    }
-
-    if (data.status === 'GENERATED') {
-      return data;
-    }
-    if (data.status === 'FAILED') {
-      throw new Error(
-        'Document generation failed — see the generation record for the failure reason.',
-      );
-    }
-
-    lastStatus = data.status;
-  }
-
-  throw new Error(
-    `Document generation did not complete in time (last status: ${lastStatus}). Retry the issue action once rendering finishes.`,
-  );
 }
 
 export const mhdConductService = {
@@ -548,27 +493,15 @@ export const mhdConductService = {
 
     input.onStep?.(2);
     // Step 2 — render the document via the edge function.
-    const { data: renderData, error: renderError } =
-      await supabaseClient.functions.invoke<RenderDocumentResponse>(RENDER_DOCUMENT_FUNCTION_NAME, {
-        body: { generation_id: generationId },
-      });
-
-    if (renderError) {
-      throw new Error(`Corrective action step 2 (render document) failed: ${renderError.message}`);
-    }
-    if (renderData?.success === false) {
-      throw new Error(
-        `Corrective action step 2 (render document) failed: ${renderData.error ?? 'unknown render error.'}`,
-      );
-    }
+    await mhdRenderDocumentGeneration(generationId, 'Corrective action step 2 (render document)');
 
     input.onStep?.(3);
     // Step 3 — wait for the generation row to reach GENERATED.
-    const generation = await fetchGenerationUntilGenerated(
-      generationId,
-      input.pollAttempts ?? DEFAULT_GENERATION_POLL_ATTEMPTS,
-      input.pollIntervalMs ?? DEFAULT_GENERATION_POLL_INTERVAL_MS,
-    );
+    const generation = await mhdPollDocumentGenerationUntilGenerated(generationId, {
+      attempts: input.pollAttempts ?? DEFAULT_GENERATION_POLL_ATTEMPTS,
+      intervalMs: input.pollIntervalMs ?? DEFAULT_GENERATION_POLL_INTERVAL_MS,
+      timeoutHint: 'Retry the issue action once rendering finishes.',
+    });
 
     input.onStep?.(4);
     // Step 4 — resolve the document hash (04.8 auto-stamp, manual fallback).

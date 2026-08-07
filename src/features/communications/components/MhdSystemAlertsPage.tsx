@@ -8,14 +8,12 @@ import { useMhdNotifications } from '@/features/notifications/Hook';
 import { MhdCommunicationsTabs } from '@/appshell/components/MhdCommunicationsTabs';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleString();
-}
+import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
+import { mhdIsSystemAlertNotification } from '../Types';
 
 export function MhdSystemAlertsPage() {
   const { notifications, isLoading, error, refetch } = useMhdNotifications();
-  const alerts = notifications.filter((notification) => notification.notificationType === 'SYSTEM');
+  const alerts = notifications.filter(mhdIsSystemAlertNotification);
   const pagination = useMhdPagination(alerts.length, {
     resetKey: `${alerts.length}:${alerts[0]?.id ?? ''}`,
   });
@@ -86,7 +84,7 @@ export function MhdSystemAlertsPage() {
                   <MhdTd>{alert.entityType ?? 'System'}</MhdTd>
                   <MhdTd>{alert.isRead ? 'Read' : 'Unread'}</MhdTd>
                   <MhdTd className="whitespace-nowrap text-muted-foreground">
-                    {formatDate(alert.createdAt)}
+                    {mhdFormatDateTime(alert.createdAt)}
                   </MhdTd>
                   <MhdTd>
                     {alert.actionUrl ? (

@@ -1,5 +1,4 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import { mhdPersonService } from '@/features/people/Service';
 import type {
   MhdAdjustLeaveInput,
   MhdCreateLeaveCaseInput,
@@ -22,7 +21,6 @@ export const mhdLeavesQueryKeys = {
     ['mhd-leaves', 'ledger', personId ?? '', leaveTypeId ?? 'ALL'] as const,
   certifications: (caseId: string | null) =>
     ['mhd-leaves', 'certifications', caseId ?? ''] as const,
-  people: (companyId: string | null) => ['mhd-leaves', 'people', companyId ?? 'ALL'] as const,
 };
 
 /**
@@ -195,17 +193,5 @@ export function useMhdMarkCertificationSufficient(caseId: string | null) {
         queryKey: mhdLeavesQueryKeys.certifications(caseId),
       });
     },
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Pickers
-// ---------------------------------------------------------------------------
-
-export function useMhdLeavePeople(companyId: string | null) {
-  return useQuery({
-    queryKey: mhdLeavesQueryKeys.people(companyId),
-    queryFn: () => mhdPersonService.listPeople({ companyId: companyId!, searchTerm: '' }),
-    enabled: Boolean(companyId),
   });
 }

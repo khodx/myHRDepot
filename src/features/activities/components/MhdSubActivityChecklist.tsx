@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import type { MhdSubActivity } from '../Types';
 import { mhdFormatSubActivityStatus } from '../Types';
+import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
 
 interface Props {
   subActivities: MhdSubActivity[];
@@ -90,7 +91,7 @@ export function MhdSubActivityChecklist({
                     {item.status !== 'PLANNED' && item.status !== 'COMPLETED'
                       ? ` · ${mhdFormatSubActivityStatus(item.status)}`
                       : ''}
-                    {item.scheduledAt ? ` · ${new Date(item.scheduledAt).toLocaleString()}` : ''}
+                    {item.scheduledAt ? ` · ${mhdFormatDateTime(item.scheduledAt)}` : ''}
                   </span>
                   {item.descriptionPlainText ? (
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">

@@ -1,4 +1,4 @@
-import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
+import { mhdCanMutatePerformance, mhdIsPlatformAdmin } from '@/appshell/mhdRouteAccess';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -15,7 +15,7 @@ import { MhdReviewTemplateEditor } from './MhdReviewTemplateEditor';
 export function MhdReviewTemplatesPage() {
   const { profile, roles } = useMhdAuth();
   const companyId = profile?.companyId ?? null;
-  const isPlatformAdmin = roles.includes('Platform Admin');
+  const isPlatformAdmin = mhdIsPlatformAdmin(roles);
   const canManage = mhdCanMutatePerformance(roles);
 
   return (

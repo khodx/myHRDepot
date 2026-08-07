@@ -2,6 +2,7 @@ import { mhdTaskService } from '@/features/tasks/Service';
 import type { MhdTaskMutationContext } from '@/features/tasks/Types';
 import type { Json } from '@/types/database.types';
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
+import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 import type {
   MhdActivity,
   MhdActivityBoardFilters,
@@ -34,8 +35,7 @@ function dateFilterBoundary(value: string, boundary: 'start' | 'end'): string {
 }
 
 function formatDateOnly(isoLike: string | null | undefined): string {
-  if (!isoLike) return new Date().toISOString().slice(0, 10);
-  return new Date(isoLike).toISOString().slice(0, 10);
+  return mhdToIsoDateString(isoLike ?? undefined);
 }
 
 function mapParticipantInput(participant: MhdActivityParticipantInput): Json {

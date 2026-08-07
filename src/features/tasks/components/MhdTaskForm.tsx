@@ -8,6 +8,7 @@ import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import { mhdTaskFormSchema, type MhdTaskFormValues } from '@/features/tasks/Schemas';
 import { useMhdCompanyHolidays } from '@/features/timeattendance/Hook';
 import { addBusinessDays } from '@/utils/mhdBusinessDays';
+import { mhdToIsoDateString as todayIsoDate } from '@/utils/mhdDateFormat';
 import type { MhdCompany } from '@/features/companies/Types';
 import type {
   MhdCreateTaskInput,
@@ -52,10 +53,6 @@ const EMPTY_VALUES: MhdTaskFormValues = {
   manualProgressPercent: 0,
   assignedUserIds: [],
 };
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export function MhdTaskForm({
   companies,

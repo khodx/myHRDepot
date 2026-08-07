@@ -4,6 +4,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTaskWorkspaceNav } from '@/appshell/components/MhdTaskWorkspaceNav';
+import { mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdAuditEvents, useMhdRequestAuditReport } from '../Hook';
 import type { MhdAuditEvent, MhdAuditEventFilters } from '../Types';
@@ -102,7 +103,7 @@ export function MhdAuditReportsPage() {
   // non-Platform-Admin/HR-Partner caller from reaching this route, and the
   // sidebar entry is hidden for them in MhdSidebar. This redirect covers a
   // stale bookmark or a role change mid-session — mirrors MhdTaskAuditPage.
-  const canViewAudit = roles.includes('Platform Admin') || roles.includes('HR Partner');
+  const canViewAudit = mhdIsPlatformAdminOrHrPartner(roles);
   if (!canViewAudit) return <Navigate to="/404" replace />;
 
   // Which parent-task tab to point the user toward per entity type, when this

@@ -6,6 +6,7 @@ import type { MhdMessage } from '../Types';
 interface MhdMessageItemProps {
   message: MhdMessage;
   currentUserId: string | null;
+  senderName: string | null;
   canDelete: boolean;
   onDelete: (messageId: string) => void;
 }
@@ -19,11 +20,7 @@ function formatWhen(value: string): string {
   }).format(new Date(value));
 }
 
-function shortUserId(value: string): string {
-  return value.slice(0, 8);
-}
-
-export function MhdMessageItem({ message, currentUserId, canDelete, onDelete }: MhdMessageItemProps) {
+export function MhdMessageItem({ message, currentUserId, senderName, canDelete, onDelete }: MhdMessageItemProps) {
   const mine = message.senderUserId === currentUserId;
   const deleted = Boolean(message.deletedAt);
 
@@ -37,7 +34,7 @@ export function MhdMessageItem({ message, currentUserId, canDelete, onDelete }: 
         )}
       >
         <div className="mb-1 flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
-          <span>{mine ? 'You' : `User ${shortUserId(message.senderUserId)}`}</span>
+          <span>{mine ? 'You' : senderName ?? 'Unknown user'}</span>
           <span>{formatWhen(message.createdAt)}</span>
         </div>
         <p className={cn('whitespace-pre-wrap text-sm text-foreground', deleted && 'italic text-muted-foreground')}>

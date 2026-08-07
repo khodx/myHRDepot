@@ -1,5 +1,9 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
-import type { Database, Json } from '@/types/database.types';
+import type { Json } from '@/types/database.types';
+import {
+  mhdPollDocumentGenerationUntilGenerated,
+  mhdRenderDocumentGeneration,
+} from '@/features/documents/Service';
 import type {
   MhdCaseDocument,
   MhdCaseDocumentMutationRpcRow,
@@ -10,7 +14,6 @@ import type {
   MhdUpdateCaseDocumentInput,
 } from './Types';
 
-const RENDER_DOCUMENT_FUNCTION_NAME = 'render-document';
 const DEFAULT_GENERATION_POLL_ATTEMPTS = 10;
 const DEFAULT_GENERATION_POLL_INTERVAL_MS = 1500;
 
@@ -31,20 +34,6 @@ const caseDocumentsRpcUntyped = (
   functionName: string,
   args: Record<string, unknown>,
 ) => Promise<RpcResult>;
-
-interface RenderDocumentResponse {
-  success?: boolean;
-  error?: string;
-}
-
-type DocumentGenerationPollRow = Pick<
-  Database['public']['Tables']['document_generations']['Row'],
-  'id' | 'status' | 'output_drive_file_id' | 'output_document_hash'
->;
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function trimOrNull(value?: string | null): string | null {
   if (value == null) return null;
@@ -123,58 +112,6 @@ function mapCaseDocument(row: MhdCaseDocumentRpcRow): MhdCaseDocument {
   };
 }
 
-async function fetchGenerationUntilGenerated(
-  generationId: string,
-  attempts: number,
-  intervalMs: number,
-): Promise<DocumentGenerationPollRow> {
-  let lastStatus = 'PENDING';
-
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    if (attempt > 0 && intervalMs > 0) {
-      await delay(intervalMs);
-    }
-
-    const { data, error } = await supabaseClient
-      .from('document_generations')
-      .select('id, status, output_drive_file_id, output_document_hash')
-      .eq('id', generationId)
-      .maybeSingle<DocumentGenerationPollRow>();
-
-    if (error) {
-      throw new Error(`Unable to check document generation status: ${error.message}`);
-    }
-    if (!data) {
-      throw new Error(`Document generation not found: ${generationId}`);
-    }
-    if (data.status === 'GENERATED') {
-      return data;
-    }
-    if (data.status === 'FAILED') {
-      throw new Error(
-        'Document generation failed - see the generation record for the failure reason.',
-      );
-    }
-
-    lastStatus = data.status;
-  }
-
-  throw new Error(`Document generation did not complete in time (last status: ${lastStatus}).`);
-}
-
-async function renderGeneration(generationId: string): Promise<void> {
-  const { data, error } = await supabaseClient.functions.invoke<RenderDocumentResponse>(
-    RENDER_DOCUMENT_FUNCTION_NAME,
-    { body: { generation_id: generationId } },
-  );
-  if (error) {
-    throw new Error(`Unable to render case document: ${error.message}`);
-  }
-  if (data?.success === false) {
-    throw new Error(`Unable to render case document: ${data.error ?? 'Unknown error'}`);
-  }
-}
-
 export const mhdCaseDocumentsService = {
   async listForSource(
     sourceEntityType: MhdCaseDocument['sourceEntityType'],
@@ -237,11 +174,13 @@ export const mhdCaseDocumentsService = {
       throw new Error('Case document generation request returned no generation id.');
     }
 
-    await renderGeneration(requested.document_generation_id);
-    const generated = await fetchGenerationUntilGenerated(
+    await mhdRenderDocumentGeneration(requested.document_generation_id, 'Render case document');
+    const generated = await mhdPollDocumentGenerationUntilGenerated(
       requested.document_generation_id,
-      options?.pollAttempts ?? DEFAULT_GENERATION_POLL_ATTEMPTS,
-      options?.pollIntervalMs ?? DEFAULT_GENERATION_POLL_INTERVAL_MS,
+      {
+        attempts: options?.pollAttempts ?? DEFAULT_GENERATION_POLL_ATTEMPTS,
+        intervalMs: options?.pollIntervalMs ?? DEFAULT_GENERATION_POLL_INTERVAL_MS,
+      },
     );
 
     return {

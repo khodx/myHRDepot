@@ -12,10 +12,8 @@ import { useMhdMessageThreads } from '@/features/messaging/Hook';
 import { MhdCommunicationsTabs } from '@/appshell/components/MhdCommunicationsTabs';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleString();
-}
+import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
+import { mhdIsSystemAlertNotification } from '../Types';
 
 function formatWhen(value: string | null) {
   if (!value) return 'No messages';
@@ -33,9 +31,7 @@ export function MhdCommunicationsPage() {
   const notificationsPagination = useMhdPagination(notifications.length, {
     resetKey: `${notifications.length}:${notifications[0]?.id ?? ''}`,
   });
-  const systemAlerts = notifications.filter(
-    (notification) => notification.notificationType === 'SYSTEM',
-  );
+  const systemAlerts = notifications.filter(mhdIsSystemAlertNotification);
   const messagesQuery = useMhdMessageThreads({ limit: 5 });
   const recentThreads = messagesQuery.data ?? [];
   const unreadMessageCount = recentThreads.reduce((sum, thread) => sum + thread.unreadCount, 0);
@@ -182,7 +178,7 @@ export function MhdCommunicationsPage() {
                   <MhdTd>{MHD_NOTIFICATION_TYPE_LABELS[notification.notificationType]}</MhdTd>
                   <MhdTd>{notification.isRead ? 'Read' : 'Unread'}</MhdTd>
                   <MhdTd className="whitespace-nowrap text-muted-foreground">
-                    {formatDate(notification.createdAt)}
+                    {mhdFormatDateTime(notification.createdAt)}
                   </MhdTd>
                 </MhdTr>
               ))

@@ -27,11 +27,13 @@ import { mhdAccommodationDecisionBlockers, mhdAccommodationMedicalSchema } from 
 import {
   MHD_ACCOMMODATION_DOCUMENTATION_STATUSES,
   MHD_ACCOMMODATION_DOCUMENTATION_TYPES,
+  MHD_ACCOMMODATION_REQUEST_CHANNELS,
   MHD_ACCOMMODATION_STATUSES,
   mhdFormatAccommodationValue,
   type MhdAccommodationDocumentationStatus,
   type MhdAccommodationDocumentationType,
   type MhdAccommodationMedicalReveal,
+  type MhdAccommodationRequestChannel,
   type MhdAccommodationStatus,
 } from '../Types';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
@@ -73,6 +75,8 @@ export function MhdAccommodationCaseDetailPage() {
   const [tab, setTab] = useState<Tab>('process');
   const [status, setStatus] = useState<MhdAccommodationStatus>('INTERACTIVE_PROCESS');
   const [transitionReason, setTransitionReason] = useState('');
+  const [interactionChannel, setInteractionChannel] =
+    useState<MhdAccommodationRequestChannel>('VERBAL');
   const [summary, setSummary] = useState('');
   const [nextStep, setNextStep] = useState('');
   const [optionType, setOptionType] = useState('JOB_RESTRUCTURING');
@@ -339,6 +343,22 @@ export function MhdAccommodationCaseDetailPage() {
                 Record functional needs, alternatives, and next steps. Do not record a diagnosis,
                 cause, genetic information, or medical history here.
               </p>
+              <label className="text-sm font-medium">
+                Channel
+                <select
+                  className={`mt-1 ${inputClass}`}
+                  value={interactionChannel}
+                  onChange={(event) =>
+                    setInteractionChannel(event.target.value as MhdAccommodationRequestChannel)
+                  }
+                >
+                  {MHD_ACCOMMODATION_REQUEST_CHANNELS.map((value) => (
+                    <option key={value} value={value}>
+                      {mhdFormatAccommodationValue(value)}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <textarea
                 className={`min-h-24 ${inputClass}`}
                 value={summary}
@@ -358,7 +378,7 @@ export function MhdAccommodationCaseDetailPage() {
                     await addInteraction.mutateAsync({
                       caseId,
                       occurredAt: new Date().toISOString(),
-                      channel: 'MEETING',
+                      channel: interactionChannel,
                       summary,
                       nextStep,
                       employeeVisible: true,

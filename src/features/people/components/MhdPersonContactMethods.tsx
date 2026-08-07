@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
-import type { MhdContactMethod, MhdContactType } from '@/features/people/Types';
+import type { MhdContactType } from '@/features/people/Types';
 import { mhdPersonService } from '@/features/people/Service';
 
 interface MhdPersonContactMethodsProps {
@@ -10,78 +11,66 @@ interface MhdPersonContactMethodsProps {
 
 const CONTACT_TYPES: MhdContactType[] = ['EMAIL', 'PHONE', 'MOBILE'];
 
+function mhdContactMethodsQueryKey(personId: string) {
+  return ['mhd-people', 'contact-methods', personId] as const;
+}
+
 // The primary email/phone/mobile shown in MhdPersonDetailsPanel is only a
 // projection — this component is the management surface for the full
 // contact_methods list (multiple emails, promoting a non-primary to
 // primary, deleting a stray number, etc.). Kept intentionally minimal; a
 // fuller inline-edit UX is a future enhancement.
 export function MhdPersonContactMethods({ personId }: MhdPersonContactMethodsProps) {
-  const [methods, setMethods] = useState<MhdContactMethod[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [newType, setNewType] = useState<MhdContactType>('EMAIL');
   const [newValue, setNewValue] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const reload = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await mhdPersonService.listContactMethodsForPerson(personId);
-      setMethods(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to load contact methods.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [personId]);
+  const queryClient = useQueryClient();
+  const queryKey = mhdContactMethodsQueryKey(personId);
+  const methodsQuery = useQuery({
+    queryKey,
+    queryFn: () => mhdPersonService.listContactMethodsForPerson(personId),
+  });
+  const methods = methodsQuery.data ?? [];
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- package pattern: fetch-on-mount with loading state
-    void reload();
-  }, [reload]);
+  function runSave(mutate: () => Promise<unknown>, fallbackMessage: string) {
+    setError(null);
+    mutate()
+      .then(() => queryClient.invalidateQueries({ queryKey }))
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : fallbackMessage));
+  }
 
-  async function handleAdd() {
-    if (newValue.trim().length === 0) return;
-    setIsSaving(true);
-    try {
-      await mhdPersonService.addContactMethod({
+  const addMutation = useMutation({
+    mutationFn: () =>
+      mhdPersonService.addContactMethod({
         personId,
         contactType: newType,
         contactValue: newValue,
         isPrimary: false,
-      });
-      setNewValue('');
-      await reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to add contact method.');
-    } finally {
-      setIsSaving(false);
-    }
+      }),
+  });
+  const makePrimaryMutation = useMutation({
+    mutationFn: (contactMethodId: string) =>
+      mhdPersonService.updateContactMethod({ contactMethodId, isPrimary: true }),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (contactMethodId: string) => mhdPersonService.deleteContactMethod(contactMethodId),
+  });
+
+  const isSaving = addMutation.isPending || makePrimaryMutation.isPending || deleteMutation.isPending;
+
+  function handleAdd() {
+    if (newValue.trim().length === 0) return;
+    runSave(() => addMutation.mutateAsync(), 'Unable to add contact method.');
+    setNewValue('');
   }
 
-  async function handleMakePrimary(contactMethodId: string) {
-    setIsSaving(true);
-    try {
-      await mhdPersonService.updateContactMethod({ contactMethodId, isPrimary: true });
-      await reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to update contact method.');
-    } finally {
-      setIsSaving(false);
-    }
+  function handleMakePrimary(contactMethodId: string) {
+    runSave(() => makePrimaryMutation.mutateAsync(contactMethodId), 'Unable to update contact method.');
   }
 
-  async function handleDelete(contactMethodId: string) {
-    setIsSaving(true);
-    try {
-      await mhdPersonService.deleteContactMethod(contactMethodId);
-      await reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to delete contact method.');
-    } finally {
-      setIsSaving(false);
-    }
+  function handleDelete(contactMethodId: string) {
+    runSave(() => deleteMutation.mutateAsync(contactMethodId), 'Unable to delete contact method.');
   }
 
   return (
@@ -90,7 +79,7 @@ export function MhdPersonContactMethods({ personId }: MhdPersonContactMethodsPro
         Contact methods
       </p>
 
-      {isLoading ? (
+      {methodsQuery.isLoading ? (
         <p className="mt-2 text-sm text-muted-foreground">Loading contact methods...</p>
       ) : methods.length === 0 ? (
         <p className="mt-2 text-sm text-muted-foreground">No contact methods yet.</p>
@@ -135,7 +124,14 @@ export function MhdPersonContactMethods({ personId }: MhdPersonContactMethodsPro
         </ul>
       )}
 
-      {error ? <p className="mt-2 text-xs text-red-700">{error}</p> : null}
+      {error || methodsQuery.isError ? (
+        <p className="mt-2 text-xs text-red-700">
+          {error ??
+            (methodsQuery.error instanceof Error
+              ? methodsQuery.error.message
+              : 'Unable to load contact methods.')}
+        </p>
+      ) : null}
 
       <div className="mt-3 flex items-center gap-2">
         <select

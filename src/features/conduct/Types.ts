@@ -4,10 +4,14 @@ import type { MhdCompanyId } from '@/features/companies/Types';
 // ---------------------------------------------------------------------------
 // RPC row shapes (local snake_case interfaces)
 //
-// TODO(build-wave): retype from database.types.ts after 0036 gen:types —
-// replace these local interfaces with
-// `Database['public']['Functions']['mhd_conduct_list_cases']['Returns'][number]`
-// et al. once the migration has shipped and types are regenerated.
+// Deliberately hand-maintained, not generated (checked 2026-08-06, migration
+// 0036 has long since shipped): gen:types marks every column on a
+// table-returning RPC function as non-null regardless of the underlying
+// table's real schema. conduct_actions.action_summary / esignature_request_id
+// / issued_at / acknowledgment_type / outcome_reason are genuinely nullable
+// at the DB level (verified via \d public.conduct_actions) — adopting the
+// generated type here would silently drop that nullability and let a null
+// value reach code that assumes it's always present.
 // ---------------------------------------------------------------------------
 
 /** Row shape returned by `mhd_conduct_list_cases` (also the source for `get`). */

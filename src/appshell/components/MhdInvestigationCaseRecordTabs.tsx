@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
+import { MhdRecordTabNav, useMhdRecordTabAction } from '@/components/ui/MhdRecordTabNav';
 import { cn } from '@/utils/cn';
 
 export type MhdInvestigationCaseRecordTab = 'detail';
@@ -40,42 +39,17 @@ export function MhdInvestigationCaseRecordTabs({
   deleteConfirmMessage = 'Close this investigation? This cannot be undone.',
   skipConfirm = false,
 }: MhdInvestigationCaseRecordTabsProps) {
-  const [deleting, setDeleting] = useState(false);
+  const { pending: deleting, run: handleDelete } = useMhdRecordTabAction(onDelete, {
+    skipConfirm,
+    confirmMessage: deleteConfirmMessage,
+  });
 
   const tabs: Array<{ key: MhdInvestigationCaseRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/investigations/${caseId}` },
   ];
 
-  async function handleDelete() {
-    if (!onDelete || deleting) return;
-    if (!skipConfirm && !window.confirm(deleteConfirmMessage)) return;
-    setDeleting(true);
-    try {
-      await onDelete();
-    } finally {
-      setDeleting(false);
-    }
-  }
-
   return (
-    <div className={cn('flex flex-wrap items-center gap-2', className)}>
-      {tabs.map((tab) => {
-        const isActive = tab.key === active;
-        return (
-          <Link
-            key={tab.key}
-            aria-current={isActive ? 'page' : undefined}
-            to={tab.to}
-            className={cn(
-              buttonBaseClasses,
-              'h-9 px-3 text-[16.8px]',
-              isActive ? buttonVariantClasses.primary : buttonVariantClasses.secondary,
-            )}
-          >
-            {tab.label}
-          </Link>
-        );
-      })}
+    <MhdRecordTabNav tabs={tabs} active={active} className={className}>
       {onDelete ? (
         <div className="ml-auto flex items-center gap-2 border-l border-neutral-200 pl-2">
           <button
@@ -93,6 +67,6 @@ export function MhdInvestigationCaseRecordTabs({
           </button>
         </div>
       ) : null}
-    </div>
+    </MhdRecordTabNav>
   );
 }

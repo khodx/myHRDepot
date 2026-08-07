@@ -17,11 +17,12 @@ import {
 } from '../Hook';
 import { mhdFormatClassification, mhdFormatOccurrenceType } from '../Types';
 import { MhdAssignTemplateDialog } from './MhdAssignTemplateDialog';
+import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 
 function addDays(iso: string, days: number): string {
   const date = new Date(`${iso}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
+  return mhdToIsoDateString(date);
 }
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -70,7 +71,7 @@ interface BoardProps {
 }
 
 function MhdScheduleBoard({ companyId, isPrivileged, selfPersonId }: BoardProps) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = mhdToIsoDateString();
   const [rangeStart, setRangeStart] = useState(today);
   const [personId, setPersonId] = useState<string | null>(selfPersonId);
   const [assignTemplate, setAssignTemplate] = useState<{ id: string; name: string } | null>(null);

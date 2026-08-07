@@ -1,7 +1,9 @@
 import { MessageSquare } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { mhdTaskService } from '@/features/tasks/Service';
 import { useMhdMessageThread, useMhdMessages, useMhdMarkThreadRead } from '../Hook';
 import { mhdMessagingService } from '../Service';
 import { MhdMessageComposer } from './MhdMessageComposer';
@@ -29,6 +31,20 @@ export function MhdMessageThreadView({ threadId, currentUserId }: MhdMessageThre
     [thread.data?.participants],
   );
   const currentUserIsOwner = currentUserId ? ownerUserIds.has(currentUserId) : false;
+
+  const companyId = thread.data?.companyId ?? null;
+  const assignableUsers = useQuery({
+    queryKey: ['mhd-messaging', 'assignable-users', companyId ?? ''],
+    queryFn: () => mhdTaskService.listAssignableUsers(companyId!),
+    enabled: Boolean(companyId),
+  });
+  const senderNamesByUserId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const user of assignableUsers.data ?? []) {
+      map.set(user.id, user.displayName);
+    }
+    return map;
+  }, [assignableUsers.data]);
 
   async function handleDelete(messageId: string) {
     setError(null);
@@ -77,6 +93,7 @@ export function MhdMessageThreadView({ threadId, currentUserId }: MhdMessageThre
                 key={message.id}
                 message={message}
                 currentUserId={currentUserId}
+                senderName={senderNamesByUserId.get(message.senderUserId) ?? null}
                 canDelete={message.senderUserId === currentUserId || currentUserIsOwner}
                 onDelete={handleDelete}
               />

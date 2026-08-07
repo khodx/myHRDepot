@@ -2,7 +2,11 @@ import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
-import { MHD_ATTACHMENT_ALLOWED_MIME_TYPES, mhdValidateAttachment } from '@/features/attachments/Types';
+import {
+  MHD_ATTACHMENT_ALLOWED_MIME_TYPES,
+  MHD_ATTACHMENT_MAX_SIZE_MB,
+  mhdValidateAttachment,
+} from '@/features/attachments/Types';
 import { MhdAttachmentFileIcon } from './MhdAttachmentFileIcon';
 
 interface Props {
@@ -88,7 +92,7 @@ export function MhdAttachmentUploader({ isUploading, onUpload }: Props) {
           Drag & drop or <span className="font-medium text-accent">browse</span>
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Max 25 MB · PDF, Word, Excel, images, CSV, ZIP
+          Max {MHD_ATTACHMENT_MAX_SIZE_MB} MB · PDF, Word, Excel, images, CSV, ZIP
         </p>
         <input
           ref={inputRef}

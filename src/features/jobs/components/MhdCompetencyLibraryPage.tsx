@@ -1,4 +1,4 @@
-import { mhdCanMutateJobs } from '@/appshell/mhdRouteAccess';
+import { mhdCanMutateJobs, mhdIsPlatformAdmin } from '@/appshell/mhdRouteAccess';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdCompetencyLibraryPanel } from './MhdCompetencyLibraryPanel';
@@ -12,7 +12,7 @@ import { MhdCompetencyLibraryPanel } from './MhdCompetencyLibraryPanel';
 export function MhdCompetencyLibraryPage() {
   const { profile, roles } = useMhdAuth();
   const companyId = profile?.companyId ?? null;
-  const isPlatformAdmin = roles.includes('Platform Admin');
+  const isPlatformAdmin = mhdIsPlatformAdmin(roles);
   const canEdit = mhdCanMutateJobs(roles);
 
   if (!companyId) {

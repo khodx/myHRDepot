@@ -5,7 +5,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTaskWorkspaceNav } from '@/appshell/components/MhdTaskWorkspaceNav';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdCanMutateDocumentTemplates } from '@/appshell/mhdRouteAccess';
+import { mhdCanMutateDocumentTemplates, mhdIsPlatformAdmin } from '@/appshell/mhdRouteAccess';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import {
   useMhdDocumentTemplate,
@@ -27,7 +27,7 @@ import { MhdDocumentTemplateList } from './MhdDocumentTemplateList';
 export function MhdDocumentsPage() {
   const { profile, roles } = useMhdAuth();
   const canMutate = mhdCanMutateDocumentTemplates(roles);
-  const isPlatformAdmin = roles.includes('Platform Admin');
+  const isPlatformAdmin = mhdIsPlatformAdmin(roles);
   const actorContext = useMemo(
     () => (profile?.userId ? { actorUserId: profile.userId } : null),
     [profile],

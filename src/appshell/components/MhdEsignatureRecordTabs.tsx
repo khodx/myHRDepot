@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Ban } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
+import { MhdRecordTabNav, useMhdRecordTabAction } from '@/components/ui/MhdRecordTabNav';
 import { cn } from '@/utils/cn';
 
 export type MhdEsignatureRecordTab = 'detail';
@@ -42,42 +41,16 @@ export function MhdEsignatureRecordTabs({
   onVoid,
   voidConfirmMessage = 'Void this signature request? This cannot be undone.',
 }: MhdEsignatureRecordTabsProps) {
-  const [voiding, setVoiding] = useState(false);
+  const { pending: voiding, run: handleVoid } = useMhdRecordTabAction(onVoid, {
+    confirmMessage: voidConfirmMessage,
+  });
 
   const tabs: Array<{ key: MhdEsignatureRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/esignature/${requestId}` },
   ];
 
-  async function handleVoid() {
-    if (!onVoid || voiding) return;
-    if (!window.confirm(voidConfirmMessage)) return;
-    setVoiding(true);
-    try {
-      await onVoid();
-    } finally {
-      setVoiding(false);
-    }
-  }
-
   return (
-    <div className={cn('flex flex-wrap items-center gap-2', className)}>
-      {tabs.map((tab) => {
-        const isActive = tab.key === active;
-        return (
-          <Link
-            key={tab.key}
-            aria-current={isActive ? 'page' : undefined}
-            to={tab.to}
-            className={cn(
-              buttonBaseClasses,
-              'h-9 px-3 text-[16.8px]',
-              isActive ? buttonVariantClasses.primary : buttonVariantClasses.secondary,
-            )}
-          >
-            {tab.label}
-          </Link>
-        );
-      })}
+    <MhdRecordTabNav tabs={tabs} active={active} className={className}>
       {onVoid ? (
         <div className="ml-auto flex items-center gap-2 border-l border-neutral-200 pl-2">
           <button
@@ -95,6 +68,6 @@ export function MhdEsignatureRecordTabs({
           </button>
         </div>
       ) : null}
-    </div>
+    </MhdRecordTabNav>
   );
 }

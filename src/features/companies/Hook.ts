@@ -1,11 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdCompanyService } from './Service';
-import type {
-  MhdCompanyListFilters,
-  MhdCompanyMutationContext,
-  MhdCreateCompanyInput,
-  MhdUpdateCompanyInput,
-} from './Types';
+import type { MhdCompanyListFilters, MhdCreateCompanyInput, MhdUpdateCompanyInput } from './Types';
 
 export const mhdCompanyQueryKeys = {
   all: ['mhd-companies'] as const,
@@ -28,23 +23,22 @@ export function useMhdCompany(companyId: string) {
   });
 }
 
-export function useMhdCreateCompany(context: MhdCompanyMutationContext) {
+export function useMhdCreateCompany() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: MhdCreateCompanyInput) => mhdCompanyService.createCompany(input, context),
+    mutationFn: (input: MhdCreateCompanyInput) => mhdCompanyService.createCompany(input),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: mhdCompanyQueryKeys.all });
     },
   });
 }
 
-export function useMhdUpdateCompany(companyId: string, context: MhdCompanyMutationContext) {
+export function useMhdUpdateCompany(companyId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: MhdUpdateCompanyInput) =>
-      mhdCompanyService.updateCompany(companyId, input, context),
+    mutationFn: (input: MhdUpdateCompanyInput) => mhdCompanyService.updateCompany(companyId, input),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: mhdCompanyQueryKeys.all });
     },

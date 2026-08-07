@@ -14,6 +14,7 @@ import {
   mhdProjectedPoints,
   type MhdAttendancePolicy,
 } from '../Types';
+import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 
 interface PersonOption {
   id: string;
@@ -68,7 +69,7 @@ export function MhdOccurrenceForm({
     resolver: zodResolver(mhdOccurrenceFormSchema),
     defaultValues: {
       personId: presetPersonId ?? '',
-      occurrenceDate: presetDate ?? new Date().toISOString().slice(0, 10),
+      occurrenceDate: presetDate ?? mhdToIsoDateString(),
       occurrenceType: 'ABSENCE',
       classification: 'UNEXCUSED',
       protectedLeaveCategory: null,

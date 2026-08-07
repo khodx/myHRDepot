@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { mhdPersonService } from '@/features/people/Service';
 import type {
   MhdAddTripToClaimInput,
   MhdCreateClaimInput,
@@ -25,7 +24,6 @@ export const mhdMileageQueryKeys = {
   claims: (filters: MhdMileageClaimFilters) => ['mhd-mileage', 'claims', filters] as const,
   claimDetail: (claimId: string | null) => ['mhd-mileage', 'claim-detail', claimId ?? ''] as const,
   privileged: () => ['mhd-mileage', 'privileged'] as const,
-  people: (companyId: string | null) => ['mhd-mileage', 'people', companyId ?? 'ALL'] as const,
 };
 
 /**
@@ -275,13 +273,5 @@ export function useMhdMileageIsPrivileged() {
   return useQuery({
     queryKey: mhdMileageQueryKeys.privileged(),
     queryFn: () => mhdMileageService.isPrivileged(),
-  });
-}
-
-export function useMhdMileagePeople(companyId: string | null) {
-  return useQuery({
-    queryKey: mhdMileageQueryKeys.people(companyId),
-    queryFn: () => mhdPersonService.listPeople({ companyId: companyId!, searchTerm: '' }),
-    enabled: Boolean(companyId),
   });
 }

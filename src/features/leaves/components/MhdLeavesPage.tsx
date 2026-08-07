@@ -24,7 +24,8 @@ import {
 } from '@/components/ui/MhdViewToggleUtils';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
-import { useMhdCreateLeaveCase, useMhdLeaveCases, useMhdLeavePeople } from '../Hook';
+import { useMhdCreateLeaveCase, useMhdLeaveCases } from '../Hook';
+import { useMhdPeoplePicker } from '@/features/people/Hook';
 import type { MhdLeaveCaseFormValues } from '../Schemas';
 import {
   MHD_LEAVE_CASE_STATUSES,
@@ -75,7 +76,7 @@ export function MhdLeavesPage() {
   const pagination = useMhdPagination(casesData.length, {
     resetKey: `${casesData.length}:${casesData[0]?.id ?? ''}`,
   });
-  const people = useMhdLeavePeople(isPrivileged ? companyId || null : null);
+  const people = useMhdPeoplePicker(isPrivileged ? companyId || null : null);
   const createCase = useMhdCreateLeaveCase(companyId || null);
 
   const peopleOptions = useMemo(

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
-import { useMhdAssignJob, useMhdJobAssignments, useMhdJobs, useMhdJobsPeople } from '../Hook';
+import { useMhdAssignJob, useMhdJobAssignments, useMhdJobs } from '../Hook';
+import { useMhdPeoplePicker } from '@/features/people/Hook';
 import { MhdFlsaBadge } from './MhdFlsaBadge';
 
 interface Props {
@@ -28,7 +29,7 @@ export function MhdJobAssignmentPanel({ companyId, personId, canAssign }: Props)
 
   const assignments = useMhdJobAssignments(personId);
   const jobs = useMhdJobs(canAssign ? companyId : null);
-  const people = useMhdJobsPeople(canAssign ? companyId : null);
+  const people = useMhdPeoplePicker(canAssign ? companyId : null);
   const assign = useMhdAssignJob();
 
   const current = (assignments.data ?? []).find((a) => a.effectiveTo === null);

@@ -5,7 +5,7 @@ import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTabs } from '@/components/ui/MhdTabs';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { mhdCanMutatePerformance } from '@/appshell/mhdRouteAccess';
+import { mhdCanMutatePerformance, mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { type MhdCoachingPlanFormSchemaInput, type MhdReviewFormSchemaInput } from '../Schemas';
@@ -62,7 +62,7 @@ const TABS: { key: PerformanceTab; label: string }[] = [
 export function MhdPerformancePage() {
   const { profile, roles } = useMhdAuth();
   const canMutate = mhdCanMutatePerformance(roles);
-  const canCrossCompanyFilter = roles.includes('Platform Admin') || roles.includes('HR Partner');
+  const canCrossCompanyFilter = mhdIsPlatformAdminOrHrPartner(roles);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');

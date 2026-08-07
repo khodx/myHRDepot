@@ -1,24 +1,24 @@
 // Aligned to the `public.companies` schema (see Database.sql / Types.ts).
 // There is no `is_active` column, so there is no `isActive` field, no
-// STATUS_CHANGE audit action, and no ACTIVE/INACTIVE list filter. The
-// audit_events insert includes the required `company_id` column (see
-// Database.sql's `audit_events` column list) and uses `industry` /
-// `employeeCount` / `headquartersLocation` in its metadata.
+// STATUS_CHANGE audit action, and no ACTIVE/INACTIVE list filter.
 //
-// `companies.reference_id` is populated by a trigger (see Database.sql), so
-// `createCompany` below succeeds via a direct client-side insert.
+// `createCompany`/`updateCompany` go through mhd_create_company /
+// mhd_update_company (migration 0136) rather than a direct client-side
+// insert/update + a separate audit_events insert. Two client-side writes
+// meant a failed audit insert left the company mutation committed but the
+// caller seeing a generic failure — a silent partial-success/failure
+// mismatch (2026-08-06 audit finding M7). Both RPCs write the company row
+// and its audit_events row inside one function call, so they succeed or
+// fail together. `companies.reference_id` is still populated by the
+// existing DB trigger either way (see Database.sql).
 
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
-import type { Database } from '@/types/database.types';
 import type {
   MhdCompany,
   MhdCompanyListFilters,
-  MhdCompanyMutationContext,
   MhdCreateCompanyInput,
   MhdUpdateCompanyInput,
 } from './Types';
-
-type MhdCompanyInsert = Database['public']['Tables']['companies']['Insert'];
 
 type MhdCompanyRow = {
   id: string;
@@ -46,39 +46,6 @@ function mapCompanyRow(row: MhdCompanyRow): MhdCompany {
     updatedAt: row.updated_at,
     updatedBy: row.updated_by,
   };
-}
-
-async function insertCompanyAuditEvent(
-  company: MhdCompany,
-  actionType: 'CREATE' | 'UPDATE',
-  actorUserId: string,
-) {
-  const summary =
-    actionType === 'CREATE'
-      ? `Company created: ${company.companyName}`
-      : `Company updated: ${company.companyName}`;
-
-  const { error } = await supabaseClient.from('audit_events').insert({
-    company_id: company.id,
-    entity_type: 'COMPANY',
-    entity_id: company.id,
-    action_type: actionType,
-    summary,
-    performed_by: actorUserId,
-    source_module: 'COMPANY_MODULE',
-    metadata: {
-      company_id: company.id,
-      company_reference_id: company.referenceId,
-      company_name: company.companyName,
-      industry: company.industry,
-      employee_count: company.employeeCount,
-      headquarters_location: company.headquartersLocation,
-    },
-  });
-
-  if (error) {
-    throw new Error(`Company audit failed: ${error.message}`);
-  }
 }
 
 export const mhdCompanyService = {
@@ -116,61 +83,51 @@ export const mhdCompanyService = {
     return mapCompanyRow(data);
   },
 
-  async createCompany(
-    input: MhdCreateCompanyInput,
-    context: MhdCompanyMutationContext,
-  ): Promise<MhdCompany> {
-    // `reference_id` is required in the generated Insert type but is
-    // populated by a database trigger, so it is intentionally omitted here
-    // (hence the double assertion) — see Database.sql for the trigger.
-    const insertPayload = {
-      company_name: input.companyName.trim(),
-      industry: input.industry ?? null,
-      employee_count: input.employeeCount ?? null,
-      headquarters_location: input.headquartersLocation ?? null,
-      created_by: context.actorUserId,
-      updated_by: context.actorUserId,
-    } as Omit<MhdCompanyInsert, 'reference_id'> as MhdCompanyInsert;
-
+  async createCompany(input: MhdCreateCompanyInput): Promise<MhdCompany> {
+    // gen:types drops `null` from these defaulted RPC arguments even though
+    // mhd_create_company accepts it at runtime (same gen:types limitation
+    // documented in features/forms/Service.ts), hence `as never`.
     const { data, error } = await supabaseClient
-      .from('companies')
-      .insert(insertPayload)
-      .select('*')
-      .single<MhdCompanyRow>();
+      .rpc('mhd_create_company', {
+        p_company_name: input.companyName.trim(),
+        p_industry: input.industry ?? null,
+        p_employee_count: input.employeeCount ?? null,
+        p_headquarters_location: input.headquartersLocation ?? null,
+      } as never)
+      .returns<MhdCompanyRow[]>();
 
     if (error) {
       throw new Error(`Unable to create company: ${error.message}`);
     }
 
-    const company = mapCompanyRow(data);
-    await insertCompanyAuditEvent(company, 'CREATE', context.actorUserId);
-    return company;
+    const row = data?.[0];
+    if (!row) {
+      throw new Error('Unable to create company: no record returned.');
+    }
+
+    return mapCompanyRow(row);
   },
 
-  async updateCompany(
-    companyId: string,
-    input: MhdUpdateCompanyInput,
-    context: MhdCompanyMutationContext,
-  ): Promise<MhdCompany> {
+  async updateCompany(companyId: string, input: MhdUpdateCompanyInput): Promise<MhdCompany> {
     const { data, error } = await supabaseClient
-      .from('companies')
-      .update({
-        company_name: input.companyName.trim(),
-        industry: input.industry ?? null,
-        employee_count: input.employeeCount ?? null,
-        headquarters_location: input.headquartersLocation ?? null,
-        updated_by: context.actorUserId,
-      })
-      .eq('id', companyId)
-      .select('*')
-      .single<MhdCompanyRow>();
+      .rpc('mhd_update_company', {
+        p_company_id: companyId,
+        p_company_name: input.companyName.trim(),
+        p_industry: input.industry ?? null,
+        p_employee_count: input.employeeCount ?? null,
+        p_headquarters_location: input.headquartersLocation ?? null,
+      } as never)
+      .returns<MhdCompanyRow[]>();
 
     if (error) {
       throw new Error(`Unable to update company: ${error.message}`);
     }
 
-    const company = mapCompanyRow(data);
-    await insertCompanyAuditEvent(company, 'UPDATE', context.actorUserId);
-    return company;
+    const row = data?.[0];
+    if (!row) {
+      throw new Error('Unable to update company: no record returned.');
+    }
+
+    return mapCompanyRow(row);
   },
 };

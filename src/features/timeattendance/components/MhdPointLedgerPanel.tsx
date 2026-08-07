@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { mhdNextThreshold, type MhdAttendanceThreshold, type MhdPointLedgerEntry } from '../Types';
+import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 
 interface Props {
   entries: MhdPointLedgerEntry[];
@@ -40,7 +41,7 @@ export function MhdPointLedgerPanel({
   isLoading = false,
   selfView = false,
 }: Props) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = mhdToIsoDateString();
   const nextThreshold = useMemo(() => mhdNextThreshold(balance, thresholds), [balance, thresholds]);
 
   // Reversed entries stay visible but read as struck-through history: the whole
