@@ -13,10 +13,15 @@ interface MhdProgressBarProps {
   className?: string;
 }
 
+// Deliberately 4 stops, not 3: a straight red->gold->green lerp reads as
+// orange through most of the low-to-mid range (red+yellow blend *is*
+// orange), so low-but-nonzero progress never looked like "red." Holding a
+// bold red through 0-35% before the gold transition begins fixes that.
 const MHD_GRADUATED_STOPS = [
-  { at: 0, hex: '#CF0000' },
-  { at: 50, hex: '#E8C13A' },
-  { at: 100, hex: '#00A316' },
+  { at: 0, hex: '#8B0000' }, // deep red / maroon
+  { at: 35, hex: '#C1121F' }, // bold red — still unambiguously red at 25-35%
+  { at: 65, hex: '#E8B923' }, // deep/bold gold
+  { at: 100, hex: '#0B7A26' }, // deep bold green
 ] as const;
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -32,12 +37,18 @@ function lerp(a: number, b: number, t: number): number {
   return Math.round(a + (b - a) * t);
 }
 
-/** 0% -> #CF0000 (red), 50% -> #E8C13A (gold), 100% -> #00A316 (green). */
+/** Walks MHD_GRADUATED_STOPS, interpolating within whichever segment `percent` falls in. */
 function graduatedFillColor(percent: number): string {
-  const [start, end] =
-    percent <= 50
-      ? [MHD_GRADUATED_STOPS[0], MHD_GRADUATED_STOPS[1]]
-      : [MHD_GRADUATED_STOPS[1], MHD_GRADUATED_STOPS[2]];
+  const stops = MHD_GRADUATED_STOPS;
+  let segmentIndex = stops.length - 2;
+  for (let i = 0; i < stops.length - 1; i += 1) {
+    if (percent <= stops[i + 1].at) {
+      segmentIndex = i;
+      break;
+    }
+  }
+  const start = stops[segmentIndex];
+  const end = stops[segmentIndex + 1];
   const segmentStart = start.at;
   const segmentEnd = end.at;
   const t = segmentEnd === segmentStart ? 0 : (percent - segmentStart) / (segmentEnd - segmentStart);
