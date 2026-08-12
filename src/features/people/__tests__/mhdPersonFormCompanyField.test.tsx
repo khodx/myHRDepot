@@ -1,8 +1,14 @@
 import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import type { MhdCompany } from '@/features/companies/Types';
 import type { MhdPerson } from '../Types';
 import { MhdPersonForm } from '../components/MhdPersonForm';
+
+vi.mock('../Hook', () => ({
+  useMhdPeoplePicker: () => ({ data: [] }),
+}));
 
 const COMPANIES: MhdCompany[] = [
   {
@@ -59,9 +65,17 @@ const noop = {
   onCancel: vi.fn(),
 };
 
+function renderForm(ui: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
+
 describe('MhdPersonForm — Company field default / read-only behavior', () => {
   it('defaults a new person to the current user company and locks it when canEditCompany is false', () => {
-    render(
+    renderForm(
       <MhdPersonForm
         companies={COMPANIES}
         person={null}
@@ -76,7 +90,7 @@ describe('MhdPersonForm — Company field default / read-only behavior', () => {
   });
 
   it('defaults a new person to the first company and renders an editable searchable select when canEditCompany is true', () => {
-    render(
+    renderForm(
       <MhdPersonForm
         companies={COMPANIES}
         person={null}
@@ -90,7 +104,7 @@ describe('MhdPersonForm — Company field default / read-only behavior', () => {
   });
 
   it('keeps an existing person on their own company (not the viewer company) while locked', () => {
-    render(
+    renderForm(
       <MhdPersonForm
         companies={COMPANIES}
         person={person({ companyId: 'company-acme', companyName: 'Acme Corp' })}
@@ -105,7 +119,7 @@ describe('MhdPersonForm — Company field default / read-only behavior', () => {
   });
 
   it('lets a platform-org user reassign an existing person to a different company', () => {
-    render(
+    renderForm(
       <MhdPersonForm
         companies={COMPANIES}
         person={person({ companyId: 'company-acme', companyName: 'Acme Corp' })}

@@ -22,6 +22,7 @@ export const mhdPersonFormSchema = z.object({
     .default(''),
   phone: optionalTrimmedText,
   mobile: optionalTrimmedText,
+  managerId: z.string().trim().default(''),
 });
 
 export type MhdPersonFormValues = z.infer<typeof mhdPersonFormSchema>;

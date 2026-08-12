@@ -39,6 +39,8 @@ export interface MhdPerson {
   referenceId: MhdPersonReferenceId;
   companyId: MhdCompanyId;
   companyName: string | null;
+  managerId?: MhdPersonId | null;
+  managerDisplayName?: string | null;
   firstName: string;
   middleName: string | null;
   lastName: string;
@@ -68,6 +70,7 @@ export interface MhdCreatePersonInput {
   email: string;
   phone: string;
   mobile?: string;
+  managerId?: MhdPersonId | null;
 }
 
 export interface MhdUpdatePersonInput extends MhdCreatePersonInput {

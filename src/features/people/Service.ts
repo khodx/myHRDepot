@@ -15,6 +15,8 @@ type MhdPersonDirectoryRow = {
   reference_id: string;
   company_id: string;
   company_name: string | null;
+  manager_id?: string | null;
+  manager_display_name?: string | null;
   first_name: string;
   middle_name: string | null;
   last_name: string;
@@ -53,6 +55,8 @@ function mapPersonRow(row: MhdPersonDirectoryRow | MhdPersonMutationRow): MhdPer
     referenceId: row.reference_id as MhdPerson['referenceId'],
     companyId: row.company_id,
     companyName: 'company_name' in row ? row.company_name : null,
+    managerId: row.manager_id ?? null,
+    managerDisplayName: row.manager_display_name ?? null,
     firstName: row.first_name,
     middleName: row.middle_name,
     lastName: row.last_name,
@@ -138,18 +142,21 @@ export const mhdPersonService = {
     // `contact_methods` as PRIMARY rows of that contact_type, in the same
     // transaction as the person insert. Leave blank to create a person with
     // no contact methods yet.
+    const rpcArgs = {
+      p_company_id: input.companyId,
+      p_first_name: input.firstName.trim(),
+      p_middle_name: normalizeOptionalText(input.middleName),
+      p_last_name: input.lastName.trim(),
+      p_preferred_name: normalizeOptionalText(input.preferredName),
+      p_email: normalizeOptionalText(input.email),
+      p_phone: normalizeOptionalText(input.phone),
+      p_mobile: normalizeOptionalText(input.mobile ?? ''),
+      p_actor_user_id: context.actorUserId,
+      p_manager_id: input.managerId ?? null,
+    };
+
     const { data, error } = await supabaseClient
-      .rpc('mhd_create_person', {
-        p_company_id: input.companyId,
-        p_first_name: input.firstName.trim(),
-        p_middle_name: normalizeOptionalText(input.middleName),
-        p_last_name: input.lastName.trim(),
-        p_preferred_name: normalizeOptionalText(input.preferredName),
-        p_email: normalizeOptionalText(input.email),
-        p_phone: normalizeOptionalText(input.phone),
-        p_mobile: normalizeOptionalText(input.mobile ?? ''),
-        p_actor_user_id: context.actorUserId,
-      })
+      .rpc('mhd_create_person', rpcArgs)
       .returns<MhdPersonMutationRow[]>();
 
     if (error) {
@@ -179,19 +186,22 @@ export const mhdPersonService = {
     // promoting a non-primary to primary, etc.) use the dedicated
     // addContactMethod / updateContactMethod / deleteContactMethod /
     // listContactMethodsForPerson calls below.
+    const rpcArgs = {
+      p_person_id: input.personId,
+      p_company_id: input.companyId,
+      p_first_name: input.firstName.trim(),
+      p_middle_name: normalizeOptionalText(input.middleName),
+      p_last_name: input.lastName.trim(),
+      p_preferred_name: normalizeOptionalText(input.preferredName),
+      p_email: input.email.trim().length > 0 ? input.email.trim() : '',
+      p_phone: input.phone.trim().length > 0 ? input.phone.trim() : '',
+      p_mobile: input.mobile.trim().length > 0 ? input.mobile.trim() : '',
+      p_actor_user_id: context.actorUserId,
+      p_manager_id: input.managerId ?? null,
+    };
+
     const { data, error } = await supabaseClient
-      .rpc('mhd_update_person', {
-        p_person_id: input.personId,
-        p_company_id: input.companyId,
-        p_first_name: input.firstName.trim(),
-        p_middle_name: normalizeOptionalText(input.middleName),
-        p_last_name: input.lastName.trim(),
-        p_preferred_name: normalizeOptionalText(input.preferredName),
-        p_email: input.email.trim().length > 0 ? input.email.trim() : '',
-        p_phone: input.phone.trim().length > 0 ? input.phone.trim() : '',
-        p_mobile: input.mobile.trim().length > 0 ? input.mobile.trim() : '',
-        p_actor_user_id: context.actorUserId,
-      })
+      .rpc('mhd_update_person', rpcArgs)
       .returns<MhdPersonMutationRow[]>();
 
     if (error) {

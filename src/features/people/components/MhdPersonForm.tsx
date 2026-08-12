@@ -1,6 +1,8 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import type { MhdCompany } from '@/features/companies/Types';
+import { useMhdPeoplePicker } from '../Hook';
 import type { MhdCreatePersonInput, MhdPerson, MhdUpdatePersonInput } from '../Types';
 import { mhdPersonFormSchema, type MhdPersonFormValues } from '../Schemas';
 import { MhdPersonCompanySelect } from './MhdPersonCompanySelect';
@@ -26,6 +28,7 @@ const emptyValues: MhdPersonFormValues = {
   email: '',
   phone: '',
   mobile: '',
+  managerId: '',
 };
 
 export function MhdPersonForm({
@@ -40,6 +43,32 @@ export function MhdPersonForm({
   const [values, setValues] = useState<MhdPersonFormValues>(emptyValues);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const peoplePickerQuery = useMhdPeoplePicker(values.companyId || null);
+  const managerOptions = useMemo(() => {
+    const options = [
+      { id: '', label: 'No manager' },
+      ...(peoplePickerQuery.data ?? [])
+        .filter((candidate) => candidate.id !== person?.id)
+        .map((candidate) => ({
+          id: candidate.id,
+          label: candidate.displayName,
+          sublabel: candidate.primaryEmail ?? candidate.referenceId,
+        })),
+    ];
+
+    if (
+      person?.managerId &&
+      !options.some((option) => option.id === person.managerId)
+    ) {
+      options.push({
+        id: person.managerId,
+        label: person.managerDisplayName ?? 'Current manager',
+        sublabel: undefined,
+      });
+    }
+
+    return options;
+  }, [peoplePickerQuery.data, person]);
 
   useEffect(() => {
     if (person) {
@@ -55,6 +84,7 @@ export function MhdPersonForm({
         email: person.primaryEmail ?? '',
         phone: person.primaryPhone ?? '',
         mobile: person.primaryMobile ?? '',
+        managerId: person.managerId ?? '',
       });
       return;
     }
@@ -81,10 +111,15 @@ export function MhdPersonForm({
 
     setIsSaving(true);
     try {
+      const input = {
+        ...parsed.data,
+        managerId: parsed.data.managerId.length > 0 ? parsed.data.managerId : null,
+      };
+
       if (person) {
-        await onUpdate({ ...parsed.data, personId: person.id });
+        await onUpdate({ ...input, personId: person.id });
       } else {
-        await onCreate(parsed.data);
+        await onCreate(input);
       }
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Unable to save person.');
@@ -167,6 +202,18 @@ export function MhdPersonForm({
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             value={values.mobile}
             onChange={(event) => updateField('mobile', event.target.value)}
+          />
+        </label>
+        <label className="block text-sm font-medium text-foreground">
+          Manager
+          <MhdSearchableSelect
+            className="mt-1"
+            options={managerOptions}
+            value={values.managerId}
+            onChange={(managerId) => updateField('managerId', managerId)}
+            disabled={!canEditCompany}
+            placeholder="No manager"
+            emptyMessage="No people match your search."
           />
         </label>
       </div>
