@@ -21150,6 +21150,21 @@ export type Database = {
           name: string
         }[]
       }
+      mhd_bulk_update_task_fields: {
+        Args: {
+          p_actor_user_id?: string
+          p_assigned_user_ids?: string[]
+          p_priority_id?: string
+          p_status_id?: string
+          p_task_ids: string[]
+          p_update_assignees?: boolean
+          p_update_priority?: boolean
+        }
+        Returns: {
+          reference_id: string
+          task_id: string
+        }[]
+      }
       mhd_can_access_assignment_entity: {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: boolean

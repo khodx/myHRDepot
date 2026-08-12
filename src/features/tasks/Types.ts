@@ -131,6 +131,15 @@ export interface MhdUpdateTaskInput extends MhdCreateTaskInput {
   completedDate: string;
 }
 
+export interface MhdBulkUpdateTaskFieldsInput {
+  taskIds: MhdTaskId[];
+  statusId?: MhdTaskStatusId;
+  updatePriority?: boolean;
+  priorityId?: MhdTaskPriorityId | null;
+  updateAssignees?: boolean;
+  assignedUserIds?: MhdUserId[];
+}
+
 export interface MhdTaskMutationContext {
   actorUserId: string;
 }

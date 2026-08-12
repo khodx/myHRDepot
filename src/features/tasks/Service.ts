@@ -1,6 +1,7 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { Json } from '@/types/database.types';
 import type {
+  MhdBulkUpdateTaskFieldsInput,
   MhdCreateTaskInput,
   MhdTask,
   MhdTaskAssignableUser,
@@ -74,6 +75,11 @@ type MhdAssignableUserRow = {
 
 type MhdTaskMutationResultRow = {
   id: string;
+  reference_id: string;
+};
+
+type MhdBulkTaskMutationResultRow = {
+  task_id: string;
   reference_id: string;
 };
 
@@ -325,6 +331,32 @@ export const mhdTaskService = {
       throw new Error('Unable to update task: no record returned.');
     }
     return row;
+  },
+
+  async bulkUpdateTaskFields(
+    input: MhdBulkUpdateTaskFieldsInput,
+    context: MhdTaskMutationContext,
+  ): Promise<MhdBulkTaskMutationResultRow[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_bulk_update_task_fields', {
+        p_task_ids: input.taskIds,
+        p_actor_user_id: context.actorUserId,
+        p_status_id: input.statusId,
+        p_update_priority: input.updatePriority,
+        p_update_assignees: input.updateAssignees,
+        p_assigned_user_ids: input.assignedUserIds,
+        // Postgres uses NULL to mean "clear priority"; gen:types omits null
+        // from this defaulted RPC argument even though the function accepts
+        // it at runtime (see mhd_bulk_update_task_fields, migration 0138).
+        p_priority_id: input.priorityId ?? null,
+      } as never)
+      .returns<MhdBulkTaskMutationResultRow[]>();
+
+    if (error) {
+      throw new Error(`Unable to update tasks: ${error.message}`);
+    }
+
+    return data ?? [];
   },
 
   async deleteTask(taskId: string, context: MhdTaskMutationContext): Promise<void> {

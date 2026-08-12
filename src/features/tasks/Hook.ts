@@ -138,6 +138,54 @@ export function useMhdTasks(
     [context, loadTasks],
   );
 
+  const bulkUpdateStatus = useCallback(
+    async (taskIds: string[], statusId: string) => {
+      if (!context) throw new Error('Cannot update tasks without an authenticated user context.');
+      setIsSaving(true);
+      try {
+        await mhdTaskService.bulkUpdateTaskFields({ taskIds, statusId }, context);
+        await loadTasks();
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [context, loadTasks],
+  );
+
+  const bulkUpdatePriority = useCallback(
+    async (taskIds: string[], priorityId: string | null) => {
+      if (!context) throw new Error('Cannot update tasks without an authenticated user context.');
+      setIsSaving(true);
+      try {
+        await mhdTaskService.bulkUpdateTaskFields(
+          { taskIds, updatePriority: true, priorityId },
+          context,
+        );
+        await loadTasks();
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [context, loadTasks],
+  );
+
+  const bulkUpdateAssignees = useCallback(
+    async (taskIds: string[], userIds: string[]) => {
+      if (!context) throw new Error('Cannot update tasks without an authenticated user context.');
+      setIsSaving(true);
+      try {
+        await mhdTaskService.bulkUpdateTaskFields(
+          { taskIds, updateAssignees: true, assignedUserIds: userIds },
+          context,
+        );
+        await loadTasks();
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [context, loadTasks],
+  );
+
   const summary = useMemo(() => {
     return {
       total: tasks.length,
@@ -170,5 +218,8 @@ export function useMhdTasks(
     updateTask,
     deleteTask,
     deleteTasks,
+    bulkUpdateStatus,
+    bulkUpdatePriority,
+    bulkUpdateAssignees,
   };
 }

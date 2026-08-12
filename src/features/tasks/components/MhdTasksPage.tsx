@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
 import { MhdModal } from '@/components/ui/MhdModal';
+import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import { MhdTaskWorkspaceNav } from '@/appshell/components/MhdTaskWorkspaceNav';
 import { MhdViewToggle } from '@/components/ui/MhdViewToggle';
 import {
@@ -23,6 +24,7 @@ import type { MhdTask, MhdTaskListFilters } from '@/features/tasks/Types';
 
 const MHD_TASKS_VIEW_KEY = 'mhd:tasks:view';
 const MHD_TASKS_SAVED_VIEWS_KEY = 'mhd:tasks:savedViews';
+const MHD_BULK_PRIORITY_UNSELECTED = '__MHD_BULK_PRIORITY_UNSELECTED__';
 
 interface MhdSavedTaskView {
   id: string;
@@ -106,6 +108,9 @@ export function MhdTasksPage() {
   const canEditCompany = profile?.companyIsPlatformOrg ?? false;
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [selectedBulkStatusId, setSelectedBulkStatusId] = useState('');
+  const [selectedBulkPriorityId, setSelectedBulkPriorityId] = useState(MHD_BULK_PRIORITY_UNSELECTED);
+  const [selectedBulkAssigneeId, setSelectedBulkAssigneeId] = useState('');
   const [isSaveViewModalOpen, setIsSaveViewModalOpen] = useState(false);
   const [saveViewName, setSaveViewName] = useState('');
   const [savedViews, setSavedViews] = useState<MhdSavedTaskView[]>(readSavedViews);
@@ -136,6 +141,32 @@ export function MhdTasksPage() {
   async function handleDeleteSelected() {
     if (validSelectedIds.length === 0) return;
     await taskState.deleteTasks(validSelectedIds);
+    setSelectedIds([]);
+    setIsBulkModalOpen(false);
+  }
+
+  async function handleBulkStatusUpdate() {
+    if (validSelectedIds.length === 0 || selectedBulkStatusId === '') return;
+    await taskState.bulkUpdateStatus(validSelectedIds, selectedBulkStatusId);
+    setSelectedIds([]);
+    setIsBulkModalOpen(false);
+  }
+
+  async function handleBulkPriorityUpdate() {
+    if (validSelectedIds.length === 0 || selectedBulkPriorityId === MHD_BULK_PRIORITY_UNSELECTED) {
+      return;
+    }
+    await taskState.bulkUpdatePriority(
+      validSelectedIds,
+      selectedBulkPriorityId === '' ? null : selectedBulkPriorityId,
+    );
+    setSelectedIds([]);
+    setIsBulkModalOpen(false);
+  }
+
+  async function handleBulkAssigneeUpdate() {
+    if (validSelectedIds.length === 0 || selectedBulkAssigneeId === '') return;
+    await taskState.bulkUpdateAssignees(validSelectedIds, [selectedBulkAssigneeId]);
     setSelectedIds([]);
     setIsBulkModalOpen(false);
   }
@@ -315,20 +346,105 @@ export function MhdTasksPage() {
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-foreground">Bulk Actions</h2>
             <p className="text-sm text-muted-foreground">
-              Delete {validSelectedIds.length} selected task{validSelectedIds.length === 1 ? '' : 's'}?
+              {validSelectedIds.length} selected task{validSelectedIds.length === 1 ? '' : 's'}
             </p>
-            <div className="flex justify-end gap-2">
-              <Button variant="secondary" onClick={() => setIsBulkModalOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={taskState.isSaving}
-                onClick={() => void handleDeleteSelected()}
-              >
-                Delete selected
-              </Button>
-            </div>
+
+            <section className="space-y-2 border-t border-border pt-4">
+              <h3 className="text-sm font-semibold text-foreground">Change Status</h3>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <select
+                  className="h-10 flex-1 rounded-md border border-border bg-card px-3 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  value={selectedBulkStatusId}
+                  onChange={(event) => setSelectedBulkStatusId(event.target.value)}
+                >
+                  <option value="">Select status</option>
+                  {taskState.statuses.map((status) => (
+                    <option key={status.id} value={status.id}>
+                      {status.statusName}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  disabled={selectedBulkStatusId === '' || taskState.isSaving}
+                  onClick={() => void handleBulkStatusUpdate()}
+                >
+                  Apply
+                </Button>
+              </div>
+            </section>
+
+            <section className="space-y-2 border-t border-border pt-4">
+              <h3 className="text-sm font-semibold text-foreground">Change Priority</h3>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <select
+                  className="h-10 flex-1 rounded-md border border-border bg-card px-3 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  value={selectedBulkPriorityId}
+                  onChange={(event) => setSelectedBulkPriorityId(event.target.value)}
+                >
+                  <option value={MHD_BULK_PRIORITY_UNSELECTED}>Select priority</option>
+                  <option value="">No priority</option>
+                  {taskState.priorities.map((priority) => (
+                    <option key={priority.id} value={priority.id}>
+                      {priority.priorityName}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  disabled={
+                    selectedBulkPriorityId === MHD_BULK_PRIORITY_UNSELECTED || taskState.isSaving
+                  }
+                  onClick={() => void handleBulkPriorityUpdate()}
+                >
+                  Apply
+                </Button>
+              </div>
+            </section>
+
+            <section className="space-y-2 border-t border-border pt-4">
+              <h3 className="text-sm font-semibold text-foreground">Change Assignee</h3>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <MhdSearchableSelect
+                  className="flex-1"
+                  options={taskState.assignableUsers.map((user) => ({
+                    id: user.id,
+                    label: user.displayName,
+                    sublabel: user.email || undefined,
+                  }))}
+                  value={selectedBulkAssigneeId}
+                  onChange={setSelectedBulkAssigneeId}
+                  placeholder="Select assignee"
+                  emptyMessage="No assignable users match your search."
+                />
+                <Button
+                  type="button"
+                  disabled={selectedBulkAssigneeId === '' || taskState.isSaving}
+                  onClick={() => void handleBulkAssigneeUpdate()}
+                >
+                  Apply
+                </Button>
+              </div>
+            </section>
+
+            <section className="space-y-2 border-t border-border pt-4">
+              <h3 className="text-sm font-semibold text-foreground">Delete Selected</h3>
+              <p className="text-sm text-muted-foreground">
+                Delete selected tasks permanently?
+              </p>
+              <div className="flex justify-end gap-2">
+                <Button variant="secondary" onClick={() => setIsBulkModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={taskState.isSaving}
+                  onClick={() => void handleDeleteSelected()}
+                >
+                  Delete selected
+                </Button>
+              </div>
+            </section>
           </div>
         </MhdModal>
       )}
