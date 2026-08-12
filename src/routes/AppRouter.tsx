@@ -98,6 +98,10 @@ const MhdTaskReportsPage = lazyPage(
   () => import('@/features/documents/components/MhdTaskReportsPage'),
   'MhdTaskReportsPage',
 );
+const MhdTaskDashboardReportPage = lazyPage(
+  () => import('@/features/tasks/components/MhdTaskDashboardReportPage'),
+  'MhdTaskDashboardReportPage',
+);
 const MhdTaskAuditPage = lazyPage(
   () => import('@/features/audit/components/MhdTaskAuditPage'),
   'MhdTaskAuditPage',
@@ -514,6 +518,7 @@ function MhdAppRoutes() {
                 <Route path="/tasks/:taskId/activities" element={<MhdTaskActivitiesPage />} />
                 <Route path="/tasks/:taskId/attachments" element={<MhdTaskAttachmentsPage />} />
                 <Route path="/tasks/:taskId/reports" element={<MhdTaskReportsPage />} />
+                <Route path="/tasks/dashboard-report" element={<MhdTaskDashboardReportPage />} />
                 {/* Platform Admin / HR Partner only — see the dedicated
                   '/tasks/:taskId/audit' segment-pattern rule in
                   mhdRouteAccess.ts, which precedes the general '/tasks'

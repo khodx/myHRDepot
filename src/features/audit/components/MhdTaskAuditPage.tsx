@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { MhdAuditReportPanel } from '@/components/ui/MhdAuditReportPanel';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -16,7 +17,6 @@ import {
 import { useMhdRequestTaskAuditReport, useMhdTaskAuditTimeline } from '../Hook';
 import type { MhdTaskAuditEntityType, MhdTaskAuditFilters } from '../Types';
 import { MHD_TASK_AUDIT_DEFAULT_FILTERS } from '../Types';
-import { MhdAuditReportPanel } from './MhdAuditReportPanel';
 import { MhdAuditTimelineTable } from './MhdAuditTimelineTable';
 
 const MHD_TASK_AUDIT_SYSTEM_REPORT_KEYS = [

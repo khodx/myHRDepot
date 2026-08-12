@@ -1,5 +1,8 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { Json } from '@/types/database.types';
+import { mhdDocumentService } from '@/features/documents/Service';
+import type { MhdDocumentGenerationDetailRow } from '@/features/documents/Service';
+import type { MhdDocumentMutationContext } from '@/features/documents/Types';
 import type {
   MhdBulkUpdateTaskFieldsInput,
   MhdCreateTaskInput,
@@ -357,6 +360,50 @@ export const mhdTaskService = {
     }
 
     return data ?? [];
+  },
+
+  async requestTaskDashboardReport(
+    companyId: string,
+    companyName: string,
+    tasks: MhdTask[],
+    context: MhdDocumentMutationContext,
+    generatedByDisplayName: string,
+  ): Promise<MhdDocumentGenerationDetailRow> {
+    const template = await mhdDocumentService.getTemplateByKey(
+      'TASK_DASHBOARD_REPORT',
+      companyId,
+    );
+    if (!template) {
+      throw new Error('No "TASK_DASHBOARD_REPORT" report template is available for this company.');
+    }
+
+    const taskRows = tasks.map((task) => ({
+      reference_id: task.referenceId,
+      title: task.title,
+      company_name: task.companyName,
+      assignees: task.assignedDisplayNames.join('; '),
+      priority: task.priorityName ?? '',
+      status: task.statusName,
+      due_date: task.dueDate ?? '',
+      progress: String(task.calculatedProgressPercent ?? task.manualProgressPercent),
+    }));
+
+    return mhdDocumentService.generateAndPoll(
+      {
+        templateId: template.id,
+        companyId,
+        entityType: 'TASK_DASHBOARD_REPORT',
+        entityId: companyId,
+        mergeData: {
+          'company.name': companyName,
+          'tasks.total_count': String(tasks.length),
+          'tasks.rows': taskRows,
+          'system.performed_by': generatedByDisplayName,
+          'system.timestamp': new Date().toISOString(),
+        },
+      },
+      context,
+    );
   },
 
   async deleteTask(taskId: string, context: MhdTaskMutationContext): Promise<void> {

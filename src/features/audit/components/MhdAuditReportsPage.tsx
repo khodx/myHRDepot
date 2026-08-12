@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { MhdAuditReportPanel } from '@/components/ui/MhdAuditReportPanel';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -9,7 +10,6 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdAuditEvents, useMhdRequestAuditReport } from '../Hook';
 import type { MhdAuditEvent, MhdAuditEventFilters } from '../Types';
 import { MHD_AUDIT_EVENT_DEFAULT_FILTERS } from '../Types';
-import { MhdAuditReportPanel } from './MhdAuditReportPanel';
 import { MhdAuditTimelineTable } from './MhdAuditTimelineTable';
 
 // No narrower system report set exists company-wide yet (the system report

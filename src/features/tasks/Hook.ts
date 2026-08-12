@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { mhdTaskService } from './Service';
 import type { MhdCompanyId } from '@/features/companies/Types';
+import type { MhdDocumentMutationContext } from '@/features/documents/Types';
 import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 import type {
   MhdCreateTaskInput,
@@ -222,4 +224,31 @@ export function useMhdTasks(
     bulkUpdatePriority,
     bulkUpdateAssignees,
   };
+}
+
+export function useMhdRequestTaskDashboardReport(context: MhdDocumentMutationContext | null) {
+  return useMutation({
+    mutationFn: ({
+      companyId,
+      companyName,
+      tasks,
+      generatedByDisplayName,
+    }: {
+      companyId: string;
+      companyName: string;
+      tasks: MhdTask[];
+      generatedByDisplayName: string;
+    }) => {
+      if (!context) {
+        throw new Error('Cannot generate a Task Dashboard report without an authenticated user.');
+      }
+      return mhdTaskService.requestTaskDashboardReport(
+        companyId,
+        companyName,
+        tasks,
+        context,
+        generatedByDisplayName,
+      );
+    },
+  });
 }

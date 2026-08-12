@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { CheckSquare, FileSearch, FileText } from 'lucide-react';
+import { CheckSquare, FileSearch, FileText, Printer } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { cn } from '@/utils/cn';
@@ -37,6 +37,12 @@ export function MhdTaskWorkspaceNav() {
   const items: MhdTaskWorkspaceNavItem[] = [
     { key: 'tasks', label: 'Tasks', to: '/tasks', icon: CheckSquare },
     { key: 'reports', label: 'Task Reports', to: '/reports', icon: FileText },
+    {
+      key: 'dashboard-report',
+      label: 'Dashboard Report',
+      to: '/tasks/dashboard-report',
+      icon: Printer,
+    },
     ...(canViewAuditReports
       ? [{ key: 'audit-reports', label: 'Audit Reports', to: '/audit-reports', icon: FileSearch }]
       : []),

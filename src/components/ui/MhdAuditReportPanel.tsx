@@ -1,3 +1,10 @@
+// Lives in the shared components tree (not src/features/audit/) despite the
+// "Audit" name: the mhd-feature-boundary/no-cross-feature-internals ESLint
+// rule only allows cross-feature imports to a feature's Hook/Service/Types/
+// Schemas contract files, never a components/ path — so this genuinely
+// generic, entityType-agnostic panel (Task Dashboard Reports is its second
+// consumer, alongside Audit's own per-task/company-wide pages) had to move
+// here to be legitimately reusable outside the audit feature.
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/Button';
