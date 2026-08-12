@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, Layers, Plus, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -19,6 +19,7 @@ import { MhdTaskList } from '@/features/tasks/components/MhdTaskList';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdTasks } from '@/features/tasks/Hook';
+import { mhdExportTable, type MhdExportColumn, type MhdExportFormat } from '@/lib/mhdTableExport';
 import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 import type { MhdTask, MhdTaskListFilters } from '@/features/tasks/Types';
 
@@ -57,34 +58,26 @@ function createSavedViewId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `view-${Date.now()}`;
 }
 
-function escapeCsvCell(value: string | number | null | undefined): string {
-  const text = value === null || value === undefined ? '' : String(value);
-  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
+const MHD_TASK_EXPORT_COLUMNS: MhdExportColumn<MhdTask>[] = [
+  { header: 'Reference ID', accessor: (task) => task.referenceId },
+  { header: 'Title', accessor: (task) => task.title },
+  { header: 'Company', accessor: (task) => task.companyName },
+  { header: 'Assignees', accessor: (task) => task.assignedDisplayNames.join('; ') },
+  { header: 'Priority', accessor: (task) => task.priorityName ?? '' },
+  { header: 'Status', accessor: (task) => task.statusName },
+  { header: 'Due Date', accessor: (task) => task.dueDate ?? '' },
+  {
+    header: 'Progress',
+    accessor: (task) => String(task.calculatedProgressPercent ?? task.manualProgressPercent),
+  },
+];
 
-function buildTasksCsv(tasks: MhdTask[]): string {
-  const headers = [
-    'Reference ID',
-    'Title',
-    'Company',
-    'Assignees',
-    'Priority',
-    'Status',
-    'Due Date',
-    'Progress',
-  ];
-  const rows = tasks.map((task) => [
-    task.referenceId,
-    task.title,
-    task.companyName,
-    task.assignedDisplayNames.join('; '),
-    task.priorityName ?? '',
-    task.statusName,
-    task.dueDate ?? '',
-    task.calculatedProgressPercent ?? task.manualProgressPercent,
-  ]);
-  return [headers, ...rows].map((row) => row.map(escapeCsvCell).join(',')).join('\n');
-}
+const MHD_TASK_EXPORT_FORMATS: Array<{ format: MhdExportFormat; label: string }> = [
+  { format: 'xlsx', label: 'Excel' },
+  { format: 'csv', label: 'CSV' },
+  { format: 'docx', label: 'Word' },
+  { format: 'pdf', label: 'PDF' },
+];
 
 export function MhdTasksPage() {
   const { profile } = useMhdAuth();
@@ -115,6 +108,22 @@ export function MhdTasksPage() {
   const [saveViewName, setSaveViewName] = useState('');
   const [savedViews, setSavedViews] = useState<MhdSavedTaskView[]>(readSavedViews);
   const [selectedSavedViewId, setSelectedSavedViewId] = useState('');
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const [exportErrorMessage, setExportErrorMessage] = useState<string | null>(null);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isExportMenuOpen) return;
+    function onDocClick(event: globalThis.MouseEvent) {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setIsExportMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+    };
+  }, [isExportMenuOpen]);
 
   // Derived rather than synced via effect: stale ids (from a deleted task or
   // a filter change that drops a row) simply drop out of this list on the
@@ -202,18 +211,21 @@ export function MhdTasksPage() {
     if (selectedSavedViewId === viewId) setSelectedSavedViewId('');
   }
 
-  function handleExport() {
-    const csv = buildTasksCsv(taskState.tasks);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const today = mhdToIsoDateString();
-    link.href = url;
-    link.download = `tasks-export-${today}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+  function handleExport(format: MhdExportFormat) {
+    setIsExportMenuOpen(false);
+    setExportErrorMessage(null);
+    mhdExportTable({
+      format,
+      filenameBase: `tasks-export-${mhdToIsoDateString()}`,
+      title: 'Task Dashboard',
+      columns: MHD_TASK_EXPORT_COLUMNS,
+      rows: taskState.tasks,
+    }).catch((error: unknown) => {
+      const label = MHD_TASK_EXPORT_FORMATS.find((f) => f.format === format)?.label ?? format;
+      setExportErrorMessage(
+        `Unable to export tasks as ${label}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    });
   }
 
   return (
@@ -291,17 +303,45 @@ export function MhdTasksPage() {
             <Save className="h-4 w-4" aria-hidden />
             Save View
           </Button>
-          <Button
-            variant="secondary"
-            className="h-9 gap-1.5 px-3 text-[16.8px]"
-            disabled={taskState.tasks.length === 0}
-            onClick={handleExport}
-          >
-            <Download className="h-4 w-4" aria-hidden />
-            Export
-          </Button>
+          <div ref={exportMenuRef} className="relative inline-block text-left">
+            <Button
+              variant="secondary"
+              className="h-9 gap-1.5 px-3 text-[16.8px]"
+              disabled={taskState.tasks.length === 0}
+              aria-haspopup="menu"
+              aria-expanded={isExportMenuOpen}
+              onClick={() => setIsExportMenuOpen((prev) => !prev)}
+            >
+              <Download className="h-4 w-4" aria-hidden />
+              Export
+            </Button>
+            {isExportMenuOpen ? (
+              <div
+                role="menu"
+                className="absolute right-0 z-10 mt-1 w-36 overflow-hidden rounded-md border border-border bg-card py-1 shadow-lg"
+              >
+                {MHD_TASK_EXPORT_FORMATS.map((exportFormat) => (
+                  <button
+                    key={exportFormat.format}
+                    type="button"
+                    role="menuitem"
+                    className="block w-full px-3 py-2 text-left text-xs font-medium text-foreground transition hover:bg-accent-soft"
+                    onClick={() => handleExport(exportFormat.format)}
+                  >
+                    {exportFormat.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
       </header>
+
+      {exportErrorMessage && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {exportErrorMessage}
+        </div>
+      )}
 
       {taskState.errorMessage && (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
