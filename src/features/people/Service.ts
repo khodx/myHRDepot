@@ -7,6 +7,7 @@ import type {
   MhdOrgChartNode,
   MhdPeopleListFilters,
   MhdPerson,
+  MhdPersonEmploymentState,
   MhdPersonMutationContext,
   MhdUpdateContactMethodInput,
   MhdUpdatePersonInput,
@@ -62,6 +63,34 @@ type MhdOrgChartRow = MhdDirectReportRow & {
   manager_id: string | null;
   company_id: string;
 };
+
+type MhdPersonEmploymentStateRow = {
+  id: string;
+  reference_id: string;
+  company_id: string;
+  person_id: string;
+  state: string;
+  effective_from: string;
+  reason: string | null;
+  source_module: string | null;
+  source_entity_type: string | null;
+  source_entity_id: string | null;
+};
+
+function mapPersonEmploymentStateRow(row: MhdPersonEmploymentStateRow): MhdPersonEmploymentState {
+  return {
+    id: row.id,
+    referenceId: row.reference_id,
+    companyId: row.company_id,
+    personId: row.person_id,
+    state: row.state as MhdPersonEmploymentState['state'],
+    effectiveFrom: row.effective_from,
+    reason: row.reason,
+    sourceModule: row.source_module,
+    sourceEntityType: row.source_entity_type,
+    sourceEntityId: row.source_entity_id,
+  };
+}
 
 function mapPersonRow(row: MhdPersonDirectoryRow | MhdPersonMutationRow): MhdPerson {
   return {
@@ -342,5 +371,20 @@ export const mhdPersonService = {
     if (error) {
       throw new Error(`Unable to delete contact method: ${error.message}`);
     }
+  },
+
+  /** The person's open (effective_to is null) employment-state row, or null
+   *  if they've never had one — see mhd_person_current_employment_state. */
+  async getCurrentEmploymentState(personId: string): Promise<MhdPersonEmploymentState | null> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_person_current_employment_state', { p_person_id: personId })
+      .returns<MhdPersonEmploymentStateRow[]>();
+
+    if (error) {
+      throw new Error(`Unable to load employment state: ${error.message}`);
+    }
+
+    const row = data?.[0];
+    return row ? mapPersonEmploymentStateRow(row) : null;
   },
 };

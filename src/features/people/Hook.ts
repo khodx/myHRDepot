@@ -9,6 +9,8 @@ export const mhdPeopleQueryKeys = {
   directReports: (personId: string | null) =>
     ['mhd-people', 'direct-reports', personId ?? 'none'] as const,
   orgChart: (companyId: string | null) => ['mhd-people', 'org-chart', companyId ?? 'ALL'] as const,
+  currentEmploymentState: (personId: string | null) =>
+    ['mhd-people', 'current-employment-state', personId ?? 'none'] as const,
 };
 
 /**
@@ -37,6 +39,17 @@ export function useMhdOrgChart(companyId: string | null) {
   return useQuery({
     queryKey: mhdPeopleQueryKeys.orgChart(companyId),
     queryFn: () => mhdPersonService.listOrgChart(companyId),
+  });
+}
+
+/** The signed-in person's own open employment-state row — used for the
+ *  dashboard's tenure display (see mhd_person_current_employment_state). */
+export function useMhdPersonCurrentEmploymentState(personId: string | null) {
+  return useQuery({
+    queryKey: mhdPeopleQueryKeys.currentEmploymentState(personId),
+    queryFn: () => mhdPersonService.getCurrentEmploymentState(personId!),
+    enabled: Boolean(personId),
+    staleTime: 60_000,
   });
 }
 

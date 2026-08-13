@@ -55,6 +55,34 @@ export interface MhdPerson {
   updatedBy: string;
 }
 
+export type MhdPersonEmploymentStateName =
+  | 'APPLICANT'
+  | 'CANDIDATE'
+  | 'PRE_HIRE'
+  | 'ACTIVE'
+  | 'ON_LEAVE'
+  | 'SUSPENDED'
+  | 'SEPARATED';
+
+// From mhd_person_current_employment_state — the person's open
+// (effective_to is null) employment-state row, or null if they've never had
+// one. `effectiveFrom` is the anchor date for tenure display: the codebase's
+// existing tenure aggregate (mhd_dashboard_company_summary's
+// avg_tenure_years) uses this same "current open ACTIVE row's effective_from"
+// as the hire-date proxy — `people` itself deliberately carries no hire date.
+export interface MhdPersonEmploymentState {
+  id: string;
+  referenceId: string;
+  companyId: MhdCompanyId;
+  personId: MhdPersonId;
+  state: MhdPersonEmploymentStateName;
+  effectiveFrom: string;
+  reason: string | null;
+  sourceModule: string | null;
+  sourceEntityType: string | null;
+  sourceEntityId: string | null;
+}
+
 export interface MhdDirectReport {
   personId: MhdPersonId;
   referenceId: MhdPersonReferenceId;

@@ -397,6 +397,20 @@
     inset 0 -1px 0 rgba(0, 0, 0, 0.55);
 }
 
+/* Dashboard greeting banner — sits on bg-rail, which stays dark navy in
+   BOTH app themes (unlike --color-card, it never flips), so it always needs
+   the dark-surface bevel formula rather than .mhd-card-elevated's light/dark
+   pair. Deliberately light: a thin inset top highlight and bottom shadow
+   for "a tad" of raised-panel push, not the nav rail's full active-item
+   bevel weight. */
+.mhd-greeting-banner {
+  box-shadow:
+    0 18px 34px -10px rgba(0, 0, 0, 0.4),
+    0 6px 12px -4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
 :root {
   font-family:
     Arial,
