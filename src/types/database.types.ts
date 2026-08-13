@@ -2737,7 +2737,7 @@ export type Database = {
         Row: {
           company_name: string
           created_at: string
-          created_by: string
+          created_by: string | null
           employee_count: number | null
           headquarters_location: string | null
           id: string
@@ -2745,12 +2745,12 @@ export type Database = {
           is_platform_org: boolean
           reference_id: string
           updated_at: string
-          updated_by: string
+          updated_by: string | null
         }
         Insert: {
           company_name: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           employee_count?: number | null
           headquarters_location?: string | null
           id?: string
@@ -2758,12 +2758,12 @@ export type Database = {
           is_platform_org?: boolean
           reference_id: string
           updated_at?: string
-          updated_by: string
+          updated_by?: string | null
         }
         Update: {
           company_name?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           employee_count?: number | null
           headquarters_location?: string | null
           id?: string
@@ -2771,7 +2771,7 @@ export type Database = {
           is_platform_org?: boolean
           reference_id?: string
           updated_at?: string
-          updated_by?: string
+          updated_by?: string | null
         }
         Relationships: []
       }

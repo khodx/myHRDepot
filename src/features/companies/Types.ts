@@ -21,9 +21,13 @@ export interface MhdCompany {
   employeeCount: number | null;
   headquartersLocation: string | null;
   createdAt: string;
-  createdBy: string;
+  // Nullable: the one platform-internal "SimplyHR" company row is
+  // migration-seeded, not created through mhd_create_company, so it has no
+  // real authenticated actor (see migration 0143 — previously an all-zero
+  // UUID sentinel stood in for "no actor," which this null replaces).
+  createdBy: string | null;
   updatedAt: string;
-  updatedBy: string;
+  updatedBy: string | null;
 }
 
 export interface MhdCreateCompanyInput {

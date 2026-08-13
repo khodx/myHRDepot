@@ -28,9 +28,9 @@ type MhdCompanyRow = {
   employee_count: number | null;
   headquarters_location: string | null;
   created_at: string;
-  created_by: string;
+  created_by: string | null;
   updated_at: string;
-  updated_by: string;
+  updated_by: string | null;
 };
 
 function mapCompanyRow(row: MhdCompanyRow): MhdCompany {
