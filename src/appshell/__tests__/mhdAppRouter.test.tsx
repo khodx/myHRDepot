@@ -128,6 +128,9 @@ vi.mock('@/features/notes/components/MhdTaskNotesPage', () => ({
 vi.mock('@/features/people/components/MhdPeoplePage', () => ({
   MhdPeoplePage: () => <div>People Page</div>,
 }));
+vi.mock('@/features/people/components/MhdOrgChartPage', () => ({
+  MhdOrgChartPage: () => <div>Org Chart Page</div>,
+}));
 vi.mock('../components/MhdPersonDetailPage', () => ({
   MhdPersonDetailPage: () => <div>Person Detail Page</div>,
 }));
@@ -483,6 +486,30 @@ describe('MhdAppRouter', () => {
 
       expect(screen.queryByText('People Page')).not.toBeInTheDocument();
       expect(await screen.findByText('Page Not Found')).toBeInTheDocument();
+    });
+
+    it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'])(
+      'renders "/people/org-chart" for an authenticated %s',
+      async (role) => {
+        mockAuth({ isAuthenticated: true, roles: [role] });
+        setUrl('/people/org-chart');
+
+        render(<MhdAppRouter />);
+
+        expect(await screen.findByText('Org Chart Page')).toBeInTheDocument();
+        expect(window.location.pathname).toBe('/people/org-chart');
+      },
+    );
+
+    it('redirects a Viewer away from "/people/org-chart" to "/404"', async () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl('/people/org-chart');
+
+      render(<MhdAppRouter />);
+
+      expect(screen.queryByText('Org Chart Page')).not.toBeInTheDocument();
+      expect(await screen.findByText('Page Not Found')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/404');
     });
 
     it('renders "/approvals" for a Client User', async () => {
