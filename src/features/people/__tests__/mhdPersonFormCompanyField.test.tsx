@@ -1,13 +1,17 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactElement } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdCompany } from '@/features/companies/Types';
 import type { MhdPerson } from '../Types';
 import { MhdPersonForm } from '../components/MhdPersonForm';
 
+const { mockUseMhdPeoplePicker } = vi.hoisted(() => ({
+  mockUseMhdPeoplePicker: vi.fn(),
+}));
+
 vi.mock('../Hook', () => ({
-  useMhdPeoplePicker: () => ({ data: [] }),
+  useMhdPeoplePicker: (...args: unknown[]) => mockUseMhdPeoplePicker(...args),
 }));
 
 const COMPANIES: MhdCompany[] = [
@@ -64,6 +68,11 @@ const noop = {
   onUpdate: vi.fn(),
   onCancel: vi.fn(),
 };
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockUseMhdPeoplePicker.mockReturnValue({ data: [] });
+});
 
 function renderForm(ui: ReactElement) {
   const queryClient = new QueryClient({
@@ -130,5 +139,102 @@ describe('MhdPersonForm — Company field default / read-only behavior', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Company' })).toHaveTextContent('Acme Corp');
+  });
+});
+
+describe('MhdPersonForm — Manager field behavior', () => {
+  it('excludes the person currently being edited from Manager options', () => {
+    mockUseMhdPeoplePicker.mockReturnValue({
+      data: [
+        {
+          id: 'person-1',
+          referenceId: 'PERS-0001',
+          displayName: 'Jordan Smith',
+          primaryEmail: 'jordan@example.com',
+        },
+        {
+          id: 'person-2',
+          referenceId: 'PERS-0002',
+          displayName: 'Robin Manager',
+          primaryEmail: 'robin@example.com',
+        },
+      ],
+    });
+
+    renderForm(
+      <MhdPersonForm
+        companies={COMPANIES}
+        person={person({ id: 'person-1', displayName: 'Jordan Smith' })}
+        currentUserCompanyId="company-acme"
+        canEditCompany
+        {...noop}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Manager' }));
+
+    const managerOptions = screen.getByRole('listbox');
+    expect(within(managerOptions).queryByRole('option', { name: /Jordan Smith/i })).toBeNull();
+    expect(
+      within(managerOptions).getByRole('option', { name: /Robin Manager/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders the Manager field read-only when canEditCompany is false', () => {
+    mockUseMhdPeoplePicker.mockReturnValue({
+      data: [
+        {
+          id: 'person-2',
+          referenceId: 'PERS-0002',
+          displayName: 'Robin Manager',
+          primaryEmail: 'robin@example.com',
+        },
+      ],
+    });
+
+    renderForm(
+      <MhdPersonForm
+        companies={COMPANIES}
+        person={person({ managerId: 'person-2', managerDisplayName: 'Robin Manager' })}
+        currentUserCompanyId="company-acme"
+        canEditCompany={false}
+        {...noop}
+      />,
+    );
+
+    expect(screen.getByText('Robin Manager')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Manager' })).toBeNull();
+  });
+
+  it('renders and selects the current manager fallback when the manager is not in the picker page', () => {
+    mockUseMhdPeoplePicker.mockReturnValue({
+      data: [
+        {
+          id: 'person-3',
+          referenceId: 'PERS-0003',
+          displayName: 'Alex Peer',
+          primaryEmail: 'alex@example.com',
+        },
+      ],
+    });
+
+    renderForm(
+      <MhdPersonForm
+        companies={COMPANIES}
+        person={person({ managerId: 'person-2', managerDisplayName: 'Robin Manager' })}
+        currentUserCompanyId="company-acme"
+        canEditCompany
+        {...noop}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Manager' })).toHaveTextContent('Robin Manager');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Manager' }));
+
+    expect(screen.getByRole('option', { name: 'Robin Manager' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
   });
 });

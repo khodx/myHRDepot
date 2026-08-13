@@ -86,6 +86,9 @@ vi.mock('@/features/forms/components/MhdFormsPage', () => ({
 vi.mock('@/features/activities/components/MhdActivitiesPage', () => ({
   MhdActivitiesPage: () => <div>Activities Page</div>,
 }));
+vi.mock('@/features/calendar/components/MhdCalendarPage', () => ({
+  MhdCalendarPage: () => <div>Calendar Page</div>,
+}));
 vi.mock('@/features/activities/components/MhdActivityDetailPage', () => ({
   MhdActivityDetailPage: () => <div>Activity Detail Page</div>,
 }));
@@ -426,6 +429,22 @@ describe('MhdAppRouter', () => {
       expect(window.location.pathname).toBe('/activities');
     });
 
+    it.each<MhdAuthRoleName>([
+      'Platform Admin',
+      'HR Partner',
+      'Client Admin',
+      'Client User',
+      'Viewer',
+    ])('renders "/calendar" for an authenticated %s', async (role) => {
+      mockAuth({ isAuthenticated: true, roles: [role] });
+      setUrl('/calendar');
+
+      render(<MhdAppRouter />);
+
+      expect(await screen.findByText('Calendar Page')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/calendar');
+    });
+
     it('renders "/activities/:activityId" for a Viewer (read-only detail access)', async () => {
       mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/activities/activity-1');
@@ -732,6 +751,7 @@ describe('MhdSidebar role-based visibility', () => {
     // Property / E-Signature); every other domain group is empty for them.
     expect(screen.getByText('Work Tools')).toBeInTheDocument();
     expect(screen.getByText('Activities')).toBeInTheDocument();
+    expect(screen.getByText('Calendar')).toBeInTheDocument();
     expect(screen.getByText('Forms')).toBeInTheDocument();
     expect(screen.getByText('Property')).toBeInTheDocument();
     expect(screen.queryByText('People')).not.toBeInTheDocument();
@@ -817,7 +837,32 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.queryByText('Leaves')).not.toBeInTheDocument();
     expect(screen.queryByText('Accommodations')).not.toBeInTheDocument();
     // The Viewer's read-only surfaces still render — the exclusion is targeted.
+    expect(screen.getByText('Calendar')).toBeInTheDocument();
     expect(screen.getByText('Forms')).toBeInTheDocument();
+  });
+
+  it.each<MhdAuthRoleName>([
+    'Platform Admin',
+    'HR Partner',
+    'Client Admin',
+    'Client User',
+    'Viewer',
+  ])('shows "Calendar" in Work Tools for %s', async (role) => {
+    mockAuth({ isAuthenticated: true, roles: [role] });
+    const { MhdSidebar } = await import('../MhdSidebar');
+    const { MemoryRouter } = await import('react-router-dom');
+
+    render(
+      <MemoryRouter>
+        <MhdSidebar />
+      </MemoryRouter>,
+    );
+
+    // No click needed: nav groups render expanded by default in this test
+    // environment (see the un-clicked getByText('Calendar') assertions
+    // above) — clicking the toggle here would collapse an already-open
+    // group and remove its items from the DOM instead of revealing them.
+    expect(screen.getByRole('link', { name: 'Calendar' })).toHaveAttribute('href', '/calendar');
   });
 });
 

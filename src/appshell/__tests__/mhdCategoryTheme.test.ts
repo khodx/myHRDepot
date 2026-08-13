@@ -9,7 +9,7 @@ import {
 import globalCss from '../../styles/global.css?raw';
 
 /* ------------------------------------------------------------------ */
-/* Resolver: the 26-entry navigation inventory (spec §3)               */
+/* Resolver: the 33-entry navigation inventory (spec §3)               */
 /* ------------------------------------------------------------------ */
 
 const NAV_INVENTORY: ReadonlyArray<[route: string, theme: MhdCategoryTheme]> = [
@@ -41,6 +41,7 @@ const NAV_INVENTORY: ReadonlyArray<[route: string, theme: MhdCategoryTheme]> = [
   ['/offboarding', 'employee-relations'],
   ['/tasks', 'work-tools'],
   ['/activities', 'work-tools'],
+  ['/calendar', 'work-tools'],
   ['/forms', 'work-tools'],
   ['/approvals', 'work-tools'],
   ['/property', 'work-tools'],
