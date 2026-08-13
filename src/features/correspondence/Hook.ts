@@ -1,10 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdCorrespondenceService } from './Service';
 import type {
+  MhdCorrespondenceMailboxAliasFilters,
   MhdCorrespondenceThreadFilters,
+  MhdCreateCorrespondenceMailboxAliasInput,
   MhdListCorrespondenceMessagesInput,
   MhdLinkCorrespondenceThreadInput,
   MhdSendCorrespondenceInput,
+  MhdUpdateCorrespondenceMailboxAliasInput,
 } from './Types';
 
 export const mhdCorrespondenceQueryKeys = {
@@ -15,6 +18,9 @@ export const mhdCorrespondenceQueryKeys = {
     [...mhdCorrespondenceQueryKeys.all, 'thread', threadId ?? ''] as const,
   messages: (threadId: string | null) =>
     [...mhdCorrespondenceQueryKeys.all, 'messages', threadId ?? ''] as const,
+  aliases: (filters: MhdCorrespondenceMailboxAliasFilters) =>
+    [...mhdCorrespondenceQueryKeys.all, 'mailbox-aliases', filters] as const,
+  mailboxes: () => [...mhdCorrespondenceQueryKeys.all, 'mailboxes'] as const,
 };
 
 function useRefresh(threadId?: string | null) {
@@ -34,6 +40,45 @@ export function useMhdCorrespondenceThreads(filters: MhdCorrespondenceThreadFilt
     queryFn: () => mhdCorrespondenceService.listThreads(filters),
     enabled: Boolean(filters.companyId),
     refetchInterval: 60_000,
+  });
+}
+
+export function useMhdCorrespondenceMailboxAliases(
+  filters: MhdCorrespondenceMailboxAliasFilters = {},
+) {
+  return useQuery({
+    queryKey: mhdCorrespondenceQueryKeys.aliases(filters),
+    queryFn: () => mhdCorrespondenceService.listMailboxAliases(filters),
+  });
+}
+
+export function useMhdCorrespondenceActiveMailboxes(enabled = true) {
+  return useQuery({
+    queryKey: mhdCorrespondenceQueryKeys.mailboxes(),
+    queryFn: () => mhdCorrespondenceService.listActiveMailboxes(),
+    enabled,
+  });
+}
+
+export function useMhdCreateCorrespondenceMailboxAlias() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateCorrespondenceMailboxAliasInput) =>
+      mhdCorrespondenceService.createMailboxAlias(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: mhdCorrespondenceQueryKeys.all });
+    },
+  });
+}
+
+export function useMhdUpdateCorrespondenceMailboxAlias() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpdateCorrespondenceMailboxAliasInput) =>
+      mhdCorrespondenceService.updateMailboxAlias(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: mhdCorrespondenceQueryKeys.all });
+    },
   });
 }
 

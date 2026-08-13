@@ -1,7 +1,14 @@
 import { Link } from 'react-router-dom';
+import { mhdCanManageCorrespondenceRouting } from '@/appshell/mhdRouteAccess';
+import { useMhdAuth } from '@/features/authentication/Hook';
 import { cn } from '@/utils/cn';
 
-export type MhdCommunicationsTab = 'overview' | 'messaging' | 'inbox' | 'system-alerts';
+export type MhdCommunicationsTab =
+  | 'overview'
+  | 'messaging'
+  | 'inbox'
+  | 'routing'
+  | 'system-alerts';
 
 interface MhdCommunicationsTabsProps {
   active: MhdCommunicationsTab;
@@ -9,18 +16,23 @@ interface MhdCommunicationsTabsProps {
 }
 
 /**
- * Sub-page nav for the Communications module: Overview / Messaging / System
- * Alerts. Same route-linked underline tab pattern as MhdFormRecordTabs.tsx.
+ * Sub-page nav for the Communications module. Same route-linked underline tab
+ * pattern as MhdFormRecordTabs.tsx.
  * Lives in appshell rather than either feature folder since Messaging
  * (src/features/messaging) and System Alerts (src/features/communications)
  * are separate features and the mhd-feature-boundary lint rule blocks
- * feature-to-feature internal imports.
+ * feature-to-feature internal imports. Platform-only tabs are removed from the
+ * visible list here, in addition to the route guard.
  */
 export function MhdCommunicationsTabs({ active, className }: MhdCommunicationsTabsProps) {
+  const { roles } = useMhdAuth();
   const tabs: Array<{ key: MhdCommunicationsTab; label: string; to: string }> = [
     { key: 'overview', label: 'Overview', to: '/communications' },
     { key: 'messaging', label: 'Messaging', to: '/communications/messaging' },
     { key: 'inbox', label: 'Inbox', to: '/communications/inbox' },
+    ...(mhdCanManageCorrespondenceRouting(roles)
+      ? [{ key: 'routing' as const, label: 'Routing', to: '/communications/routing' }]
+      : []),
     { key: 'system-alerts', label: 'System Alerts', to: '/communications/system-alerts' },
   ];
 

@@ -60,6 +60,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     path: '/esignature',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
   },
+  { path: '/communications/routing', roles: ['Platform Admin'] },
   { path: '/communications/inbox', roles: ['Platform Admin', 'HR Partner'] },
   {
     path: '/communications',
@@ -577,6 +578,12 @@ export const MHD_MILEAGE_RATE_ADMIN_ROLES: MhdAuthRoleName[] = ['Platform Admin'
 
 export function mhdCanManageMileageRates(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_MILEAGE_RATE_ADMIN_ROLES.some((role) => userRoles.includes(role));
+}
+
+export const MHD_CORRESPONDENCE_ROUTING_ADMIN_ROLES: MhdAuthRoleName[] = ['Platform Admin'];
+
+export function mhdCanManageCorrespondenceRouting(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_CORRESPONDENCE_ROUTING_ADMIN_ROLES.some((role) => userRoles.includes(role));
 }
 
 /**

@@ -1,15 +1,20 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type {
   MhdCorrespondenceMessage,
+  MhdCorrespondenceMailbox,
+  MhdCorrespondenceMailboxAlias,
+  MhdCorrespondenceMailboxAliasFilters,
   MhdCorrespondenceOrigin,
   MhdCorrespondenceSensitivity,
   MhdCorrespondenceStatus,
   MhdCorrespondenceThread,
   MhdCorrespondenceThreadFilters,
   MhdCorrespondenceThreadWithPreview,
+  MhdCreateCorrespondenceMailboxAliasInput,
   MhdListCorrespondenceMessagesInput,
   MhdLinkCorrespondenceThreadInput,
   MhdSendCorrespondenceInput,
+  MhdUpdateCorrespondenceMailboxAliasInput,
 } from './Types';
 
 type MhdCorrespondenceThreadRow = {
@@ -68,6 +73,30 @@ type MhdSendEmailResponse = {
   status?: string;
   thread_id?: string;
   error?: string | null;
+};
+
+// public.correspondence_mailbox_aliases (0147/0154) — plain `id`, no
+// separate `alias_id`; `company_name` isn't a real column, it's resolved
+// client-side from the companies list (see MhdCorrespondenceAliasSettingsPage).
+type MhdCorrespondenceMailboxAliasRow = {
+  id: string;
+  mailbox_id: string;
+  company_id: string;
+  alias_address: string;
+  is_primary: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string | null;
+};
+
+// public.correspondence_mailboxes (0145) — real columns only.
+type MhdCorrespondenceMailboxRow = {
+  id: string;
+  address: string;
+  display_name: string;
+  workspace_credential_ref: string | null;
+  is_active: boolean;
+  created_at: string;
 };
 
 function mapThread(row: MhdCorrespondenceThreadRow): MhdCorrespondenceThread {
@@ -140,7 +169,89 @@ function mapThreadWithPreview(
   };
 }
 
+function mapMailboxAlias(row: MhdCorrespondenceMailboxAliasRow): MhdCorrespondenceMailboxAlias {
+  return {
+    id: row.id,
+    mailboxId: row.mailbox_id,
+    companyId: row.company_id,
+    // Not a real column on correspondence_mailbox_aliases — resolved
+    // client-side from the companies list where this is displayed.
+    companyName: null,
+    aliasAddress: row.alias_address,
+    isPrimary: row.is_primary,
+    isActive: row.is_active,
+    createdAt: row.created_at,
+  };
+}
+
+function mapMailbox(row: MhdCorrespondenceMailboxRow): MhdCorrespondenceMailbox {
+  return {
+    id: row.id,
+    companyId: null, // correspondence_mailboxes has no company_id — one shared mailbox, many per-company aliases
+    label: row.display_name ? `${row.address} (${row.display_name})` : row.address,
+    isActive: row.is_active,
+    createdAt: row.created_at,
+  };
+}
+
+function companyFilterValue(value?: string | null): string | undefined {
+  if (!value || value === 'ALL') return undefined;
+  return value;
+}
+
 export const mhdCorrespondenceService = {
+  async listMailboxAliases(
+    filters: MhdCorrespondenceMailboxAliasFilters = {},
+  ): Promise<MhdCorrespondenceMailboxAlias[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_correspondence_mailbox_aliases', {
+        p_company_id: companyFilterValue(filters.companyId),
+      })
+      .returns<MhdCorrespondenceMailboxAliasRow[]>();
+
+    if (error) throw new Error('Unable to list correspondence mailbox aliases: ' + error.message);
+    return (data ?? []).map(mapMailboxAlias);
+  },
+
+  async listActiveMailboxes(): Promise<MhdCorrespondenceMailbox[]> {
+    const { data, error } = await supabaseClient
+      .from('correspondence_mailboxes')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .returns<MhdCorrespondenceMailboxRow[]>();
+
+    if (error) throw new Error('Unable to list correspondence mailboxes: ' + error.message);
+    return (data ?? []).map(mapMailbox);
+  },
+
+  async createMailboxAlias(
+    input: MhdCreateCorrespondenceMailboxAliasInput,
+  ): Promise<MhdCorrespondenceMailboxAlias> {
+    const { data, error } = await supabaseClient.rpc('mhd_create_correspondence_mailbox_alias', {
+      p_mailbox_id: input.mailboxId,
+      p_company_id: input.companyId,
+      p_alias_address: input.aliasAddress.trim(),
+      p_is_primary: input.isPrimary,
+    });
+
+    if (error) throw new Error('Unable to create correspondence mailbox alias: ' + error.message);
+    return mapMailboxAlias(data as MhdCorrespondenceMailboxAliasRow);
+  },
+
+  async updateMailboxAlias(
+    input: MhdUpdateCorrespondenceMailboxAliasInput,
+  ): Promise<MhdCorrespondenceMailboxAlias> {
+    const { data, error } = await supabaseClient.rpc('mhd_update_correspondence_mailbox_alias', {
+      p_alias_id: input.aliasId,
+      p_is_primary: input.isPrimary ?? undefined,
+      p_is_active: input.isActive ?? undefined,
+    });
+
+    if (error) throw new Error('Unable to update correspondence mailbox alias: ' + error.message);
+    return mapMailboxAlias(data as MhdCorrespondenceMailboxAliasRow);
+  },
+
   async listThreads(
     filters: MhdCorrespondenceThreadFilters,
   ): Promise<MhdCorrespondenceThreadWithPreview[]> {

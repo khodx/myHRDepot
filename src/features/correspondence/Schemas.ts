@@ -56,8 +56,23 @@ export const mhdLinkCorrespondenceThreadSchema = z.object({
   entityId: z.string().trim().min(1, 'Entity ID is required.'),
 });
 
+export const mhdCorrespondenceMailboxAliasSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  mailboxId: z.string().trim().min(1, 'Mailbox is required.'),
+  aliasAddress: z
+    .string()
+    .trim()
+    .min(1, 'Alias address is required.')
+    .email('Enter a valid email address.')
+    .max(320, 'Alias address is too long.'),
+  isPrimary: z.boolean().default(true),
+});
+
 export type MhdNewCorrespondenceSchemaInput = z.infer<typeof mhdNewCorrespondenceSchema>;
 export type MhdReplyCorrespondenceSchemaInput = z.infer<typeof mhdReplyCorrespondenceSchema>;
 export type MhdLinkCorrespondenceThreadSchemaInput = z.infer<
   typeof mhdLinkCorrespondenceThreadSchema
+>;
+export type MhdCorrespondenceMailboxAliasSchemaInput = z.infer<
+  typeof mhdCorrespondenceMailboxAliasSchema
 >;

@@ -178,6 +178,10 @@ const MhdCorrespondenceInboxPage = lazyPage(
   () => import('@/features/correspondence/components/MhdCorrespondenceInboxPage'),
   'MhdCorrespondenceInboxPage',
 );
+const MhdCorrespondenceAliasSettingsPage = lazyPage(
+  () => import('@/features/correspondence/components/MhdCorrespondenceAliasSettingsPage'),
+  'MhdCorrespondenceAliasSettingsPage',
+);
 const MhdSystemAlertsPage = lazyPage(
   () => import('@/features/communications/components/MhdSystemAlertsPage'),
   'MhdSystemAlertsPage',
@@ -553,6 +557,10 @@ function MhdAppRoutes() {
                 <Route path="/communications" element={<MhdCommunicationsPage />} />
                 <Route path="/communications/messaging" element={<MhdMessagingPage />} />
                 <Route path="/communications/inbox" element={<MhdCorrespondenceInboxPage />} />
+                <Route
+                  path="/communications/routing"
+                  element={<MhdCorrespondenceAliasSettingsPage />}
+                />
                 <Route path="/communications/system-alerts" element={<MhdSystemAlertsPage />} />
                 <Route path="/automations" element={<MhdAutomationsPage />} />
                 {/* Both inherit the /automations rule via mhdCanAccessRoute's

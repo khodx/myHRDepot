@@ -100,3 +100,39 @@ export interface MhdLinkCorrespondenceThreadInput {
   entityType: MhdCorrespondenceEntityType;
   entityId: string;
 }
+
+export interface MhdCorrespondenceMailboxAlias {
+  id: string;
+  mailboxId: string;
+  companyId: string;
+  companyName: string | null;
+  aliasAddress: string;
+  isPrimary: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface MhdCorrespondenceMailbox {
+  id: string;
+  companyId: null; // correspondence_mailboxes has no company_id — one shared mailbox, many per-company aliases
+  label: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface MhdCorrespondenceMailboxAliasFilters {
+  companyId?: string | null;
+}
+
+export interface MhdCreateCorrespondenceMailboxAliasInput {
+  mailboxId: string;
+  companyId: string;
+  aliasAddress: string;
+  isPrimary: boolean;
+}
+
+export interface MhdUpdateCorrespondenceMailboxAliasInput {
+  aliasId: string;
+  isPrimary?: boolean | null;
+  isActive?: boolean | null;
+}
