@@ -3,6 +3,8 @@ import type {
   MhdAddContactMethodInput,
   MhdContactMethod,
   MhdCreatePersonInput,
+  MhdDirectReport,
+  MhdOrgChartNode,
   MhdPeopleListFilters,
   MhdPerson,
   MhdPersonMutationContext,
@@ -49,6 +51,18 @@ type MhdContactMethodRow = {
   updated_by: string | null;
 };
 
+type MhdDirectReportRow = {
+  person_id: string;
+  reference_id: string;
+  display_name: string;
+  job_title: string | null;
+};
+
+type MhdOrgChartRow = MhdDirectReportRow & {
+  manager_id: string | null;
+  company_id: string;
+};
+
 function mapPersonRow(row: MhdPersonDirectoryRow | MhdPersonMutationRow): MhdPerson {
   return {
     id: row.id,
@@ -85,6 +99,24 @@ function mapContactMethodRow(row: MhdContactMethodRow): MhdContactMethod {
     createdBy: row.created_by,
     updatedAt: row.updated_at,
     updatedBy: row.updated_by,
+  };
+}
+
+function mapDirectReportRow(row: MhdDirectReportRow): MhdDirectReport {
+  return {
+    personId: row.person_id,
+    referenceId: row.reference_id as MhdDirectReport['referenceId'],
+    displayName: row.display_name,
+    jobTitle: row.job_title,
+  };
+}
+
+function mapOrgChartRow(row: MhdOrgChartRow): MhdOrgChartNode {
+  return {
+    ...mapDirectReportRow(row),
+    managerId: row.manager_id,
+    companyId: row.company_id,
+    children: [],
   };
 }
 
@@ -130,6 +162,32 @@ export const mhdPersonService = {
     }
 
     return (data ?? []).map(mapPersonRow);
+  },
+
+  async listDirectReports(personId: string): Promise<MhdDirectReport[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_direct_reports', { p_person_id: personId })
+      .returns<MhdDirectReportRow[]>();
+
+    if (error) {
+      throw new Error(`Unable to load direct reports: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapDirectReportRow);
+  },
+
+  async listOrgChart(companyId: string | null): Promise<MhdOrgChartNode[]> {
+    const { data, error } = await supabaseClient
+      // gen:types omits null from p_company_id even though
+      // mhd_list_people_org_chart accepts null to mean "all visible companies."
+      .rpc('mhd_list_people_org_chart', { p_company_id: companyId } as never)
+      .returns<MhdOrgChartRow[]>();
+
+    if (error) {
+      throw new Error(`Unable to load org chart: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapOrgChartRow);
   },
 
   async createPerson(

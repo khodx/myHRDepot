@@ -23,12 +23,20 @@ export function MhdPeoplePage() {
         title="People"
         description="Manage the people records that will be assigned to companies and future tasks."
         actions={
-          <Link
-            to="/people/new"
-            className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
-          >
-            Add person
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              to="/people/org-chart"
+              className={cn(buttonBaseClasses, buttonVariantClasses.secondary)}
+            >
+              View Org Chart
+            </Link>
+            <Link
+              to="/people/new"
+              className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
+            >
+              Add person
+            </Link>
+          </div>
         }
       />
 

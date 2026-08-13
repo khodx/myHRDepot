@@ -133,6 +133,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // confidential, and private employee file cabinets must not be exposed to
   // Client Admin until a backend per-file-type policy layer exists.
   { path: '/employees', roles: ['Platform Admin', 'HR Partner'] },
+  { path: '/people/org-chart', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   { path: '/people', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   // Users. Lists `public.users` login accounts across the tenant, including
   // the `is_admin` flag — the same PA/HRP-only audience as /companies and

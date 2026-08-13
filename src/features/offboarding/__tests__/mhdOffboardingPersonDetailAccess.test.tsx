@@ -88,6 +88,13 @@ vi.mock('@/features/timeattendance/Hook', () => ({
 vi.mock('@/features/jobs/components/MhdJobAssignmentPanel', () => ({
   MhdJobAssignmentPanel: () => <div>Job assignment</div>,
 }));
+// The person-detail page also renders an always-visible Direct Reports
+// section (Org Chart wave). Its hook calls useQuery internally, which would
+// otherwise pick up this suite's blanket react-query mock (person data, not
+// an array) — unrelated to the Offboarding assertions here.
+vi.mock('@/features/people/Hook', () => ({
+  useMhdDirectReports: () => ({ data: [], isLoading: false, error: null }),
+}));
 
 const { MhdPersonDetailPage } = await import('@/appshell/components/MhdPersonDetailPage');
 

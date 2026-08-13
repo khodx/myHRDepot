@@ -211,6 +211,10 @@ const MhdPeoplePage = lazyPage(
   () => import('@/features/people/components/MhdPeoplePage'),
   'MhdPeoplePage',
 );
+const MhdOrgChartPage = lazyPage(
+  () => import('@/features/people/components/MhdOrgChartPage'),
+  'MhdOrgChartPage',
+);
 const MhdPersonFormPage = lazyPage(
   () => import('@/features/people/components/MhdPersonFormPage'),
   'MhdPersonFormPage',
@@ -568,6 +572,7 @@ function MhdAppRoutes() {
                 />
                 <Route path="/employees/:personId" element={<MhdEmployeeFileCabinetPage />} />
                 <Route path="/people" element={<MhdPeoplePage />} />
+                <Route path="/people/org-chart" element={<MhdOrgChartPage />} />
                 <Route path="/people/new" element={<MhdPersonFormPage />} />
                 <Route path="/people/:personId/edit" element={<MhdPersonFormPage />} />
                 <Route path="/people/:personId" element={<MhdPersonDetailPage />} />

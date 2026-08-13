@@ -6,6 +6,9 @@ import type { MhdPeopleListFilters } from './Types';
 export const mhdPeopleQueryKeys = {
   picker: (companyId: string | null) => ['mhd-people', 'picker', companyId ?? 'ALL'] as const,
   list: (filters: MhdPeopleListFilters) => ['mhd-people', 'list', filters] as const,
+  directReports: (personId: string | null) =>
+    ['mhd-people', 'direct-reports', personId ?? 'none'] as const,
+  orgChart: (companyId: string | null) => ['mhd-people', 'org-chart', companyId ?? 'ALL'] as const,
 };
 
 /**
@@ -19,6 +22,21 @@ export function useMhdPeoplePicker(companyId: string | null) {
     queryKey: mhdPeopleQueryKeys.picker(companyId),
     queryFn: () => mhdPersonService.listPeople({ companyId: companyId!, searchTerm: '' }),
     enabled: Boolean(companyId),
+  });
+}
+
+export function useMhdDirectReports(personId: string | null) {
+  return useQuery({
+    queryKey: mhdPeopleQueryKeys.directReports(personId),
+    queryFn: () => mhdPersonService.listDirectReports(personId!),
+    enabled: Boolean(personId),
+  });
+}
+
+export function useMhdOrgChart(companyId: string | null) {
+  return useQuery({
+    queryKey: mhdPeopleQueryKeys.orgChart(companyId),
+    queryFn: () => mhdPersonService.listOrgChart(companyId),
   });
 }
 

@@ -55,6 +55,19 @@ export interface MhdPerson {
   updatedBy: string;
 }
 
+export interface MhdDirectReport {
+  personId: MhdPersonId;
+  referenceId: MhdPersonReferenceId;
+  displayName: string;
+  jobTitle: string | null;
+}
+
+export interface MhdOrgChartNode extends MhdDirectReport {
+  managerId: MhdPersonId | null;
+  companyId: MhdCompanyId;
+  children: MhdOrgChartNode[];
+}
+
 // `email`/`phone`/`mobile` here are an ergonomic convenience, not `people`
 // columns: `mhd_create_person`/`mhd_update_person` accept them as optional
 // params and write them through to `contact_methods` as the PRIMARY row of

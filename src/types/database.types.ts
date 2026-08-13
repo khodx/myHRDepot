@@ -23835,6 +23835,15 @@ export type Database = {
           updated_by: string
         }[]
       }
+      mhd_list_direct_reports: {
+        Args: { p_person_id: string }
+        Returns: {
+          display_name: string
+          job_title: string
+          person_id: string
+          reference_id: string
+        }[]
+      }
       mhd_list_document_generations: {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: {
@@ -24221,6 +24230,17 @@ export type Database = {
         Args: { p_root_person_id: string }
         Returns: {
           person_id: string
+        }[]
+      }
+      mhd_list_people_org_chart: {
+        Args: { p_company_id?: string }
+        Returns: {
+          company_id: string
+          display_name: string
+          job_title: string
+          manager_id: string
+          person_id: string
+          reference_id: string
         }[]
       }
       mhd_list_performance_reviews: {

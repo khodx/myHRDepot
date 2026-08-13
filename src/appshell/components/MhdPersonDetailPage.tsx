@@ -11,7 +11,7 @@
 
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Mail, Phone, Smartphone, Building2 } from 'lucide-react';
+import { Mail, Phone, Smartphone, Building2, UserRound } from 'lucide-react';
 import { MhdBreadcrumb } from './MhdBreadcrumb';
 import { mhdPersonService } from '@/features/people/Service';
 import { useMhdActivities } from '@/features/activities/Hook';
@@ -29,6 +29,7 @@ import {
 } from '@/features/timeattendance/Hook';
 import { MhdPointLedgerPanel } from '@/features/timeattendance/components/MhdPointLedgerPanel';
 import { MhdJobAssignmentPanel } from '@/features/jobs/components/MhdJobAssignmentPanel';
+import { MhdDirectReportsPanel } from '@/features/people/components/MhdDirectReportsPanel';
 import {
   mhdCanAccessRoute,
   mhdCanMutateAttendance,
@@ -177,11 +178,21 @@ export function MhdPersonDetailPage() {
           <MhdDetailActions editTo={`/people/${person.id}/edit`} />
         </div>
 
-        {/* Company */}
-        {person.companyName && (
-          <div className="mt-4 flex items-center gap-2 border-t border-neutral-100 pt-4 text-sm text-neutral-600">
-            <Building2 className="h-4 w-4 text-neutral-400" />
-            <span>{person.companyName}</span>
+        {/* Organization */}
+        {(person.companyName || person.managerDisplayName) && (
+          <div className="mt-4 space-y-2 border-t border-neutral-100 pt-4 text-sm text-neutral-600">
+            {person.companyName && (
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-neutral-400" />
+                <span>{person.companyName}</span>
+              </div>
+            )}
+            {person.managerDisplayName && (
+              <div className="flex items-center gap-2">
+                <UserRound className="h-4 w-4 text-neutral-400" />
+                <span>Reports to: {person.managerDisplayName}</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -378,6 +389,10 @@ export function MhdPersonDetailPage() {
           <MhdJobAssignmentPanel companyId={person.companyId} personId={person.id} canAssign />
         </MhdCard>
       ) : null}
+
+      <MhdCard className="p-6 shadow-sm">
+        <MhdDirectReportsPanel personId={person.id} />
+      </MhdCard>
 
       {canSeeAttendance ? (
         <MhdCard className="p-6 shadow-sm">
