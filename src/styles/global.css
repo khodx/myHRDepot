@@ -422,3 +422,108 @@ body {
     text-transform: capitalize;
   }
 }
+
+/* Dashboard "Modules" card — one accent color per grid row plus alternating
+   row backgrounds (see MhdDashboardModuleLinks.tsx). This is a deliberate,
+   narrowly-scoped exception to the single-accent rule enforced everywhere
+   else in this file (see the category-theme blocks above, all of which
+   intentionally share one brand color) — it exists only to help a 25+ item
+   grid scan, not to reintroduce per-module color as a sitewide pattern. Do
+   not extend this palette to any other surface without a deliberate design
+   decision to do so.
+
+   16 tones total: 15 cycle across rows in order, the 16th
+   (--mhd-module-tone-16) is reserved exclusively for whichever row contains
+   the "Users" module and is never entered into the cycle — see
+   MhdDashboardModuleLinks.tsx. Light values sit roughly 30% darker than
+   their Tailwind "600" source shade for contrast against a white card;
+   orange is the one exception, kept at its source vividness because
+   darkening it the same amount reads as brown rather than orange. Dark
+   values are the source "400" shades, left at full brightness since they
+   exist specifically for contrast against a dark card. */
+:root {
+  --mhd-module-tone-1: #1042ad; /* blue */
+  --mhd-module-tone-2: #9e1818; /* red */
+  --mhd-module-tone-3: #0f7133; /* green */
+  --mhd-module-tone-4: #6713b5; /* purple */
+  --mhd-module-tone-5: #242e3c; /* grey */
+  --mhd-module-tone-6: #096961; /* teal */
+  --mhd-module-tone-7: #995304; /* amber */
+  --mhd-module-tone-8: #8c6003; /* yellow */
+  --mhd-module-tone-9: #221ab8; /* indigo */
+  --mhd-module-tone-10: #06637b; /* cyan */
+  --mhd-module-tone-11: #111113; /* black */
+  --mhd-module-tone-12: #476e0c; /* lime */
+  --mhd-module-tone-13: #850d97; /* fuchsia */
+  --mhd-module-tone-14: #035a88; /* sky */
+  --mhd-module-tone-15: #ea580c; /* orange — exempted from the darken pass */
+  --mhd-module-tone-16: #ab125f; /* pink — reserved for the Users row */
+}
+
+.dark {
+  --mhd-module-tone-1: #60a5fa;
+  --mhd-module-tone-2: #f87171;
+  --mhd-module-tone-3: #4ade80;
+  --mhd-module-tone-4: #c084fc;
+  --mhd-module-tone-5: #94a3b8;
+  --mhd-module-tone-6: #2dd4bf;
+  --mhd-module-tone-7: #fbbf24;
+  --mhd-module-tone-8: #facc15;
+  --mhd-module-tone-9: #818cf8;
+  --mhd-module-tone-10: #22d3ee;
+  --mhd-module-tone-11: #e4e4e7; /* black's dark counterpart — near-white so it stays visible */
+  --mhd-module-tone-12: #a3e635;
+  --mhd-module-tone-13: #e879f9;
+  --mhd-module-tone-14: #38bdf8;
+  --mhd-module-tone-15: #fb923c;
+  --mhd-module-tone-16: #f472b6;
+}
+
+/* Card itself: border/radius/padding/background come from Tailwind utilities
+   on the element (see MhdDashboardModuleLinks.tsx); this only adds what
+   utilities can't express — a hover state driven by the per-card --tone
+   custom property set inline from the row's assigned tone. */
+.mhd-module-card {
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.15s ease,
+    border-width 0.15s ease;
+}
+
+.mhd-module-card:hover,
+.mhd-module-card:focus-visible {
+  transform: translateY(-10px) scale(1.035);
+  border-width: 3px;
+  border-color: var(--tone);
+  /* Zero x/y offset on every layer, only growing blur, so the glow
+     surrounds the whole card evenly instead of reading as a shadow cast
+     toward the bottom. */
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tone) 55%, transparent),
+    0 0 16px color-mix(in srgb, var(--tone) 40%, transparent),
+    0 0 34px color-mix(in srgb, var(--tone) 30%, transparent),
+    0 0 60px color-mix(in srgb, var(--tone) 20%, transparent),
+    0 0 96px color-mix(in srgb, var(--tone) 10%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.6);
+  z-index: 1;
+}
+
+.mhd-module-card:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tone) 55%, transparent),
+    0 0 16px color-mix(in srgb, var(--tone) 40%, transparent),
+    0 0 34px color-mix(in srgb, var(--tone) 30%, transparent),
+    0 0 0 3px var(--mhd-focus-ring);
+}
+
+.mhd-module-icon {
+  background: color-mix(in srgb, var(--tone) 16%, var(--color-card));
+  color: var(--tone);
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.mhd-module-card:hover .mhd-module-icon {
+  transform: scale(1.1);
+}

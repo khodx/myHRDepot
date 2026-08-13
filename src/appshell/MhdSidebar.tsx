@@ -49,6 +49,8 @@ import { mhdRouteRoles, mhdRouteStatus } from './mhdRouteAccess';
 
 export interface NavItem {
   label: string;
+  /** One-line summary shown on the dashboard's Modules card. */
+  description: string;
   route: string;
   icon: React.ElementType;
   roles: MhdAuthRoleName[] | 'ALL';
@@ -64,6 +66,7 @@ export interface NavSection {
 // no group so it is always one click away.
 const DASHBOARD_ITEM: NavItem = {
   label: 'Dashboard',
+  description: 'Your personal snapshot of tasks, activity, and modules.',
   route: '/dashboard',
   icon: LayoutDashboard,
   roles: mhdRouteRoles('/dashboard'),
@@ -80,29 +83,51 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Work Tools',
     items: [
-      { label: 'Tasks', route: '/tasks', icon: CheckSquare, roles: mhdRouteRoles('/tasks') },
+      {
+        label: 'Tasks',
+        description: 'Track and complete your assigned tasks.',
+        route: '/tasks',
+        icon: CheckSquare,
+        roles: mhdRouteRoles('/tasks'),
+      },
       {
         label: 'Activities',
+        description: 'Log calls, meetings, and notes tied to any record.',
         route: '/activities',
         icon: CalendarClock,
         roles: mhdRouteRoles('/activities'),
       },
       {
         label: 'Calendar',
+        description: 'View scheduled events, deadlines, and time off.',
         route: '/calendar',
         icon: Calendar,
         roles: mhdRouteRoles('/calendar'),
       },
-      { label: 'Forms', route: '/forms', icon: ClipboardList, roles: mhdRouteRoles('/forms') },
-      { label: 'Approvals', route: '/approvals', icon: Stamp, roles: mhdRouteRoles('/approvals') },
+      {
+        label: 'Forms',
+        description: 'Build and submit HR forms and requests.',
+        route: '/forms',
+        icon: ClipboardList,
+        roles: mhdRouteRoles('/forms'),
+      },
+      {
+        label: 'Approvals',
+        description: 'Review and act on pending approval requests.',
+        route: '/approvals',
+        icon: Stamp,
+        roles: mhdRouteRoles('/approvals'),
+      },
       {
         label: 'Reports',
+        description: 'Run and export operational HR reports.',
         route: '/reports',
         icon: FileText,
         roles: mhdRouteRoles('/reports'),
       },
       {
         label: 'Property',
+        description: 'Track company property assigned to employees.',
         route: '/property',
         icon: Package2,
         roles: mhdRouteRoles('/property'),
@@ -110,6 +135,7 @@ export const NAV_SECTIONS: NavSection[] = [
       },
       {
         label: 'E-Signature',
+        description: 'Send documents out for electronic signature.',
         route: '/esignature',
         icon: FileSignature,
         roles: mhdRouteRoles('/esignature'),
@@ -119,13 +145,26 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: 'People & Org',
     items: [
-      { label: 'People', route: '/people', icon: Users, roles: mhdRouteRoles('/people') },
-      { label: 'Users', route: '/users', icon: UserCog, roles: mhdRouteRoles('/users') },
+      {
+        label: 'People',
+        description: 'Search and manage the company people directory.',
+        route: '/people',
+        icon: Users,
+        roles: mhdRouteRoles('/people'),
+      },
+      {
+        label: 'Users',
+        description: 'Manage platform user accounts and access.',
+        route: '/users',
+        icon: UserCog,
+        roles: mhdRouteRoles('/users'),
+      },
       // The new-hire packet roster. Sits beside People rather than next to
       // Offboarding because it is the hire-side intake surface and reads the
       // same people directory; Employee Relations covers conduct and exit.
       {
         label: 'Onboarding',
+        description: 'Guide new hires through their onboarding packet.',
         route: '/onboarding',
         icon: UserPlus,
         roles: mhdRouteRoles('/onboarding'),
@@ -133,22 +172,36 @@ export const NAV_SECTIONS: NavSection[] = [
       },
       {
         label: 'Employee Files',
+        description: "Browse each employee's document cabinet.",
         route: '/employees',
         icon: FolderOpen,
         roles: mhdRouteRoles('/employees'),
       },
       {
         label: 'Companies',
+        description: 'Manage company profiles and organizational entities.',
         route: '/companies',
         icon: Building2,
         roles: mhdRouteRoles('/companies'),
       },
       // Privileged only. Employees reach their own description via "My Job".
-      { label: 'Job Descriptions', route: '/jobs', icon: Briefcase, roles: mhdRouteRoles('/jobs') },
+      {
+        label: 'Job Descriptions',
+        description: 'Maintain job descriptions across the company.',
+        route: '/jobs',
+        icon: Briefcase,
+        roles: mhdRouteRoles('/jobs'),
+      },
       // The employee's own published job description — a SEPARATE route from the
       // privileged /jobs list (Client User only), so the list never has to be
       // correct for two audiences.
-      { label: 'My Job', route: '/my-job', icon: IdCard, roles: mhdRouteRoles('/my-job') },
+      {
+        label: 'My Job',
+        description: 'View your own published job description.',
+        route: '/my-job',
+        icon: IdCard,
+        roles: mhdRouteRoles('/my-job'),
+      },
     ],
   },
   {
@@ -156,12 +209,14 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       {
         label: 'Schedule',
+        description: 'View and manage employee work schedules.',
         route: '/schedule',
         icon: CalendarDays,
         roles: mhdRouteRoles('/schedule'),
       },
       {
         label: 'Attendance',
+        description: 'Record and monitor daily time and attendance.',
         route: '/attendance',
         icon: ClipboardCheck,
         roles: mhdRouteRoles('/attendance'),
@@ -169,14 +224,27 @@ export const NAV_SECTIONS: NavSection[] = [
       // Renders for Client Users (their own cases) and privileged roles (the full
       // company board) behind the same link; Viewer is excluded. The medical
       // partition is gated deeper in the case detail page.
-      { label: 'Leaves', route: '/leaves', icon: CalendarOff, roles: mhdRouteRoles('/leaves') },
+      {
+        label: 'Leaves',
+        description: 'Manage leave of absence cases and balances.',
+        route: '/leaves',
+        icon: CalendarOff,
+        roles: mhdRouteRoles('/leaves'),
+      },
       {
         label: 'Accommodations',
+        description: 'Track reasonable accommodation requests and the interactive process.',
         route: '/accommodations',
         icon: Accessibility,
         roles: mhdRouteRoles('/accommodations'),
       },
-      { label: 'Mileage', route: '/mileage', icon: Car, roles: mhdRouteRoles('/mileage') },
+      {
+        label: 'Mileage',
+        description: 'Submit and review mileage reimbursement claims.',
+        route: '/mileage',
+        icon: Car,
+        roles: mhdRouteRoles('/mileage'),
+      },
     ],
   },
   {
@@ -184,6 +252,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       {
         label: 'Performance',
+        description: 'Run performance reviews and track goals.',
         route: '/performance',
         icon: TrendingUp,
         roles: mhdRouteRoles('/performance'),
@@ -194,6 +263,7 @@ export const NAV_SECTIONS: NavSection[] = [
       // invitation.
       {
         label: 'Feedback Requests',
+        description: 'Respond to 360 feedback requests addressed to you.',
         route: '/performance/invitations',
         icon: MessageSquare,
         roles: mhdRouteRoles('/performance/invitations'),
@@ -201,6 +271,7 @@ export const NAV_SECTIONS: NavSection[] = [
       },
       {
         label: 'Recruiting',
+        description: 'Manage job requisitions and candidate pipelines.',
         route: '/recruiting',
         icon: UserSearch,
         roles: mhdRouteRoles('/recruiting'),
@@ -210,6 +281,7 @@ export const NAV_SECTIONS: NavSection[] = [
       // partition, aggregate counts only.
       {
         label: 'EEO Report',
+        description: 'View aggregate EEO compliance counts.',
         route: '/recruiting/eeo',
         icon: BarChart3,
         roles: mhdRouteRoles('/recruiting/eeo'),
@@ -217,24 +289,28 @@ export const NAV_SECTIONS: NavSection[] = [
       },
       {
         label: 'Training',
+        description: 'Assign and monitor company training programs.',
         route: '/training',
         icon: GraduationCap,
         roles: mhdRouteRoles('/training'),
       },
       {
         label: 'My Training',
+        description: 'Complete your assigned training courses.',
         route: '/my-training',
         icon: BookOpen,
         roles: mhdRouteRoles('/my-training'),
       },
       {
         label: 'Handbooks',
+        description: 'Publish and manage employee handbooks.',
         route: '/handbooks',
         icon: Library,
         roles: mhdRouteRoles('/handbooks'),
       },
       {
         label: 'My Handbooks',
+        description: 'Read the handbooks assigned to you.',
         route: '/my-handbooks',
         icon: BookMarked,
         roles: mhdRouteRoles('/my-handbooks'),
@@ -245,18 +321,26 @@ export const NAV_SECTIONS: NavSection[] = [
     label: 'Employee Relations',
     items: [
       // Admin-only (Platform Admin / HR Partner / Client Admin); no subject route.
-      { label: 'Conduct', route: '/conduct', icon: Gavel, roles: mhdRouteRoles('/conduct') },
+      {
+        label: 'Conduct',
+        description: 'Track workplace conduct cases and outcomes.',
+        route: '/conduct',
+        icon: Gavel,
+        roles: mhdRouteRoles('/conduct'),
+      },
       // Role-gated for the privileged set. Showing the link is NOT access control:
       // case visibility stays grant-based server-side, so an ungranted admin who
       // opens the board sees an empty, non-disclosing list.
       {
         label: 'Investigations',
+        description: 'Manage formal workplace investigations.',
         route: '/investigations',
         icon: ShieldAlert,
         roles: mhdRouteRoles('/investigations'),
       },
       {
         label: 'Offboarding',
+        description: 'Manage employee exit and offboarding cases.',
         route: '/offboarding',
         icon: DoorOpen,
         roles: mhdRouteRoles('/offboarding'),
@@ -269,6 +353,7 @@ export const NAV_SECTIONS: NavSection[] = [
       // addresses and user agents.
       {
         label: 'Audit Reports',
+        description: 'Review the company-wide activity and access audit trail.',
         route: '/audit-reports',
         icon: FileSearch,
         roles: mhdRouteRoles('/audit-reports'),
@@ -280,6 +365,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       {
         label: 'Communications',
+        description: 'Send messages and manage system alerts.',
         route: '/communications',
         icon: MessageSquare,
         roles: mhdRouteRoles('/communications'),
@@ -291,6 +377,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       {
         label: 'Automations',
+        description: 'Build and manage automated workflow rules.',
         route: '/automations',
         icon: Bot,
         roles: mhdRouteRoles('/automations'),
@@ -303,8 +390,20 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Administration',
     items: [
-      { label: 'Admin Settings', route: '/admin', icon: Settings, roles: mhdRouteRoles('/admin') },
-      { label: 'Lab & Sandbox', route: '/lab', icon: FlaskConical, roles: mhdRouteRoles('/lab') },
+      {
+        label: 'Admin Settings',
+        description: 'Configure company-wide settings and platform options.',
+        route: '/admin',
+        icon: Settings,
+        roles: mhdRouteRoles('/admin'),
+      },
+      {
+        label: 'Lab & Sandbox',
+        description: 'Experimental tools for platform testing.',
+        route: '/lab',
+        icon: FlaskConical,
+        roles: mhdRouteRoles('/lab'),
+      },
     ],
   },
 ];
