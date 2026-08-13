@@ -544,6 +544,19 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
     });
   };
 
+  // Dashboard is the app's home — returning to it resets the rail to a known,
+  // uncluttered state rather than leaving whatever group the user last opened
+  // expanded.
+  const collapseAllGroups = () => {
+    const allLabels = NAV_SECTIONS.map((section) => section.label);
+    setCollapsedGroups(allLabels);
+    try {
+      window.localStorage.setItem(MHD_NAV_COLLAPSE_KEY, JSON.stringify(allLabels));
+    } catch {
+      // localStorage unavailable — collapse state stays in-memory only.
+    }
+  };
+
   const visibleSections = NAV_SECTIONS.map((section) => ({
     ...section,
     items: section.items.filter(hasRole),
@@ -598,7 +611,7 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
           domain group collapses to keep the list short. */}
       <nav className="mhd-rail-scroll min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         {hasRole(DASHBOARD_ITEM) ? (
-          <MhdNavItem item={DASHBOARD_ITEM} collapsed={collapsed} />
+          <MhdNavItem item={DASHBOARD_ITEM} collapsed={collapsed} onClick={collapseAllGroups} />
         ) : null}
         {visibleSections.map((section) => {
           const isCollapsed = collapsedGroups.includes(section.label);
@@ -641,7 +654,15 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-function MhdNavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+function MhdNavItem({
+  item,
+  collapsed,
+  onClick,
+}: {
+  item: NavItem;
+  collapsed: boolean;
+  onClick?: () => void;
+}) {
   const Icon = item.icon;
   const title =
     collapsed && item.status === 'comingSoon'
@@ -654,6 +675,7 @@ function MhdNavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
     <NavLink
       to={item.route}
       title={title}
+      onClick={onClick}
       className={({ isActive }) =>
         `relative flex min-h-10 items-center rounded-full text-[17px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${
           collapsed ? 'justify-center px-0' : 'gap-3 px-3'
