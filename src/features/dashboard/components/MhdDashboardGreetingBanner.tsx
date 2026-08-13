@@ -177,7 +177,7 @@ export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDash
     <div className="mhd-greeting-banner flex flex-wrap items-start justify-between gap-6 rounded-lg border border-rail-border bg-rail px-6 py-5 text-rail-text">
       <h1 className="text-[28px] font-bold leading-tight text-white">
         {greeting}
-        {name ? `, ${name}` : ''}!
+        {name ? `, ${name} 😊` : ''}!
       </h1>
 
       <div className="flex flex-col items-end gap-1.5 text-right">
@@ -191,14 +191,14 @@ export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDash
           {lastRefreshed ? `Updated ${lastRefreshed.toLocaleTimeString()}` : 'Refresh'}
         </button>
 
-        <p className="text-[15px] font-medium text-white">{mhdFormatGreetingDate(now)}</p>
-
         <p
           className="rounded-md bg-black/25 px-3 py-1 font-mono text-[22px] font-bold tabular-nums text-white"
           aria-label="Current time"
         >
           {mhdFormatDigitalClock(now)}
         </p>
+
+        <p className="text-[15px] font-medium text-white">{mhdFormatGreetingDate(now)}</p>
 
         {tenureLabel ? (
           <p className="text-[13px] text-rail-muted">
