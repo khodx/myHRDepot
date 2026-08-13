@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
+import { mhdNextPreferredName } from '@/components/ui/MhdPersonIdentityFields';
 import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import type { MhdCompany } from '@/features/companies/Types';
 import { useMhdPeoplePicker } from '../Hook';
@@ -96,7 +97,15 @@ export function MhdPersonForm({
   }, [canEditCompany, companies, currentUserCompanyId, person]);
 
   function updateField(field: keyof MhdPersonFormValues, value: string) {
-    setValues((current) => ({ ...current, [field]: value }));
+    setValues((current) => ({
+      ...current,
+      [field]: value,
+      // Preferred name defaults to and mirrors First Name until edited
+      // directly — see mhdNextPreferredName.
+      ...(field === 'firstName'
+        ? { preferredName: mhdNextPreferredName(current.firstName, current.preferredName, value) }
+        : null),
+    }));
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {

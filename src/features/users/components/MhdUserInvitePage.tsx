@@ -11,6 +11,7 @@ import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   MhdPersonIdentityFields,
   mhdFormatPersonPhoneInput,
+  mhdNextPreferredName,
   mhdValidatePersonIdentityFields,
   type MhdPersonIdentityFieldsValues,
 } from '@/components/ui/MhdPersonIdentityFields';
@@ -106,6 +107,9 @@ export function MhdUserInvitePage() {
 
   function handleNewPersonFieldChange(field: keyof MhdPersonIdentityFieldsValues, value: string) {
     if (field === 'firstName') {
+      setNewPreferredName((currentPreferredName) =>
+        mhdNextPreferredName(newFirstName, currentPreferredName, value),
+      );
       setNewFirstName(value);
     } else if (field === 'middleName') {
       setNewMiddleName(value);

@@ -4,6 +4,7 @@ import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonS
 import {
   MhdPersonIdentityFields,
   mhdFormatPersonPhoneInput,
+  mhdNextPreferredName,
   mhdValidatePersonIdentityFields,
   type MhdPersonIdentityFieldsValues,
 } from '@/components/ui/MhdPersonIdentityFields';
@@ -52,6 +53,9 @@ export function MhdCompleteProfilePage() {
 
   function handleIdentityFieldChange(field: keyof MhdPersonIdentityFieldsValues, value: string) {
     if (field === 'firstName') {
+      setPreferredName((currentPreferredName) =>
+        mhdNextPreferredName(firstName, currentPreferredName, value),
+      );
       setFirstName(value);
     } else if (field === 'middleName') {
       setMiddleName(value);

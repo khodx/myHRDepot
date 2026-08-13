@@ -47,6 +47,22 @@ export function mhdFormatPersonPhoneInput(value: string): string {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
+/**
+ * Preferred name defaults to and mirrors First Name as the user types it,
+ * so it never starts blank — but the moment someone edits Preferred Name
+ * directly, it diverges from First Name and further First Name edits stop
+ * overwriting it. Shared by every form that captures both fields (Complete
+ * Profile, invite-a-user, the People module's person form) so the default
+ * behaves identically everywhere instead of being reimplemented per form.
+ */
+export function mhdNextPreferredName(
+  currentFirstName: string,
+  currentPreferredName: string,
+  nextFirstName: string,
+): string {
+  return currentPreferredName === currentFirstName ? nextFirstName : currentPreferredName;
+}
+
 export function mhdValidatePersonIdentityFields(values: MhdPersonIdentityFieldsValues) {
   const nextFieldErrors: Partial<Record<keyof MhdPersonIdentityFieldsValues, string>> = {};
 
