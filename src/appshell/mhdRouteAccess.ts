@@ -60,6 +60,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     path: '/esignature',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
   },
+  { path: '/communications/inbox', roles: ['Platform Admin', 'HR Partner'] },
   {
     path: '/communications',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],

@@ -174,6 +174,10 @@ const MhdMessagingPage = lazyPage(
   () => import('@/features/messaging/components/MhdMessagingPage'),
   'MhdMessagingPage',
 );
+const MhdCorrespondenceInboxPage = lazyPage(
+  () => import('@/features/correspondence/components/MhdCorrespondenceInboxPage'),
+  'MhdCorrespondenceInboxPage',
+);
 const MhdSystemAlertsPage = lazyPage(
   () => import('@/features/communications/components/MhdSystemAlertsPage'),
   'MhdSystemAlertsPage',
@@ -548,6 +552,7 @@ function MhdAppRoutes() {
                 <Route path="/esignature/:requestId" element={<MhdEsignatureDetailPage />} />
                 <Route path="/communications" element={<MhdCommunicationsPage />} />
                 <Route path="/communications/messaging" element={<MhdMessagingPage />} />
+                <Route path="/communications/inbox" element={<MhdCorrespondenceInboxPage />} />
                 <Route path="/communications/system-alerts" element={<MhdSystemAlertsPage />} />
                 <Route path="/automations" element={<MhdAutomationsPage />} />
                 {/* Both inherit the /automations rule via mhdCanAccessRoute's

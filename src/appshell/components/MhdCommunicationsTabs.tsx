@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 
-export type MhdCommunicationsTab = 'overview' | 'messaging' | 'system-alerts';
+export type MhdCommunicationsTab = 'overview' | 'messaging' | 'inbox' | 'system-alerts';
 
 interface MhdCommunicationsTabsProps {
   active: MhdCommunicationsTab;
@@ -20,6 +20,7 @@ export function MhdCommunicationsTabs({ active, className }: MhdCommunicationsTa
   const tabs: Array<{ key: MhdCommunicationsTab; label: string; to: string }> = [
     { key: 'overview', label: 'Overview', to: '/communications' },
     { key: 'messaging', label: 'Messaging', to: '/communications/messaging' },
+    { key: 'inbox', label: 'Inbox', to: '/communications/inbox' },
     { key: 'system-alerts', label: 'System Alerts', to: '/communications/system-alerts' },
   ];
 

@@ -3372,6 +3372,7 @@ export type Database = {
           company_id: string
           created_at: string
           id: string
+          is_active: boolean
           is_primary: boolean
           mailbox_id: string
           updated_at: string | null
@@ -3381,6 +3382,7 @@ export type Database = {
           company_id: string
           created_at?: string
           id?: string
+          is_active?: boolean
           is_primary?: boolean
           mailbox_id: string
           updated_at?: string | null
@@ -3390,6 +3392,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           id?: string
+          is_active?: boolean
           is_primary?: boolean
           mailbox_id?: string
           updated_at?: string | null
@@ -21513,6 +21516,7 @@ export type Database = {
           company_id: string
           created_at: string
           id: string
+          is_active: boolean
           is_primary: boolean
           mailbox_id: string
           updated_at: string | null
@@ -23798,6 +23802,7 @@ export type Database = {
           company_id: string
           created_at: string
           id: string
+          is_active: boolean
           is_primary: boolean
           mailbox_id: string
           updated_at: string | null
@@ -23854,30 +23859,25 @@ export type Database = {
           p_offset?: number
         }
         Returns: {
-          company_id: string | null
+          company_id: string
           created_at: string
-          created_by: string | null
-          entity_id: string | null
-          entity_type: string | null
+          created_by: string
+          entity_id: string
+          entity_type: string
           id: string
           is_archived: boolean
-          last_message_at: string | null
-          linked_at: string | null
-          linked_by: string | null
+          last_message_at: string
+          last_message_preview: string
+          linked_at: string
+          linked_by: string
           mailbox_id: string
           origin: string
           reference_id: string
           sensitivity_level: string
-          subject: string | null
-          subject_person_id: string | null
-          updated_at: string | null
+          subject: string
+          subject_person_id: string
+          updated_at: string
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "correspondence_threads"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       mhd_list_direct_reports: {
         Args: { p_person_id: string }
@@ -26396,6 +26396,29 @@ export type Database = {
           updated_at: string
           updated_by: string
         }[]
+      }
+      mhd_update_correspondence_mailbox_alias: {
+        Args: {
+          p_alias_id: string
+          p_is_active?: boolean
+          p_is_primary?: boolean
+        }
+        Returns: {
+          alias_address: string
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_primary: boolean
+          mailbox_id: string
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "correspondence_mailbox_aliases"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       mhd_update_document_template: {
         Args: {
