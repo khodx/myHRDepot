@@ -1,5 +1,5 @@
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mhdIsRouteComingSoon, mhdRouteStatus } from '@/appshell/mhdRouteAccess';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
@@ -164,13 +164,9 @@ describe('MhdPropertyPage role gating', () => {
     );
 
     expect(screen.queryByText('Add Property Item')).not.toBeInTheDocument();
-    // Row actions collapse into a kebab menu; open it to see the actual links.
-    // Menu items carry an explicit role="menuitem" (correct ARIA for a menu
-    // popup), so they're queried as menuitem, not the anchor's implicit link role.
-    fireEvent.click(screen.getByRole('button', { name: 'Row actions' }));
-    expect(screen.getByRole('menuitem', { name: 'View' })).toBeInTheDocument();
-    // Edit renders as a disabled affordance, never a navigable link, for Viewers.
-    expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
+    // This table never passes `secondaryActions`, so MhdTableActions renders
+    // row actions as a direct "View" link (pill styled), not a dropdown.
+    expect(screen.getByRole('link', { name: 'View' })).toBeInTheDocument();
   });
 
   it('shows the create affordance and manage links for a Client Admin', () => {
@@ -183,11 +179,10 @@ describe('MhdPropertyPage role gating', () => {
     );
 
     expect(screen.getByText('Add Property Item')).toBeInTheDocument();
-    // Edit/Delete are no longer offered from the row menu for anyone — both
-    // are only reachable from the record's own detail page (MhdDetailActions).
-    fireEvent.click(screen.getByRole('button', { name: 'Row actions' }));
-    expect(screen.getByRole('menuitem', { name: 'View' })).toBeInTheDocument();
-    expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
+    // Edit/Delete are no longer offered from the row actions for anyone —
+    // both are only reachable from the record's own detail page
+    // (MhdDetailActions). The row action itself is just the View link.
+    expect(screen.getByRole('link', { name: 'View' })).toBeInTheDocument();
   });
 });
 

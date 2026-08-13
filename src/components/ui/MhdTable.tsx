@@ -8,7 +8,7 @@ import type {
 } from 'react';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Link, UNSAFE_NavigationContext, type To } from 'react-router-dom';
-import { MoreVertical } from 'lucide-react';
+import { MHD_PILL_BUTTON_CLASS } from '@/components/ui/mhdPillButton';
 import { cn } from '@/utils/cn';
 
 /**
@@ -92,7 +92,7 @@ export function MhdTr({ className, to, state, onClick, onKeyDown, ...props }: Mh
     <tr
       {...props}
       className={cn(
-        'border-b border-border last:border-b-0 hover:bg-accent-soft/60',
+        'border-b border-border last:border-b-0 transition-colors hover:bg-accent-tint',
         isClickable && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
         className,
       )}
@@ -134,17 +134,24 @@ const menuItemClass =
   'block px-3 py-2 text-left text-xs font-medium text-foreground transition hover:bg-accent-soft';
 const disabledMenuItemClass = 'block px-3 py-2 text-xs font-medium text-muted-foreground opacity-50';
 
+const viewBubbleClass = `${MHD_PILL_BUTTON_CLASS} px-3 py-1 text-xs`;
+
 /**
- * Row actions collapsed into a single kebab menu (2026-07-26 design review —
- * replaces the previous three spelled-out View/Edit/Delete links). Trade-off
- * accepted deliberately: this is denser and matches the reference mockups,
- * but hides the actions behind a click.
+ * Row actions rendered as a "View" pill (MHD_PILL_BUTTON_CLASS — the same
+ * navy-pill treatment as the task status-transition button, per 2026-08-12
+ * design direction). When a row only ever offers View, the pill is a plain
+ * link that navigates directly — no dropdown needed. When a caller also
+ * supplies `secondaryActions` (Forms, Onboarding), the pill instead toggles
+ * a small dropdown listing View plus those extra actions, so the extra
+ * links stay reachable and the interaction those two callers rely on in
+ * their tests (open the "Row actions" control, find a `menuitem`) keeps
+ * working unchanged.
  *
- * Known limitation: the menu is a plain absolutely-positioned panel, not a
- * portal, so a card wrapping the table with `overflow-hidden` (the documented
- * convention above) can clip it for rows near the bottom of a short table.
- * Acceptable for now; revisit with a portal-based menu if that turns out to
- * bite in practice.
+ * Known limitation: the dropdown is a plain absolutely-positioned panel, not
+ * a portal, so a card wrapping the table with `overflow-hidden` (the
+ * documented convention above) can clip it for rows near the bottom of a
+ * short table. Acceptable for now; revisit with a portal-based menu if that
+ * turns out to bite in practice.
  */
 export function MhdTableActions({
   viewTo,
@@ -170,6 +177,20 @@ export function MhdTableActions({
     };
   }, [open]);
 
+  if (!secondaryActions) {
+    return (
+      <MhdTd className="whitespace-nowrap text-right" data-row-click-ignore>
+        {viewTo && !disableView ? (
+          <Link to={viewTo} className={viewBubbleClass}>
+            View
+          </Link>
+        ) : (
+          <span className={`${viewBubbleClass} cursor-not-allowed opacity-50`}>View</span>
+        )}
+      </MhdTd>
+    );
+  }
+
   return (
     <MhdTd className="whitespace-nowrap text-right" data-row-click-ignore>
       <div ref={menuRef} className="relative inline-block text-left">
@@ -179,9 +200,9 @@ export function MhdTableActions({
           aria-expanded={open}
           aria-label="Row actions"
           onClick={() => setOpen((prev) => !prev)}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-accent-soft hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          className={viewBubbleClass}
         >
-          <MoreVertical className="h-4 w-4" aria-hidden />
+          View
         </button>
         {open ? (
           <div
@@ -203,9 +224,7 @@ export function MhdTableActions({
             {/* Edit and Delete are intentionally NOT offered from the row menu —
                 both are only reachable from the record's own detail page
                 (top/bottom action bar there), never inline from a list row. */}
-            {secondaryActions ? (
-              <div className="mt-1 border-t border-border pt-1">{secondaryActions}</div>
-            ) : null}
+            <div className="mt-1 border-t border-border pt-1">{secondaryActions}</div>
           </div>
         ) : null}
       </div>

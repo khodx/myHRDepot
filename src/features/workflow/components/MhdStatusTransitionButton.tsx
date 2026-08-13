@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, Loader2, AlertCircle } from 'lucide-react';
+import { MHD_PILL_BUTTON_CLASS } from '@/components/ui/mhdPillButton';
 import { mhdWorkflowService } from '../Service';
 import type { MhdTransitionTaskInput, MhdWorkflowAvailableTransition } from '../Types';
 
@@ -80,11 +81,7 @@ export function MhdStatusTransitionButton({
         className={`flex items-center gap-2 rounded-full px-4 py-2 font-medium transition-colors ${
           isTerminal
             ? 'cursor-not-allowed bg-muted text-muted-foreground'
-            : // Cobalt 900 (#081549) — a deep blue adjacent to the project's navy
-              // theme accent (#0003AA), reading as its own color next to the
-              // yellow Edit and red Delete actions beside it in the tab row.
-              // The inset highlight/shadow lines give the pill a beveled edge.
-              'bg-[#081549] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-1px_0_rgba(0,0,0,0.35),0_1px_3px_rgba(0,0,0,0.35)] hover:opacity-80 disabled:opacity-50'
+            : `${MHD_PILL_BUTTON_CLASS} disabled:opacity-50`
         }`}
       >
         <span>{currentStatusName}</span>
