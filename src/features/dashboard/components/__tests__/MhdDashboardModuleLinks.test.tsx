@@ -1,5 +1,6 @@
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 
@@ -95,5 +96,79 @@ describe('MhdDashboardModuleLinks', () => {
     const { container } = await renderModuleLinks();
 
     expect(container.firstChild).toBeNull();
+
+    // vi.doMock registers past this test's own module cache reset — neither
+    // resetModules() nor clearAllMocks() in beforeEach undoes it — so without
+    // this, every test after this one in file order would silently import
+    // this fake, description-less NAV_SECTIONS instead of the real module.
+    vi.doUnmock('@/appshell/MhdSidebar');
+  });
+
+  it('filters the grid to modules matching the search query', async () => {
+    mockAuth(['Platform Admin']);
+    const user = userEvent.setup();
+
+    await renderModuleLinks();
+
+    expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'People' })).toBeInTheDocument();
+
+    await user.type(screen.getByRole('textbox', { name: 'Search modules' }), 'task');
+
+    expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'People' })).not.toBeInTheDocument();
+  });
+
+  it('search reaches comingSoon modules the default view hides, without bypassing role', async () => {
+    mockAuth(['Platform Admin']);
+    const user = userEvent.setup();
+
+    await renderModuleLinks();
+
+    expect(screen.queryByRole('link', { name: 'Onboarding' })).not.toBeInTheDocument();
+
+    await user.type(screen.getByRole('textbox', { name: 'Search modules' }), 'onboarding');
+
+    const onboardingLink = screen.getByRole('link', { name: 'Onboarding' });
+    expect(onboardingLink).toBeInTheDocument();
+    expect(onboardingLink).toHaveTextContent('Coming Soon');
+  });
+
+  it('shows an empty state when nothing matches, with no module cards', async () => {
+    mockAuth(['Platform Admin']);
+    const user = userEvent.setup();
+
+    await renderModuleLinks();
+    await user.type(
+      screen.getByRole('textbox', { name: 'Search modules' }),
+      'zzz-nonexistent-module',
+    );
+
+    expect(screen.getByText('No modules match “zzz-nonexistent-module”.')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
+  });
+
+  it('clearing the search restores the default live-only view', async () => {
+    mockAuth(['Platform Admin']);
+    const user = userEvent.setup();
+
+    await renderModuleLinks();
+    await user.type(screen.getByRole('textbox', { name: 'Search modules' }), 'onboarding');
+    expect(screen.getByRole('link', { name: 'Onboarding' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Clear search' }));
+
+    expect(screen.queryByRole('link', { name: 'Onboarding' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
+  });
+
+  it('never surfaces a module the role cannot access, even when the query matches', async () => {
+    mockAuth(['Client User']);
+    const user = userEvent.setup();
+
+    await renderModuleLinks();
+    await user.type(screen.getByRole('textbox', { name: 'Search modules' }), 'user');
+
+    expect(screen.queryByRole('link', { name: 'Users' })).not.toBeInTheDocument();
   });
 });
