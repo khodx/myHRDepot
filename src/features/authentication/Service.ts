@@ -178,7 +178,7 @@ export async function mhdLoadCurrentUserProfile(
       is_admin,
       person_id,
       companies:company_id ( company_name, is_platform_org ),
-      people:person_id ( first_name, last_name, display_name )
+      people:person_id ( first_name, last_name, display_name, preferred_name )
     `,
     )
     .eq('id', authUserId)
@@ -237,6 +237,7 @@ export async function mhdLoadCurrentUserProfile(
     displayName: userRow.people?.display_name ?? null,
     firstName: userRow.people?.first_name ?? null,
     lastName: userRow.people?.last_name ?? null,
+    preferredName: userRow.people?.preferred_name ?? null,
     roleNames: (roleNames ?? []) as MhdAuthRoleName[],
     realIsAdmin: userRow.is_admin ?? false,
     realRoleNames,

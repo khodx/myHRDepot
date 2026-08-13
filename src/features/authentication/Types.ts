@@ -24,6 +24,10 @@ export interface MhdCurrentUserProfile {
   displayName: string | null;
   firstName: string | null;
   lastName: string | null;
+  /** people.preferred_name — the name a person goes by, distinct from the
+   *  legal firstName. Null when the person hasn't set one (display name and
+   *  greetings should fall back to firstName in that case). */
+  preferredName: string | null;
   /** From the mhd_current_user_roles() RPC. Does not include an implicit
    *  "Platform Admin" role for every is_admin=true user beyond what that
    *  function itself returns — see Database.sql for the exact semantics.

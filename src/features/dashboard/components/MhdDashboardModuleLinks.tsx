@@ -90,7 +90,7 @@ export function MhdDashboardModuleLinks() {
   const usersRow = usersIndex === -1 ? -1 : Math.floor(usersIndex / columns);
 
   return (
-    <MhdCard>
+    <MhdCard elevated>
       <MhdCardHeader title={<span className="text-[23px] font-bold">MyHR Depot Modules</span>} />
       <div className="relative mb-4">
         <Search

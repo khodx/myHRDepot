@@ -375,6 +375,28 @@
   }
 }
 
+/* Pronounced "3D" card treatment for high-emphasis surfaces (dashboard
+   panels) — a heavier layered drop shadow plus an inset top highlight /
+   bottom lowlight so the card reads as raised off the page, echoing the
+   nav rail's active-item bevel (see .mhd-module-card:hover and
+   --mhd-rail-selected above) instead of the flat shadow-md every ordinary
+   MhdCard uses. See the `elevated` prop on MhdCard.tsx. */
+.mhd-card-elevated {
+  box-shadow:
+    0 22px 45px -14px rgba(15, 23, 42, 0.32),
+    0 10px 20px -8px rgba(15, 23, 42, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.08);
+}
+
+.dark .mhd-card-elevated {
+  box-shadow:
+    0 22px 45px -14px rgba(0, 0, 0, 0.6),
+    0 10px 20px -8px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.55);
+}
+
 :root {
   font-family:
     Arial,

@@ -1,14 +1,26 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/utils/cn';
 
+interface MhdCardProps extends HTMLAttributes<HTMLDivElement> {
+  /** Pronounced layered shadow + inset bevel (see .mhd-card-elevated in
+   *  global.css) for high-emphasis surfaces, echoing the nav rail's raised
+   *  active-item treatment. Default false keeps the standard flat shadow-md
+   *  used across ordinary operational panels. */
+  elevated?: boolean;
+}
+
 /**
  * Canonical surface for operational panels — matches MhdFilterBar's beveled
  * edge (border-border) plus a raised shadow so panels read as distinct cards.
  */
-export function MhdCard({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+export function MhdCard({ className, elevated = false, ...props }: MhdCardProps) {
   return (
     <div
-      className={cn('rounded-lg border border-border bg-card p-4 shadow-md', className)}
+      className={cn(
+        'rounded-lg border border-border bg-card p-4',
+        elevated ? 'mhd-card-elevated' : 'shadow-md',
+        className,
+      )}
       {...props}
     />
   );

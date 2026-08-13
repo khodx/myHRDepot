@@ -76,6 +76,7 @@ vi.mock('@/features/authentication/Hook', () => ({
       displayName: 'Admin User',
       firstName: 'Admin',
       lastName: 'User',
+      preferredName: null,
       roleNames: ['Platform Admin'],
       realIsAdmin: true,
       realRoleNames: ['Platform Admin'],
@@ -134,8 +135,11 @@ describe('App foundation', () => {
     // comfortably fast standalone or under light load — reproduced
     // 2026-08-05. A longer timeout here is the correct fix for a real
     // Suspense/lazy-chunk boundary, not a timing race to paper over.
+    // The dashboard's title was replaced by a time-of-day greeting banner
+    // (see MhdDashboardGreetingBanner) — assert on its "Good <time>, Admin!"
+    // heading instead of a literal "Dashboard" title.
     expect(
-      await screen.findByRole('heading', { name: /dashboard/i }, { timeout: 5000 }),
+      await screen.findByRole('heading', { name: /^good (morning|afternoon|evening), admin!$/i }, { timeout: 5000 }),
     ).toBeInTheDocument();
     expect(screen.getByText('Admin User')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/dashboard');
