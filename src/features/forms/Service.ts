@@ -496,18 +496,27 @@ export const mhdFormService = {
       ...(name ? { p_name: name } : {}),
       ...(description ? { p_description: description } : {}),
       ...(definition ? { p_definition: definition } : {}),
+      // 0142 replaced mhd_update_form's magic-value "unchanged" defaults
+      // (a '__MHD_UNCHANGED__' string and an all-zero UUID — the latter is
+      // exactly the sentinel-UUID pattern CLAUDE.md's engineering standard
+      // prohibits) with explicit p_update_* boolean flags. Omitting a field's
+      // keys entirely still means "don't touch it" (Postgres's own default:
+      // false), so this conditional-spread shape is unchanged from before —
+      // only the flag alongside each value is new.
       ...(shouldUpdateEmployeeFileCategory
-        ? { p_employee_file_category: input.employeeFileCategory ?? null }
+        ? {
+            p_employee_file_category: input.employeeFileCategory ?? null,
+            p_update_employee_file_category: true,
+          }
         : {}),
       ...(shouldUpdateRequiresEsignature
         ? { p_requires_esignature: input.requiresEsignature ?? null }
         : {}),
-      // Omitting the key when not updating lets mhd_update_form's own SQL
-      // default resolve "unchanged" server-side (see 0115), the same
-      // conditional-spread pattern used for p_employee_file_category above —
-      // no fake/sentinel UUID literal needs to appear in client code.
       ...(shouldUpdateEsignatureDocumentTemplateId
-        ? { p_esignature_document_template_id: input.esignatureDocumentTemplateId ?? null }
+        ? {
+            p_esignature_document_template_id: input.esignatureDocumentTemplateId ?? null,
+            p_update_esignature_document_template_id: true,
+          }
         : {}),
     } as never);
 

@@ -26286,6 +26286,8 @@ export type Database = {
           p_form_id: string
           p_name?: string
           p_requires_esignature?: boolean
+          p_update_employee_file_category?: boolean
+          p_update_esignature_document_template_id?: boolean
         }
         Returns: undefined
       }
