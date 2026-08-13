@@ -459,12 +459,10 @@ body {
   --mhd-module-tone-15: #ea580c; /* orange — exempted from the darken pass */
   --mhd-module-tone-16: #ab125f; /* pink — reserved for the Users row */
 
-  /* Even-row background — deliberately its own token rather than --color-muted
-     directly: --color-muted is shared by many unrelated bg-muted consumers
-     app-wide, and this needs to sit ~10% darker than that shared value
-     specifically for this grid, without moving muted surfaces everywhere
-     else. Same relative-lightness darken formula as the tone palette above. */
-  --mhd-module-row-grey: #cfddeb;
+  /* Even-row background — a flat, explicitly chosen neutral grey rather than
+     --color-muted (a blue-tinted slate). Its own token because --color-muted
+     is shared by many unrelated bg-muted consumers app-wide. */
+  --mhd-module-row-grey: #f2f2f2;
 }
 
 .dark {
