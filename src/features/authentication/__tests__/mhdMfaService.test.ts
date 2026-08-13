@@ -32,6 +32,7 @@ describe('mhdMfaService', () => {
   });
 
   it('enrolls a TOTP factor and maps the response', async () => {
+    mockSupabase.auth.mfa.listFactors.mockResolvedValue({ data: { totp: [] }, error: null });
     mockSupabase.auth.mfa.enroll.mockResolvedValue({
       data: {
         id: 'factor-id',
@@ -52,6 +53,61 @@ describe('mhdMfaService', () => {
       qrCodeSvg: '<svg />',
       secret: 'SECRET123',
     });
+  });
+
+  it('clears a stale unverified TOTP factor before enrolling a new one', async () => {
+    mockSupabase.auth.mfa.listFactors.mockResolvedValue({
+      data: {
+        totp: [{ id: 'verified-factor', status: 'verified', friendly_name: 'Authenticator' }],
+        all: [
+          { id: 'abandoned-factor', factor_type: 'totp', status: 'unverified', friendly_name: null },
+          { id: 'verified-factor', factor_type: 'totp', status: 'verified', friendly_name: 'Authenticator' },
+        ],
+      },
+      error: null,
+    });
+    mockSupabase.auth.mfa.unenroll.mockResolvedValue({ data: {}, error: null });
+    mockSupabase.auth.mfa.enroll.mockResolvedValue({
+      data: {
+        id: 'new-factor-id',
+        totp: { qr_code: '<svg />', secret: 'SECRET456', uri: 'otpauth://totp/MyHRDepot' },
+      },
+      error: null,
+    });
+
+    const result = await mhdEnrollTotpFactor();
+
+    // Only the abandoned UNVERIFIED factor is cleared — an already-verified
+    // factor is a real completed enrollment and must never be touched here.
+    expect(mockSupabase.auth.mfa.unenroll).toHaveBeenCalledTimes(1);
+    expect(mockSupabase.auth.mfa.unenroll).toHaveBeenCalledWith({ factorId: 'abandoned-factor' });
+    expect(result.factorId).toBe('new-factor-id');
+  });
+
+  it('coalesces overlapping enroll calls onto a single request', async () => {
+    mockSupabase.auth.mfa.listFactors.mockResolvedValue({ data: { totp: [] }, error: null });
+    let resolveEnroll: (value: unknown) => void = () => {};
+    mockSupabase.auth.mfa.enroll.mockReturnValue(
+      new Promise((resolve) => {
+        resolveEnroll = resolve;
+      }),
+    );
+
+    const first = mhdEnrollTotpFactor();
+    const second = mhdEnrollTotpFactor();
+
+    resolveEnroll({
+      data: {
+        id: 'shared-factor-id',
+        totp: { qr_code: '<svg />', secret: 'SHARED123', uri: 'otpauth://totp/MyHRDepot' },
+      },
+      error: null,
+    });
+
+    const [firstResult, secondResult] = await Promise.all([first, second]);
+
+    expect(mockSupabase.auth.mfa.enroll).toHaveBeenCalledTimes(1);
+    expect(firstResult).toEqual(secondResult);
   });
 
   it('verifies a TOTP factor', async () => {

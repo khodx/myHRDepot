@@ -72,18 +72,63 @@ export async function mhdUpdatePassword(input: MhdResetPasswordInput): Promise<v
   if (error) throw error;
 }
 
-export async function mhdEnrollTotpFactor(): Promise<MhdTotpEnrollment> {
-  const { data, error } = await mhdSupabase.auth.mfa.enroll({ factorType: 'totp' });
+// GoTrue rejects a new TOTP enroll with a "friendly name already exists"
+// conflict while an earlier UNVERIFIED attempt for this user is still on
+// file — e.g. an abandoned setup, a page reload mid-enrollment, or (in dev)
+// React StrictMode/Suspense remounting MhdEnrollMfaPage before the first
+// attempt's response lands. None of those represent a real completed
+// factor (verify never happened), so clearing them first makes enrollment
+// idempotent instead of leaving the account permanently stuck.
+async function mhdClearStaleUnverifiedTotpFactors(): Promise<void> {
+  const { data, error } = await mhdSupabase.auth.mfa.listFactors();
   if (error) throw error;
-  if (!data?.id || !data.totp?.qr_code || !data.totp.secret) {
-    throw new Error('Unable to enroll authenticator app.');
-  }
 
-  return {
-    factorId: data.id,
-    qrCodeSvg: data.totp.qr_code,
-    secret: data.totp.secret,
-  };
+  // `data.totp` is pre-filtered to VERIFIED factors only (that's what makes
+  // its element type statically 'verified', never 'unverified') — the
+  // abandoned factors this cleanup targets only show up in `data.all`.
+  const staleFactors = (data?.all ?? []).filter(
+    (factor) => factor.factor_type === 'totp' && factor.status === 'unverified',
+  );
+  for (const factor of staleFactors) {
+    const { error: unenrollError } = await mhdSupabase.auth.mfa.unenroll({ factorId: factor.id });
+    if (unenrollError) throw unenrollError;
+  }
+}
+
+// Coalesces overlapping callers onto a single in-flight enrollment. The
+// stale-factor cleanup above only protects against SEQUENTIAL duplicate
+// attempts (e.g. across a page reload) — two calls arriving close enough
+// together (observed from MhdEnrollMfaPage's mount effect firing more than
+// once) can both list an empty factor set before either has created
+// anything, then both call enroll and race for the same friendly-name slot.
+// Sharing one promise means every caller in that window gets the exact same
+// resolved factor/QR/secret instead of a second one losing to a 422.
+let mhdPendingTotpEnrollment: Promise<MhdTotpEnrollment> | null = null;
+
+export async function mhdEnrollTotpFactor(): Promise<MhdTotpEnrollment> {
+  if (mhdPendingTotpEnrollment) return mhdPendingTotpEnrollment;
+
+  mhdPendingTotpEnrollment = (async () => {
+    await mhdClearStaleUnverifiedTotpFactors();
+
+    const { data, error } = await mhdSupabase.auth.mfa.enroll({ factorType: 'totp' });
+    if (error) throw error;
+    if (!data?.id || !data.totp?.qr_code || !data.totp.secret) {
+      throw new Error('Unable to enroll authenticator app.');
+    }
+
+    return {
+      factorId: data.id,
+      qrCodeSvg: data.totp.qr_code,
+      secret: data.totp.secret,
+    };
+  })();
+
+  try {
+    return await mhdPendingTotpEnrollment;
+  } finally {
+    mhdPendingTotpEnrollment = null;
+  }
 }
 
 export async function mhdVerifyTotpFactor(factorId: string, code: string): Promise<void> {

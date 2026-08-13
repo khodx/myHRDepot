@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
@@ -20,14 +20,22 @@ export function MhdEnrollMfaPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const hasStartedEnrollment = useRef(false);
 
+  // No per-instance "already started" guard here: this effect can and does
+  // run more than once per real page visit (the mfa-gate check that routes a
+  // user here re-evaluates around the same time, causing this page to
+  // mount/unmount/remount before settling — see mhdEnrollTotpFactor's own
+  // request-coalescing in Service.ts). A ref-based guard scoped to a single
+  // component instance risked reusing a ref from a torn-down instance's
+  // stale closure while the CURRENT instance's own request never fired,
+  // leaving the page stuck on "Preparing...". Idempotency belongs at the
+  // Service layer (shared across every caller, not just this component), so
+  // every mount simply calls enrollTotpFactor() and lets that layer decide
+  // whether a real network request is needed.
   useEffect(() => {
     let isMounted = true;
 
     async function enroll() {
-      if (hasStartedEnrollment.current) return;
-      hasStartedEnrollment.current = true;
       setFormError(null);
       setIsLoading(true);
 
