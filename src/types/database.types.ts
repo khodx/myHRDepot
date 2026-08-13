@@ -17518,6 +17518,7 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+          manager_id: string | null
           middle_name: string | null
           preferred_name: string | null
           reference_id: string
@@ -17532,6 +17533,7 @@ export type Database = {
           first_name: string
           id?: string
           last_name: string
+          manager_id?: string | null
           middle_name?: string | null
           preferred_name?: string | null
           reference_id: string
@@ -17546,6 +17548,7 @@ export type Database = {
           first_name?: string
           id?: string
           last_name?: string
+          manager_id?: string | null
           middle_name?: string | null
           preferred_name?: string | null
           reference_id?: string
@@ -17558,6 +17561,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "people_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "people"
             referencedColumns: ["id"]
           },
         ]
@@ -21165,6 +21175,28 @@ export type Database = {
           task_id: string
         }[]
       }
+      mhd_calendar_list_events: {
+        Args: {
+          p_company_id?: string
+          p_end: string
+          p_person_ids?: string[]
+          p_source_types?: string[]
+          p_start: string
+        }
+        Returns: {
+          company_id: string
+          event_date: string
+          event_end: string
+          event_id: string
+          link_path: string
+          person_id: string
+          person_name: string
+          source_id: string
+          source_type: string
+          status: string
+          title: string
+        }[]
+      }
       mhd_can_access_assignment_entity: {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: boolean
@@ -21754,6 +21786,7 @@ export type Database = {
           p_email?: string
           p_first_name: string
           p_last_name: string
+          p_manager_id?: string
           p_middle_name?: string
           p_mobile?: string
           p_phone?: string
@@ -21767,6 +21800,8 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+          manager_display_name: string
+          manager_id: string
           middle_name: string
           preferred_name: string
           primary_email: string
@@ -22429,6 +22464,8 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+          manager_display_name: string
+          manager_id: string
           middle_name: string
           preferred_name: string
           primary_email: string
@@ -24180,6 +24217,12 @@ export type Database = {
           updated_at: string
         }[]
       }
+      mhd_list_people_downline: {
+        Args: { p_root_person_id: string }
+        Returns: {
+          person_id: string
+        }[]
+      }
       mhd_list_performance_reviews: {
         Args: {
           p_company_id?: string
@@ -24454,6 +24497,13 @@ export type Database = {
           label: string
           last_seen_at: string
           revoked_at: string
+        }[]
+      }
+      mhd_list_visible_people_scope: {
+        Args: { p_company_id?: string }
+        Returns: {
+          company_id: string
+          person_id: string
         }[]
       }
       mhd_mark_all_notifications_read: { Args: never; Returns: undefined }
@@ -26307,6 +26357,7 @@ export type Database = {
           p_email?: string
           p_first_name: string
           p_last_name: string
+          p_manager_id?: string
           p_middle_name?: string
           p_mobile?: string
           p_person_id: string
@@ -26321,6 +26372,8 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+          manager_display_name: string
+          manager_id: string
           middle_name: string
           preferred_name: string
           primary_email: string

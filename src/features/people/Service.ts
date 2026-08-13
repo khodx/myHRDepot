@@ -156,7 +156,9 @@ export const mhdPersonService = {
     };
 
     const { data, error } = await supabaseClient
-      .rpc('mhd_create_person', rpcArgs)
+      // gen:types omits null from defaulted RPC arguments even though
+      // mhd_create_person accepts p_manager_id = null ("no manager") at runtime.
+      .rpc('mhd_create_person', rpcArgs as never)
       .returns<MhdPersonMutationRow[]>();
 
     if (error) {
@@ -201,7 +203,9 @@ export const mhdPersonService = {
     };
 
     const { data, error } = await supabaseClient
-      .rpc('mhd_update_person', rpcArgs)
+      // Same gen:types gap as createPerson above — p_manager_id = null is a
+      // valid "clear the manager" value at runtime.
+      .rpc('mhd_update_person', rpcArgs as never)
       .returns<MhdPersonMutationRow[]>();
 
     if (error) {

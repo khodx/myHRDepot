@@ -82,6 +82,10 @@ const MhdActivitiesPage = lazyPage(
   () => import('@/features/activities/components/MhdActivitiesPage'),
   'MhdActivitiesPage',
 );
+const MhdCalendarPage = lazyPage(
+  () => import('@/features/calendar/components/MhdCalendarPage'),
+  'MhdCalendarPage',
+);
 const MhdActivityDetailPage = lazyPage(
   () => import('@/features/activities/components/MhdActivityDetailPage'),
   'MhdActivityDetailPage',
@@ -526,6 +530,7 @@ function MhdAppRoutes() {
                 <Route path="/tasks/:taskId/audit" element={<MhdTaskAuditPage />} />
                 <Route path="/activities" element={<MhdActivitiesPage />} />
                 <Route path="/activities/:activityId" element={<MhdActivityDetailPage />} />
+                <Route path="/calendar" element={<MhdCalendarPage />} />
                 <Route path="/reports" element={<MhdDocumentsPage />} />
                 <Route path="/forms" element={<MhdFormsPage />} />
                 <Route path="/forms/new" element={<MhdFormBuilderPage />} />

@@ -46,6 +46,7 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/audit-reports', 'employee-relations'],
   ['/tasks', 'work-tools'],
   ['/activities', 'work-tools'],
+  ['/calendar', 'work-tools'],
   ['/forms', 'work-tools'],
   ['/approvals', 'work-tools'],
   ['/property', 'work-tools'],

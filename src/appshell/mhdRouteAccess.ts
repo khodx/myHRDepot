@@ -35,6 +35,10 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
   },
   {
+    path: '/calendar',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+  },
+  {
     path: '/forms',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
   },
