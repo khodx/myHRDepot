@@ -3337,6 +3337,315 @@ export type Database = {
         }
         Relationships: []
       }
+      correspondence_branding_settings: {
+        Row: {
+          company_id: string
+          system_sender_display_name: string
+          tagline: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          system_sender_display_name?: string
+          tagline?: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          system_sender_display_name?: string
+          tagline?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_branding_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correspondence_mailbox_aliases: {
+        Row: {
+          alias_address: string
+          company_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          mailbox_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          alias_address: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          mailbox_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          alias_address?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          mailbox_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_mailbox_aliases_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_mailbox_aliases_mailbox_id_fkey"
+            columns: ["mailbox_id"]
+            isOneToOne: false
+            referencedRelation: "correspondence_mailboxes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correspondence_mailboxes: {
+        Row: {
+          address: string
+          created_at: string
+          display_name: string
+          id: string
+          is_active: boolean
+          updated_at: string | null
+          watch_expiration: string | null
+          watch_history_id: string | null
+          workspace_credential_ref: string | null
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          display_name: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string | null
+          watch_expiration?: string | null
+          watch_history_id?: string | null
+          workspace_credential_ref?: string | null
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string | null
+          watch_expiration?: string | null
+          watch_history_id?: string | null
+          workspace_credential_ref?: string | null
+        }
+        Relationships: []
+      }
+      correspondence_messages: {
+        Row: {
+          body_html: string | null
+          body_text: string | null
+          cc_emails: string[]
+          company_id: string | null
+          created_at: string
+          direction: string
+          external_in_reply_to: string | null
+          external_message_id: string | null
+          external_references: string[] | null
+          failure_reason: string | null
+          id: string
+          is_system: boolean
+          provider_message_id: string | null
+          received_at: string | null
+          recipient_emails: string[]
+          reference_id: string
+          reply_token: string | null
+          sender_display_name: string | null
+          sender_email: string
+          sender_user_id: string | null
+          sent_at: string | null
+          status: string
+          subject: string | null
+          thread_id: string
+        }
+        Insert: {
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[]
+          company_id?: string | null
+          created_at?: string
+          direction: string
+          external_in_reply_to?: string | null
+          external_message_id?: string | null
+          external_references?: string[] | null
+          failure_reason?: string | null
+          id?: string
+          is_system?: boolean
+          provider_message_id?: string | null
+          received_at?: string | null
+          recipient_emails?: string[]
+          reference_id: string
+          reply_token?: string | null
+          sender_display_name?: string | null
+          sender_email: string
+          sender_user_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          thread_id: string
+        }
+        Update: {
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[]
+          company_id?: string | null
+          created_at?: string
+          direction?: string
+          external_in_reply_to?: string | null
+          external_message_id?: string | null
+          external_references?: string[] | null
+          failure_reason?: string | null
+          id?: string
+          is_system?: boolean
+          provider_message_id?: string | null
+          received_at?: string | null
+          recipient_emails?: string[]
+          reference_id?: string
+          reply_token?: string | null
+          sender_display_name?: string | null
+          sender_email?: string
+          sender_user_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_messages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_messages_sender_user_id_fkey"
+            columns: ["sender_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "correspondence_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correspondence_threads: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_archived: boolean
+          last_message_at: string | null
+          linked_at: string | null
+          linked_by: string | null
+          mailbox_id: string
+          origin: string
+          reference_id: string
+          sensitivity_level: string
+          subject: string | null
+          subject_person_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_archived?: boolean
+          last_message_at?: string | null
+          linked_at?: string | null
+          linked_by?: string | null
+          mailbox_id: string
+          origin: string
+          reference_id: string
+          sensitivity_level?: string
+          subject?: string | null
+          subject_person_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_archived?: boolean
+          last_message_at?: string | null
+          linked_at?: string | null
+          linked_by?: string | null
+          mailbox_id?: string
+          origin?: string
+          reference_id?: string
+          sensitivity_level?: string
+          subject?: string | null
+          subject_person_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_threads_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_threads_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_threads_linked_by_fkey"
+            columns: ["linked_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_threads_mailbox_id_fkey"
+            columns: ["mailbox_id"]
+            isOneToOne: false
+            referencedRelation: "correspondence_mailboxes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_threads_subject_person_id_fkey"
+            columns: ["subject_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_generations: {
         Row: {
           company_id: string
@@ -4588,193 +4897,6 @@ export type Database = {
           },
           {
             foreignKeyName: "form_accessibility_configs_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      form_api_configs: {
-        Row: {
-          api_access_enabled: boolean
-          api_audit_enabled: boolean
-          api_authentication_method: string | null
-          api_key_id: string | null
-          api_rate_limit: number | null
-          api_version: string | null
-          ats_integration_enabled: boolean
-          created_at: string
-          created_by: string | null
-          destination_system_mapping_json: Json | null
-          external_field_id: string | null
-          external_form_id: string | null
-          external_submission_id: string | null
-          external_system_id: string | null
-          field_api_endpoint: string | null
-          form_api_name: string | null
-          form_id: string
-          google_sheets_integration_enabled: boolean
-          hris_integration_enabled: boolean
-          id: string
-          inbound_webhook_enabled: boolean
-          integration_provider: string | null
-          integration_status: string | null
-          integration_sync_direction: string | null
-          integration_sync_frequency: string | null
-          last_sync_at: string | null
-          lms_integration_enabled: boolean
-          make_enabled: boolean
-          next_sync_at: string | null
-          oauth_client_id: string | null
-          payroll_integration_enabled: boolean
-          power_automate_enabled: boolean
-          quick_books_integration_enabled: boolean
-          reference_id: string
-          salesforce_integration_enabled: boolean
-          service_now_integration_enabled: boolean
-          share_point_integration_enabled: boolean
-          source_system_mapping_json: Json | null
-          submission_api_endpoint: string | null
-          sync_error_message: string | null
-          updated_at: string
-          updated_by: string | null
-          webhook_enabled: boolean
-          webhook_event_types: string | null
-          webhook_failure_count: number | null
-          webhook_last_sent_at: string | null
-          webhook_payload_template: string | null
-          webhook_retry_count: number | null
-          webhook_retry_interval: string | null
-          webhook_secret: string | null
-          webhook_url: string | null
-          zapier_enabled: boolean
-        }
-        Insert: {
-          api_access_enabled?: boolean
-          api_audit_enabled?: boolean
-          api_authentication_method?: string | null
-          api_key_id?: string | null
-          api_rate_limit?: number | null
-          api_version?: string | null
-          ats_integration_enabled?: boolean
-          created_at?: string
-          created_by?: string | null
-          destination_system_mapping_json?: Json | null
-          external_field_id?: string | null
-          external_form_id?: string | null
-          external_submission_id?: string | null
-          external_system_id?: string | null
-          field_api_endpoint?: string | null
-          form_api_name?: string | null
-          form_id: string
-          google_sheets_integration_enabled?: boolean
-          hris_integration_enabled?: boolean
-          id?: string
-          inbound_webhook_enabled?: boolean
-          integration_provider?: string | null
-          integration_status?: string | null
-          integration_sync_direction?: string | null
-          integration_sync_frequency?: string | null
-          last_sync_at?: string | null
-          lms_integration_enabled?: boolean
-          make_enabled?: boolean
-          next_sync_at?: string | null
-          oauth_client_id?: string | null
-          payroll_integration_enabled?: boolean
-          power_automate_enabled?: boolean
-          quick_books_integration_enabled?: boolean
-          reference_id: string
-          salesforce_integration_enabled?: boolean
-          service_now_integration_enabled?: boolean
-          share_point_integration_enabled?: boolean
-          source_system_mapping_json?: Json | null
-          submission_api_endpoint?: string | null
-          sync_error_message?: string | null
-          updated_at?: string
-          updated_by?: string | null
-          webhook_enabled?: boolean
-          webhook_event_types?: string | null
-          webhook_failure_count?: number | null
-          webhook_last_sent_at?: string | null
-          webhook_payload_template?: string | null
-          webhook_retry_count?: number | null
-          webhook_retry_interval?: string | null
-          webhook_secret?: string | null
-          webhook_url?: string | null
-          zapier_enabled?: boolean
-        }
-        Update: {
-          api_access_enabled?: boolean
-          api_audit_enabled?: boolean
-          api_authentication_method?: string | null
-          api_key_id?: string | null
-          api_rate_limit?: number | null
-          api_version?: string | null
-          ats_integration_enabled?: boolean
-          created_at?: string
-          created_by?: string | null
-          destination_system_mapping_json?: Json | null
-          external_field_id?: string | null
-          external_form_id?: string | null
-          external_submission_id?: string | null
-          external_system_id?: string | null
-          field_api_endpoint?: string | null
-          form_api_name?: string | null
-          form_id?: string
-          google_sheets_integration_enabled?: boolean
-          hris_integration_enabled?: boolean
-          id?: string
-          inbound_webhook_enabled?: boolean
-          integration_provider?: string | null
-          integration_status?: string | null
-          integration_sync_direction?: string | null
-          integration_sync_frequency?: string | null
-          last_sync_at?: string | null
-          lms_integration_enabled?: boolean
-          make_enabled?: boolean
-          next_sync_at?: string | null
-          oauth_client_id?: string | null
-          payroll_integration_enabled?: boolean
-          power_automate_enabled?: boolean
-          quick_books_integration_enabled?: boolean
-          reference_id?: string
-          salesforce_integration_enabled?: boolean
-          service_now_integration_enabled?: boolean
-          share_point_integration_enabled?: boolean
-          source_system_mapping_json?: Json | null
-          submission_api_endpoint?: string | null
-          sync_error_message?: string | null
-          updated_at?: string
-          updated_by?: string | null
-          webhook_enabled?: boolean
-          webhook_event_types?: string | null
-          webhook_failure_count?: number | null
-          webhook_last_sent_at?: string | null
-          webhook_payload_template?: string | null
-          webhook_retry_count?: number | null
-          webhook_retry_interval?: string | null
-          webhook_secret?: string | null
-          webhook_url?: string | null
-          zapier_enabled?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "form_api_configs_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "form_api_configs_form_id_fkey"
-            columns: ["form_id"]
-            isOneToOne: false
-            referencedRelation: "forms"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "form_api_configs_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
@@ -6859,175 +6981,6 @@ export type Database = {
           },
         ]
       }
-      form_notifications: {
-        Row: {
-          admin_notification_enabled: boolean
-          admin_notification_template_id: string | null
-          approver_notification_enabled: boolean
-          communication_log_id: string | null
-          conditional_notification_rule: string | null
-          created_at: string
-          created_by: string | null
-          do_not_notify_flag: boolean
-          email_notification_enabled: boolean
-          escalation_notification_enabled: boolean
-          form_id: string
-          id: string
-          in_app_notification_enabled: boolean
-          localization_notification_template: string | null
-          notification_attachment_rule: string | null
-          notification_audit_enabled: boolean
-          notification_bcc_rule: string | null
-          notification_body_template: string | null
-          notification_cc_rule: string | null
-          notification_delay_minutes: number | null
-          notification_delivery_status: string | null
-          notification_failure_count: number | null
-          notification_from_address: string | null
-          notification_include_pdf_flag: boolean
-          notification_include_submission_data_flag: boolean
-          notification_last_sent_at: string | null
-          notification_recipient_rule: string | null
-          notification_reply_to_address: string | null
-          notification_send_timing: string | null
-          notification_subject_template: string | null
-          notification_suppression_rule: string | null
-          notifications_enabled: boolean
-          push_notification_enabled: boolean
-          reference_id: string
-          reminder_enabled: boolean
-          reminder_frequency: string | null
-          reminder_maximum_count: number | null
-          reminder_schedule_rule: string | null
-          sms_notification_enabled: boolean
-          submitter_confirmation_enabled: boolean
-          submitter_confirmation_template_id: string | null
-          task_notification_enabled: boolean
-          updated_at: string
-          updated_by: string | null
-          webhook_notification_enabled: boolean
-          workflow_notification_enabled: boolean
-        }
-        Insert: {
-          admin_notification_enabled?: boolean
-          admin_notification_template_id?: string | null
-          approver_notification_enabled?: boolean
-          communication_log_id?: string | null
-          conditional_notification_rule?: string | null
-          created_at?: string
-          created_by?: string | null
-          do_not_notify_flag?: boolean
-          email_notification_enabled?: boolean
-          escalation_notification_enabled?: boolean
-          form_id: string
-          id?: string
-          in_app_notification_enabled?: boolean
-          localization_notification_template?: string | null
-          notification_attachment_rule?: string | null
-          notification_audit_enabled?: boolean
-          notification_bcc_rule?: string | null
-          notification_body_template?: string | null
-          notification_cc_rule?: string | null
-          notification_delay_minutes?: number | null
-          notification_delivery_status?: string | null
-          notification_failure_count?: number | null
-          notification_from_address?: string | null
-          notification_include_pdf_flag?: boolean
-          notification_include_submission_data_flag?: boolean
-          notification_last_sent_at?: string | null
-          notification_recipient_rule?: string | null
-          notification_reply_to_address?: string | null
-          notification_send_timing?: string | null
-          notification_subject_template?: string | null
-          notification_suppression_rule?: string | null
-          notifications_enabled?: boolean
-          push_notification_enabled?: boolean
-          reference_id: string
-          reminder_enabled?: boolean
-          reminder_frequency?: string | null
-          reminder_maximum_count?: number | null
-          reminder_schedule_rule?: string | null
-          sms_notification_enabled?: boolean
-          submitter_confirmation_enabled?: boolean
-          submitter_confirmation_template_id?: string | null
-          task_notification_enabled?: boolean
-          updated_at?: string
-          updated_by?: string | null
-          webhook_notification_enabled?: boolean
-          workflow_notification_enabled?: boolean
-        }
-        Update: {
-          admin_notification_enabled?: boolean
-          admin_notification_template_id?: string | null
-          approver_notification_enabled?: boolean
-          communication_log_id?: string | null
-          conditional_notification_rule?: string | null
-          created_at?: string
-          created_by?: string | null
-          do_not_notify_flag?: boolean
-          email_notification_enabled?: boolean
-          escalation_notification_enabled?: boolean
-          form_id?: string
-          id?: string
-          in_app_notification_enabled?: boolean
-          localization_notification_template?: string | null
-          notification_attachment_rule?: string | null
-          notification_audit_enabled?: boolean
-          notification_bcc_rule?: string | null
-          notification_body_template?: string | null
-          notification_cc_rule?: string | null
-          notification_delay_minutes?: number | null
-          notification_delivery_status?: string | null
-          notification_failure_count?: number | null
-          notification_from_address?: string | null
-          notification_include_pdf_flag?: boolean
-          notification_include_submission_data_flag?: boolean
-          notification_last_sent_at?: string | null
-          notification_recipient_rule?: string | null
-          notification_reply_to_address?: string | null
-          notification_send_timing?: string | null
-          notification_subject_template?: string | null
-          notification_suppression_rule?: string | null
-          notifications_enabled?: boolean
-          push_notification_enabled?: boolean
-          reference_id?: string
-          reminder_enabled?: boolean
-          reminder_frequency?: string | null
-          reminder_maximum_count?: number | null
-          reminder_schedule_rule?: string | null
-          sms_notification_enabled?: boolean
-          submitter_confirmation_enabled?: boolean
-          submitter_confirmation_template_id?: string | null
-          task_notification_enabled?: boolean
-          updated_at?: string
-          updated_by?: string | null
-          webhook_notification_enabled?: boolean
-          workflow_notification_enabled?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "form_notifications_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "form_notifications_form_id_fkey"
-            columns: ["form_id"]
-            isOneToOne: false
-            referencedRelation: "forms"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "form_notifications_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       form_pages: {
         Row: {
           column_count: number | null
@@ -7811,184 +7764,6 @@ export type Database = {
           },
           {
             foreignKeyName: "form_reporting_config_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      form_security: {
-        Row: {
-          access_level: string | null
-          access_revocation_rule: string | null
-          allowed_company_ids: string | null
-          allowed_countries: string | null
-          allowed_department_ids: string | null
-          allowed_ip_ranges: string | null
-          allowed_role_ids: string | null
-          allowed_user_ids: string | null
-          anti_tamper_hash_enabled: boolean
-          blocked_countries: string | null
-          can_approve_rule: string | null
-          can_delete_rule: string | null
-          can_edit_rule: string | null
-          can_export_rule: string | null
-          can_manage_submissions_rule: string | null
-          can_publish_rule: string | null
-          can_submit_rule: string | null
-          can_view_audit_logs_rule: string | null
-          can_view_rule: string | null
-          can_view_sensitive_data_rule: string | null
-          created_at: string
-          created_by: string | null
-          data_encryption_required: boolean
-          download_restricted: string | null
-          external_sharing_security_rule: string | null
-          field_level_security_enabled: boolean
-          form_access_token: string | null
-          form_id: string
-          form_visibility: string | null
-          geo_restriction_enabled: boolean
-          id: string
-          ip_restriction_enabled: boolean
-          payment_data_masking_rule: string | null
-          permission_inheritance_mode: string | null
-          phi_masking_rule: string | null
-          pii_masking_rule: string | null
-          print_restricted: string | null
-          private_form_flag: boolean
-          reference_id: string
-          restricted_access_flag: boolean
-          security_review_required: boolean
-          security_review_status: string | null
-          sensitive_field_masking_enabled: boolean
-          session_timeout_minutes: number | null
-          ssn_masking_rule: string | null
-          token_expiration_date: string | null
-          updated_at: string
-          updated_by: string | null
-          watermark_required: boolean
-        }
-        Insert: {
-          access_level?: string | null
-          access_revocation_rule?: string | null
-          allowed_company_ids?: string | null
-          allowed_countries?: string | null
-          allowed_department_ids?: string | null
-          allowed_ip_ranges?: string | null
-          allowed_role_ids?: string | null
-          allowed_user_ids?: string | null
-          anti_tamper_hash_enabled?: boolean
-          blocked_countries?: string | null
-          can_approve_rule?: string | null
-          can_delete_rule?: string | null
-          can_edit_rule?: string | null
-          can_export_rule?: string | null
-          can_manage_submissions_rule?: string | null
-          can_publish_rule?: string | null
-          can_submit_rule?: string | null
-          can_view_audit_logs_rule?: string | null
-          can_view_rule?: string | null
-          can_view_sensitive_data_rule?: string | null
-          created_at?: string
-          created_by?: string | null
-          data_encryption_required?: boolean
-          download_restricted?: string | null
-          external_sharing_security_rule?: string | null
-          field_level_security_enabled?: boolean
-          form_access_token?: string | null
-          form_id: string
-          form_visibility?: string | null
-          geo_restriction_enabled?: boolean
-          id?: string
-          ip_restriction_enabled?: boolean
-          payment_data_masking_rule?: string | null
-          permission_inheritance_mode?: string | null
-          phi_masking_rule?: string | null
-          pii_masking_rule?: string | null
-          print_restricted?: string | null
-          private_form_flag?: boolean
-          reference_id: string
-          restricted_access_flag?: boolean
-          security_review_required?: boolean
-          security_review_status?: string | null
-          sensitive_field_masking_enabled?: boolean
-          session_timeout_minutes?: number | null
-          ssn_masking_rule?: string | null
-          token_expiration_date?: string | null
-          updated_at?: string
-          updated_by?: string | null
-          watermark_required?: boolean
-        }
-        Update: {
-          access_level?: string | null
-          access_revocation_rule?: string | null
-          allowed_company_ids?: string | null
-          allowed_countries?: string | null
-          allowed_department_ids?: string | null
-          allowed_ip_ranges?: string | null
-          allowed_role_ids?: string | null
-          allowed_user_ids?: string | null
-          anti_tamper_hash_enabled?: boolean
-          blocked_countries?: string | null
-          can_approve_rule?: string | null
-          can_delete_rule?: string | null
-          can_edit_rule?: string | null
-          can_export_rule?: string | null
-          can_manage_submissions_rule?: string | null
-          can_publish_rule?: string | null
-          can_submit_rule?: string | null
-          can_view_audit_logs_rule?: string | null
-          can_view_rule?: string | null
-          can_view_sensitive_data_rule?: string | null
-          created_at?: string
-          created_by?: string | null
-          data_encryption_required?: boolean
-          download_restricted?: string | null
-          external_sharing_security_rule?: string | null
-          field_level_security_enabled?: boolean
-          form_access_token?: string | null
-          form_id?: string
-          form_visibility?: string | null
-          geo_restriction_enabled?: boolean
-          id?: string
-          ip_restriction_enabled?: boolean
-          payment_data_masking_rule?: string | null
-          permission_inheritance_mode?: string | null
-          phi_masking_rule?: string | null
-          pii_masking_rule?: string | null
-          print_restricted?: string | null
-          private_form_flag?: boolean
-          reference_id?: string
-          restricted_access_flag?: boolean
-          security_review_required?: boolean
-          security_review_status?: string | null
-          sensitive_field_masking_enabled?: boolean
-          session_timeout_minutes?: number | null
-          ssn_masking_rule?: string | null
-          token_expiration_date?: string | null
-          updated_at?: string
-          updated_by?: string | null
-          watermark_required?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "form_security_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "form_security_form_id_fkey"
-            columns: ["form_id"]
-            isOneToOne: false
-            referencedRelation: "forms"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "form_security_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
@@ -8849,171 +8624,190 @@ export type Database = {
           },
         ]
       }
-      form_workflow_links: {
+      form_workflow_action_roles: {
         Row: {
-          activity_generation_enabled: boolean
-          activity_template_id: string | null
-          case_generation_enabled: boolean
-          company_record_update_enabled: boolean
-          created_at: string
-          created_by: string | null
-          document_record_update_enabled: boolean
-          employee_record_update_enabled: boolean
-          form_id: string
+          form_workflow_action_id: string
           id: string
-          reference_id: string
-          subtask_generation_enabled: boolean
-          subtask_template_ids: string | null
-          task_assignee_rule: string | null
-          task_attachment_rule: string | null
-          task_category_rule: string | null
-          task_department_rule: string | null
-          task_description_mapping: string | null
-          task_due_date_rule: string | null
-          task_follow_up_rule: string | null
-          task_generation_enabled: boolean
-          task_priority_rule: string | null
-          task_template_id: string | null
-          task_title_mapping: string | null
-          updated_at: string
-          updated_by: string | null
-          workflow_audit_enabled: boolean
-          workflow_cancellation_action: string | null
-          workflow_completion_action: string | null
-          workflow_data_mapping_json: Json | null
-          workflow_enabled: boolean
-          workflow_error_handling_rule: string | null
-          workflow_escalation_rule: string | null
-          workflow_instance_id: string | null
-          workflow_owner: string | null
-          workflow_queue_id: string | null
-          workflow_retry_count: number | null
-          workflow_retry_interval: string | null
-          workflow_sla_rule: string | null
-          workflow_stage: string | null
-          workflow_start_condition: string | null
-          workflow_status_mapping: string | null
-          workflow_step: string | null
-          workflow_template_id: string | null
-          workflow_trigger_event: string | null
-          workflow_webhook_trigger: string | null
+          role_id: string
         }
         Insert: {
-          activity_generation_enabled?: boolean
-          activity_template_id?: string | null
-          case_generation_enabled?: boolean
-          company_record_update_enabled?: boolean
-          created_at?: string
-          created_by?: string | null
-          document_record_update_enabled?: boolean
-          employee_record_update_enabled?: boolean
-          form_id: string
+          form_workflow_action_id: string
           id?: string
-          reference_id: string
-          subtask_generation_enabled?: boolean
-          subtask_template_ids?: string | null
-          task_assignee_rule?: string | null
-          task_attachment_rule?: string | null
-          task_category_rule?: string | null
-          task_department_rule?: string | null
-          task_description_mapping?: string | null
-          task_due_date_rule?: string | null
-          task_follow_up_rule?: string | null
-          task_generation_enabled?: boolean
-          task_priority_rule?: string | null
-          task_template_id?: string | null
-          task_title_mapping?: string | null
-          updated_at?: string
-          updated_by?: string | null
-          workflow_audit_enabled?: boolean
-          workflow_cancellation_action?: string | null
-          workflow_completion_action?: string | null
-          workflow_data_mapping_json?: Json | null
-          workflow_enabled?: boolean
-          workflow_error_handling_rule?: string | null
-          workflow_escalation_rule?: string | null
-          workflow_instance_id?: string | null
-          workflow_owner?: string | null
-          workflow_queue_id?: string | null
-          workflow_retry_count?: number | null
-          workflow_retry_interval?: string | null
-          workflow_sla_rule?: string | null
-          workflow_stage?: string | null
-          workflow_start_condition?: string | null
-          workflow_status_mapping?: string | null
-          workflow_step?: string | null
-          workflow_template_id?: string | null
-          workflow_trigger_event?: string | null
-          workflow_webhook_trigger?: string | null
+          role_id: string
         }
         Update: {
-          activity_generation_enabled?: boolean
-          activity_template_id?: string | null
-          case_generation_enabled?: boolean
-          company_record_update_enabled?: boolean
-          created_at?: string
-          created_by?: string | null
-          document_record_update_enabled?: boolean
-          employee_record_update_enabled?: boolean
-          form_id?: string
+          form_workflow_action_id?: string
           id?: string
-          reference_id?: string
-          subtask_generation_enabled?: boolean
-          subtask_template_ids?: string | null
-          task_assignee_rule?: string | null
-          task_attachment_rule?: string | null
-          task_category_rule?: string | null
-          task_department_rule?: string | null
-          task_description_mapping?: string | null
-          task_due_date_rule?: string | null
-          task_follow_up_rule?: string | null
-          task_generation_enabled?: boolean
-          task_priority_rule?: string | null
-          task_template_id?: string | null
-          task_title_mapping?: string | null
-          updated_at?: string
-          updated_by?: string | null
-          workflow_audit_enabled?: boolean
-          workflow_cancellation_action?: string | null
-          workflow_completion_action?: string | null
-          workflow_data_mapping_json?: Json | null
-          workflow_enabled?: boolean
-          workflow_error_handling_rule?: string | null
-          workflow_escalation_rule?: string | null
-          workflow_instance_id?: string | null
-          workflow_owner?: string | null
-          workflow_queue_id?: string | null
-          workflow_retry_count?: number | null
-          workflow_retry_interval?: string | null
-          workflow_sla_rule?: string | null
-          workflow_stage?: string | null
-          workflow_start_condition?: string | null
-          workflow_status_mapping?: string | null
-          workflow_step?: string | null
-          workflow_template_id?: string | null
-          workflow_trigger_event?: string | null
-          workflow_webhook_trigger?: string | null
+          role_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "form_workflow_links_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "form_workflow_action_roles_form_workflow_action_id_fkey"
+            columns: ["form_workflow_action_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "form_workflow_actions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "form_workflow_links_form_id_fkey"
+            foreignKeyName: "form_workflow_action_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_workflow_actions: {
+        Row: {
+          action_key: string | null
+          company_id: string
+          condition: string | null
+          create_task: boolean
+          created_at: string
+          display_order: number
+          form_id: string
+          from_status_id: string | null
+          id: string
+          name: string | null
+          reference_id: string
+          send_email: boolean
+          to_status_id: string | null
+          trigger_event: string
+          updated_at: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          action_key?: string | null
+          company_id: string
+          condition?: string | null
+          create_task?: boolean
+          created_at?: string
+          display_order?: number
+          form_id: string
+          from_status_id?: string | null
+          id?: string
+          name?: string | null
+          reference_id: string
+          send_email?: boolean
+          to_status_id?: string | null
+          trigger_event: string
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          action_key?: string | null
+          company_id?: string
+          condition?: string | null
+          create_task?: boolean
+          created_at?: string
+          display_order?: number
+          form_id?: string
+          from_status_id?: string | null
+          id?: string
+          name?: string | null
+          reference_id?: string
+          send_email?: boolean
+          to_status_id?: string | null
+          trigger_event?: string
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_workflow_actions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_workflow_actions_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_workflow_webhook_deliveries: {
+        Row: {
+          attempts: number
+          company_id: string
+          created_at: string
+          error_text: string | null
+          form_id: string
+          form_workflow_action_id: string
+          id: string
+          payload: Json
+          provider_ref: string | null
+          result: Json | null
+          sent_at: string | null
+          status: string
+          submission_id: string
+          target_url: string
+          updated_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          company_id: string
+          created_at?: string
+          error_text?: string | null
+          form_id: string
+          form_workflow_action_id: string
+          id?: string
+          payload: Json
+          provider_ref?: string | null
+          result?: Json | null
+          sent_at?: string | null
+          status?: string
+          submission_id: string
+          target_url: string
+          updated_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          company_id?: string
+          created_at?: string
+          error_text?: string | null
+          form_id?: string
+          form_workflow_action_id?: string
+          id?: string
+          payload?: Json
+          provider_ref?: string | null
+          result?: Json | null
+          sent_at?: string | null
+          status?: string
+          submission_id?: string
+          target_url?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_workflow_webhook_deliveries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_workflow_webhook_deliveries_form_id_fkey"
             columns: ["form_id"]
             isOneToOne: false
             referencedRelation: "forms"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "form_workflow_links_updated_by_fkey"
-            columns: ["updated_by"]
+            foreignKeyName: "form_workflow_webhook_deliveries_form_workflow_action_id_fkey"
+            columns: ["form_workflow_action_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "form_workflow_actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_workflow_webhook_deliveries_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "form_submissions"
             referencedColumns: ["id"]
           },
         ]
@@ -20700,6 +20494,7 @@ export type Database = {
       mhd_assemble_form_fields: { Args: { p_form_id: string }; Returns: Json }
       mhd_assemble_form_logic: { Args: { p_form_id: string }; Returns: Json }
       mhd_assemble_form_pages: { Args: { p_form_id: string }; Returns: Json }
+      mhd_assemble_form_workflow: { Args: { p_form_id: string }; Returns: Json }
       mhd_assert_accommodation_mutate: {
         Args: { p_case_id: string }
         Returns: undefined
@@ -21229,6 +21024,14 @@ export type Database = {
         Args: { p_case_id: string }
         Returns: boolean
       }
+      mhd_can_view_correspondence_message: {
+        Args: { p_message_id: string }
+        Returns: boolean
+      }
+      mhd_can_view_correspondence_thread: {
+        Args: { p_thread_id: string }
+        Returns: boolean
+      }
       mhd_can_view_form_submission: {
         Args: { p_submission_id: string }
         Returns: boolean
@@ -21525,6 +21328,35 @@ export type Database = {
         Args: { p_code: string }
         Returns: undefined
       }
+      mhd_correspondence_notify_inbound: {
+        Args: {
+          p_action_url?: string
+          p_actor_user_id?: string
+          p_body: string
+          p_company_id: string
+          p_entity_id: string
+          p_entity_type: string
+          p_recipient_user_ids: string[]
+          p_title: string
+        }
+        Returns: number
+      }
+      mhd_correspondence_recipients_platform_admins: {
+        Args: never
+        Returns: string[]
+      }
+      mhd_correspondence_recipients_role_at_company: {
+        Args: { p_company_id: string; p_role: string }
+        Returns: string[]
+      }
+      mhd_correspondence_renew_gmail_watches: { Args: never; Returns: number }
+      mhd_correspondence_target_defaults: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: {
+          sensitivity_level: string
+          subject_person_id: string
+        }[]
+      }
       mhd_count_unused_recovery_codes: { Args: never; Returns: number }
       mhd_create_activity: {
         Args: {
@@ -21668,6 +21500,63 @@ export type Database = {
           updated_at: string
           updated_by: string
         }[]
+      }
+      mhd_create_correspondence_mailbox_alias: {
+        Args: {
+          p_alias_address: string
+          p_company_id: string
+          p_is_primary?: boolean
+          p_mailbox_id: string
+        }
+        Returns: {
+          alias_address: string
+          company_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          mailbox_id: string
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "correspondence_mailbox_aliases"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mhd_create_correspondence_thread: {
+        Args: {
+          p_company_id: string
+          p_entity_id?: string
+          p_entity_type?: string
+          p_mailbox_id?: string
+          p_subject?: string
+        }
+        Returns: {
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_archived: boolean
+          last_message_at: string | null
+          linked_at: string | null
+          linked_by: string | null
+          mailbox_id: string
+          origin: string
+          reference_id: string
+          sensitivity_level: string
+          subject: string | null
+          subject_person_id: string | null
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "correspondence_threads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       mhd_create_document_template: {
         Args: {
@@ -22055,6 +21944,8 @@ export type Database = {
         Args: { p_actor_user_id?: string; p_task_id: string }
         Returns: undefined
       }
+      mhd_dispatch_form_workflow_webhooks: { Args: never; Returns: number }
+      mhd_dispatch_notification_emails: { Args: never; Returns: number }
       mhd_edit_message: {
         Args: { p_body: string; p_message_id: string }
         Returns: undefined
@@ -22102,6 +21993,10 @@ export type Database = {
           p_reason?: string
         }
         Returns: undefined
+      }
+      mhd_form_workflow_action_recipient_user_ids: {
+        Args: { p_action_id: string; p_company_id: string }
+        Returns: string[]
       }
       mhd_generate_mfa_recovery_codes: { Args: never; Returns: string[] }
       mhd_get_active_notice_packet_version: {
@@ -22263,6 +22158,34 @@ export type Database = {
       mhd_get_corrective_action_template_id: {
         Args: { p_severity: string }
         Returns: string
+      }
+      mhd_get_correspondence_thread: {
+        Args: { p_thread_id: string }
+        Returns: {
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_archived: boolean
+          last_message_at: string | null
+          linked_at: string | null
+          linked_by: string | null
+          mailbox_id: string
+          origin: string
+          reference_id: string
+          sensitivity_level: string
+          subject: string | null
+          subject_person_id: string | null
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "correspondence_threads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       mhd_get_default_task_priority_id: { Args: never; Returns: string }
       mhd_get_default_task_status_id: { Args: never; Returns: string }
@@ -23058,6 +22981,7 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: boolean
       }
+      mhd_is_hr_administrator: { Args: never; Returns: boolean }
       mhd_is_medical_administrator: { Args: never; Returns: boolean }
       mhd_is_platform_admin: { Args: never; Returns: boolean }
       mhd_is_real_platform_admin: { Args: never; Returns: boolean }
@@ -23508,6 +23432,38 @@ export type Database = {
       mhd_leave_workflow_get: { Args: { p_case_id: string }; Returns: Json }
       mhd_leaves_can_see_medical: { Args: never; Returns: boolean }
       mhd_leaves_is_privileged: { Args: never; Returns: boolean }
+      mhd_link_correspondence_thread: {
+        Args: {
+          p_entity_id: string
+          p_entity_type: string
+          p_thread_id: string
+        }
+        Returns: {
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_archived: boolean
+          last_message_at: string | null
+          linked_at: string | null
+          linked_by: string | null
+          mailbox_id: string
+          origin: string
+          reference_id: string
+          sensitivity_level: string
+          subject: string | null
+          subject_person_id: string | null
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "correspondence_threads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       mhd_link_form_submission_to_entity: {
         Args: {
           p_entity_id: string
@@ -23834,6 +23790,94 @@ export type Database = {
           updated_at: string
           updated_by: string
         }[]
+      }
+      mhd_list_correspondence_mailbox_aliases: {
+        Args: { p_company_id?: string }
+        Returns: {
+          alias_address: string
+          company_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          mailbox_id: string
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "correspondence_mailbox_aliases"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mhd_list_correspondence_messages: {
+        Args: { p_limit?: number; p_offset?: number; p_thread_id: string }
+        Returns: {
+          body_html: string | null
+          body_text: string | null
+          cc_emails: string[]
+          company_id: string | null
+          created_at: string
+          direction: string
+          external_in_reply_to: string | null
+          external_message_id: string | null
+          external_references: string[] | null
+          failure_reason: string | null
+          id: string
+          is_system: boolean
+          provider_message_id: string | null
+          received_at: string | null
+          recipient_emails: string[]
+          reference_id: string
+          reply_token: string | null
+          sender_display_name: string | null
+          sender_email: string
+          sender_user_id: string | null
+          sent_at: string | null
+          status: string
+          subject: string | null
+          thread_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "correspondence_messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mhd_list_correspondence_threads: {
+        Args: {
+          p_company_id: string
+          p_entity_id?: string
+          p_entity_type?: string
+          p_include_general?: boolean
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: {
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_archived: boolean
+          last_message_at: string | null
+          linked_at: string | null
+          linked_by: string | null
+          mailbox_id: string
+          origin: string
+          reference_id: string
+          sensitivity_level: string
+          subject: string | null
+          subject_person_id: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "correspondence_threads"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       mhd_list_direct_reports: {
         Args: { p_person_id: string }
@@ -24343,6 +24387,22 @@ export type Database = {
           status: string
           unit_cost: number
         }[]
+      }
+      mhd_list_roles: {
+        Args: { p_company_id?: string }
+        Returns: {
+          company_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          role_name: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "roles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       mhd_list_signature_requests_for_company: {
         Args: { p_company_id: string }
@@ -25090,6 +25150,62 @@ export type Database = {
           signer_id: string
         }[]
       }
+      mhd_record_correspondence_message: {
+        Args: {
+          p_body_html?: string
+          p_body_text?: string
+          p_cc_emails?: string[]
+          p_direction: string
+          p_external_in_reply_to?: string
+          p_external_message_id?: string
+          p_external_references?: string[]
+          p_failure_reason?: string
+          p_is_system?: boolean
+          p_provider_message_id?: string
+          p_received_at?: string
+          p_recipient_emails?: string[]
+          p_reply_token?: string
+          p_sender_display_name?: string
+          p_sender_email?: string
+          p_sender_user_id?: string
+          p_sent_at?: string
+          p_status?: string
+          p_subject?: string
+          p_thread_id: string
+        }
+        Returns: {
+          body_html: string | null
+          body_text: string | null
+          cc_emails: string[]
+          company_id: string | null
+          created_at: string
+          direction: string
+          external_in_reply_to: string | null
+          external_message_id: string | null
+          external_references: string[] | null
+          failure_reason: string | null
+          id: string
+          is_system: boolean
+          provider_message_id: string | null
+          received_at: string | null
+          recipient_emails: string[]
+          reference_id: string
+          reply_token: string | null
+          sender_display_name: string | null
+          sender_email: string
+          sender_user_id: string | null
+          sent_at: string | null
+          status: string
+          subject: string | null
+          thread_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "correspondence_messages"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       mhd_record_esign_consent: {
         Args: {
           p_company_id: string
@@ -25586,6 +25702,10 @@ export type Database = {
       }
       mhd_resolve_attachment_company_id: {
         Args: { p_entity_id: string; p_entity_type: string }
+        Returns: string
+      }
+      mhd_resolve_correspondence_company_by_alias: {
+        Args: { p_alias_address: string }
         Returns: string
       }
       mhd_resolve_entity_company_id: {

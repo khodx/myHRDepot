@@ -25,6 +25,14 @@ vi.mock('@/features/documents/Service', () => ({
   },
 }));
 
+vi.mock('@/features/roles/Hook', () => ({
+  useMhdRoles: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+  }),
+}));
+
 describe('MhdFormBuilder', () => {
   beforeEach(() => {
     mockCreateForm.mockReset();

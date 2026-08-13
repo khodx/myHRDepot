@@ -1,3 +1,4 @@
+import { MhdRolePicker } from '@/components/ui/MhdRolePicker';
 import type {
   MhdFormWorkflowAction,
   MhdFormWorkflowDefinition,
@@ -7,6 +8,7 @@ import type {
 } from '../Types';
 
 interface MhdFormWorkflowEditorProps {
+  companyId: string;
   workflow: MhdFormWorkflowDefinition;
   onChange: (workflow: MhdFormWorkflowDefinition) => void;
 }
@@ -25,7 +27,11 @@ function nextId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.round(Math.random() * 9999)}`;
 }
 
-export function MhdFormWorkflowEditor({ workflow, onChange }: MhdFormWorkflowEditorProps) {
+export function MhdFormWorkflowEditor({
+  companyId,
+  workflow,
+  onChange,
+}: MhdFormWorkflowEditorProps) {
   const updateStatus = (statusId: string, patch: Partial<MhdFormWorkflowStatus>) => {
     onChange({
       ...workflow,
@@ -293,6 +299,16 @@ export function MhdFormWorkflowEditor({ workflow, onChange }: MhdFormWorkflowEdi
                 placeholder="Webhook URL"
                 className="rounded-md border border-border px-3 py-2 text-sm md:col-span-2"
               />
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm font-medium text-foreground">
+                  Allowed Roles
+                </label>
+                <MhdRolePicker
+                  companyId={companyId}
+                  value={action.allowedRoleIds}
+                  onChange={(allowedRoleIds) => updateAction(action.id, { allowedRoleIds })}
+                />
+              </div>
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"

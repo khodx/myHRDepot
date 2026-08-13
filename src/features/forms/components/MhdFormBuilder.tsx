@@ -118,17 +118,14 @@ function createDefaultWorkflow(): MhdFormWorkflowDefinition {
       { id: 'status-submitted', name: 'Submitted', color: 'amber' },
       { id: 'status-complete', name: 'Complete', color: 'emerald', isTerminal: true },
     ],
-    roles: [
-      { id: 'role-submitter', name: 'Submitter', type: 'PUBLIC' },
-      { id: 'role-reviewer', name: 'Reviewer', type: 'INTERNAL' },
-    ],
+    roles: [],
     actions: [
       {
         id: 'action-submit',
         name: 'Submit',
         fromStatusId: 'status-open',
         toStatusId: 'status-submitted',
-        allowedRoleIds: ['role-submitter'],
+        allowedRoleIds: [],
         triggerEvent: 'SUBMIT',
         sendEmail: true,
         createTask: true,
@@ -138,7 +135,7 @@ function createDefaultWorkflow(): MhdFormWorkflowDefinition {
         name: 'Complete Review',
         fromStatusId: 'status-submitted',
         toStatusId: 'status-complete',
-        allowedRoleIds: ['role-reviewer'],
+        allowedRoleIds: [],
         triggerEvent: 'STATUS_CHANGE',
         sendEmail: true,
       },
@@ -147,7 +144,6 @@ function createDefaultWorkflow(): MhdFormWorkflowDefinition {
       {
         id: 'task-review',
         name: 'Review Submission',
-        roleId: 'role-reviewer',
         statusId: 'status-submitted',
         dueInDays: 2,
         reminderEnabled: true,
@@ -761,6 +757,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
       {activeTab === 'workflow' ? (
         <div className="p-4">
           <MhdFormWorkflowEditor
+            companyId={companyId}
             workflow={workflow ?? createDefaultWorkflow()}
             onChange={setWorkflow}
           />
