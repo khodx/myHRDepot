@@ -458,9 +458,22 @@ body {
   --mhd-module-tone-14: #035a88; /* sky */
   --mhd-module-tone-15: #ea580c; /* orange — exempted from the darken pass */
   --mhd-module-tone-16: #ab125f; /* pink — reserved for the Users row */
+
+  /* Even-row background — deliberately its own token rather than --color-muted
+     directly: --color-muted is shared by many unrelated bg-muted consumers
+     app-wide, and this needs to sit ~10% darker than that shared value
+     specifically for this grid, without moving muted surfaces everywhere
+     else. Same relative-lightness darken formula as the tone palette above. */
+  --mhd-module-row-grey: #cfddeb;
 }
 
 .dark {
+  /* Left equal to --color-muted rather than darkened: in dark mode muted is
+     already lighter than the card surface (the opposite relationship it has
+     in light mode), so darkening it here would reduce contrast instead of
+     adding it. */
+  --mhd-module-row-grey: var(--color-muted);
+
   --mhd-module-tone-1: #60a5fa;
   --mhd-module-tone-2: #f87171;
   --mhd-module-tone-3: #4ade80;

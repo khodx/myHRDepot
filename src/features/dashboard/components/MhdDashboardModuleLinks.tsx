@@ -91,7 +91,7 @@ export function MhdDashboardModuleLinks() {
 
   return (
     <MhdCard>
-      <MhdCardHeader title={<span className="text-xl font-bold">Modules</span>} />
+      <MhdCardHeader title={<span className="text-[23px] font-bold">Modules</span>} />
       <div className="relative mb-4">
         <Search
           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -143,7 +143,7 @@ export function MhdDashboardModuleLinks() {
                 aria-label={item.label}
                 aria-describedby={descriptionId}
                 className={`mhd-module-card flex flex-col gap-2.5 rounded-lg border border-border p-4 text-foreground ${
-                  isGreyRow ? 'bg-muted' : 'bg-card'
+                  isGreyRow ? 'bg-[var(--mhd-module-row-grey)]' : 'bg-card'
                 }`}
                 style={{ '--tone': `var(--mhd-module-tone-${toneIndex})` } as CSSProperties}
               >
@@ -151,14 +151,14 @@ export function MhdDashboardModuleLinks() {
                   <span className="mhd-module-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]">
                     <Icon className="h-[21px] w-[21px]" aria-hidden />
                   </span>
-                  <span className="truncate text-[16.5px] font-bold">{item.label}</span>
+                  <span className="truncate text-[18.15px] font-bold">{item.label}</span>
                   {item.status === 'comingSoon' ? (
                     <span className="ml-auto shrink-0 rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
                       Coming Soon
                     </span>
                   ) : null}
                 </div>
-                <p id={descriptionId} className="text-[12.5px] leading-snug text-muted-foreground">
+                <p id={descriptionId} className="text-[13.75px] leading-snug text-muted-foreground">
                   {item.description}
                 </p>
               </NavLink>
