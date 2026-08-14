@@ -49,7 +49,7 @@ export function MhdAvatarCircle({ name, photoUrl, size = 'md', className }: MhdA
         src={photoUrl}
         alt={name}
         className={cn(
-          'shrink-0 rounded-full bg-accent-tint object-cover',
+          'shrink-0 rounded-md bg-accent-tint object-cover',
           mhdAvatarSizeClasses[size],
           className,
         )}
