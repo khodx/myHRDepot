@@ -25,6 +25,10 @@ type MhdPersonDirectoryRow = {
   last_name: string;
   preferred_name: string | null;
   display_name: string;
+  // Only mhd_get_person_by_id returns this today — mhd_list_people_directory
+  // does not (see 0156_person_photos.sql design note 6: one signed URL per
+  // list row is a separate batch-signing problem, deliberately deferred).
+  photo_path?: string | null;
   primary_email: string | null;
   primary_phone: string | null;
   primary_mobile: string | null;
@@ -105,6 +109,7 @@ function mapPersonRow(row: MhdPersonDirectoryRow | MhdPersonMutationRow): MhdPer
     lastName: row.last_name,
     preferredName: row.preferred_name,
     displayName: row.display_name,
+    photoPath: 'photo_path' in row ? (row.photo_path ?? null) : null,
     primaryEmail: row.primary_email,
     primaryPhone: row.primary_phone,
     primaryMobile: row.primary_mobile,
@@ -386,5 +391,83 @@ export const mhdPersonService = {
 
     const row = data?.[0];
     return row ? mapPersonEmploymentStateRow(row) : null;
+  },
+
+  /** Uploads to the private person-photos bucket, then links it via
+   *  mhd_set_person_photo (the sole write path — see 0156_person_photos.sql).
+   *  Deletes `previousPhotoPath`'s object afterward so replacing a photo
+   *  doesn't leave the old one orphaned in storage. */
+  async uploadPersonPhoto({
+    personId,
+    companyId,
+    file,
+    previousPhotoPath,
+  }: {
+    personId: string;
+    companyId: string;
+    file: File;
+    previousPhotoPath?: string | null;
+  }): Promise<string> {
+    const extension = file.name.includes('.') ? file.name.split('.').pop()!.toLowerCase() : 'jpg';
+    const path = `${companyId}/${personId}/${crypto.randomUUID()}.${extension}`;
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from('person-photos')
+      .upload(path, file, { contentType: file.type, upsert: false });
+
+    if (uploadError) {
+      throw new Error(`Unable to upload photo: ${uploadError.message}`);
+    }
+
+    const { data, error } = await supabaseClient
+      .rpc('mhd_set_person_photo', { p_person_id: personId, p_photo_path: path })
+      .returns<{ id: string; photo_path: string | null; updated_at: string; updated_by: string }[]>();
+
+    if (error) {
+      // The upload succeeded but linking it failed — remove the now-orphaned
+      // object rather than leaving a dangling file nothing points to.
+      await supabaseClient.storage.from('person-photos').remove([path]);
+      throw new Error(`Unable to save photo: ${error.message}`);
+    }
+
+    const newPath = data?.[0]?.photo_path ?? path;
+    if (previousPhotoPath && previousPhotoPath !== newPath) {
+      await supabaseClient.storage.from('person-photos').remove([previousPhotoPath]);
+    }
+
+    return newPath;
+  },
+
+  async removePersonPhoto(personId: string, currentPhotoPath: string | null): Promise<void> {
+    const { error } = await supabaseClient
+      // mhd_set_person_photo's p_photo_path has no SQL default, so gen:types
+      // omits null even though the RPC treats it as "clear the photo" — same
+      // gap as p_manager_id elsewhere in this Service.
+      .rpc('mhd_set_person_photo', { p_person_id: personId, p_photo_path: null } as never)
+      .returns<{ id: string; photo_path: string | null; updated_at: string; updated_by: string }[]>();
+
+    if (error) {
+      throw new Error(`Unable to remove photo: ${error.message}`);
+    }
+
+    if (currentPhotoPath) {
+      await supabaseClient.storage.from('person-photos').remove([currentPhotoPath]);
+    }
+  },
+
+  /** Signs a person-photos object path into a viewable URL. The bucket is
+   *  private, so this is the only way to render one (see 0156_person_photos.sql).
+   *  Returns null on any failure (deleted object, expired access, etc.) —
+   *  callers should fall back to initials, the same as a null photoPath. */
+  async getPersonPhotoSignedUrl(photoPath: string): Promise<string | null> {
+    const { data, error } = await supabaseClient.storage
+      .from('person-photos')
+      .createSignedUrl(photoPath, 3600);
+
+    if (error) {
+      return null;
+    }
+
+    return data?.signedUrl ?? null;
   },
 };

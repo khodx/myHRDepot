@@ -11,6 +11,7 @@ export const mhdPeopleQueryKeys = {
   orgChart: (companyId: string | null) => ['mhd-people', 'org-chart', companyId ?? 'ALL'] as const,
   currentEmploymentState: (personId: string | null) =>
     ['mhd-people', 'current-employment-state', personId ?? 'none'] as const,
+  photoUrl: (photoPath: string | null) => ['mhd-people', 'photo-url', photoPath ?? 'none'] as const,
 };
 
 /**
@@ -50,6 +51,26 @@ export function useMhdPersonCurrentEmploymentState(personId: string | null) {
     queryFn: () => mhdPersonService.getCurrentEmploymentState(personId!),
     enabled: Boolean(personId),
     staleTime: 60_000,
+  });
+}
+
+/**
+ * Resolves a people.photo_path into a viewable (signed) URL. The
+ * person-photos bucket is private, so every consumer that wants to render a
+ * photo — the dashboard greeting, the topbar identity bubble, the person
+ * detail page — goes through this one shared hook rather than each calling
+ * mhdPersonService.getPersonPhotoSignedUrl itself (see CLAUDE.md's "engines,
+ * not per-feature copies" standard). Signed URLs are requested for 1 hour;
+ * staleTime is kept comfortably under that so a stale-but-cached URL is never
+ * served past its own expiry.
+ */
+export function useMhdPersonPhotoUrl(photoPath: string | null | undefined) {
+  const normalizedPath = photoPath ?? null;
+  return useQuery({
+    queryKey: mhdPeopleQueryKeys.photoUrl(normalizedPath),
+    queryFn: () => mhdPersonService.getPersonPhotoSignedUrl(normalizedPath!),
+    enabled: Boolean(normalizedPath),
+    staleTime: 45 * 60_000,
   });
 }
 

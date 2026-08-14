@@ -52,6 +52,7 @@ function person(overrides: Partial<MhdPerson>): MhdPerson {
     lastName: 'Smith',
     preferredName: null,
     displayName: 'Jordan Smith',
+    photoPath: null,
     primaryEmail: null,
     primaryPhone: null,
     primaryMobile: null,

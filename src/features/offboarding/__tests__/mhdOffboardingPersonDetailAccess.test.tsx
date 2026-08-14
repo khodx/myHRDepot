@@ -94,6 +94,7 @@ vi.mock('@/features/jobs/components/MhdJobAssignmentPanel', () => ({
 // an array) — unrelated to the Offboarding assertions here.
 vi.mock('@/features/people/Hook', () => ({
   useMhdDirectReports: () => ({ data: [], isLoading: false, error: null }),
+  useMhdPersonPhotoUrl: () => ({ data: null, isLoading: false, error: null }),
 }));
 
 const { MhdPersonDetailPage } = await import('@/appshell/components/MhdPersonDetailPage');

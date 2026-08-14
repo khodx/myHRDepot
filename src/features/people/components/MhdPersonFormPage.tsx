@@ -1,16 +1,18 @@
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { MhdPersonForm } from '@/features/people/components/MhdPersonForm';
+import { MhdPersonPhotoUploader } from '@/features/people/components/MhdPersonPhotoUploader';
 import { mhdPersonService } from '@/features/people/Service';
 
 export function MhdPersonFormPage() {
   const { personId } = useParams<{ personId?: string }>();
   const navigate = useNavigate();
-  const { profile } = useMhdAuth();
+  const queryClient = useQueryClient();
+  const { profile, refreshProfile } = useMhdAuth();
   const actorUserId = profile?.userId ?? '';
   const canEditCompany = profile?.companyIsPlatformOrg ?? false;
   const currentUserCompanyId = profile?.companyId ?? '';
@@ -48,21 +50,39 @@ export function MhdPersonFormPage() {
               : 'Unable to load person form.'}
         </p>
       ) : (
-        <MhdPersonForm
-          companies={companies}
-          person={personQuery.data ?? null}
-          canEditCompany={canEditCompany}
-          currentUserCompanyId={currentUserCompanyId}
-          onCreate={async (input) => {
-            const person = await mhdPersonService.createPerson(input, { actorUserId });
-            navigate(`/people/${person.id}`);
-          }}
-          onUpdate={async (input) => {
-            const person = await mhdPersonService.updatePerson(input, { actorUserId });
-            navigate(`/people/${person.id}`);
-          }}
-          onCancel={() => navigate(isEdit && personId ? `/people/${personId}` : '/people')}
-        />
+        <>
+          {isEdit && personQuery.data && (
+            <MhdPersonPhotoUploader
+              person={personQuery.data}
+              onPhotoChanged={async () => {
+                await queryClient.invalidateQueries({ queryKey: ['mhd-person-form', personId] });
+                await queryClient.invalidateQueries({ queryKey: ['mhd-person', personId] });
+                // Photo shows in the topbar/dashboard greeting sourced from the
+                // signed-in profile, not from this person query — refresh it
+                // too when editing one's own record so those update without
+                // a manual reload.
+                if (profile?.personId === personId) {
+                  await refreshProfile();
+                }
+              }}
+            />
+          )}
+          <MhdPersonForm
+            companies={companies}
+            person={personQuery.data ?? null}
+            canEditCompany={canEditCompany}
+            currentUserCompanyId={currentUserCompanyId}
+            onCreate={async (input) => {
+              const person = await mhdPersonService.createPerson(input, { actorUserId });
+              navigate(`/people/${person.id}`);
+            }}
+            onUpdate={async (input) => {
+              const person = await mhdPersonService.updatePerson(input, { actorUserId });
+              navigate(`/people/${person.id}`);
+            }}
+            onCancel={() => navigate(isEdit && personId ? `/people/${personId}` : '/people')}
+          />
+        </>
       )}
     </div>
   );

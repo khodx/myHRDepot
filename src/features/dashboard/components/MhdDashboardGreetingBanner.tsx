@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { MhdAvatarCircle } from '@/components/ui/MhdAvatar';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { useMhdPersonCurrentEmploymentState } from '@/features/people/Hook';
+import { useMhdPersonCurrentEmploymentState, useMhdPersonPhotoUrl } from '@/features/people/Hook';
 
 /**
  * Time-of-day greeting driven by the signed-in user's own machine clock
@@ -149,6 +150,7 @@ interface MhdDashboardGreetingBannerProps {
 export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDashboardGreetingBannerProps) {
   const { profile } = useMhdAuth();
   const employmentStateQuery = useMhdPersonCurrentEmploymentState(profile?.personId ?? null);
+  const photoUrlQuery = useMhdPersonPhotoUrl(profile?.photoPath);
 
   // Ticks every second so the digital clock stays live; the date and tenure
   // readouts derive from the same clock rather than each keeping their own.
@@ -175,10 +177,18 @@ export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDash
 
   return (
     <div className="mhd-greeting-banner flex flex-wrap items-start justify-between gap-6 rounded-lg border border-rail-border bg-rail px-6 py-5 text-rail-text">
-      <h1 className="text-[28px] font-bold leading-tight text-white">
-        {greeting}
-        {name ? `, ${name} 😊` : ''}!
-      </h1>
+      <div className="flex items-center gap-4">
+        <MhdAvatarCircle
+          name={profile?.displayName ?? name ?? 'User'}
+          photoUrl={photoUrlQuery.data}
+          size="lg"
+          className="bg-white/10 text-white"
+        />
+        <h1 className="text-[28px] font-bold leading-tight text-white">
+          {greeting}
+          {name ? `, ${name} 😊` : ''}!
+        </h1>
+      </div>
 
       <div className="flex flex-col items-end gap-1.5 text-right">
         <button

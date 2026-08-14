@@ -17317,6 +17317,7 @@ export type Database = {
           last_name: string
           manager_id: string | null
           middle_name: string | null
+          photo_path: string | null
           preferred_name: string | null
           reference_id: string
           updated_at: string | null
@@ -17332,6 +17333,7 @@ export type Database = {
           last_name: string
           manager_id?: string | null
           middle_name?: string | null
+          photo_path?: string | null
           preferred_name?: string | null
           reference_id: string
           updated_at?: string | null
@@ -17347,6 +17349,7 @@ export type Database = {
           last_name?: string
           manager_id?: string | null
           middle_name?: string | null
+          photo_path?: string | null
           preferred_name?: string | null
           reference_id?: string
           updated_at?: string | null
@@ -22394,6 +22397,7 @@ export type Database = {
           manager_display_name: string
           manager_id: string
           middle_name: string
+          photo_path: string
           preferred_name: string
           primary_email: string
           primary_mobile: string
@@ -26020,6 +26024,19 @@ export type Database = {
       mhd_send_signature_reminder: {
         Args: { p_actor_user_id?: string; p_signer_id: string }
         Returns: undefined
+      }
+      mhd_set_person_photo: {
+        Args: {
+          p_actor_user_id?: string
+          p_person_id: string
+          p_photo_path: string
+        }
+        Returns: {
+          id: string
+          photo_path: string
+          updated_at: string
+          updated_by: string
+        }[]
       }
       mhd_sign_via_token: {
         Args: {

@@ -28,6 +28,10 @@ export interface MhdCurrentUserProfile {
    *  legal firstName. Null when the person hasn't set one (display name and
    *  greetings should fall back to firstName in that case). */
   preferredName: string | null;
+  /** people.photo_path — an object path (not a URL) in the private
+   *  person-photos Storage bucket, or null. Resolve with
+   *  useMhdPersonPhotoUrl (people feature's Hook.ts), never render directly. */
+  photoPath: string | null;
   /** From the mhd_current_user_roles() RPC. Does not include an implicit
    *  "Platform Admin" role for every is_admin=true user beyond what that
    *  function itself returns — see Database.sql for the exact semantics.

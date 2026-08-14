@@ -46,6 +46,9 @@ export interface MhdPerson {
   lastName: string;
   preferredName: string | null;
   displayName: string;
+  /** Object path (not a resolved URL) in the person-photos Storage bucket, or null. Resolve to
+   *  a viewable URL with useMhdPersonPhotoUrl (Hook.ts) — never render this value directly. */
+  photoPath: string | null;
   primaryEmail: string | null;
   primaryPhone: string | null;
   primaryMobile: string | null;

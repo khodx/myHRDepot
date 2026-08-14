@@ -139,7 +139,11 @@ describe('App foundation', () => {
     // (see MhdDashboardGreetingBanner) — assert on its "Good <time>, Admin!"
     // heading instead of a literal "Dashboard" title.
     expect(
-      await screen.findByRole('heading', { name: /^good (morning|afternoon|evening), admin!$/i }, { timeout: 5000 }),
+      await screen.findByRole(
+        'heading',
+        { name: /^good (morning|afternoon|evening), admin.*!$/i },
+        { timeout: 5000 },
+      ),
     ).toBeInTheDocument();
     expect(screen.getByText('Admin User')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/dashboard');

@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Mail, Phone, Smartphone, Building2, UserRound } from 'lucide-react';
 import { MhdBreadcrumb } from './MhdBreadcrumb';
 import { mhdPersonService } from '@/features/people/Service';
+import { useMhdPersonPhotoUrl } from '@/features/people/Hook';
 import { useMhdActivities } from '@/features/activities/Hook';
 import { MhdActivityList } from '@/features/activities/components/MhdActivityList';
 import { useMhdOnboardingPacket } from '@/features/onboarding/Hook';
@@ -39,6 +40,7 @@ import {
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Link } from 'react-router-dom';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdAvatarCircle } from '@/components/ui/MhdAvatar';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { MhdPersonRecordTabs } from '@/features/people/components/MhdPersonRecordTabs';
@@ -128,6 +130,7 @@ export function MhdPersonDetailPage() {
     personId: person?.id ?? null,
     status: 'ALL',
   });
+  const photoUrlQuery = useMhdPersonPhotoUrl(person?.photoPath);
 
   if (isLoading) {
     return (
@@ -162,11 +165,7 @@ export function MhdPersonDetailPage() {
       <MhdCard className="p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4">
-            {/* Avatar initials */}
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-accent/10 text-lg font-semibold text-accent-hover">
-              {person.firstName?.[0] ?? ''}
-              {person.lastName?.[0] ?? ''}
-            </div>
+            <MhdAvatarCircle name={person.displayName} photoUrl={photoUrlQuery.data} size="lg" />
             <div className="min-w-0">
               <h1 className="text-xl font-semibold text-neutral-900">{person.displayName}</h1>
               {person.preferredName && (

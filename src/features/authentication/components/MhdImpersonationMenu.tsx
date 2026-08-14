@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, LogOut } from 'lucide-react';
+import { MhdAvatarCircle } from '@/components/ui/MhdAvatar';
+import { useMhdPersonPhotoUrl } from '@/features/people/Hook';
 import { useMhdAuth } from '../Hook';
 import type {
   MhdAuthRoleName,
@@ -51,10 +53,8 @@ export function MhdImpersonationMenu() {
   const panelRef = useRef<HTMLDivElement>(null);
 
   const tier = mhdGetImpersonationTier(profile);
-
-  const initials = profile
-    ? `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase() || '??'
-    : '??';
+  const photoUrlQuery = useMhdPersonPhotoUrl(profile?.photoPath);
+  const avatarName = profile?.displayName ?? 'User';
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
@@ -70,9 +70,12 @@ export function MhdImpersonationMenu() {
   if (!profile || !tier) {
     return (
       <div className="hidden items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 shadow-sm sm:flex">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-on">
-          {initials}
-        </div>
+        <MhdAvatarCircle
+          name={avatarName}
+          photoUrl={photoUrlQuery.data}
+          size="md"
+          className="bg-accent text-accent-on"
+        />
         <div className="hidden max-w-44 flex-col gap-0.5 lg:flex">
           <span className="truncate text-sm font-semibold">{profile?.displayName ?? 'User'}</span>
           <span className="truncate text-xs text-muted-foreground">
@@ -149,9 +152,12 @@ export function MhdImpersonationMenu() {
         aria-haspopup="menu"
         aria-expanded={isOpen}
       >
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-on">
-          {initials}
-        </div>
+        <MhdAvatarCircle
+          name={avatarName}
+          photoUrl={photoUrlQuery.data}
+          size="md"
+          className="bg-accent text-accent-on"
+        />
         <div className="hidden max-w-44 flex-col gap-0.5 lg:flex">
           <span className="truncate text-sm font-semibold">{profile.displayName ?? 'User'}</span>
           <span className="truncate text-xs text-muted-foreground">
