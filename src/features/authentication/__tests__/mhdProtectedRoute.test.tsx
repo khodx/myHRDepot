@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -245,5 +246,51 @@ describe('MhdProtectedRoute', () => {
     expect(await screen.findByText('Ordinary two page')).toBeInTheDocument();
     expect(mockListMfaFactors).toHaveBeenCalledTimes(1);
     expect(mockSupabase.auth.mfa.getAuthenticatorAssuranceLevel).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not flash through /enroll-mfa while auth is still resolving on a fresh load', async () => {
+    // Reproduces the real MhdAuthProvider sequence a hard page load goes
+    // through — isAuthenticated/profile start false/null and flip to
+    // true/populated a tick later — which a static mockAuth() never
+    // exercises. Regression coverage for the mfaGate effect briefly settling
+    // to "no verified factor" on the transient unauthenticated render.
+    mockSatisfiedMfa();
+
+    function MhdAuthTransitionHarness() {
+      const [resolved, setResolved] = useState(false);
+
+      useEffect(() => {
+        const timer = setTimeout(() => setResolved(true), 0);
+        return () => clearTimeout(timer);
+      }, []);
+
+      mockUseMhdAuth.mockReturnValue(
+        resolved
+          ? {
+              isAuthenticated: true,
+              isLoading: false,
+              profile: profileWithPerson('person-1'),
+              listMfaFactors: mockListMfaFactors,
+            }
+          : { isAuthenticated: false, isLoading: true, profile: null, listMfaFactors: mockListMfaFactors },
+      );
+
+      return (
+        <MemoryRouter initialEntries={['/dashboard']}>
+          <Routes>
+            <Route path="/" element={<MhdProtectedRoute />}>
+              <Route path="dashboard" element={<div>Dashboard page</div>} />
+              <Route path="enroll-mfa" element={<div>Enroll MFA page</div>} />
+            </Route>
+            <Route path="/login" element={<div>Login page</div>} />
+          </Routes>
+        </MemoryRouter>
+      );
+    }
+
+    render(<MhdAuthTransitionHarness />);
+
+    expect(await screen.findByText('Dashboard page')).toBeInTheDocument();
+    expect(screen.queryByText('Enroll MFA page')).not.toBeInTheDocument();
   });
 });

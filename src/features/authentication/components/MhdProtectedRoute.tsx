@@ -38,13 +38,24 @@ export function MhdProtectedRoute() {
     let isMounted = true;
 
     async function loadMfaGate() {
+      // Deliberately leaves mfaGate in its current (initially isLoading: true)
+      // state instead of settling it to a resolved "no verified factor" result
+      // here. On a hard reload, MhdAuthProvider's isAuthenticated/profile go
+      // through their own async transition from false/null to true/populated;
+      // this effect's dependency array re-runs it for BOTH the transient
+      // unauthenticated render and the authenticated one that follows a
+      // moment later. Settling mfaGate to {isLoading: false, hasVerifiedFactor:
+      // false} on the transient pass made the render below — which reads
+      // mfaGate the instant isAuthenticated flips true, before this effect's
+      // authenticated re-run has resolved — treat "haven't checked yet" as
+      // "checked, found nothing," redirecting to /enroll-mfa for an account
+      // that already has a verified factor, which then self-corrected back to
+      // /dashboard once the real check landed. Every render path that reads
+      // mfaGate is already gated on `profile?.personId`, so leaving isLoading
+      // true here is inert for a genuinely signed-out user — it's simply
+      // never read — and correctly keeps the loading screen up until the
+      // authenticated re-run produces a real answer.
       if (!isAuthenticated || !profile?.personId) {
-        setMfaGate({
-          isLoading: false,
-          hasVerifiedFactor: false,
-          needsChallenge: false,
-          error: null,
-        });
         return;
       }
 

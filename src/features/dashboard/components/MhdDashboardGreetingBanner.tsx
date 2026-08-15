@@ -232,7 +232,7 @@ export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDash
           <p className="text-[18.75px] font-medium text-white">{mhdFormatGreetingMonthDay(now)}</p>
 
           {tenureLabel ? (
-            <p className="text-[9.45px] text-rail-muted">
+            <p className="text-[18.75px] text-rail-muted">
               <span className="font-semibold text-white">Tenure:</span> {tenureLabel}
             </p>
           ) : null}
