@@ -43,6 +43,13 @@ export function mhdCropImageToBlob(
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const image = new Image();
+    // Required for re-editing an already-uploaded photo: imageSrc there is a
+    // cross-origin Supabase Storage signed URL rather than a same-origin
+    // blob: URL from a freshly picked file, and drawing a cross-origin image
+    // onto a canvas without this taints it — toBlob() then throws
+    // ("Tainted canvases may not be exported") instead of returning a blob.
+    // A no-op for blob:/data: sources, which are already same-origin.
+    image.crossOrigin = 'anonymous';
     image.onload = () => {
       const { width: bboxWidth, height: bboxHeight } = mhdRotatedBoundingBox(
         image.width,

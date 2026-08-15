@@ -10,8 +10,11 @@ const MHD_CROP_MIN_ZOOM = 1;
 const MHD_CROP_MAX_ZOOM = 3;
 
 interface MhdPhotoCropModalProps {
-  /** Object URL of the just-picked file. Caller owns it and must revoke it
-   *  after this modal closes (on both confirm and cancel). */
+  /** Either an object URL of a just-picked file (caller owns it and must
+   *  revoke it after this modal closes, on both confirm and cancel) or an
+   *  already-uploaded photo's remote URL, for re-editing an existing crop.
+   *  mhdCropImageToBlob's export step needs the source loadable with
+   *  crossOrigin="anonymous" for the latter case to avoid a tainted canvas. */
   imageSrc: string;
   onCancel: () => void;
   onConfirm: (blob: Blob) => void;

@@ -56,6 +56,18 @@ export function MhdPersonPhotoUploader({ person, onPhotoChanged }: MhdPersonPhot
     setCropImageUrl(URL.createObjectURL(file));
   }
 
+  // Re-editing the already-saved photo opens the same modal against its
+  // existing signed Storage URL instead of a freshly picked file — there is
+  // no local File/Blob to re-derive one from. URL.revokeObjectURL() is a
+  // documented no-op for a URL it didn't create (a plain https: signed URL
+  // here), so unconditionally revoking on close/confirm is safe either way
+  // without tracking which case is active.
+  function handleEditExisting() {
+    if (!photoUrlQuery.data) return;
+    setError(null);
+    setCropImageUrl(photoUrlQuery.data);
+  }
+
   function handleCropCancel() {
     if (cropImageUrl) {
       URL.revokeObjectURL(cropImageUrl);
@@ -113,6 +125,15 @@ export function MhdPersonPhotoUploader({ person, onPhotoChanged }: MhdPersonPhot
           >
             {isSaving ? 'Saving...' : person.photoPath ? 'Change Photo' : 'Upload Photo'}
           </Button>
+          {person.photoPath && (
+            <Button
+              variant="ghost"
+              disabled={isSaving || !photoUrlQuery.data}
+              onClick={handleEditExisting}
+            >
+              Edit
+            </Button>
+          )}
           {person.photoPath && (
             <Button variant="ghost" disabled={isSaving} onClick={() => void handleRemove()}>
               Remove
