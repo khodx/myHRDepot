@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
   BarChart3,
   Accessibility,
+  Award,
   BookMarked,
   BookOpen,
   Briefcase,
@@ -17,6 +18,8 @@ import {
   ChevronDown,
   ClipboardCheck,
   ClipboardList,
+  Clock,
+  Cog,
   DoorOpen,
   FileSearch,
   FileSignature,
@@ -28,10 +31,12 @@ import {
   IdCard,
   LayoutDashboard,
   Library,
+  MessageCircle,
   MessageSquare,
   Package2,
   PanelLeftClose,
   PanelLeftOpen,
+  Scale,
   Settings,
   ShieldAlert,
   Stamp,
@@ -39,8 +44,11 @@ import {
   UserPlus,
   UserCog,
   Users,
+  UsersRound,
   TrendingUp,
+  Wrench,
   X,
+  Zap,
 } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
@@ -59,6 +67,7 @@ export interface NavItem {
 
 export interface NavSection {
   label: string;
+  icon: React.ElementType;
   items: NavItem[];
 }
 
@@ -82,6 +91,7 @@ const DASHBOARD_ITEM: NavItem = {
 export const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Work Tools',
+    icon: Wrench,
     items: [
       {
         label: 'Tasks',
@@ -144,6 +154,7 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'People & Org',
+    icon: UsersRound,
     items: [
       {
         label: 'People',
@@ -206,6 +217,7 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Time & Leave',
+    icon: Clock,
     items: [
       {
         label: 'Schedule',
@@ -249,6 +261,7 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Talent',
+    icon: Award,
     items: [
       {
         label: 'Performance',
@@ -319,6 +332,7 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Employee Relations',
+    icon: Scale,
     items: [
       // Admin-only (Platform Admin / HR Partner / Client Admin); no subject route.
       {
@@ -362,6 +376,7 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Communications',
+    icon: MessageCircle,
     items: [
       {
         label: 'Communications',
@@ -374,6 +389,7 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Automation',
+    icon: Zap,
     items: [
       {
         label: 'Automations',
@@ -389,6 +405,7 @@ export const NAV_SECTIONS: NavSection[] = [
   // platform operator tooling, not an HR module.
   {
     label: 'Administration',
+    icon: Cog,
     items: [
       {
         label: 'Admin Settings',
@@ -436,7 +453,7 @@ function readRailCollapsed(): boolean {
 /**
  * Desktop rail. Dark navy surface (bg-rail, #00157A) — the active nav item is
  * marked by a raised bevel on its amber selected fill (bg-rail-selected),
- * not by flooding the whole sidebar. 252px expanded, 72px collapsed
+ * not by flooding the whole sidebar. 265px expanded, 72px collapsed
  * (icon-only, persisted separately from the per-group collapse).
  */
 export function MhdSidebar() {
@@ -457,7 +474,7 @@ export function MhdSidebar() {
   return (
     <aside
       className={`hidden h-full flex-col border-r border-rail-border bg-rail text-rail-text transition-[width] duration-200 motion-reduce:transition-none lg:flex ${
-        railCollapsed ? 'w-[72px]' : 'w-[252px]'
+        railCollapsed ? 'w-[72px]' : 'w-[265px]'
       }`}
     >
       <MhdSidebarContent collapsed={railCollapsed} />
@@ -501,7 +518,7 @@ export function MhdMobileNavDrawer({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-label="Navigation"
-        className="absolute inset-y-0 left-0 flex w-[252px] flex-col border-r border-rail-border bg-rail text-rail-text shadow-xl transition-transform duration-200 motion-reduce:transition-none"
+        className="absolute inset-y-0 left-0 flex w-[265px] flex-col border-r border-rail-border bg-rail text-rail-text shadow-xl transition-transform duration-200 motion-reduce:transition-none"
       >
         <button
           type="button"
@@ -627,6 +644,7 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
               </div>
             );
           }
+          const SectionIcon = section.icon;
           return (
             <div key={section.label} className="space-y-1">
               <button
@@ -635,7 +653,10 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
                 aria-expanded={!isCollapsed}
                 className="flex min-h-10 w-full items-center justify-between rounded-md px-3 text-[17px] font-semibold text-rail-text transition-colors duration-150 hover:bg-rail-hover hover:text-rail-hover-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
               >
-                <span>{section.label}</span>
+                <span className="flex items-center gap-3">
+                  <SectionIcon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+                  <span>{section.label}</span>
+                </span>
                 <ChevronDown
                   className={`h-3.5 w-3.5 shrink-0 transition-transform motion-reduce:transition-none ${isCollapsed ? '-rotate-90' : ''}`}
                   aria-hidden

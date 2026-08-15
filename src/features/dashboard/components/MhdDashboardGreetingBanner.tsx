@@ -183,7 +183,7 @@ export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDash
   const photoUrl = photoUrlQuery.data ?? null;
 
   return (
-    <div className="mhd-greeting-banner flex items-stretch rounded-lg border border-rail-border bg-[#5C5C5C] text-rail-text">
+    <div className="mhd-greeting-banner flex items-stretch rounded-lg border border-rail-border bg-rail text-rail-text">
       {/* A large circular photo floats on the banner's navy fill with a
           thick white ring and a deep drop shadow, so it reads as raised off
           the surface rather than flush with it. With no photo, the small
