@@ -15,10 +15,14 @@ export function mhdTimeOfDayGreeting(hour: number): 'Good Morning' | 'Good After
   return 'Good Evening';
 }
 
-/** "Thursday, August 13, 2026" in the browser's local timezone. */
-export function mhdFormatGreetingDate(date: Date): string {
+/** "Thursday" in the browser's local timezone — the greeting date's first row. */
+export function mhdFormatGreetingWeekday(date: Date): string {
+  return date.toLocaleDateString(undefined, { weekday: 'long' });
+}
+
+/** "August 13, 2026" in the browser's local timezone — the greeting date's second row. */
+export function mhdFormatGreetingMonthDay(date: Date): string {
   return date.toLocaleDateString(undefined, {
-    weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -179,18 +183,17 @@ export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDash
   const photoUrl = photoUrlQuery.data ?? null;
 
   return (
-    <div className="mhd-greeting-banner flex items-stretch rounded-lg border border-rail-border bg-rail text-rail-text">
-      {/* A real photo gets a thin, even margin off the card's top/left/bottom
-          edges — not flush against them, not padded as generously as the
-          text side — with all four corners rounded since it no longer
-          touches the card's own outline anywhere. With no photo, the small
+    <div className="mhd-greeting-banner flex items-stretch rounded-lg border border-rail-border bg-[#5C5C5C] text-rail-text">
+      {/* A large circular photo floats on the banner's navy fill with a
+          thick white ring and a deep drop shadow, so it reads as raised off
+          the surface rather than flush with it. With no photo, the small
           circular initials avatar is the fallback instead. */}
       {photoUrl ? (
-        <div className="flex items-center p-3">
+        <div className="flex items-center px-[15px] py-[10.90px]">
           <img
             src={photoUrl}
             alt={avatarName}
-            className="aspect-square h-[123.5px] shrink-0 rounded-lg object-cover"
+            className="aspect-square h-[138.08px] shrink-0 rounded-full border-4 border-white object-cover shadow-2xl"
           />
         </div>
       ) : (
@@ -199,13 +202,15 @@ export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDash
         </div>
       )}
 
-      <div className="flex flex-1 flex-wrap items-start justify-between gap-6 px-[33.6px] py-[28px]">
-        <h1 className="self-center text-[28px] font-bold leading-tight text-white">
-          {greeting}
-          {name ? `, ${name} 😊` : ''}!
-        </h1>
+      <div className="flex flex-1 flex-wrap items-start justify-between gap-6 py-[25.44px] pl-[16px] pr-[33.6px]">
+        <div className="flex flex-col items-start gap-1">
+          <h1 className="text-[28px] font-bold leading-tight text-white">
+            {greeting}
+            {name ? `, ${name} 😊` : ''}!
+          </h1>
+        </div>
 
-        <div className="flex flex-col items-end gap-1.5 text-right">
+        <div className="flex flex-col items-end gap-[4.36px] text-right">
           <button
             type="button"
             onClick={onRefresh}
@@ -217,16 +222,17 @@ export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDash
           </button>
 
           <p
-            className="rounded-md bg-black/25 px-3 py-1 font-mono text-[22px] font-bold tabular-nums text-white"
+            className="rounded-md bg-black/25 px-3 py-[2.91px] font-mono text-[21.15px] font-bold tabular-nums text-white"
             aria-label="Current time"
           >
             {mhdFormatDigitalClock(now)}
           </p>
 
-          <p className="text-[15px] font-medium text-white">{mhdFormatGreetingDate(now)}</p>
+          <p className="text-[18.75px] font-medium text-white">{mhdFormatGreetingWeekday(now)}</p>
+          <p className="text-[18.75px] font-medium text-white">{mhdFormatGreetingMonthDay(now)}</p>
 
           {tenureLabel ? (
-            <p className="text-[13px] text-rail-muted">
+            <p className="text-[9.45px] text-rail-muted">
               <span className="font-semibold text-white">Tenure:</span> {tenureLabel}
             </p>
           ) : null}
