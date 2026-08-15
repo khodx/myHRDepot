@@ -1,8 +1,12 @@
-import { useCallback, useState } from 'react';
-import Cropper, { type Area } from 'react-easy-crop';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Cropper, { getInitialCropFromCroppedAreaPixels, type MediaSize, type Size, type Area } from 'react-easy-crop';
 import { Button } from '@/components/ui/Button';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { mhdCropImageToBlob } from '@/utils/mhdCropImage';
+import { mhdDetectFaceSquareArea } from '@/utils/mhdFaceDetection';
+
+const MHD_CROP_MIN_ZOOM = 1;
+const MHD_CROP_MAX_ZOOM = 3;
 
 interface MhdPhotoCropModalProps {
   /** Object URL of the just-picked file. Caller owns it and must revoke it
@@ -18,11 +22,13 @@ interface MhdPhotoCropModalProps {
  * than a one-off inside the People feature — see CLAUDE.md's "engines, not
  * per-feature copies" standard). Lets the uploader drag/zoom their own photo
  * into frame before it's saved, the same pattern every product with avatar
- * upload uses (Slack, GitHub, LinkedIn, Google) — chosen over automated
- * face-detection cropping because it needs no ML/vision dependency, works
- * for photos automated detection would get wrong (angled faces, glasses,
- * group photos), and gives the uploader direct control over a photo of
- * themselves rather than an algorithm's guess.
+ * upload uses (Slack, GitHub, LinkedIn, Google).
+ *
+ * The starting frame is auto-suggested when the browser's Shape Detection
+ * API (FaceDetector) finds a face — see mhdFaceDetection.ts — but that's
+ * only ever a starting point: manual control stays the source of truth, so
+ * angled faces, glasses, group photos, or browsers without FaceDetector all
+ * still work, just starting from the plain centered crop instead.
  */
 export function MhdPhotoCropModal({ imageSrc, onCancel, onConfirm }: MhdPhotoCropModalProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -30,6 +36,60 @@ export function MhdPhotoCropModal({ imageSrc, onCancel, onConfirm }: MhdPhotoCro
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [didSuggestFace, setDidSuggestFace] = useState(false);
+
+  // Face detection (async) and the Cropper's own layout callbacks
+  // (onMediaLoaded/onCropSizeChange) resolve independently and in no fixed
+  // order. This ref assembles the three pieces without triggering a render
+  // per piece; the crop only jumps to the suggested framing once, the
+  // instant all three are in — from whichever of those callbacks arrives
+  // last, never from a bare effect body (avoids react-hooks/set-state-in-effect).
+  const suggestionRef = useRef<{
+    area: Area | null;
+    media: MediaSize | null;
+    size: Size | null;
+    applied: boolean;
+  }>({ area: null, media: null, size: null, applied: false });
+
+  function applyFaceSuggestionIfReady() {
+    const s = suggestionRef.current;
+    if (s.applied || !s.area || !s.media || !s.size) return;
+    s.applied = true;
+    const initial = getInitialCropFromCroppedAreaPixels(
+      s.area,
+      s.media,
+      0,
+      s.size,
+      MHD_CROP_MIN_ZOOM,
+      MHD_CROP_MAX_ZOOM,
+    );
+    setCrop(initial.crop);
+    setZoom(initial.zoom);
+    setDidSuggestFace(true);
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    void mhdDetectFaceSquareArea(imageSrc).then((area) => {
+      if (!cancelled && area) {
+        suggestionRef.current.area = area;
+        applyFaceSuggestionIfReady();
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [imageSrc]);
+
+  function handleMediaLoaded(size: MediaSize) {
+    suggestionRef.current.media = size;
+    applyFaceSuggestionIfReady();
+  }
+
+  function handleCropSizeChange(size: Size) {
+    suggestionRef.current.size = size;
+    applyFaceSuggestionIfReady();
+  }
 
   const handleCropComplete = useCallback((_croppedArea: Area, areaPixels: Area) => {
     setCroppedAreaPixels(areaPixels);
@@ -62,14 +122,24 @@ export function MhdPhotoCropModal({ imageSrc, onCancel, onConfirm }: MhdPhotoCro
             image={imageSrc}
             crop={crop}
             zoom={zoom}
+            minZoom={MHD_CROP_MIN_ZOOM}
+            maxZoom={MHD_CROP_MAX_ZOOM}
             aspect={1}
             cropShape="rect"
             showGrid={false}
             onCropChange={setCrop}
             onZoomChange={setZoom}
             onCropComplete={handleCropComplete}
+            onMediaLoaded={handleMediaLoaded}
+            onCropSizeChange={handleCropSizeChange}
           />
         </div>
+
+        {didSuggestFace && (
+          <p className="text-xs text-muted-foreground">
+            Framed around the detected face — drag or zoom to adjust.
+          </p>
+        )}
 
         <div className="flex items-center gap-3">
           <label htmlFor="mhd-photo-crop-zoom" className="text-xs font-medium text-muted-foreground">
@@ -78,8 +148,8 @@ export function MhdPhotoCropModal({ imageSrc, onCancel, onConfirm }: MhdPhotoCro
           <input
             id="mhd-photo-crop-zoom"
             type="range"
-            min={1}
-            max={3}
+            min={MHD_CROP_MIN_ZOOM}
+            max={MHD_CROP_MAX_ZOOM}
             step={0.01}
             value={zoom}
             onChange={(event) => setZoom(Number(event.target.value))}
