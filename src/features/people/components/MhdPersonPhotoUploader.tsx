@@ -2,6 +2,7 @@ import { useRef, useState, type ChangeEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdAvatarCircle } from '@/components/ui/MhdAvatar';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdPhotoCropModal } from '@/components/ui/MhdPhotoCropModal';
 import { useMhdPersonPhotoUrl } from '@/features/people/Hook';
 import { mhdPersonService } from '@/features/people/Service';
 import type { MhdPerson } from '@/features/people/Types';
@@ -30,9 +31,10 @@ export function MhdPersonPhotoUploader({ person, onPhotoChanged }: MhdPersonPhot
   const photoUrlQuery = useMhdPersonPhotoUrl(person.photoPath);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cropImageUrl, setCropImageUrl] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
     // Reset so choosing the same file again still fires a change event.
     event.target.value = '';
@@ -48,12 +50,33 @@ export function MhdPersonPhotoUploader({ person, onPhotoChanged }: MhdPersonPhot
     }
 
     setError(null);
+    // The picked file is never uploaded directly — mhd-photo-crop-modal.tsx
+    // lets the uploader frame their own face before anything is saved,
+    // rather than trusting whatever the source photo's center-crop lands on.
+    setCropImageUrl(URL.createObjectURL(file));
+  }
+
+  function handleCropCancel() {
+    if (cropImageUrl) {
+      URL.revokeObjectURL(cropImageUrl);
+    }
+    setCropImageUrl(null);
+  }
+
+  async function handleCropConfirm(blob: Blob) {
+    if (cropImageUrl) {
+      URL.revokeObjectURL(cropImageUrl);
+    }
+    setCropImageUrl(null);
+
+    const croppedFile = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+    setError(null);
     setIsSaving(true);
     try {
       const photoPath = await mhdPersonService.uploadPersonPhoto({
         personId: person.id,
         companyId: person.companyId,
-        file,
+        file: croppedFile,
         previousPhotoPath: person.photoPath,
       });
       onPhotoChanged(photoPath);
@@ -101,10 +124,18 @@ export function MhdPersonPhotoUploader({ person, onPhotoChanged }: MhdPersonPhot
           type="file"
           accept={MHD_ALLOWED_PHOTO_TYPES.join(',')}
           className="hidden"
-          onChange={(event) => void handleFileChange(event)}
+          onChange={handleFileChange}
         />
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
+
+      {cropImageUrl && (
+        <MhdPhotoCropModal
+          imageSrc={cropImageUrl}
+          onCancel={handleCropCancel}
+          onConfirm={(blob) => void handleCropConfirm(blob)}
+        />
+      )}
     </MhdCard>
   );
 }

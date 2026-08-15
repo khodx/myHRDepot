@@ -179,30 +179,31 @@ export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDash
   const photoUrl = photoUrlQuery.data ?? null;
 
   return (
-    <div className="mhd-greeting-banner flex items-stretch overflow-hidden rounded-lg border border-rail-border bg-rail text-rail-text">
-      {/* A real photo bleeds to the banner's left/top/bottom edges as a hero
-          square (rounded only on the left, matching the container's own
-          corner radius); with no photo, mhd_greeting-banner instead uses the
-          small inline circular avatar below — a giant stretched initials
-          bubble would look wrong, so this only renders once a photo exists. */}
+    <div className="mhd-greeting-banner flex items-stretch rounded-lg border border-rail-border bg-rail text-rail-text">
+      {/* A real photo gets a thin, even margin off the card's top/left/bottom
+          edges — not flush against them, not padded as generously as the
+          text side — with all four corners rounded since it no longer
+          touches the card's own outline anywhere. With no photo, the small
+          circular initials avatar is the fallback instead. */}
       {photoUrl ? (
-        <img
-          src={photoUrl}
-          alt={avatarName}
-          className="aspect-square h-32 shrink-0 rounded-l-lg object-cover"
-        />
-      ) : null}
-
-      <div className="flex flex-1 flex-wrap items-start justify-between gap-6 px-6 py-5">
-        <div className="flex items-center gap-4">
-          {photoUrl ? null : (
-            <MhdAvatarCircle name={avatarName} size="lg" className="bg-white/10 text-white" />
-          )}
-          <h1 className="text-[28px] font-bold leading-tight text-white">
-            {greeting}
-            {name ? `, ${name} 😊` : ''}!
-          </h1>
+        <div className="flex items-center p-3">
+          <img
+            src={photoUrl}
+            alt={avatarName}
+            className="aspect-square h-[123.5px] shrink-0 rounded-lg object-cover"
+          />
         </div>
+      ) : (
+        <div className="flex items-center pl-[33.6px]">
+          <MhdAvatarCircle name={avatarName} size="lg" className="bg-white/10 text-white" />
+        </div>
+      )}
+
+      <div className="flex flex-1 flex-wrap items-start justify-between gap-6 px-[33.6px] py-[28px]">
+        <h1 className="self-center text-[28px] font-bold leading-tight text-white">
+          {greeting}
+          {name ? `, ${name} 😊` : ''}!
+        </h1>
 
         <div className="flex flex-col items-end gap-1.5 text-right">
           <button
