@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   mhdComputeTenureParts,
   mhdFormatDigitalClock,
-  mhdFormatGreetingDate,
+  mhdFormatGreetingMonthDay,
+  mhdFormatGreetingWeekday,
   mhdFormatTenure,
   mhdTimeOfDayGreeting,
 } from '../MhdDashboardGreetingBanner';
@@ -24,10 +25,16 @@ describe('mhdTimeOfDayGreeting', () => {
   });
 });
 
-describe('mhdFormatGreetingDate', () => {
-  it('formats as weekday, month day, year', () => {
+describe('mhdFormatGreetingWeekday', () => {
+  it('formats as the full weekday name', () => {
     // Thursday, August 13, 2026 (local, no timezone conversion needed for a noon time)
-    expect(mhdFormatGreetingDate(new Date(2026, 7, 13, 12))).toBe('Thursday, August 13, 2026');
+    expect(mhdFormatGreetingWeekday(new Date(2026, 7, 13, 12))).toBe('Thursday');
+  });
+});
+
+describe('mhdFormatGreetingMonthDay', () => {
+  it('formats as month day, year', () => {
+    expect(mhdFormatGreetingMonthDay(new Date(2026, 7, 13, 12))).toBe('August 13, 2026');
   });
 });
 
