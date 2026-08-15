@@ -175,46 +175,61 @@ export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDash
       ? mhdFormatTenure(mhdComputeTenureParts(new Date(employmentState.effectiveFrom), now))
       : null;
 
+  const avatarName = profile?.displayName ?? name ?? 'User';
+  const photoUrl = photoUrlQuery.data ?? null;
+
   return (
-    <div className="mhd-greeting-banner flex flex-wrap items-start justify-between gap-6 rounded-lg border border-rail-border bg-rail px-6 py-5 text-rail-text">
-      <div className="flex items-center gap-4">
-        <MhdAvatarCircle
-          name={profile?.displayName ?? name ?? 'User'}
-          photoUrl={photoUrlQuery.data}
-          size="lg"
-          className="bg-white/10 text-white"
+    <div className="mhd-greeting-banner flex items-stretch overflow-hidden rounded-lg border border-rail-border bg-rail text-rail-text">
+      {/* A real photo bleeds to the banner's left/top/bottom edges as a hero
+          square (rounded only on the left, matching the container's own
+          corner radius); with no photo, mhd_greeting-banner instead uses the
+          small inline circular avatar below — a giant stretched initials
+          bubble would look wrong, so this only renders once a photo exists. */}
+      {photoUrl ? (
+        <img
+          src={photoUrl}
+          alt={avatarName}
+          className="aspect-square h-32 shrink-0 rounded-l-lg object-cover"
         />
-        <h1 className="text-[28px] font-bold leading-tight text-white">
-          {greeting}
-          {name ? `, ${name} 😊` : ''}!
-        </h1>
-      </div>
+      ) : null}
 
-      <div className="flex flex-col items-end gap-1.5 text-right">
-        <button
-          type="button"
-          onClick={onRefresh}
-          title="Refresh dashboard"
-          className="flex items-center gap-1.5 text-xs text-rail-muted transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-        >
-          <RefreshCw className="h-3.5 w-3.5" aria-hidden />
-          {lastRefreshed ? `Updated ${lastRefreshed.toLocaleTimeString()}` : 'Refresh'}
-        </button>
+      <div className="flex flex-1 flex-wrap items-start justify-between gap-6 px-6 py-5">
+        <div className="flex items-center gap-4">
+          {photoUrl ? null : (
+            <MhdAvatarCircle name={avatarName} size="lg" className="bg-white/10 text-white" />
+          )}
+          <h1 className="text-[28px] font-bold leading-tight text-white">
+            {greeting}
+            {name ? `, ${name} 😊` : ''}!
+          </h1>
+        </div>
 
-        <p
-          className="rounded-md bg-black/25 px-3 py-1 font-mono text-[22px] font-bold tabular-nums text-white"
-          aria-label="Current time"
-        >
-          {mhdFormatDigitalClock(now)}
-        </p>
+        <div className="flex flex-col items-end gap-1.5 text-right">
+          <button
+            type="button"
+            onClick={onRefresh}
+            title="Refresh dashboard"
+            className="flex items-center gap-1.5 text-xs text-rail-muted transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          >
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+            {lastRefreshed ? `Updated ${lastRefreshed.toLocaleTimeString()}` : 'Refresh'}
+          </button>
 
-        <p className="text-[15px] font-medium text-white">{mhdFormatGreetingDate(now)}</p>
-
-        {tenureLabel ? (
-          <p className="text-[13px] text-rail-muted">
-            <span className="font-semibold text-white">Tenure:</span> {tenureLabel}
+          <p
+            className="rounded-md bg-black/25 px-3 py-1 font-mono text-[22px] font-bold tabular-nums text-white"
+            aria-label="Current time"
+          >
+            {mhdFormatDigitalClock(now)}
           </p>
-        ) : null}
+
+          <p className="text-[15px] font-medium text-white">{mhdFormatGreetingDate(now)}</p>
+
+          {tenureLabel ? (
+            <p className="text-[13px] text-rail-muted">
+              <span className="font-semibold text-white">Tenure:</span> {tenureLabel}
+            </p>
+          ) : null}
+        </div>
       </div>
     </div>
   );

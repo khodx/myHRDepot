@@ -13,6 +13,7 @@ import {
   MhdTr,
 } from '@/components/ui/MhdTable';
 import { cn } from '@/utils/cn';
+import { useMhdPersonPhotoUrls } from '@/features/people/Hook';
 import type { MhdPerson } from '@/features/people/Types';
 
 interface MhdPersonListProps {
@@ -31,6 +32,11 @@ export function MhdPersonList({
   const pagination = useMhdPagination(people.length, {
     resetKey: `${people.length}:${people[0]?.id ?? ''}`,
   });
+  const visiblePeople = pagination.sliceItems(people);
+  // Only the currently visible page's photos, not every loaded person — a
+  // company with hundreds of people shouldn't sign hundreds of Storage paths
+  // just because they're all in memory for client-side pagination.
+  const photoUrlsQuery = useMhdPersonPhotoUrls(visiblePeople.map((person) => person.photoPath));
 
   if (isLoading) {
     return <MhdCard className="text-sm text-muted-foreground">Loading people...</MhdCard>;
@@ -47,8 +53,6 @@ export function MhdPersonList({
       </MhdCard>
     );
   }
-
-  const visiblePeople = pagination.sliceItems(people);
 
   return (
     <MhdCard className="overflow-hidden p-0">
@@ -90,7 +94,11 @@ export function MhdPersonList({
                     className="text-left"
                     onClick={() => onSelectPerson(person.id)}
                   >
-                    <MhdAvatar name={person.displayName} detail={person.referenceId} />
+                    <MhdAvatar
+                      name={person.displayName}
+                      detail={person.referenceId}
+                      photoUrl={person.photoPath ? photoUrlsQuery.data?.[person.photoPath] : null}
+                    />
                   </button>
                 </MhdTd>
                 <MhdTd className="text-muted-foreground">

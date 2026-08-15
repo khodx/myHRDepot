@@ -470,4 +470,31 @@ export const mhdPersonService = {
 
     return data?.signedUrl ?? null;
   },
+
+  /** Batch variant of getPersonPhotoSignedUrl — one Storage API call for N
+   *  paths instead of N, for list views that render many photos at once
+   *  (see 0170_people_directory_photo_path.sql design note). Paths that fail
+   *  to sign are simply omitted from the result map; callers already fall
+   *  back to initials for any path with no entry. */
+  async getPersonPhotoSignedUrls(photoPaths: string[]): Promise<Record<string, string>> {
+    if (photoPaths.length === 0) {
+      return {};
+    }
+
+    const { data, error } = await supabaseClient.storage
+      .from('person-photos')
+      .createSignedUrls(photoPaths, 3600);
+
+    if (error || !data) {
+      return {};
+    }
+
+    const result: Record<string, string> = {};
+    for (const row of data) {
+      if (row.path && row.signedUrl) {
+        result[row.path] = row.signedUrl;
+      }
+    }
+    return result;
+  },
 };

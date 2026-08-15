@@ -12,6 +12,7 @@ export const mhdPeopleQueryKeys = {
   currentEmploymentState: (personId: string | null) =>
     ['mhd-people', 'current-employment-state', personId ?? 'none'] as const,
   photoUrl: (photoPath: string | null) => ['mhd-people', 'photo-url', photoPath ?? 'none'] as const,
+  photoUrls: (cacheKey: string) => ['mhd-people', 'photo-urls', cacheKey] as const,
 };
 
 /**
@@ -70,6 +71,31 @@ export function useMhdPersonPhotoUrl(photoPath: string | null | undefined) {
     queryKey: mhdPeopleQueryKeys.photoUrl(normalizedPath),
     queryFn: () => mhdPersonService.getPersonPhotoSignedUrl(normalizedPath!),
     enabled: Boolean(normalizedPath),
+    staleTime: 45 * 60_000,
+  });
+}
+
+/**
+ * List-view counterpart to useMhdPersonPhotoUrl — resolves many photo paths
+ * in one Storage call instead of one hook instance per row (an N-row table
+ * calling the single-path hook N times would mean N separate sign requests).
+ * Returns a path -> signed URL map; a path missing from the map (never
+ * requested, or failed to sign) means the caller falls back to initials, same
+ * as the single-photo hook. The query key is the sorted, deduped path list
+ * joined into one string so passing a new array with the same paths each
+ * render doesn't trigger a refetch.
+ */
+export function useMhdPersonPhotoUrls(photoPaths: Array<string | null | undefined>) {
+  const uniquePaths = useMemo(
+    () => Array.from(new Set(photoPaths.filter((path): path is string => Boolean(path)))).sort(),
+    [photoPaths],
+  );
+  const cacheKey = uniquePaths.join(',');
+
+  return useQuery({
+    queryKey: mhdPeopleQueryKeys.photoUrls(cacheKey),
+    queryFn: () => mhdPersonService.getPersonPhotoSignedUrls(uniquePaths),
+    enabled: uniquePaths.length > 0,
     staleTime: 45 * 60_000,
   });
 }
