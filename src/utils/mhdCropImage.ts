@@ -6,6 +6,19 @@ export interface MhdCropPixels {
   height: number;
 }
 
+function mhdGetRadianAngle(degrees: number): number {
+  return (degrees * Math.PI) / 180;
+}
+
+/** Bounding box of `width`x`height` once rotated by `rotation` degrees. */
+function mhdRotatedBoundingBox(width: number, height: number, rotation: number) {
+  const rotRad = mhdGetRadianAngle(rotation);
+  return {
+    width: Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
+    height: Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height),
+  };
+}
+
 /**
  * Draws the cropped rectangle of `imageSrc` onto an offscreen canvas and
  * exports it as a JPEG blob, normalized to `outputSize` x `outputSize`
@@ -14,15 +27,43 @@ export interface MhdCropPixels {
  * relying on transparency). 512px is comfortable headroom for every current
  * avatar size in the app (24px list rows up to 128px greeting hero) without
  * keeping full-resolution source photos around.
+ *
+ * `rotation` (degrees) is applied by first rendering the whole source image
+ * rotated onto an intermediate canvas sized to its rotated bounding box, then
+ * cropping from that — `cropPixels` from react-easy-crop's onCropComplete are
+ * already expressed in that same rotated-bounding-box coordinate space
+ * whenever a nonzero `rotation` is passed to its Cropper, so this must mirror
+ * that intermediate step rather than rotating during the final crop draw.
  */
 export function mhdCropImageToBlob(
   imageSrc: string,
   cropPixels: MhdCropPixels,
+  rotation = 0,
   outputSize = 512,
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
+      const { width: bboxWidth, height: bboxHeight } = mhdRotatedBoundingBox(
+        image.width,
+        image.height,
+        rotation,
+      );
+
+      const rotatedCanvas = document.createElement('canvas');
+      rotatedCanvas.width = bboxWidth;
+      rotatedCanvas.height = bboxHeight;
+      const rotatedCtx = rotatedCanvas.getContext('2d');
+      if (!rotatedCtx) {
+        reject(new Error('Unable to create canvas context for photo crop.'));
+        return;
+      }
+
+      rotatedCtx.translate(bboxWidth / 2, bboxHeight / 2);
+      rotatedCtx.rotate(mhdGetRadianAngle(rotation));
+      rotatedCtx.translate(-image.width / 2, -image.height / 2);
+      rotatedCtx.drawImage(image, 0, 0);
+
       const canvas = document.createElement('canvas');
       canvas.width = outputSize;
       canvas.height = outputSize;
@@ -33,7 +74,7 @@ export function mhdCropImageToBlob(
       }
 
       ctx.drawImage(
-        image,
+        rotatedCanvas,
         cropPixels.x,
         cropPixels.y,
         cropPixels.width,

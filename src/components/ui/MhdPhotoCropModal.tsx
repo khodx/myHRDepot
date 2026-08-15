@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Cropper, { getInitialCropFromCroppedAreaPixels, type MediaSize, type Size, type Area } from 'react-easy-crop';
+import { RotateCcw, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { mhdCropImageToBlob } from '@/utils/mhdCropImage';
@@ -33,6 +34,7 @@ interface MhdPhotoCropModalProps {
 export function MhdPhotoCropModal({ imageSrc, onCancel, onConfirm }: MhdPhotoCropModalProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,12 +102,19 @@ export function MhdPhotoCropModal({ imageSrc, onCancel, onConfirm }: MhdPhotoCro
     setError(null);
     setIsProcessing(true);
     try {
-      const blob = await mhdCropImageToBlob(imageSrc, croppedAreaPixels);
+      const blob = await mhdCropImageToBlob(imageSrc, croppedAreaPixels, rotation);
       onConfirm(blob);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to crop photo.');
       setIsProcessing(false);
     }
+  }
+
+  // Wraps into (-180, 180] rather than letting repeated quick-rotate clicks
+  // grow the value unbounded — the slider below shares this same range, so
+  // a quick-rotate click always lands somewhere the slider can also reach.
+  function nudgeRotation(deltaDegrees: number) {
+    setRotation((current) => (((current + deltaDegrees + 180) % 360) + 360) % 360 - 180);
   }
 
   return (
@@ -122,6 +131,7 @@ export function MhdPhotoCropModal({ imageSrc, onCancel, onConfirm }: MhdPhotoCro
             image={imageSrc}
             crop={crop}
             zoom={zoom}
+            rotation={rotation}
             minZoom={MHD_CROP_MIN_ZOOM}
             maxZoom={MHD_CROP_MAX_ZOOM}
             aspect={1}
@@ -155,6 +165,40 @@ export function MhdPhotoCropModal({ imageSrc, onCancel, onConfirm }: MhdPhotoCro
             onChange={(event) => setZoom(Number(event.target.value))}
             className="flex-1"
           />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <label htmlFor="mhd-photo-crop-rotation" className="text-xs font-medium text-muted-foreground">
+            Rotate
+          </label>
+          <button
+            type="button"
+            onClick={() => nudgeRotation(-90)}
+            title="Rotate 90° left"
+            className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <RotateCcw className="h-4 w-4" aria-hidden />
+            <span className="sr-only">Rotate 90° left</span>
+          </button>
+          <input
+            id="mhd-photo-crop-rotation"
+            type="range"
+            min={-180}
+            max={180}
+            step={1}
+            value={rotation}
+            onChange={(event) => setRotation(Number(event.target.value))}
+            className="flex-1"
+          />
+          <button
+            type="button"
+            onClick={() => nudgeRotation(90)}
+            title="Rotate 90° right"
+            className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <RotateCw className="h-4 w-4" aria-hidden />
+            <span className="sr-only">Rotate 90° right</span>
+          </button>
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
