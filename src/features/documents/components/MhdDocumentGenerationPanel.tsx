@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { MhdEmailAttachmentDialog } from '@/components/ui/MhdEmailAttachmentDialog';
 import {
   useMhdDocumentGenerationActions,
   useMhdDocumentGenerations,
@@ -9,7 +10,11 @@ import {
   useMhdDocumentTemplates,
 } from '../Hook';
 import { mhdDocumentService } from '../Service';
-import type { MhdDocumentContentFormat, MhdDocumentTemplate } from '../Types';
+import type {
+  MhdDocumentContentFormat,
+  MhdDocumentGeneration,
+  MhdDocumentTemplate,
+} from '../Types';
 
 interface MhdDocumentGenerationPanelProps {
   entityType: string;
@@ -101,6 +106,7 @@ export function MhdDocumentGenerationPanel({
 
   const [generateTemplate, setGenerateTemplate] = useState<MhdDocumentTemplate | null>(null);
   const [uploadTemplate, setUploadTemplate] = useState<MhdDocumentTemplate | null>(null);
+  const [emailGeneration, setEmailGeneration] = useState<MhdDocumentGeneration | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
@@ -379,20 +385,45 @@ export function MhdDocumentGenerationPanel({
                   {generation.status}
                 </span>
                 {generation.outputDriveFileId ? (
-                  <a
-                    href={`https://drive.google.com/file/d/${generation.outputDriveFileId}/view`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs font-medium text-accent-hover hover:underline"
-                  >
-                    Download
-                  </a>
+                  <div className="flex flex-wrap gap-2">
+                    <a
+                      href={`https://drive.google.com/file/d/${generation.outputDriveFileId}/view`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs font-medium text-accent-hover hover:underline"
+                    >
+                      Download
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setEmailGeneration(generation)}
+                      className="text-xs font-medium text-accent-hover hover:underline"
+                    >
+                      Email
+                    </button>
+                  </div>
                 ) : null}
               </li>
             ))}
           </ul>
         )}
       </div>
+
+      {emailGeneration?.outputDriveFileId ? (
+        <MhdEmailAttachmentDialog
+          open={Boolean(emailGeneration)}
+          companyId={companyId}
+          entityType={entityType}
+          entityId={entityId}
+          attachment={{
+            driveFileId: emailGeneration.outputDriveFileId,
+            filename: emailGeneration.outputFileName ?? emailGeneration.templateName,
+          }}
+          defaultSubject={emailGeneration.templateName}
+          onClose={() => setEmailGeneration(null)}
+          onSent={() => setEmailGeneration(null)}
+        />
+      ) : null}
     </div>
   );
 }

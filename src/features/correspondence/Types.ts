@@ -81,6 +81,11 @@ export interface MhdListCorrespondenceMessagesInput {
   offset?: number;
 }
 
+export interface MhdCorrespondenceAttachmentInput {
+  driveFileId: string;
+  filename?: string;
+}
+
 export interface MhdSendCorrespondenceInput {
   threadId?: string;
   companyId?: string;
@@ -93,6 +98,7 @@ export interface MhdSendCorrespondenceInput {
   bodyHtml: string;
   bodyText?: string | null;
   inReplyToMessageId?: string | null;
+  attachments?: MhdCorrespondenceAttachmentInput[];
 }
 
 export interface MhdLinkCorrespondenceThreadInput {

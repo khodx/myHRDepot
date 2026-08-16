@@ -314,6 +314,14 @@ export const mhdCorrespondenceService = {
       body_html: input.bodyHtml,
       body_text: input.bodyText?.trim() || null,
       in_reply_to_message_id: input.inReplyToMessageId?.trim() || null,
+      ...(input.attachments?.length
+        ? {
+            attachments: input.attachments.map((attachment) => ({
+              drive_file_id: attachment.driveFileId,
+              ...(attachment.filename ? { filename: attachment.filename } : {}),
+            })),
+          }
+        : {}),
     };
 
     const { data, error } = await supabaseClient.functions.invoke<MhdSendEmailResponse>(
