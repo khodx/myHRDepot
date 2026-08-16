@@ -1,6 +1,8 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type {
   MhdCreateMessageThreadInput,
+  MhdGetOrCreateEntityMessageThreadInput,
+  MhdListMessageRepliesInput,
   MhdListMessagesInput,
   MhdMessage,
   MhdMessageThread,
@@ -8,6 +10,7 @@ import type {
   MhdMessageThreadFilters,
   MhdMessageThreadParticipant,
   MhdMessageThreadParticipantRole,
+  MhdMessageThreadParticipantSummary,
   MhdMessageThreadWithMeta,
   MhdSendMessageInput,
   MhdThreadType,
@@ -31,6 +34,7 @@ type MhdMessageThreadRow = {
 type MhdMessageThreadListRow = MhdMessageThreadRow & {
   unread_count: number;
   participant_count: number;
+  participants: unknown;
   last_message_body: string | null;
 };
 
@@ -56,6 +60,8 @@ type MhdMessageRow = {
   created_at: string;
   edited_at: string | null;
   deleted_at: string | null;
+  parent_message_id: string | null;
+  reply_count: number;
 };
 
 type MhdMessageThreadDetailRow = MhdMessageThreadRow & {
@@ -84,8 +90,22 @@ function mapMessageThreadWithMeta(row: MhdMessageThreadListRow): MhdMessageThrea
     ...mapMessageThread(row),
     unreadCount: row.unread_count ?? 0,
     participantCount: row.participant_count ?? 0,
+    participants: normalizeParticipantSummaries(row.participants),
     lastMessageBody: row.last_message_body ?? null,
   };
+}
+
+function normalizeParticipantSummaries(value: unknown): MhdMessageThreadParticipantSummary[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((entry): entry is { user_id: unknown; display_name: unknown } =>
+      typeof entry === 'object' && entry !== null,
+    )
+    .map((entry) => ({
+      userId: String((entry as { user_id?: unknown }).user_id ?? ''),
+      displayName: String((entry as { display_name?: unknown }).display_name ?? 'Unknown user'),
+    }))
+    .filter((entry) => entry.userId !== '');
 }
 
 function mapParticipant(row: MhdMessageThreadParticipantRow): MhdMessageThreadParticipant {
@@ -113,6 +133,8 @@ function mapMessage(row: MhdMessageRow): MhdMessage {
     createdAt: row.created_at,
     editedAt: row.edited_at ?? null,
     deletedAt: row.deleted_at ?? null,
+    parentMessageId: row.parent_message_id ?? null,
+    replyCount: row.reply_count ?? 0,
   };
 }
 
@@ -162,6 +184,18 @@ export const mhdMessagingService = {
     return (data ?? []).map(mapMessage);
   },
 
+  async listReplies(input: MhdListMessageRepliesInput): Promise<MhdMessage[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_message_replies', {
+        p_parent_message_id: input.parentMessageId,
+        p_limit: input.limit ?? 100,
+      })
+      .returns<MhdMessageRow[]>();
+
+    if (error) throw new Error('Unable to list message replies: ' + error.message);
+    return (data ?? []).map(mapMessage);
+  },
+
   async createThread(input: MhdCreateMessageThreadInput): Promise<string> {
     const { data, error } = await supabaseClient.rpc('mhd_create_message_thread', {
       p_company_id: input.companyId,
@@ -177,10 +211,23 @@ export const mhdMessagingService = {
     return data as string;
   },
 
+  async getOrCreateEntityThread(input: MhdGetOrCreateEntityMessageThreadInput): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_get_or_create_entity_message_thread', {
+      p_entity_type: input.entityType,
+      p_entity_id: input.entityId,
+      p_company_id: input.companyId,
+      p_initial_participant_ids: input.initialParticipantUserIds ?? undefined,
+    });
+
+    if (error) throw new Error('Unable to get or create the entity message thread: ' + error.message);
+    return data as string;
+  },
+
   async sendMessage(input: MhdSendMessageInput): Promise<string> {
     const { data, error } = await supabaseClient.rpc('mhd_send_message', {
       p_thread_id: input.threadId,
       p_body: input.body.trim(),
+      p_parent_message_id: input.parentMessageId ?? undefined,
     });
 
     if (error) throw new Error('Unable to send message: ' + error.message);

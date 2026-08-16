@@ -3,7 +3,7 @@ import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonS
 import { MhdRecordTabNav, useMhdRecordTabAction } from '@/components/ui/MhdRecordTabNav';
 import { cn } from '@/utils/cn';
 
-export type MhdLeaveCaseRecordTab = 'detail';
+export type MhdLeaveCaseRecordTab = 'detail' | 'messages';
 
 interface MhdLeaveCaseRecordTabsProps {
   caseId: string;
@@ -45,6 +45,7 @@ export function MhdLeaveCaseRecordTabs({
 
   const tabs: Array<{ key: MhdLeaveCaseRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/leaves/${caseId}` },
+    { key: 'messages', label: 'Messages', to: `/leaves/${caseId}/messages` },
   ];
 
   return (

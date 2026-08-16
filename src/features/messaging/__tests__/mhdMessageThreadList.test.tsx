@@ -19,6 +19,11 @@ const thread: MhdMessageThreadWithMeta = {
   isArchived: false,
   unreadCount: 2,
   participantCount: 3,
+  participants: [
+    { userId: 'user-001', displayName: 'Priya Natarajan' },
+    { userId: 'user-002', displayName: 'Desmond Ashworth' },
+    { userId: 'user-003', displayName: 'Renata Oduya' },
+  ],
   lastMessageBody: 'Can you review this?',
 };
 
@@ -29,6 +34,7 @@ describe('MhdMessageThreadList', () => {
         threads={[]}
         selectedThreadId={null}
         isLoading
+        currentUserId={null}
         onSelect={vi.fn()}
       />,
     );
@@ -37,7 +43,9 @@ describe('MhdMessageThreadList', () => {
   });
 
   it('should render an empty state when there are no threads', () => {
-    render(<MhdMessageThreadList threads={[]} selectedThreadId={null} onSelect={vi.fn()} />);
+    render(
+      <MhdMessageThreadList threads={[]} selectedThreadId={null} currentUserId={null} onSelect={vi.fn()} />,
+    );
 
     expect(screen.getByText('No conversations yet')).toBeInTheDocument();
     expect(screen.getByText('Start a direct message with another user.')).toBeInTheDocument();
@@ -51,13 +59,14 @@ describe('MhdMessageThreadList', () => {
       <MhdMessageThreadList
         threads={[thread]}
         selectedThreadId={null}
+        currentUserId="user-001"
         onSelect={onSelect}
       />,
     );
 
     expect(screen.getByRole('button', { name: /Benefits question/i })).toBeInTheDocument();
     expect(screen.getByText('Can you review this?')).toBeInTheDocument();
-    expect(screen.getByText('3 participants')).toBeInTheDocument();
+    expect(screen.getByText('Desmond Ashworth, Renata Oduya')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Benefits question/i }));

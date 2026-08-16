@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdEntityMessagingPanel } from '@/components/ui/MhdEntityMessagingPanel';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanRevealEncryptedFields } from '@/appshell/mhdRouteAccess';
 import type { MhdFormSubmission } from '../Types';
@@ -8,6 +9,8 @@ import { mhdFormService } from '../Service';
 
 interface MhdFormSubmissionReviewProps {
   submission: MhdFormSubmission | null;
+  companyId: string | null;
+  currentUserId: string | null;
 }
 
 interface MhdEncryptedValueCellProps {
@@ -76,7 +79,11 @@ function MhdEncryptedValueCell({ submissionId, fieldId, canReveal }: MhdEncrypte
   );
 }
 
-export function MhdFormSubmissionReview({ submission }: MhdFormSubmissionReviewProps) {
+export function MhdFormSubmissionReview({
+  submission,
+  companyId,
+  currentUserId,
+}: MhdFormSubmissionReviewProps) {
   const { roles } = useMhdAuth();
   const canReveal = mhdCanRevealEncryptedFields(roles);
 
@@ -91,66 +98,75 @@ export function MhdFormSubmissionReview({ submission }: MhdFormSubmissionReviewP
   const entries = Object.entries(submission.values);
 
   return (
-    <MhdCard className="p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            {submission.referenceId}
-          </p>
-          <h3 className="mt-1 text-lg font-semibold text-foreground">{submission.status}</h3>
+    <div className="space-y-4">
+      <MhdCard className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {submission.referenceId}
+            </p>
+            <h3 className="mt-1 text-lg font-semibold text-foreground">{submission.status}</h3>
+          </div>
+          <div className="text-right text-xs text-muted-foreground">
+            <p>Created {new Date(submission.createdAt).toLocaleString()}</p>
+            {submission.submittedAt ? (
+              <p>Submitted {new Date(submission.submittedAt).toLocaleString()}</p>
+            ) : null}
+          </div>
         </div>
-        <div className="text-right text-xs text-muted-foreground">
-          <p>Created {new Date(submission.createdAt).toLocaleString()}</p>
-          {submission.submittedAt ? (
-            <p>Submitted {new Date(submission.submittedAt).toLocaleString()}</p>
-          ) : null}
-        </div>
-      </div>
 
-      <div className="mt-4 border-t border-border pt-4">
-        {entries.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No submission values were recorded.</p>
-        ) : (
-          <dl className="grid gap-3">
-            {entries.map(([fieldId, value]) => (
-              <div key={fieldId} className="rounded-md border border-border bg-muted p-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {fieldId}
-                </dt>
-                <dd className="mt-1 text-sm text-slate-800 whitespace-pre-wrap">
-                  {mhdIsEncryptedFormValue(value) ? (
-                    // Keyed on submission+field so switching submissions remounts the
-                    // cell and any transiently revealed plaintext is discarded.
-                    <MhdEncryptedValueCell
-                      key={`${submission.id}-${fieldId}`}
-                      submissionId={submission.id}
-                      fieldId={fieldId}
-                      canReveal={canReveal}
-                    />
-                  ) : mhdIsFormFileValue(value) ? (
-                    value.driveWebViewLink ? (
-                      <a
-                        href={value.driveWebViewLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-accent hover:text-accent-hover"
-                      >
-                        {value.fileName}
-                      </a>
+        <div className="mt-4 border-t border-border pt-4">
+          {entries.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No submission values were recorded.</p>
+          ) : (
+            <dl className="grid gap-3">
+              {entries.map(([fieldId, value]) => (
+                <div key={fieldId} className="rounded-md border border-border bg-muted p-3">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {fieldId}
+                  </dt>
+                  <dd className="mt-1 text-sm text-slate-800 whitespace-pre-wrap">
+                    {mhdIsEncryptedFormValue(value) ? (
+                      // Keyed on submission+field so switching submissions remounts the
+                      // cell and any transiently revealed plaintext is discarded.
+                      <MhdEncryptedValueCell
+                        key={`${submission.id}-${fieldId}`}
+                        submissionId={submission.id}
+                        fieldId={fieldId}
+                        canReveal={canReveal}
+                      />
+                    ) : mhdIsFormFileValue(value) ? (
+                      value.driveWebViewLink ? (
+                        <a
+                          href={value.driveWebViewLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium text-accent hover:text-accent-hover"
+                        >
+                          {value.fileName}
+                        </a>
+                      ) : (
+                        value.fileName
+                      )
+                    ) : typeof value === 'object' ? (
+                      JSON.stringify(value, null, 2)
                     ) : (
-                      value.fileName
-                    )
-                  ) : typeof value === 'object' ? (
-                    JSON.stringify(value, null, 2)
-                  ) : (
-                    String(value)
-                  )}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        )}
-      </div>
-    </MhdCard>
+                      String(value)
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      </MhdCard>
+
+      <MhdEntityMessagingPanel
+        entityType="FORM_SUBMISSION"
+        entityId={submission.id}
+        companyId={companyId}
+        currentUserId={currentUserId}
+      />
+    </div>
   );
 }

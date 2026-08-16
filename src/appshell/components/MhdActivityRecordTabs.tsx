@@ -1,6 +1,6 @@
 import { MhdRecordTabNav } from '@/components/ui/MhdRecordTabNav';
 
-export type MhdActivityRecordTab = 'detail';
+export type MhdActivityRecordTab = 'detail' | 'messages';
 
 interface MhdActivityRecordTabsProps {
   activityId: string;
@@ -30,6 +30,7 @@ export function MhdActivityRecordTabs({
 }: MhdActivityRecordTabsProps) {
   const tabs: Array<{ key: MhdActivityRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/activities/${activityId}` },
+    { key: 'messages', label: 'Messages', to: `/activities/${activityId}/messages` },
   ];
 
   return (

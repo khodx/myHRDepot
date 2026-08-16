@@ -1,11 +1,11 @@
 import { MessageSquare } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { mhdTaskService } from '@/features/tasks/Service';
-import { useMhdMessageThread, useMhdMessages, useMhdMarkThreadRead } from '../Hook';
-import { mhdMessagingService } from '../Service';
+import { useMhdMessageThread, useMhdMessages, useMhdMarkThreadRead } from '@/features/messaging/Hook';
+import { MhdManageParticipantsPanel } from './MhdManageParticipantsPanel';
 import { MhdMessageComposer } from './MhdMessageComposer';
 import { MhdMessageItem } from './MhdMessageItem';
 
@@ -18,7 +18,6 @@ export function MhdMessageThreadView({ threadId, currentUserId }: MhdMessageThre
   const thread = useMhdMessageThread(threadId);
   const messages = useMhdMessages(threadId);
   const { mutate: markThreadRead } = useMhdMarkThreadRead(threadId ?? '');
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (threadId) {
@@ -45,16 +44,10 @@ export function MhdMessageThreadView({ threadId, currentUserId }: MhdMessageThre
     }
     return map;
   }, [assignableUsers.data]);
-
-  async function handleDelete(messageId: string) {
-    setError(null);
-    try {
-      await mhdMessagingService.deleteMessage(messageId);
-      await Promise.all([thread.refetch(), messages.refetch()]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to delete message.');
-    }
-  }
+  const resolveSenderName = useCallback(
+    (userId: string) => senderNamesByUserId.get(userId) ?? null,
+    [senderNamesByUserId],
+  );
 
   if (!threadId) {
     return (
@@ -72,9 +65,13 @@ export function MhdMessageThreadView({ threadId, currentUserId }: MhdMessageThre
         <MhdCardHeader
           title={thread.data?.subject || 'Direct message'}
           action={
-            <span className="text-xs text-muted-foreground">
-              {thread.data?.participants.length ?? 0} participants
-            </span>
+            <MhdManageParticipantsPanel
+              threadId={threadId}
+              companyId={thread.data?.companyId ?? null}
+              participants={thread.data?.participants ?? []}
+              resolveSenderName={resolveSenderName}
+              currentUserIsOwner={currentUserIsOwner}
+            />
           }
           className="mb-1"
         />
@@ -92,17 +89,17 @@ export function MhdMessageThreadView({ threadId, currentUserId }: MhdMessageThre
               <MhdMessageItem
                 key={message.id}
                 message={message}
+                threadId={threadId}
                 currentUserId={currentUserId}
-                senderName={senderNamesByUserId.get(message.senderUserId) ?? null}
+                resolveSenderName={resolveSenderName}
+                currentUserIsOwner={currentUserIsOwner}
                 canDelete={message.senderUserId === currentUserId || currentUserIsOwner}
-                onDelete={handleDelete}
               />
             ))}
           </ul>
         )}
       </div>
 
-      {error && <p className="px-4 pb-2 text-xs text-red-600">{error}</p>}
       <MhdMessageComposer threadId={threadId} />
     </MhdCard>
   );

@@ -12,7 +12,7 @@ import { MhdFormRecordTabs } from './MhdFormRecordTabs';
 export function MhdFormSubmissionsPage() {
   const { formId } = useParams<{ formId: string }>();
   const location = useLocation();
-  const { roles } = useMhdAuth();
+  const { roles, profile } = useMhdAuth();
   const canMutate = mhdCanMutateForms(roles);
   const [searchParams] = useSearchParams();
   const requestedSubmissionId = searchParams.get('submissionId');
@@ -136,7 +136,11 @@ export function MhdFormSubmissionsPage() {
             </div>
           </MhdCard>
 
-          <MhdFormSubmissionReview submission={selectedSubmission} />
+          <MhdFormSubmissionReview
+            submission={selectedSubmission}
+            companyId={form?.companyId ?? null}
+            currentUserId={profile?.userId ?? null}
+          />
         </div>
       </div>
     </div>

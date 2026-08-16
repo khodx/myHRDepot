@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
 import { MhdTaskStatusBadge } from './MhdTaskStatusBadge';
 import { MhdTaskPriorityBadge } from './MhdTaskPriorityBadge';
@@ -6,16 +7,16 @@ import { mhdFormatDate } from '@/utils/mhdDateFormat';
 
 interface MhdSubtaskListProps {
   subtasks: MhdSubtask[];
+  taskId: string;
   onEdit: (subtask: MhdSubtask) => void;
   onDelete: (subtaskId: string) => void;
 }
 
 /**
- * Inline edit/delete on each row — subtasks have no detail page of their
- * own, and there is deliberately no child page beyond this list (no
- * subtasks-of-subtasks).
+ * Inline edit/delete on each row, plus a link to the subtask's own detail page
+ * (added for messaging support) - there is still no subtasks-of-subtasks nesting.
  */
-export function MhdSubtaskList({ subtasks, onEdit, onDelete }: MhdSubtaskListProps) {
+export function MhdSubtaskList({ subtasks, taskId, onEdit, onDelete }: MhdSubtaskListProps) {
   if (subtasks.length === 0) {
     return <p className="text-sm text-muted-foreground">No subtasks yet.</p>;
   }
@@ -45,6 +46,12 @@ export function MhdSubtaskList({ subtasks, onEdit, onDelete }: MhdSubtaskListPro
             className="w-32"
           />
           <div className="flex shrink-0 items-center gap-2">
+            <Link
+              to={`/tasks/${taskId}/subtasks/${subtask.id}`}
+              className="text-xs font-medium text-accent-hover hover:underline"
+            >
+              View
+            </Link>
             <button
               type="button"
               onClick={() => onEdit(subtask)}

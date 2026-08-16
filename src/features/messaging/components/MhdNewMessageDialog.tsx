@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdMultiSelectCombobox } from '@/components/ui/MhdMultiSelectCombobox';
 import { mhdTaskService } from '@/features/tasks/Service';
 import { mhdCreateMessageThreadSchema } from '../Schemas';
 import { useMhdCreateMessageThread } from '../Hook';
@@ -124,27 +125,23 @@ export function MhdNewMessageDialog({
             </div>
           )}
 
-          <label className="text-sm font-medium text-foreground">
-            Participants
-            <select
-              multiple
-              value={participantUserIds}
-              onChange={(event) =>
-                setParticipantUserIds(
-                  Array.from(event.currentTarget.selectedOptions).map((option) => option.value),
-                )
-              }
-              className="mt-1 min-h-32 w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
-            >
-              {(users.data ?? [])
+          <div>
+            <span className="text-sm font-medium text-foreground">Participants</span>
+            <MhdMultiSelectCombobox
+              className="mt-1"
+              options={(users.data ?? [])
                 .filter((user) => user.id !== currentUserId)
-                .map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.displayName} {user.email ? `(${user.email})` : ''}
-                  </option>
-                ))}
-            </select>
-          </label>
+                .map((user) => ({
+                  id: user.id,
+                  label: user.displayName,
+                  sublabel: user.email || undefined,
+                }))}
+              value={participantUserIds}
+              onChange={setParticipantUserIds}
+              placeholder="Search people…"
+              emptyMessage="No matching people."
+            />
+          </div>
 
           <label className="text-sm font-medium text-foreground">
             Message

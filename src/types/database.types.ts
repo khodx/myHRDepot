@@ -11801,6 +11801,64 @@ export type Database = {
           },
         ]
       }
+      message_versions: {
+        Row: {
+          body: string
+          change_type: string
+          changed_at: string
+          changed_by: string
+          company_id: string
+          id: string
+          message_id: string
+          reference_id: string
+          version_number: number
+        }
+        Insert: {
+          body: string
+          change_type: string
+          changed_at?: string
+          changed_by: string
+          company_id: string
+          id?: string
+          message_id: string
+          reference_id: string
+          version_number: number
+        }
+        Update: {
+          body?: string
+          change_type?: string
+          changed_at?: string
+          changed_by?: string
+          company_id?: string
+          id?: string
+          message_id?: string
+          reference_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_versions_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_versions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_versions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           body: string
@@ -11810,6 +11868,7 @@ export type Database = {
           edited_at: string | null
           id: string
           is_system: boolean
+          parent_message_id: string | null
           reference_id: string
           sender_user_id: string
           thread_id: string
@@ -11822,6 +11881,7 @@ export type Database = {
           edited_at?: string | null
           id?: string
           is_system?: boolean
+          parent_message_id?: string | null
           reference_id: string
           sender_user_id: string
           thread_id: string
@@ -11834,6 +11894,7 @@ export type Database = {
           edited_at?: string | null
           id?: string
           is_system?: boolean
+          parent_message_id?: string | null
           reference_id?: string
           sender_user_id?: string
           thread_id?: string
@@ -11844,6 +11905,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_parent_message_id_fkey"
+            columns: ["parent_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
           {
@@ -21056,6 +21124,10 @@ export type Database = {
         Args: { p_person_id: string }
         Returns: boolean
       }
+      mhd_can_view_linked_entity: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: boolean
+      }
       mhd_can_view_message_thread: {
         Args: { p_thread_id: string }
         Returns: boolean
@@ -22344,6 +22416,15 @@ export type Database = {
           reference_id: string
           status: string
         }[]
+      }
+      mhd_get_or_create_entity_message_thread: {
+        Args: {
+          p_company_id: string
+          p_entity_id: string
+          p_entity_type: string
+          p_initial_participant_ids?: string[]
+        }
+        Returns: string
       }
       mhd_get_performance_review: {
         Args: { p_review_id: string }
@@ -24015,6 +24096,23 @@ export type Database = {
           status: string
         }[]
       }
+      mhd_list_message_replies: {
+        Args: { p_limit?: number; p_parent_message_id: string }
+        Returns: {
+          body: string
+          company_id: string
+          created_at: string
+          deleted_at: string
+          edited_at: string
+          id: string
+          is_system: boolean
+          parent_message_id: string
+          reference_id: string
+          reply_count: number
+          sender_user_id: string
+          thread_id: string
+        }[]
+      }
       mhd_list_message_threads: {
         Args: {
           p_entity_id?: string
@@ -24034,6 +24132,7 @@ export type Database = {
           last_message_at: string
           last_message_body: string
           participant_count: number
+          participants: Json
           reference_id: string
           subject: string
           thread_type: string
@@ -24051,7 +24150,9 @@ export type Database = {
           edited_at: string
           id: string
           is_system: boolean
+          parent_message_id: string
           reference_id: string
+          reply_count: number
           sender_user_id: string
           thread_id: string
         }[]
@@ -24238,6 +24339,7 @@ export type Database = {
           id: string
           last_name: string
           middle_name: string
+          photo_path: string
           preferred_name: string
           primary_email: string
           primary_mobile: string
@@ -26018,7 +26120,11 @@ export type Database = {
         }[]
       }
       mhd_send_message: {
-        Args: { p_body: string; p_thread_id: string }
+        Args: {
+          p_body: string
+          p_parent_message_id?: string
+          p_thread_id: string
+        }
         Returns: string
       }
       mhd_send_signature_reminder: {

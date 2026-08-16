@@ -97,6 +97,7 @@ describe('mhdMessagingService', () => {
           isArchived: false,
           unreadCount: 2,
           participantCount: 3,
+          participants: [],
           lastMessageBody: 'Can you review this?',
         },
       ]);
@@ -233,6 +234,8 @@ describe('mhdMessagingService', () => {
         createdAt: '2026-07-01T10:05:00.000Z',
         editedAt: null,
         deletedAt: null,
+        parentMessageId: null,
+        replyCount: 0,
       });
     });
 

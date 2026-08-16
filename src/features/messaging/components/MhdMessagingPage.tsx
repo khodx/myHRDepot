@@ -6,7 +6,7 @@ import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdMessageThreads } from '../Hook';
 import { MhdMessageThreadList } from './MhdMessageThreadList';
-import { MhdMessageThreadView } from './MhdMessageThreadView';
+import { MhdMessageThreadView } from '@/components/ui/MhdMessageThreadView';
 import { MhdNewMessageDialog } from './MhdNewMessageDialog';
 import { MhdCommunicationsTabs } from '@/appshell/components/MhdCommunicationsTabs';
 
@@ -48,6 +48,7 @@ export function MhdMessagingPage() {
             threads={threads.data ?? []}
             selectedThreadId={activeThreadId}
             isLoading={threads.isLoading}
+            currentUserId={authUserId}
             onSelect={setSelectedThreadId}
           />
         </MhdCard>

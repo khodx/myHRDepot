@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdMessagingService } from './Service';
 import type {
   MhdCreateMessageThreadInput,
+  MhdGetOrCreateEntityMessageThreadInput,
   MhdListMessagesInput,
   MhdMessageThreadFilters,
   MhdSendMessageInput,
@@ -11,6 +12,7 @@ export const mhdMessagingQueryKeys = {
   list: (filters: MhdMessageThreadFilters = {}) => ['mhd-messaging', 'threads', filters] as const,
   detail: (threadId: string | null) => ['mhd-messaging', 'thread', threadId ?? ''] as const,
   messages: (threadId: string | null) => ['mhd-messaging', 'messages', threadId ?? ''] as const,
+  replies: (parentMessageId: string | null) => ['mhd-messaging', 'replies', parentMessageId ?? ''] as const,
 };
 
 function useRefresh(threadId?: string | null) {
@@ -55,6 +57,24 @@ export function useMhdMessages(threadId: string | null, input?: Omit<MhdListMess
   });
 }
 
+export function useMhdMessageReplies(parentMessageId: string | null, limit?: number) {
+  return useQuery({
+    queryKey: mhdMessagingQueryKeys.replies(parentMessageId),
+    queryFn: () => mhdMessagingService.listReplies({ parentMessageId: parentMessageId!, limit }),
+    enabled: Boolean(parentMessageId),
+    refetchInterval: 60_000,
+  });
+}
+
+export function useMhdEntityMessageThread(input: MhdGetOrCreateEntityMessageThreadInput | null) {
+  return useQuery({
+    queryKey: ['mhd-messaging', 'entity-thread', input?.entityType ?? '', input?.entityId ?? ''],
+    queryFn: () => mhdMessagingService.getOrCreateEntityThread(input!),
+    enabled: Boolean(input),
+    staleTime: 5 * 60_000,
+  });
+}
+
 export function useMhdCreateMessageThread() {
   const refresh = useRefresh();
   return useMutation({
@@ -65,10 +85,22 @@ export function useMhdCreateMessageThread() {
 
 export function useMhdSendMessage(threadId: string) {
   const refresh = useRefresh(threadId);
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: Omit<MhdSendMessageInput, 'threadId'>) =>
-      mhdMessagingService.sendMessage({ threadId, body: input.body }),
-    onSuccess: refresh,
+      mhdMessagingService.sendMessage({
+        threadId,
+        body: input.body,
+        parentMessageId: input.parentMessageId,
+      }),
+    onSuccess: (_data, variables) => {
+      refresh();
+      if (variables.parentMessageId) {
+        void queryClient.invalidateQueries({
+          queryKey: mhdMessagingQueryKeys.replies(variables.parentMessageId),
+        });
+      }
+    },
   });
 }
 
@@ -85,6 +117,40 @@ export function useMhdArchiveThread(threadId: string) {
   return useMutation({
     mutationFn: (isArchived: boolean) => mhdMessagingService.archiveThread(threadId, isArchived),
     onSuccess: refresh,
+  });
+}
+
+export function useMhdEditMessage(threadId: string) {
+  const refresh = useRefresh(threadId);
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { messageId: string; body: string; parentMessageId?: string | null }) =>
+      mhdMessagingService.editMessage(input.messageId, input.body),
+    onSuccess: (_data, variables) => {
+      refresh();
+      if (variables.parentMessageId) {
+        void queryClient.invalidateQueries({
+          queryKey: mhdMessagingQueryKeys.replies(variables.parentMessageId),
+        });
+      }
+    },
+  });
+}
+
+export function useMhdDeleteMessage(threadId: string) {
+  const refresh = useRefresh(threadId);
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { messageId: string; parentMessageId?: string | null }) =>
+      mhdMessagingService.deleteMessage(input.messageId),
+    onSuccess: (_data, variables) => {
+      refresh();
+      if (variables.parentMessageId) {
+        void queryClient.invalidateQueries({
+          queryKey: mhdMessagingQueryKeys.replies(variables.parentMessageId),
+        });
+      }
+    },
   });
 }
 

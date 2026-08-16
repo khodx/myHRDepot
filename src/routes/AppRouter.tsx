@@ -74,6 +74,10 @@ const MhdTaskDetailPage = lazyPage(
   () => import('@/appshell/components/MhdTaskDetailPage'),
   'MhdTaskDetailPage',
 );
+const MhdSubtaskDetailPage = lazyPage(
+  () => import('@/features/tasks/components/MhdSubtaskDetailPage'),
+  'MhdSubtaskDetailPage',
+);
 const MhdTaskNotesPage = lazyPage(
   () => import('@/features/notes/components/MhdTaskNotesPage'),
   'MhdTaskNotesPage',
@@ -90,6 +94,10 @@ const MhdActivityDetailPage = lazyPage(
   () => import('@/features/activities/components/MhdActivityDetailPage'),
   'MhdActivityDetailPage',
 );
+const MhdActivityMessagesPage = lazyPage(
+  () => import('@/features/messaging/components/MhdActivityMessagesPage'),
+  'MhdActivityMessagesPage',
+);
 const MhdTaskActivitiesPage = lazyPage(
   () => import('@/features/activities/components/MhdTaskActivitiesPage'),
   'MhdTaskActivitiesPage',
@@ -101,6 +109,10 @@ const MhdTaskAttachmentsPage = lazyPage(
 const MhdTaskReportsPage = lazyPage(
   () => import('@/features/documents/components/MhdTaskReportsPage'),
   'MhdTaskReportsPage',
+);
+const MhdTaskMessagesPage = lazyPage(
+  () => import('@/features/messaging/components/MhdTaskMessagesPage'),
+  'MhdTaskMessagesPage',
 );
 const MhdTaskDashboardReportPage = lazyPage(
   () => import('@/features/tasks/components/MhdTaskDashboardReportPage'),
@@ -356,6 +368,10 @@ const MhdLeaveCaseDetailPage = lazyPage(
   () => import('@/features/leaves/components/MhdLeaveCaseDetailPage'),
   'MhdLeaveCaseDetailPage',
 );
+const MhdLeaveCaseMessagesPage = lazyPage(
+  () => import('@/features/messaging/components/MhdLeaveCaseMessagesPage'),
+  'MhdLeaveCaseMessagesPage',
+);
 const MhdAccommodationsPage = lazyPage(
   () => import('@/features/accommodations/components/MhdAccommodationsPage'),
   'MhdAccommodationsPage',
@@ -363,6 +379,10 @@ const MhdAccommodationsPage = lazyPage(
 const MhdAccommodationCaseDetailPage = lazyPage(
   () => import('@/features/accommodations/components/MhdAccommodationCaseDetailPage'),
   'MhdAccommodationCaseDetailPage',
+);
+const MhdAccommodationCaseMessagesPage = lazyPage(
+  () => import('@/features/messaging/components/MhdAccommodationCaseMessagesPage'),
+  'MhdAccommodationCaseMessagesPage',
 );
 const MhdInvestigationsPage = lazyPage(
   () => import('@/features/investigations/components/MhdInvestigationsPage'),
@@ -534,6 +554,11 @@ function MhdAppRoutes() {
                 <Route path="/tasks/:taskId/activities" element={<MhdTaskActivitiesPage />} />
                 <Route path="/tasks/:taskId/attachments" element={<MhdTaskAttachmentsPage />} />
                 <Route path="/tasks/:taskId/reports" element={<MhdTaskReportsPage />} />
+                <Route path="/tasks/:taskId/messages" element={<MhdTaskMessagesPage />} />
+                <Route
+                  path="/tasks/:taskId/subtasks/:subtaskId"
+                  element={<MhdSubtaskDetailPage />}
+                />
                 <Route path="/tasks/dashboard-report" element={<MhdTaskDashboardReportPage />} />
                 {/* Platform Admin / HR Partner only — see the dedicated
                   '/tasks/:taskId/audit' segment-pattern rule in
@@ -542,6 +567,10 @@ function MhdAppRoutes() {
                 <Route path="/tasks/:taskId/audit" element={<MhdTaskAuditPage />} />
                 <Route path="/activities" element={<MhdActivitiesPage />} />
                 <Route path="/activities/:activityId" element={<MhdActivityDetailPage />} />
+                <Route
+                  path="/activities/:activityId/messages"
+                  element={<MhdActivityMessagesPage />}
+                />
                 <Route path="/calendar" element={<MhdCalendarPage />} />
                 <Route path="/reports" element={<MhdDocumentsPage />} />
                 <Route path="/forms" element={<MhdFormsPage />} />
@@ -668,10 +697,15 @@ function MhdAppRoutes() {
                   Platform Admin / HR Partner. */}
                 <Route path="/leaves" element={<MhdLeavesPage />} />
                 <Route path="/leaves/:caseId" element={<MhdLeaveCaseDetailPage />} />
+                <Route path="/leaves/:caseId/messages" element={<MhdLeaveCaseMessagesPage />} />
                 <Route path="/accommodations" element={<MhdAccommodationsPage />} />
                 <Route
                   path="/accommodations/:caseId"
                   element={<MhdAccommodationCaseDetailPage />}
+                />
+                <Route
+                  path="/accommodations/:caseId/messages"
+                  element={<MhdAccommodationCaseMessagesPage />}
                 />
                 {/* Investigations — the strictest access model. The route admits
                   Platform Admin / HR Partner / Client Admin (see mhdRouteAccess);

@@ -38,11 +38,19 @@ export interface MhdMessage {
   createdAt: string;
   editedAt: string | null;
   deletedAt: string | null;
+  parentMessageId: string | null;
+  replyCount: number;
+}
+
+export interface MhdMessageThreadParticipantSummary {
+  userId: string;
+  displayName: string;
 }
 
 export interface MhdMessageThreadWithMeta extends MhdMessageThread {
   unreadCount: number;
   participantCount: number;
+  participants: MhdMessageThreadParticipantSummary[];
   lastMessageBody: string | null;
 }
 
@@ -79,10 +87,23 @@ export interface MhdCreateMessageThreadInput {
 export interface MhdSendMessageInput {
   threadId: string;
   body: string;
+  parentMessageId?: string | null;
 }
 
 export interface MhdListMessagesInput {
   threadId: string;
   limit?: number;
   before?: string | null;
+}
+
+export interface MhdListMessageRepliesInput {
+  parentMessageId: string;
+  limit?: number;
+}
+
+export interface MhdGetOrCreateEntityMessageThreadInput {
+  entityType: string;
+  entityId: string;
+  companyId: string;
+  initialParticipantUserIds?: string[];
 }

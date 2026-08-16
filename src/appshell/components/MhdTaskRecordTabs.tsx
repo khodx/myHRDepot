@@ -12,6 +12,7 @@ export type MhdTaskRecordTab =
   | 'activities'
   | 'attachments'
   | 'reports'
+  | 'messages'
   | 'audit';
 
 // Same privileged set as the /tasks/:taskId/audit route rule in
@@ -63,6 +64,7 @@ export function MhdTaskRecordTabs({
     { key: 'attachments', label: 'Attachments', to: `/tasks/${taskId}/attachments` },
     { key: 'activities', label: 'Activities', to: `/tasks/${taskId}/activities` },
     { key: 'reports', label: 'Reports', to: `/tasks/${taskId}/reports` },
+    { key: 'messages', label: 'Messages', to: `/tasks/${taskId}/messages` },
     ...(canViewAudit
       ? [{ key: 'audit' as const, label: 'Audit', to: `/tasks/${taskId}/audit` }]
       : []),

@@ -1,14 +1,18 @@
 import { Send } from 'lucide-react';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { mhdSendMessageSchema } from '../Schemas';
-import { useMhdSendMessage } from '../Hook';
+import { cn } from '@/utils/cn';
+import { mhdSendMessageSchema } from '@/features/messaging/Schemas';
+import { useMhdSendMessage } from '@/features/messaging/Hook';
 
 interface MhdMessageComposerProps {
   threadId: string;
+  parentMessageId?: string | null;
+  compact?: boolean;
 }
 
-export function MhdMessageComposer({ threadId }: MhdMessageComposerProps) {
+export function MhdMessageComposer({ threadId, parentMessageId, compact = false }: MhdMessageComposerProps) {
+  const bodyId = useId();
   const [body, setBody] = useState('');
   const [error, setError] = useState<string | null>(null);
   const send = useMhdSendMessage(threadId);
@@ -23,7 +27,7 @@ export function MhdMessageComposer({ threadId }: MhdMessageComposerProps) {
 
     setError(null);
     try {
-      await send.mutateAsync({ body: parsed.data.body });
+      await send.mutateAsync({ body: parsed.data.body, parentMessageId });
       setBody('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to send message.');
@@ -31,18 +35,21 @@ export function MhdMessageComposer({ threadId }: MhdMessageComposerProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-border p-4">
-      <label className="sr-only" htmlFor="mhd-message-body">
+    <form onSubmit={handleSubmit} className={compact ? 'pt-2' : 'border-t border-border p-4'}>
+      <label className="sr-only" htmlFor={bodyId}>
         Message
       </label>
       <div className="flex gap-2">
         <textarea
-          id="mhd-message-body"
+          id={bodyId}
           value={body}
           onChange={(event) => setBody(event.target.value)}
-          rows={2}
-          className="min-h-20 flex-1 resize-y rounded-md border border-border bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-focus-ring"
-          placeholder="Write a message"
+          rows={compact ? 1 : 2}
+          className={cn(
+            compact ? 'min-h-12' : 'min-h-20',
+            'flex-1 resize-y rounded-md border border-border bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-focus-ring',
+          )}
+          placeholder={parentMessageId ? 'Write a reply' : 'Write a message'}
         />
         <Button type="submit" disabled={send.isPending} className="self-end">
           <Send className="h-4 w-4" aria-hidden />

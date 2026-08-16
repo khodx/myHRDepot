@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import type { MhdFormSubmission } from '../Types';
@@ -40,6 +41,17 @@ function mockAuth(roles: MhdAuthRoleName[]) {
     isAuthenticated: true,
     roles,
   });
+}
+
+function renderReview(submission: MhdFormSubmission) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MhdFormSubmissionReview submission={submission} companyId="company-1" currentUserId="user-1" />
+    </QueryClientProvider>,
+  );
 }
 
 const maskedSubmission: MhdFormSubmission = {
@@ -122,7 +134,7 @@ describe('MhdFormSubmissionReview encrypted values', () => {
 
   it('renders a masked placeholder instead of the value', () => {
     mockAuth(['Platform Admin']);
-    render(<MhdFormSubmissionReview submission={maskedSubmission} />);
+    renderReview(maskedSubmission);
 
     expect(screen.getByText('•••••• (encrypted)')).toBeInTheDocument();
     // Non-encrypted values still render normally.
@@ -133,7 +145,7 @@ describe('MhdFormSubmissionReview encrypted values', () => {
     'shows the Reveal button for a %s',
     (role) => {
       mockAuth([role]);
-      render(<MhdFormSubmissionReview submission={maskedSubmission} />);
+      renderReview(maskedSubmission);
 
       expect(screen.getByRole('button', { name: 'Reveal' })).toBeInTheDocument();
     },
@@ -143,7 +155,7 @@ describe('MhdFormSubmissionReview encrypted values', () => {
     'hides the Reveal button for a %s',
     (role) => {
       mockAuth([role]);
-      render(<MhdFormSubmissionReview submission={maskedSubmission} />);
+      renderReview(maskedSubmission);
 
       expect(screen.getByText('•••••• (encrypted)')).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Reveal' })).not.toBeInTheDocument();
@@ -155,7 +167,7 @@ describe('MhdFormSubmissionReview encrypted values', () => {
     mockRpc.mockResolvedValueOnce({ data: '021000021', error: null });
     const user = userEvent.setup();
 
-    render(<MhdFormSubmissionReview submission={maskedSubmission} />);
+    renderReview(maskedSubmission);
 
     await user.click(screen.getByRole('button', { name: 'Reveal' }));
 
@@ -180,7 +192,7 @@ describe('MhdFormSubmissionReview encrypted values', () => {
     });
     const user = userEvent.setup();
 
-    render(<MhdFormSubmissionReview submission={maskedSubmission} />);
+    renderReview(maskedSubmission);
 
     await user.click(screen.getByRole('button', { name: 'Reveal' }));
 

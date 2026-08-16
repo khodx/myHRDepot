@@ -228,6 +228,7 @@ export function MhdTaskDetailPage() {
         )}
         <MhdSubtaskList
           subtasks={subtaskState.subtasks}
+          taskId={task.id}
           onEdit={(subtask) => openSubtaskModal(subtask)}
           onDelete={(subtaskId) => void subtaskState.deleteSubtask(subtaskId)}
         />

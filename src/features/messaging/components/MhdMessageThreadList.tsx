@@ -8,6 +8,7 @@ interface MhdMessageThreadListProps {
   threads: MhdMessageThreadWithMeta[];
   selectedThreadId: string | null;
   isLoading?: boolean;
+  currentUserId: string | null;
   onSelect: (threadId: string) => void;
 }
 
@@ -21,10 +22,25 @@ function formatWhen(value: string | null): string {
   }).format(new Date(value));
 }
 
+function otherParticipants(
+  participants: { userId: string; displayName: string }[],
+  currentUserId: string | null,
+): string[] {
+  return participants.filter((p) => p.userId !== currentUserId).map((p) => p.displayName);
+}
+
+function formatParticipants(others: string[]): string {
+  if (others.length === 0) return 'No other participants';
+  const shown = others.slice(0, 3);
+  const remaining = others.length - shown.length;
+  return remaining > 0 ? `${shown.join(', ')} +${remaining} more` : shown.join(', ');
+}
+
 export function MhdMessageThreadList({
   threads,
   selectedThreadId,
   isLoading,
+  currentUserId,
   onSelect,
 }: MhdMessageThreadListProps) {
   if (isLoading) {
@@ -46,6 +62,7 @@ export function MhdMessageThreadList({
     <div className="divide-y divide-border">
       {threads.map((thread) => {
         const selected = thread.id === selectedThreadId;
+        const others = otherParticipants(thread.participants, currentUserId);
         return (
           <button
             key={thread.id}
@@ -70,7 +87,9 @@ export function MhdMessageThreadList({
               {thread.lastMessageBody ?? 'No messages yet'}
             </span>
             <span className="flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
-              <span>{thread.participantCount} participants</span>
+              <span className="min-w-0 truncate" title={others.length > 0 ? others.join(', ') : 'No other participants'}>
+                {formatParticipants(others)}
+              </span>
               <span>{formatWhen(thread.lastMessageAt)}</span>
             </span>
           </button>
