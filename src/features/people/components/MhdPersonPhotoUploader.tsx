@@ -114,7 +114,15 @@ export function MhdPersonPhotoUploader({ person, onPhotoChanged }: MhdPersonPhot
 
   return (
     <MhdCard className="flex items-center gap-4 p-5">
-      <MhdAvatarCircle name={person.displayName} photoUrl={photoUrlQuery.data} size="lg" />
+      <button
+        type="button"
+        onClick={person.photoPath ? handleEditExisting : () => inputRef.current?.click()}
+        disabled={isSaving || (Boolean(person.photoPath) && !photoUrlQuery.data)}
+        title={person.photoPath ? 'Edit photo' : 'Upload photo'}
+        className="shrink-0 rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-100"
+      >
+        <MhdAvatarCircle name={person.displayName} photoUrl={photoUrlQuery.data} size="lg" />
+      </button>
       <div className="flex-1 space-y-2">
         <p className="text-sm font-medium text-foreground">Profile Photo</p>
         <div className="flex gap-2">

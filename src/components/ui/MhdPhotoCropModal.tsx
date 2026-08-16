@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Cropper, { getInitialCropFromCroppedAreaPixels, type MediaSize, type Size, type Area } from 'react-easy-crop';
-import { RotateCcw, RotateCw } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, RotateCcw, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { mhdCropImageToBlob } from '@/utils/mhdCropImage';
@@ -8,6 +8,9 @@ import { mhdDetectFaceSquareArea } from '@/utils/mhdFaceDetection';
 
 const MHD_CROP_MIN_ZOOM = 1;
 const MHD_CROP_MAX_ZOOM = 3;
+/** Pixels the photo shifts per arrow-button click — a fine nudge for
+ *  alignment past what dragging with a mouse can reliably land on. */
+const MHD_CROP_NUDGE_STEP = 5;
 
 interface MhdPhotoCropModalProps {
   /** Either an object URL of a just-picked file (caller owns it and must
@@ -120,6 +123,14 @@ export function MhdPhotoCropModal({ imageSrc, onCancel, onConfirm }: MhdPhotoCro
     setRotation((current) => (((current + deltaDegrees + 180) % 360) + 360) % 360 - 180);
   }
 
+  // crop.x/crop.y are the photo's own pixel offset (react-easy-crop moves
+  // the image under a fixed frame, not the frame over the image), so a
+  // positive dx/dy here matches dragging the photo itself right/down —
+  // same direction a mouse drag in that direction would produce.
+  function nudgeCrop(dx: number, dy: number) {
+    setCrop((current) => ({ x: current.x + dx, y: current.y + dy }));
+  }
+
   return (
     <MhdModal
       onClose={onCancel}
@@ -202,6 +213,59 @@ export function MhdPhotoCropModal({ imageSrc, onCancel, onConfirm }: MhdPhotoCro
             <RotateCw className="h-4 w-4" aria-hidden />
             <span className="sr-only">Rotate 90° right</span>
           </button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span id="mhd-photo-crop-position-label" className="text-xs font-medium text-muted-foreground">
+            Position
+          </span>
+          <div
+            role="group"
+            aria-labelledby="mhd-photo-crop-position-label"
+            className="grid w-[84px] grid-cols-3 grid-rows-3 gap-1"
+          >
+            <span />
+            <button
+              type="button"
+              onClick={() => nudgeCrop(0, -MHD_CROP_NUDGE_STEP)}
+              title="Move photo up"
+              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <ArrowUp className="h-4 w-4" aria-hidden />
+              <span className="sr-only">Move photo up</span>
+            </button>
+            <span />
+            <button
+              type="button"
+              onClick={() => nudgeCrop(-MHD_CROP_NUDGE_STEP, 0)}
+              title="Move photo left"
+              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden />
+              <span className="sr-only">Move photo left</span>
+            </button>
+            <span />
+            <button
+              type="button"
+              onClick={() => nudgeCrop(MHD_CROP_NUDGE_STEP, 0)}
+              title="Move photo right"
+              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <ArrowRight className="h-4 w-4" aria-hidden />
+              <span className="sr-only">Move photo right</span>
+            </button>
+            <span />
+            <button
+              type="button"
+              onClick={() => nudgeCrop(0, MHD_CROP_NUDGE_STEP)}
+              title="Move photo down"
+              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <ArrowDown className="h-4 w-4" aria-hidden />
+              <span className="sr-only">Move photo down</span>
+            </button>
+            <span />
+          </div>
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
