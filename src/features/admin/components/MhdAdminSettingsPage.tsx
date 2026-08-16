@@ -4,13 +4,15 @@ import { cn } from '@/utils/cn';
 import { MhdAdminOverviewSection } from './MhdAdminOverviewSection';
 import { MhdAdminSystemSection } from './MhdAdminSystemSection';
 import { MhdAdminAuditSection } from './MhdAdminAuditSection';
+import { MhdAdminQuotesSection } from './MhdAdminQuotesSection';
 
-type MhdAdminTab = 'overview' | 'system' | 'audit';
+type MhdAdminTab = 'overview' | 'system' | 'audit' | 'quotes';
 
 const TABS: Array<{ key: MhdAdminTab; label: string }> = [
   { key: 'overview', label: 'Overview' },
   { key: 'system', label: 'System & Compliance' },
   { key: 'audit', label: 'Audit & Activity' },
+  { key: 'quotes', label: 'Quotes' },
 ];
 
 export function MhdAdminSettingsPage() {
@@ -50,6 +52,7 @@ export function MhdAdminSettingsPage() {
       {activeTab === 'overview' && <MhdAdminOverviewSection />}
       {activeTab === 'system' && <MhdAdminSystemSection />}
       {activeTab === 'audit' && <MhdAdminAuditSection />}
+      {activeTab === 'quotes' && <MhdAdminQuotesSection />}
     </div>
   );
 }

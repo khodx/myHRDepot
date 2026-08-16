@@ -3,13 +3,16 @@ import { RefreshCw } from 'lucide-react';
 import { MhdAvatarCircle } from '@/components/ui/MhdAvatar';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdPersonCurrentEmploymentState, useMhdPersonPhotoUrl } from '@/features/people/Hook';
+import { MhdDashboardQuoteOfTheDay } from './MhdDashboardQuoteOfTheDay';
 
 /**
  * Time-of-day greeting driven by the signed-in user's own machine clock
  * (not a server timestamp) so it reflects whatever timezone the PC is set
  * to. Boundaries follow the common 5am–12pm / 12pm–6pm / 6pm–5am convention.
  */
-export function mhdTimeOfDayGreeting(hour: number): 'Good Morning' | 'Good Afternoon' | 'Good Evening' {
+export function mhdTimeOfDayGreeting(
+  hour: number,
+): 'Good Morning' | 'Good Afternoon' | 'Good Evening' {
   if (hour < 12) return 'Good Morning';
   if (hour < 18) return 'Good Afternoon';
   return 'Good Evening';
@@ -151,7 +154,10 @@ interface MhdDashboardGreetingBannerProps {
  * reads as one continuous branded surface, plus a subtle raised bevel (see
  * .mhd-greeting-banner) so it reads as the page's lead panel.
  */
-export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDashboardGreetingBannerProps) {
+export function MhdDashboardGreetingBanner({
+  lastRefreshed,
+  onRefresh,
+}: MhdDashboardGreetingBannerProps) {
   const { profile } = useMhdAuth();
   const employmentStateQuery = useMhdPersonCurrentEmploymentState(profile?.personId ?? null);
   const photoUrlQuery = useMhdPersonPhotoUrl(profile?.photoPath);
@@ -208,6 +214,7 @@ export function MhdDashboardGreetingBanner({ lastRefreshed, onRefresh }: MhdDash
             {greeting}
             {name ? `, ${name} 😊` : ''}!
           </h1>
+          <MhdDashboardQuoteOfTheDay />
         </div>
 
         <div className="flex flex-col items-end gap-[4.36px] text-right">

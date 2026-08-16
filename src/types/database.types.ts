@@ -18449,6 +18449,36 @@ export type Database = {
           },
         ]
       }
+      quotes: {
+        Row: {
+          author: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          quote_text: string
+          source_citation: string | null
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          quote_text: string
+          source_citation?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          quote_text?: string
+          source_citation?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       recruiting_application_stage_history: {
         Row: {
           application_id: string
@@ -21796,6 +21826,24 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_create_quote: {
+        Args: { p_author?: string; p_is_active?: boolean; p_quote_text: string }
+        Returns: {
+          author: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          quote_text: string
+          source_citation: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "quotes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       mhd_create_signature_request: {
         Args: {
           p_actor_user_id?: string
@@ -21922,6 +21970,24 @@ export type Database = {
         Args: { p_company_id?: string }
         Returns: number
       }
+      mhd_dashboard_random_quote: {
+        Args: never
+        Returns: {
+          author: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          quote_text: string
+          source_citation: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "quotes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       mhd_dashboard_recent_activity: {
         Args: { p_company_id?: string; p_limit?: number }
         Returns: {
@@ -22011,6 +22077,7 @@ export type Database = {
         Args: { p_item_id: string }
         Returns: undefined
       }
+      mhd_delete_quote: { Args: { p_quote_id: string }; Returns: undefined }
       mhd_delete_sub_activity: {
         Args: { p_sub_activity_id: string }
         Returns: undefined
@@ -24494,6 +24561,24 @@ export type Database = {
           unit_cost: number
         }[]
       }
+      mhd_list_quotes: {
+        Args: never
+        Returns: {
+          author: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          quote_text: string
+          source_citation: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "quotes"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       mhd_list_roles: {
         Args: { p_company_id?: string }
         Returns: {
@@ -26681,6 +26766,29 @@ export type Database = {
           p_status?: string
         }
         Returns: undefined
+      }
+      mhd_update_quote: {
+        Args: {
+          p_author?: string
+          p_is_active?: boolean
+          p_quote_id: string
+          p_quote_text: string
+        }
+        Returns: {
+          author: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          quote_text: string
+          source_citation: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "quotes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       mhd_update_sub_activity: {
         Args: {
