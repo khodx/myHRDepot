@@ -43,6 +43,16 @@ export interface MhdDashboardActivityItem {
   referenceId: string | null;
 }
 
+// mhd_dashboard_module_alerts() returns ONE flat row — one "needs attention"
+// count per module. Only Tasks/Approvals/Leaves are covered in this first
+// pass (see MhdDashboardModuleLinks.tsx); a module absent here has no
+// attention-count concept and never gets a badge.
+export interface MhdDashboardModuleAlerts {
+  tasksNeedsAttention: number;
+  approvalsNeedsAttention: number;
+  leavesNeedsAttention: number;
+}
+
 // Matches what Hook.ts's useMhdDashboard() actually returns.
 // taskSummary is a single object (or null before/without data), not an array —
 // there is exactly one summary row for the whole dashboard, not one per status.
@@ -50,6 +60,7 @@ export interface MhdDashboardState {
   taskSummary: MhdDashboardTaskSummary | null;
   myTasks: MhdDashboardMyTask[];
   recentActivity: MhdDashboardActivityItem[];
+  moduleAlerts: MhdDashboardModuleAlerts | null;
   isLoading: boolean;
   error: string | null;
   lastRefreshed: Date | null;

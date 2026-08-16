@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Bell } from 'lucide-react';
+import { MhdCountBadge } from '@/components/ui/MhdCountBadge';
 import { useMhdNotifications } from '../Hook';
 import { MhdNotificationPanel } from './MhdNotificationPanel';
 
@@ -16,11 +17,7 @@ export function MhdNotificationBell() {
         className="relative rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
       >
         <Bell className="h-5 w-5" />
-        {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold leading-none text-white">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
+        <MhdCountBadge count={unreadCount} />
       </button>
 
       {isOpen && <MhdNotificationPanel onClose={() => setIsOpen(false)} />}

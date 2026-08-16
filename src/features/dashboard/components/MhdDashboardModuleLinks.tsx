@@ -2,9 +2,23 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdCountBadge } from '@/components/ui/MhdCountBadge';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { useMhdDashboard } from '../Hook';
+import type { MhdDashboardModuleAlerts } from '../Types';
 import { NAV_SECTIONS } from '@/appshell/MhdSidebar';
 import type { NavItem } from '@/appshell/MhdSidebar';
+
+// First pass covers exactly these three modules — not every module has a
+// "needs attention" concept (see mhd_dashboard_module_alerts()'s migration
+// for the per-module scoping rationale). Keyed by route, since that's the
+// tile's stable identity (item.route is both the NavLink `to` and the
+// React key below), not label.
+const ALERT_ROUTE_KEYS: Record<string, keyof MhdDashboardModuleAlerts> = {
+  '/tasks': 'tasksNeedsAttention',
+  '/approvals': 'approvalsNeedsAttention',
+  '/leaves': 'leavesNeedsAttention',
+};
 
 // 15 tones cycle across rows in order; a 16th is reserved exclusively for
 // the row containing "Users" (see mhd-module-tone-16 in global.css) and is
@@ -46,6 +60,7 @@ function useMhdModuleGridColumns(): number {
 
 export function MhdDashboardModuleLinks() {
   const { roles } = useMhdAuth();
+  const { moduleAlerts } = useMhdDashboard();
   const columns = useMhdModuleGridColumns();
   const [query, setQuery] = useState('');
 
@@ -135,12 +150,18 @@ export function MhdDashboardModuleLinks() {
             const toneIndex = row === usersRow ? USERS_RESERVED_TONE : (row % TONE_COUNT) + 1;
             const isGreyRow = row % 2 === 1;
             const descriptionId = `mhd-module-desc-${item.route.replace(/^\//, '').replace(/\//g, '-')}`;
+            const alertKey = ALERT_ROUTE_KEYS[item.route];
+            const alertCount = alertKey ? (moduleAlerts?.[alertKey] ?? 0) : 0;
+            const tileLabel =
+              alertCount > 0
+                ? `${item.label}, ${alertCount} need${alertCount === 1 ? 's' : ''} attention`
+                : item.label;
 
             return (
               <NavLink
                 key={item.route}
                 to={item.route}
-                aria-label={item.label}
+                aria-label={tileLabel}
                 aria-describedby={descriptionId}
                 className={`mhd-module-card flex flex-col gap-2.5 rounded-lg border border-border p-4 text-foreground ${
                   isGreyRow ? 'bg-[var(--mhd-module-row-grey)]' : 'bg-card'
@@ -148,8 +169,9 @@ export function MhdDashboardModuleLinks() {
                 style={{ '--tone': `var(--mhd-module-tone-${toneIndex})` } as CSSProperties}
               >
                 <div className="flex items-center gap-3">
-                  <span className="mhd-module-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]">
+                  <span className="mhd-module-icon relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]">
                     <Icon className="h-[21px] w-[21px]" aria-hidden />
+                    <MhdCountBadge count={alertCount} />
                   </span>
                   <span className="truncate text-[18.15px] font-bold">{item.label}</span>
                   {item.status === 'comingSoon' ? (

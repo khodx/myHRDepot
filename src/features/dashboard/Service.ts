@@ -3,6 +3,7 @@ import type {
   MhdDashboardTaskSummary,
   MhdDashboardMyTask,
   MhdDashboardActivityItem,
+  MhdDashboardModuleAlerts,
 } from './Types';
 
 // getTaskSummary() reads the flat single-row output of
@@ -73,5 +74,21 @@ export const mhdDashboardService = {
       performedAt: String(row.performed_at),
       referenceId: row.reference_id ? String(row.reference_id) : null,
     }));
+  },
+
+  async getModuleAlerts(): Promise<MhdDashboardModuleAlerts> {
+    const { data, error } = await supabaseClient.rpc('mhd_dashboard_module_alerts');
+    if (error) throw new Error(`Module alerts query failed: ${error.message}`);
+    // mhd_dashboard_module_alerts() returns a single row (table function with 1 result)
+    if (!data || data.length === 0) {
+      // Return zero-state when nothing needs attention — never throw on empty DB
+      return { tasksNeedsAttention: 0, approvalsNeedsAttention: 0, leavesNeedsAttention: 0 };
+    }
+    const row = data[0];
+    return {
+      tasksNeedsAttention: Number(row.tasks_needs_attention),
+      approvalsNeedsAttention: Number(row.approvals_needs_attention),
+      leavesNeedsAttention: Number(row.leaves_needs_attention),
+    };
   },
 };

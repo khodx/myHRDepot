@@ -9,6 +9,17 @@ vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => mockUseMhdAuth(),
 }));
 
+const mockUseMhdDashboard = vi.fn();
+vi.mock('../../Hook', () => ({
+  useMhdDashboard: () => mockUseMhdDashboard(),
+}));
+
+function mockModuleAlerts(
+  alerts: { tasksNeedsAttention: number; approvalsNeedsAttention: number; leavesNeedsAttention: number } | null,
+) {
+  mockUseMhdDashboard.mockReturnValue({ moduleAlerts: alerts });
+}
+
 function mockAuth(roles: MhdAuthRoleName[]) {
   mockUseMhdAuth.mockReturnValue({
     isLoading: false,
@@ -43,6 +54,7 @@ async function renderModuleLinks() {
 beforeEach(() => {
   vi.resetModules();
   vi.clearAllMocks();
+  mockModuleAlerts(null);
 });
 
 describe('MhdDashboardModuleLinks', () => {
@@ -170,5 +182,44 @@ describe('MhdDashboardModuleLinks', () => {
     await user.type(screen.getByRole('textbox', { name: 'Search modules' }), 'user');
 
     expect(screen.queryByRole('link', { name: 'Users' })).not.toBeInTheDocument();
+  });
+
+  it('shows an alert badge on a tile whose module has a nonzero attention count', async () => {
+    mockAuth(['Platform Admin']);
+    mockModuleAlerts({ tasksNeedsAttention: 3, approvalsNeedsAttention: 0, leavesNeedsAttention: 0 });
+
+    await renderModuleLinks();
+
+    expect(screen.getByRole('link', { name: 'Tasks, 3 need attention' })).toBeInTheDocument();
+  });
+
+  it('uses singular phrasing for a count of exactly one', async () => {
+    mockAuth(['Platform Admin']);
+    mockModuleAlerts({ tasksNeedsAttention: 0, approvalsNeedsAttention: 1, leavesNeedsAttention: 0 });
+
+    await renderModuleLinks();
+
+    expect(screen.getByRole('link', { name: 'Approvals, 1 needs attention' })).toBeInTheDocument();
+  });
+
+  it('shows no badge and the plain label when every count is zero or alerts have not loaded yet', async () => {
+    mockAuth(['Platform Admin']);
+    mockModuleAlerts(null);
+
+    await renderModuleLinks();
+
+    expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Approvals' })).toBeInTheDocument();
+  });
+
+  it('never badges a module with no attention-count concept, even if it were somehow present in the map', async () => {
+    mockAuth(['Platform Admin']);
+    mockModuleAlerts({ tasksNeedsAttention: 5, approvalsNeedsAttention: 5, leavesNeedsAttention: 5 });
+
+    await renderModuleLinks();
+
+    // People has no entry in ALERT_ROUTE_KEYS, so it must render with its
+    // plain label regardless of what the alerts payload contains.
+    expect(screen.getByRole('link', { name: 'People' })).toBeInTheDocument();
   });
 });

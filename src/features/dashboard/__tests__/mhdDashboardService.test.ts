@@ -166,4 +166,42 @@ describe('mhdDashboardService', () => {
       expect(result[0].referenceId).toBeNull();
     });
   });
+
+  describe('getModuleAlerts', () => {
+    it('maps RPC row to typed alert counts', async () => {
+      mockRpc.mockResolvedValueOnce({
+        data: [
+          {
+            tasks_needs_attention: '3',
+            approvals_needs_attention: '1',
+            leaves_needs_attention: '0',
+          },
+        ],
+        error: null,
+      });
+
+      const result = await mhdDashboardService.getModuleAlerts();
+
+      expect(result).toEqual({
+        tasksNeedsAttention: 3,
+        approvalsNeedsAttention: 1,
+        leavesNeedsAttention: 0,
+      });
+    });
+
+    it('throws on RPC error', async () => {
+      mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'Permission denied' } });
+      await expect(mhdDashboardService.getModuleAlerts()).rejects.toThrow('Permission denied');
+    });
+
+    it('returns an all-zero result when data is empty (never throws on an empty DB)', async () => {
+      mockRpc.mockResolvedValueOnce({ data: [], error: null });
+      const result = await mhdDashboardService.getModuleAlerts();
+      expect(result).toEqual({
+        tasksNeedsAttention: 0,
+        approvalsNeedsAttention: 0,
+        leavesNeedsAttention: 0,
+      });
+    });
+  });
 });

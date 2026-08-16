@@ -21950,6 +21950,14 @@ export type Database = {
           month_start: string
         }[]
       }
+      mhd_dashboard_module_alerts: {
+        Args: { p_company_id?: string }
+        Returns: {
+          approvals_needs_attention: number
+          leaves_needs_attention: number
+          tasks_needs_attention: number
+        }[]
+      }
       mhd_dashboard_my_tasks: {
         Args: { p_company_id?: string; p_limit?: number }
         Returns: {
