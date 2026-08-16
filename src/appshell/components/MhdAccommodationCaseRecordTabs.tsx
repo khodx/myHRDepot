@@ -3,7 +3,7 @@ import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonS
 import { MhdRecordTabNav, useMhdRecordTabAction } from '@/components/ui/MhdRecordTabNav';
 import { cn } from '@/utils/cn';
 
-export type MhdAccommodationCaseRecordTab = 'detail' | 'messages';
+export type MhdAccommodationCaseRecordTab = 'detail' | 'messages' | 'correspondence';
 
 interface MhdAccommodationCaseRecordTabsProps {
   caseId: string;
@@ -45,6 +45,7 @@ export function MhdAccommodationCaseRecordTabs({
   const tabs: Array<{ key: MhdAccommodationCaseRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/accommodations/${caseId}` },
     { key: 'messages', label: 'Messages', to: `/accommodations/${caseId}/messages` },
+    { key: 'correspondence', label: 'Correspondence', to: `/accommodations/${caseId}/correspondence` },
   ];
 
   return (

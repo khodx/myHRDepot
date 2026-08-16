@@ -372,6 +372,10 @@ const MhdLeaveCaseMessagesPage = lazyPage(
   () => import('@/features/messaging/components/MhdLeaveCaseMessagesPage'),
   'MhdLeaveCaseMessagesPage',
 );
+const MhdLeaveCaseCorrespondencePage = lazyPage(
+  () => import('@/features/correspondence/components/MhdLeaveCaseCorrespondencePage'),
+  'MhdLeaveCaseCorrespondencePage',
+);
 const MhdAccommodationsPage = lazyPage(
   () => import('@/features/accommodations/components/MhdAccommodationsPage'),
   'MhdAccommodationsPage',
@@ -383,6 +387,10 @@ const MhdAccommodationCaseDetailPage = lazyPage(
 const MhdAccommodationCaseMessagesPage = lazyPage(
   () => import('@/features/messaging/components/MhdAccommodationCaseMessagesPage'),
   'MhdAccommodationCaseMessagesPage',
+);
+const MhdAccommodationCaseCorrespondencePage = lazyPage(
+  () => import('@/features/correspondence/components/MhdAccommodationCaseCorrespondencePage'),
+  'MhdAccommodationCaseCorrespondencePage',
 );
 const MhdInvestigationsPage = lazyPage(
   () => import('@/features/investigations/components/MhdInvestigationsPage'),
@@ -431,6 +439,10 @@ const MhdRequisitionInterviewGuideRoutePage = lazyPage(
 const MhdApplicationDetailRoutePage = lazyPage(
   () => import('@/features/recruiting/components/MhdApplicationDetailRoutePage'),
   'MhdApplicationDetailRoutePage',
+);
+const MhdApplicationCorrespondencePage = lazyPage(
+  () => import('@/features/correspondence/components/MhdApplicationCorrespondencePage'),
+  'MhdApplicationCorrespondencePage',
 );
 const MhdApplicationInterviewsRoutePage = lazyPage(
   () => import('@/features/recruiting/components/MhdApplicationInterviewsRoutePage'),
@@ -698,6 +710,7 @@ function MhdAppRoutes() {
                 <Route path="/leaves" element={<MhdLeavesPage />} />
                 <Route path="/leaves/:caseId" element={<MhdLeaveCaseDetailPage />} />
                 <Route path="/leaves/:caseId/messages" element={<MhdLeaveCaseMessagesPage />} />
+                <Route path="/leaves/:caseId/correspondence" element={<MhdLeaveCaseCorrespondencePage />} />
                 <Route path="/accommodations" element={<MhdAccommodationsPage />} />
                 <Route
                   path="/accommodations/:caseId"
@@ -706,6 +719,10 @@ function MhdAppRoutes() {
                 <Route
                   path="/accommodations/:caseId/messages"
                   element={<MhdAccommodationCaseMessagesPage />}
+                />
+                <Route
+                  path="/accommodations/:caseId/correspondence"
+                  element={<MhdAccommodationCaseCorrespondencePage />}
                 />
                 {/* Investigations — the strictest access model. The route admits
                   Platform Admin / HR Partner / Client Admin (see mhdRouteAccess);
@@ -796,6 +813,10 @@ function MhdAppRoutes() {
                 <Route
                   path="/recruiting/applications/:appId"
                   element={<MhdApplicationDetailRoutePage />}
+                />
+                <Route
+                  path="/recruiting/applications/:appId/correspondence"
+                  element={<MhdApplicationCorrespondencePage />}
                 />
                 <Route
                   path="/recruiting/applications/:appId/interviews"

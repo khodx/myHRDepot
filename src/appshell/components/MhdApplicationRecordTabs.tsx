@@ -1,6 +1,11 @@
 import { MhdRecordTabNav } from '@/components/ui/MhdRecordTabNav';
 
-export type MhdApplicationRecordTab = 'detail' | 'interviews' | 'evaluation' | 'offer';
+export type MhdApplicationRecordTab =
+  | 'detail'
+  | 'interviews'
+  | 'evaluation'
+  | 'offer'
+  | 'correspondence';
 
 interface MhdApplicationRecordTabsProps {
   appId: string;
@@ -36,6 +41,11 @@ export function MhdApplicationRecordTabs({
     ...(showOfferTab
       ? [{ key: 'offer' as const, label: 'Offer', to: `/recruiting/applications/${appId}/offer` }]
       : []),
+    {
+      key: 'correspondence',
+      label: 'Correspondence',
+      to: `/recruiting/applications/${appId}/correspondence`,
+    },
   ];
 
   return <MhdRecordTabNav tabs={tabs} active={active} className={className} />;
