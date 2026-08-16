@@ -140,10 +140,21 @@ export function MhdProtectedRoute() {
     );
   }
 
+  // Dev-build-only relaxation of the app-ENTRY gate — see the 2026-08-16
+  // amendment in 04.15 Access Security Engine's Specification.md. This does
+  // NOT touch mhd_require_aal2() or any of the 9 sensitive RPCs/edge
+  // functions it guards; those stay fully unconditional in every
+  // environment, so testing one of those flows locally still requires a
+  // real, completed TOTP enrollment. import.meta.env.DEV is a Vite
+  // compile-time constant (already used the same way at
+  // MhdAppShell.tsx:30) — dead-code-eliminated on any `vite build`, which
+  // is the only command a Vercel deployment ever runs, so this can never
+  // evaluate true in production.
   if (
     profile?.personId &&
     !mfaGate.hasVerifiedFactor &&
-    location.pathname !== MHD_ENROLL_MFA_PATH
+    location.pathname !== MHD_ENROLL_MFA_PATH &&
+    !import.meta.env.DEV
   ) {
     return <Navigate to={MHD_ENROLL_MFA_PATH} replace />;
   }
@@ -152,7 +163,8 @@ export function MhdProtectedRoute() {
     profile?.personId &&
     mfaGate.hasVerifiedFactor &&
     mfaGate.needsChallenge &&
-    location.pathname !== MHD_MFA_CHALLENGE_PATH
+    location.pathname !== MHD_MFA_CHALLENGE_PATH &&
+    !import.meta.env.DEV
   ) {
     return <Navigate to={MHD_MFA_CHALLENGE_PATH} replace state={{ from: location }} />;
   }

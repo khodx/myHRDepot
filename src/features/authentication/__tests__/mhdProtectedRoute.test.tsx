@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { MhdProtectedRoute } from '../components/MhdProtectedRoute';
 import type { MhdMfaFactor } from '../Types';
@@ -107,6 +107,17 @@ describe('MhdProtectedRoute', () => {
       data: { currentLevel: 'aal1', nextLevel: 'aal1' },
       error: null,
     });
+    // Every test below verifies real enforcement behavior and must hold as
+    // if in production — Vitest's default test mode otherwise leaves
+    // import.meta.env.DEV true, which would silently make the app-entry
+    // redirects below (the ones this suite exists to check) never fire.
+    // The 2026-08-16 dev-only-relaxation describe block further down
+    // overrides this per test.
+    vi.stubEnv('DEV', false);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it('renders only the loading state while authentication is loading', () => {
@@ -292,5 +303,66 @@ describe('MhdProtectedRoute', () => {
 
     expect(await screen.findByText('Dashboard page')).toBeInTheDocument();
     expect(screen.queryByText('Enroll MFA page')).not.toBeInTheDocument();
+  });
+
+  describe('2026-08-16 dev-build-only app-entry relaxation', () => {
+    it('DEV=true: an account with no verified factor reaches the app instead of enrollment', async () => {
+      vi.stubEnv('DEV', true);
+      mockAuth();
+      mockListMfaFactors.mockResolvedValue([]);
+      mockSupabase.auth.mfa.getAuthenticatorAssuranceLevel.mockResolvedValue({
+        data: { currentLevel: 'aal1', nextLevel: 'aal1' },
+        error: null,
+      });
+
+      renderProtectedRoute(['/dashboard']);
+
+      expect(await screen.findByText('Dashboard page')).toBeInTheDocument();
+      expect(screen.queryByText('Enroll MFA page')).not.toBeInTheDocument();
+    });
+
+    it('DEV=true: an account with a verified factor but an aal1 session reaches the app instead of the challenge', async () => {
+      vi.stubEnv('DEV', true);
+      mockAuth();
+      mockListMfaFactors.mockResolvedValue([
+        { id: 'f1', status: 'verified', friendlyName: 'Authenticator' },
+      ]);
+      mockSupabase.auth.mfa.getAuthenticatorAssuranceLevel.mockResolvedValue({
+        data: { currentLevel: 'aal1', nextLevel: 'aal2' },
+        error: null,
+      });
+
+      renderProtectedRoute(['/dashboard']);
+
+      expect(await screen.findByText('Dashboard page')).toBeInTheDocument();
+      expect(screen.queryByText('MFA challenge page')).not.toBeInTheDocument();
+    });
+
+    it('DEV=false: the same unenrolled account still redirects to enrollment (the relaxation is genuinely gated, not accidentally unconditional)', async () => {
+      vi.stubEnv('DEV', false);
+      mockAuth();
+      mockListMfaFactors.mockResolvedValue([]);
+      mockSupabase.auth.mfa.getAuthenticatorAssuranceLevel.mockResolvedValue({
+        data: { currentLevel: 'aal1', nextLevel: 'aal1' },
+        error: null,
+      });
+
+      renderProtectedRoute(['/dashboard']);
+
+      expect(await screen.findByText('Enroll MFA page')).toBeInTheDocument();
+      expect(screen.queryByText('Dashboard page')).not.toBeInTheDocument();
+    });
+
+    it('DEV=true: an account that already fully satisfies MFA is unaffected (still no bypass of already-verified state)', async () => {
+      vi.stubEnv('DEV', true);
+      mockAuth();
+      mockSatisfiedMfa();
+
+      renderProtectedRoute(['/']);
+
+      expect(await screen.findByText('Protected content')).toBeInTheDocument();
+      expect(screen.queryByText('Enroll MFA page')).not.toBeInTheDocument();
+      expect(screen.queryByText('MFA challenge page')).not.toBeInTheDocument();
+    });
   });
 });
