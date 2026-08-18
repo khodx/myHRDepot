@@ -82,13 +82,39 @@ export const mhdDashboardService = {
     // mhd_dashboard_module_alerts() returns a single row (table function with 1 result)
     if (!data || data.length === 0) {
       // Return zero-state when nothing needs attention — never throw on empty DB
-      return { tasksNeedsAttention: 0, approvalsNeedsAttention: 0, leavesNeedsAttention: 0 };
+      return {
+        tasksNeedsAttention: 0,
+        approvalsNeedsAttention: 0,
+        leavesNeedsAttention: 0,
+        activitiesNeedsAttention: 0,
+        esignatureNeedsAttention: 0,
+        attendanceNeedsAttention: 0,
+        accommodationsNeedsAttention: 0,
+        trainingNeedsAttention: 0,
+        myTrainingNeedsAttention: 0,
+        handbooksNeedsAttention: 0,
+        myHandbooksNeedsAttention: 0,
+        conductNeedsAttention: 0,
+        investigationsNeedsAttention: 0,
+        communicationsNeedsAttention: 0,
+      };
     }
     const row = data[0];
     return {
       tasksNeedsAttention: Number(row.tasks_needs_attention),
       approvalsNeedsAttention: Number(row.approvals_needs_attention),
       leavesNeedsAttention: Number(row.leaves_needs_attention),
+      activitiesNeedsAttention: Number(row.activities_needs_attention),
+      esignatureNeedsAttention: Number(row.esignature_needs_attention),
+      attendanceNeedsAttention: Number(row.attendance_needs_attention),
+      accommodationsNeedsAttention: Number(row.accommodations_needs_attention),
+      trainingNeedsAttention: Number(row.training_needs_attention),
+      myTrainingNeedsAttention: Number(row.my_training_needs_attention),
+      handbooksNeedsAttention: Number(row.handbooks_needs_attention),
+      myHandbooksNeedsAttention: Number(row.my_handbooks_needs_attention),
+      conductNeedsAttention: Number(row.conduct_needs_attention),
+      investigationsNeedsAttention: Number(row.investigations_needs_attention),
+      communicationsNeedsAttention: Number(row.communications_needs_attention),
     };
   },
 };

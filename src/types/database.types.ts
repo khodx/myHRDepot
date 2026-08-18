@@ -21953,9 +21953,20 @@ export type Database = {
       mhd_dashboard_module_alerts: {
         Args: { p_company_id?: string }
         Returns: {
+          accommodations_needs_attention: number
+          activities_needs_attention: number
           approvals_needs_attention: number
+          attendance_needs_attention: number
+          communications_needs_attention: number
+          conduct_needs_attention: number
+          esignature_needs_attention: number
+          handbooks_needs_attention: number
+          investigations_needs_attention: number
           leaves_needs_attention: number
+          my_handbooks_needs_attention: number
+          my_training_needs_attention: number
           tasks_needs_attention: number
+          training_needs_attention: number
         }[]
       }
       mhd_dashboard_my_tasks: {

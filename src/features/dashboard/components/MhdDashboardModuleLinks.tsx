@@ -9,15 +9,27 @@ import type { MhdDashboardModuleAlerts } from '../Types';
 import { NAV_SECTIONS } from '@/appshell/MhdSidebar';
 import type { NavItem } from '@/appshell/MhdSidebar';
 
-// First pass covers exactly these three modules — not every module has a
-// "needs attention" concept (see mhd_dashboard_module_alerts()'s migration
-// for the per-module scoping rationale). Keyed by route, since that's the
-// tile's stable identity (item.route is both the NavLink `to` and the
-// React key below), not label.
+// Covers the 14 live modules with a genuine "needs attention" concept — not
+// every module has one (see mhd_dashboard_module_alerts()'s migrations,
+// 0177 and 0179, for the per-module scoping rationale and the audit of why
+// the rest were excluded). Keyed by route, since that's the tile's stable
+// identity (item.route is both the NavLink `to` and the React key below),
+// not label.
 const ALERT_ROUTE_KEYS: Record<string, keyof MhdDashboardModuleAlerts> = {
   '/tasks': 'tasksNeedsAttention',
   '/approvals': 'approvalsNeedsAttention',
   '/leaves': 'leavesNeedsAttention',
+  '/activities': 'activitiesNeedsAttention',
+  '/esignature': 'esignatureNeedsAttention',
+  '/attendance': 'attendanceNeedsAttention',
+  '/accommodations': 'accommodationsNeedsAttention',
+  '/training': 'trainingNeedsAttention',
+  '/my-training': 'myTrainingNeedsAttention',
+  '/handbooks': 'handbooksNeedsAttention',
+  '/my-handbooks': 'myHandbooksNeedsAttention',
+  '/conduct': 'conductNeedsAttention',
+  '/investigations': 'investigationsNeedsAttention',
+  '/communications': 'communicationsNeedsAttention',
 };
 
 // 15 tones cycle across rows in order; a 16th is reserved exclusively for

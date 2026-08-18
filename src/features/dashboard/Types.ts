@@ -44,13 +44,26 @@ export interface MhdDashboardActivityItem {
 }
 
 // mhd_dashboard_module_alerts() returns ONE flat row — one "needs attention"
-// count per module. Only Tasks/Approvals/Leaves are covered in this first
-// pass (see MhdDashboardModuleLinks.tsx); a module absent here has no
-// attention-count concept and never gets a badge.
+// count per module. Covers the 14 live modules with a genuine per-user
+// assignment/ownership or privileged-reviewer-queue concept (see
+// 0179_dashboard_module_alerts_expansion.sql for the per-module audit); a
+// module absent here has no real attention-count concept and never gets a
+// badge (see MhdDashboardModuleLinks.tsx's ALERT_ROUTE_KEYS).
 export interface MhdDashboardModuleAlerts {
   tasksNeedsAttention: number;
   approvalsNeedsAttention: number;
   leavesNeedsAttention: number;
+  activitiesNeedsAttention: number;
+  esignatureNeedsAttention: number;
+  attendanceNeedsAttention: number;
+  accommodationsNeedsAttention: number;
+  trainingNeedsAttention: number;
+  myTrainingNeedsAttention: number;
+  handbooksNeedsAttention: number;
+  myHandbooksNeedsAttention: number;
+  conductNeedsAttention: number;
+  investigationsNeedsAttention: number;
+  communicationsNeedsAttention: number;
 }
 
 // Matches what Hook.ts's useMhdDashboard() actually returns.
