@@ -45,7 +45,34 @@ type MhdOnboardingProgressRow = {
   last_activity_at: string | null;
 };
 
-type MhdOnboardingTableName = MhdOnboardingDocumentKey;
+type MhdOnboardingTableName = MhdOnboardingDocumentKey | 'onboarding_document_acknowledgments';
+
+/**
+ * migration 0180 consolidated these 10 document keys' destination tables into
+ * one shared table (onboarding_document_acknowledgments), discriminated by a
+ * document_key column. Every other key still resolves to a table of the same
+ * name as itself.
+ *
+ * This duplicates onboarding_document_keys.destination_table (0064's
+ * registry, already the authoritative mapping and already repointed for
+ * these 10 keys). It is not read from here because getOnboardingTableName is
+ * synchronous and used on every destination read/write; a registry-driven
+ * version would need to make every caller async. Flagged as a known
+ * duplication, not an oversight -- if the registry mapping ever changes
+ * again, this map must change with it.
+ */
+const MHD_ONBOARDING_CONSOLIDATED_ACK_KEYS: ReadonlySet<MhdOnboardingDocumentKey> = new Set([
+  'onboarding_harassment_policy_acks',
+  'onboarding_time_of_hire_pamphlet_acks',
+  'onboarding_wage_notice_acks',
+  'onboarding_health_marketplace_notice_acks',
+  'onboarding_meal_waiver_acks',
+  'onboarding_badge_acknowledgments',
+  'onboarding_dispute_resolution_acks',
+  'onboarding_handbook_acknowledgments',
+  'onboarding_surveillance_policy_acks',
+  'onboarding_at_will_acknowledgments',
+]);
 
 function mapProgressRow(row: MhdOnboardingProgressRow): MhdOnboardingProgressSummary {
   return {
@@ -81,12 +108,11 @@ async function findDestinationRecordIdForSubmission(
   submissionId: string,
 ): Promise<string | null> {
   const tableName = getOnboardingTableName(documentKey);
-  const { data, error } = await supabaseClient
-    .from(tableName)
-    .select('id')
-    .eq('form_submission_id', submissionId)
-    .limit(1)
-    .returns<MhdDestinationRecordLookupRow[]>();
+  let query = supabaseClient.from(tableName).select('id').eq('form_submission_id', submissionId);
+  if (isConsolidatedAckKey(documentKey)) {
+    query = query.eq('document_key', documentKey);
+  }
+  const { data, error } = await query.limit(1).returns<MhdDestinationRecordLookupRow[]>();
 
   if (error) {
     throw new Error(
@@ -97,8 +123,14 @@ async function findDestinationRecordIdForSubmission(
   return data?.[0]?.id ?? null;
 }
 
+function isConsolidatedAckKey(documentKey: MhdOnboardingDocumentKey): boolean {
+  return MHD_ONBOARDING_CONSOLIDATED_ACK_KEYS.has(documentKey);
+}
+
 function getOnboardingTableName(documentKey: MhdOnboardingDocumentKey): MhdOnboardingTableName {
-  return MHD_ONBOARDING_PACKET_BY_KEY[documentKey].documentKey;
+  return isConsolidatedAckKey(documentKey)
+    ? 'onboarding_document_acknowledgments'
+    : MHD_ONBOARDING_PACKET_BY_KEY[documentKey].documentKey;
 }
 
 async function createDestinationRecordPlaceholder(
@@ -115,6 +147,7 @@ async function createDestinationRecordPlaceholder(
       status: input.status ?? 'SUBMITTED',
       created_by: input.actorUserId,
       updated_by: input.actorUserId,
+      ...(isConsolidatedAckKey(input.documentKey) ? { document_key: input.documentKey } : {}),
     })
     .select('id')
     .single();

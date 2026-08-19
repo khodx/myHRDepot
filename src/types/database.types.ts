@@ -8105,6 +8105,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "form_submission_attachments_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "form_fields"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "form_submission_attachments_submission_id_fkey"
             columns: ["submission_id"]
             isOneToOne: false
@@ -8136,6 +8143,13 @@ export type Database = {
           submission_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "form_submission_values_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "form_fields"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "form_submission_values_submission_id_fkey"
             columns: ["submission_id"]
