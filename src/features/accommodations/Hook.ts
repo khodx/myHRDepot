@@ -4,7 +4,9 @@ import { mhdAccommodationsService } from './Service';
 import type {
   MhdAccommodationStatus,
   MhdCreateAccommodationInput,
+  MhdCreateAccommodationOptionCatalogEntryInput,
   MhdRecordAccommodationMedicalInput,
+  MhdUpdateAccommodationOptionCatalogEntryInput,
 } from './Types';
 
 export const mhdAccommodationQueryKeys = {
@@ -15,6 +17,8 @@ export const mhdAccommodationQueryKeys = {
   readiness: () => ['mhd-accommodations', 'readiness'] as const,
   managerInstructions: (personId: string | null) =>
     ['mhd-accommodations', 'manager-instructions', personId ?? ''] as const,
+  optionCatalog: (companyId: string | null, category: string | null) =>
+    ['mhd-accommodations', 'option-catalog', companyId ?? '', category ?? 'ALL'] as const,
 };
 
 function useInvalidateAccommodationCase() {
@@ -152,5 +156,50 @@ export function useMhdAccommodationReview(caseId: string) {
     mutationFn: (input: Parameters<typeof mhdAccommodationsService.completeReview>[0]) =>
       mhdAccommodationsService.completeReview(input),
     onSuccess: () => invalidate(caseId),
+  });
+}
+
+export function useMhdAccommodationOptionCatalog(
+  companyId: string | null,
+  category?: string | null,
+) {
+  return useQuery({
+    queryKey: mhdAccommodationQueryKeys.optionCatalog(companyId, category ?? null),
+    queryFn: () => mhdAccommodationsService.listOptionCatalog(companyId!, category),
+    enabled: Boolean(companyId),
+  });
+}
+
+function useInvalidateAccommodationOptionCatalog() {
+  const queryClient = useQueryClient();
+  return () => {
+    void queryClient.invalidateQueries({ queryKey: ['mhd-accommodations', 'option-catalog'] });
+  };
+}
+
+export function useMhdCreateAccommodationOptionCatalogEntry() {
+  const invalidate = useInvalidateAccommodationOptionCatalog();
+  return useMutation({
+    mutationFn: (input: MhdCreateAccommodationOptionCatalogEntryInput) =>
+      mhdAccommodationsService.createOptionCatalogEntry(input),
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useMhdUpdateAccommodationOptionCatalogEntry() {
+  const invalidate = useInvalidateAccommodationOptionCatalog();
+  return useMutation({
+    mutationFn: (input: MhdUpdateAccommodationOptionCatalogEntryInput) =>
+      mhdAccommodationsService.updateOptionCatalogEntry(input),
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useMhdForkAccommodationOptionCatalogEntry() {
+  const invalidate = useInvalidateAccommodationOptionCatalog();
+  return useMutation({
+    mutationFn: (input: { sourceOptionId: string; companyId: string }) =>
+      mhdAccommodationsService.forkOptionCatalogEntry(input.sourceOptionId, input.companyId),
+    onSuccess: () => invalidate(),
   });
 }

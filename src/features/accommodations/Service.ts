@@ -1,15 +1,20 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
+import type { Json } from '@/types/database.types';
 import type {
   MhdAccommodationDetail,
   MhdAccommodationManagerInstruction,
   MhdAccommodationMedicalReveal,
+  MhdAccommodationOptionCatalogEntry,
+  MhdAccommodationOptionCatalogEntryRpcRow,
   MhdAccommodationReviewEffectiveness,
   MhdAccommodationStatus,
   MhdAccommodationSummary,
   MhdAccommodationSummaryRpcRow,
   MhdComplianceReadiness,
   MhdCreateAccommodationInput,
+  MhdCreateAccommodationOptionCatalogEntryInput,
   MhdRecordAccommodationMedicalInput,
+  MhdUpdateAccommodationOptionCatalogEntryInput,
 } from './Types';
 
 // supabaseClient.rpc is called directly rather than bound to a local alias.
@@ -25,6 +30,23 @@ interface MhdAccommodationManagerProjectionRpcRow {
   start_date: string;
   end_date: string | null;
   review_due_date: string | null;
+}
+
+function mapOptionCatalogEntry(
+  row: MhdAccommodationOptionCatalogEntryRpcRow,
+): MhdAccommodationOptionCatalogEntry {
+  return {
+    id: row.id,
+    companyId: row.company_id,
+    optionType: row.option_type,
+    descriptionTemplate: row.description_template,
+    category: row.category,
+    typicalCostRange: row.typical_cost_range,
+    sourceOptionId: row.source_option_id,
+    isActive: row.is_active,
+    sortOrder: row.sort_order,
+    isLibrary: row.is_library,
+  };
 }
 
 function mapSummary(row: MhdAccommodationSummaryRpcRow): MhdAccommodationSummary {
@@ -74,6 +96,20 @@ export const mhdAccommodationsService = {
     if (error) throw error;
     const row = ((data ?? []) as Array<{ id: string; reference_id: string }>)[0];
     if (!row) throw new Error('Accommodation creation returned no row.');
+    return { id: row.id, referenceId: row.reference_id };
+  },
+
+  async createCaseFromSubmission(
+    submissionId: string,
+    values: Json
+  ): Promise<{ id: string; referenceId: string }> {
+    const { data, error } = await supabaseClient.rpc('mhd_create_accommodation_case_from_submission', {
+      p_submission_id: submissionId,
+      p_values: values,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as Array<{ id: string; reference_id: string }>)[0];
+    if (!row) throw new Error('Accommodation case creation from submission returned no row.');
     return { id: row.id, referenceId: row.reference_id };
   },
 
@@ -253,5 +289,84 @@ export const mhdAccommodationsService = {
     });
     if (error) throw error;
     return ((data ?? []) as MhdComplianceReadiness[])[0] ?? null;
+  },
+
+  /**
+   * Reads the option catalog — global (company_id null) entries plus the
+   * caller's own company entries, global first. `0186_accommodation_option_
+   * catalog.sql`'s RLS/RPC already scopes visibility to companies the caller
+   * can access; this is purely a read.
+   */
+  async listOptionCatalog(
+    companyId: string,
+    category?: string | null,
+  ): Promise<MhdAccommodationOptionCatalogEntry[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_list_accommodation_option_catalog', {
+      p_company_id: companyId,
+      p_category: category && category !== 'ALL' ? category : undefined,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdAccommodationOptionCatalogEntryRpcRow[]).map(mapOptionCatalogEntry);
+  },
+
+  /**
+   * `companyId: null` writes a global/platform library entry — the RPC
+   * re-checks `mhd_can_manage_accommodation_option_catalog` server-side
+   * (Platform Admin/HR Partner for a null company, +Client Admin for their
+   * own company), so this affordance being hidden from other roles is a UI
+   * convenience only, never the enforcement.
+   */
+  async createOptionCatalogEntry(
+    input: MhdCreateAccommodationOptionCatalogEntryInput,
+  ): Promise<{ id: string }> {
+    const { data, error } = await supabaseClient.rpc(
+      'mhd_create_accommodation_option_catalog_entry',
+      {
+        p_company_id: input.companyId,
+        p_option_type: input.optionType.trim(),
+        p_description_template: input.descriptionTemplate.trim(),
+        p_category: input.category ?? 'OTHER',
+        p_typical_cost_range: input.typicalCostRange?.trim() || undefined,
+        p_sort_order: input.sortOrder ?? 100,
+        p_source_option_id: input.sourceOptionId ?? undefined,
+        // p_company_id has no SQL default (a genuine NULL means "global entry"
+        // and must be sent explicitly), so gen:types marks it required/non-null
+        // even though the RPC accepts NULL at runtime — same compatibility gap
+        // documented in forms/Service.ts createForm/updateForm.
+      } as never,
+    );
+    if (error) throw error;
+    const row = ((data ?? []) as Array<{ id: string }>)[0];
+    if (!row) throw new Error('Catalog entry creation returned no row.');
+    return { id: row.id };
+  },
+
+  async updateOptionCatalogEntry(
+    input: MhdUpdateAccommodationOptionCatalogEntryInput,
+  ): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_update_accommodation_option_catalog_entry', {
+      p_entry_id: input.entryId,
+      p_description_template: input.descriptionTemplate?.trim() || undefined,
+      p_category: input.category ?? undefined,
+      p_typical_cost_range: input.typicalCostRange?.trim() || undefined,
+      p_sort_order: input.sortOrder ?? undefined,
+      p_is_active: input.isActive ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  /** Clones a global catalog entry into a company-owned, independently editable copy. */
+  async forkOptionCatalogEntry(sourceOptionId: string, companyId: string): Promise<{ id: string }> {
+    const { data, error } = await supabaseClient.rpc(
+      'mhd_fork_accommodation_option_catalog_entry',
+      {
+        p_source_option_id: sourceOptionId,
+        p_company_id: companyId,
+      },
+    );
+    if (error) throw error;
+    const row = ((data ?? []) as Array<{ id: string }>)[0];
+    if (!row) throw new Error('Catalog fork returned no row.');
+    return { id: row.id };
   },
 };

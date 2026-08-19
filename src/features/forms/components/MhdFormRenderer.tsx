@@ -21,7 +21,7 @@ interface MhdFormRendererProps {
   employeeFileCategory?: MhdEmployeeFileTypeKey | null;
   taskPrefillValues?: Record<string, unknown>;
   userPrefillValues?: Record<string, unknown>;
-  onSubmitted?: (submissionId: string, form: MhdForm) => void;
+  onSubmitted?: (submissionId: string, form: MhdForm, values: Record<string, unknown>) => void;
   /**
    * Read-only mode (e.g. the Viewer role): the form renders for inspection
    * only — no draft submission is created, and draft-save, submit, and file
@@ -311,7 +311,7 @@ export function MhdFormRenderer({
       const id = await ensureSubmission();
       const submitted = await mhdFormService.submitForm(id, outboundValues);
       if (form) {
-        onSubmitted?.(submitted.id, form);
+        onSubmitted?.(submitted.id, form, outboundValues);
       }
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Unable to submit form');

@@ -14,7 +14,19 @@ beforeEach(() => {
 
 describe('mhdHandbookService — contract + mapping', () => {
   it('never queries the library without a handbook type — returns an empty list', async () => {
-    const sections = await mhdHandbookService.listSections({ handbookType: null });
+    const sections = await mhdHandbookService.listSections({
+      companyId: 'company-1',
+      handbookType: null,
+    });
+    expect(sections).toEqual([]);
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
+
+  it('never queries the library without a company — returns an empty list (0184 fix)', async () => {
+    const sections = await mhdHandbookService.listSections({
+      companyId: null,
+      handbookType: 'EMPLOYEE',
+    });
     expect(sections).toEqual([]);
     expect(rpcMock).not.toHaveBeenCalled();
   });
@@ -30,6 +42,7 @@ describe('mhdHandbookService — contract + mapping', () => {
       data: [
         {
           id: 'sec-1',
+          company_id: null,
           handbook_type: 'EMPLOYEE',
           jurisdiction: 'FEDERAL',
           section_key: 'at-will',
@@ -38,18 +51,85 @@ describe('mhdHandbookService — contract + mapping', () => {
           is_required: true,
           sort_order: '3', // serialised as a string
           is_active: true,
+          is_library: true,
+          source_section_id: null,
         },
       ],
       error: null,
     });
 
-    const [section] = await mhdHandbookService.listSections({ handbookType: 'EMPLOYEE' });
+    const [section] = await mhdHandbookService.listSections({
+      companyId: 'company-1',
+      handbookType: 'EMPLOYEE',
+    });
     expect(rpcMock).toHaveBeenCalledWith('mhd_handbook_section_list', {
+      p_company_id: 'company-1',
       p_handbook_type: 'EMPLOYEE',
       p_jurisdiction: undefined,
     });
     expect(section.sortOrder).toBe(3);
     expect(section.isRequired).toBe(true);
+    expect(section.isLibrary).toBe(true);
+    expect(section.companyId).toBeNull();
+  });
+
+  it('creates a GLOBAL section (p_company_id: null) and maps the minted id', async () => {
+    // createSection chains `.returns<...>()` after the `as never` args cast (the
+    // gen:types nullable-arg workaround shared with Forms/Calendar/Companies), so
+    // the mock must expose `.returns()` here rather than resolving `.rpc()` directly.
+    rpcMock.mockImplementationOnce(() => ({
+      returns: () => Promise.resolve({ data: [{ id: 'sec-2' }], error: null }),
+    }));
+
+    const result = await mhdHandbookService.createSection({
+      companyId: null,
+      handbookType: 'EMPLOYEE',
+      jurisdiction: 'FEDERAL',
+      sectionKey: 'meal-periods',
+      title: 'Meal Periods',
+      bodyPlaceholder: '[ATTORNEY-DRAFTED CONTENT — PLACEHOLDER]',
+      isRequired: false,
+      sortOrder: 100,
+    });
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_create_handbook_section', {
+      p_company_id: null,
+      p_handbook_type: 'EMPLOYEE',
+      p_jurisdiction: 'FEDERAL',
+      p_section_key: 'meal-periods',
+      p_title: 'Meal Periods',
+      p_body_placeholder: '[ATTORNEY-DRAFTED CONTENT — PLACEHOLDER]',
+      p_is_required: false,
+      p_sort_order: 100,
+      p_source_section_id: undefined,
+    });
+    expect(result.id).toBe('sec-2');
+  });
+
+  it('updates only the fields present on the input (partial update)', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: null });
+
+    await mhdHandbookService.updateSection({ sectionId: 'sec-1', isActive: false });
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_update_handbook_section', {
+      p_section_id: 'sec-1',
+      p_is_active: false,
+    });
+  });
+
+  it('forks a library section into a company-owned copy', async () => {
+    rpcMock.mockResolvedValueOnce({ data: [{ id: 'sec-3' }], error: null });
+
+    const result = await mhdHandbookService.forkSection({
+      sourceSectionId: 'sec-1',
+      companyId: 'company-1',
+    });
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_fork_handbook_section', {
+      p_source_section_id: 'sec-1',
+      p_company_id: 'company-1',
+    });
+    expect(result.id).toBe('sec-3');
   });
 
   it('maps a frozen version — numeric-string version_number and the assembled snapshot', async () => {

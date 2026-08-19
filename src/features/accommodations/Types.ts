@@ -270,3 +270,82 @@ export function mhdFormatAccommodationValue(value: string): string {
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 }
+
+/**
+ * The reusable option-catalog library (0186_accommodation_option_catalog.sql).
+ * Completely separate from `accommodation_options` above, which stays
+ * free-text and case-specific — this is a library of common starting points
+ * a case's option-evaluation step may copy from and then edit, never a
+ * constraint on the case. Carries no medical content and no case/person
+ * linkage.
+ */
+export type MhdAccommodationOptionCatalogCategory =
+  | 'SCHEDULE'
+  | 'EQUIPMENT'
+  | 'FACILITIES'
+  | 'JOB_RESTRUCTURING'
+  | 'REASSIGNMENT'
+  | 'LEAVE_RELATED'
+  | 'TECHNOLOGY'
+  | 'POLICY_EXCEPTION'
+  | 'OTHER';
+
+export const MHD_ACCOMMODATION_OPTION_CATALOG_CATEGORIES: readonly MhdAccommodationOptionCatalogCategory[] =
+  [
+    'SCHEDULE',
+    'EQUIPMENT',
+    'FACILITIES',
+    'JOB_RESTRUCTURING',
+    'REASSIGNMENT',
+    'LEAVE_RELATED',
+    'TECHNOLOGY',
+    'POLICY_EXCEPTION',
+    'OTHER',
+  ];
+
+export interface MhdAccommodationOptionCatalogEntryRpcRow {
+  id: string;
+  company_id: string | null;
+  option_type: string;
+  description_template: string;
+  category: MhdAccommodationOptionCatalogCategory;
+  typical_cost_range: string | null;
+  source_option_id: string | null;
+  is_active: boolean;
+  sort_order: number;
+  /** true when company_id is null — a global/platform library entry. */
+  is_library: boolean;
+}
+
+export interface MhdAccommodationOptionCatalogEntry {
+  id: string;
+  companyId: string | null;
+  optionType: string;
+  descriptionTemplate: string;
+  category: MhdAccommodationOptionCatalogCategory;
+  typicalCostRange: string | null;
+  sourceOptionId: string | null;
+  isActive: boolean;
+  sortOrder: number;
+  isLibrary: boolean;
+}
+
+export interface MhdCreateAccommodationOptionCatalogEntryInput {
+  /** null creates a global/platform library entry (Platform Admin/HR Partner only, server-enforced). */
+  companyId: string | null;
+  optionType: string;
+  descriptionTemplate: string;
+  category?: MhdAccommodationOptionCatalogCategory;
+  typicalCostRange?: string | null;
+  sortOrder?: number;
+  sourceOptionId?: string | null;
+}
+
+export interface MhdUpdateAccommodationOptionCatalogEntryInput {
+  entryId: string;
+  descriptionTemplate?: string;
+  category?: MhdAccommodationOptionCatalogCategory;
+  typicalCostRange?: string | null;
+  sortOrder?: number;
+  isActive?: boolean;
+}

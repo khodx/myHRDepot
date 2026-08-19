@@ -5,7 +5,7 @@ import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
+import { mhdCanAccessFormsStudio } from '@/appshell/mhdRouteAccess';
 import { useMhdFormsIndex } from '../Hook';
 import type { MhdFormStatus } from '../Types';
 import { MhdFormList } from './MhdFormList';
@@ -20,14 +20,14 @@ const STATUS_OPTIONS: Array<{ value: MhdFormStatus | 'ALL'; label: string }> = [
 export function MhdFormsPage() {
   const location = useLocation();
   const { profile, roles } = useMhdAuth();
-  const canMutate = mhdCanMutateForms(roles);
+  const canMutate = mhdCanAccessFormsStudio(roles);
   const formState = useMhdFormsIndex(profile?.companyId ?? null);
 
   return (
     <div className="space-y-6">
       <MhdPageHeader
-        title="Forms Engine"
-        description="Manage form definitions, open the runtime renderer, and review submissions."
+        title="Form Studio"
+        description="Build and manage your company's form definitions, open the runtime renderer, and review submissions. Browse platform-wide library forms on the Forms Library page."
         actions={
           canMutate ? (
             <Link

@@ -1,13 +1,17 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   MhdAdjustLeaveInput,
+  MhdCreateLeaveCaseFromSubmissionInput,
   MhdCreateLeaveCaseInput,
+  MhdCreateLeaveTypeInput,
   MhdDesignateLeaveInput,
+  MhdForkLeaveTypeInput,
   MhdLeaveCaseFilters,
   MhdMarkCertificationInput,
   MhdRecordCertificationInput,
   MhdSetLeaveCaseBasesInput,
   MhdTransitionLeaveCaseInput,
+  MhdUpdateLeaveTypeInput,
 } from './Types';
 import { mhdLeavesService } from './Service';
 
@@ -53,6 +57,42 @@ export function useMhdLeaveTypes(companyId: string | null) {
   });
 }
 
+/**
+ * Leave types Studio (0185): author a global (library) or company-owned leave
+ * type. Invalidates the whole `leave-types` prefix (not just one company's
+ * key) because a global row created here is visible under every company's
+ * `useMhdLeaveTypes(companyId)` query.
+ */
+export function useMhdCreateLeaveType() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateLeaveTypeInput) => mhdLeavesService.createLeaveType(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-leaves', 'leave-types'] });
+    },
+  });
+}
+
+export function useMhdUpdateLeaveType() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpdateLeaveTypeInput) => mhdLeavesService.updateLeaveType(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-leaves', 'leave-types'] });
+    },
+  });
+}
+
+export function useMhdForkLeaveType() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdForkLeaveTypeInput) => mhdLeavesService.forkLeaveType(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-leaves', 'leave-types'] });
+    },
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Cases
 // ---------------------------------------------------------------------------
@@ -69,6 +109,22 @@ export function useMhdCreateLeaveCase(_companyId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: MhdCreateLeaveCaseInput) => mhdLeavesService.createCase(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-leaves', 'cases'] });
+    },
+  });
+}
+
+/**
+ * Form-driven Leaves intake (0188) — see `mhdLeavesService.createCaseFromSubmission`
+ * for the full contract and the documented gap in what currently calls it.
+ * Additive to `useMhdCreateLeaveCase` above, never a replacement.
+ */
+export function useMhdCreateLeaveCaseFromSubmission() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateLeaveCaseFromSubmissionInput) =>
+      mhdLeavesService.createCaseFromSubmission(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-leaves', 'cases'] });
     },

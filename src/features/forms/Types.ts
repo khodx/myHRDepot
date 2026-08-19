@@ -473,8 +473,35 @@ export interface MhdFormsIndexFilters {
   status: MhdFormStatus | 'ALL';
 }
 
+/**
+ * One row of the merged Forms Library view (migration 0183, Multi-Tenant
+ * Library Architecture): platform-wide "library" forms (`companyId === null`,
+ * `isLibrary === true`) plus the caller's own company's forms, sorted library
+ * rows first by `mhd_list_form_library`. This is a lighter-weight projection
+ * than `MhdForm` — no `definition`, since the Library browse surface never
+ * renders the form builder/preview, only enough to list and launch/fork it.
+ */
+export interface MhdFormLibraryEntry {
+  id: string;
+  referenceId: string;
+  companyId: string | null;
+  name: string;
+  description?: string;
+  status: MhdFormStatus;
+  employeeFileCategory: MhdEmployeeFileTypeKey | null;
+  requiresEsignature: boolean;
+  /** Set when this row is a company's own fork of a library form. */
+  sourceFormId: string | null;
+  /** True for a platform-wide library form (`companyId === null`); false for a company-owned form. */
+  isLibrary: boolean;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type MhdRpcFormRow = DbFunctions['mhd_get_form']['Returns'][number];
 export type MhdRpcFormsListRow = DbFunctions['mhd_list_forms']['Returns'][number];
+export type MhdRpcFormLibraryRow = DbFunctions['mhd_list_form_library']['Returns'][number];
 export type MhdRpcSubmissionRow = DbFunctions['mhd_get_submission']['Returns'][number];
 export type MhdRpcDraftSubmissionRow =
   DbFunctions['mhd_list_my_draft_submissions']['Returns'][number];

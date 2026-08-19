@@ -17,9 +17,22 @@
 // and visibly mark the content as attorney-pending — never present it as policy.
 // ---------------------------------------------------------------------------
 
-/** Row shape returned by `mhd_handbook_section_list`. */
+/**
+ * Row shape returned by `mhd_handbook_section_list` (0184: gained
+ * `company_id` / `source_section_id` / `is_library`, and the RPC gained the
+ * required leading `p_company_id` argument — before 0184 it had none, and
+ * quietly leaked every company's private sections to every other company).
+ * `company_id` and `source_section_id` are typed `string | null` here even
+ * though gen:types renders them as plain `string` — the same
+ * generated-vs-actual nullability gap already documented above for
+ * `document_generation_id` on `mhd_handbook_version_get`. `company_id` is
+ * `null` for a GLOBAL library clause; `source_section_id` is `null` unless the
+ * row was minted via `mhd_fork_handbook_section` (or created pointing at a
+ * source manually).
+ */
 export interface MhdHandbookSectionRpcRow {
   id: string;
+  company_id: string | null;
   handbook_type: string;
   jurisdiction: string;
   section_key: string;
@@ -29,6 +42,8 @@ export interface MhdHandbookSectionRpcRow {
   is_required: boolean;
   sort_order: number | string;
   is_active: boolean;
+  is_library: boolean;
+  source_section_id: string | null;
 }
 
 /** Row shape returned by `mhd_handbook_list`. */
@@ -106,6 +121,15 @@ export interface MhdMyAcknowledgmentRpcRow {
 export interface MhdHandbookMutationRpcRow {
   id: string;
   reference_id: string;
+}
+
+/**
+ * Row shape returned by `mhd_create_handbook_section` / `mhd_fork_handbook_section`
+ * — these mint a section id but not a human reference id, unlike the handbook/
+ * acknowledgment mutation RPCs above.
+ */
+export interface MhdHandbookSectionMutationRpcRow {
+  id: string;
 }
 
 /** Row shape returned by `mhd_handbook_publish`: `(id, reference_id, version_number, content_hash)`. */
@@ -186,9 +210,15 @@ export const MHD_HANDBOOK_JURISDICTIONS_BY_TYPE: Record<
  * A clause-library section, from `section_list`. This is the CONTENT PACK, not a
  * company's selection — `bodyPlaceholder` is attorney-flagged placeholder text.
  * A required section auto-includes on assembly and cannot be excluded.
+ *
+ * `companyId: null` / `isLibrary: true` marks a GLOBAL clause, visible to every
+ * company and editable only by Platform Admin / HR Partner. A non-null
+ * `companyId` is a company-owned clause (either authored directly or forked from
+ * a library clause — `sourceSectionId` records that lineage when present).
  */
 export interface MhdHandbookSection {
   id: string;
+  companyId: string | null;
   handbookType: MhdHandbookType;
   jurisdiction: MhdHandbookJurisdiction;
   sectionKey: string;
@@ -198,6 +228,8 @@ export interface MhdHandbookSection {
   isRequired: boolean;
   sortOrder: number;
   isActive: boolean;
+  isLibrary: boolean;
+  sourceSectionId: string | null;
 }
 
 /**
@@ -288,6 +320,11 @@ export interface MhdHandbookMutationResult {
   referenceId: string;
 }
 
+/** Mapped result of `createSection` / `forkSection` — no human reference id. */
+export interface MhdHandbookSectionMutationResult {
+  id: string;
+}
+
 /** Mapped result of `publish` — the newly frozen version's identity + hash. */
 export interface MhdHandbookPublishResult {
   id: MhdHandbookVersionId;
@@ -347,9 +384,61 @@ export interface MhdAcknowledgeInput {
   esignatureRequestId?: string | null;
 }
 
+/**
+ * `companyId` is REQUIRED at the RPC as of 0184 — `mhd_handbook_section_list`
+ * gained a mandatory leading `p_company_id` argument, fixing a real bug where
+ * the prior signature returned every company's private sections to every
+ * caller. `listSections` (Service.ts) refuses to call the RPC without one, same
+ * as it already refused without a `handbookType`.
+ */
 export interface MhdHandbookSectionFilters {
+  companyId: string | null;
   handbookType: MhdHandbookType | null;
   jurisdiction?: MhdHandbookJurisdiction | null;
+}
+
+/**
+ * Creating a section (`mhd_create_handbook_section`). `companyId: null` targets
+ * the GLOBAL library — server-enforced Platform Admin / HR Partner only, refused
+ * for any other caller regardless of what the UI offers. `sourceSectionId` is an
+ * optional fork-lineage stamp for a section authored FROM a library clause's
+ * content by hand; use `forkSection` instead to clone one directly.
+ */
+export interface MhdCreateHandbookSectionInput {
+  companyId: string | null;
+  handbookType: MhdHandbookType;
+  jurisdiction: MhdHandbookJurisdiction;
+  sectionKey: string;
+  title: string;
+  bodyPlaceholder: string;
+  isRequired: boolean;
+  sortOrder: number;
+  sourceSectionId?: string | null;
+}
+
+/**
+ * Updating a section's editable fields (`mhd_update_handbook_section`). Every
+ * field but `sectionId` is optional — an omitted field is left unchanged at the
+ * RPC (partial update), so callers should only set the fields they intend to
+ * change rather than sending the full record back.
+ */
+export interface MhdUpdateHandbookSectionInput {
+  sectionId: string;
+  title?: string;
+  bodyPlaceholder?: string;
+  isRequired?: boolean;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
+/**
+ * Forking a GLOBAL library section into a company-owned editable copy
+ * (`mhd_fork_handbook_section`). Only a section with `company_id is null`
+ * (`isLibrary: true`) may be the source — the RPC refuses otherwise.
+ */
+export interface MhdForkHandbookSectionInput {
+  sourceSectionId: string;
+  companyId: string;
 }
 
 export interface MhdHandbookListFilters {

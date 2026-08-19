@@ -3,10 +3,13 @@ import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'reac
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
+import { mhdCanSubmitForms } from '@/appshell/mhdRouteAccess';
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
+import type { Json } from '@/types/database.types';
 import { mhdEsignatureService } from '@/features/esignature/Service';
 import { mhdOnboardingService } from '@/features/onboarding/Service';
+import { mhdLeavesService } from '@/features/leaves/Service';
+import { mhdAccommodationsService } from '@/features/accommodations/Service';
 import {
   MHD_ONBOARDING_PACKET_BY_KEY,
   mhdIsOnboardingDocumentKey,
@@ -97,7 +100,7 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, roles } = useMhdAuth();
-  const canMutate = mhdCanMutateForms(roles);
+  const canMutate = mhdCanSubmitForms(roles);
   const [searchParams] = useSearchParams();
   const [drafts, setDrafts] = useState<MhdFormSubmission[]>([]);
   const [message, setMessage] = useState<string | null>(null);
@@ -135,6 +138,19 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
   const employeeFileCategory = mhdIsEmployeeFileTypeKey(employeeFileCategoryValue)
     ? employeeFileCategoryValue
     : null;
+  // Generic cross-module intake hook (2026-08-19, Multi-Tenant Library
+  // Architecture): a form launched with ?intakeAction=leaveCase or
+  // ?intakeAction=accommodationCase will, on successful submission, call the
+  // matching mhd_create_*_case_from_submission RPC and redirect to the new
+  // record — the same "submission triggers a follow-up side effect" shape
+  // already established by the onboarding checklist sync below, generalized
+  // so other modules don't need their own copy of this page. Deliberately
+  // additive: forms launched without this param behave exactly as before.
+  const intakeActionValue = searchParams.get('intakeAction');
+  const intakeAction =
+    intakeActionValue === 'leaveCase' || intakeActionValue === 'accommodationCase'
+      ? intakeActionValue
+      : null;
   const onboardingPersonId = searchParams.get('personId') ?? undefined;
   const onboardingPersonName = searchParams.get('personName') ?? undefined;
   const onboardingDocumentKeyValue = searchParams.get('documentKey');
@@ -167,7 +183,11 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
     [profile],
   );
 
-  async function handleSubmissionSuccess(nextSubmissionId: string, submittedForm: MhdForm) {
+  async function handleSubmissionSuccess(
+    nextSubmissionId: string,
+    submittedForm: MhdForm,
+    submittedValues: Record<string, unknown>,
+  ) {
     setSyncError(null);
     let nextMessage = 'Submission submitted successfully.';
 
@@ -184,6 +204,42 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
       } catch (error) {
         setSyncError(
           error instanceof Error ? error.message : 'Unable to sync onboarding checklist.',
+        );
+      }
+    }
+
+    if (intakeAction === 'leaveCase') {
+      try {
+        const created = await mhdLeavesService.createCaseFromSubmission({
+          submissionId: nextSubmissionId,
+          // Form values are plain JSON-serializable data by construction;
+          // Record<string, unknown> vs. the generated Json type is a type-
+          // system gap, not a real mismatch (same idiom used elsewhere in
+          // this codebase for RPC jsonb params).
+          values: submittedValues as Json,
+        });
+        setMessage('Submission submitted and leave case opened.');
+        navigate(`/leaves/${created.id}`);
+        return;
+      } catch (error) {
+        setSyncError(
+          error instanceof Error ? error.message : 'Unable to open a leave case from this submission.',
+        );
+      }
+    } else if (intakeAction === 'accommodationCase') {
+      try {
+        const created = await mhdAccommodationsService.createCaseFromSubmission(
+          nextSubmissionId,
+          submittedValues as Json,
+        );
+        setMessage('Submission submitted and accommodation case opened.');
+        navigate(`/accommodations/${created.id}`);
+        return;
+      } catch (error) {
+        setSyncError(
+          error instanceof Error
+            ? error.message
+            : 'Unable to open an accommodation case from this submission.',
         );
       }
     }
@@ -388,8 +444,8 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
             employeeFileCategory={employeeFileCategory}
             readOnly={!canMutate}
             userPrefillValues={userPrefillValues}
-            onSubmitted={(nextSubmissionId, submittedForm) => {
-              void handleSubmissionSuccess(nextSubmissionId, submittedForm);
+            onSubmitted={(nextSubmissionId, submittedForm, submittedValues) => {
+              void handleSubmissionSuccess(nextSubmissionId, submittedForm, submittedValues);
             }}
           />
         </MhdCard>

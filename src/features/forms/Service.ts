@@ -15,6 +15,7 @@ import type {
   MhdFormField,
   MhdFormFieldOption,
   MhdFormFileValue,
+  MhdFormLibraryEntry,
   MhdFormLogicRule,
   MhdFormPage,
   MhdFormStatus,
@@ -24,6 +25,7 @@ import type {
   MhdLogicConditionNode,
   MhdRpcDraftSubmissionRow,
   MhdRpcEmployeeFileSubmissionRow,
+  MhdRpcFormLibraryRow,
   MhdRpcFormRow,
   MhdRpcFormsListRow,
   MhdRpcSubmissionListRow,
@@ -39,6 +41,7 @@ type DbFunctions = Database['public']['Functions'];
 type MhdCreateFormResultRow = DbFunctions['mhd_create_form']['Returns'][number];
 type MhdCreateSubmissionResultRow = DbFunctions['mhd_create_submission']['Returns'][number];
 type MhdCreateRevisionResultRow = DbFunctions['mhd_create_form_revision']['Returns'][number];
+type MhdForkFormResultRow = DbFunctions['mhd_fork_form_from_library']['Returns'][number];
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -370,6 +373,37 @@ function mapFormRow(row: MhdRpcFormRow | MhdRpcFormsListRow): MhdForm {
   };
 }
 
+/**
+ * Maps a `mhd_list_form_library` row (migration 0183) to the lighter-weight
+ * `MhdFormLibraryEntry` projection. Unlike `mapFormRow`, this never touches
+ * `definition` — the Library browse surface only lists and launches/forks a
+ * form, it never renders the builder or the preview. `company_id` and
+ * `source_form_id` come back typed as plain `string` by codegen (the same
+ * codegen gap `mapFormRow` already works around for the analogous nullable
+ * columns on `mhd_list_forms`), but are genuinely nullable at runtime — null
+ * for a global library row's `source_form_id`, and null for `company_id` on
+ * every library row by definition.
+ */
+function mapFormLibraryRow(row: MhdRpcFormLibraryRow): MhdFormLibraryEntry {
+  return {
+    id: row.id,
+    referenceId: row.reference_id,
+    companyId: row.company_id ?? null,
+    name: row.name,
+    description: row.description ?? undefined,
+    status: row.status as MhdFormStatus,
+    employeeFileCategory: mhdIsEmployeeFileTypeKey(row.employee_file_category)
+      ? row.employee_file_category
+      : null,
+    requiresEsignature: row.requires_esignature,
+    sourceFormId: row.source_form_id ?? null,
+    isLibrary: row.is_library,
+    version: row.version,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 function mapSubmissionRow(
   row: MhdRpcSubmissionRow | MhdRpcDraftSubmissionRow | MhdRpcSubmissionListRow,
 ): MhdFormSubmission {
@@ -586,6 +620,60 @@ export const mhdFormService = {
     }
 
     return (data ?? []).map(mapFormRow);
+  },
+
+  /**
+   * Merged Forms Library view: platform-wide library forms (`company_id is
+   * null`) plus the caller's own company's forms, library rows first
+   * (`mhd_list_form_library`, migration 0183). Defaults to `ACTIVE` — the
+   * Library browse surface is for finding a fillable/forkable form, not for
+   * managing drafts, which stays on the Studio's `listFormsForCompany`.
+   */
+  async listFormLibrary(
+    companyId: string,
+    status: MhdFormStatus | undefined = 'ACTIVE',
+  ): Promise<MhdFormLibraryEntry[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_form_library', {
+        p_company_id: companyId,
+        ...(status ? { p_status: status } : {}),
+      })
+      .returns<MhdRpcFormLibraryRow[]>();
+
+    if (error) {
+      throw new Error(`Unable to list form library: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapFormLibraryRow);
+  },
+
+  /**
+   * Clones a global library form (`company_id is null`) into a new
+   * DRAFT company-owned copy via `mhd_fork_form_from_library`. The RPC
+   * rejects any source that is not itself a library row, and enforces
+   * Platform Admin/HR Partner-only forking server-side — this client call
+   * does not duplicate that check, it only surfaces whatever error the RPC
+   * raises for an unauthorized caller. Returns the new form's id so the
+   * caller can navigate straight into the builder.
+   */
+  async forkFormFromLibrary(sourceFormId: string, companyId: string): Promise<string> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_fork_form_from_library', {
+        p_source_form_id: sourceFormId,
+        p_company_id: companyId,
+      })
+      .returns<MhdForkFormResultRow[]>();
+
+    if (error) {
+      throw new Error(`Unable to fork form from library: ${error.message}`);
+    }
+
+    const row = data?.[0];
+    if (!row) {
+      throw new Error('Unable to fork form from library: no record returned.');
+    }
+
+    return row.id;
   },
 
   async createSubmission(

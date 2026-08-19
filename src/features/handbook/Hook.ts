@@ -4,10 +4,13 @@ import type {
   MhdAcknowledgeInput,
   MhdAssignAcknowledgmentInput,
   MhdCreateHandbookInput,
+  MhdCreateHandbookSectionInput,
+  MhdForkHandbookSectionInput,
   MhdHandbookListFilters,
   MhdHandbookSectionFilters,
   MhdPublishHandbookInput,
   MhdToggleSectionInput,
+  MhdUpdateHandbookSectionInput,
 } from './Types';
 import { mhdHandbookService } from './Service';
 
@@ -46,7 +49,45 @@ export function useMhdHandbookSections(filters: MhdHandbookSectionFilters) {
   return useQuery({
     queryKey: mhdHandbookQueryKeys.sections(filters),
     queryFn: () => mhdHandbookService.listSections(filters),
-    enabled: Boolean(filters.handbookType),
+    enabled: Boolean(filters.companyId && filters.handbookType),
+  });
+}
+
+/**
+ * Creating a section (global library or company-owned) changes the library
+ * list; invalidate every `sections` query regardless of filters.
+ */
+export function useMhdCreateHandbookSection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateHandbookSectionInput) => mhdHandbookService.createSection(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-handbook', 'sections'] });
+    },
+  });
+}
+
+export function useMhdUpdateHandbookSection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpdateHandbookSectionInput) => mhdHandbookService.updateSection(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-handbook', 'sections'] });
+    },
+  });
+}
+
+/**
+ * Forking mints a new company-owned section, changing the library list for
+ * that company; invalidate every `sections` query regardless of filters.
+ */
+export function useMhdForkHandbookSection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdForkHandbookSectionInput) => mhdHandbookService.forkSection(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-handbook', 'sections'] });
+    },
   });
 }
 

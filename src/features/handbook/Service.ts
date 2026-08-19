@@ -4,6 +4,8 @@ import type {
   MhdAcknowledgeInput,
   MhdAssignAcknowledgmentInput,
   MhdCreateHandbookInput,
+  MhdCreateHandbookSectionInput,
+  MhdForkHandbookSectionInput,
   MhdHandbook,
   MhdHandbookAckStatusRow,
   MhdHandbookAckStatusRpcRow,
@@ -19,6 +21,8 @@ import type {
   MhdHandbookRpcRow,
   MhdHandbookSection,
   MhdHandbookSectionFilters,
+  MhdHandbookSectionMutationResult,
+  MhdHandbookSectionMutationRpcRow,
   MhdHandbookSectionRpcRow,
   MhdHandbookVersion,
   MhdHandbookVersionRpcRow,
@@ -26,6 +30,7 @@ import type {
   MhdMyAcknowledgmentRpcRow,
   MhdPublishHandbookInput,
   MhdToggleSectionInput,
+  MhdUpdateHandbookSectionInput,
 } from './Types';
 
 // Contract-only access. Every method below calls `.rpc()` and nothing else —
@@ -54,6 +59,7 @@ function trimmedOrUndefined(value?: string | null): string | undefined {
 function mapSection(row: MhdHandbookSectionRpcRow): MhdHandbookSection {
   return {
     id: row.id,
+    companyId: row.company_id,
     handbookType: row.handbook_type as MhdHandbookSection['handbookType'],
     jurisdiction: row.jurisdiction as MhdHandbookSection['jurisdiction'],
     sectionKey: row.section_key,
@@ -64,6 +70,8 @@ function mapSection(row: MhdHandbookSectionRpcRow): MhdHandbookSection {
     // PostgREST may serialise the integer as a string; normalise before use.
     sortOrder: mhdToNumber(row.sort_order),
     isActive: row.is_active,
+    isLibrary: row.is_library,
+    sourceSectionId: row.source_section_id,
   };
 }
 
@@ -180,15 +188,93 @@ export const mhdHandbookService = {
    * The clause library for a content pack, optionally narrowed to one
    * jurisdiction. Bodies are attorney-flagged placeholders. Any authenticated
    * user may read it (it gates on company access, not the privileged role).
+   *
+   * `p_company_id` is REQUIRED as of 0184 — the RPC returns the GLOBAL library
+   * plus that company's own sections (`is_library` distinguishes the two); the
+   * prior signature had no company argument at all and leaked every company's
+   * private sections to every caller. Refuse the call without one, same as
+   * without a `handbookType`.
    */
   async listSections(filters: MhdHandbookSectionFilters): Promise<MhdHandbookSection[]> {
-    if (!filters.handbookType) return [];
+    if (!filters.companyId || !filters.handbookType) return [];
     const { data, error } = await supabaseClient.rpc('mhd_handbook_section_list', {
+      p_company_id: filters.companyId,
       p_handbook_type: filters.handbookType,
       p_jurisdiction: trimmedOrUndefined(filters.jurisdiction),
     });
     if (error) throw error;
     return ((data ?? []) as MhdHandbookSectionRpcRow[]).map(mapSection);
+  },
+
+  /**
+   * Create a section. `p_company_id: null` mints a GLOBAL library clause —
+   * server-enforced Platform Admin / HR Partner only, refused for any other
+   * caller regardless of the UI affordance. A non-null id mints a company-owned
+   * clause. `p_source_section_id` is an optional fork-lineage stamp; pass it only
+   * when hand-authoring a section FROM a library clause's content — `forkSection`
+   * is the direct clone path.
+   */
+  async createSection(
+    input: MhdCreateHandbookSectionInput,
+  ): Promise<MhdHandbookSectionMutationResult> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_create_handbook_section', {
+        p_company_id: input.companyId,
+        p_handbook_type: input.handbookType,
+        p_jurisdiction: input.jurisdiction,
+        p_section_key: input.sectionKey.trim(),
+        p_title: input.title.trim(),
+        p_body_placeholder: input.bodyPlaceholder,
+        p_is_required: input.isRequired,
+        p_sort_order: input.sortOrder,
+        p_source_section_id: input.sourceSectionId ?? undefined,
+        // gen:types requires p_company_id: string even though the RPC accepts
+        // NULL to mean "global library section" — the same gen:types limitation
+        // already worked around at the Forms / Calendar / Companies call sites.
+      } as never)
+      .returns<MhdHandbookSectionMutationRpcRow[]>();
+    if (error) throw error;
+    const row = (data ?? [])[0];
+    if (!row) throw new Error('Section creation returned no row.');
+    return { id: row.id };
+  },
+
+  /**
+   * Update a section's editable fields (`mhd_update_handbook_section`). Only the
+   * fields present on `input` are sent — an omitted field is left unchanged at
+   * the RPC (partial update), so this never overwrites a field the caller did
+   * not intend to touch.
+   */
+  async updateSection(input: MhdUpdateHandbookSectionInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_update_handbook_section', {
+      p_section_id: input.sectionId,
+      ...(input.title !== undefined ? { p_title: input.title.trim() } : {}),
+      ...(input.bodyPlaceholder !== undefined ? { p_body_placeholder: input.bodyPlaceholder } : {}),
+      ...(input.isRequired !== undefined ? { p_is_required: input.isRequired } : {}),
+      ...(input.sortOrder !== undefined ? { p_sort_order: input.sortOrder } : {}),
+      ...(input.isActive !== undefined ? { p_is_active: input.isActive } : {}),
+    });
+    if (error) throw error;
+  },
+
+  /**
+   * Fork a GLOBAL library section into a company-owned editable copy. Only a
+   * section with `company_id is null` (`isLibrary: true`) may be forked — the
+   * RPC refuses a company-owned source. The returned id is the new
+   * company-owned section; its `sourceSectionId` points back at the library
+   * original.
+   */
+  async forkSection(
+    input: MhdForkHandbookSectionInput,
+  ): Promise<MhdHandbookSectionMutationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_fork_handbook_section', {
+      p_source_section_id: input.sourceSectionId,
+      p_company_id: input.companyId,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdHandbookSectionMutationRpcRow[])[0];
+    if (!row) throw new Error('Section fork returned no row.');
+    return { id: row.id };
   },
 
   /**

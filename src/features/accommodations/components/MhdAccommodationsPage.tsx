@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Accessibility } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
@@ -106,12 +106,37 @@ export function MhdAccommodationsPage() {
         title="Reasonable accommodations"
         description="Requests, interactive process, options, decisions, implementation, and review."
         actions={
-          <Button
-            onClick={() => setCreating((value) => !value)}
-            className="h-9 px-3 text-[16.8px]"
-          >
-            Open Request
-          </Button>
+          <>
+            <Link
+              to="/accommodations/option-library"
+              className="inline-flex h-9 items-center rounded-md border border-border bg-card px-3 text-[16.8px] font-semibold text-foreground hover:bg-accent-tint"
+            >
+              Option Library
+            </Link>
+            {/*
+             * Additive entry point only — never a replacement for "Open
+             * Request" below or for verbal/observed/representative-made
+             * intake, which this standing domain rule (CLAUDE.md) requires to
+             * stay unrestricted. There is no way from this feature to know
+             * which form, if any, is the accommodation-intake form, so this
+             * links to the Forms Library rather than a hardcoded form id. A
+             * "default accommodation intake form" designation on a form (or
+             * on company settings) would let this deep-link straight to that
+             * form's renderer instead of the library index.
+             */}
+            <Link
+              to="/forms/library"
+              className="inline-flex h-9 items-center rounded-md border border-border bg-card px-3 text-[16.8px] font-semibold text-foreground hover:bg-accent-tint"
+            >
+              Submit Via Form
+            </Link>
+            <Button
+              onClick={() => setCreating((value) => !value)}
+              className="h-9 px-3 text-[16.8px]"
+            >
+              Open Request
+            </Button>
+          </>
         }
       />
       <MhdComplianceGateBanner readiness={readiness.data} />

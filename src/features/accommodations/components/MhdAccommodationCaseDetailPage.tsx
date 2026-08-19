@@ -19,6 +19,7 @@ import {
   useMhdAccommodationMedicalRecord,
   useMhdAccommodationMedicalReveal,
   useMhdAccommodationOption,
+  useMhdAccommodationOptionCatalog,
   useMhdAccommodationReadiness,
   useMhdAccommodationReview,
   useMhdAccommodationTransition,
@@ -42,6 +43,29 @@ const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 type Tab = 'process' | 'options' | 'decision' | 'implementation' | 'medical';
 
+/**
+ * accommodation_options.option_type is CHECK-constrained server-side
+ * (accommodation_option_type_allowed, 0053) to a fixed enum, while the
+ * option-catalog's own option_type (0186) is free text — a catalog entry's
+ * title (e.g. "Adjustable-height desk") will not generally be one of the
+ * allowed enum values. Picking a catalog entry therefore maps its broader
+ * `category` to the nearest allowed case option_type (below) rather than
+ * copying the catalog's free-text title into a constrained field, and folds
+ * the catalog title into the prefilled description instead — both fields
+ * remain fully editable afterward, never a locked template.
+ */
+const MHD_ACCOMMODATION_CATALOG_CATEGORY_TO_CASE_OPTION_TYPE: Record<string, string> = {
+  SCHEDULE: 'SCHEDULE_CHANGE',
+  EQUIPMENT: 'EQUIPMENT',
+  FACILITIES: 'WORKSITE_CHANGE',
+  JOB_RESTRUCTURING: 'JOB_RESTRUCTURING',
+  REASSIGNMENT: 'REASSIGNMENT',
+  LEAVE_RELATED: 'LEAVE',
+  TECHNOLOGY: 'EQUIPMENT',
+  POLICY_EXCEPTION: 'POLICY_MODIFICATION',
+  OTHER: 'OTHER',
+};
+
 // Mirrors mhd_accommodation_transition's own transition graph (0053_reasonable
 //_accommodations_module.sql): CLOSED is not a legal next state from EVALUATION
 // or IMPLEMENTING, and a case already CLOSED can only reopen to
@@ -59,10 +83,11 @@ const MHD_ACCOMMODATION_CLOSABLE_STATUSES: readonly MhdAccommodationStatus[] = [
 
 export function MhdAccommodationCaseDetailPage() {
   const { caseId = '' } = useParams<{ caseId: string }>();
-  const { roles } = useMhdAuth();
+  const { profile, roles } = useMhdAuth();
   const privileged = mhdAccommodationsIsPrivileged(roles);
   const canSeeMedical = mhdAccommodationsCanSeeMedical(roles);
   const detail = useMhdAccommodationCase(caseId);
+  const optionCatalog = useMhdAccommodationOptionCatalog(profile?.companyId ?? null);
   const readiness = useMhdAccommodationReadiness();
   const transition = useMhdAccommodationTransition(caseId);
   const addInteraction = useMhdAccommodationInteraction(caseId);
@@ -81,6 +106,7 @@ export function MhdAccommodationCaseDetailPage() {
   const [nextStep, setNextStep] = useState('');
   const [optionType, setOptionType] = useState('JOB_RESTRUCTURING');
   const [optionDescription, setOptionDescription] = useState('');
+  const [catalogPickId, setCatalogPickId] = useState('');
   const [effectiveness, setEffectiveness] = useState('');
   const [selectedOptionId, setSelectedOptionId] = useState('');
   const [outcome, setOutcome] = useState<'APPROVED' | 'PARTIALLY_APPROVED' | 'DENIED'>('APPROVED');
@@ -409,11 +435,57 @@ export function MhdAccommodationCaseDetailPage() {
           ))}
           {privileged ? (
             <MhdCard className="space-y-3">
-              <MhdCardHeader title="Evaluate an option" />
+              <MhdCardHeader
+                title="Evaluate an option"
+                action={
+                  <Link
+                    to="/accommodations/option-library"
+                    className="text-xs font-medium text-accent hover:text-accent-hover"
+                  >
+                    Manage Option Library
+                  </Link>
+                }
+              />
+              {(optionCatalog.data ?? []).length > 0 ? (
+                <label className="block text-sm font-medium">
+                  Start from catalog{' '}
+                  <span className="font-normal text-muted-foreground">
+                    (optional — pre-fills the fields below, which remain fully editable; this is a
+                    starting point, never a locked template)
+                  </span>
+                  <select
+                    className={`mt-1 ${inputClass}`}
+                    value={catalogPickId}
+                    onChange={(event) => {
+                      const pickedId = event.target.value;
+                      setCatalogPickId(pickedId);
+                      const picked = (optionCatalog.data ?? []).find((item) => item.id === pickedId);
+                      if (picked) {
+                        setOptionType(
+                          MHD_ACCOMMODATION_CATALOG_CATEGORY_TO_CASE_OPTION_TYPE[picked.category] ??
+                            'OTHER',
+                        );
+                        setOptionDescription(`${picked.optionType}: ${picked.descriptionTemplate}`);
+                      }
+                    }}
+                  >
+                    <option value="">Start from free text (default)…</option>
+                    {(optionCatalog.data ?? []).map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {mhdFormatAccommodationValue(item.category)} — {item.optionType}
+                        {item.isLibrary ? ' (Global)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
               <select
                 className={inputClass}
                 value={optionType}
-                onChange={(event) => setOptionType(event.target.value)}
+                onChange={(event) => {
+                  setCatalogPickId('');
+                  setOptionType(event.target.value);
+                }}
               >
                 {[
                   'JOB_RESTRUCTURING',

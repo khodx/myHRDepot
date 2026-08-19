@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ClipboardList } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
@@ -19,6 +19,7 @@ import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdFormService } from '@/features/forms/Service';
 import { mhdPersonService } from '@/features/people/Service';
+import { useMhdEmployeeFileCategoryDefault } from '../Hook';
 import {
   MHD_EMPLOYEE_FILE_TYPES,
   mhdEmployeeFileLabelForKey,
@@ -28,6 +29,7 @@ import {
 export function MhdEmployeeFileNewRecordPage() {
   const { personId } = useParams<{ personId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { profile } = useMhdAuth();
   const categoryValue = searchParams.get('category');
@@ -38,10 +40,18 @@ export function MhdEmployeeFileNewRecordPage() {
     queryFn: () => mhdPersonService.getPersonById(personId!),
     enabled: Boolean(personId),
   });
+  // Checked before the picker's own form list loads: when the company has
+  // designated a canonical form for this category, the picker never needs to
+  // render at all, so its own query stays disabled until this one resolves
+  // to "no default" (see the `enabled` condition on `formsQuery` below).
+  const defaultFormQuery = useMhdEmployeeFileCategoryDefault(profile?.companyId ?? null, category);
+  const hasResolvedNoDefault = defaultFormQuery.isSuccess
+    ? !defaultFormQuery.data
+    : defaultFormQuery.isError;
   const formsQuery = useQuery({
     queryKey: ['mhd-employee-file-category-forms', profile?.companyId, category],
     queryFn: () => mhdFormService.listFormsForCompany(profile!.companyId!, 'ACTIVE'),
-    enabled: Boolean(profile?.companyId && category),
+    enabled: Boolean(profile?.companyId && category && hasResolvedNoDefault),
   });
 
   const matchingForms = useMemo(
@@ -51,6 +61,24 @@ export function MhdEmployeeFileNewRecordPage() {
   const pagination = useMhdPagination(matchingForms.length, {
     resetKey: `${matchingForms.length}:${matchingForms[0]?.id ?? ''}`,
   });
+
+  // Auto-jump: a canonical form skips the picker entirely. `replace: true` so
+  // this picker route never sits in browser history — closing the renderer
+  // (which itself calls `navigate(-1)`, see MhdFormModalRoute) lands back on
+  // the employee file cabinet, not on a picker page that would immediately
+  // redirect again. No `state.backgroundLocation` is passed, so the renderer
+  // loads as its own standalone page rather than as a modal over this one
+  // (which would keep this auto-redirecting page mounted as the modal's
+  // background and re-fire this effect in a loop).
+  useEffect(() => {
+    if (!personId || !category || !defaultFormQuery.data) return;
+    navigate(
+      `/forms/${defaultFormQuery.data.formId}/render?employeeFilePersonId=${encodeURIComponent(
+        personId,
+      )}&employeeFileCategory=${encodeURIComponent(category)}`,
+      { replace: true },
+    );
+  }, [category, defaultFormQuery.data, navigate, personId]);
 
   if (!personId || !category) {
     return (
@@ -64,7 +92,7 @@ export function MhdEmployeeFileNewRecordPage() {
     );
   }
 
-  if (personQuery.isLoading || formsQuery.isLoading) {
+  if (personQuery.isLoading || defaultFormQuery.isLoading) {
     return (
       <MhdCard className="p-6 text-sm text-muted-foreground">
         Loading Employee File Forms...
@@ -82,6 +110,31 @@ export function MhdEmployeeFileNewRecordPage() {
             : 'Unable To Load Employee File Forms.'}
         </p>
       </div>
+    );
+  }
+
+  // A default resolved: the effect above is about to navigate away. Render a
+  // holding state instead of falling through to the picker below, so the
+  // "no forms yet" empty state (formsQuery is deliberately still disabled
+  // here) never has a chance to flash before the redirect takes effect.
+  if (defaultFormQuery.data) {
+    return (
+      <MhdCard className="p-6 text-sm text-muted-foreground">
+        Opening The Default Form For This Category...
+      </MhdCard>
+    );
+  }
+
+  // No default (hasResolvedNoDefault is true, which is what unlocked this
+  // query in the first place) — falling through to the original picker,
+  // completely unchanged from here down. Its own loading state, gated
+  // separately from personQuery/defaultFormQuery above since it only starts
+  // fetching once a default is confirmed absent.
+  if (formsQuery.isLoading) {
+    return (
+      <MhdCard className="p-6 text-sm text-muted-foreground">
+        Loading Employee File Forms...
+      </MhdCard>
     );
   }
 

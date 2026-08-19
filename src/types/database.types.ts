@@ -29,6 +29,7 @@ export type Database = {
           request_source: string
           request_summary: string
           requested_at: string
+          source_submission_id: string | null
           status: string
           updated_at: string | null
         }
@@ -51,6 +52,7 @@ export type Database = {
           request_source: string
           request_summary: string
           requested_at: string
+          source_submission_id?: string | null
           status?: string
           updated_at?: string | null
         }
@@ -73,6 +75,7 @@ export type Database = {
           request_source?: string
           request_summary?: string
           requested_at?: string
+          source_submission_id?: string | null
           status?: string
           updated_at?: string | null
         }
@@ -131,6 +134,13 @@ export type Database = {
             columns: ["recruiting_application_id"]
             isOneToOne: false
             referencedRelation: "recruiting_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_cases_source_submission_id_fkey"
+            columns: ["source_submission_id"]
+            isOneToOne: false
+            referencedRelation: "form_submissions"
             referencedColumns: ["id"]
           },
         ]
@@ -451,6 +461,73 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accommodation_option_catalog: {
+        Row: {
+          category: string
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          description_template: string
+          id: string
+          is_active: boolean
+          option_type: string
+          sort_order: number
+          source_option_id: string | null
+          typical_cost_range: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description_template: string
+          id?: string
+          is_active?: boolean
+          option_type: string
+          sort_order?: number
+          source_option_id?: string | null
+          typical_cost_range?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description_template?: string
+          id?: string
+          is_active?: boolean
+          option_type?: string
+          sort_order?: number
+          source_option_id?: string | null
+          typical_cost_range?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accommodation_option_catalog_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_option_catalog_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_option_catalog_source_option_id_fkey"
+            columns: ["source_option_id"]
+            isOneToOne: false
+            referencedRelation: "accommodation_option_catalog"
             referencedColumns: ["id"]
           },
         ]
@@ -4224,6 +4301,58 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_file_category_defaults: {
+        Row: {
+          category: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          form_id: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          form_id: string
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          form_id?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_file_category_defaults_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_file_category_defaults_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_file_category_defaults_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
             referencedColumns: ["id"]
           },
         ]
@@ -8272,165 +8401,6 @@ export type Database = {
           },
         ]
       }
-      form_templates: {
-        Row: {
-          component_library_id: string | null
-          created_at: string
-          created_by: string | null
-          id: string
-          reference_id: string
-          reusable_document_template_ids: string | null
-          reusable_field_ids: string | null
-          reusable_notification_ids: string | null
-          reusable_rule_ids: string | null
-          reusable_section_ids: string | null
-          reusable_validation_rule_ids: string | null
-          reusable_workflow_ids: string | null
-          system_template_flag: boolean
-          template_active_flag: boolean
-          template_approval_required: boolean
-          template_approved_by: string | null
-          template_approved_date: string | null
-          template_category: string | null
-          template_change_notes: string | null
-          template_clone_source_id: string | null
-          template_default_flag: boolean
-          template_dependency_map: string | null
-          template_description: string | null
-          template_global_flag: boolean
-          template_instructions: string | null
-          template_locked_flag: boolean
-          template_migration_notes: string | null
-          template_name: string | null
-          template_number: string | null
-          template_owner: string | null
-          template_preview_url: string | null
-          template_published_date: string | null
-          template_retired_date: string | null
-          template_reusable_flag: boolean
-          template_search_text: string | null
-          template_source: string | null
-          template_status: string | null
-          template_subcategory: string | null
-          template_tags: string | null
-          template_thumbnail_url: string | null
-          template_usage_count: number | null
-          template_version: string | null
-          tenant_template_flag: boolean
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          component_library_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          reference_id: string
-          reusable_document_template_ids?: string | null
-          reusable_field_ids?: string | null
-          reusable_notification_ids?: string | null
-          reusable_rule_ids?: string | null
-          reusable_section_ids?: string | null
-          reusable_validation_rule_ids?: string | null
-          reusable_workflow_ids?: string | null
-          system_template_flag?: boolean
-          template_active_flag?: boolean
-          template_approval_required?: boolean
-          template_approved_by?: string | null
-          template_approved_date?: string | null
-          template_category?: string | null
-          template_change_notes?: string | null
-          template_clone_source_id?: string | null
-          template_default_flag?: boolean
-          template_dependency_map?: string | null
-          template_description?: string | null
-          template_global_flag?: boolean
-          template_instructions?: string | null
-          template_locked_flag?: boolean
-          template_migration_notes?: string | null
-          template_name?: string | null
-          template_number?: string | null
-          template_owner?: string | null
-          template_preview_url?: string | null
-          template_published_date?: string | null
-          template_retired_date?: string | null
-          template_reusable_flag?: boolean
-          template_search_text?: string | null
-          template_source?: string | null
-          template_status?: string | null
-          template_subcategory?: string | null
-          template_tags?: string | null
-          template_thumbnail_url?: string | null
-          template_usage_count?: number | null
-          template_version?: string | null
-          tenant_template_flag?: boolean
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          component_library_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          reference_id?: string
-          reusable_document_template_ids?: string | null
-          reusable_field_ids?: string | null
-          reusable_notification_ids?: string | null
-          reusable_rule_ids?: string | null
-          reusable_section_ids?: string | null
-          reusable_validation_rule_ids?: string | null
-          reusable_workflow_ids?: string | null
-          system_template_flag?: boolean
-          template_active_flag?: boolean
-          template_approval_required?: boolean
-          template_approved_by?: string | null
-          template_approved_date?: string | null
-          template_category?: string | null
-          template_change_notes?: string | null
-          template_clone_source_id?: string | null
-          template_default_flag?: boolean
-          template_dependency_map?: string | null
-          template_description?: string | null
-          template_global_flag?: boolean
-          template_instructions?: string | null
-          template_locked_flag?: boolean
-          template_migration_notes?: string | null
-          template_name?: string | null
-          template_number?: string | null
-          template_owner?: string | null
-          template_preview_url?: string | null
-          template_published_date?: string | null
-          template_retired_date?: string | null
-          template_reusable_flag?: boolean
-          template_search_text?: string | null
-          template_source?: string | null
-          template_status?: string | null
-          template_subcategory?: string | null
-          template_tags?: string | null
-          template_thumbnail_url?: string | null
-          template_usage_count?: number | null
-          template_version?: string | null
-          tenant_template_flag?: boolean
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "form_templates_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "form_templates_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       form_tenant_configs: {
         Row: {
           allowed_field_types: string | null
@@ -8822,7 +8792,7 @@ export type Database = {
           business_purpose: string | null
           business_sponsor: string | null
           client_facing_flag: boolean
-          company_id: string
+          company_id: string | null
           completion_instructions: string | null
           compliance_impact_flag: boolean
           confidentiality_level: string | null
@@ -8897,6 +8867,7 @@ export type Database = {
           sensitivity_level: string
           short_title: string | null
           signature_collection_flag: boolean
+          source_form_id: string | null
           source_reference: string | null
           source_system: string | null
           status: string
@@ -8913,7 +8884,7 @@ export type Database = {
           business_purpose?: string | null
           business_sponsor?: string | null
           client_facing_flag?: boolean
-          company_id: string
+          company_id?: string | null
           completion_instructions?: string | null
           compliance_impact_flag?: boolean
           confidentiality_level?: string | null
@@ -8988,6 +8959,7 @@ export type Database = {
           sensitivity_level?: string
           short_title?: string | null
           signature_collection_flag?: boolean
+          source_form_id?: string | null
           source_reference?: string | null
           source_system?: string | null
           status?: string
@@ -9004,7 +8976,7 @@ export type Database = {
           business_purpose?: string | null
           business_sponsor?: string | null
           client_facing_flag?: boolean
-          company_id?: string
+          company_id?: string | null
           completion_instructions?: string | null
           compliance_impact_flag?: boolean
           confidentiality_level?: string | null
@@ -9079,6 +9051,7 @@ export type Database = {
           sensitivity_level?: string
           short_title?: string | null
           signature_collection_flag?: boolean
+          source_form_id?: string | null
           source_reference?: string | null
           source_system?: string | null
           status?: string
@@ -9123,6 +9096,13 @@ export type Database = {
             columns: ["published_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forms_source_form_id_fkey"
+            columns: ["source_form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
             referencedColumns: ["id"]
           },
           {
@@ -9253,6 +9233,7 @@ export type Database = {
           jurisdiction: string
           section_key: string
           sort_order: number
+          source_section_id: string | null
           title: string
           updated_at: string | null
         }
@@ -9267,6 +9248,7 @@ export type Database = {
           jurisdiction: string
           section_key: string
           sort_order?: number
+          source_section_id?: string | null
           title: string
           updated_at?: string | null
         }
@@ -9281,6 +9263,7 @@ export type Database = {
           jurisdiction?: string
           section_key?: string
           sort_order?: number
+          source_section_id?: string | null
           title?: string
           updated_at?: string | null
         }
@@ -9290,6 +9273,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handbook_sections_source_section_id_fkey"
+            columns: ["source_section_id"]
+            isOneToOne: false
+            referencedRelation: "handbook_sections"
             referencedColumns: ["id"]
           },
         ]
@@ -10719,6 +10709,7 @@ export type Database = {
           requested_end: string | null
           requested_mode: string
           requested_start: string | null
+          source_submission_id: string | null
           status: string
           updated_at: string | null
         }
@@ -10741,6 +10732,7 @@ export type Database = {
           requested_end?: string | null
           requested_mode?: string
           requested_start?: string | null
+          source_submission_id?: string | null
           status?: string
           updated_at?: string | null
         }
@@ -10763,6 +10755,7 @@ export type Database = {
           requested_end?: string | null
           requested_mode?: string
           requested_start?: string | null
+          source_submission_id?: string | null
           status?: string
           updated_at?: string | null
         }
@@ -10793,6 +10786,13 @@ export type Database = {
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_cases_source_submission_id_fkey"
+            columns: ["source_submission_id"]
+            isOneToOne: false
+            referencedRelation: "form_submissions"
             referencedColumns: ["id"]
           },
         ]
@@ -11549,6 +11549,7 @@ export type Database = {
           measurement_method: string
           measurement_months: number | null
           requires_certification: boolean
+          source_type_id: string | null
           type_key: string
           type_name: string
           updated_at: string | null
@@ -11565,6 +11566,7 @@ export type Database = {
           measurement_method?: string
           measurement_months?: number | null
           requires_certification?: boolean
+          source_type_id?: string | null
           type_key: string
           type_name: string
           updated_at?: string | null
@@ -11581,6 +11583,7 @@ export type Database = {
           measurement_method?: string
           measurement_months?: number | null
           requires_certification?: boolean
+          source_type_id?: string | null
           type_key?: string
           type_name?: string
           updated_at?: string | null
@@ -11598,6 +11601,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_types_source_type_id_fkey"
+            columns: ["source_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
             referencedColumns: ["id"]
           },
         ]
@@ -13822,242 +13832,6 @@ export type Database = {
           },
         ]
       }
-      onboarding_at_will_acknowledgments: {
-        Row: {
-          acknowledged_flag: boolean
-          company_id: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          document_generation_id: string | null
-          employee_signature_at: string | null
-          employee_signature_name: string | null
-          esignature_request_id: string | null
-          form_submission_id: string | null
-          id: string
-          is_deleted: boolean
-          person_id: string
-          policy_version: string | null
-          reference_id: string
-          requires_signature: boolean
-          signed_at: string | null
-          status: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          acknowledged_flag?: boolean
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          person_id: string
-          policy_version?: string | null
-          reference_id: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          acknowledged_flag?: boolean
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          person_id?: string
-          policy_version?: string | null
-          reference_id?: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_at_will_acknowledgments_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_at_will_acknowledgments_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_at_will_acknowledgments_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_at_will_acknowledgments_form_submission_id_fkey"
-            columns: ["form_submission_id"]
-            isOneToOne: false
-            referencedRelation: "form_submissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_at_will_acknowledgments_person_id_fkey"
-            columns: ["person_id"]
-            isOneToOne: false
-            referencedRelation: "people"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_at_will_acknowledgments_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      onboarding_badge_acknowledgments: {
-        Row: {
-          badge_issued_at: string | null
-          badge_number: string | null
-          company_id: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          document_generation_id: string | null
-          employee_signature_at: string | null
-          employee_signature_name: string | null
-          esignature_request_id: string | null
-          form_submission_id: string | null
-          id: string
-          is_deleted: boolean
-          payroll_user_id_no: string | null
-          person_id: string
-          reference_id: string
-          replacement_fee_acknowledged: boolean
-          requires_signature: boolean
-          signed_at: string | null
-          status: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          badge_issued_at?: string | null
-          badge_number?: string | null
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          payroll_user_id_no?: string | null
-          person_id: string
-          reference_id: string
-          replacement_fee_acknowledged?: boolean
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          badge_issued_at?: string | null
-          badge_number?: string | null
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          payroll_user_id_no?: string | null
-          person_id?: string
-          reference_id?: string
-          replacement_fee_acknowledged?: boolean
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_badge_acknowledgments_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_badge_acknowledgments_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_badge_acknowledgments_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_badge_acknowledgments_form_submission_id_fkey"
-            columns: ["form_submission_id"]
-            isOneToOne: false
-            referencedRelation: "form_submissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_badge_acknowledgments_person_id_fkey"
-            columns: ["person_id"]
-            isOneToOne: false
-            referencedRelation: "people"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_badge_acknowledgments_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       onboarding_candidate_evaluations: {
         Row: {
           candidate_email: string | null
@@ -14693,114 +14467,156 @@ export type Database = {
           },
         ]
       }
-      onboarding_dispute_resolution_acks: {
+      onboarding_document_acknowledgments: {
         Row: {
           acknowledged_flag: boolean
+          badge_issued_at: string | null
+          badge_number: string | null
           company_id: string
           created_at: string
           created_by: string | null
           deleted_at: string | null
           deleted_by: string | null
           document_generation_id: string | null
+          document_key: string
           employee_signature_at: string | null
           employee_signature_name: string | null
+          employer_address: string | null
+          employer_dba_name: string | null
           esignature_request_id: string | null
           form_submission_id: string | null
+          handbook_version: string | null
           id: string
           is_deleted: boolean
+          notice_variant: string | null
+          pay_designated_payday: string | null
+          pay_rate: number | null
+          pay_rate_basis: string | null
           person_id: string
           policy_version: string | null
           reference_id: string
+          replacement_fee_acknowledged: boolean | null
           requires_signature: boolean
+          revocable_flag: boolean | null
           signed_at: string | null
           status: string
           updated_at: string
           updated_by: string | null
+          voluntary_flag: boolean | null
+          waiver_type: string | null
         }
         Insert: {
           acknowledged_flag?: boolean
+          badge_issued_at?: string | null
+          badge_number?: string | null
           company_id: string
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           document_generation_id?: string | null
+          document_key: string
           employee_signature_at?: string | null
           employee_signature_name?: string | null
+          employer_address?: string | null
+          employer_dba_name?: string | null
           esignature_request_id?: string | null
           form_submission_id?: string | null
+          handbook_version?: string | null
           id?: string
           is_deleted?: boolean
+          notice_variant?: string | null
+          pay_designated_payday?: string | null
+          pay_rate?: number | null
+          pay_rate_basis?: string | null
           person_id: string
           policy_version?: string | null
           reference_id: string
+          replacement_fee_acknowledged?: boolean | null
           requires_signature?: boolean
+          revocable_flag?: boolean | null
           signed_at?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
+          voluntary_flag?: boolean | null
+          waiver_type?: string | null
         }
         Update: {
           acknowledged_flag?: boolean
+          badge_issued_at?: string | null
+          badge_number?: string | null
           company_id?: string
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           document_generation_id?: string | null
+          document_key?: string
           employee_signature_at?: string | null
           employee_signature_name?: string | null
+          employer_address?: string | null
+          employer_dba_name?: string | null
           esignature_request_id?: string | null
           form_submission_id?: string | null
+          handbook_version?: string | null
           id?: string
           is_deleted?: boolean
+          notice_variant?: string | null
+          pay_designated_payday?: string | null
+          pay_rate?: number | null
+          pay_rate_basis?: string | null
           person_id?: string
           policy_version?: string | null
           reference_id?: string
+          replacement_fee_acknowledged?: boolean | null
           requires_signature?: boolean
+          revocable_flag?: boolean | null
           signed_at?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
+          voluntary_flag?: boolean | null
+          waiver_type?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "onboarding_dispute_resolution_acks_company_id_fkey"
+            foreignKeyName: "onboarding_document_acknowledgments_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "onboarding_dispute_resolution_acks_created_by_fkey"
+            foreignKeyName: "onboarding_document_acknowledgments_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "onboarding_dispute_resolution_acks_deleted_by_fkey"
+            foreignKeyName: "onboarding_document_acknowledgments_deleted_by_fkey"
             columns: ["deleted_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "onboarding_dispute_resolution_acks_form_submission_id_fkey"
+            foreignKeyName: "onboarding_document_acknowledgments_form_submission_id_fkey"
             columns: ["form_submission_id"]
             isOneToOne: false
             referencedRelation: "form_submissions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "onboarding_dispute_resolution_acks_person_id_fkey"
+            foreignKeyName: "onboarding_document_acknowledgments_person_id_fkey"
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "people"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "onboarding_dispute_resolution_acks_updated_by_fkey"
+            foreignKeyName: "onboarding_document_acknowledgments_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
@@ -15420,354 +15236,6 @@ export type Database = {
           },
         ]
       }
-      onboarding_handbook_acknowledgments: {
-        Row: {
-          acknowledged_flag: boolean
-          company_id: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          document_generation_id: string | null
-          employee_signature_at: string | null
-          employee_signature_name: string | null
-          esignature_request_id: string | null
-          form_submission_id: string | null
-          handbook_version: string | null
-          id: string
-          is_deleted: boolean
-          person_id: string
-          reference_id: string
-          requires_signature: boolean
-          signed_at: string | null
-          status: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          acknowledged_flag?: boolean
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          handbook_version?: string | null
-          id?: string
-          is_deleted?: boolean
-          person_id: string
-          reference_id: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          acknowledged_flag?: boolean
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          handbook_version?: string | null
-          id?: string
-          is_deleted?: boolean
-          person_id?: string
-          reference_id?: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_handbook_acknowledgments_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_handbook_acknowledgments_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_handbook_acknowledgments_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_handbook_acknowledgments_form_submission_id_fkey"
-            columns: ["form_submission_id"]
-            isOneToOne: false
-            referencedRelation: "form_submissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_handbook_acknowledgments_person_id_fkey"
-            columns: ["person_id"]
-            isOneToOne: false
-            referencedRelation: "people"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_handbook_acknowledgments_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      onboarding_harassment_policy_acks: {
-        Row: {
-          acknowledged_flag: boolean
-          company_id: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          document_generation_id: string | null
-          employee_signature_at: string | null
-          employee_signature_name: string | null
-          esignature_request_id: string | null
-          form_submission_id: string | null
-          id: string
-          is_deleted: boolean
-          payroll_user_id_no: string | null
-          person_id: string
-          policy_version: string | null
-          reference_id: string
-          requires_signature: boolean
-          signed_at: string | null
-          status: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          acknowledged_flag?: boolean
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          payroll_user_id_no?: string | null
-          person_id: string
-          policy_version?: string | null
-          reference_id: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          acknowledged_flag?: boolean
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          payroll_user_id_no?: string | null
-          person_id?: string
-          policy_version?: string | null
-          reference_id?: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_harassment_policy_acks_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_harassment_policy_acks_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_harassment_policy_acks_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_harassment_policy_acks_form_submission_id_fkey"
-            columns: ["form_submission_id"]
-            isOneToOne: false
-            referencedRelation: "form_submissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_harassment_policy_acks_person_id_fkey"
-            columns: ["person_id"]
-            isOneToOne: false
-            referencedRelation: "people"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_harassment_policy_acks_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      onboarding_health_marketplace_notice_acks: {
-        Row: {
-          acknowledged_flag: boolean
-          company_id: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          document_generation_id: string | null
-          employee_signature_at: string | null
-          employee_signature_name: string | null
-          esignature_request_id: string | null
-          form_submission_id: string | null
-          id: string
-          is_deleted: boolean
-          notice_variant: string
-          person_id: string
-          reference_id: string
-          requires_signature: boolean
-          signed_at: string | null
-          status: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          acknowledged_flag?: boolean
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          notice_variant: string
-          person_id: string
-          reference_id: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          acknowledged_flag?: boolean
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          notice_variant?: string
-          person_id?: string
-          reference_id?: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_health_marketplace_notice_ac_form_submission_id_fkey"
-            columns: ["form_submission_id"]
-            isOneToOne: false
-            referencedRelation: "form_submissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_health_marketplace_notice_acks_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_health_marketplace_notice_acks_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_health_marketplace_notice_acks_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_health_marketplace_notice_acks_person_id_fkey"
-            columns: ["person_id"]
-            isOneToOne: false
-            referencedRelation: "people"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_health_marketplace_notice_acks_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       onboarding_i9_records: {
         Row: {
           alien_registration_number: string | null
@@ -15900,127 +15368,6 @@ export type Database = {
           },
           {
             foreignKeyName: "onboarding_i9_records_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      onboarding_meal_waiver_acks: {
-        Row: {
-          company_id: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          document_generation_id: string | null
-          employee_signature_at: string | null
-          employee_signature_name: string | null
-          esignature_request_id: string | null
-          form_submission_id: string | null
-          id: string
-          is_deleted: boolean
-          payroll_user_id_no: string | null
-          person_id: string
-          reference_id: string
-          requires_signature: boolean
-          revocable_flag: boolean
-          signed_at: string | null
-          status: string
-          updated_at: string
-          updated_by: string | null
-          voluntary_flag: boolean
-          waiver_type: string | null
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          payroll_user_id_no?: string | null
-          person_id: string
-          reference_id: string
-          requires_signature?: boolean
-          revocable_flag?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-          voluntary_flag?: boolean
-          waiver_type?: string | null
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          payroll_user_id_no?: string | null
-          person_id?: string
-          reference_id?: string
-          requires_signature?: boolean
-          revocable_flag?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-          voluntary_flag?: boolean
-          waiver_type?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_meal_waiver_acks_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_meal_waiver_acks_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_meal_waiver_acks_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_meal_waiver_acks_form_submission_id_fkey"
-            columns: ["form_submission_id"]
-            isOneToOne: false
-            referencedRelation: "form_submissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_meal_waiver_acks_person_id_fkey"
-            columns: ["person_id"]
-            isOneToOne: false
-            referencedRelation: "people"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_meal_waiver_acks_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
@@ -16212,7 +15559,7 @@ export type Database = {
             foreignKeyName: "onboarding_required_notice_ack_clause_authoritative_ack_id_fkey"
             columns: ["authoritative_ack_id"]
             isOneToOne: false
-            referencedRelation: "onboarding_at_will_acknowledgments"
+            referencedRelation: "onboarding_document_acknowledgments"
             referencedColumns: ["id"]
           },
           {
@@ -16588,236 +15935,6 @@ export type Database = {
           },
         ]
       }
-      onboarding_surveillance_policy_acks: {
-        Row: {
-          acknowledged_flag: boolean
-          company_id: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          document_generation_id: string | null
-          employee_signature_at: string | null
-          employee_signature_name: string | null
-          esignature_request_id: string | null
-          form_submission_id: string | null
-          id: string
-          is_deleted: boolean
-          person_id: string
-          policy_version: string | null
-          reference_id: string
-          requires_signature: boolean
-          signed_at: string | null
-          status: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          acknowledged_flag?: boolean
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          person_id: string
-          policy_version?: string | null
-          reference_id: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          acknowledged_flag?: boolean
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          person_id?: string
-          policy_version?: string | null
-          reference_id?: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_surveillance_policy_acks_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_surveillance_policy_acks_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_surveillance_policy_acks_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_surveillance_policy_acks_form_submission_id_fkey"
-            columns: ["form_submission_id"]
-            isOneToOne: false
-            referencedRelation: "form_submissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_surveillance_policy_acks_person_id_fkey"
-            columns: ["person_id"]
-            isOneToOne: false
-            referencedRelation: "people"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_surveillance_policy_acks_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      onboarding_time_of_hire_pamphlet_acks: {
-        Row: {
-          acknowledged_flag: boolean
-          company_id: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          document_generation_id: string | null
-          employee_signature_at: string | null
-          employee_signature_name: string | null
-          esignature_request_id: string | null
-          form_submission_id: string | null
-          id: string
-          is_deleted: boolean
-          person_id: string
-          policy_version: string | null
-          reference_id: string
-          requires_signature: boolean
-          signed_at: string | null
-          status: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          acknowledged_flag?: boolean
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          person_id: string
-          policy_version?: string | null
-          reference_id: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          acknowledged_flag?: boolean
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          person_id?: string
-          policy_version?: string | null
-          reference_id?: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_time_of_hire_pamphlet_acks_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_time_of_hire_pamphlet_acks_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_time_of_hire_pamphlet_acks_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_time_of_hire_pamphlet_acks_form_submission_id_fkey"
-            columns: ["form_submission_id"]
-            isOneToOne: false
-            referencedRelation: "form_submissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_time_of_hire_pamphlet_acks_person_id_fkey"
-            columns: ["person_id"]
-            isOneToOne: false
-            referencedRelation: "people"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_time_of_hire_pamphlet_acks_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       onboarding_w4_elections: {
         Row: {
           company_id: string
@@ -16944,133 +16061,6 @@ export type Database = {
           },
           {
             foreignKeyName: "onboarding_w4_elections_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      onboarding_wage_notice_acks: {
-        Row: {
-          acknowledged_flag: boolean
-          company_id: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          document_generation_id: string | null
-          employee_signature_at: string | null
-          employee_signature_name: string | null
-          employer_address: string | null
-          employer_dba_name: string | null
-          esignature_request_id: string | null
-          form_submission_id: string | null
-          id: string
-          is_deleted: boolean
-          pay_designated_payday: string | null
-          pay_rate: number | null
-          pay_rate_basis: string | null
-          person_id: string
-          reference_id: string
-          requires_signature: boolean
-          signed_at: string | null
-          status: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          acknowledged_flag?: boolean
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          employer_address?: string | null
-          employer_dba_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          pay_designated_payday?: string | null
-          pay_rate?: number | null
-          pay_rate_basis?: string | null
-          person_id: string
-          reference_id: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          acknowledged_flag?: boolean
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          document_generation_id?: string | null
-          employee_signature_at?: string | null
-          employee_signature_name?: string | null
-          employer_address?: string | null
-          employer_dba_name?: string | null
-          esignature_request_id?: string | null
-          form_submission_id?: string | null
-          id?: string
-          is_deleted?: boolean
-          pay_designated_payday?: string | null
-          pay_rate?: number | null
-          pay_rate_basis?: string | null
-          person_id?: string
-          reference_id?: string
-          requires_signature?: boolean
-          signed_at?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_wage_notice_acks_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_wage_notice_acks_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_wage_notice_acks_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_wage_notice_acks_form_submission_id_fkey"
-            columns: ["form_submission_id"]
-            isOneToOne: false
-            referencedRelation: "form_submissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_wage_notice_acks_person_id_fkey"
-            columns: ["person_id"]
-            isOneToOne: false
-            referencedRelation: "people"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_wage_notice_acks_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
@@ -21108,6 +20098,22 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: boolean
       }
+      mhd_can_manage_accommodation_option_catalog: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
+      mhd_can_manage_form_library: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
+      mhd_can_manage_handbook_library: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
+      mhd_can_manage_leave_type: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
       mhd_can_view_accommodation_case: {
         Args: { p_case_id: string }
         Returns: boolean
@@ -21134,6 +20140,10 @@ export type Database = {
       }
       mhd_can_view_correspondence_thread: {
         Args: { p_thread_id: string }
+        Returns: boolean
+      }
+      mhd_can_view_form_library: {
+        Args: { p_company_id: string }
         Returns: boolean
       }
       mhd_can_view_form_submission: {
@@ -21201,6 +20211,10 @@ export type Database = {
       mhd_check_trusted_device: {
         Args: { p_device_token: string }
         Returns: boolean
+      }
+      mhd_clear_employee_file_category_default: {
+        Args: { p_category: string; p_company_id: string }
+        Returns: undefined
       }
       mhd_competency_list: {
         Args: {
@@ -21466,6 +20480,27 @@ export type Database = {
         }[]
       }
       mhd_count_unused_recovery_codes: { Args: never; Returns: number }
+      mhd_create_accommodation_case_from_submission: {
+        Args: { p_submission_id: string; p_values: Json }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_create_accommodation_option_catalog_entry: {
+        Args: {
+          p_category?: string
+          p_company_id: string
+          p_description_template: string
+          p_option_type: string
+          p_sort_order?: number
+          p_source_option_id?: string
+          p_typical_cost_range?: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
       mhd_create_activity: {
         Args: {
           p_activity_type: string
@@ -21687,13 +20722,14 @@ export type Database = {
       }
       mhd_create_form: {
         Args: {
-          p_company_id: string
+          p_company_id?: string
           p_definition?: Json
           p_description?: string
           p_employee_file_category?: string
           p_esignature_document_template_id?: string
-          p_name: string
+          p_name?: string
           p_requires_esignature?: boolean
+          p_source_form_id?: string
         }
         Returns: {
           id: string
@@ -21701,6 +20737,46 @@ export type Database = {
       }
       mhd_create_form_revision: {
         Args: { p_form_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
+      mhd_create_handbook_section: {
+        Args: {
+          p_body_placeholder?: string
+          p_company_id: string
+          p_handbook_type: string
+          p_is_required?: boolean
+          p_jurisdiction: string
+          p_section_key: string
+          p_sort_order?: number
+          p_source_section_id?: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
+      mhd_create_leave_case_from_submission: {
+        Args: { p_submission_id: string; p_values: Json }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_create_leave_type: {
+        Args: {
+          p_citation?: string
+          p_company_id: string
+          p_entitlement_hours?: number
+          p_jurisdiction?: string
+          p_measurement_method?: string
+          p_measurement_months?: number
+          p_requires_certification?: boolean
+          p_source_type_id?: string
+          p_type_key: string
+          p_type_name: string
+        }
         Returns: {
           id: string
         }[]
@@ -22159,6 +21235,30 @@ export type Database = {
         }
         Returns: undefined
       }
+      mhd_fork_accommodation_option_catalog_entry: {
+        Args: { p_company_id: string; p_source_option_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
+      mhd_fork_form_from_library: {
+        Args: { p_company_id: string; p_source_form_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
+      mhd_fork_handbook_section: {
+        Args: { p_company_id: string; p_source_section_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
+      mhd_fork_leave_type: {
+        Args: { p_company_id: string; p_source_type_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
       mhd_form_workflow_action_recipient_user_ids: {
         Args: { p_action_id: string; p_company_id: string }
         Returns: string[]
@@ -22394,6 +21494,13 @@ export type Database = {
         Args: { p_company_id?: string; p_template_key: string }
         Returns: string
       }
+      mhd_get_employee_file_category_default: {
+        Args: { p_category: string; p_company_id: string }
+        Returns: {
+          form_id: string
+          form_name: string
+        }[]
+      }
       mhd_get_exit_acknowledgment_template_id: { Args: never; Returns: string }
       mhd_get_field_encryption_key: { Args: never; Returns: string }
       mhd_get_form: {
@@ -22413,6 +21520,7 @@ export type Database = {
           published_by: string
           reference_id: string
           requires_esignature: boolean
+          source_form_id: string
           status: string
           updated_at: string
           updated_by: string
@@ -22831,16 +21939,23 @@ export type Database = {
         }[]
       }
       mhd_handbook_section_list: {
-        Args: { p_handbook_type: string; p_jurisdiction?: string }
+        Args: {
+          p_company_id: string
+          p_handbook_type: string
+          p_jurisdiction?: string
+        }
         Returns: {
           body_placeholder: string
+          company_id: string
           handbook_type: string
           id: string
           is_active: boolean
+          is_library: boolean
           is_required: boolean
           jurisdiction: string
           section_key: string
           sort_order: number
+          source_section_id: string
           title: string
         }[]
       }
@@ -23669,6 +22784,21 @@ export type Database = {
           id: string
         }[]
       }
+      mhd_list_accommodation_option_catalog: {
+        Args: { p_category?: string; p_company_id: string }
+        Returns: {
+          category: string
+          company_id: string
+          description_template: string
+          id: string
+          is_active: boolean
+          is_library: boolean
+          option_type: string
+          sort_order: number
+          source_option_id: string
+          typical_cost_range: string
+        }[]
+      }
       mhd_list_activity_board: {
         Args: {
           p_activity_type?: string
@@ -24099,6 +23229,15 @@ export type Database = {
           version: number
         }[]
       }
+      mhd_list_employee_file_category_defaults: {
+        Args: { p_company_id: string }
+        Returns: {
+          category: string
+          form_id: string
+          form_name: string
+          form_status: string
+        }[]
+      }
       mhd_list_employee_file_submissions: {
         Args: { p_person_id: string }
         Returns: {
@@ -24122,6 +23261,24 @@ export type Database = {
           updated_at: string
         }[]
       }
+      mhd_list_form_library: {
+        Args: { p_company_id: string; p_status?: string }
+        Returns: {
+          company_id: string
+          created_at: string
+          description: string
+          employee_file_category: string
+          id: string
+          is_library: boolean
+          name: string
+          reference_id: string
+          requires_esignature: boolean
+          source_form_id: string
+          status: string
+          updated_at: string
+          version: number
+        }[]
+      }
       mhd_list_forms: {
         Args: { p_company_id: string; p_status?: string }
         Returns: {
@@ -24139,6 +23296,7 @@ export type Database = {
           published_by: string
           reference_id: string
           requires_esignature: boolean
+          source_form_id: string
           status: string
           updated_at: string
           updated_by: string
@@ -26235,6 +25393,10 @@ export type Database = {
         Args: { p_actor_user_id?: string; p_signer_id: string }
         Returns: undefined
       }
+      mhd_set_employee_file_category_default: {
+        Args: { p_category: string; p_company_id: string; p_form_id: string }
+        Returns: undefined
+      }
       mhd_set_person_photo: {
         Args: {
           p_actor_user_id?: string
@@ -26520,6 +25682,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      mhd_update_accommodation_option_catalog_entry: {
+        Args: {
+          p_category?: string
+          p_description_template?: string
+          p_entry_id: string
+          p_is_active?: boolean
+          p_sort_order?: number
+          p_typical_cost_range?: string
+        }
+        Returns: undefined
+      }
       mhd_update_activity: {
         Args: {
           p_activity_id: string
@@ -26678,6 +25851,30 @@ export type Database = {
           p_requires_esignature?: boolean
           p_update_employee_file_category?: boolean
           p_update_esignature_document_template_id?: boolean
+        }
+        Returns: undefined
+      }
+      mhd_update_handbook_section: {
+        Args: {
+          p_body_placeholder?: string
+          p_is_active?: boolean
+          p_is_required?: boolean
+          p_section_id: string
+          p_sort_order?: number
+          p_title?: string
+        }
+        Returns: undefined
+      }
+      mhd_update_leave_type: {
+        Args: {
+          p_citation?: string
+          p_entitlement_hours?: number
+          p_is_active?: boolean
+          p_measurement_method?: string
+          p_measurement_months?: number
+          p_requires_certification?: boolean
+          p_type_id: string
+          p_type_name?: string
         }
         Returns: undefined
       }

@@ -16,11 +16,22 @@ import {
   MhdTh,
   MhdTr,
 } from '@/components/ui/MhdTable';
+import { mhdCanAccessRoute } from '@/appshell/mhdRouteAccess';
+import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdPeople } from '@/features/people/Hook';
+import { MhdEmployeeFileCategoryDefaultsPanel } from './MhdEmployeeFileCategoryDefaultsPanel';
 import { MHD_EMPLOYEE_FILE_TYPES } from '../Types';
 
 export function MhdEmployeeFilesPage() {
+  const { roles } = useMhdAuth();
+  // `/employees` is already Platform Admin / HR Partner only (see
+  // mhdRouteAccess.ts), so anyone who reaches this page at all can see the
+  // settings panel below. This reuses that same route-access check rather
+  // than inventing a separate role list, matching the narrower-than-route
+  // gating convention used elsewhere (e.g. MhdPersonDetailPage's
+  // mhdCanAccessRoute-gated sections) as defense in depth.
+  const canManageCategoryDefaults = mhdCanAccessRoute('/employees', roles);
   const companiesQuery = useMhdCompanies({ searchTerm: '' });
   const companies = useMemo(() => companiesQuery.data ?? [], [companiesQuery.data]);
   const peopleState = useMhdPeople({ companyId: 'ALL', searchTerm: '' });
@@ -131,6 +142,16 @@ export function MhdEmployeeFilesPage() {
               ? companiesQuery.error.message
               : 'Unable to load employee files.')}
         </p>
+      ) : null}
+
+      {canManageCategoryDefaults ? (
+        selectedCompanyId === 'ALL' ? (
+          <MhdCard className="p-5 text-sm text-muted-foreground">
+            Select a single company above to manage its category default forms.
+          </MhdCard>
+        ) : (
+          <MhdEmployeeFileCategoryDefaultsPanel companyId={selectedCompanyId} />
+        )
       ) : null}
 
       {peopleState.isLoading ? (

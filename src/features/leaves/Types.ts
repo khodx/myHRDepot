@@ -1,3 +1,5 @@
+import type { Json } from '@/types/database.types';
+
 // ---------------------------------------------------------------------------
 // RPC row shapes (local snake_case interfaces)
 //
@@ -98,6 +100,20 @@ export interface MhdLeaveMutationRpcRow {
 export interface MhdMutationResult {
   id: string;
   referenceId: string;
+}
+
+/**
+ * Row shape returned by `mhd_create_leave_type` / `mhd_fork_leave_type`. Unlike
+ * the case/ledger mutation RPCs above, `leave_types` carries no
+ * `reference_id` column, so these two return only the minted id.
+ */
+export interface MhdLeaveTypeMutationRpcRow {
+  id: string;
+}
+
+/** Mapped result of `createLeaveType` / `forkLeaveType`. */
+export interface MhdCreateLeaveTypeResult {
+  id: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -256,6 +272,64 @@ export interface MhdLeaveCertification {
 }
 
 // ---------------------------------------------------------------------------
+// Leave types Studio (0185) — administrative config only, never legal rule
+// text. `leave_rule_sets` (the actual FMLA/CFRA/PDL content) stays behind the
+// separate counsel/compliance review gate and gets no write path here.
+// ---------------------------------------------------------------------------
+
+/**
+ * Author a leave type. `companyId: null` publishes a platform-global (library)
+ * row — server-enforced Platform Admin/HR Partner only
+ * (`mhd_can_manage_leave_type`); a real company id creates a company-owned
+ * row, writable by that company's Client Admin/HR Partner (or Platform
+ * Admin). `sourceTypeId` records fork lineage; the page's own "Fork to My
+ * Company" action goes through `forkLeaveType` instead, which sets this
+ * server-side — a caller building a type from scratch leaves it unset.
+ */
+export interface MhdCreateLeaveTypeInput {
+  companyId: string | null;
+  typeKey: string;
+  typeName: string;
+  jurisdiction?: MhdLeaveJurisdiction;
+  entitlementHours?: number | null;
+  measurementMethod?: MhdLeaveMeasurementMethod;
+  measurementMonths?: number | null;
+  requiresCertification?: boolean;
+  citation?: string | null;
+  sourceTypeId?: string | null;
+}
+
+/**
+ * Edit a leave type's administrative config. `typeKey`, `jurisdiction`, and
+ * global-vs-company ownership are fixed at creation and are not in
+ * `mhd_update_leave_type`'s argument list — editing any of those would be a
+ * different type, not a revision of this one. Every field the RPC does accept
+ * is `coalesce`d against the existing row server-side, so an omitted field is
+ * "leave as-is," not "clear it" — there is currently no way to blank out a
+ * previously set `entitlementHours`/`measurementMonths`/`citation` through
+ * this endpoint; only ever setting a new value.
+ */
+export interface MhdUpdateLeaveTypeInput {
+  typeId: MhdLeaveTypeId;
+  typeName?: string;
+  entitlementHours?: number | null;
+  measurementMethod?: MhdLeaveMeasurementMethod;
+  measurementMonths?: number | null;
+  requiresCertification?: boolean;
+  citation?: string | null;
+}
+
+/**
+ * Clone a global basis type (`sourceTypeId`, `company_id is null`) into a
+ * company-owned, editable copy. `mhd_fork_leave_type` refuses a source that is
+ * not itself a global row.
+ */
+export interface MhdForkLeaveTypeInput {
+  sourceTypeId: MhdLeaveTypeId;
+  companyId: string;
+}
+
+// ---------------------------------------------------------------------------
 // Inputs and filters
 // ---------------------------------------------------------------------------
 
@@ -266,6 +340,24 @@ export interface MhdCreateLeaveCaseInput {
   requestedStart?: string | null;
   requestedEnd?: string | null;
   isIntermittent?: boolean;
+}
+
+/**
+ * Form-driven Leaves intake (migration 0188): calls
+ * `mhd_create_leave_case_from_submission`, which re-derives the same case
+ * fields `mhd_leave_case_create` takes directly, out of a completed
+ * submission's own `values` — and then delegates to that same RPC, so a
+ * form-opened case and a directly-opened case are behaviorally identical.
+ * `values` must be the SAME object the submit flow already holds right after
+ * `mhdFormService.submitForm` resolves (its `MhdFormSubmission.values`) —
+ * never re-fetched or re-derived, per the RPC's own header comment. The RPC
+ * also requires the caller to be the submission's own submitter
+ * (`submitter_id = current actor`), so this can only be invoked by the same
+ * authenticated user who just submitted the form.
+ */
+export interface MhdCreateLeaveCaseFromSubmissionInput {
+  submissionId: string;
+  values: Json;
 }
 
 /**

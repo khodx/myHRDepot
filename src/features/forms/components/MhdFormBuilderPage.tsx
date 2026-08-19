@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
+import { mhdCanAccessFormsStudio } from '@/appshell/mhdRouteAccess';
 import type { MhdForm } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormBuilder } from './MhdFormBuilder';
@@ -14,7 +14,7 @@ export function MhdFormBuilderPage() {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
   const { profile, roles } = useMhdAuth();
-  const canMutate = mhdCanMutateForms(roles);
+  const canMutate = mhdCanAccessFormsStudio(roles);
   const isNewForm = !formId || formId === 'new';
   const [form, setForm] = useState<MhdForm | null>(null);
   const [isLoading, setIsLoading] = useState(!isNewForm);

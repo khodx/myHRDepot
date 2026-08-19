@@ -1,10 +1,65 @@
 import { z } from 'zod';
-import { MHD_LEAVE_CASE_STATUSES, MHD_LEAVE_CERTIFICATION_TYPES } from './Types';
+import {
+  MHD_LEAVE_CASE_STATUSES,
+  MHD_LEAVE_CERTIFICATION_TYPES,
+  MHD_LEAVE_JURISDICTIONS,
+  MHD_LEAVE_MEASUREMENT_METHODS,
+} from './Types';
 
 const isoDate = z
   .string()
   .trim()
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a YYYY-MM-DD date.');
+
+// ---------------------------------------------------------------------------
+// Leave types (0185 Studio)
+// ---------------------------------------------------------------------------
+
+/**
+ * One combined schema for BOTH creating and editing a leave type — the same
+ * shape `MhdLeaveTypeForm` mirrors from `MhdTrainingCourseForm`'s
+ * create-or-edit pattern. On edit, `typeKey`/`jurisdiction`/`isGlobal` are
+ * rendered read-only (the RPCs don't accept them for an update — see
+ * `MhdUpdateLeaveTypeInput`) but stay in the schema so one `useForm` instance
+ * and one submit handler cover both modes.
+ *
+ * `entitlementHours` and `measurementMonths` follow the training module's
+ * blank-means-null convention (`z.preprocess`): an empty field is a
+ * deliberate "no fixed cap" / "no window," never a coerced zero.
+ */
+export const mhdLeaveTypeFormSchema = z.object({
+  typeId: z.string().trim().optional(),
+  isGlobal: z.boolean().default(false),
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  typeKey: z
+    .string()
+    .trim()
+    .min(1, 'A type key is required.')
+    .max(100, 'That type key is longer than the record supports.'),
+  typeName: z.string().trim().min(1, 'A name is required.').max(200),
+  jurisdiction: z.enum(MHD_LEAVE_JURISDICTIONS),
+  entitlementHours: z.preprocess(
+    (value) => (value === '' || value == null ? null : value),
+    z.coerce
+      .number()
+      .nonnegative('Entitlement hours cannot be negative.')
+      .max(99999, 'That entitlement is out of range.')
+      .nullable(),
+  ),
+  measurementMethod: z.enum(MHD_LEAVE_MEASUREMENT_METHODS),
+  measurementMonths: z.preprocess(
+    (value) => (value === '' || value == null ? null : value),
+    z.coerce
+      .number()
+      .int('Months must be a whole number.')
+      .positive('Months must be greater than zero.')
+      .nullable(),
+  ),
+  requiresCertification: z.boolean().default(false),
+  citation: z.string().trim().max(500).optional().nullable(),
+});
+
+export type MhdLeaveTypeFormValues = z.infer<typeof mhdLeaveTypeFormSchema>;
 
 // ---------------------------------------------------------------------------
 // Cases

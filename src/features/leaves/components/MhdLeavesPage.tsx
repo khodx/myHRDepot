@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CalendarOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { cn } from '@/utils/cn';
 import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
@@ -112,9 +114,51 @@ export function MhdLeavesPage() {
         }
         actions={
           isPrivileged ? (
-            <Button onClick={() => setIsCreating(true)} className="h-9 px-3 text-[16.8px]">
-              Open Leave Case
-            </Button>
+            <>
+              <Link
+                to="/leaves/policy-library"
+                className={cn(
+                  buttonBaseClasses,
+                  buttonVariantClasses.secondary,
+                  'h-9 px-3 text-[16.8px]',
+                )}
+              >
+                Policy Library
+              </Link>
+              {/*
+                Form-driven intake (0188, mhd_create_leave_case_from_submission).
+                This links plainly to the Forms Library rather than a specific
+                form id — no "default leave intake form" designation exists on
+                `forms` yet (would need e.g. a forms.intake_kind column), so a
+                privileged user picks a leave-tagged form themselves. Once one
+                is submitted there, the case is NOT opened automatically yet
+                either: nothing currently calls
+                mhdLeavesService.createCaseFromSubmission after a real
+                submission completes, because MhdFormRenderer's onSubmitted
+                callback (src/features/forms/components/MhdFormRenderer.tsx)
+                forwards only (submissionId, form), not the submitted values,
+                and MhdFormRendererPage has no per-form "this is a Leaves
+                intake" signal to branch on yet (mirroring how it already
+                branches on onboardingPersonId/onboardingDocumentKey to call
+                mhdOnboardingService). See the docstring on
+                mhdLeavesService.createCaseFromSubmission (Service.ts) for the
+                exact wiring this needs — closing that gap requires editing
+                src/features/forms/, out of scope for this change.
+              */}
+              <Link
+                to="/forms/library"
+                className={cn(
+                  buttonBaseClasses,
+                  buttonVariantClasses.secondary,
+                  'h-9 px-3 text-[16.8px]',
+                )}
+              >
+                New Leave Case (via Form)
+              </Link>
+              <Button onClick={() => setIsCreating(true)} className="h-9 px-3 text-[16.8px]">
+                Open Leave Case
+              </Button>
+            </>
           ) : undefined
         }
       />

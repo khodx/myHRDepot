@@ -3,7 +3,7 @@ import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
+import { mhdCanAccessFormsStudio } from '@/appshell/mhdRouteAccess';
 import type { MhdForm, MhdFormSubmission } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormSubmissionReview } from './MhdFormSubmissionReview';
@@ -13,7 +13,7 @@ export function MhdFormSubmissionsPage() {
   const { formId } = useParams<{ formId: string }>();
   const location = useLocation();
   const { roles, profile } = useMhdAuth();
-  const canMutate = mhdCanMutateForms(roles);
+  const canMutate = mhdCanAccessFormsStudio(roles);
   const [searchParams] = useSearchParams();
   const requestedSubmissionId = searchParams.get('submissionId');
   const [form, setForm] = useState<MhdForm | null>(null);

@@ -33,6 +33,10 @@ vi.mock('../Hook', () => ({
   useMhdAccommodationReview: () => mutation(vi.fn()),
   useMhdAccommodationMedicalRecord: () => mutation(recordMedicalMock),
   useMhdAccommodationMedicalReveal: () => mutation(revealMock),
+  // Added 2026-08-19 (option-catalog picker on this page's "Evaluate an
+  // option" card) -- empty/not-loading is a safe default since no test in
+  // this file exercises the catalog-picker path itself.
+  useMhdAccommodationOptionCatalog: () => ({ data: [], isLoading: false, isError: false, error: null }),
 }));
 
 const { MhdAccommodationCaseDetailPage } =

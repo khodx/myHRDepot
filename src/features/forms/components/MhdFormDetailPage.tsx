@@ -5,7 +5,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdCanMutateForms } from '@/appshell/mhdRouteAccess';
+import { mhdCanAccessFormsStudio } from '@/appshell/mhdRouteAccess';
 import type { MhdForm } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormPreview } from './MhdFormPreview';
@@ -39,7 +39,7 @@ export function MhdFormDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { roles } = useMhdAuth();
-  const canMutate = mhdCanMutateForms(roles);
+  const canMutate = mhdCanAccessFormsStudio(roles);
   const [form, setForm] = useState<MhdForm | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

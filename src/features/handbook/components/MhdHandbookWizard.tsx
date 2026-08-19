@@ -90,6 +90,7 @@ export function MhdHandbookWizard({
         ) : (
           <MhdHandbookDraftEditor
             handbook={handbook}
+            companyId={companyId}
             canManage={canManage}
             onGenerateDocument={onGenerateDocument}
           />
@@ -112,13 +113,16 @@ export function MhdHandbookWizard({
 
 interface DraftProps {
   handbook: MhdHandbook;
+  companyId: string;
   canManage: boolean;
   onGenerateDocument?: (handbookId: string) => Promise<string | null>;
 }
 
-function MhdHandbookDraftEditor({ handbook, canManage, onGenerateDocument }: DraftProps) {
-  // The full library for the pack; filtered to this draft's jurisdictions below.
-  const sections = useMhdHandbookSections({ handbookType: handbook.handbookType });
+function MhdHandbookDraftEditor({ handbook, companyId, canManage, onGenerateDocument }: DraftProps) {
+  // The full library for the pack (global + this company's own sections);
+  // filtered to this draft's jurisdictions below. `companyId` is REQUIRED as of
+  // 0184 — see MhdHandbookSectionFilters.
+  const sections = useMhdHandbookSections({ companyId, handbookType: handbook.handbookType });
   const preview = useMhdHandbookPreview(handbook.id);
   const toggle = useMhdToggleHandbookSection();
   const publish = useMhdPublishHandbook();

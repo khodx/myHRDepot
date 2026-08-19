@@ -32,6 +32,58 @@ export const mhdCreateHandbookSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Library sections (create / edit)
+// ---------------------------------------------------------------------------
+
+/**
+ * Authoring a section. `companyId` is nullable — `null` targets the GLOBAL
+ * library; the form only offers that choice when the caller is Platform Admin /
+ * HR Partner (`mhdIsPlatformAdminOrHrPartner`), and the RPC re-enforces it
+ * server-side regardless of what the UI shows. `sectionKey` mirrors the
+ * `courseKey` idiom (Training) — a stable identifier, no format constraint
+ * beyond length; the server owns uniqueness. `bodyPlaceholder` is attorney-
+ * flagged placeholder text, never real legal content — see
+ * `MHD_HANDBOOK_ATTORNEY_PLACEHOLDER`.
+ */
+export const mhdCreateHandbookSectionSchema = z.object({
+  companyId: z.string().trim().min(1).nullable(),
+  handbookType: z.enum(MHD_HANDBOOK_TYPES),
+  jurisdiction: z.enum(MHD_HANDBOOK_JURISDICTIONS),
+  sectionKey: z
+    .string()
+    .trim()
+    .min(1, 'A section key is required.')
+    .max(120, 'That section key is longer than the record supports.'),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'A title is required.')
+    .max(300, 'That title is longer than the record supports.'),
+  bodyPlaceholder: z.string().trim().min(1, 'Placeholder body text is required.'),
+  isRequired: z.boolean(),
+  sortOrder: z.coerce.number().int().min(0),
+});
+
+/**
+ * Editing a section's editable fields. `handbookType`, `jurisdiction`, and
+ * `sectionKey` are NOT here — the RPC does not accept them, and changing which
+ * pack/jurisdiction/key a clause belongs to is a new section, not an edit to
+ * this one.
+ */
+export const mhdUpdateHandbookSectionSchema = z.object({
+  sectionId: z.string().trim().min(1),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'A title is required.')
+    .max(300, 'That title is longer than the record supports.'),
+  bodyPlaceholder: z.string().trim().min(1, 'Placeholder body text is required.'),
+  isRequired: z.boolean(),
+  sortOrder: z.coerce.number().int().min(0),
+  isActive: z.boolean(),
+});
+
+// ---------------------------------------------------------------------------
 // Publish
 // ---------------------------------------------------------------------------
 
@@ -70,3 +122,5 @@ export const mhdAssignAcknowledgmentSchema = z.object({
 export type MhdCreateHandbookFormValues = z.infer<typeof mhdCreateHandbookSchema>;
 export type MhdPublishHandbookFormValues = z.infer<typeof mhdPublishHandbookSchema>;
 export type MhdAssignAcknowledgmentFormValues = z.infer<typeof mhdAssignAcknowledgmentSchema>;
+export type MhdCreateHandbookSectionFormValues = z.infer<typeof mhdCreateHandbookSectionSchema>;
+export type MhdUpdateHandbookSectionFormValues = z.infer<typeof mhdUpdateHandbookSectionSchema>;

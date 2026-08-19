@@ -100,3 +100,19 @@ export function mhdEmployeeFileLabelForKey(
     MHD_EMPLOYEE_FILE_TYPES.find((fileType) => fileType.key === value)?.label ?? 'Employee File'
   );
 }
+
+/**
+ * The form a category's "New Record" flow jumps to automatically, skipping
+ * the manual picker, when a company has designated one (migration
+ * 0187_employee_file_category_defaults.sql).
+ */
+export interface MhdEmployeeFileCategoryDefaultTarget {
+  formId: string;
+  formName: string;
+}
+
+/** A single row from `mhd_list_employee_file_category_defaults`. */
+export interface MhdEmployeeFileCategoryDefault extends MhdEmployeeFileCategoryDefaultTarget {
+  category: MhdEmployeeFileTypeKey;
+  formStatus: string;
+}

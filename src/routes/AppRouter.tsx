@@ -154,6 +154,10 @@ const MhdFormSubmissionsPage = lazyPage(
   () => import('@/features/forms/components/MhdFormSubmissionsPage'),
   'MhdFormSubmissionsPage',
 );
+const MhdFormLibraryPage = lazyPage(
+  () => import('@/features/forms/components/MhdFormLibraryPage'),
+  'MhdFormLibraryPage',
+);
 const MhdPropertyPage = lazyPage(
   () => import('@/features/property/components/MhdPropertyPage'),
   'MhdPropertyPage',
@@ -364,6 +368,10 @@ const MhdLeavesPage = lazyPage(
   () => import('@/features/leaves/components/MhdLeavesPage'),
   'MhdLeavesPage',
 );
+const MhdLeaveTypeLibraryPage = lazyPage(
+  () => import('@/features/leaves/components/MhdLeaveTypeLibraryPage'),
+  'MhdLeaveTypeLibraryPage',
+);
 const MhdLeaveCaseDetailPage = lazyPage(
   () => import('@/features/leaves/components/MhdLeaveCaseDetailPage'),
   'MhdLeaveCaseDetailPage',
@@ -379,6 +387,10 @@ const MhdLeaveCaseCorrespondencePage = lazyPage(
 const MhdAccommodationsPage = lazyPage(
   () => import('@/features/accommodations/components/MhdAccommodationsPage'),
   'MhdAccommodationsPage',
+);
+const MhdAccommodationOptionCatalogPage = lazyPage(
+  () => import('@/features/accommodations/components/MhdAccommodationOptionCatalogPage'),
+  'MhdAccommodationOptionCatalogPage',
 );
 const MhdAccommodationCaseDetailPage = lazyPage(
   () => import('@/features/accommodations/components/MhdAccommodationCaseDetailPage'),
@@ -411,6 +423,10 @@ const MhdMyTrainingRoutePage = lazyPage(
 const MhdHandbooksPage = lazyPage(
   () => import('@/features/handbook/components/MhdHandbooksPage'),
   'MhdHandbooksPage',
+);
+const MhdHandbookSectionLibraryPage = lazyPage(
+  () => import('@/features/handbook/components/MhdHandbookSectionLibraryPage'),
+  'MhdHandbookSectionLibraryPage',
 );
 const MhdHandbookDetailPage = lazyPage(
   () => import('@/features/handbook/components/MhdHandbookDetailPage'),
@@ -586,6 +602,11 @@ function MhdAppRoutes() {
                 <Route path="/calendar" element={<MhdCalendarPage />} />
                 <Route path="/reports" element={<MhdDocumentsPage />} />
                 <Route path="/forms" element={<MhdFormsPage />} />
+                {/* Forms Studio/Library split (2026-08-18). '/forms/studio'
+                    aliases the existing Studio list; '/forms' keeps working
+                    unchanged for any existing deep link. */}
+                <Route path="/forms/studio" element={<MhdFormsPage />} />
+                <Route path="/forms/library" element={<MhdFormLibraryPage />} />
                 <Route path="/forms/new" element={<MhdFormBuilderPage />} />
                 <Route path="/forms/:formId/render" element={<MhdFormRendererPage />} />
                 <Route path="/forms/:formId/submissions" element={<MhdFormSubmissionsPage />} />
@@ -707,10 +728,15 @@ function MhdAppRoutes() {
                   their OWN cases, Viewer is excluded via mhdRouteAccess. The
                   medical-certification note is masked server-side to all but
                   Platform Admin / HR Partner. */}
+                <Route path="/leaves/policy-library" element={<MhdLeaveTypeLibraryPage />} />
                 <Route path="/leaves" element={<MhdLeavesPage />} />
                 <Route path="/leaves/:caseId" element={<MhdLeaveCaseDetailPage />} />
                 <Route path="/leaves/:caseId/messages" element={<MhdLeaveCaseMessagesPage />} />
                 <Route path="/leaves/:caseId/correspondence" element={<MhdLeaveCaseCorrespondencePage />} />
+                <Route
+                  path="/accommodations/option-library"
+                  element={<MhdAccommodationOptionCatalogPage />}
+                />
                 <Route path="/accommodations" element={<MhdAccommodationsPage />} />
                 <Route
                   path="/accommodations/:caseId"
@@ -763,6 +789,13 @@ function MhdAppRoutes() {
                   attorney-content-pending banner — this is a SHELL wave, content is
                   attorney-flagged placeholder. All pages read useMhdAuth themselves. */}
                 <Route path="/handbooks" element={<MhdHandbooksPage />} />
+                {/* Handbook Studio/Library split (2026-08-18). '/handbooks/studio'
+                    aliases the existing admin wizard (per the implementer's
+                    own recommendation — it's already the Studio surface,
+                    gated to the same roles; building a duplicate would
+                    violate the shared-architecture standard). */}
+                <Route path="/handbooks/studio" element={<MhdHandbooksPage />} />
+                <Route path="/handbooks/library" element={<MhdHandbookSectionLibraryPage />} />
                 <Route path="/handbooks/:handbookId" element={<MhdHandbookDetailPage />} />
                 {/* Acknowledgments is the second record tab
                   (MhdHandbookRecordTabs) — the ack board split out of the

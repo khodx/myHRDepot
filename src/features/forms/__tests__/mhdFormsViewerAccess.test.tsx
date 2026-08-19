@@ -143,7 +143,14 @@ describe('MhdFormsPage role gating', () => {
     expect(screen.getByText('Submissions')).toBeInTheDocument();
   });
 
-  it('shows "Create Form" but keeps edit off the list for a Client User', () => {
+  it('hides "Create Form" for a Client User (Studio/Submit split, 2026-08-19)', () => {
+    // Client User previously saw "Create Form" here even though the server-
+    // side RLS on `forms` always rejected their write (Client Admin/HR
+    // Partner only) -- a dead-end affordance, not a real capability. The
+    // Multi-Tenant Library Architecture build split MHD_FORMS_MUTATING_ROLES
+    // into MHD_FORMS_STUDIO_ROLES (build, no longer includes Client User) and
+    // MHD_FORMS_SUBMIT_ROLES (fill out/submit, unchanged, still includes
+    // Client User) -- this page is Studio, so Client User no longer sees it.
     mockAuth(['Client User']);
 
     render(
@@ -152,7 +159,7 @@ describe('MhdFormsPage role gating', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Create Form')).toBeInTheDocument();
+    expect(screen.queryByText('Create Form')).not.toBeInTheDocument();
     expect(screen.queryByText('Builder')).not.toBeInTheDocument();
     expect(screen.queryByText('Edit Form')).not.toBeInTheDocument();
   });

@@ -38,6 +38,18 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     path: '/calendar',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
   },
+  // Forms Studio/Library split (2026-08-18, Multi-Tenant Library
+  // Architecture). Studio (build/manage) is narrower than the general Forms
+  // audience — must precede the general '/forms' rule below, same
+  // specific-before-general ordering used throughout this file.
+  {
+    path: '/forms/studio',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+  },
+  {
+    path: '/forms/library',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+  },
   {
     path: '/forms',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
@@ -168,10 +180,23 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // medical-certification partition is narrower still: mhd_leave_cert_list masks
   // provider_note / drive_file_id to null below Platform Admin / HR Partner
   // (Client Admin included) — see MHD_LEAVES_MEDICAL_ROLES.
+  // Leaves policy library (leave types) — admin config, narrower than the
+  // case-wizard audience below; must precede the general '/leaves' rule.
+  {
+    path: '/leaves/policy-library',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+  },
   { path: '/leaves', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
   // Reasonable Accommodations. Employees may open and view only their own
   // process; the privileged set administers non-medical workflow facts. The
   // medical partition remains PA/HRP-only server-side and in-page.
+  // Accommodations option catalog — admin config, narrower than the
+  // case-wizard audience below; must precede the general '/accommodations'
+  // rule.
+  {
+    path: '/accommodations/option-library',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+  },
   {
     path: '/accommodations',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
@@ -221,6 +246,11 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // ROLE-gated in the sidebar's Employee Development group, independent of the
   // data-gated Investigations entry and the Training entries.
   { path: '/my-handbooks', roles: ['Client User'] },
+  // Handbook Studio/Library split (2026-08-18) — both surfaces stay within
+  // the existing admin-only audience; '/my-handbooks' above is the separate
+  // employee-facing acknowledgment surface, unaffected by this split.
+  { path: '/handbooks/studio', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  { path: '/handbooks/library', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   { path: '/handbooks', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   // Recruiting / ATS. Four surfaces, gated at three different widths — the more
   // specific rules MUST precede the general /recruiting rule because
@@ -347,22 +377,44 @@ export function mhdIsPlatformAdminOrHrPartner(userRoles: MhdAuthRoleName[]): boo
 }
 
 /**
- * Roles that may create, edit, publish, archive, or submit forms. 'Viewer' is
- * deliberately absent: Viewers can reach /forms routes (see MHD_ROUTE_ACCESS)
- * but every mutating affordance — New Form, builder editing, publish/archive,
- * draft save, and renderer submit — is gated on this list. Kept next to
- * MHD_ROUTE_ACCESS so route reachability and in-page capability stay in one
- * source of truth.
+ * Roles that may build: create, edit, publish, or archive a form definition
+ * (the Studio surface). Split from the old MHD_FORMS_MUTATING_ROLES
+ * (2026-08-18, Multi-Tenant Library Architecture build) because that one
+ * constant conflated *building* a form with *filling one out*, and included
+ * 'Client User' in the build list — an ordinary employee could reach the
+ * builder UI, though the server-side RLS on `forms` always required Client
+ * Admin/HR Partner and silently rejected a Client User's write regardless.
+ * This is the real fix: Client User is no longer offered a build-mode UI it
+ * could never actually use. 'Viewer' remains deliberately absent. Global
+ * library forms (company_id null) are further restricted server-side to
+ * Platform Admin/HR Partner via mhd_can_manage_form_library — Client Admin
+ * reaching this route can build/edit their own company's forms but the RPC
+ * layer rejects any attempt to write a global row.
  */
-export const MHD_FORMS_MUTATING_ROLES: MhdAuthRoleName[] = [
+export const MHD_FORMS_STUDIO_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+/**
+ * Roles that may fill out and submit a form (unchanged in scope from the old
+ * MHD_FORMS_MUTATING_ROLES — Client User keeps full submit rights, only the
+ * build-mode grant above changed).
+ */
+export const MHD_FORMS_SUBMIT_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
   'Client Admin',
   'Client User',
 ];
 
-export function mhdCanMutateForms(userRoles: MhdAuthRoleName[]): boolean {
-  return MHD_FORMS_MUTATING_ROLES.some((role) => userRoles.includes(role));
+export function mhdCanAccessFormsStudio(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_FORMS_STUDIO_ROLES.some((role) => userRoles.includes(role));
+}
+
+export function mhdCanSubmitForms(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_FORMS_SUBMIT_ROLES.some((role) => userRoles.includes(role));
 }
 
 /**
