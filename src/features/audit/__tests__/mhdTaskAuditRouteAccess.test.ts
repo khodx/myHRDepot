@@ -23,7 +23,7 @@ describe('task audit route access', () => {
   });
 
   it('excludes Client Admin, Client User, and Viewer from /tasks/:taskId/audit', () => {
-    for (const role of ['Client Admin', 'Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Client Admin', 'Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/tasks/task-1/audit', [role])).toBe(false);
     }
   });
@@ -36,7 +36,7 @@ describe('task audit route access', () => {
       'Platform Admin',
       'HR Partner',
       'Client Admin',
-      'Client User',
+      'Employee',
       'Viewer',
     ] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/tasks/task-1', [role])).toBe(true);

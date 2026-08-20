@@ -158,7 +158,7 @@ describe('MhdActivitiesPage role gating', () => {
   });
 
   it('shows the create affordance for a Client User', () => {
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
 
     render(
       <MemoryRouter>

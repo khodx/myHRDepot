@@ -47,7 +47,7 @@ beforeEach(() => {
 
 describe('MhdAnnouncementsPage role gating', () => {
   it('hides the New Announcement affordance for a Client User and shows the published feed', () => {
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
 
     render(
       <MemoryRouter>

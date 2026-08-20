@@ -68,7 +68,7 @@ describe('MhdDashboardModuleLinks', () => {
   });
 
   it('hides inaccessible and comingSoon modules for a Client User', async () => {
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
 
     await renderModuleLinks();
 
@@ -103,7 +103,7 @@ describe('MhdDashboardModuleLinks', () => {
         ],
       };
     });
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
 
     const { container } = await renderModuleLinks();
 
@@ -175,7 +175,7 @@ describe('MhdDashboardModuleLinks', () => {
   });
 
   it('never surfaces a module the role cannot access, even when the query matches', async () => {
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
     const user = userEvent.setup();
 
     await renderModuleLinks();

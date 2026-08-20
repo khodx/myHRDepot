@@ -15,12 +15,12 @@ describe('time & attendance route access', () => {
   });
 
   it('admits Client User to /schedule and /attendance — the own-record surface', () => {
-    expect(mhdCanAccessRoute('/schedule', ['Client User'])).toBe(true);
-    expect(mhdCanAccessRoute('/attendance', ['Client User'])).toBe(true);
+    expect(mhdCanAccessRoute('/schedule', ['Employee'])).toBe(true);
+    expect(mhdCanAccessRoute('/attendance', ['Employee'])).toBe(true);
   });
 
   it('keeps /attendance/policy privileged-only; Client User must not inherit the /attendance rule', () => {
-    expect(mhdCanAccessRoute('/attendance/policy', ['Client User'])).toBe(false);
+    expect(mhdCanAccessRoute('/attendance/policy', ['Employee'])).toBe(false);
     expect(mhdCanAccessRoute('/attendance/policy', ['Viewer'])).toBe(false);
     expect(mhdCanAccessRoute('/attendance/policy', ['Client Admin'])).toBe(true);
     expect(mhdCanAccessRoute('/attendance/policy', ['HR Partner'])).toBe(true);
@@ -38,7 +38,7 @@ describe('time & attendance route access', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdCanMutateAttendance([role])).toBe(true);
     }
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanMutateAttendance([role])).toBe(false);
     }
   });

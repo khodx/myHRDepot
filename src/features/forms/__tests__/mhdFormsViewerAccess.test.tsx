@@ -151,7 +151,7 @@ describe('MhdFormsPage role gating', () => {
     // into MHD_FORMS_STUDIO_ROLES (build, no longer includes Client User) and
     // MHD_FORMS_SUBMIT_ROLES (fill out/submit, unchanged, still includes
     // Client User) -- this page is Studio, so Client User no longer sees it.
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
 
     render(
       <MemoryRouter>

@@ -43,7 +43,7 @@ describe('MhdTaskRecordTabs — Audit tab visibility', () => {
     },
   );
 
-  it.each(['Client Admin', 'Client User', 'Viewer'] as MhdAuthRoleName[])(
+  it.each(['Client Admin', 'Employee', 'Viewer'] as MhdAuthRoleName[])(
     'omits the Audit tab for %s',
     (role) => {
       mockAuth([role]);

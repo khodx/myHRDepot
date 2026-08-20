@@ -18,7 +18,7 @@ import { mhdCanAccessRoute, mhdCanMutateConduct } from '@/appshell/mhdRouteAcces
  */
 describe('conduct route access', () => {
   it('excludes BOTH Client User and Viewer from /conduct and /conduct/:caseId', () => {
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/conduct', [role])).toBe(false);
       expect(mhdCanAccessRoute('/conduct/some-case-id', [role])).toBe(false);
     }
@@ -35,7 +35,7 @@ describe('conduct route access', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdCanMutateConduct([role])).toBe(true);
     }
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanMutateConduct([role])).toBe(false);
     }
   });

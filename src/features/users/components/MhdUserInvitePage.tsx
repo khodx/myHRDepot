@@ -31,16 +31,27 @@ import { cn } from '@/utils/cn';
 // MhdCompleteProfilePage / mhd_self_complete_profile).
 type MhdInvitePersonMode = 'none' | 'existing' | 'new';
 
-// Mirrors invite-user's VALID_ROLE_NAMES. Assigning 'Platform Admin' is
-// further restricted server-side to a caller who is themselves an admin —
-// not gated here, since the edge function is the actual authority and every
-// other privileged action in this form (isAdmin) follows the same
-// let-the-server-reject convention rather than duplicating the check client-side.
+// Mirrors invite-user's VALID_ROLE_NAMES (supabase/functions/invite-user) —
+// both were expanded to the same 14-name vocabulary in lockstep (migration
+// 0197). Assigning 'Platform Admin' is further restricted server-side to a
+// caller who is themselves an admin — not gated here, since the edge
+// function is the actual authority and every other privileged action in
+// this form (isAdmin) follows the same let-the-server-reject convention
+// rather than duplicating the check client-side.
 const ROLE_NAME_OPTIONS: MhdAuthRoleName[] = [
   'Platform Admin',
+  'Executive Leadership',
+  'Director',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
+  'HR Coordinator',
   'Client Admin',
-  'Client User',
+  'Manager',
+  'Supervisor',
+  'Lead',
+  'Employee',
+  '3rd Party',
   'Viewer',
 ];
 

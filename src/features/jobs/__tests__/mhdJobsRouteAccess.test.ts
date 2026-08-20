@@ -31,9 +31,9 @@ describe('job descriptions route access', () => {
 
   it('keeps /my-job and /jobs separate: Client User has one, privileged roles the other', () => {
     // The employee gets /my-job and is refused the privileged list.
-    expect(mhdCanAccessRoute('/my-job', ['Client User'])).toBe(true);
-    expect(mhdCanAccessRoute('/jobs', ['Client User'])).toBe(false);
-    expect(mhdCanAccessRoute('/jobs/some-job-id', ['Client User'])).toBe(false);
+    expect(mhdCanAccessRoute('/my-job', ['Employee'])).toBe(true);
+    expect(mhdCanAccessRoute('/jobs', ['Employee'])).toBe(false);
+    expect(mhdCanAccessRoute('/jobs/some-job-id', ['Employee'])).toBe(false);
     // Privileged roles get the list and are refused the employee route.
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/my-job', [role])).toBe(false);
@@ -44,7 +44,7 @@ describe('job descriptions route access', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdCanMutateJobs([role])).toBe(true);
     }
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanMutateJobs([role])).toBe(false);
     }
   });
@@ -53,7 +53,7 @@ describe('job descriptions route access', () => {
     for (const role of ['Platform Admin', 'HR Partner'] as MhdAuthRoleName[]) {
       expect(mhdCanSeeJobPay([role])).toBe(true);
     }
-    for (const role of ['Client Admin', 'Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Client Admin', 'Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanSeeJobPay([role])).toBe(false);
     }
   });

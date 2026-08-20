@@ -24,11 +24,11 @@ describe('training route access', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/training', [role])).toBe(true);
     }
-    expect(mhdCanAccessRoute('/training', ['Client User'])).toBe(false);
+    expect(mhdCanAccessRoute('/training', ['Employee'])).toBe(false);
   });
 
   it('admits ONLY Client User to /my-training — not the privileged admin set, not Viewer', () => {
-    expect(mhdCanAccessRoute('/my-training', ['Client User'])).toBe(true);
+    expect(mhdCanAccessRoute('/my-training', ['Employee'])).toBe(true);
     for (const role of [
       'Platform Admin',
       'HR Partner',
@@ -43,7 +43,7 @@ describe('training route access', () => {
     // /my-training must resolve to its OWN rule (Client User), never inherit
     // /training's admin rule. A Client User reaching /my-training is admitted; a
     // Platform Admin is not.
-    expect(mhdCanAccessRoute('/my-training', ['Client User'])).toBe(true);
+    expect(mhdCanAccessRoute('/my-training', ['Employee'])).toBe(true);
     expect(mhdCanAccessRoute('/my-training', ['Platform Admin'])).toBe(false);
   });
 
@@ -51,7 +51,7 @@ describe('training route access', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdTrainingIsPrivileged([role])).toBe(true);
     }
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdTrainingIsPrivileged([role])).toBe(false);
     }
   });

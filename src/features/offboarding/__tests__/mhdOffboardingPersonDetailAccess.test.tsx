@@ -127,7 +127,7 @@ describe('person-detail Offboarding section access', () => {
     );
   });
 
-  it.each<MhdAuthRoleName>(['Client User', 'Viewer'])(
+  it.each<MhdAuthRoleName>(['Employee', 'Viewer'])(
     'does not render or enable the section for a %s',
     (role) => {
       rolesRef.current = [role];

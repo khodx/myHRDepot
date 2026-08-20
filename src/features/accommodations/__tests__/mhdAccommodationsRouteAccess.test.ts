@@ -42,7 +42,7 @@ describe('accommodations route access', () => {
       'Platform Admin',
       'HR Partner',
       'Client Admin',
-      'Client User',
+      'Employee',
     ] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/accommodations', [role])).toBe(true);
       // /accommodations/:caseId inherits the rule via the guard's prefix match.
@@ -54,7 +54,7 @@ describe('accommodations route access', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdAccommodationsIsPrivileged([role])).toBe(true);
     }
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdAccommodationsIsPrivileged([role])).toBe(false);
     }
   });
@@ -65,7 +65,7 @@ describe('accommodations route access', () => {
     }
     // The confidentiality partition: a Client Admin administers the workflow but
     // must never reveal a functional limitation or accommodation need.
-    for (const role of ['Client Admin', 'Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Client Admin', 'Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdAccommodationsCanSeeMedical([role])).toBe(false);
     }
   });

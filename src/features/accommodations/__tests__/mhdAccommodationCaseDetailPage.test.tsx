@@ -281,7 +281,7 @@ describe('the restricted medical surface is Platform Admin / HR Partner only', (
   });
 
   it('gives a Client User no administrative surface at all', () => {
-    rolesRef.current = ['Client User'];
+    rolesRef.current = ['Employee'];
     detailRef.current = detail({ medical_status: [MEDICAL_ROW] });
     renderPage();
 

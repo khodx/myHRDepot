@@ -44,7 +44,7 @@ describe('MhdTaskWorkspaceNav — Audit Reports role gating', () => {
     },
   );
 
-  it.each(['Client Admin', 'Client User', 'Viewer'] as MhdAuthRoleName[])(
+  it.each(['Client Admin', 'Employee', 'Viewer'] as MhdAuthRoleName[])(
     'omits the Audit Reports link for %s',
     (role) => {
       mockAuth([role]);

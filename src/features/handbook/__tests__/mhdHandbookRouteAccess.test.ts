@@ -22,25 +22,25 @@ describe('handbook route access', () => {
 
   it('rejects Viewer AND Client User from the admin /handbooks', () => {
     expect(mhdCanAccessRoute('/handbooks', ['Viewer'])).toBe(false);
-    expect(mhdCanAccessRoute('/handbooks', ['Client User'])).toBe(false);
+    expect(mhdCanAccessRoute('/handbooks', ['Employee'])).toBe(false);
   });
 
   it('admits Platform Admin / HR Partner / Client Admin to /handbooks, but NOT Client User', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/handbooks', [role])).toBe(true);
     }
-    expect(mhdCanAccessRoute('/handbooks', ['Client User'])).toBe(false);
+    expect(mhdCanAccessRoute('/handbooks', ['Employee'])).toBe(false);
   });
 
   it('lets the privileged set reach the wizard sub-route /handbooks/:handbookId via the prefix match', () => {
     expect(mhdCanAccessRoute('/handbooks/HBK-0001', ['HR Partner'])).toBe(true);
     // ...but never a Client User or Viewer, who are refused the whole /handbooks tree.
-    expect(mhdCanAccessRoute('/handbooks/HBK-0001', ['Client User'])).toBe(false);
+    expect(mhdCanAccessRoute('/handbooks/HBK-0001', ['Employee'])).toBe(false);
     expect(mhdCanAccessRoute('/handbooks/HBK-0001', ['Viewer'])).toBe(false);
   });
 
   it('admits ONLY Client User to /my-handbooks — not the privileged admin set, not Viewer', () => {
-    expect(mhdCanAccessRoute('/my-handbooks', ['Client User'])).toBe(true);
+    expect(mhdCanAccessRoute('/my-handbooks', ['Employee'])).toBe(true);
     for (const role of [
       'Platform Admin',
       'HR Partner',
@@ -55,7 +55,7 @@ describe('handbook route access', () => {
     // /my-handbooks must resolve to its OWN rule (Client User), never inherit
     // /handbooks's admin rule. A Client User reaching /my-handbooks is admitted; a
     // Platform Admin is not.
-    expect(mhdCanAccessRoute('/my-handbooks', ['Client User'])).toBe(true);
+    expect(mhdCanAccessRoute('/my-handbooks', ['Employee'])).toBe(true);
     expect(mhdCanAccessRoute('/my-handbooks', ['Platform Admin'])).toBe(false);
   });
 
@@ -63,7 +63,7 @@ describe('handbook route access', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdHandbookIsPrivileged([role])).toBe(true);
     }
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdHandbookIsPrivileged([role])).toBe(false);
     }
   });

@@ -29,7 +29,7 @@ describe('leaves route access', () => {
       'Platform Admin',
       'HR Partner',
       'Client Admin',
-      'Client User',
+      'Employee',
     ] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/leaves', [role])).toBe(true);
       // /leaves/:caseId inherits the /leaves rule via the guard's prefix match.
@@ -41,7 +41,7 @@ describe('leaves route access', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdLeavesIsPrivileged([role])).toBe(true);
     }
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdLeavesIsPrivileged([role])).toBe(false);
     }
   });
@@ -52,7 +52,7 @@ describe('leaves route access', () => {
     }
     // The 825.500(g) boundary: a Client Admin is privileged for leave
     // administration but must NOT see medical certification content.
-    for (const role of ['Client Admin', 'Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Client Admin', 'Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdLeavesCanSeeMedical([role])).toBe(false);
     }
   });

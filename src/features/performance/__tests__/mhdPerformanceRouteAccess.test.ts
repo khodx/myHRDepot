@@ -20,10 +20,10 @@ describe('performance route access', () => {
       expect(mhdCanAccessRoute('/performance/settings', [role])).toBe(true);
     }
 
-    expect(mhdCanAccessRoute('/performance', ['Client User'])).toBe(true);
-    expect(mhdCanAccessRoute('/performance/invitations', ['Client User'])).toBe(true);
-    expect(mhdCanAccessRoute('/performance/templates', ['Client User'])).toBe(false);
-    expect(mhdCanAccessRoute('/performance/settings', ['Client User'])).toBe(false);
+    expect(mhdCanAccessRoute('/performance', ['Employee'])).toBe(true);
+    expect(mhdCanAccessRoute('/performance/invitations', ['Employee'])).toBe(true);
+    expect(mhdCanAccessRoute('/performance/templates', ['Employee'])).toBe(false);
+    expect(mhdCanAccessRoute('/performance/settings', ['Employee'])).toBe(false);
     expect(mhdCanAccessRoute('/performance', ['Viewer'])).toBe(false);
   });
 

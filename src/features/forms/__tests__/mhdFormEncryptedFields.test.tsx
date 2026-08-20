@@ -151,7 +151,7 @@ describe('MhdFormSubmissionReview encrypted values', () => {
     },
   );
 
-  it.each<MhdAuthRoleName>(['Client User', 'Viewer'])(
+  it.each<MhdAuthRoleName>(['Employee', 'Viewer'])(
     'hides the Reveal button for a %s',
     (role) => {
       mockAuth([role]);

@@ -12,9 +12,18 @@ import type { MhdAnnouncementAudienceScope } from '../Types';
 
 const ROLE_OPTIONS: MhdMultiSelectComboboxOption[] = [
   { id: 'Platform Admin', label: 'Platform Admin' },
+  { id: 'Executive Leadership', label: 'Executive Leadership' },
+  { id: 'Director', label: 'Director' },
   { id: 'HR Partner', label: 'HR Partner' },
+  { id: 'HR Admin', label: 'HR Admin' },
+  { id: 'HR Specialist', label: 'HR Specialist' },
+  { id: 'HR Coordinator', label: 'HR Coordinator' },
   { id: 'Client Admin', label: 'Client Admin' },
-  { id: 'Client User', label: 'Client User' },
+  { id: 'Manager', label: 'Manager' },
+  { id: 'Supervisor', label: 'Supervisor' },
+  { id: 'Lead', label: 'Lead' },
+  { id: 'Employee', label: 'Employee' },
+  { id: '3rd Party', label: '3rd Party' },
   { id: 'Viewer', label: 'Viewer' },
 ];
 

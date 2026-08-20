@@ -26,7 +26,7 @@ describe('recruiting route access', () => {
     'Platform Admin',
     'HR Partner',
     'Client Admin',
-    'Client User',
+    'Employee',
     'Viewer',
   ];
 
@@ -37,7 +37,7 @@ describe('recruiting route access', () => {
       expect(mhdCanAccessRoute('/recruiting/applications/app-1', [role])).toBe(true);
       expect(mhdCanAccessRoute('/recruiting/questions', [role])).toBe(true);
     }
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/recruiting', [role])).toBe(false);
       expect(mhdCanAccessRoute('/recruiting/requisitions/req-1', [role])).toBe(false);
       expect(mhdCanAccessRoute('/recruiting/applications/app-1', [role])).toBe(false);
@@ -49,7 +49,7 @@ describe('recruiting route access', () => {
       'Platform Admin',
       'HR Partner',
       'Client Admin',
-      'Client User',
+      'Employee',
     ] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/recruiting/interviews/iv-1', [role])).toBe(true);
     }
@@ -63,7 +63,7 @@ describe('recruiting route access', () => {
     for (const role of [
       'HR Partner',
       'Client Admin',
-      'Client User',
+      'Employee',
       'Viewer',
     ] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/recruiting/eeo', [role])).toBe(false);
@@ -79,7 +79,7 @@ describe('recruiting route access', () => {
     for (const role of [
       'HR Partner',
       'Client Admin',
-      'Client User',
+      'Employee',
       'Viewer',
     ] as MhdAuthRoleName[]) {
       expect(mhdCanReadEeoReport([role])).toBe(false);
@@ -90,7 +90,7 @@ describe('recruiting route access', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdRecruitingIsPrivileged([role])).toBe(true);
     }
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdRecruitingIsPrivileged([role])).toBe(false);
     }
   });
@@ -117,6 +117,6 @@ describe('recruiting route access', () => {
 
     expect(mhdIsRouteComingSoon('/recruiting', ['HR Partner'])).toBe(true);
     expect(mhdIsRouteComingSoon('/recruiting', ['Client Admin'])).toBe(true);
-    expect(mhdIsRouteComingSoon('/recruiting/interviews/iv-1', ['Client User'])).toBe(true);
+    expect(mhdIsRouteComingSoon('/recruiting/interviews/iv-1', ['Employee'])).toBe(true);
   });
 });

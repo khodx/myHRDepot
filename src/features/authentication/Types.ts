@@ -5,8 +5,29 @@
 // from public.users + public.companies + public.people + the
 // mhd_current_user_roles() RPC, not read from a single view row.
 
+// 14-name vocabulary (migration 0197). 'Client User' was retired and
+// replaced by 'Employee' — existing assignments were migrated, not left
+// dangling. Seniority tiers (used throughout mhdRouteAccess.ts's derived
+// role arrays): Platform Admin > {Executive Leadership, Director, Client
+// Admin} > HR Partner (external/consultant, cross-company) >
+// {HR Admin > HR Specialist > HR Coordinator} > {Manager > Supervisor >
+// Lead} > Employee > 3rd Party (scoped per-record grants only, never part
+// of tiered inheritance) > Viewer.
 export type MhdAuthRoleName =
-  'Platform Admin' | 'HR Partner' | 'Client Admin' | 'Client User' | 'Viewer';
+  | 'Platform Admin'
+  | 'Executive Leadership'
+  | 'Director'
+  | 'HR Partner'
+  | 'HR Admin'
+  | 'HR Specialist'
+  | 'HR Coordinator'
+  | 'Client Admin'
+  | 'Manager'
+  | 'Supervisor'
+  | 'Lead'
+  | 'Employee'
+  | '3rd Party'
+  | 'Viewer';
 
 export interface MhdCurrentUserProfile {
   userId: string;

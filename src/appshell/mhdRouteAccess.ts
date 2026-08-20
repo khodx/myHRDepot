@@ -28,15 +28,23 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // The Audit tab is hidden client-side for other roles in
   // MhdTaskRecordTabs, mirroring how MhdFormsPage hides its builder link for
   // non-privileged roles.
-  { path: '/tasks/:taskId/audit', roles: ['Platform Admin', 'HR Partner'] },
+  { path: '/tasks/:taskId/audit', roles: ['Platform Admin', 'HR Partner', 'HR Admin'] },
   { path: '/tasks', roles: 'ALL' },
   {
     path: '/activities',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee', 'Viewer',
+    ],
   },
   {
     path: '/calendar',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee', 'Viewer',
+    ],
   },
   // Forms Studio/Library split (2026-08-18, Multi-Tenant Library
   // Architecture). Studio (build/manage) is narrower than the general Forms
@@ -44,15 +52,23 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // specific-before-general ordering used throughout this file.
   {
     path: '/forms/studio',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
   },
   {
     path: '/forms/library',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee', 'Viewer',
+    ],
   },
   {
     path: '/forms',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee', 'Viewer',
+    ],
   },
   // Reports (04.8 Document Generation Engine). Browsing templates/generation
   // history is open to the same audience as Forms/Approvals; template
@@ -61,24 +77,43 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // mirroring document_templates' RLS.
   {
     path: '/reports',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee', 'Viewer',
+    ],
   },
   {
     path: '/property',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee', 'Viewer',
+    ],
     status: 'comingSoon',
   },
   {
     path: '/esignature',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee', 'Viewer',
+    ],
   },
   { path: '/communications/routing', roles: ['Platform Admin'] },
-  { path: '/communications/inbox', roles: ['Platform Admin', 'HR Partner'] },
+  { path: '/communications/inbox', roles: ['Platform Admin', 'HR Partner', 'HR Admin'] },
   {
     path: '/communications',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee', 'Viewer',
+    ],
   },
-  { path: '/automations', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  {
+    path: '/automations',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
   // Performance. The specific /performance/* sub-routes precede the general
   // /performance rule because mhdCanAccessRoute returns the FIRST matching rule
   // via prefix match, so /performance would otherwise capture them all (the same
@@ -91,22 +126,30 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // the general /performance rule below.
   {
     path: '/performance/templates',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
     status: 'comingSoon',
   },
   {
     path: '/performance/settings',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
     status: 'comingSoon',
   },
   {
     path: '/performance/invitations',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
     status: 'comingSoon',
   },
   {
     path: '/performance',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
     status: 'comingSoon',
   },
   // Onboarding. Same audience as /offboarding: new-hire packets carry
@@ -117,12 +160,12 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // hiding a nav link is not access control, the router guard and the RPC are.
   {
     path: '/onboarding',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
     status: 'comingSoon',
   },
   {
     path: '/offboarding',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
     status: 'comingSoon',
   },
   // Conduct — the strictest module. Corrective-action cases carry RESTRICTED-tier
@@ -132,30 +175,71 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // subject employee reaches their issued corrective-action document only through
   // the E-Signature signing link, never a /conduct page. Client User and Viewer
   // are both excluded.
-  { path: '/conduct', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  {
+    path: '/conduct',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
   // Time & Attendance. /schedule and /attendance are the platform's first
   // employee-facing surfaces — Client User reaches them for their own record;
   // Viewer is excluded. /attendance/policy is privileged-only, so it must
   // precede /attendance here: mhdCanAccessRoute returns the first matching rule
   // and /attendance/policy would otherwise inherit the broader /attendance rule
   // via the prefix match.
-  { path: '/schedule', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
-  { path: '/attendance/policy', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
-  { path: '/attendance', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  {
+    path: '/schedule',
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
+  },
+  {
+    path: '/attendance/policy',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
+  {
+    path: '/attendance',
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
+  },
   // Employee Files. Initial route is PA/HRP only because the existing
   // attachment engine is company-scoped, not file-type scoped. Medical,
   // confidential, and private employee file cabinets must not be exposed to
   // Client Admin until a backend per-file-type policy layer exists.
-  { path: '/employees', roles: ['Platform Admin', 'HR Partner'] },
-  { path: '/people/org-chart', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
-  { path: '/people', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  { path: '/employees', roles: ['Platform Admin', 'HR Partner', 'HR Admin'] },
+  {
+    path: '/people/org-chart',
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
+  },
+  {
+    path: '/people',
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
+  },
   // Users. Lists `public.users` login accounts across the tenant, including
   // the `is_admin` flag — the same PA/HRP-only audience as /companies and
   // /employees, for the same reason: this is platform-account administration,
   // not an HR record any Client Admin/User should browse.
-  { path: '/users', roles: ['Platform Admin', 'HR Partner'] },
-  { path: '/companies', roles: ['Platform Admin', 'HR Partner'] },
-  { path: '/approvals', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  { path: '/users', roles: ['Platform Admin', 'HR Partner', 'HR Admin'] },
+  { path: '/companies', roles: ['Platform Admin', 'HR Partner', 'HR Admin'] },
+  {
+    path: '/approvals',
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
+  },
   // Job Descriptions. /jobs (and its sub-routes /jobs/:jobId, /jobs/competencies)
   // are the privileged Organization surface — Platform Admin / HR Partner /
   // Client Admin. /my-job is the employee's OWN published description and admits
@@ -163,8 +247,11 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // the privileged list can never become a disclosure. Viewer is excluded from
   // both. Pay is masked server-side in the RPC (null to anyone who is not
   // Platform Admin / HR Partner, Client Admin included) — see MHD_JOB_PAY_ROLES.
-  { path: '/jobs', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
-  { path: '/my-job', roles: ['Client User'] },
+  {
+    path: '/jobs',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
+  { path: '/my-job', roles: ['Employee', 'Manager', 'Supervisor', 'Lead'] },
   // Mileage & Reimbursement. A single tabbed route: Platform Admin / HR Partner /
   // Client Admin see the whole company plus the rate registry and company-rate
   // tabs; a Client User reaches /mileage for their OWN trips and claims only
@@ -172,7 +259,14 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // render for them. Viewer is excluded entirely. The rate registry is global
   // and writable only by Platform Admin (mhdCanManageMileageRates) — enforced
   // server-side; the helper only decides whether to render the write affordance.
-  { path: '/mileage', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  {
+    path: '/mileage',
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
+  },
   // Leaves of Absence. /leaves (and /leaves/:caseId via the guard's prefix match)
   // admits the privileged set plus Client User — the subject reaches their OWN
   // cases (the RPCs scope reads by mhd_can_view_leave_person, so a Client User
@@ -184,9 +278,16 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // case-wizard audience below; must precede the general '/leaves' rule.
   {
     path: '/leaves/policy-library',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
   },
-  { path: '/leaves', roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'] },
+  {
+    path: '/leaves',
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
+  },
   // Reasonable Accommodations. Employees may open and view only their own
   // process; the privileged set administers non-medical workflow facts. The
   // medical partition remains PA/HRP-only server-side and in-page.
@@ -195,11 +296,15 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // rule.
   {
     path: '/accommodations/option-library',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
   },
   {
     path: '/accommodations',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
   },
   // Investigations — the strictest access model in the platform. Route access
   // does NOT grant case visibility: reaching /investigations (and
@@ -213,7 +318,10 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // is deliberately NO subject-facing Investigations route. The sidebar entry is
   // gated separately, on the grant-filtered list returning ≥1 row (never on a
   // role) — see MhdSidebar.
-  { path: '/investigations', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  {
+    path: '/investigations',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
   // Audit Reports — company-wide counterpart to /tasks/:taskId/audit. Same
   // restriction (Platform Admin / HR Partner only) for the same reason: the
   // underlying data exposes IP addresses, user agents, and full field-level
@@ -221,7 +329,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // company, not just one record. mhd_list_audit_events enforces this
   // server-side (42501 for anyone else); this route rule and the sidebar
   // entry are UX only, mirroring the Task Audit rule's own comment above.
-  { path: '/audit-reports', roles: ['Platform Admin', 'HR Partner'] },
+  { path: '/audit-reports', roles: ['Platform Admin', 'HR Partner', 'HR Admin'] },
   // Training & Development. Two separate routes, never one filtered surface.
   // /training is the admin catalog + company compliance board — Platform Admin /
   // HR Partner / Client Admin. /my-training is the employee's OWN assignments and
@@ -232,8 +340,11 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // /training rule capture /my-training. Both entries are ROLE-gated in the
   // sidebar's Employee Development group, independent of the data-gated
   // Investigations entry.
-  { path: '/my-training', roles: ['Client User'] },
-  { path: '/training', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  { path: '/my-training', roles: ['Employee', 'Manager', 'Supervisor', 'Lead'] },
+  {
+    path: '/training',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
   // Handbook Engine. Two SEPARATE routes, never one filtered surface — the same
   // one-route-per-audience discipline as /training vs /my-training. /handbooks is
   // the admin wizard + acknowledgment board (Platform Admin / HR Partner / Client
@@ -245,20 +356,38 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // scan never lets the /handbooks rule capture /my-handbooks. Both entries are
   // ROLE-gated in the sidebar's Employee Development group, independent of the
   // data-gated Investigations entry and the Training entries.
-  { path: '/my-handbooks', roles: ['Client User'] },
+  { path: '/my-handbooks', roles: ['Employee', 'Manager', 'Supervisor', 'Lead'] },
   // Handbook Studio/Library split (2026-08-18) — both surfaces stay within
   // the existing admin-only audience; '/my-handbooks' above is the separate
   // employee-facing acknowledgment surface, unaffected by this split.
-  { path: '/handbooks/studio', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
-  { path: '/handbooks/library', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
-  { path: '/handbooks', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  {
+    path: '/handbooks/studio',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
+  {
+    path: '/handbooks/library',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
+  {
+    path: '/handbooks',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
   { path: '/checklists/:instanceId', roles: 'ALL' },
   { path: '/my-checklists', roles: 'ALL' },
-  { path: '/checklists', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  {
+    path: '/checklists',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
   { path: '/my-policies', roles: 'ALL' },
-  { path: '/policies', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  {
+    path: '/policies',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
   { path: '/my-memorandums', roles: 'ALL' },
-  { path: '/memorandums', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  {
+    path: '/memorandums',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
   // Recruiting / ATS. Four surfaces, gated at three different widths — the more
   // specific rules MUST precede the general /recruiting rule because
   // mhdCanAccessRoute returns the FIRST matching rule via prefix match (the same
@@ -282,12 +411,16 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/recruiting/eeo', roles: ['Platform Admin'], status: 'comingSoon' },
   {
     path: '/recruiting/interviews',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
     status: 'comingSoon',
   },
   {
     path: '/recruiting',
-    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
     status: 'comingSoon',
   },
   // Admin Settings and Lab/Sandbox. Platform Admin ONLY — no exception. `roles`
@@ -401,7 +534,10 @@ export function mhdIsPlatformAdminOrHrPartner(userRoles: MhdAuthRoleName[]): boo
 export const MHD_FORMS_STUDIO_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 /**
@@ -412,8 +548,16 @@ export const MHD_FORMS_STUDIO_ROLES: MhdAuthRoleName[] = [
 export const MHD_FORMS_SUBMIT_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
+  'HR Coordinator',
   'Client Admin',
-  'Client User',
+  'Executive Leadership',
+  'Director',
+  'Manager',
+  'Supervisor',
+  'Lead',
+  'Employee',
 ];
 
 export function mhdCanAccessFormsStudio(userRoles: MhdAuthRoleName[]): boolean {
@@ -435,7 +579,10 @@ export function mhdCanSubmitForms(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_DOCUMENTS_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdCanMutateDocumentTemplates(userRoles: MhdAuthRoleName[]): boolean {
@@ -445,7 +592,11 @@ export function mhdCanMutateDocumentTemplates(userRoles: MhdAuthRoleName[]): boo
 export const MHD_PROPERTY_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdCanMutateProperty(userRoles: MhdAuthRoleName[]): boolean {
@@ -455,8 +606,15 @@ export function mhdCanMutateProperty(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_ESIGNATURE_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
-  'Client User',
+  'Executive Leadership',
+  'Director',
+  'Manager',
+  'Supervisor',
+  'Lead',
+  'Employee',
 ];
 
 export function mhdCanMutateEsignature(userRoles: MhdAuthRoleName[]): boolean {
@@ -466,8 +624,15 @@ export function mhdCanMutateEsignature(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_WORKFLOW_APPROVAL_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
-  'Client User',
+  'Executive Leadership',
+  'Director',
+  'Manager',
+  'Supervisor',
+  'Lead',
+  'Employee',
 ];
 
 export function mhdCanMutateWorkflowApprovals(userRoles: MhdAuthRoleName[]): boolean {
@@ -477,8 +642,15 @@ export function mhdCanMutateWorkflowApprovals(userRoles: MhdAuthRoleName[]): boo
 export const MHD_ACTIVITY_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
-  'Client User',
+  'Executive Leadership',
+  'Director',
+  'Manager',
+  'Supervisor',
+  'Lead',
+  'Employee',
 ];
 
 export function mhdCanMutateActivities(userRoles: MhdAuthRoleName[]): boolean {
@@ -488,8 +660,15 @@ export function mhdCanMutateActivities(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_PERFORMANCE_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
-  'Client User',
+  'Executive Leadership',
+  'Director',
+  'Manager',
+  'Supervisor',
+  'Lead',
+  'Employee',
 ];
 export function mhdCanMutatePerformance(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_PERFORMANCE_MUTATING_ROLES.some((role) => userRoles.includes(role));
@@ -498,7 +677,10 @@ export function mhdCanMutatePerformance(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_OFFBOARDING_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdCanMutateOffboarding(userRoles: MhdAuthRoleName[]): boolean {
@@ -515,7 +697,10 @@ export function mhdCanMutateOffboarding(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_ONBOARDING_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdCanMutateOnboarding(userRoles: MhdAuthRoleName[]): boolean {
@@ -534,7 +719,10 @@ export function mhdCanMutateOnboarding(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_CONDUCT_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdCanMutateConduct(userRoles: MhdAuthRoleName[]): boolean {
@@ -552,7 +740,11 @@ export function mhdCanMutateConduct(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_ATTENDANCE_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdCanMutateAttendance(userRoles: MhdAuthRoleName[]): boolean {
@@ -568,7 +760,10 @@ export function mhdCanMutateAttendance(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_SENSITIVE_REVEAL_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdCanRevealEncryptedFields(userRoles: MhdAuthRoleName[]): boolean {
@@ -586,7 +781,11 @@ export function mhdCanRevealEncryptedFields(userRoles: MhdAuthRoleName[]): boole
 export const MHD_JOBS_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdCanMutateJobs(userRoles: MhdAuthRoleName[]): boolean {
@@ -601,7 +800,7 @@ export function mhdCanMutateJobs(userRoles: MhdAuthRoleName[]): boolean {
  * decides how the pay field words itself ("Not available to your role" vs a
  * range); the data genuinely never reaches an unprivileged client.
  */
-export const MHD_JOB_PAY_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner'];
+export const MHD_JOB_PAY_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner', 'HR Admin'];
 
 export function mhdCanSeeJobPay(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_JOB_PAY_ROLES.some((role) => userRoles.includes(role));
@@ -618,7 +817,11 @@ export function mhdCanSeeJobPay(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_MILEAGE_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdMileageIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
@@ -657,7 +860,11 @@ export function mhdCanManageCorrespondenceRouting(userRoles: MhdAuthRoleName[]):
 export const MHD_LEAVES_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdLeavesIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
@@ -674,7 +881,7 @@ export function mhdLeavesIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
  * unprivileged client. The list only decides how the certification panel words
  * the null ("Restricted" vs a real note); it is not the enforcement.
  */
-export const MHD_LEAVES_MEDICAL_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner'];
+export const MHD_LEAVES_MEDICAL_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner', 'HR Admin'];
 
 export function mhdLeavesCanSeeMedical(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_LEAVES_MEDICAL_ROLES.some((role) => userRoles.includes(role));
@@ -683,14 +890,22 @@ export function mhdLeavesCanSeeMedical(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_ACCOMMODATIONS_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdAccommodationsIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_ACCOMMODATIONS_PRIVILEGED_ROLES.some((role) => userRoles.includes(role));
 }
 
-export const MHD_ACCOMMODATIONS_MEDICAL_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner'];
+export const MHD_ACCOMMODATIONS_MEDICAL_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'HR Admin',
+];
 
 export function mhdAccommodationsCanSeeMedical(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_ACCOMMODATIONS_MEDICAL_ROLES.some((role) => userRoles.includes(role));
@@ -709,7 +924,10 @@ export function mhdAccommodationsCanSeeMedical(userRoles: MhdAuthRoleName[]): bo
 export const MHD_INVESTIGATIONS_OPEN_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdCanOpenInvestigation(userRoles: MhdAuthRoleName[]): boolean {
@@ -730,7 +948,11 @@ export function mhdCanOpenInvestigation(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_TRAINING_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdTrainingIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
@@ -750,7 +972,11 @@ export function mhdTrainingIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_HANDBOOK_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdHandbookIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
@@ -770,7 +996,11 @@ export function mhdHandbookIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_ANNOUNCEMENTS_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdCanMutateAnnouncements(userRoles: MhdAuthRoleName[]): boolean {
@@ -789,7 +1019,11 @@ export function mhdCanMutateAnnouncements(userRoles: MhdAuthRoleName[]): boolean
 export const MHD_MEMORANDUMS_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdCanMutateMemorandums(userRoles: MhdAuthRoleName[]): boolean {
@@ -810,7 +1044,11 @@ export function mhdCanMutateMemorandums(userRoles: MhdAuthRoleName[]): boolean {
 export const MHD_RECRUITING_PRIVILEGED_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
   'Client Admin',
+  'Executive Leadership',
+  'Director',
 ];
 
 export function mhdRecruitingIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {

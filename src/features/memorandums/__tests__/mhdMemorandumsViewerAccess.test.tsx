@@ -53,7 +53,7 @@ beforeEach(() => {
 
 describe('MhdMemorandumsPage role gating', () => {
   it('hides the New Memorandum and Publish affordances for a Client User', () => {
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
 
     render(
       <MemoryRouter>

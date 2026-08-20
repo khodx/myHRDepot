@@ -118,7 +118,7 @@ describe('MhdCalendarPage access-aware filters', () => {
   });
 
   it('renders the People filter for a non-Platform-Admin resolved company', () => {
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
 
     renderPage();
 
@@ -146,7 +146,7 @@ describe('MhdCalendarPage access-aware filters', () => {
   });
 
   it('renders clickable Month, Week, and Agenda view switches', () => {
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
 
     renderPage();
 
@@ -158,7 +158,7 @@ describe('MhdCalendarPage access-aware filters', () => {
   });
 
   it('renders calendar events as links to their detail path', () => {
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
 
     renderPage();
 

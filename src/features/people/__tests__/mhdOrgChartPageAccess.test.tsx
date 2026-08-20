@@ -111,7 +111,7 @@ describe('MhdOrgChartPage access-aware filters', () => {
   });
 
   it('renders the org chart tree when visible nodes include reporting relationships', () => {
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
 
     renderPage();
 
@@ -119,7 +119,7 @@ describe('MhdOrgChartPage access-aware filters', () => {
   });
 
   it('shows the self-only empty state for exactly one visible node with no reports', () => {
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
     mockUseMhdOrgChart.mockReturnValue({
       data: [orgNode('person-1', 'Ari Executive', null)],
       isLoading: false,
@@ -133,7 +133,7 @@ describe('MhdOrgChartPage access-aware filters', () => {
   });
 
   it('shows the genuinely empty org chart message for zero visible nodes', () => {
-    mockAuth(['Client User']);
+    mockAuth(['Employee']);
     mockUseMhdOrgChart.mockReturnValue({
       data: [],
       isLoading: false,

@@ -33,7 +33,7 @@ describe('onboarding route access', () => {
   });
 
   it('excludes Client User and Viewer from the packet roster', () => {
-    expect(mhdCanAccessRoute('/onboarding', ['Client User'])).toBe(false);
+    expect(mhdCanAccessRoute('/onboarding', ['Employee'])).toBe(false);
     expect(mhdCanAccessRoute('/onboarding', ['Viewer'])).toBe(false);
   });
 

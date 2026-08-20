@@ -222,10 +222,10 @@ function mockAuth(overrides: {
           displayName: 'Jane Doe',
           firstName: 'Jane',
           lastName: 'Doe',
-          roleNames: overrides.roles ?? ['Client User'],
+          roleNames: overrides.roles ?? ['Employee'],
         }
       : null,
-    roles: overrides.isAuthenticated ? (overrides.roles ?? ['Client User']) : [],
+    roles: overrides.isAuthenticated ? (overrides.roles ?? ['Employee']) : [],
   });
 }
 
@@ -295,7 +295,7 @@ describe('MhdAppRouter', () => {
   });
 
   it('renders "/forms" for an authenticated Client User', async () => {
-    mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+    mockAuth({ isAuthenticated: true, roles: ['Employee'] });
     setUrl('/forms');
 
     render(<MhdAppRouter />);
@@ -338,7 +338,7 @@ describe('MhdAppRouter', () => {
       // Partner. MhdRoleGuardedRoute (mhdRouteAccess.ts) enforces this at
       // the router level, independent of whether the sidebar link is
       // shown — a direct URL, bookmark, or shared link must be blocked too.
-      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      mockAuth({ isAuthenticated: true, roles: ['Employee'] });
       setUrl('/companies');
 
       render(<MhdAppRouter />);
@@ -349,7 +349,7 @@ describe('MhdAppRouter', () => {
     });
 
     it('redirects an authenticated Client User away from "/companies/:companyId" to "/404"', async () => {
-      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      mockAuth({ isAuthenticated: true, roles: ['Employee'] });
       setUrl('/companies/company-1');
 
       render(<MhdAppRouter />);
@@ -377,7 +377,7 @@ describe('MhdAppRouter', () => {
     });
 
     it('renders "/tasks/:taskId/notes" for a Client User (inherits the /tasks ALL rule)', async () => {
-      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      mockAuth({ isAuthenticated: true, roles: ['Employee'] });
       setUrl('/tasks/task-1/notes');
 
       render(<MhdAppRouter />);
@@ -436,7 +436,7 @@ describe('MhdAppRouter', () => {
       'Platform Admin',
       'HR Partner',
       'Client Admin',
-      'Client User',
+      'Employee',
       'Viewer',
     ])('renders "/calendar" for an authenticated %s', async (role) => {
       mockAuth({ isAuthenticated: true, roles: [role] });
@@ -488,7 +488,7 @@ describe('MhdAppRouter', () => {
       expect(await screen.findByText('Page Not Found')).toBeInTheDocument();
     });
 
-    it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'])(
+    it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Employee'])(
       'renders "/people/org-chart" for an authenticated %s',
       async (role) => {
         mockAuth({ isAuthenticated: true, roles: [role] });
@@ -513,7 +513,7 @@ describe('MhdAppRouter', () => {
     });
 
     it('renders "/approvals" for a Client User', async () => {
-      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      mockAuth({ isAuthenticated: true, roles: ['Employee'] });
       setUrl('/approvals');
 
       render(<MhdAppRouter />);
@@ -534,7 +534,7 @@ describe('MhdAppRouter', () => {
     });
 
     it('renders the coming soon placeholder for a Client User reaching "/performance"', async () => {
-      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      mockAuth({ isAuthenticated: true, roles: ['Employee'] });
       setUrl('/performance');
 
       render(<MhdAppRouter />);
@@ -593,7 +593,7 @@ describe('MhdAppRouter', () => {
     it.each(['/schedule', '/attendance'])(
       'renders "%s" for a Client User (own-record surface)',
       async (path) => {
-        mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+        mockAuth({ isAuthenticated: true, roles: ['Employee'] });
         setUrl(path);
 
         render(<MhdAppRouter />);
@@ -627,14 +627,14 @@ describe('MhdAppRouter', () => {
       // Client User reaches /attendance but NOT /attendance/policy — the
       // privileged-only rule must win the prefix match over the broader
       // /attendance rule.
-      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      mockAuth({ isAuthenticated: true, roles: ['Employee'] });
       setUrl('/attendance/policy');
       render(<MhdAppRouter />);
       expect(screen.queryByText('Attendance Policy Page')).not.toBeInTheDocument();
       expect(screen.getByText('Page Not Found')).toBeInTheDocument();
     });
 
-    it.each<MhdAuthRoleName>(['Client User', 'Viewer'])(
+    it.each<MhdAuthRoleName>(['Employee', 'Viewer'])(
       'redirects an authenticated %s away from "/offboarding" to "/404"',
       (role) => {
         mockAuth({ isAuthenticated: true, roles: [role] });
@@ -670,7 +670,7 @@ describe('MhdAppRouter', () => {
       ['/accommodations', 'Accommodations Page'],
       ['/accommodations/case-1', 'Accommodation Case Detail Page'],
     ])('renders "%s" for a Client User (own-case surface)', async (path, text) => {
-      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      mockAuth({ isAuthenticated: true, roles: ['Employee'] });
       setUrl(path);
 
       render(<MhdAppRouter />);
@@ -708,7 +708,7 @@ describe('MhdAppRouter', () => {
     );
 
     it('does not restrict "/tasks", which has no role rule (ALL)', async () => {
-      mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+      mockAuth({ isAuthenticated: true, roles: ['Employee'] });
       setUrl('/tasks');
 
       render(<MhdAppRouter />);
@@ -724,7 +724,7 @@ describe('MhdAppRouter', () => {
 
 describe('MhdSidebar role-based visibility', () => {
   it('hides "Companies" for a Client User', async () => {
-    mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+    mockAuth({ isAuthenticated: true, roles: ['Employee'] });
     const { MhdSidebar } = await import('../MhdSidebar');
     const { MemoryRouter } = await import('react-router-dom');
 
@@ -814,7 +814,7 @@ describe('MhdSidebar role-based visibility', () => {
     // Client User and Viewer are excluded from /investigations, so the entry never
     // renders for them — but a Client User still sees their own self-service
     // surfaces in the Talent group (My Training / My Handbooks).
-    mockAuth({ isAuthenticated: true, roles: ['Client User'] });
+    mockAuth({ isAuthenticated: true, roles: ['Employee'] });
     const { MhdSidebar } = await import('../MhdSidebar');
     const { MemoryRouter } = await import('react-router-dom');
 
@@ -828,7 +828,7 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.getByText('My Training')).toBeInTheDocument();
   });
 
-  it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Client User'])(
+  it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Employee'])(
     'shows "Leaves" and "Accommodations" in Time & Leave for %s',
     async (role) => {
       // Both entries derive their audience from mhdRouteRoles, so the nav and the
@@ -872,7 +872,7 @@ describe('MhdSidebar role-based visibility', () => {
     'Platform Admin',
     'HR Partner',
     'Client Admin',
-    'Client User',
+    'Employee',
     'Viewer',
   ])('shows "Calendar" in Work Tools for %s', async (role) => {
     mockAuth({ isAuthenticated: true, roles: [role] });

@@ -17,7 +17,7 @@ import { mhdCanAccessRoute, mhdCanArmAutomations } from '@/appshell/mhdRouteAcce
  */
 describe('automations route access', () => {
   it('excludes Client User and Viewer from /automations', () => {
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/automations', [role])).toBe(false);
     }
   });
@@ -32,7 +32,7 @@ describe('automations route access', () => {
     expect(mhdCanAccessRoute('/automations/rules/rule-1', ['HR Partner'])).toBe(true);
     expect(mhdCanAccessRoute('/automations/runs/run-1', ['Client Admin'])).toBe(true);
     expect(mhdCanAccessRoute('/automations/rules/rule-1', ['Viewer'])).toBe(false);
-    expect(mhdCanAccessRoute('/automations/runs/run-1', ['Client User'])).toBe(false);
+    expect(mhdCanAccessRoute('/automations/runs/run-1', ['Employee'])).toBe(false);
   });
 
   it('restricts arming to Platform Admin, narrower than route access', () => {
@@ -42,7 +42,7 @@ describe('automations route access', () => {
     for (const role of [
       'HR Partner',
       'Client Admin',
-      'Client User',
+      'Employee',
       'Viewer',
     ] as MhdAuthRoleName[]) {
       expect(mhdCanArmAutomations([role])).toBe(false);

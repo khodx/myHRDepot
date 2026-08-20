@@ -18,7 +18,7 @@ import { mhdCanAccessRoute, mhdCanOpenInvestigation } from '@/appshell/mhdRouteA
  */
 describe('investigations route access', () => {
   it('excludes BOTH Client User and Viewer from /investigations and /investigations/:caseId', () => {
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/investigations', [role])).toBe(false);
       expect(mhdCanAccessRoute('/investigations/some-case-id', [role])).toBe(false);
     }
@@ -35,7 +35,7 @@ describe('investigations route access', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdCanOpenInvestigation([role])).toBe(true);
     }
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanOpenInvestigation([role])).toBe(false);
     }
   });

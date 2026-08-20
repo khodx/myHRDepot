@@ -29,10 +29,26 @@ function mhdGetImpersonationTier(
   return null;
 }
 
+// Mirrors mhd_start_impersonation's tier arrays (migration 0197) exactly —
+// keep both in lockstep. platform-admin may impersonate any of the 14
+// roles; client-admin may impersonate everything at its own tier and below
+// (everything except Platform Admin/HR Partner); hr-partner may
+// impersonate HR Partner and below.
 const MHD_IMPERSONATION_ALLOWED_ROLES: Record<MhdImpersonationTier, MhdAuthRoleName[]> = {
-  'platform-admin': ['Platform Admin', 'HR Partner', 'Client Admin', 'Client User', 'Viewer'],
-  'client-admin': ['Client Admin', 'HR Partner', 'Client User', 'Viewer'],
-  'hr-partner': ['HR Partner', 'Client User', 'Viewer'],
+  'platform-admin': [
+    'Platform Admin', 'Executive Leadership', 'Director', 'HR Partner',
+    'HR Admin', 'HR Specialist', 'HR Coordinator', 'Client Admin',
+    'Manager', 'Supervisor', 'Lead', 'Employee', '3rd Party', 'Viewer',
+  ],
+  'client-admin': [
+    'Executive Leadership', 'Director', 'Client Admin', 'HR Admin',
+    'HR Specialist', 'HR Coordinator', 'Manager', 'Supervisor', 'Lead',
+    'Employee', '3rd Party', 'Viewer',
+  ],
+  'hr-partner': [
+    'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
+    'Manager', 'Supervisor', 'Lead', 'Employee', '3rd Party', 'Viewer',
+  ],
 };
 
 /**

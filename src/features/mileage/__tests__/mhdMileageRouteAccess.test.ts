@@ -20,14 +20,14 @@ describe('mileage route access', () => {
   });
 
   it('admits a Client User to /mileage (their own trips and claims)', () => {
-    expect(mhdCanAccessRoute('/mileage', ['Client User'])).toBe(true);
+    expect(mhdCanAccessRoute('/mileage', ['Employee'])).toBe(true);
   });
 
   it('mhdMileageIsPrivileged is Platform Admin / HR Partner / Client Admin only', () => {
     for (const role of PRIVILEGED) {
       expect(mhdMileageIsPrivileged([role])).toBe(true);
     }
-    for (const role of ['Client User', 'Viewer'] as MhdAuthRoleName[]) {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdMileageIsPrivileged([role])).toBe(false);
     }
   });
@@ -39,7 +39,7 @@ describe('mileage route access', () => {
     for (const role of [
       'HR Partner',
       'Client Admin',
-      'Client User',
+      'Employee',
       'Viewer',
     ] as MhdAuthRoleName[]) {
       expect(mhdCanManageMileageRates([role])).toBe(false);

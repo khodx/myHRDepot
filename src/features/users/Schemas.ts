@@ -2,9 +2,18 @@ import { z } from 'zod';
 
 const mhdAuthRoleNameSchema = z.enum([
   'Platform Admin',
+  'Executive Leadership',
+  'Director',
   'HR Partner',
+  'HR Admin',
+  'HR Specialist',
+  'HR Coordinator',
   'Client Admin',
-  'Client User',
+  'Manager',
+  'Supervisor',
+  'Lead',
+  'Employee',
+  '3rd Party',
   'Viewer',
 ]);
 
