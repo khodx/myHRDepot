@@ -183,7 +183,10 @@ export function MhdDashboardModuleLinks() {
                 <div className="flex items-center gap-3">
                   <span className="mhd-module-icon relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]">
                     <Icon className="h-[21px] w-[21px]" aria-hidden />
-                    <MhdCountBadge count={alertCount} />
+                    <MhdCountBadge
+                      count={alertCount}
+                      className="h-[19px] w-[19px] text-[12px]"
+                    />
                   </span>
                   <span className="truncate text-[18.15px] font-bold">{item.label}</span>
                   {item.status === 'comingSoon' ? (
