@@ -185,7 +185,7 @@ export function MhdDashboardModuleLinks() {
                     <Icon className="h-[21px] w-[21px]" aria-hidden />
                     <MhdCountBadge
                       count={alertCount}
-                      className="h-[22px] w-[22px] text-[14px]"
+                      className="h-[31px] w-[31px] text-[20px]"
                     />
                   </span>
                   <span className="truncate text-[18.15px] font-bold">{item.label}</span>
