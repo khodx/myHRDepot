@@ -175,18 +175,18 @@ export function MhdDashboardModuleLinks() {
                 to={item.route}
                 aria-label={tileLabel}
                 aria-describedby={descriptionId}
-                className={`mhd-module-card flex flex-col gap-2.5 rounded-lg border border-border p-4 text-foreground ${
+                className={`mhd-module-card relative flex flex-col gap-2.5 rounded-lg border border-border p-4 text-foreground ${
                   isGreyRow ? 'bg-[var(--mhd-module-row-grey)]' : 'bg-card'
                 }`}
                 style={{ '--tone': `var(--mhd-module-tone-${toneIndex})` } as CSSProperties}
               >
+                <MhdCountBadge
+                  count={alertCount}
+                  className="absolute right-3 top-3 h-[28px] w-[28px] text-[18px]"
+                />
                 <div className="flex items-center gap-3">
                   <span className="mhd-module-icon relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]">
                     <Icon className="h-[21px] w-[21px]" aria-hidden />
-                    <MhdCountBadge
-                      count={alertCount}
-                      className="h-[31px] w-[31px] text-[20px]"
-                    />
                   </span>
                   <span className="truncate text-[18.15px] font-bold">{item.label}</span>
                   {item.status === 'comingSoon' ? (
