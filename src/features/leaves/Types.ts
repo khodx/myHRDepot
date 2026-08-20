@@ -343,6 +343,20 @@ export interface MhdCreateLeaveCaseInput {
 }
 
 /**
+ * Self-service leave request (mhd_leave_case_create_self, migration 0203):
+ * no companyId/personId — both are derived server-side from the caller's
+ * own linked person, never client-supplied, so this is deliberately a
+ * narrower shape than MhdCreateLeaveCaseInput above, not the same input
+ * with fields omitted.
+ */
+export interface MhdCreateLeaveCaseSelfInput {
+  reasonCategory: string;
+  requestedStart?: string | null;
+  requestedEnd?: string | null;
+  isIntermittent?: boolean;
+}
+
+/**
  * Form-driven Leaves intake (migration 0188): calls
  * `mhd_create_leave_case_from_submission`, which re-derives the same case
  * fields `mhd_leave_case_create` takes directly, out of a completed

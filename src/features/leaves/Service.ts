@@ -2,6 +2,7 @@ import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type {
   MhdAdjustLeaveInput,
   MhdCreateLeaveCaseFromSubmissionInput,
+  MhdCreateLeaveCaseSelfInput,
   MhdCreateLeaveCaseInput,
   MhdCreateLeaveTypeInput,
   MhdCreateLeaveTypeResult,
@@ -218,6 +219,26 @@ export const mhdLeavesService = {
     if (error) throw error;
     const row = ((data ?? []) as Array<{ id: string; reference_id: string }>)[0];
     if (!row) throw new Error('Leave case creation returned no row.');
+    return { id: row.id, referenceId: row.reference_id };
+  },
+
+  /**
+   * Self-service leave request (mhd_leave_case_create_self, migration
+   * 0203): the caller's own company/person are derived server-side, never
+   * sent from here — this is what makes it safe for any authenticated
+   * user to call, unlike createCase above (which is privileged-only and
+   * takes an explicit target person).
+   */
+  async createCaseSelf(input: MhdCreateLeaveCaseSelfInput): Promise<MhdMutationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_case_create_self', {
+      p_reason_category: input.reasonCategory.trim(),
+      p_requested_start: input.requestedStart ?? undefined,
+      p_requested_end: input.requestedEnd ?? undefined,
+      p_is_intermittent: input.isIntermittent ?? false,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as Array<{ id: string; reference_id: string }>)[0];
+    if (!row) throw new Error('Leave request creation returned no row.');
     return { id: row.id, referenceId: row.reference_id };
   },
 

@@ -3,6 +3,7 @@ import type {
   MhdAdjustLeaveInput,
   MhdCreateLeaveCaseFromSubmissionInput,
   MhdCreateLeaveCaseInput,
+  MhdCreateLeaveCaseSelfInput,
   MhdCreateLeaveTypeInput,
   MhdDesignateLeaveInput,
   MhdForkLeaveTypeInput,
@@ -109,6 +110,20 @@ export function useMhdCreateLeaveCase(_companyId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: MhdCreateLeaveCaseInput) => mhdLeavesService.createCase(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-leaves', 'cases'] });
+    },
+  });
+}
+
+/**
+ * Self-service leave request — any authenticated user with a linked
+ * person may call this, unlike useMhdCreateLeaveCase above.
+ */
+export function useMhdCreateLeaveCaseSelf() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateLeaveCaseSelfInput) => mhdLeavesService.createCaseSelf(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-leaves', 'cases'] });
     },

@@ -26,9 +26,9 @@ import {
 } from '@/components/ui/MhdViewToggleUtils';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
-import { useMhdCreateLeaveCase, useMhdLeaveCases } from '../Hook';
+import { useMhdCreateLeaveCase, useMhdCreateLeaveCaseSelf, useMhdLeaveCases } from '../Hook';
 import { useMhdPeoplePicker } from '@/features/people/Hook';
-import type { MhdLeaveCaseFormValues } from '../Schemas';
+import type { MhdLeaveCaseFormValues, MhdLeaveCaseSelfFormValues } from '../Schemas';
 import {
   MHD_LEAVE_CASE_STATUSES,
   mhdFormatLeaveCaseStatus,
@@ -36,6 +36,7 @@ import {
 } from '../Types';
 import { MhdLeaveBoard } from './MhdLeaveBoard';
 import { MhdLeaveCaseForm } from './MhdLeaveCaseForm';
+import { MhdLeaveCaseSelfForm } from './MhdLeaveCaseSelfForm';
 import { MhdLeaveStatusBadge } from './MhdLeaveStatusBadge';
 
 const MHD_LEAVES_VIEW_KEY = 'mhd:leaves:view';
@@ -59,6 +60,7 @@ export function MhdLeavesPage() {
   const selfPersonId = profile?.personId ?? null;
 
   const [isCreating, setIsCreating] = useState(false);
+  const [isRequestingSelf, setIsRequestingSelf] = useState(false);
   const [filters, setFilters] = useState<MhdLeaveCaseFilters>({
     companyId,
     personId: isPrivileged ? null : selfPersonId,
@@ -80,6 +82,7 @@ export function MhdLeavesPage() {
   });
   const people = useMhdPeoplePicker(isPrivileged ? companyId || null : null);
   const createCase = useMhdCreateLeaveCase(companyId || null);
+  const createCaseSelf = useMhdCreateLeaveCaseSelf();
 
   const peopleOptions = useMemo(
     () =>
@@ -103,6 +106,17 @@ export function MhdLeavesPage() {
     navigate(`/leaves/${result.id}`);
   }
 
+  async function handleCreateSelf(values: MhdLeaveCaseSelfFormValues) {
+    const result = await createCaseSelf.mutateAsync({
+      reasonCategory: values.reasonCategory,
+      requestedStart: values.requestedStart ?? null,
+      requestedEnd: values.requestedEnd ?? null,
+      isIntermittent: values.isIntermittent,
+    });
+    setIsRequestingSelf(false);
+    navigate(`/leaves/${result.id}`);
+  }
+
   return (
     <div className="space-y-6">
       <MhdPageHeader
@@ -113,8 +127,18 @@ export function MhdLeavesPage() {
             : 'Your leave cases and their status.'
         }
         actions={
-          isPrivileged ? (
-            <>
+          <>
+            {selfPersonId ? (
+              <Button
+                variant={isPrivileged ? 'secondary' : 'primary'}
+                onClick={() => setIsRequestingSelf(true)}
+                className="h-9 px-3 text-[16.8px]"
+              >
+                Request Leave
+              </Button>
+            ) : null}
+            {isPrivileged ? (
+              <>
               <Link
                 to="/leaves/policy-library"
                 className={cn(
@@ -158,8 +182,9 @@ export function MhdLeavesPage() {
               <Button onClick={() => setIsCreating(true)} className="h-9 px-3 text-[16.8px]">
                 Open Leave Case
               </Button>
-            </>
-          ) : undefined
+              </>
+            ) : null}
+          </>
         }
       />
 
@@ -268,6 +293,19 @@ export function MhdLeavesPage() {
               onSubmit={handleCreate}
               onCancel={() => setIsCreating(false)}
               isSubmitting={createCase.isPending}
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {isRequestingSelf && selfPersonId ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-semibold text-foreground">Request leave</h2>
+            <MhdLeaveCaseSelfForm
+              onSubmit={handleCreateSelf}
+              onCancel={() => setIsRequestingSelf(false)}
+              isSubmitting={createCaseSelf.isPending}
             />
           </div>
         </div>

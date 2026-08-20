@@ -89,6 +89,28 @@ export const mhdLeaveCaseFormSchema = z
   );
 
 /**
+ * Self-service leave request — the same reason/date/intermittent fields as
+ * mhdLeaveCaseFormSchema above, but deliberately WITHOUT companyId/personId:
+ * mhd_leave_case_create_self derives both server-side from the caller's own
+ * linked person, so there is nothing here for a client to misdirect.
+ */
+export const mhdLeaveCaseSelfFormSchema = z
+  .object({
+    reasonCategory: z.string().trim().min(1, 'A reason category is required.').max(200),
+    requestedStart: isoDate.optional().nullable(),
+    requestedEnd: isoDate.optional().nullable(),
+    isIntermittent: z.boolean().default(false),
+  })
+  .refine(
+    (form) =>
+      !form.requestedStart || !form.requestedEnd || form.requestedEnd >= form.requestedStart,
+    {
+      message: 'The end date must be on or after the start date.',
+      path: ['requestedEnd'],
+    },
+  );
+
+/**
  * The designation set. An empty array is permitted here — the RPC treats it as
  * "clear the set" — but `mhd_leave_designate` then refuses to decrement a case
  * with no bases, so the detail UI keeps a "designate hours" action disabled
@@ -189,6 +211,7 @@ export const mhdMarkCertificationSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export type MhdLeaveCaseFormValues = z.infer<typeof mhdLeaveCaseFormSchema>;
+export type MhdLeaveCaseSelfFormValues = z.infer<typeof mhdLeaveCaseSelfFormSchema>;
 export type MhdSetLeaveCaseBasesFormValues = z.infer<typeof mhdSetLeaveCaseBasesSchema>;
 export type MhdTransitionLeaveCaseFormValues = z.infer<typeof mhdTransitionLeaveCaseSchema>;
 export type MhdDesignateLeaveFormValues = z.infer<typeof mhdDesignateLeaveSchema>;

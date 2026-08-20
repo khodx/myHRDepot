@@ -23613,6 +23613,18 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_leave_case_create_self: {
+        Args: {
+          p_is_intermittent?: boolean
+          p_reason_category: string
+          p_requested_end?: string
+          p_requested_start?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
       mhd_leave_case_get_bases: {
         Args: { p_case_id: string }
         Returns: {
