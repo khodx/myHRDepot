@@ -756,6 +756,26 @@ export function mhdHandbookIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
 }
 
 /**
+ * Announcements author/publish/archive gate — Platform Admin / HR Partner /
+ * Client Admin. Client User and Viewer read the published feed only; no
+ * separate MHD_ROUTE_ACCESS rule is needed for the four
+ * /communications/announcements/* routes since they inherit the general
+ * /communications rule (Platform Admin, HR Partner, Client Admin, Client
+ * User, Viewer) the same way /communications/messaging and
+ * /communications/system-alerts already do — only the mutating affordances
+ * are gated in-component via this helper.
+ */
+export const MHD_ANNOUNCEMENTS_MUTATING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdCanMutateAnnouncements(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_ANNOUNCEMENTS_MUTATING_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
  * The privileged Recruiting set — Platform Admin / HR Partner / Client Admin.
  * These roles reach the admin `/recruiting` surface: they create and manage
  * requisitions, invite applicants, build interview guides, schedule interviews,

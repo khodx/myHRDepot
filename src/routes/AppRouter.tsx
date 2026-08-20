@@ -186,6 +186,18 @@ const MhdCommunicationsPage = lazyPage(
   () => import('@/features/communications/components/MhdCommunicationsPage'),
   'MhdCommunicationsPage',
 );
+const MhdAnnouncementsPage = lazyPage(
+  () => import('@/features/announcements/components/MhdAnnouncementsPage'),
+  'MhdAnnouncementsPage',
+);
+const MhdAnnouncementFormPage = lazyPage(
+  () => import('@/features/announcements/components/MhdAnnouncementFormPage'),
+  'MhdAnnouncementFormPage',
+);
+const MhdAnnouncementDetailPage = lazyPage(
+  () => import('@/features/announcements/components/MhdAnnouncementDetailPage'),
+  'MhdAnnouncementDetailPage',
+);
 const MhdMessagingPage = lazyPage(
   () => import('@/features/messaging/components/MhdMessagingPage'),
   'MhdMessagingPage',
@@ -637,6 +649,10 @@ function MhdAppRoutes() {
                 <Route path="/esignature" element={<MhdEsignaturePage />} />
                 <Route path="/esignature/:requestId" element={<MhdEsignatureDetailPage />} />
                 <Route path="/communications" element={<MhdCommunicationsPage />} />
+                <Route path="/communications/announcements" element={<MhdAnnouncementsPage />} />
+                <Route path="/communications/announcements/new" element={<MhdAnnouncementFormPage />} />
+                <Route path="/communications/announcements/:announcementId/edit" element={<MhdAnnouncementFormPage />} />
+                <Route path="/communications/announcements/:announcementId" element={<MhdAnnouncementDetailPage />} />
                 <Route path="/communications/messaging" element={<MhdMessagingPage />} />
                 <Route path="/communications/inbox" element={<MhdCorrespondenceInboxPage />} />
                 <Route

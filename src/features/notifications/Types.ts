@@ -11,9 +11,16 @@ export type MhdNotificationType =
   | 'NOTE_ADDED'
   | 'ATTACHMENT_ADDED'
   | 'MENTION'
+  | 'ANNOUNCEMENT'
   | 'SYSTEM';
 
-export type MhdNotificationEntityType = 'TASK' | 'PERSON' | 'COMPANY' | 'NOTE' | 'ATTACHMENT';
+export type MhdNotificationEntityType =
+  | 'TASK'
+  | 'PERSON'
+  | 'COMPANY'
+  | 'NOTE'
+  | 'ATTACHMENT'
+  | 'ANNOUNCEMENT';
 
 export interface MhdNotification {
   id: string;
@@ -50,5 +57,6 @@ export const MHD_NOTIFICATION_TYPE_LABELS: Record<MhdNotificationType, string> =
   NOTE_ADDED: 'Note Added',
   ATTACHMENT_ADDED: 'File Uploaded',
   MENTION: 'You Were Mentioned',
+  ANNOUNCEMENT: 'Announcement',
   SYSTEM: 'System',
 };

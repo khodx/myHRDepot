@@ -869,6 +869,88 @@ export type Database = {
           },
         ]
       }
+      announcements: {
+        Row: {
+          archived_at: string | null
+          audience_roles: string[] | null
+          audience_scope: string
+          body_plain_text: string
+          body_rich_text: Json
+          company_id: string
+          created_at: string | null
+          created_by: string
+          expires_at: string | null
+          id: string
+          publish_at: string
+          published_at: string | null
+          reference_id: string
+          status: string
+          title: string
+          updated_at: string | null
+          updated_by: string
+        }
+        Insert: {
+          archived_at?: string | null
+          audience_roles?: string[] | null
+          audience_scope?: string
+          body_plain_text: string
+          body_rich_text: Json
+          company_id: string
+          created_at?: string | null
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          publish_at?: string
+          published_at?: string | null
+          reference_id: string
+          status?: string
+          title: string
+          updated_at?: string | null
+          updated_by: string
+        }
+        Update: {
+          archived_at?: string | null
+          audience_roles?: string[] | null
+          audience_scope?: string
+          body_plain_text?: string
+          body_rich_text?: Json
+          company_id?: string
+          created_at?: string | null
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          publish_at?: string
+          published_at?: string | null
+          reference_id?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_assignments: {
         Row: {
           approval_id: string
@@ -20326,6 +20408,8 @@ export type Database = {
         Args: { p_thread_id: string; p_user_ids: string[] }
         Returns: undefined
       }
+      mhd_announcements_dispatch_scheduled: { Args: never; Returns: number }
+      mhd_announcements_is_privileged: { Args: never; Returns: boolean }
       mhd_apply_form_submission_to_destination: {
         Args: { p_submission_id: string }
         Returns: {
@@ -20347,6 +20431,7 @@ export type Database = {
           total_levels: number
         }[]
       }
+      mhd_archive_announcement: { Args: { p_id: string }; Returns: undefined }
       mhd_archive_form: { Args: { p_form_id: string }; Returns: undefined }
       mhd_archive_message_thread: {
         Args: { p_is_archived: boolean; p_thread_id: string }
@@ -21317,6 +21402,21 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_create_announcement: {
+        Args: {
+          p_audience_roles?: string[]
+          p_audience_scope?: string
+          p_body_plain_text: string
+          p_body_rich_text: Json
+          p_company_id: string
+          p_expires_at?: string
+          p_publish_at?: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
       mhd_create_approval_request: {
         Args: {
           p_actor_user_id?: string
@@ -22157,6 +22257,24 @@ export type Database = {
           title: string
           updated_at: string
           updated_by: string
+        }[]
+      }
+      mhd_get_announcement: {
+        Args: { p_id: string }
+        Returns: {
+          archived_at: string
+          audience_roles: string[]
+          audience_scope: string
+          body_plain_text: string
+          body_rich_text: Json
+          company_id: string
+          expires_at: string
+          id: string
+          publish_at: string
+          published_at: string
+          reference_id: string
+          status: string
+          title: string
         }[]
       }
       mhd_get_approval_by_id: {
@@ -23673,6 +23791,17 @@ export type Database = {
           typical_cost_range: string
         }[]
       }
+      mhd_list_active_announcements: {
+        Args: { p_company_id: string }
+        Returns: {
+          body_plain_text: string
+          expires_at: string
+          id: string
+          published_at: string
+          reference_id: string
+          title: string
+        }[]
+      }
       mhd_list_activity_board: {
         Args: {
           p_activity_type?: string
@@ -23727,6 +23856,20 @@ export type Database = {
           person_id: string
           reference_id: string
           user_id: string
+        }[]
+      }
+      mhd_list_announcements: {
+        Args: { p_company_id: string; p_status?: string }
+        Returns: {
+          audience_roles: string[]
+          audience_scope: string
+          expires_at: string
+          id: string
+          publish_at: string
+          published_at: string
+          reference_id: string
+          status: string
+          title: string
         }[]
       }
       mhd_list_approval_comments: {
@@ -25464,6 +25607,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      mhd_publish_announcement: { Args: { p_id: string }; Returns: undefined }
       mhd_publish_form: { Args: { p_form_id: string }; Returns: undefined }
       mhd_publish_memorandum: {
         Args: {
@@ -26697,6 +26841,19 @@ export type Database = {
           id: string
           reference_id: string
         }[]
+      }
+      mhd_update_announcement: {
+        Args: {
+          p_audience_roles?: string[]
+          p_audience_scope?: string
+          p_body_plain_text?: string
+          p_body_rich_text?: Json
+          p_expires_at?: string
+          p_id: string
+          p_publish_at?: string
+          p_title?: string
+        }
+        Returns: undefined
       }
       mhd_update_case_document: {
         Args: {

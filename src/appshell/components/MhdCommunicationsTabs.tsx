@@ -5,6 +5,7 @@ import { cn } from '@/utils/cn';
 
 export type MhdCommunicationsTab =
   | 'overview'
+  | 'announcements'
   | 'messaging'
   | 'inbox'
   | 'routing'
@@ -28,6 +29,7 @@ export function MhdCommunicationsTabs({ active, className }: MhdCommunicationsTa
   const { roles } = useMhdAuth();
   const tabs: Array<{ key: MhdCommunicationsTab; label: string; to: string }> = [
     { key: 'overview', label: 'Overview', to: '/communications' },
+    { key: 'announcements', label: 'Announcements', to: '/communications/announcements' },
     { key: 'messaging', label: 'Messaging', to: '/communications/messaging' },
     { key: 'inbox', label: 'Inbox', to: '/communications/inbox' },
     ...(mhdCanManageCorrespondenceRouting(roles)
