@@ -436,6 +436,26 @@ const MhdMyHandbooksRoutePage = lazyPage(
   () => import('@/features/handbook/components/MhdMyHandbooksRoutePage'),
   'MhdMyHandbooksRoutePage',
 );
+const MhdChecklistLibraryPage = lazyPage(
+  () => import('@/features/checklists/components/MhdChecklistLibraryPage'),
+  'MhdChecklistLibraryPage',
+);
+const MhdMyChecklistsPage = lazyPage(
+  () => import('@/features/checklists/components/MhdMyChecklistsPage'),
+  'MhdMyChecklistsPage',
+);
+const MhdChecklistInstanceDetailPage = lazyPage(
+  () => import('@/features/checklists/components/MhdChecklistInstanceDetailPage'),
+  'MhdChecklistInstanceDetailPage',
+);
+const MhdPolicyLibraryPage = lazyPage(
+  () => import('@/features/policies/components/MhdPolicyLibraryPage'),
+  'MhdPolicyLibraryPage',
+);
+const MhdMyPoliciesPage = lazyPage(
+  () => import('@/features/policies/components/MhdMyPoliciesPage'),
+  'MhdMyPoliciesPage',
+);
 const MhdRecruitingRoutePage = lazyPage(
   () => import('@/features/recruiting/components/MhdRecruitingRoutePage'),
   'MhdRecruitingRoutePage',
@@ -806,6 +826,11 @@ function MhdAppRoutes() {
                   element={<MhdHandbookDetailPage tab="acknowledgments" />}
                 />
                 <Route path="/my-handbooks" element={<MhdMyHandbooksRoutePage />} />
+                <Route path="/checklists" element={<MhdChecklistLibraryPage />} />
+                <Route path="/checklists/:instanceId" element={<MhdChecklistInstanceDetailPage />} />
+                <Route path="/my-checklists" element={<MhdMyChecklistsPage />} />
+                <Route path="/policies" element={<MhdPolicyLibraryPage />} />
+                <Route path="/my-policies" element={<MhdMyPoliciesPage />} />
                 {/* Recruiting / ATS. Static child routes (/recruiting/eeo,
                   /recruiting/questions, /recruiting/interviews/:id) are ranked
                   ahead of the parameterised ones by the router. Access is enforced

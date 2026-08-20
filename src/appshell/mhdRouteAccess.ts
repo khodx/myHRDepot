@@ -252,6 +252,11 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/handbooks/studio', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   { path: '/handbooks/library', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   { path: '/handbooks', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  { path: '/checklists/:instanceId', roles: 'ALL' },
+  { path: '/my-checklists', roles: 'ALL' },
+  { path: '/checklists', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  { path: '/my-policies', roles: 'ALL' },
+  { path: '/policies', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   // Recruiting / ATS. Four surfaces, gated at three different widths — the more
   // specific rules MUST precede the general /recruiting rule because
   // mhdCanAccessRoute returns the FIRST matching rule via prefix match (the same

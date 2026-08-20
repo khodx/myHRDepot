@@ -38,8 +38,12 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/recruiting', 'talent'], // includes /recruiting/eeo
   ['/training', 'talent'],
   ['/my-training', 'talent'],
+  ['/checklists', 'talent'],
+  ['/my-checklists', 'talent'],
   ['/handbooks', 'talent'],
   ['/my-handbooks', 'talent'],
+  ['/policies', 'talent'],
+  ['/my-policies', 'talent'],
   ['/conduct', 'employee-relations'],
   ['/investigations', 'employee-relations'],
   ['/offboarding', 'employee-relations'],

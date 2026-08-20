@@ -2630,6 +2630,278 @@ export type Database = {
           },
         ]
       }
+      checklist_instance_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          description: string | null
+          evidence_attachment_id: string | null
+          evidence_note: string | null
+          id: string
+          instance_id: string
+          is_completed: boolean
+          is_required: boolean
+          requires_evidence: boolean
+          sort_order: number
+          template_item_id: string | null
+          title: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          description?: string | null
+          evidence_attachment_id?: string | null
+          evidence_note?: string | null
+          id?: string
+          instance_id: string
+          is_completed?: boolean
+          is_required?: boolean
+          requires_evidence?: boolean
+          sort_order?: number
+          template_item_id?: string | null
+          title: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          description?: string | null
+          evidence_attachment_id?: string | null
+          evidence_note?: string | null
+          id?: string
+          instance_id?: string
+          is_completed?: boolean
+          is_required?: boolean
+          requires_evidence?: boolean
+          sort_order?: number
+          template_item_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_instance_items_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_instance_items_evidence_attachment_id_fkey"
+            columns: ["evidence_attachment_id"]
+            isOneToOne: false
+            referencedRelation: "attachments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_instance_items_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_instances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_instance_items_template_item_id_fkey"
+            columns: ["template_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_template_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_instances: {
+        Row: {
+          assigned_to_person_id: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          due_date: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_deleted: boolean
+          reference_id: string
+          status: string
+          template_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to_person_id?: string | null
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          due_date?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_deleted?: boolean
+          reference_id: string
+          status?: string
+          template_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to_person_id?: string | null
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          due_date?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_deleted?: boolean
+          reference_id?: string
+          status?: string
+          template_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_instances_assigned_to_person_id_fkey"
+            columns: ["assigned_to_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_instances_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_instances_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_instances_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_instances_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_template_items: {
+        Row: {
+          description: string | null
+          id: string
+          is_required: boolean
+          requires_evidence: boolean
+          sort_order: number
+          template_id: string
+          title: string
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          is_required?: boolean
+          requires_evidence?: boolean
+          sort_order?: number
+          template_id: string
+          title: string
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          is_required?: boolean
+          requires_evidence?: boolean
+          sort_order?: number
+          template_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_template_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_templates: {
+        Row: {
+          category: string
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          source_template_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          source_template_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          source_template_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_templates_source_template_id_fkey"
+            columns: ["source_template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coaching_plan_items: {
         Row: {
           activity_id: string | null
@@ -5509,6 +5781,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "form_calculations_calculated_field_ids_fkey"
+            columns: ["calculated_field_ids"]
+            isOneToOne: false
+            referencedRelation: "form_fields"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "form_calculations_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -6911,6 +7190,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "form_logic_rules_condition_source_field_id_fkey"
+            columns: ["condition_source_field_id"]
+            isOneToOne: false
+            referencedRelation: "form_fields"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "form_logic_rules_created_by_fkey"
             columns: ["created_by"]
@@ -11713,6 +11999,225 @@ export type Database = {
             columns: ["reversal_of"]
             isOneToOne: false
             referencedRelation: "leaves_ledger"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memorandum_acknowledgments: {
+        Row: {
+          company_id: string
+          created_at: string
+          document_generation_id: string | null
+          esignature_request_id: string | null
+          id: string
+          is_deleted: boolean
+          memorandum_id: string
+          person_id: string
+          reference_id: string
+          signed_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          document_generation_id?: string | null
+          esignature_request_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          memorandum_id: string
+          person_id: string
+          reference_id: string
+          signed_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          document_generation_id?: string | null
+          esignature_request_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          memorandum_id?: string
+          person_id?: string
+          reference_id?: string
+          signed_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memorandum_acknowledgments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorandum_acknowledgments_document_generation_id_fkey"
+            columns: ["document_generation_id"]
+            isOneToOne: false
+            referencedRelation: "document_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorandum_acknowledgments_memorandum_id_fkey"
+            columns: ["memorandum_id"]
+            isOneToOne: false
+            referencedRelation: "memorandums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorandum_acknowledgments_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memorandum_deliveries: {
+        Row: {
+          acknowledgment_id: string | null
+          delivered_at: string
+          id: string
+          memorandum_id: string
+          notification_id: string | null
+          person_id: string
+          read_at: string | null
+        }
+        Insert: {
+          acknowledgment_id?: string | null
+          delivered_at?: string
+          id?: string
+          memorandum_id: string
+          notification_id?: string | null
+          person_id: string
+          read_at?: string | null
+        }
+        Update: {
+          acknowledgment_id?: string | null
+          delivered_at?: string
+          id?: string
+          memorandum_id?: string
+          notification_id?: string | null
+          person_id?: string
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memorandum_deliveries_acknowledgment_fk"
+            columns: ["acknowledgment_id"]
+            isOneToOne: false
+            referencedRelation: "memorandum_acknowledgments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorandum_deliveries_memorandum_id_fkey"
+            columns: ["memorandum_id"]
+            isOneToOne: false
+            referencedRelation: "memorandums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorandum_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorandum_deliveries_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memorandums: {
+        Row: {
+          audience_label: string | null
+          body: string
+          category: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          document_generation_id: string | null
+          id: string
+          is_deleted: boolean
+          published_at: string | null
+          published_by: string | null
+          reference_id: string
+          requires_acknowledgment: boolean
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          audience_label?: string | null
+          body: string
+          category?: string
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          document_generation_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          published_at?: string | null
+          published_by?: string | null
+          reference_id: string
+          requires_acknowledgment?: boolean
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          audience_label?: string | null
+          body?: string
+          category?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          document_generation_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          published_at?: string | null
+          published_by?: string | null
+          reference_id?: string
+          requires_acknowledgment?: boolean
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memorandums_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorandums_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorandums_document_generation_id_fkey"
+            columns: ["document_generation_id"]
+            isOneToOne: false
+            referencedRelation: "document_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorandums_published_by_fkey"
+            columns: ["published_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -17166,6 +17671,241 @@ export type Database = {
           },
         ]
       }
+      policies: {
+        Row: {
+          category: string
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          current_version_id: string | null
+          id: string
+          is_active: boolean
+          jurisdiction: string | null
+          reference_id: string
+          source_policy_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          id?: string
+          is_active?: boolean
+          jurisdiction?: string | null
+          reference_id: string
+          source_policy_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          id?: string
+          is_active?: boolean
+          jurisdiction?: string | null
+          reference_id?: string
+          source_policy_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policies_current_version_fk"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "policy_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policies_source_policy_id_fkey"
+            columns: ["source_policy_id"]
+            isOneToOne: false
+            referencedRelation: "policies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      policy_acknowledgments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          company_id: string
+          created_at: string
+          document_generation_id: string | null
+          esignature_request_id: string | null
+          id: string
+          is_deleted: boolean
+          person_id: string
+          policy_version_id: string
+          reference_id: string
+          signed_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          company_id: string
+          created_at?: string
+          document_generation_id?: string | null
+          esignature_request_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          person_id: string
+          policy_version_id: string
+          reference_id: string
+          signed_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          company_id?: string
+          created_at?: string
+          document_generation_id?: string | null
+          esignature_request_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          person_id?: string
+          policy_version_id?: string
+          reference_id?: string
+          signed_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policy_acknowledgments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_acknowledgments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_acknowledgments_document_generation_id_fkey"
+            columns: ["document_generation_id"]
+            isOneToOne: false
+            referencedRelation: "document_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_acknowledgments_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_acknowledgments_policy_version_id_fkey"
+            columns: ["policy_version_id"]
+            isOneToOne: false
+            referencedRelation: "policy_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      policy_versions: {
+        Row: {
+          content: string
+          content_hash: string | null
+          created_at: string
+          created_by: string | null
+          document_generation_id: string | null
+          id: string
+          policy_id: string
+          published_at: string | null
+          published_by: string | null
+          requires_signature: boolean
+          status: string
+          version_number: number
+        }
+        Insert: {
+          content: string
+          content_hash?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_generation_id?: string | null
+          id?: string
+          policy_id: string
+          published_at?: string | null
+          published_by?: string | null
+          requires_signature?: boolean
+          status?: string
+          version_number: number
+        }
+        Update: {
+          content?: string
+          content_hash?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_generation_id?: string | null
+          id?: string
+          policy_id?: string
+          published_at?: string | null
+          published_by?: string | null
+          requires_signature?: boolean
+          status?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policy_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_versions_document_generation_id_fkey"
+            columns: ["document_generation_id"]
+            isOneToOne: false
+            referencedRelation: "document_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_versions_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_versions_published_by_fkey"
+            columns: ["published_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       priorities: {
         Row: {
           color_token: string | null
@@ -19495,6 +20235,14 @@ export type Database = {
         Args: { p_case_id: string; p_new_status: string; p_reason?: string }
         Returns: undefined
       }
+      mhd_acknowledge_memorandum: {
+        Args: { p_acknowledgment_id: string; p_esignature_request_id?: string }
+        Returns: undefined
+      }
+      mhd_acknowledge_policy: {
+        Args: { p_acknowledgment_id: string; p_esignature_request_id?: string }
+        Returns: undefined
+      }
       mhd_activate_notice_packet_version: {
         Args: { p_packet_version_id: string }
         Returns: string
@@ -19538,6 +20286,19 @@ export type Database = {
       mhd_add_business_days: {
         Args: { p_days: number; p_from: string }
         Returns: string
+      }
+      mhd_add_checklist_template_item: {
+        Args: {
+          p_description?: string
+          p_is_required?: boolean
+          p_requires_evidence?: boolean
+          p_sort_order?: number
+          p_template_id: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+        }[]
       }
       mhd_add_contact_method: {
         Args: {
@@ -19704,6 +20465,10 @@ export type Database = {
       mhd_assert_task_company_access: {
         Args: { p_company_id: string }
         Returns: undefined
+      }
+      mhd_assign_policy_acknowledgment: {
+        Args: { p_person_ids: string[]; p_policy_version_id: string }
+        Returns: string[]
       }
       mhd_assign_user_to_entity: {
         Args: {
@@ -20116,6 +20881,10 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: boolean
       }
+      mhd_can_manage_checklist_library: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
       mhd_can_manage_form_library: {
         Args: { p_company_id: string }
         Returns: boolean
@@ -20125,6 +20894,10 @@ export type Database = {
         Returns: boolean
       }
       mhd_can_manage_leave_type: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
+      mhd_can_manage_policy_library: {
         Args: { p_company_id: string }
         Returns: boolean
       }
@@ -20274,6 +21047,15 @@ export type Database = {
           id: string
           status: string
         }[]
+      }
+      mhd_complete_checklist_item: {
+        Args: {
+          p_evidence_attachment_id?: string
+          p_evidence_note?: string
+          p_is_completed: boolean
+          p_item_id: string
+        }
+        Returns: undefined
       }
       mhd_complete_document_generation: {
         Args: {
@@ -20608,6 +21390,32 @@ export type Database = {
           status: string
         }[]
       }
+      mhd_create_checklist_instance: {
+        Args: {
+          p_assigned_to_person_id: string
+          p_company_id: string
+          p_due_date?: string
+          p_entity_id?: string
+          p_entity_type?: string
+          p_template_id?: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
+      mhd_create_checklist_template: {
+        Args: {
+          p_category?: string
+          p_company_id: string
+          p_description?: string
+          p_source_template_id?: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
       mhd_create_coaching_plan: {
         Args: {
           p_coach_user_id: string
@@ -20795,6 +21603,18 @@ export type Database = {
           id: string
         }[]
       }
+      mhd_create_memorandum: {
+        Args: {
+          p_body: string
+          p_category?: string
+          p_company_id: string
+          p_requires_acknowledgment?: boolean
+          p_title: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
       mhd_create_message_thread: {
         Args: {
           p_company_id: string
@@ -20898,6 +21718,18 @@ export type Database = {
           reference_id: string
           updated_at: string
           updated_by: string
+        }[]
+      }
+      mhd_create_policy: {
+        Args: {
+          p_category?: string
+          p_company_id: string
+          p_jurisdiction?: string
+          p_source_policy_id?: string
+          p_title: string
+        }
+        Returns: {
+          id: string
         }[]
       }
       mhd_create_property_item: {
@@ -21255,6 +22087,12 @@ export type Database = {
           id: string
         }[]
       }
+      mhd_fork_checklist_template: {
+        Args: { p_company_id: string; p_source_template_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
       mhd_fork_form_from_library: {
         Args: { p_company_id: string; p_source_form_id: string }
         Returns: {
@@ -21269,6 +22107,12 @@ export type Database = {
       }
       mhd_fork_leave_type: {
         Args: { p_company_id: string; p_source_type_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
+      mhd_fork_policy: {
+        Args: { p_company_id: string; p_source_policy_id: string }
         Returns: {
           id: string
         }[]
@@ -21405,6 +22249,22 @@ export type Database = {
           source_module: string
           summary: string
           user_agent: string
+        }[]
+      }
+      mhd_get_checklist_instance: {
+        Args: { p_instance_id: string }
+        Returns: {
+          assigned_to_person_id: string
+          company_id: string
+          completed_at: string
+          due_date: string
+          entity_id: string
+          entity_type: string
+          id: string
+          items: Json
+          reference_id: string
+          status: string
+          title: string
         }[]
       }
       mhd_get_coaching_plan: {
@@ -23031,6 +23891,20 @@ export type Database = {
           updated_at: string
         }[]
       }
+      mhd_list_checklist_library: {
+        Args: { p_category?: string; p_company_id: string }
+        Returns: {
+          category: string
+          company_id: string
+          description: string
+          id: string
+          is_active: boolean
+          is_library: boolean
+          item_count: number
+          source_template_id: string
+          title: string
+        }[]
+      }
       mhd_list_coaching_plan_items: {
         Args: { p_plan_id: string }
         Returns: {
@@ -23415,6 +24289,19 @@ export type Database = {
           thread_id: string
         }[]
       }
+      mhd_list_my_checklist_instances: {
+        Args: never
+        Returns: {
+          company_id: string
+          completed_items: number
+          due_date: string
+          id: string
+          reference_id: string
+          status: string
+          title: string
+          total_items: number
+        }[]
+      }
       mhd_list_my_draft_submissions: {
         Args: never
         Returns: {
@@ -23432,6 +24319,19 @@ export type Database = {
           task_id: string
           updated_at: string
           values: Json
+        }[]
+      }
+      mhd_list_my_memorandums: {
+        Args: never
+        Returns: {
+          acknowledgment_status: string
+          category: string
+          id: string
+          published_at: string
+          read_at: string
+          reference_id: string
+          requires_acknowledgment: boolean
+          title: string
         }[]
       }
       mhd_list_notes_for_entity: {
@@ -23695,6 +24595,20 @@ export type Database = {
           updated_at: string
           updated_by: string
           waiver_reason: string
+        }[]
+      }
+      mhd_list_policy_library: {
+        Args: { p_category?: string; p_company_id: string }
+        Returns: {
+          category: string
+          company_id: string
+          current_version_id: string
+          id: string
+          is_active: boolean
+          is_library: boolean
+          jurisdiction: string
+          source_policy_id: string
+          title: string
         }[]
       }
       mhd_list_property_assignments: {
@@ -23969,6 +24883,10 @@ export type Database = {
         }[]
       }
       mhd_mark_all_notifications_read: { Args: never; Returns: undefined }
+      mhd_mark_memorandum_read: {
+        Args: { p_memorandum_id: string }
+        Returns: undefined
+      }
       mhd_mark_notification_read: {
         Args: { p_notification_id: string }
         Returns: undefined
@@ -23984,6 +24902,15 @@ export type Database = {
       mhd_mark_thread_read: {
         Args: { p_thread_id: string }
         Returns: undefined
+      }
+      mhd_memorandum_delivery_board: {
+        Args: { p_memorandum_id: string }
+        Returns: {
+          acknowledgment_status: string
+          delivered_at: string
+          person_id: string
+          read_at: string
+        }[]
       }
       mhd_mileage_add_trip_to_claim: {
         Args: { p_claim_id: string; p_trip_id: string }
@@ -24189,6 +25116,18 @@ export type Database = {
       mhd_mileage_void_trip: {
         Args: { p_reason: string; p_trip_id: string }
         Returns: undefined
+      }
+      mhd_my_policy_acknowledgments: {
+        Args: never
+        Returns: {
+          assigned_at: string
+          id: string
+          policy_title: string
+          policy_version_id: string
+          reference_id: string
+          signed_at: string
+          status: string
+        }[]
       }
       mhd_next_business_day: { Args: { p_from: string }; Returns: string }
       mhd_next_reference_id: { Args: { p_prefix: string }; Returns: string }
@@ -24482,6 +25421,16 @@ export type Database = {
           state: string
         }[]
       }
+      mhd_policy_ack_board: {
+        Args: { p_policy_version_id: string }
+        Returns: {
+          assigned_at: string
+          id: string
+          person_id: string
+          signed_at: string
+          status: string
+        }[]
+      }
       mhd_provision_company_user: {
         Args: {
           p_actor_user_id?: string
@@ -24516,6 +25465,25 @@ export type Database = {
         }[]
       }
       mhd_publish_form: { Args: { p_form_id: string }; Returns: undefined }
+      mhd_publish_memorandum: {
+        Args: {
+          p_audience_label?: string
+          p_memorandum_id: string
+          p_recipient_person_ids: string[]
+          p_send_email?: boolean
+        }
+        Returns: undefined
+      }
+      mhd_publish_policy_version: {
+        Args: {
+          p_content: string
+          p_policy_id: string
+          p_requires_signature?: boolean
+        }
+        Returns: {
+          id: string
+        }[]
+      }
       mhd_recalculate_task_progress: {
         Args: { p_task_id: string }
         Returns: undefined
