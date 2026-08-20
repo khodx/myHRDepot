@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { LogOut, Menu, ShieldCheck } from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { MhdActingAsMenu } from '@/features/authentication/components/MhdActingAsMenu';
 import { MhdImpersonationMenu } from '@/features/authentication/components/MhdImpersonationMenu';
 import { MhdNotificationBell } from '@/features/notifications/components/MhdNotificationBell';
 import { MhdThemeToggle } from './MhdThemeToggle';
@@ -39,6 +40,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
           <ShieldCheck className="h-4.5 w-4.5" aria-hidden />
         </Link>
         <MhdNotificationBell />
+        <MhdActingAsMenu />
         <MhdImpersonationMenu />
         <button
           type="button"

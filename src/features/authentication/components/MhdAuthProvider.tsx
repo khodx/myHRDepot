@@ -23,7 +23,7 @@ import {
   mhdUpdatePassword,
   mhdVerifyTotpFactor,
 } from '../Service';
-import type { MhdAuthState } from '../Types';
+import type { MhdAuthRoleName, MhdAuthState } from '../Types';
 import { MhdAuthContext, type MhdAuthContextValue } from '../MhdAuthContext';
 
 const mhdInitialAuthState: MhdAuthState = {
@@ -33,7 +33,57 @@ const mhdInitialAuthState: MhdAuthState = {
   authUserId: null,
   profile: null,
   roles: [],
+  actingAsRoles: null,
 };
+
+const MHD_ACTING_AS_ROLES_STORAGE_PREFIX = 'mhd-acting-as-roles:';
+
+function mhdReadStoredActingAsRoles(
+  userId: string,
+  realRoleNames: MhdAuthRoleName[],
+): MhdAuthRoleName[] | null {
+  try {
+    const raw = window.localStorage.getItem(MHD_ACTING_AS_ROLES_STORAGE_PREFIX + userId);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return null;
+    // Only honor roles the user still actually holds — a role could have
+    // been revoked since this preference was saved.
+    const stillHeld = parsed.filter(
+      (role): role is MhdAuthRoleName =>
+        typeof role === 'string' && realRoleNames.includes(role as MhdAuthRoleName),
+    );
+    return stillHeld.length > 0 ? stillHeld : null;
+  } catch {
+    return null;
+  }
+}
+
+function mhdWriteStoredActingAsRoles(userId: string, roles: MhdAuthRoleName[] | null): void {
+  try {
+    const key = MHD_ACTING_AS_ROLES_STORAGE_PREFIX + userId;
+    if (roles === null) {
+      window.localStorage.removeItem(key);
+    } else {
+      window.localStorage.setItem(key, JSON.stringify(roles));
+    }
+  } catch {
+    // localStorage can throw (private browsing, quota) — acting-as is a
+    // convenience preference, never worth failing the app over.
+  }
+}
+
+/** The effective role set nav/route-access consume: acting-as never
+ *  applies during impersonation (the two mechanisms are deliberately kept
+ *  from combining — see MhdAuthState.roles' own doc comment). */
+function mhdComputeEffectiveRoles(
+  profile: MhdAuthState['profile'],
+  actingAsRoles: MhdAuthRoleName[] | null,
+): MhdAuthRoleName[] {
+  if (!profile) return [];
+  if (profile.impersonation.isImpersonating) return profile.roleNames;
+  return actingAsRoles ?? profile.roleNames;
+}
 
 export function MhdAuthProvider({ children }: { children: ReactNode }) {
   const [authState, setAuthState] = useState<MhdAuthState>(mhdInitialAuthState);
@@ -45,6 +95,9 @@ export function MhdAuthProvider({ children }: { children: ReactNode }) {
     }
 
     const profile = await mhdLoadCurrentUserProfile(session.user.id);
+    const actingAsRoles = profile
+      ? mhdReadStoredActingAsRoles(profile.userId, profile.realRoleNames)
+      : null;
 
     setAuthState({
       isLoading: false,
@@ -52,7 +105,8 @@ export function MhdAuthProvider({ children }: { children: ReactNode }) {
       userEmail: session.user.email ?? null,
       authUserId: session.user.id,
       profile,
-      roles: profile?.roleNames ?? [],
+      roles: mhdComputeEffectiveRoles(profile, actingAsRoles),
+      actingAsRoles,
     });
   }, []);
 
@@ -120,6 +174,17 @@ export function MhdAuthProvider({ children }: { children: ReactNode }) {
         await refreshProfile();
       },
       listCompaniesForImpersonation: mhdListCompaniesForImpersonation,
+      setActingAsRoles: (nextActingAsRoles) => {
+        setAuthState((current) => {
+          if (!current.profile) return current;
+          mhdWriteStoredActingAsRoles(current.profile.userId, nextActingAsRoles);
+          return {
+            ...current,
+            actingAsRoles: nextActingAsRoles,
+            roles: mhdComputeEffectiveRoles(current.profile, nextActingAsRoles),
+          };
+        });
+      },
     }),
     [applySession, authState, refreshProfile],
   );

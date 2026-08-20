@@ -124,7 +124,21 @@ export interface MhdAuthState {
    *  there is no separate auth_user_id column to distinguish them. */
   authUserId: string | null;
   profile: MhdCurrentUserProfile | null;
+  /** The EFFECTIVE role set nav/route-access consume — already filtered by
+   *  `actingAsRoles` (a pure client-side preference, see below) when one
+   *  is set, and always falls back to the full `profile.roleNames` while
+   *  impersonation is active (acting-as never applies during "View As" —
+   *  the two mechanisms are deliberately kept from combining). This is
+   *  purely a UI/UX narrowing: the server always independently re-derives
+   *  real permissions from auth.uid() on every RPC, so this can never
+   *  under- or over-privilege an actual write — see `setActingAsRoles`. */
   roles: MhdAuthRoleName[];
+  /** The user's own chosen subset of `profile.realRoleNames` to act as
+   *  right now (e.g. an HR Admin choosing to act as just "Employee" for
+   *  self-service), or null when no filter is applied (full role set
+   *  active). Persisted client-side only (localStorage, keyed per user) —
+   *  never sent to or trusted by the server. Ignored while impersonating. */
+  actingAsRoles: MhdAuthRoleName[] | null;
 }
 
 export interface MhdLoginInput {

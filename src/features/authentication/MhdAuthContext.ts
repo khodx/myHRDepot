@@ -36,6 +36,10 @@ export interface MhdAuthContextValue extends MhdAuthState {
   endImpersonation: () => Promise<void>;
   /** Loads the company picker options for the "View As" menu. */
   listCompaniesForImpersonation: () => Promise<MhdImpersonationCompanyOption[]>;
+  /** Sets (or clears, with null) the "acting as" role filter — a pure
+   *  client-side preference, persisted to localStorage. See
+   *  MhdAuthState.actingAsRoles for the full contract. */
+  setActingAsRoles: (roles: MhdAuthRoleName[] | null) => void;
 }
 
 export const MhdAuthContext = createContext<MhdAuthContextValue | null>(null);
