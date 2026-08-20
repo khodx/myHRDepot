@@ -1,83 +1,79 @@
-import { useEffect, useState } from 'react';
-import { useMhdRandomQuote } from '@/features/quotes/Hook';
-import type { MhdQuote } from '@/features/quotes/Types';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { useMhdQuoteOfTheDay } from '@/features/quotes/Hook';
 
-const MHD_QUOTE_ROTATION_MS = 20000;
+const MHD_QUOTE_BASE_FONT_PX = 24;
+const MHD_QUOTE_MIN_FONT_PX = 14;
+const MHD_QUOTE_FONT_STEP_PX = 1;
 
+/**
+ * Shrinks the quote's font size, if needed, so the (intentionally
+ * non-wrapping) quote line always fits within its container's width — quotes
+ * vary a lot in length, and the banner has no room to grow taller for a
+ * second line. Re-measures on quote change and on container resize (sidebar
+ * collapse/expand, window resize).
+ */
+function useMhdShrinkToFitFontPx(
+  containerRef: React.RefObject<HTMLElement | null>,
+  textRef: React.RefObject<HTMLElement | null>,
+  deps: unknown[],
+) {
+  const [fontPx, setFontPx] = useState(MHD_QUOTE_BASE_FONT_PX);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const text = textRef.current;
+    if (!container || !text) return undefined;
+
+    function fit() {
+      if (!container || !text) return;
+      let candidatePx = MHD_QUOTE_BASE_FONT_PX;
+      text.style.fontSize = `${candidatePx}px`;
+      while (text.scrollWidth > container.clientWidth && candidatePx > MHD_QUOTE_MIN_FONT_PX) {
+        candidatePx -= MHD_QUOTE_FONT_STEP_PX;
+        text.style.fontSize = `${candidatePx}px`;
+      }
+      setFontPx(candidatePx);
+    }
+
+    fit();
+
+    const observer = new ResizeObserver(fit);
+    observer.observe(container);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  return fontPx;
+}
+
+/**
+ * Renders the dashboard's quote of the day. The quote is deterministic per
+ * calendar day at the database layer (mhd_dashboard_quote_of_the_day), so it
+ * never rotates or refetches mid-session — it is fixed for the whole day and
+ * only changes to a new quote once a new day starts.
+ */
 export function MhdDashboardQuoteOfTheDay() {
-  const { data, refetch } = useMhdRandomQuote();
-  const [displayedQuote, setDisplayedQuote] = useState<MhdQuote | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const { data: quote } = useMhdQuoteOfTheDay();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLParagraphElement>(null);
+  const quoteFontPx = useMhdShrinkToFitFontPx(containerRef, textRef, [quote?.id, quote?.quoteText]);
 
-  useEffect(() => {
-    if (!data) return undefined;
-
-    // Rebound as a fresh const so its narrowed (non-null/undefined) type is
-    // trusted inside the nested swapIn() closure below — TS widens `data`
-    // itself back to the query's nullable type there otherwise.
-    const nextQuote = data;
-    const dataKey = nextQuote.id ?? nextQuote.quoteText;
-    const displayedKey = displayedQuote?.id ?? displayedQuote?.quoteText;
-
-    if (displayedQuote && dataKey === displayedKey) {
-      return undefined;
-    }
-
-    // Every state update below runs from an async callback (rAF/setTimeout),
-    // never synchronously in the effect body itself, so this never fires as
-    // a same-tick cascading render.
-    const isFirstLoad = !displayedQuote;
-
-    function swapIn() {
-      setDisplayedQuote(nextQuote);
-      showFrame = window.requestAnimationFrame(() => setIsVisible(true));
-    }
-
-    let hideFrame: number | null = null;
-    let swapTimer: number | null = null;
-    let showFrame: number | null = null;
-
-    if (isFirstLoad) {
-      swapTimer = window.setTimeout(swapIn, 0);
-    } else {
-      hideFrame = window.requestAnimationFrame(() => {
-        setIsVisible(false);
-        swapTimer = window.setTimeout(swapIn, 250);
-      });
-    }
-
-    return () => {
-      if (hideFrame !== null) window.cancelAnimationFrame(hideFrame);
-      if (swapTimer !== null) window.clearTimeout(swapTimer);
-      if (showFrame !== null) window.cancelAnimationFrame(showFrame);
-    };
-  }, [data, displayedQuote]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      void refetch();
-    }, MHD_QUOTE_ROTATION_MS);
-
-    return () => clearInterval(timer);
-  }, [refetch]);
-
-  const quoteKey = displayedQuote?.id ?? displayedQuote?.quoteText ?? '';
-
-  if (!displayedQuote) {
+  if (!quote) {
     return null;
   }
 
   return (
-    <div
-      key={quoteKey}
-      className={`max-w-2xl text-sm leading-snug text-rail-muted transition-opacity duration-500 sm:text-[15px] ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      }`}
-    >
-      <p className="italic">&ldquo;{displayedQuote.quoteText}&rdquo;</p>
-      {displayedQuote.author ? (
-        <p className="mt-1 text-xs font-medium not-italic text-white/80 sm:text-sm">
-          <span aria-hidden="true">&mdash;</span> {displayedQuote.author}
+    <div ref={containerRef} className="w-full text-rail-muted">
+      <p
+        ref={textRef}
+        className="whitespace-nowrap italic leading-snug"
+        style={{ fontSize: `${quoteFontPx}px` }}
+      >
+        &ldquo;{quote.quoteText}&rdquo;
+      </p>
+      {quote.author ? (
+        <p className="mt-1 text-[18px] font-medium not-italic text-white/80">
+          <span aria-hidden="true">&mdash;</span> {quote.author}
         </p>
       ) : null}
     </div>

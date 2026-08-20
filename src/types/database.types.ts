@@ -22086,7 +22086,7 @@ export type Database = {
         Args: { p_company_id?: string }
         Returns: number
       }
-      mhd_dashboard_random_quote: {
+      mhd_dashboard_quote_of_the_day: {
         Args: never
         Returns: {
           author: string | null

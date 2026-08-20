@@ -17,13 +17,13 @@ function mapQuoteRow(row: MhdQuoteRow): MhdQuote {
 }
 
 export const mhdQuotesService = {
-  async getRandomQuote(): Promise<MhdQuote | null> {
+  async getQuoteOfTheDay(): Promise<MhdQuote | null> {
     const { data, error } = await supabaseClient
-      .rpc('mhd_dashboard_random_quote')
+      .rpc('mhd_dashboard_quote_of_the_day')
       .returns<MhdQuoteRow | null>();
 
     if (error) {
-      throw new Error('Unable to get random quote: ' + error.message);
+      throw new Error('Unable to get quote of the day: ' + error.message);
     }
 
     return data ? mapQuoteRow(data) : null;

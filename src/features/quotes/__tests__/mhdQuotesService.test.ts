@@ -38,20 +38,20 @@ describe('mhdQuotesService', () => {
     mockReturns.mockReset();
   });
 
-  describe('getRandomQuote', () => {
+  describe('getQuoteOfTheDay', () => {
     it('maps a returned row to a camelCase quote', async () => {
       mockReturns.mockResolvedValueOnce({ data: rawQuoteRow, error: null });
 
-      const result = await mhdQuotesService.getRandomQuote();
+      const result = await mhdQuotesService.getQuoteOfTheDay();
 
-      expect(mockRpc).toHaveBeenCalledWith('mhd_dashboard_random_quote');
+      expect(mockRpc).toHaveBeenCalledWith('mhd_dashboard_quote_of_the_day');
       expect(result).toEqual(mappedQuote);
     });
 
     it('returns null when the RPC returns no active quote', async () => {
       mockReturns.mockResolvedValueOnce({ data: null, error: null });
 
-      await expect(mhdQuotesService.getRandomQuote()).resolves.toBeNull();
+      await expect(mhdQuotesService.getQuoteOfTheDay()).resolves.toBeNull();
     });
 
     it('throws with the RPC error message on error', async () => {
@@ -60,8 +60,8 @@ describe('mhdQuotesService', () => {
         error: { message: 'Permission denied' },
       });
 
-      await expect(mhdQuotesService.getRandomQuote()).rejects.toThrow(
-        'Unable to get random quote: Permission denied',
+      await expect(mhdQuotesService.getQuoteOfTheDay()).rejects.toThrow(
+        'Unable to get quote of the day: Permission denied',
       );
     });
   });

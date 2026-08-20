@@ -209,8 +209,8 @@ export function MhdDashboardGreetingBanner({
       )}
 
       <div className="flex flex-1 flex-wrap items-start justify-between gap-6 py-[25.44px] pl-[16px] pr-[33.6px]">
-        <div className="flex flex-col items-start gap-1">
-          <h1 className="text-[28px] font-bold leading-tight text-white">
+        <div className="mt-24 flex min-w-0 flex-1 flex-col items-start gap-1">
+          <h1 className="text-[39.2px] font-bold leading-tight text-white">
             {greeting}
             {name ? `, ${name} 😊` : ''}!
           </h1>
