@@ -10,7 +10,7 @@ import type {
   MhdOnboardingProgressSummary,
   MhdStartOnboardingPacketInput,
 } from './Types';
-import { MHD_ONBOARDING_PACKET_BY_KEY, MHD_ONBOARDING_PACKET_DEFINITIONS } from './Types';
+import { MHD_ONBOARDING_PACKET_DEFINITIONS } from './Types';
 
 type MhdOnboardingChecklistRow = {
   id: string;
@@ -45,13 +45,14 @@ type MhdOnboardingProgressRow = {
   last_activity_at: string | null;
 };
 
-type MhdOnboardingTableName = MhdOnboardingDocumentKey | 'onboarding_document_acknowledgments';
-
 /**
  * migration 0180 consolidated these 10 document keys' destination tables into
  * one shared table (onboarding_document_acknowledgments), discriminated by a
  * document_key column. Every other key still resolves to a table of the same
- * name as itself.
+ * name as itself. These 10 no longer exist as tables in their own right, so
+ * they must not appear in MhdOnboardingTableName -- doing so previously
+ * caused `.from()`/`.insert()` to fail to resolve against the generated
+ * Database type (TS2589 "excessively deep" plus collapsed `never` inserts).
  *
  * This duplicates onboarding_document_keys.destination_table (0064's
  * registry, already the authoritative mapping and already repointed for
@@ -61,7 +62,25 @@ type MhdOnboardingTableName = MhdOnboardingDocumentKey | 'onboarding_document_ac
  * duplication, not an oversight -- if the registry mapping ever changes
  * again, this map must change with it.
  */
-const MHD_ONBOARDING_CONSOLIDATED_ACK_KEYS: ReadonlySet<MhdOnboardingDocumentKey> = new Set([
+type MhdOnboardingConsolidatedAckKey =
+  | 'onboarding_harassment_policy_acks'
+  | 'onboarding_time_of_hire_pamphlet_acks'
+  | 'onboarding_wage_notice_acks'
+  | 'onboarding_health_marketplace_notice_acks'
+  | 'onboarding_meal_waiver_acks'
+  | 'onboarding_badge_acknowledgments'
+  | 'onboarding_dispute_resolution_acks'
+  | 'onboarding_handbook_acknowledgments'
+  | 'onboarding_surveillance_policy_acks'
+  | 'onboarding_at_will_acknowledgments';
+
+type MhdOnboardingTableName =
+  | Exclude<MhdOnboardingDocumentKey, MhdOnboardingConsolidatedAckKey>
+  | 'onboarding_document_acknowledgments';
+
+const MHD_ONBOARDING_CONSOLIDATED_ACK_KEYS: ReadonlySet<MhdOnboardingDocumentKey> = new Set<
+  MhdOnboardingConsolidatedAckKey
+>([
   'onboarding_harassment_policy_acks',
   'onboarding_time_of_hire_pamphlet_acks',
   'onboarding_wage_notice_acks',
@@ -107,11 +126,16 @@ async function findDestinationRecordIdForSubmission(
   documentKey: MhdOnboardingDocumentKey,
   submissionId: string,
 ): Promise<string | null> {
-  const tableName = getOnboardingTableName(documentKey);
-  let query = supabaseClient.from(tableName).select('id').eq('form_submission_id', submissionId);
-  if (isConsolidatedAckKey(documentKey)) {
-    query = query.eq('document_key', documentKey);
-  }
+  const query = isConsolidatedAckKey(documentKey)
+    ? supabaseClient
+        .from('onboarding_document_acknowledgments')
+        .select('id')
+        .eq('form_submission_id', submissionId)
+        .eq('document_key', documentKey)
+    : supabaseClient
+        .from(getOnboardingTableName(documentKey))
+        .select('id')
+        .eq('form_submission_id', submissionId);
   const { data, error } = await query.limit(1).returns<MhdDestinationRecordLookupRow[]>();
 
   if (error) {
@@ -123,34 +147,43 @@ async function findDestinationRecordIdForSubmission(
   return data?.[0]?.id ?? null;
 }
 
-function isConsolidatedAckKey(documentKey: MhdOnboardingDocumentKey): boolean {
+function isConsolidatedAckKey(
+  documentKey: MhdOnboardingDocumentKey,
+): documentKey is MhdOnboardingConsolidatedAckKey {
   return MHD_ONBOARDING_CONSOLIDATED_ACK_KEYS.has(documentKey);
 }
 
 function getOnboardingTableName(documentKey: MhdOnboardingDocumentKey): MhdOnboardingTableName {
-  return isConsolidatedAckKey(documentKey)
-    ? 'onboarding_document_acknowledgments'
-    : MHD_ONBOARDING_PACKET_BY_KEY[documentKey].documentKey;
+  if (isConsolidatedAckKey(documentKey)) {
+    return 'onboarding_document_acknowledgments';
+  }
+  return documentKey;
 }
 
 async function createDestinationRecordPlaceholder(
   input: MhdOnboardingChecklistUpsertInput,
 ): Promise<string> {
-  const tableName = getOnboardingTableName(input.documentKey);
-  const { data, error } = await supabaseClient
-    .from(tableName)
-    .insert({
-      reference_id: '',
-      company_id: input.companyId,
-      person_id: input.personId,
-      form_submission_id: input.submissionId,
-      status: input.status ?? 'SUBMITTED',
-      created_by: input.actorUserId,
-      updated_by: input.actorUserId,
-      ...(isConsolidatedAckKey(input.documentKey) ? { document_key: input.documentKey } : {}),
-    })
-    .select('id')
-    .single();
+  const baseInsert = {
+    reference_id: '',
+    company_id: input.companyId,
+    person_id: input.personId,
+    form_submission_id: input.submissionId,
+    status: input.status ?? 'SUBMITTED',
+    created_by: input.actorUserId,
+    updated_by: input.actorUserId,
+  };
+
+  const { data, error } = isConsolidatedAckKey(input.documentKey)
+    ? await supabaseClient
+        .from('onboarding_document_acknowledgments')
+        .insert({ ...baseInsert, document_key: input.documentKey })
+        .select('id')
+        .single()
+    : await supabaseClient
+        .from(getOnboardingTableName(input.documentKey))
+        .insert(baseInsert)
+        .select('id')
+        .single();
 
   if (error) {
     throw new Error(
