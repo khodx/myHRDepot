@@ -19,7 +19,7 @@ export function MhdNotificationBell() {
         <Bell className="h-11 w-11" />
         <MhdCountBadge
           count={unreadCount}
-          className="h-[28px] w-[28px] text-[18px]"
+          className="h-[27px] w-[27px] text-[17px]"
         />
       </button>
 
