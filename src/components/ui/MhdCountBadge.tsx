@@ -3,7 +3,7 @@ import { cn } from '@/utils/cn';
 export type MhdCountBadgeVariant = 'error' | 'warning';
 
 const VARIANT_CLASSES: Record<MhdCountBadgeVariant, string> = {
-  error: 'bg-[#A60000]',
+  error: 'bg-[#CC0000]',
   warning: 'bg-amber-500',
 };
 
