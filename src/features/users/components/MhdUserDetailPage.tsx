@@ -4,6 +4,9 @@ import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdUserRolesPanel } from '@/components/ui/MhdUserRolesPanel';
+import { useMhdAuth } from '@/features/authentication/Hook';
+import { mhdIsPlatformAdmin } from '@/appshell/mhdRouteAccess';
 import {
   useMhdDeactivatePlatformUser,
   useMhdDeletePlatformUser,
@@ -53,6 +56,8 @@ export function MhdUserDetailPage() {
   const navigate = useNavigate();
   const userQuery = useMhdPlatformUser(userId ?? '');
   const deleteUser = useMhdDeletePlatformUser();
+  const { roles } = useMhdAuth();
+  const canManageRoles = mhdIsPlatformAdmin(roles) || roles.includes('Client Admin');
 
   function handleDelete() {
     if (!userId) return;
@@ -128,6 +133,8 @@ export function MhdUserDetailPage() {
           ) : null}
         </dl>
       </MhdCard>
+
+      <MhdUserRolesPanel userId={user.id} companyId={user.companyId} canManage={canManageRoles} />
 
       <div className="flex justify-end border-t border-border pt-4">
         <div className="flex flex-wrap items-center gap-2">

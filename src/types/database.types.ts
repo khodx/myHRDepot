@@ -19436,6 +19436,77 @@ export type Database = {
           },
         ]
       }
+      third_party_record_grants: {
+        Row: {
+          company_id: string
+          entity_id: string
+          entity_type: string
+          expires_at: string | null
+          granted_at: string
+          granted_by: string
+          id: string
+          notes: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          entity_id: string
+          entity_type: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_by: string
+          id?: string
+          notes?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          entity_id?: string
+          entity_type?: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string
+          id?: string
+          notes?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "third_party_record_grants_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "third_party_record_grants_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "third_party_record_grants_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "third_party_record_grants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_assignments: {
         Row: {
           assigned_by: string
@@ -20554,6 +20625,10 @@ export type Database = {
       mhd_assign_policy_acknowledgment: {
         Args: { p_person_ids: string[]; p_policy_version_id: string }
         Returns: string[]
+      }
+      mhd_assign_user_role: {
+        Args: { p_role_id: string; p_user_id: string }
+        Returns: undefined
       }
       mhd_assign_user_to_entity: {
         Args: {
@@ -22852,6 +22927,17 @@ export type Database = {
           updated_by: string
         }[]
       }
+      mhd_grant_third_party_access: {
+        Args: {
+          p_company_id: string
+          p_entity_id: string
+          p_entity_type: string
+          p_expires_at?: string
+          p_notes?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       mhd_handbook_ack_status: {
         Args: { p_version_id: string }
         Returns: {
@@ -22988,6 +23074,10 @@ export type Database = {
           reference_id: string
           version_number: number
         }[]
+      }
+      mhd_has_third_party_grant: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: boolean
       }
       mhd_interview_can_access_interview: {
         Args: { p_interview_id: string }
@@ -23280,6 +23370,10 @@ export type Database = {
         Returns: boolean
       }
       mhd_is_hr_administrator: { Args: never; Returns: boolean }
+      mhd_is_manager_of_person: {
+        Args: { p_person_id: string }
+        Returns: boolean
+      }
       mhd_is_medical_administrator: { Args: never; Returns: boolean }
       mhd_is_platform_admin: { Args: never; Returns: boolean }
       mhd_is_real_platform_admin: { Args: never; Returns: boolean }
@@ -25050,6 +25144,15 @@ export type Database = {
           revoked_at: string
         }[]
       }
+      mhd_list_user_role_assignments: {
+        Args: { p_user_id: string }
+        Returns: {
+          assignment_id: string
+          created_at: string
+          role_id: string
+          role_name: string
+        }[]
+      }
       mhd_list_visible_people_scope: {
         Args: { p_company_id?: string }
         Returns: {
@@ -26286,8 +26389,16 @@ export type Database = {
         Args: { p_field_id: string; p_submission_id: string }
         Returns: string
       }
+      mhd_revoke_third_party_access: {
+        Args: { p_grant_id: string }
+        Returns: undefined
+      }
       mhd_revoke_trusted_device: {
         Args: { p_device_id: string }
+        Returns: undefined
+      }
+      mhd_revoke_user_role: {
+        Args: { p_role_id: string; p_user_id: string }
         Returns: undefined
       }
       mhd_satisfy_compliance_deadline: {
