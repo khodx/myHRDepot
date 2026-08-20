@@ -2,8 +2,9 @@ import { cn } from '@/utils/cn';
 
 export type MhdCountBadgeVariant = 'error' | 'warning';
 
+// error is red-500 (#ef4444) with each RGB channel scaled by 0.9 -- 10% darker.
 const VARIANT_CLASSES: Record<MhdCountBadgeVariant, string> = {
-  error: 'bg-red-500',
+  error: 'bg-[#d73d3d]',
   warning: 'bg-amber-500',
 };
 

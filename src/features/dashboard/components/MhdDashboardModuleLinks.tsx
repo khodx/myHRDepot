@@ -182,7 +182,7 @@ export function MhdDashboardModuleLinks() {
               >
                 <MhdCountBadge
                   count={alertCount}
-                  className="absolute right-3 top-3 h-[29px] w-[29px] border-4 border-rail text-[19px]"
+                  className="absolute right-3 top-3 h-[29px] w-[29px] text-[19px]"
                 />
                 <div className="flex items-center gap-3">
                   <span className="mhd-module-icon relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]">
