@@ -44,6 +44,8 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/my-handbooks', 'talent'],
   ['/policies', 'talent'],
   ['/my-policies', 'talent'],
+  ['/memorandums', 'work-tools'],
+  ['/my-memorandums', 'work-tools'],
   ['/conduct', 'employee-relations'],
   ['/investigations', 'employee-relations'],
   ['/offboarding', 'employee-relations'],

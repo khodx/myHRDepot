@@ -22530,6 +22530,22 @@ export type Database = {
           started_at: string
         }[]
       }
+      mhd_get_memorandum: {
+        Args: { p_id: string }
+        Returns: {
+          audience_label: string
+          body: string
+          category: string
+          company_id: string
+          created_at: string
+          id: string
+          published_at: string
+          reference_id: string
+          requires_acknowledgment: boolean
+          status: string
+          title: string
+        }[]
+      }
       mhd_get_message_thread: { Args: { p_thread_id: string }; Returns: Json }
       mhd_get_notice_packet_version: {
         Args: { p_packet_version_id: string }
@@ -24371,6 +24387,21 @@ export type Database = {
           status: string
         }[]
       }
+      mhd_list_memorandums: {
+        Args: { p_company_id: string; p_status?: string }
+        Returns: {
+          audience_label: string
+          category: string
+          created_at: string
+          id: string
+          published_at: string
+          recipient_count: number
+          reference_id: string
+          requires_acknowledgment: boolean
+          status: string
+          title: string
+        }[]
+      }
       mhd_list_message_replies: {
         Args: { p_limit?: number; p_parent_message_id: string }
         Returns: {
@@ -24467,6 +24498,7 @@ export type Database = {
       mhd_list_my_memorandums: {
         Args: never
         Returns: {
+          acknowledgment_id: string
           acknowledgment_status: string
           category: string
           id: string

@@ -257,6 +257,8 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/checklists', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   { path: '/my-policies', roles: 'ALL' },
   { path: '/policies', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
+  { path: '/my-memorandums', roles: 'ALL' },
+  { path: '/memorandums', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   // Recruiting / ATS. Four surfaces, gated at three different widths — the more
   // specific rules MUST precede the general /recruiting rule because
   // mhdCanAccessRoute returns the FIRST matching rule via prefix match (the same
@@ -773,6 +775,25 @@ export const MHD_ANNOUNCEMENTS_MUTATING_ROLES: MhdAuthRoleName[] = [
 
 export function mhdCanMutateAnnouncements(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_ANNOUNCEMENTS_MUTATING_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Memorandums author/publish gate — Platform Admin / HR Partner / Client
+ * Admin, same role set as Announcements but its own named constant rather
+ * than a shared reference, so the two can diverge later without silently
+ * changing each other's behavior. `/memorandums` and `/my-memorandums` get
+ * their own MHD_ROUTE_ACCESS rules below (unlike Announcements, Memorandums
+ * is a standalone module, not a Communications sub-route that inherits a
+ * parent rule).
+ */
+export const MHD_MEMORANDUMS_MUTATING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdCanMutateMemorandums(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_MEMORANDUMS_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }
 
 /**

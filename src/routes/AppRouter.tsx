@@ -468,6 +468,14 @@ const MhdMyPoliciesPage = lazyPage(
   () => import('@/features/policies/components/MhdMyPoliciesPage'),
   'MhdMyPoliciesPage',
 );
+const MhdMemorandumsPage = lazyPage(
+  () => import('@/features/memorandums/components/MhdMemorandumsPage'),
+  'MhdMemorandumsPage',
+);
+const MhdMyMemorandumsPage = lazyPage(
+  () => import('@/features/memorandums/components/MhdMyMemorandumsPage'),
+  'MhdMyMemorandumsPage',
+);
 const MhdRecruitingRoutePage = lazyPage(
   () => import('@/features/recruiting/components/MhdRecruitingRoutePage'),
   'MhdRecruitingRoutePage',
@@ -847,6 +855,8 @@ function MhdAppRoutes() {
                 <Route path="/my-checklists" element={<MhdMyChecklistsPage />} />
                 <Route path="/policies" element={<MhdPolicyLibraryPage />} />
                 <Route path="/my-policies" element={<MhdMyPoliciesPage />} />
+                <Route path="/memorandums" element={<MhdMemorandumsPage />} />
+                <Route path="/my-memorandums" element={<MhdMyMemorandumsPage />} />
                 {/* Recruiting / ATS. Static child routes (/recruiting/eeo,
                   /recruiting/questions, /recruiting/interviews/:id) are ranked
                   ahead of the parameterised ones by the router. Access is enforced
