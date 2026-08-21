@@ -208,7 +208,7 @@ export function MhdDashboardGreetingBanner({
         </div>
       )}
 
-      <div className="flex flex-1 flex-wrap items-start justify-between gap-6 py-[25.44px] pl-[16px] pr-[33.6px]">
+      <div className="flex flex-1 flex-wrap items-start justify-between gap-6 py-[13px] pl-[16px] pr-[15px]">
         <div className="flex min-w-0 flex-1 flex-col items-start justify-center gap-1 self-stretch">
           <h1 className="text-[39.2px] font-bold leading-tight text-white">
             {greeting}
