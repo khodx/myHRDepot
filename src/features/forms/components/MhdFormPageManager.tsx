@@ -1,7 +1,6 @@
 import type { MhdFormPage as MhdFormPageType } from '../Types';
 import { mhdFormLogicEngine } from '../Service';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
-import { cn } from '@/utils/cn';
+import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
 
 interface MhdFormPageManagerProps {
   pages: MhdFormPageType[];
@@ -27,7 +26,11 @@ export function MhdFormPageManager({
 }: MhdFormPageManagerProps) {
   const sortedPages = [...pages].sort((left, right) => left.order - right.order);
   const currentPage = sortedPages[currentPageIndex];
-  const isLastPage = currentPageIndex >= sortedPages.length - 1;
+  const steps: MhdStep[] = sortedPages.map((page) => ({
+    id: page.id,
+    title: page.title,
+    description: page.description,
+  }));
 
   const resolveNextPageIndex = (): number => {
     const skipLogic = currentPage?.skipLogic;
@@ -39,33 +42,15 @@ export function MhdFormPageManager({
   };
 
   return (
-    <div className="flex items-center justify-between border-t border-border pt-4">
-      <button
-        type="button"
-        onClick={() => onNavigate(Math.max(0, currentPageIndex - 1))}
-        disabled={currentPageIndex === 0}
-        className={cn(buttonBaseClasses, buttonVariantClasses.secondary)}
-      >
-        Previous
-      </button>
-
-      {isLastPage && !showSubmit ? null : (
-        <button
-          type="button"
-          onClick={() => {
-            if (!validateCurrentPage()) return;
-            if (isLastPage) {
-              onSubmit();
-              return;
-            }
-            onNavigate(resolveNextPageIndex());
-          }}
-          disabled={isSubmitting}
-          className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
-        >
-          {isLastPage ? (isSubmitting ? 'Submitting...' : 'Submit') : 'Next'}
-        </button>
-      )}
-    </div>
+    <MhdStepper
+      steps={steps}
+      currentStepIndex={currentPageIndex}
+      onNavigate={onNavigate}
+      validateCurrentStep={validateCurrentPage}
+      resolveNextStepIndex={(_currentIndex) => resolveNextPageIndex()}
+      isSubmitting={isSubmitting}
+      onSubmit={onSubmit}
+      showSubmit={showSubmit}
+    />
   );
 }

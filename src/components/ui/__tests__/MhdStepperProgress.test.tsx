@@ -15,4 +15,10 @@ describe('MhdStepperProgress', () => {
 
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
   });
+
+  it('supports a custom step label, e.g. for Forms\' "Page" wording', () => {
+    render(<MhdStepperProgress currentStepIndex={1} totalSteps={4} stepLabel="Page" />);
+
+    expect(screen.getByText('Page 2')).toBeInTheDocument();
+  });
 });
