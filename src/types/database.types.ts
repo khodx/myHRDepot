@@ -2565,6 +2565,111 @@ export type Database = {
           },
         ]
       }
+      ca_minimum_wage_rates: {
+        Row: {
+          content_registry_id: string | null
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          hourly_rate: number
+          id: string
+          source_citation: string
+          source_url: string
+        }
+        Insert: {
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          hourly_rate: number
+          id?: string
+          source_citation: string
+          source_url: string
+        }
+        Update: {
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          hourly_rate?: number
+          id?: string
+          source_citation?: string
+          source_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ca_minimum_wage_rates_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ca_minimum_wage_rates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ca_wage_order_rates: {
+        Row: {
+          content_registry_id: string | null
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          provisions: Json
+          source_citation: string
+          source_pdf_url: string
+          wage_order_key: string
+        }
+        Insert: {
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          provisions?: Json
+          source_citation: string
+          source_pdf_url: string
+          wage_order_key: string
+        }
+        Update: {
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          provisions?: Json
+          source_citation?: string
+          source_pdf_url?: string
+          wage_order_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ca_wage_order_rates_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ca_wage_order_rates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_evaluations: {
         Row: {
           application_id: string
@@ -3247,6 +3352,82 @@ export type Database = {
           },
           {
             foreignKeyName: "company_holidays_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compensation_exemption_rule_sets: {
+        Row: {
+          citation: string
+          company_id: string | null
+          content_registry_id: string | null
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          exemption_category: string
+          id: string
+          jurisdiction: string
+          rules: Json
+          source_url: string
+          status: string
+          updated_at: string | null
+          version: number
+        }
+        Insert: {
+          citation: string
+          company_id?: string | null
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          exemption_category: string
+          id?: string
+          jurisdiction: string
+          rules: Json
+          source_url: string
+          status?: string
+          updated_at?: string | null
+          version: number
+        }
+        Update: {
+          citation?: string
+          company_id?: string | null
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          exemption_category?: string
+          id?: string
+          jurisdiction?: string
+          rules?: Json
+          source_url?: string
+          status?: string
+          updated_at?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compensation_exemption_rule_sets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compensation_exemption_rule_sets_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compensation_exemption_rule_sets_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
@@ -5215,6 +5396,66 @@ export type Database = {
           {
             foreignKeyName: "esignature_signers_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      federal_flsa_salary_thresholds: {
+        Row: {
+          content_registry_id: string | null
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          exemption_category: string
+          hce_total_annual_comp: number | null
+          hourly_rate_threshold: number | null
+          id: string
+          source_citation: string
+          source_url: string
+          weekly_salary_threshold: number | null
+        }
+        Insert: {
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          exemption_category: string
+          hce_total_annual_comp?: number | null
+          hourly_rate_threshold?: number | null
+          id?: string
+          source_citation: string
+          source_url: string
+          weekly_salary_threshold?: number | null
+        }
+        Update: {
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          exemption_category?: string
+          hce_total_annual_comp?: number | null
+          hourly_rate_threshold?: number | null
+          id?: string
+          source_citation?: string
+          source_url?: string
+          weekly_salary_threshold?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "federal_flsa_salary_thresholds_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "federal_flsa_salary_thresholds_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -10447,6 +10688,173 @@ export type Database = {
           },
         ]
       }
+      job_classification_determinations: {
+        Row: {
+          company_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          effective_outcome: string
+          evaluated_at: string
+          evaluated_by: string
+          evaluated_outcome: string
+          exemption_category: string
+          findings: Json
+          id: string
+          jurisdiction: string
+          overridden_at: string | null
+          overridden_by: string | null
+          override_reason: string | null
+          rule_set_id: string | null
+          snapshot_id: string
+        }
+        Insert: {
+          company_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          effective_outcome: string
+          evaluated_at?: string
+          evaluated_by: string
+          evaluated_outcome: string
+          exemption_category: string
+          findings?: Json
+          id?: string
+          jurisdiction: string
+          overridden_at?: string | null
+          overridden_by?: string | null
+          override_reason?: string | null
+          rule_set_id?: string | null
+          snapshot_id: string
+        }
+        Update: {
+          company_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          effective_outcome?: string
+          evaluated_at?: string
+          evaluated_by?: string
+          evaluated_outcome?: string
+          exemption_category?: string
+          findings?: Json
+          id?: string
+          jurisdiction?: string
+          overridden_at?: string | null
+          overridden_by?: string | null
+          override_reason?: string | null
+          rule_set_id?: string | null
+          snapshot_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_classification_determinations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_classification_determinations_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_classification_determinations_evaluated_by_fkey"
+            columns: ["evaluated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_classification_determinations_overridden_by_fkey"
+            columns: ["overridden_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_classification_determinations_rule_set_id_fkey"
+            columns: ["rule_set_id"]
+            isOneToOne: false
+            referencedRelation: "compensation_exemption_rule_sets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_classification_determinations_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "job_classification_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_classification_snapshots: {
+        Row: {
+          as_of_date: string
+          company_id: string
+          created_at: string
+          created_by: string
+          employer_employee_count: number | null
+          facts_source: string
+          hourly_rate: number | null
+          id: string
+          job_id: string
+          ksa_inputs: Json
+          primary_duties_percent_time: Json
+          weekly_salary: number | null
+        }
+        Insert: {
+          as_of_date: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          employer_employee_count?: number | null
+          facts_source?: string
+          hourly_rate?: number | null
+          id?: string
+          job_id: string
+          ksa_inputs?: Json
+          primary_duties_percent_time?: Json
+          weekly_salary?: number | null
+        }
+        Update: {
+          as_of_date?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          employer_employee_count?: number | null
+          facts_source?: string
+          hourly_rate?: number | null
+          id?: string
+          job_id?: string
+          ksa_inputs?: Json
+          primary_duties_percent_time?: Json
+          weekly_salary?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_classification_snapshots_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_classification_snapshots_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_classification_snapshots_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_description_competencies: {
         Row: {
           competency_id: string
@@ -10657,6 +11065,64 @@ export type Database = {
           },
         ]
       }
+      job_evaluation_scores: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          factor_key: string
+          id: string
+          notes: string | null
+          points: number
+          snapshot_id: string
+          weight: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          factor_key: string
+          id?: string
+          notes?: string | null
+          points: number
+          snapshot_id: string
+          weight?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          factor_key?: string
+          id?: string
+          notes?: string | null
+          points?: number
+          snapshot_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_evaluation_scores_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_evaluation_scores_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_evaluation_scores_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "job_classification_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_pay_benchmarks: {
         Row: {
           company_id: string
@@ -10752,8 +11218,97 @@ export type Database = {
           },
         ]
       }
+      job_pay_grade_recommendations: {
+        Row: {
+          company_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          confirmed_pay_grade_id: string | null
+          created_at: string
+          id: string
+          market_reference_snapshot_id: string | null
+          override_reason: string | null
+          recommended_by: string
+          recommended_pay_grade_id: string | null
+          snapshot_id: string
+          total_points: number
+        }
+        Insert: {
+          company_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          confirmed_pay_grade_id?: string | null
+          created_at?: string
+          id?: string
+          market_reference_snapshot_id?: string | null
+          override_reason?: string | null
+          recommended_by?: string
+          recommended_pay_grade_id?: string | null
+          snapshot_id: string
+          total_points: number
+        }
+        Update: {
+          company_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          confirmed_pay_grade_id?: string | null
+          created_at?: string
+          id?: string
+          market_reference_snapshot_id?: string | null
+          override_reason?: string | null
+          recommended_by?: string
+          recommended_pay_grade_id?: string | null
+          snapshot_id?: string
+          total_points?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_pay_grade_recommendations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_pay_grade_recommendations_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_pay_grade_recommendations_confirmed_pay_grade_id_fkey"
+            columns: ["confirmed_pay_grade_id"]
+            isOneToOne: false
+            referencedRelation: "pay_grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_pay_grade_recommendations_market_reference_snapshot_id_fkey"
+            columns: ["market_reference_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "market_wage_reference_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_pay_grade_recommendations_recommended_pay_grade_id_fkey"
+            columns: ["recommended_pay_grade_id"]
+            isOneToOne: false
+            referencedRelation: "pay_grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_pay_grade_recommendations_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "job_classification_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
+          ca_wage_order_classification: string | null
           company_id: string
           created_at: string | null
           created_by: string
@@ -10776,6 +11331,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          ca_wage_order_classification?: string | null
           company_id: string
           created_at?: string | null
           created_by: string
@@ -10798,6 +11354,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          ca_wage_order_classification?: string | null
           company_id?: string
           created_at?: string | null
           created_by?: string
@@ -12081,6 +12638,97 @@ export type Database = {
             columns: ["reversal_of"]
             isOneToOne: false
             referencedRelation: "leaves_ledger"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_wage_reference_snapshots: {
+        Row: {
+          annual_median: number | null
+          annual_percentile_10: number | null
+          annual_percentile_25: number | null
+          annual_percentile_75: number | null
+          annual_percentile_90: number | null
+          area_code: string | null
+          bls_series_id: string | null
+          company_id: string
+          created_by: string | null
+          data_year: number
+          fetched_at: string
+          hourly_median: number | null
+          hourly_percentile_10: number | null
+          hourly_percentile_25: number | null
+          hourly_percentile_75: number | null
+          hourly_percentile_90: number | null
+          id: string
+          job_id: string
+          soc_code: string
+          source_citation: string
+        }
+        Insert: {
+          annual_median?: number | null
+          annual_percentile_10?: number | null
+          annual_percentile_25?: number | null
+          annual_percentile_75?: number | null
+          annual_percentile_90?: number | null
+          area_code?: string | null
+          bls_series_id?: string | null
+          company_id: string
+          created_by?: string | null
+          data_year: number
+          fetched_at?: string
+          hourly_median?: number | null
+          hourly_percentile_10?: number | null
+          hourly_percentile_25?: number | null
+          hourly_percentile_75?: number | null
+          hourly_percentile_90?: number | null
+          id?: string
+          job_id: string
+          soc_code: string
+          source_citation?: string
+        }
+        Update: {
+          annual_median?: number | null
+          annual_percentile_10?: number | null
+          annual_percentile_25?: number | null
+          annual_percentile_75?: number | null
+          annual_percentile_90?: number | null
+          area_code?: string | null
+          bls_series_id?: string | null
+          company_id?: string
+          created_by?: string | null
+          data_year?: number
+          fetched_at?: string
+          hourly_median?: number | null
+          hourly_percentile_10?: number | null
+          hourly_percentile_25?: number | null
+          hourly_percentile_75?: number | null
+          hourly_percentile_90?: number | null
+          id?: string
+          job_id?: string
+          soc_code?: string
+          source_citation?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_wage_reference_snapshots_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_wage_reference_snapshots_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_wage_reference_snapshots_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -16965,6 +17613,72 @@ export type Database = {
           },
         ]
       }
+      pay_grades: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          effective_from: string
+          effective_to: string | null
+          grade_key: string
+          grade_label: string
+          id: string
+          max_points: number | null
+          max_rate: number
+          mid_rate: number | null
+          min_points: number | null
+          min_rate: number
+          pay_period: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          effective_from: string
+          effective_to?: string | null
+          grade_key: string
+          grade_label: string
+          id?: string
+          max_points?: number | null
+          max_rate: number
+          mid_rate?: number | null
+          min_points?: number | null
+          min_rate: number
+          pay_period: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          effective_from?: string
+          effective_to?: string | null
+          grade_key?: string
+          grade_label?: string
+          id?: string
+          max_points?: number | null
+          max_rate?: number
+          mid_rate?: number | null
+          min_points?: number | null
+          min_rate?: number
+          pay_period?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pay_grades_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pay_grades_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       people: {
         Row: {
           company_id: string
@@ -20557,6 +21271,10 @@ export type Database = {
         Args: { p_plan_id: string }
         Returns: undefined
       }
+      mhd_assert_compensation_mutate: {
+        Args: { p_company_id: string }
+        Returns: undefined
+      }
       mhd_assert_conduct_case_access: {
         Args: { p_case_id: string }
         Returns: undefined
@@ -21163,6 +21881,7 @@ export type Database = {
         Args: { p_category: string; p_company_id: string }
         Returns: undefined
       }
+      mhd_compensation_is_privileged: { Args: never; Returns: boolean }
       mhd_competency_list: {
         Args: {
           p_active_only?: boolean
@@ -23421,8 +24140,41 @@ export type Database = {
         }[]
       }
       mhd_job_can_see_pay: { Args: never; Returns: boolean }
+      mhd_job_classification_confirm: {
+        Args: { p_determination_id: string }
+        Returns: undefined
+      }
+      mhd_job_classification_evaluate: {
+        Args: {
+          p_as_of_date: string
+          p_employer_employee_count?: number
+          p_exemption_category: string
+          p_facts_source?: string
+          p_hourly_rate?: number
+          p_job_id: string
+          p_ksa_inputs?: Json
+          p_primary_duties_percent_time?: Json
+          p_weekly_salary?: number
+        }
+        Returns: {
+          determination_id: string
+          evaluated_outcome: string
+          findings: Json
+          jurisdiction: string
+          snapshot_id: string
+        }[]
+      }
+      mhd_job_classification_override: {
+        Args: {
+          p_determination_id: string
+          p_effective_outcome: string
+          p_override_reason: string
+        }
+        Returns: undefined
+      }
       mhd_job_create_job: {
         Args: {
+          p_ca_wage_order_classification?: string
           p_company_id: string
           p_department?: string
           p_employment_type?: string
@@ -23433,6 +24185,7 @@ export type Database = {
           p_job_family?: string
           p_job_level?: string
           p_job_title: string
+          p_onet_soc_code?: string
           p_pay_max?: number
           p_pay_min?: number
           p_pay_period?: string
@@ -23479,6 +24232,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      mhd_job_evaluation_score: {
+        Args: { p_factor_scores: Json; p_snapshot_id: string }
+        Returns: undefined
+      }
       mhd_job_get_published_for_person: {
         Args: { p_as_of?: string; p_person_id: string }
         Returns: {
@@ -23506,6 +24263,7 @@ export type Database = {
           p_search?: string
         }
         Returns: {
+          ca_wage_order_classification: string
           department: string
           employment_type: string
           flsa_classification: string
@@ -23518,11 +24276,28 @@ export type Database = {
           job_family: string
           job_level: string
           job_title: string
+          onet_soc_code: string
           pay_max: number
           pay_min: number
           pay_period: string
           published_description_id: string
           reference_id: string
+        }[]
+      }
+      mhd_job_pay_grade_confirm: {
+        Args: {
+          p_confirmed_pay_grade_id: string
+          p_override_reason?: string
+          p_recommendation_id: string
+        }
+        Returns: undefined
+      }
+      mhd_job_pay_grade_recommend: {
+        Args: { p_market_reference_snapshot_id?: string; p_snapshot_id: string }
+        Returns: {
+          recommendation_id: string
+          recommended_pay_grade_id: string
+          total_points: number
         }[]
       }
       mhd_job_set_pay_range: {
@@ -23536,6 +24311,9 @@ export type Database = {
       }
       mhd_job_update_job: {
         Args: {
+          p_ca_wage_order_classification?: string
+          p_clear_ca_wage_order_classification?: boolean
+          p_clear_onet_soc_code?: boolean
           p_department?: string
           p_employment_type?: string
           p_flsa_classification?: string
@@ -23547,6 +24325,7 @@ export type Database = {
           p_job_id: string
           p_job_level?: string
           p_job_title?: string
+          p_onet_soc_code?: string
         }
         Returns: undefined
       }
@@ -25192,6 +25971,26 @@ export type Database = {
       mhd_mark_thread_read: {
         Args: { p_thread_id: string }
         Returns: undefined
+      }
+      mhd_market_wage_snapshot_record: {
+        Args: {
+          p_annual_median?: number
+          p_annual_percentile_10?: number
+          p_annual_percentile_25?: number
+          p_annual_percentile_75?: number
+          p_annual_percentile_90?: number
+          p_area_code: string
+          p_bls_series_id: string
+          p_data_year: number
+          p_hourly_median?: number
+          p_hourly_percentile_10?: number
+          p_hourly_percentile_25?: number
+          p_hourly_percentile_75?: number
+          p_hourly_percentile_90?: number
+          p_job_id: string
+          p_soc_code: string
+        }
+        Returns: string
       }
       mhd_memorandum_delivery_board: {
         Args: { p_memorandum_id: string }
