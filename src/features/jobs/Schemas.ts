@@ -3,6 +3,7 @@ import {
   MHD_EMPLOYMENT_TYPES,
   MHD_FLSA_CLASSIFICATIONS,
   MHD_INDUSTRIES,
+  MHD_CA_WAGE_ORDER_CLASSIFICATIONS,
   MHD_PAY_PERIODS,
   MHD_QUALIFICATION_TYPES,
 } from './Types';
@@ -36,6 +37,7 @@ export const mhdJobFormSchema = z
     isSafetySensitive: z.boolean().default(false),
     industry: z.enum(MHD_INDUSTRIES).default('GENERAL'),
     onetSocCode: onetSocCode.optional().nullable(),
+    caWageOrderClassification: z.enum(MHD_CA_WAGE_ORDER_CLASSIFICATIONS).optional().nullable(),
     payMin: z.number().nonnegative().optional().nullable(),
     payMax: z.number().nonnegative().optional().nullable(),
     payPeriod: z.enum(MHD_PAY_PERIODS).optional().nullable(),

@@ -81,6 +81,25 @@ export type MhdEmploymentType = 'FULL_TIME' | 'PART_TIME' | 'TEMPORARY' | 'SEASO
 /** Drives competency-pack filtering. `GENERAL` applies everywhere. */
 export type MhdIndustry = 'GENERAL' | 'HEALTHCARE' | 'TRANSPORTATION' | 'OTHER';
 
+export type MhdCaWageOrderClassification =
+  | 'MANUFACTURING'
+  | 'PERSONAL_SERVICE'
+  | 'CANNING_FREEZING_PRESERVING'
+  | 'PROFESSIONAL_TECHNICAL_CLERICAL_MECHANICAL'
+  | 'PUBLIC_HOUSEKEEPING'
+  | 'LAUNDRY_LINEN_DRY_CLEANING'
+  | 'MERCANTILE'
+  | 'PRODUCTS_AFTER_HARVEST'
+  | 'TRANSPORTATION'
+  | 'AMUSEMENT_RECREATION'
+  | 'BROADCASTING'
+  | 'MOTION_PICTURE'
+  | 'AGRICULTURAL_ON_FARM_PREP'
+  | 'AGRICULTURAL_OCCUPATIONS'
+  | 'HOUSEHOLD'
+  | 'CONSTRUCTION_DRILLING_LOGGING_MINING'
+  | 'MISCELLANEOUS';
+
 /**
  * `PUBLISHED` and `ARCHIVED` are immutable server-side. A correction creates a
  * new version rather than editing one, because a review stamps the version it
@@ -112,6 +131,26 @@ export const MHD_INDUSTRIES = [
   'TRANSPORTATION',
   'OTHER',
 ] as const satisfies readonly MhdIndustry[];
+
+export const MHD_CA_WAGE_ORDER_CLASSIFICATIONS = [
+  'MANUFACTURING',
+  'PERSONAL_SERVICE',
+  'CANNING_FREEZING_PRESERVING',
+  'PROFESSIONAL_TECHNICAL_CLERICAL_MECHANICAL',
+  'PUBLIC_HOUSEKEEPING',
+  'LAUNDRY_LINEN_DRY_CLEANING',
+  'MERCANTILE',
+  'PRODUCTS_AFTER_HARVEST',
+  'TRANSPORTATION',
+  'AMUSEMENT_RECREATION',
+  'BROADCASTING',
+  'MOTION_PICTURE',
+  'AGRICULTURAL_ON_FARM_PREP',
+  'AGRICULTURAL_OCCUPATIONS',
+  'HOUSEHOLD',
+  'CONSTRUCTION_DRILLING_LOGGING_MINING',
+  'MISCELLANEOUS',
+] as const satisfies readonly MhdCaWageOrderClassification[];
 
 export const MHD_JOB_DESCRIPTION_STATUSES = [
   'DRAFT',
@@ -145,6 +184,8 @@ export interface MhdJob {
   employmentType: MhdEmploymentType;
   isSafetySensitive: boolean;
   industry: MhdIndustry;
+  onetSocCode: string | null;
+  caWageOrderClassification: MhdCaWageOrderClassification | null;
   /** Null when the caller is not permitted to see pay — not "unset". */
   payMin: number | null;
   payMax: number | null;
@@ -238,6 +279,8 @@ export interface MhdCreateJobInput {
   employmentType?: MhdEmploymentType;
   isSafetySensitive?: boolean;
   industry?: MhdIndustry;
+  onetSocCode?: string | null;
+  caWageOrderClassification?: MhdCaWageOrderClassification | null;
   payMin?: number | null;
   payMax?: number | null;
   payPeriod?: MhdPayPeriod | null;
@@ -254,6 +297,8 @@ export interface MhdUpdateJobInput {
   employmentType?: MhdEmploymentType | null;
   isSafetySensitive?: boolean | null;
   industry?: MhdIndustry | null;
+  onetSocCode?: string | null;
+  caWageOrderClassification?: MhdCaWageOrderClassification | null;
   isActive?: boolean | null;
 }
 
@@ -318,6 +363,27 @@ const INDUSTRY_LABELS: Record<MhdIndustry, string> = {
   OTHER: 'Other',
 };
 
+const CA_WAGE_ORDER_LABELS: Record<MhdCaWageOrderClassification, string> = {
+  MANUFACTURING: 'Manufacturing',
+  PERSONAL_SERVICE: 'Personal Services',
+  CANNING_FREEZING_PRESERVING: 'Canning, Freezing & Preserving',
+  PROFESSIONAL_TECHNICAL_CLERICAL_MECHANICAL:
+    'Professional, Technical, Clerical, Mechanical & Similar Occupations',
+  PUBLIC_HOUSEKEEPING: 'Public Housekeeping',
+  LAUNDRY_LINEN_DRY_CLEANING: 'Laundry, Linen Supply, Dry Cleaning & Dyeing',
+  MERCANTILE: 'Mercantile',
+  PRODUCTS_AFTER_HARVEST: 'Industries Handling Products After Harvest',
+  TRANSPORTATION: 'Transportation',
+  AMUSEMENT_RECREATION: 'Amusement & Recreation',
+  BROADCASTING: 'Broadcasting',
+  MOTION_PICTURE: 'Motion Picture',
+  AGRICULTURAL_ON_FARM_PREP: 'Industries Preparing Agricultural Products for Market, on the Farm',
+  AGRICULTURAL_OCCUPATIONS: 'Agricultural Occupations',
+  HOUSEHOLD: 'Household Occupations',
+  CONSTRUCTION_DRILLING_LOGGING_MINING: 'Construction, Drilling, Logging & Mining (On-Site)',
+  MISCELLANEOUS: 'Miscellaneous Employees',
+};
+
 const QUALIFICATION_TYPE_LABELS: Record<MhdQualificationType, string> = {
   EDUCATION: 'Education',
   EXPERIENCE: 'Experience',
@@ -343,6 +409,13 @@ export function mhdFormatEmploymentType(value: MhdEmploymentType | string): stri
 
 export function mhdFormatIndustry(value: MhdIndustry | string): string {
   return INDUSTRY_LABELS[value as MhdIndustry] ?? value;
+}
+
+export function mhdFormatCaWageOrderClassification(
+  value: MhdCaWageOrderClassification | string | null,
+): string {
+  if (!value) return 'Unclassified';
+  return CA_WAGE_ORDER_LABELS[value as MhdCaWageOrderClassification] ?? value;
 }
 
 export function mhdFormatQualificationType(value: MhdQualificationType | string): string {
