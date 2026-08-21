@@ -10754,6 +10754,7 @@ export type Database = {
       }
       jobs: {
         Row: {
+          ca_wage_order_classification: string | null
           company_id: string
           created_at: string | null
           created_by: string
@@ -10776,6 +10777,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          ca_wage_order_classification?: string | null
           company_id: string
           created_at?: string | null
           created_by: string
@@ -10798,6 +10800,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          ca_wage_order_classification?: string | null
           company_id?: string
           created_at?: string | null
           created_by?: string
@@ -23423,6 +23426,7 @@ export type Database = {
       mhd_job_can_see_pay: { Args: never; Returns: boolean }
       mhd_job_create_job: {
         Args: {
+          p_ca_wage_order_classification?: string
           p_company_id: string
           p_department?: string
           p_employment_type?: string
@@ -23433,6 +23437,7 @@ export type Database = {
           p_job_family?: string
           p_job_level?: string
           p_job_title: string
+          p_onet_soc_code?: string
           p_pay_max?: number
           p_pay_min?: number
           p_pay_period?: string
@@ -23506,6 +23511,7 @@ export type Database = {
           p_search?: string
         }
         Returns: {
+          ca_wage_order_classification: string
           department: string
           employment_type: string
           flsa_classification: string
@@ -23518,6 +23524,7 @@ export type Database = {
           job_family: string
           job_level: string
           job_title: string
+          onet_soc_code: string
           pay_max: number
           pay_min: number
           pay_period: string
@@ -23536,6 +23543,9 @@ export type Database = {
       }
       mhd_job_update_job: {
         Args: {
+          p_ca_wage_order_classification?: string
+          p_clear_ca_wage_order_classification?: boolean
+          p_clear_onet_soc_code?: boolean
           p_department?: string
           p_employment_type?: string
           p_flsa_classification?: string
@@ -23547,6 +23557,7 @@ export type Database = {
           p_job_id: string
           p_job_level?: string
           p_job_title?: string
+          p_onet_soc_code?: string
         }
         Returns: undefined
       }

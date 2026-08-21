@@ -23,6 +23,8 @@ const privilegedJobRow = {
   employment_type: 'FULL_TIME',
   is_safety_sensitive: true,
   industry: 'GENERAL',
+  onet_soc_code: '53-3032.00',
+  ca_wage_order_classification: 'TRANSPORTATION',
   pay_min: '38000.00',
   pay_max: '45000.00',
   pay_period: 'ANNUAL',
@@ -77,6 +79,8 @@ describe('mhdJobsService — pay masking (server-side, reflected in the mapper)'
     // Non-pay fields still map through — masking is surgical, not a blanket drop.
     expect(job.jobTitle).toBe('Line Cook');
     expect(job.isSafetySensitive).toBe(true);
+    expect(job.onetSocCode).toBe('53-3032.00');
+    expect(job.caWageOrderClassification).toBe('TRANSPORTATION');
     // The display helpers word themselves honestly off the nulls.
     expect(mhdCanSeePayFromRow(job)).toBe(false);
     expect(mhdFormatPayRange(job)).toBeNull();
@@ -113,6 +117,68 @@ describe('mhdJobsService — pay masking (server-side, reflected in the mapper)'
         payPeriod: 'ANNUAL',
       }),
     ).rejects.toMatchObject({ code: '42501' });
+  });
+
+  it('maps and sends SOC and CA wage-order fields', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [{ id: 'job-2', reference_id: 'JOB-000002' }],
+      error: null,
+    });
+
+    await mhdJobsService.createJob({
+      companyId: 'company-1',
+      jobTitle: 'Driver',
+      onetSocCode: ' 53-3032.00 ',
+      caWageOrderClassification: 'TRANSPORTATION',
+    });
+
+    expect(rpcMock).toHaveBeenCalledWith(
+      'mhd_job_create_job',
+      expect.objectContaining({
+        p_onet_soc_code: '53-3032.00',
+        p_ca_wage_order_classification: 'TRANSPORTATION',
+      }),
+    );
+
+    rpcMock.mockResolvedValueOnce({ error: null });
+    await mhdJobsService.updateJob({
+      jobId: 'job-2',
+      onetSocCode: '53-3032.00',
+      caWageOrderClassification: 'TRANSPORTATION',
+    });
+    expect(rpcMock).toHaveBeenCalledWith(
+      'mhd_job_update_job',
+      expect.objectContaining({
+        p_onet_soc_code: '53-3032.00',
+        p_ca_wage_order_classification: 'TRANSPORTATION',
+      }),
+    );
+  });
+
+  it('sends clear flags for explicit nulls and omits unchanged fields', async () => {
+    rpcMock.mockResolvedValueOnce({ error: null });
+    await mhdJobsService.updateJob({
+      jobId: 'job-2',
+      onetSocCode: null,
+      caWageOrderClassification: null,
+    });
+
+    expect(rpcMock).toHaveBeenCalledWith(
+      'mhd_job_update_job',
+      expect.objectContaining({
+        p_clear_onet_soc_code: true,
+        p_clear_ca_wage_order_classification: true,
+      }),
+    );
+    expect(rpcMock.mock.calls.at(-1)?.[1]).not.toHaveProperty('p_onet_soc_code');
+    expect(rpcMock.mock.calls.at(-1)?.[1]).not.toHaveProperty('p_ca_wage_order_classification');
+
+    rpcMock.mockResolvedValueOnce({ error: null });
+    await mhdJobsService.updateJob({ jobId: 'job-2' });
+    expect(rpcMock.mock.calls.at(-1)?.[1]).not.toHaveProperty('p_onet_soc_code');
+    expect(rpcMock.mock.calls.at(-1)?.[1]).not.toHaveProperty('p_clear_onet_soc_code');
+    expect(rpcMock.mock.calls.at(-1)?.[1]).not.toHaveProperty('p_ca_wage_order_classification');
+    expect(rpcMock.mock.calls.at(-1)?.[1]).not.toHaveProperty('p_clear_ca_wage_order_classification');
   });
 });
 
