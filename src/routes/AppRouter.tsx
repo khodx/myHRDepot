@@ -356,6 +356,10 @@ const MhdAttendancePolicyPage = lazyPage(
   'MhdAttendancePolicyPage',
 );
 const MhdJobsPage = lazyPage(() => import('@/features/jobs/components/MhdJobsPage'), 'MhdJobsPage');
+const MhdJobDescriptionWizard = lazyPage(
+  () => import('@/features/jobs/components/MhdJobDescriptionWizard'),
+  'MhdJobDescriptionWizard',
+);
 const MhdCompetencyLibraryPage = lazyPage(
   () => import('@/features/jobs/components/MhdCompetencyLibraryPage'),
   'MhdCompetencyLibraryPage',
@@ -754,6 +758,7 @@ function MhdAppRoutes() {
                   never a filtered /jobs — see mhdRouteAccess. */}
                 <Route path="/jobs" element={<MhdJobsPage />} />
                 <Route path="/jobs/competencies" element={<MhdCompetencyLibraryPage />} />
+                <Route path="/jobs/new" element={<MhdJobDescriptionWizard />} />
                 <Route path="/jobs/:jobId" element={<MhdJobDetailPage />} />
                 <Route path="/my-job" element={<MhdMyJobPage />} />
                 {/* Mileage & Reimbursement. /mileage is the tabbed Trips/Claims/
