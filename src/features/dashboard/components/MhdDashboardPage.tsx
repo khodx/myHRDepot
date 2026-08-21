@@ -1,13 +1,10 @@
 import { Button } from '@/components/ui/Button';
-import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { useMhdDashboard } from '../Hook';
 import { MhdDashboardGreetingBanner } from './MhdDashboardGreetingBanner';
-import { MhdDashboardMyTasks } from './MhdDashboardMyTasks';
-import { MhdDashboardActivity } from './MhdDashboardActivity';
 import { MhdDashboardModuleLinks } from './MhdDashboardModuleLinks';
 
 export function MhdDashboardPage() {
-  const { isLoading, error, myTasks, recentActivity, lastRefreshed, refetch } = useMhdDashboard();
+  const { isLoading, error, lastRefreshed, refetch } = useMhdDashboard();
 
   if (isLoading) {
     return (
@@ -33,18 +30,6 @@ export function MhdDashboardPage() {
       <MhdDashboardGreetingBanner lastRefreshed={lastRefreshed} onRefresh={refetch} />
 
       <MhdDashboardModuleLinks />
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <MhdCard elevated>
-          <MhdCardHeader title="My Tasks" />
-          <MhdDashboardMyTasks tasks={myTasks} />
-        </MhdCard>
-
-        <MhdCard elevated>
-          <MhdCardHeader title="Recent Activity" />
-          <MhdDashboardActivity items={recentActivity} />
-        </MhdCard>
-      </div>
     </div>
   );
 }
