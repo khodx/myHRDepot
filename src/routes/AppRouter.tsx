@@ -356,6 +356,10 @@ const MhdAttendancePolicyPage = lazyPage(
   'MhdAttendancePolicyPage',
 );
 const MhdJobsPage = lazyPage(() => import('@/features/jobs/components/MhdJobsPage'), 'MhdJobsPage');
+const MhdCompensationClassificationWizard = lazyPage(
+  () => import('@/features/compensation/components/MhdCompensationClassificationWizard'),
+  'MhdCompensationClassificationWizard',
+);
 const MhdCompetencyLibraryPage = lazyPage(
   () => import('@/features/jobs/components/MhdCompetencyLibraryPage'),
   'MhdCompetencyLibraryPage',
@@ -753,6 +757,7 @@ function MhdAppRoutes() {
                   never captured as a jobId. /my-job is a SEPARATE employee route,
                   never a filtered /jobs — see mhdRouteAccess. */}
                 <Route path="/jobs" element={<MhdJobsPage />} />
+                <Route path="/compensation" element={<MhdCompensationClassificationWizard />} />
                 <Route path="/jobs/competencies" element={<MhdCompetencyLibraryPage />} />
                 <Route path="/jobs/:jobId" element={<MhdJobDetailPage />} />
                 <Route path="/my-job" element={<MhdMyJobPage />} />

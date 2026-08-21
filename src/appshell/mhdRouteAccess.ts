@@ -251,6 +251,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     path: '/jobs',
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
   },
+  { path: '/compensation', roles: ['Platform Admin', 'HR Partner', 'HR Admin'] },
   { path: '/my-job', roles: ['Employee', 'Manager', 'Supervisor', 'Lead'] },
   // Mileage & Reimbursement. A single tabbed route: Platform Admin / HR Partner /
   // Client Admin see the whole company plus the rate registry and company-rate
