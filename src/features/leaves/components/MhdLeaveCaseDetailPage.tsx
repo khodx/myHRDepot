@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
@@ -212,6 +212,11 @@ export function MhdLeaveCaseDetailPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Link to={`/leaves/${caseId}/intake`} className="rounded-md border border-border px-3 py-2 text-sm font-medium">
+          Guided evaluation
+        </Link>
+      </div>
       {/* ----- Case facts ----- */}
       <MhdPageHeader
         backTo="/leaves"

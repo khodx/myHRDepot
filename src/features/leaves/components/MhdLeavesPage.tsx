@@ -149,6 +149,12 @@ export function MhdLeavesPage() {
               >
                 Policy Library
               </Link>
+              <Link
+                to="/leaves/new/intake"
+                className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'h-9 px-3 text-[16.8px]')}
+              >
+                Start guided intake
+              </Link>
               {/*
                 Form-driven intake (0188, mhd_create_leave_case_from_submission).
                 This links plainly to the Forms Library rather than a specific
