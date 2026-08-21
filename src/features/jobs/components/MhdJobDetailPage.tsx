@@ -18,14 +18,17 @@ import {
 import {
   MHD_EMPLOYMENT_TYPES,
   MHD_FLSA_CLASSIFICATIONS,
+  MHD_CA_WAGE_ORDER_CLASSIFICATIONS,
   MHD_INDUSTRIES,
   MHD_PAY_PERIODS,
   mhdFormatEmploymentType,
   mhdFormatFlsa,
+  mhdFormatCaWageOrderClassification,
   mhdFormatIndustry,
   type MhdEmploymentType,
   type MhdFlsaClassification,
   type MhdIndustry,
+  type MhdCaWageOrderClassification,
   type MhdPayPeriod,
 } from '../Types';
 import { MhdEssentialFunctionList } from './MhdEssentialFunctionList';
@@ -69,6 +72,9 @@ export function MhdJobDetailPage() {
   const [flsaClassification, setFlsaClassification] = useState<MhdFlsaClassification | ''>('');
   const [employmentType, setEmploymentType] = useState<MhdEmploymentType>('FULL_TIME');
   const [industry, setIndustry] = useState<MhdIndustry>('GENERAL');
+  const [onetSocCode, setOnetSocCode] = useState('');
+  const [caWageOrderClassification, setCaWageOrderClassification] =
+    useState<MhdCaWageOrderClassification | ''>('');
   const [isSafetySensitive, setIsSafetySensitive] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [jobError, setJobError] = useState<string | null>(null);
@@ -121,6 +127,8 @@ export function MhdJobDetailPage() {
     setFlsaClassification(job.flsaClassification ?? '');
     setEmploymentType(job.employmentType);
     setIndustry(job.industry);
+    setOnetSocCode(job.onetSocCode ?? '');
+    setCaWageOrderClassification(job.caWageOrderClassification ?? '');
     setIsSafetySensitive(job.isSafetySensitive);
     setIsActive(job.isActive);
     setJobError(null);
@@ -146,6 +154,8 @@ export function MhdJobDetailPage() {
       employmentType,
       isSafetySensitive,
       industry,
+      onetSocCode: onetSocCode.trim() || null,
+      caWageOrderClassification: caWageOrderClassification || null,
       isActive,
     });
     setIsEditingJob(false);
@@ -326,6 +336,41 @@ export function MhdJobDetailPage() {
                 {MHD_INDUSTRIES.map((value) => (
                   <option key={value} value={value}>
                     {mhdFormatIndustry(value)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="onetSocCode" className="block text-sm font-medium text-foreground">
+                O*NET-SOC Code
+              </label>
+              <input
+                id="onetSocCode"
+                type="text"
+                placeholder="e.g. 53-3032.00"
+                value={onetSocCode}
+                onChange={(event) => setOnetSocCode(event.target.value)}
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+            </div>
+            <div>
+              <label htmlFor="caWageOrderClassification" className="block text-sm font-medium text-foreground">
+                CA Wage Order Classification
+              </label>
+              <select
+                id="caWageOrderClassification"
+                value={caWageOrderClassification}
+                onChange={(event) =>
+                  setCaWageOrderClassification(
+                    event.target.value as MhdCaWageOrderClassification | '',
+                  )
+                }
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <option value="">Unclassified</option>
+                {MHD_CA_WAGE_ORDER_CLASSIFICATIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {mhdFormatCaWageOrderClassification(value)}
                   </option>
                 ))}
               </select>

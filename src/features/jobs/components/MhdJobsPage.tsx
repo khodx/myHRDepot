@@ -22,14 +22,17 @@ import { useMhdCreateJob, useMhdJobs } from '../Hook';
 import {
   MHD_EMPLOYMENT_TYPES,
   MHD_FLSA_CLASSIFICATIONS,
+  MHD_CA_WAGE_ORDER_CLASSIFICATIONS,
   MHD_INDUSTRIES,
   mhdFormatEmploymentType,
   mhdFormatFlsa,
+  mhdFormatCaWageOrderClassification,
   mhdFormatIndustry,
   mhdFormatPayRange,
   type MhdEmploymentType,
   type MhdFlsaClassification,
   type MhdIndustry,
+  type MhdCaWageOrderClassification,
 } from '../Types';
 import { MhdFlsaBadge } from './MhdFlsaBadge';
 
@@ -56,6 +59,9 @@ export function MhdJobsPage() {
   const [newFlsa, setNewFlsa] = useState<MhdFlsaClassification | ''>('');
   const [newType, setNewType] = useState<MhdEmploymentType>('FULL_TIME');
   const [newIndustry, setNewIndustry] = useState<MhdIndustry>('GENERAL');
+  const [newOnetSocCode, setNewOnetSocCode] = useState('');
+  const [newCaWageOrderClassification, setNewCaWageOrderClassification] =
+    useState<MhdCaWageOrderClassification | ''>('');
   const [newSafety, setNewSafety] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,6 +102,8 @@ export function MhdJobsPage() {
       flsaClassification: newFlsa || null,
       employmentType: newType,
       industry: newIndustry,
+      onetSocCode: newOnetSocCode,
+      caWageOrderClassification: newCaWageOrderClassification || null,
       isSafetySensitive: newSafety,
     });
     setIsCreating(false);
@@ -185,6 +193,41 @@ export function MhdJobsPage() {
                 {MHD_INDUSTRIES.map((value) => (
                   <option key={value} value={value}>
                     {mhdFormatIndustry(value)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="newOnetSocCode" className="block text-sm font-medium text-foreground">
+                O*NET-SOC Code
+              </label>
+              <input
+                id="newOnetSocCode"
+                type="text"
+                placeholder="e.g. 53-3032.00"
+                value={newOnetSocCode}
+                onChange={(event) => setNewOnetSocCode(event.target.value)}
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+            </div>
+            <div>
+              <label htmlFor="newCaWageOrderClassification" className="block text-sm font-medium text-foreground">
+                CA Wage Order Classification
+              </label>
+              <select
+                id="newCaWageOrderClassification"
+                value={newCaWageOrderClassification}
+                onChange={(event) =>
+                  setNewCaWageOrderClassification(
+                    event.target.value as MhdCaWageOrderClassification | '',
+                  )
+                }
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <option value="">Unclassified</option>
+                {MHD_CA_WAGE_ORDER_CLASSIFICATIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {mhdFormatCaWageOrderClassification(value)}
                   </option>
                 ))}
               </select>

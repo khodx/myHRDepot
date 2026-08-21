@@ -46,6 +46,23 @@ describe('job schemas — pay bounds and period', () => {
       }),
     ).toThrow('Use an O*NET-SOC code');
   });
+
+  it('accepts a valid CA wage-order classification and rejects an unknown one', () => {
+    expect(
+      mhdJobFormSchema.parse({
+        companyId: 'company-1',
+        jobTitle: 'Driver',
+        caWageOrderClassification: 'TRANSPORTATION',
+      }).caWageOrderClassification,
+    ).toBe('TRANSPORTATION');
+    expect(() =>
+      mhdJobFormSchema.parse({
+        companyId: 'company-1',
+        jobTitle: 'Driver',
+        caWageOrderClassification: 'NOT_A_WAGE_ORDER',
+      }),
+    ).toThrow();
+  });
 });
 
 describe('job schemas — publish gate and duplicates', () => {

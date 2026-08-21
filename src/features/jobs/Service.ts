@@ -46,6 +46,9 @@ function mapJob(row: MhdJobRpcRow): MhdJob {
     employmentType: row.employment_type as MhdJob['employmentType'],
     isSafetySensitive: row.is_safety_sensitive,
     industry: row.industry as MhdJob['industry'],
+    onetSocCode: row.onet_soc_code,
+    caWageOrderClassification:
+      row.ca_wage_order_classification as MhdJob['caWageOrderClassification'],
     // Nullable, not zero-defaulted: null means "masked or unset", and collapsing
     // it to 0 would render a pay range of zero, which is a lie in both cases.
     payMin: mhdToNullableNumber(row.pay_min),
@@ -145,6 +148,8 @@ export const mhdJobsService = {
       p_employment_type: input.employmentType ?? 'FULL_TIME',
       p_is_safety_sensitive: input.isSafetySensitive ?? false,
       p_industry: input.industry ?? 'GENERAL',
+      p_onet_soc_code: trimmedOrUndefined(input.onetSocCode),
+      p_ca_wage_order_classification: input.caWageOrderClassification ?? undefined,
       p_pay_min: input.payMin ?? undefined,
       p_pay_max: input.payMax ?? undefined,
       p_pay_period: input.payPeriod ?? undefined,
@@ -156,6 +161,18 @@ export const mhdJobsService = {
   },
 
   async updateJob(input: MhdUpdateJobInput): Promise<void> {
+    const onetSocCodeArgs =
+      input.onetSocCode === null
+        ? { p_clear_onet_soc_code: true }
+        : input.onetSocCode === undefined
+          ? {}
+          : { p_onet_soc_code: trimmedOrUndefined(input.onetSocCode) };
+    const caWageOrderClassificationArgs =
+      input.caWageOrderClassification === null
+        ? { p_clear_ca_wage_order_classification: true }
+        : input.caWageOrderClassification === undefined
+          ? {}
+          : { p_ca_wage_order_classification: input.caWageOrderClassification };
     const { error } = await supabaseClient.rpc('mhd_job_update_job', {
       p_job_id: input.jobId,
       p_job_title: trimmedOrUndefined(input.jobTitle),
@@ -168,6 +185,8 @@ export const mhdJobsService = {
       p_is_safety_sensitive: input.isSafetySensitive ?? undefined,
       p_industry: input.industry ?? undefined,
       p_is_active: input.isActive ?? undefined,
+      ...onetSocCodeArgs,
+      ...caWageOrderClassificationArgs,
     });
     if (error) throw error;
   },
