@@ -423,14 +423,20 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
     status: 'comingSoon',
   },
-  // Admin Settings and Lab/Sandbox. Platform Admin ONLY — no exception. `roles`
-  // here is read from the (impersonation-aware) auth context, so while a real
-  // Platform Admin is impersonating a lower role, these routes correctly
+  // Lab/Sandbox: Platform Admin ONLY — no exception. `roles` here is read
+  // from the (impersonation-aware) auth context, so while a real Platform
+  // Admin is impersonating a lower role, these routes correctly
   // disappear/403 just like they would for that role in real life; ending the
   // "View As" session (via the top bar banner, which is NOT gated by this
   // route table) restores access. Impersonating 'Platform Admin' itself still
   // passes, since that role check still matches.
-  { path: '/admin', roles: ['Platform Admin'] },
+  //
+  // Admin Settings: the Overview/System/Audit tabs stay Platform Admin only
+  // (MhdAdminSettingsPage hides them client-side and their RPCs are still
+  // Platform-Admin-gated server-side), but the Quotes tab is now managed by
+  // HR Admin too (migration 0208, mhd_is_hr_administrator — Platform Admin OR
+  // HR Partner OR HR Admin), so the route itself must admit those roles.
+  { path: '/admin', roles: ['Platform Admin', 'HR Partner', 'HR Admin'] },
   { path: '/lab', roles: ['Platform Admin'] },
 ];
 
