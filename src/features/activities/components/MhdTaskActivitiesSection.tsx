@@ -13,7 +13,7 @@ import {
 } from '../Hook';
 import type { MhdActivityFormSchemaInput } from '../Schemas';
 import type { MhdUpdateActivityInput } from '../Types';
-import { MhdActivityForm } from './MhdActivityForm';
+import { MhdActivityForm } from '@/components/ui/MhdActivityForm';
 import { MhdTaskActivitiesPanel } from './MhdTaskActivitiesPanel';
 
 interface MhdTaskActivitiesSectionProps {

@@ -17,7 +17,7 @@ import {
 } from '../Hook';
 import type { MhdActivityBoardFilters, MhdUpdateActivityInput } from '../Types';
 import { MhdActivityFilterBar } from './MhdActivityFilterBar';
-import { MhdActivityForm } from './MhdActivityForm';
+import { MhdActivityForm } from '@/components/ui/MhdActivityForm';
 import { MhdActivityList } from './MhdActivityList';
 
 const DEFAULT_FILTERS = mhdActivityBoardFilterSchema.parse({});

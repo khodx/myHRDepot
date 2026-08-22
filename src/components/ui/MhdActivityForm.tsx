@@ -5,7 +5,7 @@ import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
-import { mhdActivityFormSchema, type MhdActivityFormSchemaInput } from '../Schemas';
+import { mhdActivityFormSchema, type MhdActivityFormSchemaInput } from '@/features/activities/Schemas';
 import {
   MHD_ACTIVITY_PARTICIPANT_ROLES,
   MHD_ACTIVITY_TYPES,
@@ -13,7 +13,7 @@ import {
   type MhdActivityOption,
   mhdFormatActivityParticipantRole,
   mhdFormatActivityType,
-} from '../Types';
+} from '@/features/activities/Types';
 
 type ParticipantKind = 'USER' | 'PERSON';
 

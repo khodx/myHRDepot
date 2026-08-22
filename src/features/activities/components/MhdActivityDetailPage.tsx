@@ -41,7 +41,7 @@ import {
   mhdFormatActivityParticipantRole,
 } from '../Types';
 import { MhdActivityAttachmentsPanel } from './MhdActivityAttachmentsPanel';
-import { MhdActivityForm } from './MhdActivityForm';
+import { MhdActivityForm } from '@/components/ui/MhdActivityForm';
 import { MhdActivityNotesPanel } from './MhdActivityNotesPanel';
 import { MhdActivityParticipantChips } from './MhdActivityParticipantChips';
 import { MhdActivityStatusBadge } from './MhdActivityStatusBadge';
