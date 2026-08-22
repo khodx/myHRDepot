@@ -10,10 +10,12 @@ import { useNavigate } from 'react-router-dom';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdExternalDataAttribution } from '@/components/ui/MhdExternalDataAttribution';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
 import {
   useMhdCompetencies,
+  useMhdCareerOneStopOccupationLookup,
   useMhdCreateDescriptionDraft,
   useMhdCreateJob,
   useMhdPublishDescription,
@@ -42,6 +44,7 @@ import {
   type MhdFlsaClassification,
   type MhdIndustry,
   type MhdPayPeriod,
+  type MhdCareerOneStopOccupationLookupSuccess,
   type MhdQualificationType,
 } from '../Types';
 
@@ -109,6 +112,7 @@ interface SelectFieldProps {
 
 interface DutiesProps {
   summary: string;
+  onetSocCode: string;
   setSummary: (value: string) => void;
   functions: DraftFunction[];
   setFunctions: Dispatch<SetStateAction<DraftFunction[]>>;
@@ -285,7 +289,7 @@ export function MhdJobDescriptionWizard() {
         {currentStepIndex === BASICS_STEP_INDEX ? <Basics job={job} updateJob={updateJob} fieldError={fieldError} /> : null}
         {currentStepIndex === SOC_STEP_INDEX ? <Soc job={job} updateJob={updateJob} fieldError={fieldError} /> : null}
         {currentStepIndex === PAY_STEP_INDEX ? <Pay job={job} updateJob={updateJob} fieldError={fieldError} /> : null}
-        {currentStepIndex === DUTIES_STEP_INDEX ? <Duties summary={summary} setSummary={setSummary} functions={functions} setFunctions={setFunctions} qualifications={qualifications} setQualifications={setQualifications} /> : null}
+        {currentStepIndex === DUTIES_STEP_INDEX ? <Duties summary={summary} onetSocCode={job.onetSocCode} setSummary={setSummary} functions={functions} setFunctions={setFunctions} qualifications={qualifications} setQualifications={setQualifications} /> : null}
         {currentStepIndex === COMPETENCIES_STEP_INDEX ? <CompetencyList data={competencies.data ?? []} selected={selectedCompetencyIds} setSelected={setSelectedCompetencyIds} /> : null}
         {currentStepIndex === REVIEW_STEP_INDEX ? <Review job={job} summary={summary} functions={functions} qualifications={qualifications} selectedCompetencyIds={selectedCompetencyIds} gate={gate} /> : null}
         {stepError ? <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{stepError}</p> : null}
@@ -326,8 +330,15 @@ function Pay({ job, updateJob, fieldError }: JobStepProps) {
 
 function SelectField({ label, id, value, onChange, options, error }: SelectFieldProps) { return <Field label={label} id={id} error={error}><select id={id} value={value} onChange={onChange} className={inputClasses}>{options.map(([v, text]) => <option key={v} value={v}>{text}</option>)}</select></Field>; }
 
-function Duties({ summary, setSummary, functions, setFunctions, qualifications, setQualifications }: DutiesProps) {
-  return <div className="space-y-6"><div><label htmlFor="wizard-summary" className="block text-sm font-medium text-foreground">Role summary</label><textarea id="wizard-summary" rows={3} value={summary} onChange={(e) => setSummary(e.target.value)} className={inputClasses} /></div>
+function Duties({ summary, onetSocCode, setSummary, functions, setFunctions, qualifications, setQualifications }: DutiesProps) {
+  const careerOneStopOccupationLookup = useMhdCareerOneStopOccupationLookup();
+  const [suggestion, setSuggestion] = useState<MhdCareerOneStopOccupationLookupSuccess | null>(null);
+  async function handleSuggest() {
+    if (!onetSocCode) return;
+    const result = await careerOneStopOccupationLookup.mutateAsync({ onetSocCode });
+    if (result.success) setSuggestion(result);
+  }
+  return <div className="space-y-6"><div className="space-y-2"><Button variant="secondary" onClick={() => void handleSuggest()} disabled={!onetSocCode || careerOneStopOccupationLookup.isPending}>Suggest Duties From CareerOneStop</Button>{!onetSocCode ? <p className="text-sm text-muted-foreground">Set an O*NET-SOC code on the SOC &amp; Wage Order step to enable this.</p> : null}{suggestion ? <div className="space-y-3 rounded-md border border-border p-3"><MhdExternalDataAttribution citation={suggestion.source} /><div className="space-y-2"><p className="text-sm font-medium">Suggested duties</p>{suggestion.tasks.map((task, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`task-${index}`}><span>{task}</span><Button variant="secondary" onClick={() => setFunctions((p) => [...p, { functionText: task, isEssential: true }])}>Add</Button></div>)}</div><div className="space-y-2"><p className="text-sm font-medium">Suggested skills and knowledge</p>{[...suggestion.skills, ...suggestion.knowledge].map((item, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`qualification-${index}`}><span>{item}</span><Button variant="secondary" onClick={() => setQualifications((p) => [...p, { qualificationText: item, qualificationType: 'SKILL', isRequired: false }])}>Add</Button></div>)}</div></div> : null}</div><div><label htmlFor="wizard-summary" className="block text-sm font-medium text-foreground">Role summary</label><textarea id="wizard-summary" rows={3} value={summary} onChange={(e) => setSummary(e.target.value)} className={inputClasses} /></div>
     <fieldset><legend className="text-sm font-medium text-foreground">Functions</legend><div className="mt-2 space-y-2">{functions.map((fn: DraftFunction, i: number) => <div key={`fn-${i}`} className="flex items-start gap-2"><textarea rows={2} value={fn.functionText} onChange={(e) => setFunctions((p: DraftFunction[]) => p.map((x, j) => j === i ? { ...x, functionText: e.target.value } : x))} className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground" /><label className="mt-2 flex items-center gap-1.5 text-sm"><input type="checkbox" checked={fn.isEssential} onChange={(e) => setFunctions((p: DraftFunction[]) => p.map((x, j) => j === i ? { ...x, isEssential: e.target.checked } : x))} />Essential</label><button type="button" onClick={() => setFunctions((p: DraftFunction[]) => p.filter((_, j) => j !== i))} className="mt-2 text-sm text-muted-foreground">Remove</button></div>)}<Button variant="secondary" onClick={() => setFunctions((p: DraftFunction[]) => [...p, { functionText: '', isEssential: true }])}>Add function</Button></div></fieldset>
     <fieldset><legend className="text-sm font-medium text-foreground">Qualifications</legend><div className="mt-2 space-y-2">{qualifications.map((q: DraftQualification, i: number) => <div key={`qual-${i}`} className="flex items-start gap-2"><input value={q.qualificationText} onChange={(e) => setQualifications((p: DraftQualification[]) => p.map((x, j) => j === i ? { ...x, qualificationText: e.target.value } : x))} className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground" /><select value={q.qualificationType} onChange={(e) => setQualifications((p: DraftQualification[]) => p.map((x, j) => j === i ? { ...x, qualificationType: e.target.value as MhdQualificationType } : x))} className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground">{MHD_QUALIFICATION_TYPES.map((type) => <option key={type} value={type}>{mhdFormatQualificationType(type)}</option>)}</select><label className="mt-2 flex items-center gap-1.5 text-sm"><input type="checkbox" checked={q.isRequired} onChange={(e) => setQualifications((p: DraftQualification[]) => p.map((x, j) => j === i ? { ...x, isRequired: e.target.checked } : x))} />Required</label><button type="button" onClick={() => setQualifications((p: DraftQualification[]) => p.filter((_, j) => j !== i))} className="mt-2 text-sm text-muted-foreground">Remove</button></div>)}<Button variant="secondary" onClick={() => setQualifications((p: DraftQualification[]) => [...p, { qualificationText: '', qualificationType: 'EXPERIENCE', isRequired: true }])}>Add qualification</Button></div></fieldset>
   </div>;

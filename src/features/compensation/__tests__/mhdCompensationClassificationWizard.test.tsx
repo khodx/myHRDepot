@@ -9,6 +9,7 @@ const mutate = {
   confirm: vi.fn(),
   override: vi.fn(),
   market: vi.fn(),
+  careerOneStop: vi.fn(),
   recommend: vi.fn(),
   payConfirm: vi.fn(),
 };
@@ -24,6 +25,7 @@ vi.mock('../Hook', () => ({
   useMhdJobClassificationConfirm: () => ({ mutateAsync: mutate.confirm, isPending: false }),
   useMhdJobClassificationOverride: () => ({ mutateAsync: mutate.override, isPending: false }),
   useMhdMarketWageLookup: () => ({ mutateAsync: mutate.market, isPending: false }),
+  useMhdCareerOneStopWageLookup: () => ({ mutateAsync: mutate.careerOneStop, isPending: false }),
   useMhdJobPayGradeRecommend: () => ({ mutateAsync: mutate.recommend, isPending: false }),
   useMhdJobPayGradeConfirm: () => ({ mutateAsync: mutate.payConfirm, isPending: false }),
 }));

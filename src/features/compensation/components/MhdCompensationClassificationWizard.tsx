@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
+import { MhdExternalDataAttribution } from '@/components/ui/MhdExternalDataAttribution';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
@@ -14,9 +15,11 @@ import {
   useMhdJobEvaluationScore,
   useMhdJobPayGradeConfirm,
   useMhdJobPayGradeRecommend,
+  useMhdCareerOneStopWageLookup,
   useMhdMarketWageLookup,
 } from '../Hook';
 import type {
+  MhdCareerOneStopWageLookupSuccess,
   MhdJobClassificationEvaluateResult,
   MhdJobEvaluationFactorScore,
   MhdJobPayGradeRecommendation,
@@ -117,6 +120,7 @@ export function MhdCompensationClassificationWizard() {
   const confirm = useMhdJobClassificationConfirm();
   const override = useMhdJobClassificationOverride();
   const marketWageLookup = useMhdMarketWageLookup();
+  const careerOneStopWageLookup = useMhdCareerOneStopWageLookup();
   const payGradeRecommend = useMhdJobPayGradeRecommend();
   const payGradeConfirm = useMhdJobPayGradeConfirm();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -131,6 +135,7 @@ export function MhdCompensationClassificationWizard() {
   const [snapshotId, setSnapshotId] = useState<string | null>(null);
   const [confirmedIds, setConfirmedIds] = useState<Set<string>>(new Set());
   const [marketWageResult, setMarketWageResult] = useState<MhdMarketWageLookupSuccess | null>(null);
+  const [careerOneStopResult, setCareerOneStopResult] = useState<MhdCareerOneStopWageLookupSuccess | null>(null);
   const [marketWageSkipped, setMarketWageSkipped] = useState(false);
   const [payGradeResult, setPayGradeResult] = useState<MhdJobPayGradeRecommendation[] | null>(null);
   const [chosenGrade, setChosenGrade] = useState('');
@@ -178,6 +183,11 @@ export function MhdCompensationClassificationWizard() {
     try { setError(null); setPayGradeResult(await payGradeRecommend.mutateAsync({ snapshotId, marketReferenceSnapshotId: marketWageResult?.snapshotId })); } catch (caught) { setError(errorMessage(caught)); }
   }
 
+  async function handleCareerOneStopCompare() {
+    if (!selectedJob?.onetSocCode) { setError('Set an ONET/SOC code on this job before comparing with CareerOneStop.'); return; }
+    try { setError(null); const result = await careerOneStopWageLookup.mutateAsync({ jobId: selectedJobId, onetSocCode: selectedJob.onetSocCode }); if (result.success) setCareerOneStopResult(result); } catch (caught) { setError(errorMessage(caught)); }
+  }
+
   async function handlePayGradeConfirm() {
     const recommendation = payGradeResult?.[0];
     const gradeId = chosenGrade || recommendation?.recommendedPayGradeId;
@@ -198,7 +208,7 @@ export function MhdCompensationClassificationWizard() {
       {currentStepIndex === 0 ? <div className="space-y-4"><label className="block text-sm font-medium">Job<select className={inputClass} value={selectedJobId} onChange={(event) => setSelectedJobId(event.target.value)}><option value="">Select a job</option>{(jobs.data ?? []).map((job) => <option key={job.id} value={job.id}>{job.jobTitle}</option>)}</select></label>{selectedJob ? <dl className="grid gap-2 text-sm sm:grid-cols-3"><div><dt className="font-medium">ONET/SOC code</dt><dd>{selectedJob.onetSocCode ?? 'Not set'}</dd></div><div><dt className="font-medium">CA wage order</dt><dd>{selectedJob.caWageOrderClassification ?? 'Not set'}</dd></div><div><dt className="font-medium">Job code</dt><dd>{selectedJob.jobCode ?? 'Not set'}</dd></div></dl> : null}</div> : null}
       {currentStepIndex === 1 ? <div className="space-y-4"><label className="block text-sm font-medium">Exemption category<select className={inputClass} value={exemptionCategory} onChange={(event) => setExemptionCategory(event.target.value as ExemptionCategory)}><option value="">Select category</option>{(['EXECUTIVE', 'ADMINISTRATIVE', 'PROFESSIONAL', 'COMPUTER', 'OUTSIDE_SALES', 'HCE'] as ExemptionCategory[]).map((category) => <option key={category} value={category}>{category}</option>)}</select></label><div className="grid gap-4 sm:grid-cols-3"><label className="text-sm font-medium">Employee count<input className={inputClass} type="number" value={employerEmployeeCount ?? ''} onChange={(event) => setEmployerEmployeeCount(event.target.value ? Number(event.target.value) : null)} /></label><label className="text-sm font-medium">Weekly salary<input className={inputClass} type="number" value={weeklySalary ?? ''} onChange={(event) => setWeeklySalary(event.target.value ? Number(event.target.value) : null)} /></label><label className="text-sm font-medium">Hourly rate<input className={inputClass} type="number" value={hourlyRate ?? ''} onChange={(event) => setHourlyRate(event.target.value ? Number(event.target.value) : null)} /></label></div><label className="block text-sm font-medium">Exempt duties percent time<input className={inputClass} type="number" min="0" max="100" value={exemptDutiesPercent} onChange={(event) => setExemptDutiesPercent(Number(event.target.value))} /></label><div className="space-y-2"><div className="flex items-center justify-between"><h3 className="font-medium">Point-factor scores</h3><button type="button" className={`${buttonBaseClasses} ${buttonVariantClasses.secondary}`} onClick={() => setFactorScores((current) => [...current, { factorKey: '', points: 0 }])}>Add factor</button></div>{factorScores.map((factor, index) => <div className="flex flex-wrap gap-2" key={`${index}-${factor.factorKey}`}><input aria-label="Factor key" className={inputClass} placeholder="Factor key" value={factor.factorKey} onChange={(event) => updateFactor(index, { factorKey: event.target.value })} /><input aria-label="Points" className={inputClass} type="number" placeholder="Points" value={factor.points} onChange={(event) => updateFactor(index, { points: Number(event.target.value) })} /><input aria-label="Weight (optional)" className={inputClass} type="number" placeholder="Weight (optional)" value={factor.weight ?? ''} onChange={(event) => updateFactor(index, { weight: event.target.value ? Number(event.target.value) : undefined })} /><button type="button" className={`${buttonBaseClasses} ${buttonVariantClasses.secondary}`} onClick={() => setFactorScores((current) => current.filter((_, factorIndex) => factorIndex !== index))}>Remove</button></div>)}</div></div> : null}
       {currentStepIndex === 2 || currentStepIndex === 3 ? <DeterminationsPanel determinations={determinations} confirmedIds={confirmedIds} onConfirm={handleConfirm} onOverride={handleOverride} /> : null}
-      {currentStepIndex === 4 ? <div className="space-y-4">{!selectedJob?.onetSocCode ? <p>Market data isn't available for this job because no ONET/SOC code is set.</p> : marketWageSkipped || marketWageResult ? <><p><strong>Source:</strong> {marketWageResult?.source} ({marketWageResult?.dataYear})</p><dl className="grid gap-2 text-sm sm:grid-cols-3">{Object.entries(marketWageResult ?? {}).filter(([key]) => key.includes('Percentile') || key.includes('Median')).map(([key, value]) => <div key={key}><dt className="font-medium">{key}</dt><dd>{value ?? 'Not reported'}</dd></div>)}</dl></> : <p>Market wage lookup will run when you continue.</p>}</div> : null}
+      {currentStepIndex === 4 ? <div className="space-y-4">{!selectedJob?.onetSocCode ? <p>Market data isn't available for this job because no ONET/SOC code is set.</p> : marketWageSkipped || marketWageResult ? <>{marketWageResult ? <MhdExternalDataAttribution citation={marketWageResult.source ?? ''} dataYear={marketWageResult.dataYear} /> : null}<dl className="grid gap-2 text-sm sm:grid-cols-3">{Object.entries(marketWageResult ?? {}).filter(([key]) => key.includes('Percentile') || key.includes('Median')).map(([key, value]) => <div key={key}><dt className="font-medium">{key}</dt><dd>{value ?? 'Not reported'}</dd></div>)}</dl><div className="space-y-2"><button type="button" className={`${buttonBaseClasses} ${buttonVariantClasses.secondary}`} onClick={() => void handleCareerOneStopCompare()} disabled={careerOneStopWageLookup.isPending}>Compare With CareerOneStop</button>{careerOneStopResult ? <><MhdExternalDataAttribution citation={careerOneStopResult.source} dataYear={careerOneStopResult.dataYear} /><dl className="grid gap-2 text-sm sm:grid-cols-3">{Object.entries(careerOneStopResult).filter(([key]) => key.includes('Percentile') || key.includes('Median')).map(([key, value]) => <div key={key}><dt className="font-medium">{key}</dt><dd>{value ?? 'Not reported'}</dd></div>)}</dl></> : null}</div></> : <p>Market wage lookup will run when you continue.</p>}</div> : null}
       {currentStepIndex === 5 ? <div className="space-y-4"><p>Submit to calculate the recommended pay grade from the evaluation and market reference.</p>{payGradeResult?.map((recommendation) => <div className="space-y-3 rounded-md border border-border p-4" key={recommendation.recommendationId}><p><strong>Total points:</strong> {recommendation.totalPoints}</p><p><strong>Recommendation:</strong> {recommendation.recommendedPayGradeId ?? 'No matching pay grade configured'}</p>{recommendation.recommendedPayGradeId ? <div className="space-y-2"><label className="block text-sm font-medium">Confirm this grade or choose a different grade<input className={inputClass} value={chosenGrade || recommendation.recommendedPayGradeId} onChange={(event) => setChosenGrade(event.target.value)} /></label>{chosenGrade && chosenGrade !== recommendation.recommendedPayGradeId ? <label className="block text-sm font-medium">Reason for different grade<textarea className={inputClass} value={gradeReason} onChange={(event) => setGradeReason(event.target.value)} /></label> : null}<button type="button" className={`${buttonBaseClasses} ${buttonVariantClasses.primary}`} onClick={() => void handlePayGradeConfirm()}>Confirm this grade</button></div> : null}</div>)}</div> : null}
       <MhdStepper steps={steps} currentStepIndex={currentStepIndex} onNavigate={onNavigate} validateCurrentStep={validateCurrentStep} onSubmit={() => void handleSubmit()} isSubmitting={payGradeRecommend.isPending} />
     </section>

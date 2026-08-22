@@ -24,6 +24,7 @@ vi.mock('../Hook', () => ({
   useMhdSetDescriptionCompetencies: noopMutation,
   useMhdPublishDescription: noopMutation,
   useMhdCompetencies: () => ({ data: [] }),
+  useMhdCareerOneStopOccupationLookup: noopMutation,
 }));
 
 function next() { fireEvent.click(screen.getByRole('button', { name: 'Next' })); }
