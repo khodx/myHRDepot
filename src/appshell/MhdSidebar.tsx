@@ -64,6 +64,13 @@ export interface NavItem {
   icon: React.ElementType;
   roles: MhdAuthRoleName[] | 'ALL';
   status?: 'live' | 'comingSoon';
+  /**
+   * A self-service or narrower-scope companion view nested under this item
+   * (e.g. "My Training" under "Training"). Rendered as an indented sub-row in
+   * the sidebar, and as a secondary in-card link on the dashboard, rather
+   * than a sibling top-level entry.
+   */
+  children?: NavItem[];
 }
 
 export interface NavSection {
@@ -213,7 +220,10 @@ export const NAV_SECTIONS: NavSection[] = [
       },
       // The employee's own published job description — a SEPARATE route from the
       // privileged /jobs list (Client User only), so the list never has to be
-      // correct for two audiences.
+      // correct for two audiences. NOT nested under Job Descriptions: the two
+      // routes' role sets are fully disjoint (mhdRouteAccess.ts), so no single
+      // user ever qualifies for both — nesting would never actually render as
+      // a two-link card for anyone, only ever resolve to one or the other.
       {
         label: 'My Job',
         description: 'View your own published job description.',
@@ -278,17 +288,19 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: TrendingUp,
         roles: mhdRouteRoles('/performance'),
         status: mhdRouteStatus('/performance'),
-      },
-      // 360 feedback requests addressed to the signed-in user. A SEPARATE route
-      // from /performance because a rater cannot load the review behind their
-      // invitation.
-      {
-        label: 'Feedback Requests',
-        description: 'Respond to 360 feedback requests addressed to you.',
-        route: '/performance/invitations',
-        icon: MessageSquare,
-        roles: mhdRouteRoles('/performance/invitations'),
-        status: mhdRouteStatus('/performance/invitations'),
+        children: [
+          // 360 feedback requests addressed to the signed-in user. A SEPARATE route
+          // from /performance because a rater cannot load the review behind their
+          // invitation.
+          {
+            label: 'Feedback Requests',
+            description: 'Respond to 360 feedback requests addressed to you.',
+            route: '/performance/invitations',
+            icon: MessageSquare,
+            roles: mhdRouteRoles('/performance/invitations'),
+            status: mhdRouteStatus('/performance/invitations'),
+          },
+        ],
       },
       {
         label: 'Recruiting',
@@ -315,6 +327,10 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: GraduationCap,
         roles: mhdRouteRoles('/training'),
       },
+      // NOT nested under Training: the two routes' role sets are fully
+      // disjoint by design ("Two separate routes, never one filtered
+      // surface" — mhdRouteAccess.ts), so no single user ever qualifies for
+      // both and a nested card would never actually render as one for anyone.
       {
         label: 'My Training',
         description: 'Complete your assigned training courses.',
@@ -329,6 +345,8 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: Library,
         roles: mhdRouteRoles('/handbooks'),
       },
+      // NOT nested under Handbooks — same fully-disjoint-roles reasoning as
+      // Training / My Training above.
       {
         label: 'My Handbooks',
         description: 'Read the handbooks assigned to you.',
@@ -342,13 +360,15 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/checklists',
         icon: ClipboardList,
         roles: mhdRouteRoles('/checklists'),
-      },
-      {
-        label: 'My Checklists',
-        description: 'Complete checklists assigned to you.',
-        route: '/my-checklists',
-        icon: ClipboardCheck,
-        roles: mhdRouteRoles('/my-checklists'),
+        children: [
+          {
+            label: 'My Checklists',
+            description: 'Complete checklists assigned to you.',
+            route: '/my-checklists',
+            icon: ClipboardCheck,
+            roles: mhdRouteRoles('/my-checklists'),
+          },
+        ],
       },
       {
         label: 'Policies',
@@ -356,13 +376,15 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/policies',
         icon: FileText,
         roles: mhdRouteRoles('/policies'),
-      },
-      {
-        label: 'My Policies',
-        description: 'Review and acknowledge policies assigned to you.',
-        route: '/my-policies',
-        icon: FileSignature,
-        roles: mhdRouteRoles('/my-policies'),
+        children: [
+          {
+            label: 'My Policies',
+            description: 'Review and acknowledge policies assigned to you.',
+            route: '/my-policies',
+            icon: FileSignature,
+            roles: mhdRouteRoles('/my-policies'),
+          },
+        ],
       },
     ],
   },
@@ -427,13 +449,15 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/memorandums',
         icon: Mail,
         roles: mhdRouteRoles('/memorandums'),
-      },
-      {
-        label: 'My Memorandums',
-        description: 'Memorandums sent to you.',
-        route: '/my-memorandums',
-        icon: Mail,
-        roles: mhdRouteRoles('/my-memorandums'),
+        children: [
+          {
+            label: 'My Memorandums',
+            description: 'Memorandums sent to you.',
+            route: '/my-memorandums',
+            icon: Mail,
+            roles: mhdRouteRoles('/my-memorandums'),
+          },
+        ],
       },
     ],
   },
@@ -624,9 +648,20 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
     }
   };
 
+  // A child (e.g. "My Training") can be visible to a role that cannot see its
+  // parent (e.g. "Training" is Platform Admin/HR Partner/Client Admin only,
+  // while My Training is Employee/Manager/Supervisor/Lead) — nesting must
+  // never hide a role from a route it's independently entitled to. When the
+  // parent passes the role check, keep only its role-visible children nested
+  // under it; when the parent fails, promote any role-visible children to
+  // their own un-nested top-level entries instead of losing them.
   const visibleSections = NAV_SECTIONS.map((section) => ({
     ...section,
-    items: section.items.filter(hasRole),
+    items: section.items.flatMap((item) => {
+      const visibleChildren = (item.children ?? []).filter(hasRole);
+      if (hasRole(item)) return [{ ...item, children: visibleChildren }];
+      return visibleChildren;
+    }),
   })).filter((section) => section.items.length > 0);
 
   return (
@@ -688,7 +723,7 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
             return (
               <div key={section.label} className="space-y-1">
                 <div className="mx-2 border-t border-rail-border" aria-hidden />
-                {section.items.map((item) => (
+                {section.items.flatMap((item) => [item, ...(item.children ?? [])]).map((item) => (
                   <MhdNavItem key={item.route} item={item} collapsed />
                 ))}
               </div>
@@ -714,9 +749,12 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
               </button>
               {isCollapsed
                 ? null
-                : section.items.map((item) => (
-                    <MhdNavItem key={item.route} item={item} collapsed={false} />
-                  ))}
+                : section.items.flatMap((item) => [
+                    <MhdNavItem key={item.route} item={item} collapsed={false} />,
+                    ...(item.children ?? []).map((child) => (
+                      <MhdNavItem key={child.route} item={child} collapsed={false} nested />
+                    )),
+                  ])}
             </div>
           );
         })}
@@ -728,10 +766,12 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
 function MhdNavItem({
   item,
   collapsed,
+  nested,
   onClick,
 }: {
   item: NavItem;
   collapsed: boolean;
+  nested?: boolean;
   onClick?: () => void;
 }) {
   const Icon = item.icon;
@@ -748,8 +788,8 @@ function MhdNavItem({
       title={title}
       onClick={onClick}
       className={({ isActive }) =>
-        `relative flex min-h-10 items-center rounded-full text-[17px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${
-          collapsed ? 'justify-center px-0' : 'gap-3 px-3'
+        `relative flex min-h-10 items-center rounded-full transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${
+          collapsed ? 'justify-center px-0 text-[17px]' : nested ? 'gap-3 pl-8 text-[15px]' : 'gap-3 px-3 text-[17px]'
         } ${
           isActive
             ? // Raised-bevel emphasis, deliberately heavier than a flat fill: a
@@ -765,7 +805,7 @@ function MhdNavItem({
     >
       {() => (
         <>
-          <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+          <Icon className={nested ? 'h-4 w-4 shrink-0' : 'h-[18px] w-[18px] shrink-0'} aria-hidden />
           {collapsed ? null : <span className="truncate">{item.label}</span>}
           {item.status === 'comingSoon' && !collapsed ? (
             <span className="ml-auto shrink-0 rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium text-neutral-600">

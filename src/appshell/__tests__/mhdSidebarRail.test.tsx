@@ -178,6 +178,33 @@ describe('MhdSidebar rail', () => {
     expect(onboardingLink).toHaveAttribute('href', '/onboarding');
     expect(within(onboardingLink).getByText('Coming Soon')).toBeInTheDocument();
   });
+
+  it('nests companion links while keeping them reachable in collapsed mode', async () => {
+    // Checklists / My Checklists is used here (not Training / My Training)
+    // because Checklists is privileged-only while My Checklists is roles:
+    // 'ALL' — a Platform Admin genuinely qualifies for both, so nesting
+    // actually renders for this pair. Training and My Training have fully
+    // disjoint role sets and are deliberately NOT nested (see MhdSidebar.tsx).
+    const user = userEvent.setup();
+    const { MhdSidebar } = await import('../MhdSidebar');
+    render(
+      <MemoryRouter initialEntries={['/checklists']}>
+        <MhdSidebar />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Talent/i }));
+
+    const checklists = screen.getByRole('link', { name: 'Checklists' });
+    expect(checklists).toHaveAttribute('href', '/checklists');
+    const myChecklists = screen.getByRole('link', { name: 'My Checklists' });
+    expect(myChecklists).toHaveAttribute('href', '/my-checklists');
+    expect(myChecklists.className).toContain('pl-8');
+
+    await user.click(screen.getByRole('button', { name: 'Collapse navigation' }));
+    expect(screen.getByRole('link', { name: 'My Checklists' })).toHaveAttribute('href', '/my-checklists');
+    expect(screen.getByRole('link', { name: 'My Checklists' })).toHaveAttribute('title', 'My Checklists');
+  });
 });
 
 describe('MhdMobileNavDrawer', () => {

@@ -1,5 +1,5 @@
 import { MemoryRouter } from 'react-router-dom';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
@@ -58,6 +58,53 @@ beforeEach(() => {
 });
 
 describe('MhdDashboardModuleLinks', () => {
+  it('renders section headers in the grouped default view', async () => {
+    mockAuth(['Platform Admin']);
+
+    await renderModuleLinks();
+
+    expect(screen.getByText('Work Tools')).toBeInTheDocument();
+    expect(screen.getByText('People & Org')).toBeInTheDocument();
+  });
+
+  it('renders Checklists and My Checklists together in one card', async () => {
+    mockAuth(['Platform Admin']);
+
+    await renderModuleLinks();
+
+    const checklistsLink = screen.getByRole('link', { name: 'Checklists' });
+    const myChecklistsLink = screen.getByRole('link', { name: 'My Checklists' });
+    expect(checklistsLink).toHaveAttribute('href', '/checklists');
+    expect(myChecklistsLink).toHaveAttribute('href', '/my-checklists');
+
+    const card = checklistsLink.closest('.mhd-module-card');
+    expect(card).not.toBeNull();
+    expect(within(card as HTMLElement).getByRole('link', { name: 'My Checklists' })).toBe(myChecklistsLink);
+    expect(card?.querySelectorAll('a')).toHaveLength(2);
+  });
+
+  it('keeps a child reachable when its parent is inaccessible', async () => {
+    mockAuth(['Employee']);
+
+    await renderModuleLinks();
+
+    expect(screen.getByRole('link', { name: 'My Checklists' })).toHaveAttribute('href', '/my-checklists');
+    expect(screen.queryByRole('link', { name: 'Checklists' })).not.toBeInTheDocument();
+  });
+
+  it('finds nested children in search results', async () => {
+    mockAuth(['Platform Admin']);
+    const user = userEvent.setup();
+
+    await renderModuleLinks();
+    await user.type(screen.getByRole('textbox', { name: 'Search modules' }), 'my checklists');
+
+    expect(screen.getByRole('link', { name: 'My Checklists' })).toHaveAttribute(
+      'href',
+      '/my-checklists',
+    );
+  });
+
   it('hides comingSoon modules for Platform Admin while showing live modules', async () => {
     mockAuth(['Platform Admin']);
 
