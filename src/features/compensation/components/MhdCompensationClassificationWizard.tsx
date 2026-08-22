@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import { MhdExternalDataAttribution } from '@/components/ui/MhdExternalDataAttribution';
-import careerOneStopLogo from '@/assets/careeronestop-logo.png';
+import careerOneStopLogo from '@/assets/careeronestop-logo.svg';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
