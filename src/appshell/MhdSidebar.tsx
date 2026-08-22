@@ -116,6 +116,13 @@ export const NAV_SECTIONS: NavSection[] = [
         roles: mhdRouteRoles('/calendar'),
       },
       {
+        label: 'Command Center',
+        description: 'See your most important HR priorities in one place.',
+        route: '/command-center',
+        icon: Zap,
+        roles: mhdRouteRoles('/command-center'),
+      },
+      {
         label: 'Forms',
         description: 'Build and submit HR forms and requests.',
         route: '/forms',

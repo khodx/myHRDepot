@@ -46,6 +46,14 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
       'Manager', 'Supervisor', 'Lead', 'Employee', 'Viewer',
     ],
   },
+  {
+    path: '/command-center',
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee', 'Viewer',
+    ],
+  },
   // Forms Studio/Library split (2026-08-18, Multi-Tenant Library
   // Architecture). Studio (build/manage) is narrower than the general Forms
   // audience — must precede the general '/forms' rule below, same

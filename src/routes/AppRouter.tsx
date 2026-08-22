@@ -90,6 +90,10 @@ const MhdCalendarPage = lazyPage(
   () => import('@/features/calendar/components/MhdCalendarPage'),
   'MhdCalendarPage',
 );
+const MhdCommandCenterPage = lazyPage(
+  () => import('@/features/command-center/components/MhdCommandCenterPage'),
+  'MhdCommandCenterPage',
+);
 const MhdActivityDetailPage = lazyPage(
   () => import('@/features/activities/components/MhdActivityDetailPage'),
   'MhdActivityDetailPage',
@@ -652,6 +656,7 @@ function MhdAppRoutes() {
                   element={<MhdActivityMessagesPage />}
                 />
                 <Route path="/calendar" element={<MhdCalendarPage />} />
+                <Route path="/command-center" element={<MhdCommandCenterPage />} />
                 <Route path="/reports" element={<MhdDocumentsPage />} />
                 <Route path="/forms" element={<MhdFormsPage />} />
                 {/* Forms Studio/Library split (2026-08-18). '/forms/studio'
