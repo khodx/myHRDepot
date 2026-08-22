@@ -16,6 +16,7 @@ import {
   useMhdUpdateAccommodationOptionCatalogEntry,
 } from '../Hook';
 import {
+  MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS,
   MHD_ACCOMMODATION_OPTION_CATALOG_CATEGORIES,
   mhdFormatAccommodationValue,
   type MhdAccommodationOptionCatalogCategory,
@@ -29,6 +30,7 @@ interface NewEntryDraft {
   optionType: string;
   descriptionTemplate: string;
   category: MhdAccommodationOptionCatalogCategory;
+  functionalLimitationTags: string[];
   typicalCostRange: string;
   sortOrder: string;
   isGlobal: boolean;
@@ -38,6 +40,7 @@ const EMPTY_DRAFT: NewEntryDraft = {
   optionType: '',
   descriptionTemplate: '',
   category: 'OTHER',
+  functionalLimitationTags: [],
   typicalCostRange: '',
   sortOrder: '100',
   isGlobal: false,
@@ -46,6 +49,7 @@ const EMPTY_DRAFT: NewEntryDraft = {
 interface EditDraft {
   descriptionTemplate: string;
   category: MhdAccommodationOptionCatalogCategory;
+  functionalLimitationTags: string[];
   typicalCostRange: string;
   sortOrder: string;
   isActive: boolean;
@@ -123,6 +127,7 @@ export function MhdAccommodationOptionCatalogPage() {
         optionType: draft.optionType,
         descriptionTemplate: draft.descriptionTemplate,
         category: draft.category,
+        functionalLimitationTags: draft.functionalLimitationTags,
         typicalCostRange: draft.typicalCostRange.trim() || null,
         sortOrder: draft.sortOrder.trim() ? Number(draft.sortOrder) : undefined,
       });
@@ -136,6 +141,7 @@ export function MhdAccommodationOptionCatalogPage() {
     setEditDraft({
       descriptionTemplate: entry.descriptionTemplate,
       category: entry.category,
+      functionalLimitationTags: entry.functionalLimitationTags,
       typicalCostRange: entry.typicalCostRange ?? '',
       sortOrder: String(entry.sortOrder),
       isActive: entry.isActive,
@@ -150,6 +156,7 @@ export function MhdAccommodationOptionCatalogPage() {
         entryId: editingId,
         descriptionTemplate: editDraft.descriptionTemplate,
         category: editDraft.category,
+        functionalLimitationTags: editDraft.functionalLimitationTags,
         typicalCostRange: editDraft.typicalCostRange.trim() || null,
         sortOrder: editDraft.sortOrder.trim() ? Number(editDraft.sortOrder) : undefined,
         isActive: editDraft.isActive,
@@ -261,6 +268,30 @@ export function MhdAccommodationOptionCatalogPage() {
               />
             </label>
           </div>
+          <fieldset>
+            <legend className="text-sm font-medium">
+              Functional limitations addressed (optional)
+            </legend>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS.map((tag) => (
+                <label key={tag} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={draft.functionalLimitationTags.includes(tag)}
+                    onChange={(event) =>
+                      setDraft((value) => ({
+                        ...value,
+                        functionalLimitationTags: event.target.checked
+                          ? [...value.functionalLimitationTags, tag]
+                          : value.functionalLimitationTags.filter((selectedTag) => selectedTag !== tag),
+                      }))
+                    }
+                  />
+                  {mhdFormatAccommodationValue(tag)}
+                </label>
+              ))}
+            </div>
+          </fieldset>
           {isPlatformAdminOrHrPartner ? (
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -356,6 +387,15 @@ export function MhdAccommodationOptionCatalogPage() {
                             Typical cost: {entry.typicalCostRange}
                           </p>
                         ) : null}
+                        {entry.functionalLimitationTags.length > 0 ? (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {entry.functionalLimitationTags.map((tag) => (
+                              <MhdBadge key={tag} variant="neutral">
+                                {mhdFormatAccommodationValue(tag)}
+                              </MhdBadge>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                       <div className="flex shrink-0 flex-wrap gap-2">
                         {entry.isLibrary && canManageOwnCompanyEntries ? (
@@ -436,6 +476,36 @@ export function MhdAccommodationOptionCatalogPage() {
                             }
                           />
                         </label>
+                        <fieldset>
+                          <legend className="text-sm font-medium">
+                            Functional limitations addressed (optional)
+                          </legend>
+                          <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                            {MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS.map((tag) => (
+                              <label key={tag} className="flex items-center gap-2 text-sm">
+                                <input
+                                  type="checkbox"
+                                  checked={editDraft.functionalLimitationTags.includes(tag)}
+                                  onChange={(event) =>
+                                    setEditDraft((value) =>
+                                      value
+                                        ? {
+                                            ...value,
+                                            functionalLimitationTags: event.target.checked
+                                              ? [...value.functionalLimitationTags, tag]
+                                              : value.functionalLimitationTags.filter(
+                                                  (selectedTag) => selectedTag !== tag,
+                                                ),
+                                          }
+                                        : value,
+                                    )
+                                  }
+                                />
+                                {mhdFormatAccommodationValue(tag)}
+                              </label>
+                            ))}
+                          </div>
+                        </fieldset>
                         <div className="grid gap-3 md:grid-cols-2">
                           <label className="text-sm font-medium">
                             Sort order

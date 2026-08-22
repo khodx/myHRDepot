@@ -369,6 +369,7 @@ export interface MhdCreateAccommodationOptionCatalogEntryInput {
   optionType: string;
   descriptionTemplate: string;
   category?: MhdAccommodationOptionCatalogCategory;
+  functionalLimitationTags?: string[];
   typicalCostRange?: string | null;
   sortOrder?: number;
   sourceOptionId?: string | null;
@@ -378,6 +379,7 @@ export interface MhdUpdateAccommodationOptionCatalogEntryInput {
   entryId: string;
   descriptionTemplate?: string;
   category?: MhdAccommodationOptionCatalogCategory;
+  functionalLimitationTags?: string[];
   typicalCostRange?: string | null;
   sortOrder?: number;
   isActive?: boolean;
