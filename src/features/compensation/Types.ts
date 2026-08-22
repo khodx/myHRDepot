@@ -96,4 +96,41 @@ export interface MhdMarketWageLookupFailure {
 
 export type MhdMarketWageLookupResponse = MhdMarketWageLookupSuccess | MhdMarketWageLookupFailure;
 
+export interface MhdCareerOneStopWageLookupInput {
+  jobId: string;
+  onetSocCode: string;
+  location?: string;
+}
+
+export interface MhdCareerOneStopWageLookupSuccess {
+  success: true;
+  cached: boolean;
+  snapshotId?: string;
+  socCode: string;
+  onetTitle?: string | null;
+  onetDescription?: string | null;
+  dataYear?: number | null;
+  areaName?: string | null;
+  source: string;
+  hourlyPercentile10?: number | null;
+  hourlyPercentile25?: number | null;
+  hourlyMedian?: number | null;
+  hourlyPercentile75?: number | null;
+  hourlyPercentile90?: number | null;
+  annualPercentile10?: number | null;
+  annualPercentile25?: number | null;
+  annualMedian?: number | null;
+  annualPercentile75?: number | null;
+  annualPercentile90?: number | null;
+}
+
+export interface MhdCareerOneStopWageLookupFailure {
+  success: false;
+  error: string;
+}
+
+export type MhdCareerOneStopWageLookupResponse =
+  | MhdCareerOneStopWageLookupSuccess
+  | MhdCareerOneStopWageLookupFailure;
+
 export type MhdCompensationReadiness = MhdComplianceReadiness;

@@ -12705,6 +12705,7 @@ export type Database = {
           annual_percentile_75: number | null
           annual_percentile_90: number | null
           area_code: string | null
+          area_name: string | null
           bls_series_id: string | null
           company_id: string
           created_by: string | null
@@ -12718,6 +12719,7 @@ export type Database = {
           id: string
           job_id: string
           soc_code: string
+          source: string
           source_citation: string
         }
         Insert: {
@@ -12727,6 +12729,7 @@ export type Database = {
           annual_percentile_75?: number | null
           annual_percentile_90?: number | null
           area_code?: string | null
+          area_name?: string | null
           bls_series_id?: string | null
           company_id: string
           created_by?: string | null
@@ -12740,6 +12743,7 @@ export type Database = {
           id?: string
           job_id: string
           soc_code: string
+          source?: string
           source_citation?: string
         }
         Update: {
@@ -12749,6 +12753,7 @@ export type Database = {
           annual_percentile_75?: number | null
           annual_percentile_90?: number | null
           area_code?: string | null
+          area_name?: string | null
           bls_series_id?: string | null
           company_id?: string
           created_by?: string | null
@@ -12762,6 +12767,7 @@ export type Database = {
           id?: string
           job_id?: string
           soc_code?: string
+          source?: string
           source_citation?: string
         }
         Relationships: [
@@ -26196,6 +26202,39 @@ export type Database = {
         Args: { p_thread_id: string }
         Returns: undefined
       }
+      mhd_market_wage_snapshot_recent: {
+        Args: { p_job_id: string; p_max_age_days?: number; p_source: string }
+        Returns: {
+          annual_median: number | null
+          annual_percentile_10: number | null
+          annual_percentile_25: number | null
+          annual_percentile_75: number | null
+          annual_percentile_90: number | null
+          area_code: string | null
+          area_name: string | null
+          bls_series_id: string | null
+          company_id: string
+          created_by: string | null
+          data_year: number
+          fetched_at: string
+          hourly_median: number | null
+          hourly_percentile_10: number | null
+          hourly_percentile_25: number | null
+          hourly_percentile_75: number | null
+          hourly_percentile_90: number | null
+          id: string
+          job_id: string
+          soc_code: string
+          source: string
+          source_citation: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "market_wage_reference_snapshots"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       mhd_market_wage_snapshot_record: {
         Args: {
           p_annual_median?: number
@@ -26204,6 +26243,7 @@ export type Database = {
           p_annual_percentile_75?: number
           p_annual_percentile_90?: number
           p_area_code: string
+          p_area_name?: string
           p_bls_series_id: string
           p_data_year: number
           p_hourly_median?: number
@@ -26213,6 +26253,8 @@ export type Database = {
           p_hourly_percentile_90?: number
           p_job_id: string
           p_soc_code: string
+          p_source?: string
+          p_source_citation?: string
         }
         Returns: string
       }

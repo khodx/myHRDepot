@@ -5,6 +5,7 @@ import type {
   MhdJobEvaluationScoreInput,
   MhdJobPayGradeConfirmInput,
   MhdJobPayGradeRecommendInput,
+  MhdCareerOneStopWageLookupInput,
   MhdMarketWageLookupInput,
 } from './Types';
 
@@ -55,4 +56,9 @@ export function useMhdJobPayGradeConfirm() {
 export function useMhdMarketWageLookup() {
   const refresh = useRefresh();
   return useMutation({ mutationFn: (input: MhdMarketWageLookupInput) => mhdCompensationService.marketWageLookup(input), onSuccess: refresh });
+}
+
+export function useMhdCareerOneStopWageLookup() {
+  const refresh = useRefresh();
+  return useMutation({ mutationFn: (input: MhdCareerOneStopWageLookupInput) => mhdCompensationService.careerOneStopWageLookup(input), onSuccess: refresh });
 }

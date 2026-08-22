@@ -1,6 +1,8 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type {
   MhdAssignJobInput,
+  MhdCareerOneStopOccupationLookupInput,
+  MhdCareerOneStopOccupationLookupResponse,
   MhdCompetency,
   MhdCompetencyRpcRow,
   MhdCreateJobInput,
@@ -378,5 +380,15 @@ export const mhdJobsService = {
     if (error) throw error;
     const row = ((data ?? []) as unknown as MhdPublishedJobRpcRow[])[0];
     return row ? mapPublishedDescription(row) : null;
+  },
+
+  async careerOneStopOccupationLookup(input: MhdCareerOneStopOccupationLookupInput): Promise<MhdCareerOneStopOccupationLookupResponse> {
+    const { data, error } = await supabaseClient.functions.invoke('careeronestop-occupation-lookup', {
+      body: { onetSocCode: input.onetSocCode, location: input.location, includeWages: false, includeDuties: true },
+    });
+    if (error) throw error;
+    const response = data as MhdCareerOneStopOccupationLookupResponse | undefined;
+    if (response?.success === false) throw new Error(response.error);
+    return response as MhdCareerOneStopOccupationLookupResponse;
   },
 };

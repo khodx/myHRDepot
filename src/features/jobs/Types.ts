@@ -339,6 +339,33 @@ export interface MhdUpsertCompetencyInput {
   competencyId?: MhdCompetencyId | null;
 }
 
+export interface MhdCareerOneStopOccupationLookupInput {
+  onetSocCode: string;
+  location?: string;
+}
+
+export interface MhdCareerOneStopOccupationLookupSuccess {
+  success: true;
+  socCode: string;
+  onetTitle?: string | null;
+  onetDescription?: string | null;
+  tasks: string[];
+  dwas: string[];
+  skills: string[];
+  knowledge: string[];
+  ability: string[];
+  source: string;
+}
+
+export interface MhdCareerOneStopOccupationLookupFailure {
+  success: false;
+  error: string;
+}
+
+export type MhdCareerOneStopOccupationLookupResponse =
+  | MhdCareerOneStopOccupationLookupSuccess
+  | MhdCareerOneStopOccupationLookupFailure;
+
 // ---------------------------------------------------------------------------
 // Display + rule helpers
 // ---------------------------------------------------------------------------

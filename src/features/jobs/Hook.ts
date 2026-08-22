@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   MhdAssignJobInput,
+  MhdCareerOneStopOccupationLookupInput,
   MhdCreateJobInput,
   MhdSetPayRangeInput,
   MhdUpdateDescriptionDraftInput,
@@ -247,5 +248,11 @@ export function useMhdPublishedJobForPerson(personId: string | null, asOf: strin
     queryKey: mhdJobsQueryKeys.publishedForPerson(personId, asOf),
     queryFn: () => mhdJobsService.getPublishedForPerson(personId!, asOf),
     enabled: Boolean(personId),
+  });
+}
+
+export function useMhdCareerOneStopOccupationLookup() {
+  return useMutation({
+    mutationFn: (input: MhdCareerOneStopOccupationLookupInput) => mhdJobsService.careerOneStopOccupationLookup(input),
   });
 }

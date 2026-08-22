@@ -8,6 +8,8 @@ import type {
   MhdJobPayGradeConfirmInput,
   MhdJobPayGradeRecommendation,
   MhdJobPayGradeRecommendInput,
+  MhdCareerOneStopWageLookupInput,
+  MhdCareerOneStopWageLookupResponse,
   MhdMarketWageLookupInput,
   MhdMarketWageLookupResponse,
 } from './Types';
@@ -102,6 +104,16 @@ export const mhdCompensationService = {
     const response = data as MhdMarketWageLookupResponse | undefined;
     if (response?.success === false) throw new Error(response.error);
     return response as MhdMarketWageLookupResponse;
+  },
+
+  async careerOneStopWageLookup(input: MhdCareerOneStopWageLookupInput): Promise<MhdCareerOneStopWageLookupResponse> {
+    const { data, error } = await supabaseClient.functions.invoke('careeronestop-occupation-lookup', {
+      body: { ...input, includeWages: true, includeDuties: false },
+    });
+    if (error) throw error;
+    const response = data as MhdCareerOneStopWageLookupResponse | undefined;
+    if (response?.success === false) throw new Error(response.error);
+    return response as MhdCareerOneStopWageLookupResponse;
   },
 
   async readiness(): Promise<MhdComplianceReadiness | null> {
