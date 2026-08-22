@@ -10,6 +10,7 @@ import type { MhdDocumentTemplate } from '@/features/documents/Types';
 import { MHD_EMPLOYEE_FILE_TYPES, mhdIsEmployeeFileTypeKey } from '@/features/employee-files/Types';
 import { mhdCreateFormInputSchema } from '../Schemas';
 import { mhdFormService } from '../Service';
+import { MHD_FORM_INTAKE_KINDS, mhdIsFormIntakeKind } from '../Types';
 import type {
   MhdFieldType,
   MhdForm,
@@ -172,6 +173,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
   const [employeeFileCategory, setEmployeeFileCategory] = useState(
     initialForm?.employeeFileCategory ?? '',
   );
+  const [intakeKind, setIntakeKind] = useState(initialForm?.intakeKind ?? '');
   const [requiresEsignature, setRequiresEsignature] = useState(
     initialForm?.requiresEsignature ?? false,
   );
@@ -411,6 +413,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
       const selectedEmployeeFileCategory = mhdIsEmployeeFileTypeKey(employeeFileCategory)
         ? employeeFileCategory
         : null;
+      const selectedIntakeKind = mhdIsFormIntakeKind(intakeKind) ? intakeKind : null;
       const selectedEsignatureDocumentTemplateId = requiresEsignature
         ? esignatureDocumentTemplateId
         : null;
@@ -424,6 +427,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
         name: formName,
         description,
         employeeFileCategory: selectedEmployeeFileCategory,
+        intakeKind: selectedIntakeKind,
         requiresEsignature,
         esignatureDocumentTemplateId: selectedEsignatureDocumentTemplateId,
         definition,
@@ -439,6 +443,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
             name: formName,
             description,
             employeeFileCategory: selectedEmployeeFileCategory,
+            intakeKind: selectedIntakeKind,
             requiresEsignature,
             esignatureDocumentTemplateId: selectedEsignatureDocumentTemplateId,
             definition,
@@ -448,6 +453,7 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
               name: formName,
               description,
               employeeFileCategory: selectedEmployeeFileCategory,
+              intakeKind: selectedIntakeKind,
               requiresEsignature,
               esignatureDocumentTemplateId: selectedEsignatureDocumentTemplateId,
               definition,
@@ -537,6 +543,29 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
               </p>
             </div>
 
+            <div>
+              <label className="mb-1 block text-sm font-medium text-foreground">
+                Cross-Module Intake
+              </label>
+              <select
+                value={intakeKind}
+                onChange={(event) => setIntakeKind(event.target.value)}
+                className="w-full rounded-md border border-border px-3 py-2 text-sm"
+              >
+                <option value="">None</option>
+                {MHD_FORM_INTAKE_KINDS.map((entry) => (
+                  <option key={entry.key} value={entry.key}>
+                    {entry.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Tag this form as a company's designated intake point for Leave or Accommodation case
+                creation. A form must be tagged here before it can be set as a company's default
+                intake form.
+              </p>
+            </div>
+
             <div className="space-y-3 rounded-md border border-border bg-muted p-3">
               <label className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <input
@@ -580,13 +609,13 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
                   ) : documentTemplates.length > 0 &&
                     documentTemplates.every((template) => !template.requiresSignature) ? (
                     <p className="mt-1 text-xs text-red-600">
-                      No document templates for this company are marked as requiring a
-                      signature yet. Enable &quot;Requires Signature&quot; on a template first.
+                      No document templates for this company are marked as requiring a signature
+                      yet. Enable &quot;Requires Signature&quot; on a template first.
                     </p>
                   ) : (
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Only templates marked &quot;Requires Signature&quot; are shown — the
-                      selected template is generated after submit and routed to the submitter.
+                      Only templates marked &quot;Requires Signature&quot; are shown — the selected
+                      template is generated after submit and routed to the submitter.
                     </p>
                   )}
                 </div>
@@ -599,7 +628,10 @@ export function MhdFormBuilder({ companyId, formId, initialForm, onSaved }: MhdF
               type="button"
               onClick={() => void handleSave()}
               disabled={isSaving}
-              className={cn(buttonBaseClasses, 'gap-2 bg-emerald-600 text-white focus-visible:ring-emerald-600')}
+              className={cn(
+                buttonBaseClasses,
+                'gap-2 bg-emerald-600 text-white focus-visible:ring-emerald-600',
+              )}
             >
               <Save className="h-4 w-4" />
               {isSaving ? 'Saving...' : 'Save Draft'}

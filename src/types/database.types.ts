@@ -7355,6 +7355,58 @@ export type Database = {
           },
         ]
       }
+      form_intake_defaults: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          form_id: string
+          id: string
+          intake_kind: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          form_id: string
+          id?: string
+          intake_kind: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          form_id?: string
+          id?: string
+          intake_kind?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_intake_defaults_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_intake_defaults_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_intake_defaults_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_logic_rules: {
         Row: {
           all_conditions_required_flag: boolean
@@ -9462,6 +9514,7 @@ export type Database = {
           hr_submodule: string | null
           id: string
           instructions: string | null
+          intake_kind: string | null
           internal_description: string | null
           internal_only_flag: boolean
           internal_process_owner: string | null
@@ -9554,6 +9607,7 @@ export type Database = {
           hr_submodule?: string | null
           id?: string
           instructions?: string | null
+          intake_kind?: string | null
           internal_description?: string | null
           internal_only_flag?: boolean
           internal_process_owner?: string | null
@@ -9646,6 +9700,7 @@ export type Database = {
           hr_submodule?: string | null
           id?: string
           instructions?: string | null
+          intake_kind?: string | null
           internal_description?: string | null
           internal_only_flag?: boolean
           internal_process_owner?: string | null
@@ -20622,6 +20677,85 @@ export type Database = {
           },
         ]
       }
+      watched_external_sources: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          parent_source_key: string | null
+          source_key: string
+          source_type: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          parent_source_key?: string | null
+          source_key: string
+          source_type: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          parent_source_key?: string | null
+          source_key?: string
+          source_type?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watched_external_sources_parent_source_key_fkey"
+            columns: ["parent_source_key"]
+            isOneToOne: false
+            referencedRelation: "watched_external_sources"
+            referencedColumns: ["source_key"]
+          },
+        ]
+      }
+      watched_source_snapshots: {
+        Row: {
+          content_hash: string
+          fetch_error: string | null
+          fetched_at: string
+          http_status: number | null
+          id: string
+          raw_content_ref: string | null
+          source_key: string
+        }
+        Insert: {
+          content_hash: string
+          fetch_error?: string | null
+          fetched_at?: string
+          http_status?: number | null
+          id?: string
+          raw_content_ref?: string | null
+          source_key: string
+        }
+        Update: {
+          content_hash?: string
+          fetch_error?: string | null
+          fetched_at?: string
+          http_status?: number | null
+          id?: string
+          raw_content_ref?: string | null
+          source_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watched_source_snapshots_source_key_fkey"
+            columns: ["source_key"]
+            isOneToOne: false
+            referencedRelation: "watched_external_sources"
+            referencedColumns: ["source_key"]
+          },
+        ]
+      }
       workflow_transitions: {
         Row: {
           company_id: string
@@ -21102,6 +21236,10 @@ export type Database = {
         Args: { p_case_id: string; p_new_status: string; p_reason?: string }
         Returns: undefined
       }
+      mhd_accommodations_status_category: {
+        Args: { p_status: string }
+        Returns: string
+      }
       mhd_acknowledge_memorandum: {
         Args: { p_acknowledgment_id: string; p_esignature_request_id?: string }
         Returns: undefined
@@ -21121,6 +21259,10 @@ export type Database = {
           impersonated_role: string
           session_id: string
         }[]
+      }
+      mhd_activities_status_category: {
+        Args: { p_status: string }
+        Returns: string
       }
       mhd_add_activity_participant: {
         Args: {
@@ -21201,6 +21343,10 @@ export type Database = {
           destination_record_id: string
           destination_table: string
         }[]
+      }
+      mhd_approvals_status_category: {
+        Args: { p_status: string }
+        Returns: string
       }
       mhd_approve_approval_step: {
         Args: {
@@ -21546,6 +21692,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      mhd_attendance_status_category: {
+        Args: { p_status: string }
+        Returns: string
+      }
       mhd_attendance_update_occurrence: {
         Args: {
           p_minutes_variance?: number
@@ -21881,6 +22031,40 @@ export type Database = {
         Args: { p_category: string; p_company_id: string }
         Returns: undefined
       }
+      mhd_clear_form_intake_default: {
+        Args: { p_company_id: string; p_intake_kind: string }
+        Returns: undefined
+      }
+      mhd_command_center_list: {
+        Args: {
+          p_alert_only?: boolean
+          p_company_id?: string
+          p_date_from?: string
+          p_date_to?: string
+          p_entity_types?: string[]
+          p_limit?: number
+          p_offset?: number
+          p_scope?: string
+          p_search_text?: string
+          p_status_categories?: string[]
+        }
+        Returns: {
+          company_id: string
+          entity_id: string
+          entity_type: string
+          is_alert: boolean
+          is_sensitive_category_only: boolean
+          item_id: string
+          link_path: string
+          person_id: string
+          person_name: string
+          primary_date: string
+          reference_id: string
+          status_category: string
+          status_raw: string
+          title: string
+        }[]
+      }
       mhd_compensation_is_privileged: { Args: never; Returns: boolean }
       mhd_competency_list: {
         Args: {
@@ -22103,6 +22287,10 @@ export type Database = {
           p_witness_user_id?: string
         }
         Returns: undefined
+      }
+      mhd_conduct_status_category: {
+        Args: { p_status: string }
+        Returns: string
       }
       mhd_conduct_transition_case: {
         Args: {
@@ -22443,6 +22631,7 @@ export type Database = {
           p_description?: string
           p_employee_file_category?: string
           p_esignature_document_template_id?: string
+          p_intake_kind?: string
           p_name?: string
           p_requires_esignature?: boolean
           p_source_form_id?: string
@@ -22949,6 +23138,10 @@ export type Database = {
       mhd_encrypt_field_value: { Args: { p_plain: string }; Returns: string }
       mhd_end_impersonation: { Args: never; Returns: undefined }
       mhd_esignature_send_expiring_soon: { Args: never; Returns: number }
+      mhd_esignature_status_category: {
+        Args: { p_status: string }
+        Returns: string
+      }
       mhd_export_audit_events: {
         Args: { p_company_id: string; p_date_from: string; p_date_to: string }
         Returns: {
@@ -23300,6 +23493,7 @@ export type Database = {
           employee_file_category: string
           esignature_document_template_id: string
           id: string
+          intake_kind: string
           name: string
           previous_version_id: string
           published_at: string
@@ -23311,6 +23505,13 @@ export type Database = {
           updated_at: string
           updated_by: string
           version: number
+        }[]
+      }
+      mhd_get_form_intake_default: {
+        Args: { p_company_id: string; p_intake_kind: string }
+        Returns: {
+          form_id: string
+          form_name: string
         }[]
       }
       mhd_get_impersonation_status: {
@@ -23794,6 +23995,10 @@ export type Database = {
           version_number: number
         }[]
       }
+      mhd_handbooks_status_category: {
+        Args: { p_status: string }
+        Returns: string
+      }
       mhd_has_third_party_grant: {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: boolean
@@ -24083,6 +24288,10 @@ export type Database = {
           p_new_status: string
         }
         Returns: undefined
+      }
+      mhd_investigations_status_category: {
+        Args: { p_status: string }
+        Returns: string
       }
       mhd_is_activity_facilitator: {
         Args: { p_activity_id: string }
@@ -24615,6 +24824,10 @@ export type Database = {
       mhd_leave_workflow_get: { Args: { p_case_id: string }; Returns: Json }
       mhd_leaves_can_see_medical: { Args: never; Returns: boolean }
       mhd_leaves_is_privileged: { Args: never; Returns: boolean }
+      mhd_leaves_status_category: {
+        Args: { p_status: string }
+        Returns: string
+      }
       mhd_link_correspondence_thread: {
         Args: {
           p_entity_id: string
@@ -25193,6 +25406,15 @@ export type Database = {
           updated_at: string
         }[]
       }
+      mhd_list_form_intake_defaults: {
+        Args: { p_company_id: string }
+        Returns: {
+          form_id: string
+          form_name: string
+          form_status: string
+          intake_kind: string
+        }[]
+      }
       mhd_list_form_library: {
         Args: { p_company_id: string; p_status?: string }
         Returns: {
@@ -25201,6 +25423,7 @@ export type Database = {
           description: string
           employee_file_category: string
           id: string
+          intake_kind: string
           is_library: boolean
           name: string
           reference_id: string
@@ -25222,6 +25445,7 @@ export type Database = {
           employee_file_category: string
           esignature_document_template_id: string
           id: string
+          intake_kind: string
           name: string
           previous_version_id: string
           published_at: string
@@ -27477,6 +27701,10 @@ export type Database = {
         Args: { p_category: string; p_company_id: string; p_form_id: string }
         Returns: undefined
       }
+      mhd_set_form_intake_default: {
+        Args: { p_company_id: string; p_form_id: string; p_intake_kind: string }
+        Returns: undefined
+      }
       mhd_set_person_photo: {
         Args: {
           p_actor_user_id?: string
@@ -27555,6 +27783,10 @@ export type Database = {
       mhd_task_attachment_count: {
         Args: { p_task_id: string }
         Returns: number
+      }
+      mhd_tasks_status_category: {
+        Args: { p_status_name: string }
+        Returns: string
       }
       mhd_training_assign: {
         Args: {
@@ -27712,6 +27944,10 @@ export type Database = {
           id: string
           reference_id: string
         }[]
+      }
+      mhd_training_status_category: {
+        Args: { p_status: string }
+        Returns: string
       }
       mhd_training_waive_assignment: {
         Args: { p_assignment_id: string; p_reason: string }
@@ -27940,10 +28176,12 @@ export type Database = {
           p_employee_file_category?: string
           p_esignature_document_template_id?: string
           p_form_id: string
+          p_intake_kind?: string
           p_name?: string
           p_requires_esignature?: boolean
           p_update_employee_file_category?: boolean
           p_update_esignature_document_template_id?: boolean
+          p_update_intake_kind?: boolean
         }
         Returns: undefined
       }
@@ -28203,6 +28441,29 @@ export type Database = {
           id: string
           reference_id: string
           status: string
+        }[]
+      }
+      mhd_watched_source_fetch_dispatch: { Args: never; Returns: undefined }
+      mhd_watched_source_review_task_create: {
+        Args: {
+          p_new_snapshot_id: string
+          p_previous_snapshot_id?: string
+          p_source_key: string
+        }
+        Returns: number
+      }
+      mhd_watched_source_snapshot_record: {
+        Args: {
+          p_content_hash: string
+          p_fetch_error?: string
+          p_http_status?: number
+          p_raw_content_ref?: string
+          p_source_key: string
+        }
+        Returns: {
+          is_change: boolean
+          previous_snapshot_id: string
+          snapshot_id: string
         }[]
       }
       mhd_withdraw_esign_consent: {

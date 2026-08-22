@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CalendarOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
@@ -8,7 +8,11 @@ import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { cn } from '@/utils/cn';
-import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
+import {
+  mhdPaginationSummary,
+  MhdPaginationControls,
+  useMhdPagination,
+} from '@/components/ui/MhdPagination';
 import {
   MhdActionsTh,
   MhdTable,
@@ -38,6 +42,7 @@ import { MhdLeaveBoard } from './MhdLeaveBoard';
 import { MhdLeaveCaseForm } from './MhdLeaveCaseForm';
 import { MhdLeaveCaseSelfForm } from './MhdLeaveCaseSelfForm';
 import { MhdLeaveStatusBadge } from './MhdLeaveStatusBadge';
+import { useMhdFormIntakeDefault } from '@/features/forms/Hook';
 
 const MHD_LEAVES_VIEW_KEY = 'mhd:leaves:view';
 
@@ -54,9 +59,11 @@ const MHD_LEAVES_VIEW_KEY = 'mhd:leaves:view';
  */
 export function MhdLeavesPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile, roles } = useMhdAuth();
   const companyId = profile?.companyId ?? '';
   const isPrivileged = mhdLeavesIsPrivileged(roles);
+  const leaveIntake = useMhdFormIntakeDefault(companyId || null, 'leaveCase');
   const selfPersonId = profile?.personId ?? null;
 
   const [isCreating, setIsCreating] = useState(false);
@@ -139,55 +146,51 @@ export function MhdLeavesPage() {
             ) : null}
             {isPrivileged ? (
               <>
-              <Link
-                to="/leaves/policy-library"
-                className={cn(
-                  buttonBaseClasses,
-                  buttonVariantClasses.secondary,
-                  'h-9 px-3 text-[16.8px]',
-                )}
-              >
-                Policy Library
-              </Link>
-              <Link
-                to="/leaves/new/intake"
-                className={cn(buttonBaseClasses, buttonVariantClasses.primary, 'h-9 px-3 text-[16.8px]')}
-              >
-                Start guided intake
-              </Link>
-              {/*
-                Form-driven intake (0188, mhd_create_leave_case_from_submission).
-                This links plainly to the Forms Library rather than a specific
-                form id — no "default leave intake form" designation exists on
-                `forms` yet (would need e.g. a forms.intake_kind column), so a
-                privileged user picks a leave-tagged form themselves. Once one
-                is submitted there, the case is NOT opened automatically yet
-                either: nothing currently calls
-                mhdLeavesService.createCaseFromSubmission after a real
-                submission completes, because MhdFormRenderer's onSubmitted
-                callback (src/features/forms/components/MhdFormRenderer.tsx)
-                forwards only (submissionId, form), not the submitted values,
-                and MhdFormRendererPage has no per-form "this is a Leaves
-                intake" signal to branch on yet (mirroring how it already
-                branches on onboardingPersonId/onboardingDocumentKey to call
-                mhdOnboardingService). See the docstring on
-                mhdLeavesService.createCaseFromSubmission (Service.ts) for the
-                exact wiring this needs — closing that gap requires editing
-                src/features/forms/, out of scope for this change.
+                <Link
+                  to="/leaves/policy-library"
+                  className={cn(
+                    buttonBaseClasses,
+                    buttonVariantClasses.secondary,
+                    'h-9 px-3 text-[16.8px]',
+                  )}
+                >
+                  Policy Library
+                </Link>
+                <Link
+                  to="/leaves/new/intake"
+                  className={cn(
+                    buttonBaseClasses,
+                    buttonVariantClasses.primary,
+                    'h-9 px-3 text-[16.8px]',
+                  )}
+                >
+                  Start guided intake
+                </Link>
+                {/*
+                Form-driven intake (0188, mhd_create_leave_case_from_submission;
+                0219, form_intake_defaults). Deep-links straight to the
+                company's designated leave-intake form (configurable from the
+                Policy Library above) when one is set, falling back to the
+                generic Forms Library index otherwise.
               */}
-              <Link
-                to="/forms/library"
-                className={cn(
-                  buttonBaseClasses,
-                  buttonVariantClasses.secondary,
-                  'h-9 px-3 text-[16.8px]',
-                )}
-              >
-                New Leave Case (via Form)
-              </Link>
-              <Button onClick={() => setIsCreating(true)} className="h-9 px-3 text-[16.8px]">
-                Open Leave Case
-              </Button>
+                <Link
+                  to={
+                    leaveIntake.default
+                      ? `/forms/${leaveIntake.default.formId}/render?intakeAction=leaveCase`
+                      : '/forms/library'
+                  }
+                  state={leaveIntake.default ? { backgroundLocation: location } : undefined}
+                  className={cn(
+                    buttonBaseClasses,
+                    buttonVariantClasses.secondary,
+                    'h-9 px-3 text-[16.8px]',
+                  )}
+                >
+                  New Leave Case (via Form)
+                </Link>
+                <Button onClick={() => setIsCreating(true)} className="h-9 px-3 text-[16.8px]">
+                  Open Leave Case
+                </Button>
               </>
             ) : null}
           </>
@@ -242,7 +245,11 @@ export function MhdLeavesPage() {
           <MhdEmptyState icon={CalendarOff} title="No leave cases on record." />
         </MhdCard>
       ) : viewMode === 'board' ? (
-        <MhdLeaveBoard cases={cases.data ?? []} isLoading={cases.isLoading} isPrivileged={isPrivileged} />
+        <MhdLeaveBoard
+          cases={cases.data ?? []}
+          isLoading={cases.isLoading}
+          isPrivileged={isPrivileged}
+        />
       ) : (
         <MhdCard className="overflow-hidden p-0">
           <MhdTable>
@@ -283,7 +290,9 @@ export function MhdLeavesPage() {
               ))}
             </tbody>
           </MhdTable>
-          <MhdTableFooter summary={mhdPaginationSummary(pagination, casesData.length, 'leave cases')}>
+          <MhdTableFooter
+            summary={mhdPaginationSummary(pagination, casesData.length, 'leave cases')}
+          >
             <MhdPaginationControls pagination={pagination} />
           </MhdTableFooter>
         </MhdCard>

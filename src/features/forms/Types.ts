@@ -6,6 +6,29 @@ type DbFunctions = Database['public']['Functions'];
 export type MhdFormStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
 export type MhdSubmissionStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
 
+/**
+ * Cross-module intake tag (0219, closes the Multi-Tenant Library
+ * Architecture build's documented modal-route gap): identifies a form as
+ * *the* structured-intake form for a case-creation flow. Matches the values
+ * `MhdFormRendererPage` already reads from `?intakeAction=...` (added in
+ * 0188). Mirrors `MhdEmployeeFileTypeKey`'s "tag a form for a destination"
+ * shape.
+ */
+export type MhdFormIntakeKind = 'leaveCase' | 'accommodationCase';
+
+export const MHD_FORM_INTAKE_KINDS: Array<{ key: MhdFormIntakeKind; label: string }> = [
+  { key: 'leaveCase', label: 'Leave Case Intake' },
+  { key: 'accommodationCase', label: 'Accommodation Case Intake' },
+];
+
+export function mhdIsFormIntakeKind(value: unknown): value is MhdFormIntakeKind {
+  return value === 'leaveCase' || value === 'accommodationCase';
+}
+
+export function mhdFormIntakeKindLabel(kind: MhdFormIntakeKind): string {
+  return MHD_FORM_INTAKE_KINDS.find((entry) => entry.key === kind)?.label ?? kind;
+}
+
 export type MhdFieldType =
   | 'text'
   | 'text_field'
@@ -353,6 +376,7 @@ export interface MhdForm {
   employeeFileCategory: MhdEmployeeFileTypeKey | null;
   requiresEsignature: boolean;
   esignatureDocumentTemplateId: string | null;
+  intakeKind: MhdFormIntakeKind | null;
   definition: MhdFormDefinition;
   version: number;
   previousVersionId: string | null;
@@ -429,6 +453,7 @@ export interface MhdCreateFormInput {
   employeeFileCategory?: MhdEmployeeFileTypeKey | null;
   requiresEsignature?: boolean;
   esignatureDocumentTemplateId?: string | null;
+  intakeKind?: MhdFormIntakeKind | null;
   definition: MhdFormDefinition;
 }
 
@@ -438,6 +463,7 @@ export interface MhdUpdateFormInput {
   employeeFileCategory?: MhdEmployeeFileTypeKey | null;
   requiresEsignature?: boolean;
   esignatureDocumentTemplateId?: string | null;
+  intakeKind?: MhdFormIntakeKind | null;
   definition?: MhdFormDefinition;
 }
 
@@ -494,6 +520,8 @@ export interface MhdFormLibraryEntry {
   sourceFormId: string | null;
   /** True for a platform-wide library form (`companyId === null`); false for a company-owned form. */
   isLibrary: boolean;
+  /** Cross-module intake tag (0219) — set when this form is the/a designated intake form for a case-creation flow. */
+  intakeKind: MhdFormIntakeKind | null;
   version: number;
   createdAt: string;
   updatedAt: string;

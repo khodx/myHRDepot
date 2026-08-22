@@ -8,10 +8,21 @@ import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdActionsTh, MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdIsPlatformAdminOrHrPartner, mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
-import { useMhdCreateLeaveType, useMhdForkLeaveType, useMhdLeaveTypes, useMhdUpdateLeaveType } from '../Hook';
+import {
+  useMhdCreateLeaveType,
+  useMhdForkLeaveType,
+  useMhdLeaveTypes,
+  useMhdUpdateLeaveType,
+} from '../Hook';
 import type { MhdLeaveTypeFormValues } from '../Schemas';
-import { mhdFormatLeaveJurisdiction, mhdFormatLeaveMeasurementMethod, mhdFormatLeaveHours, type MhdLeaveType } from '../Types';
+import {
+  mhdFormatLeaveJurisdiction,
+  mhdFormatLeaveMeasurementMethod,
+  mhdFormatLeaveHours,
+  type MhdLeaveType,
+} from '../Types';
 import { MhdLeaveTypeForm } from './MhdLeaveTypeForm';
+import { MhdFormIntakeDefaultPanel } from '@/components/ui/MhdFormIntakeDefaultPanel';
 
 /**
  * `/leaves/policy-library` — the leave types Studio/library (migration 0185).
@@ -124,6 +135,9 @@ export function MhdLeaveTypeLibraryPage() {
           ) : undefined
         }
       />
+      {mhdIsPlatformAdminOrHrPartner(roles) && companyId ? (
+        <MhdFormIntakeDefaultPanel companyId={companyId} intakeKind="leaveCase" label="Leave" />
+      ) : null}
 
       {errorMessage ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -203,7 +217,9 @@ export function MhdLeaveTypeLibraryPage() {
                           onClick={() => void handleFork(type)}
                           className="text-sm font-medium text-accent hover:text-accent-hover disabled:opacity-50"
                         >
-                          {forkType.isPending && forkingId === type.id ? 'Forking…' : 'Fork to My Company'}
+                          {forkType.isPending && forkingId === type.id
+                            ? 'Forking…'
+                            : 'Fork to My Company'}
                         </button>
                       ) : null}
                       {!canEditRow(type) && !(type.isGlobal && canManageCompany) ? (

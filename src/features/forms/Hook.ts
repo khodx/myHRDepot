@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { mhdFormService } from './Service';
-import type { MhdForm, MhdFormLibraryEntry, MhdFormsIndexFilters, MhdFormSubmission } from './Types';
+import type {
+  MhdForm,
+  MhdFormIntakeKind,
+  MhdFormLibraryEntry,
+  MhdFormStatus,
+  MhdFormsIndexFilters,
+  MhdFormSubmission,
+} from './Types';
 
 const DEFAULT_FILTERS: MhdFormsIndexFilters = {
   status: 'ALL',
@@ -114,4 +121,95 @@ export function useMhdFormLibrary(companyId: string | null) {
     errorMessage,
     refresh: load,
   };
+}
+
+export function useMhdFormIntakeDefault(companyId: string | null, intakeKind: MhdFormIntakeKind) {
+  const [defaultForm, setDefaultForm] = useState<{
+    formId: string;
+    formName: string;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!companyId) {
+      setDefaultForm(null);
+      setErrorMessage(null);
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      setDefaultForm(await mhdFormService.getFormIntakeDefault(companyId, intakeKind));
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Unable to load form intake default.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [companyId, intakeKind]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount pattern used throughout the scaffold.
+    void load();
+  }, [load]);
+
+  return { default: defaultForm, isLoading, errorMessage, refresh: load };
+}
+
+export function useMhdFormIntakeDefaults(companyId: string | null) {
+  const [defaults, setDefaults] = useState<
+    Array<{
+      intakeKind: MhdFormIntakeKind;
+      formId: string;
+      formName: string;
+      formStatus: MhdFormStatus;
+    }>
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!companyId) {
+      setDefaults([]);
+      setErrorMessage(null);
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      setDefaults(await mhdFormService.listFormIntakeDefaults(companyId));
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Unable to load form intake defaults.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [companyId]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount pattern used throughout the scaffold.
+    void load();
+  }, [load]);
+
+  const setDefault = useCallback(
+    async (intakeKind: MhdFormIntakeKind, formId: string) => {
+      await mhdFormService.setFormIntakeDefault(companyId ?? '', intakeKind, formId);
+      await load();
+    },
+    [companyId, load],
+  );
+  const clearDefault = useCallback(
+    async (intakeKind: MhdFormIntakeKind) => {
+      await mhdFormService.clearFormIntakeDefault(companyId ?? '', intakeKind);
+      await load();
+    },
+    [companyId, load],
+  );
+
+  return { defaults, isLoading, errorMessage, refresh: load, setDefault, clearDefault };
 }

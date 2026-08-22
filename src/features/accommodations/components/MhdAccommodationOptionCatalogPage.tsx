@@ -8,6 +8,7 @@ import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
+import { MhdFormIntakeDefaultPanel } from '@/components/ui/MhdFormIntakeDefaultPanel';
 import {
   useMhdAccommodationOptionCatalog,
   useMhdCreateAccommodationOptionCatalogEntry,
@@ -70,9 +71,9 @@ export function MhdAccommodationOptionCatalogPage() {
   const isPlatformAdminOrHrPartner = mhdIsPlatformAdminOrHrPartner(roles);
   const canManageOwnCompanyEntries = isPlatformAdminOrHrPartner || roles.includes('Client Admin');
 
-  const [categoryFilter, setCategoryFilter] = useState<MhdAccommodationOptionCatalogCategory | 'ALL'>(
-    'ALL',
-  );
+  const [categoryFilter, setCategoryFilter] = useState<
+    MhdAccommodationOptionCatalogCategory | 'ALL'
+  >('ALL');
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState<NewEntryDraft>(EMPTY_DRAFT);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -181,6 +182,13 @@ export function MhdAccommodationOptionCatalogPage() {
           ) : undefined
         }
       />
+      {mhdIsPlatformAdminOrHrPartner(roles) && companyId ? (
+        <MhdFormIntakeDefaultPanel
+          companyId={companyId}
+          intakeKind="accommodationCase"
+          label="Accommodation"
+        />
+      ) : null}
 
       {creating && companyId ? (
         <MhdCard className="space-y-3">
@@ -191,7 +199,9 @@ export function MhdAccommodationOptionCatalogPage() {
               <input
                 className={`mt-1 ${inputClass}`}
                 value={draft.optionType}
-                onChange={(event) => setDraft((value) => ({ ...value, optionType: event.target.value }))}
+                onChange={(event) =>
+                  setDraft((value) => ({ ...value, optionType: event.target.value }))
+                }
                 placeholder="e.g. Adjustable-height desk"
               />
             </label>
@@ -228,7 +238,8 @@ export function MhdAccommodationOptionCatalogPage() {
           </label>
           <div className="grid gap-3 md:grid-cols-2">
             <label className="text-sm font-medium">
-              Typical cost range <span className="font-normal text-muted-foreground">(optional)</span>
+              Typical cost range{' '}
+              <span className="font-normal text-muted-foreground">(optional)</span>
               <input
                 className={`mt-1 ${inputClass}`}
                 value={draft.typicalCostRange}
@@ -244,7 +255,9 @@ export function MhdAccommodationOptionCatalogPage() {
                 type="number"
                 className={`mt-1 ${inputClass}`}
                 value={draft.sortOrder}
-                onChange={(event) => setDraft((value) => ({ ...value, sortOrder: event.target.value }))}
+                onChange={(event) =>
+                  setDraft((value) => ({ ...value, sortOrder: event.target.value }))
+                }
               />
             </label>
           </div>
@@ -253,7 +266,9 @@ export function MhdAccommodationOptionCatalogPage() {
               <input
                 type="checkbox"
                 checked={draft.isGlobal}
-                onChange={(event) => setDraft((value) => ({ ...value, isGlobal: event.target.checked }))}
+                onChange={(event) =>
+                  setDraft((value) => ({ ...value, isGlobal: event.target.checked }))
+                }
               />
               Add to the global library (visible to every company)
             </label>
@@ -399,7 +414,9 @@ export function MhdAccommodationOptionCatalogPage() {
                               value={editDraft.typicalCostRange}
                               onChange={(event) =>
                                 setEditDraft((value) =>
-                                  value ? { ...value, typicalCostRange: event.target.value } : value,
+                                  value
+                                    ? { ...value, typicalCostRange: event.target.value }
+                                    : value,
                                 )
                               }
                             />
@@ -456,7 +473,10 @@ export function MhdAccommodationOptionCatalogPage() {
                           >
                             Cancel
                           </Button>
-                          <Button disabled={updateEntry.isPending} onClick={() => void submitEdit()}>
+                          <Button
+                            disabled={updateEntry.isPending}
+                            onClick={() => void submitEdit()}
+                          >
                             {updateEntry.isPending ? 'Saving…' : 'Save Changes'}
                           </Button>
                         </div>

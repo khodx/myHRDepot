@@ -6,7 +6,11 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MHD_PILL_BUTTON_CLASS } from '@/components/ui/mhdPillButton';
-import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
+import {
+  mhdPaginationSummary,
+  MhdPaginationControls,
+  useMhdPagination,
+} from '@/components/ui/MhdPagination';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   MhdActionsTh,
@@ -161,7 +165,7 @@ export function MhdFormLibraryPage() {
                   <MhdTd className="whitespace-nowrap text-right" data-row-click-ignore>
                     <div className="flex items-center justify-end gap-3">
                       <Link
-                        to={`/forms/${entry.id}/render`}
+                        to={`/forms/${entry.id}/render${entry.intakeKind ? `?intakeAction=${entry.intakeKind}` : ''}`}
                         state={{ backgroundLocation: location }}
                         className={`${MHD_PILL_BUTTON_CLASS} px-3 py-1 text-xs`}
                       >

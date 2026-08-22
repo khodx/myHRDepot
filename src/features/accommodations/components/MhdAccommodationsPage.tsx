@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Accessibility } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
@@ -33,6 +33,7 @@ import {
 } from '../Types';
 import { MhdAccommodationBoard } from './MhdAccommodationBoard';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
+import { useMhdFormIntakeDefault } from '@/features/forms/Hook';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -41,10 +42,12 @@ const MHD_ACCOMMODATIONS_VIEW_KEY = 'mhd:accommodations:view';
 
 export function MhdAccommodationsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile, roles } = useMhdAuth();
   const companyId = profile?.companyId ?? '';
   const selfPersonId = profile?.personId ?? null;
   const isPrivileged = mhdAccommodationsIsPrivileged(roles);
+  const accommodationIntake = useMhdFormIntakeDefault(companyId || null, 'accommodationCase');
   const [status, setStatus] = useState<MhdAccommodationStatus | 'ALL'>('ALL');
   const [personId, setPersonId] = useState(isPrivileged ? '' : (selfPersonId ?? ''));
   const [creating, setCreating] = useState(false);
@@ -117,15 +120,15 @@ export function MhdAccommodationsPage() {
              * Additive entry point only — never a replacement for "Open
              * Request" below or for verbal/observed/representative-made
              * intake, which this standing domain rule (CLAUDE.md) requires to
-             * stay unrestricted. There is no way from this feature to know
-             * which form, if any, is the accommodation-intake form, so this
-             * links to the Forms Library rather than a hardcoded form id. A
-             * "default accommodation intake form" designation on a form (or
-             * on company settings) would let this deep-link straight to that
-             * form's renderer instead of the library index.
+             * The Option Library can designate the company's default intake form.
              */}
             <Link
-              to="/forms/library"
+              to={
+                accommodationIntake.default
+                  ? `/forms/${accommodationIntake.default.formId}/render?intakeAction=accommodationCase`
+                  : '/forms/library'
+              }
+              state={accommodationIntake.default ? { backgroundLocation: location } : undefined}
               className="inline-flex h-9 items-center rounded-md border border-border bg-card px-3 text-[16.8px] font-semibold text-foreground hover:bg-accent-tint"
             >
               Submit Via Form

@@ -34,8 +34,14 @@ import type {
   MhdUpdateFormInput,
   MhdVisibilityNode,
   MhdGridDefinition,
+  MhdFormIntakeKind,
 } from './Types';
-import { mhdIsConditionGroup, mhdIsVisibilityGroup, mhdNormalizeFieldType } from './Types';
+import {
+  mhdIsConditionGroup,
+  mhdIsFormIntakeKind,
+  mhdIsVisibilityGroup,
+  mhdNormalizeFieldType,
+} from './Types';
 
 type DbFunctions = Database['public']['Functions'];
 type MhdCreateFormResultRow = DbFunctions['mhd_create_form']['Returns'][number];
@@ -348,6 +354,7 @@ function mapFormRow(row: MhdRpcFormRow | MhdRpcFormsListRow): MhdForm {
   const employeeFileCategory = mhdIsEmployeeFileTypeKey(row.employee_file_category)
     ? row.employee_file_category
     : null;
+  const intakeKind = mhdIsFormIntakeKind(row.intake_kind) ? row.intake_kind : null;
 
   return {
     id: row.id,
@@ -357,6 +364,7 @@ function mapFormRow(row: MhdRpcFormRow | MhdRpcFormsListRow): MhdForm {
     description: row.description ?? undefined,
     status: row.status as MhdFormStatus,
     employeeFileCategory,
+    intakeKind,
     requiresEsignature: row.requires_esignature,
     esignatureDocumentTemplateId: row.esignature_document_template_id ?? null,
     definition: mapDefinition(row.definition, {
@@ -395,6 +403,7 @@ function mapFormLibraryRow(row: MhdRpcFormLibraryRow): MhdFormLibraryEntry {
     employeeFileCategory: mhdIsEmployeeFileTypeKey(row.employee_file_category)
       ? row.employee_file_category
       : null,
+    intakeKind: mhdIsFormIntakeKind(row.intake_kind) ? row.intake_kind : null,
     requiresEsignature: row.requires_esignature,
     sourceFormId: row.source_form_id ?? null,
     isLibrary: row.is_library,
@@ -485,6 +494,7 @@ export const mhdFormService = {
         p_name: input.name.trim(),
         p_definition: toJsonValue(input.definition),
         p_employee_file_category: input.employeeFileCategory ?? null,
+        p_intake_kind: input.intakeKind ?? null,
         p_requires_esignature: input.requiresEsignature ?? false,
         ...(Object.prototype.hasOwnProperty.call(input, 'esignatureDocumentTemplateId')
           ? { p_esignature_document_template_id: input.esignatureDocumentTemplateId ?? null }
@@ -516,6 +526,7 @@ export const mhdFormService = {
       input,
       'employeeFileCategory',
     );
+    const shouldUpdateIntakeKind = Object.prototype.hasOwnProperty.call(input, 'intakeKind');
     const shouldUpdateRequiresEsignature = Object.prototype.hasOwnProperty.call(
       input,
       'requiresEsignature',
@@ -541,6 +552,12 @@ export const mhdFormService = {
         ? {
             p_employee_file_category: input.employeeFileCategory ?? null,
             p_update_employee_file_category: true,
+          }
+        : {}),
+      ...(shouldUpdateIntakeKind
+        ? {
+            p_intake_kind: input.intakeKind ?? null,
+            p_update_intake_kind: true,
           }
         : {}),
       ...(shouldUpdateRequiresEsignature
@@ -645,6 +662,76 @@ export const mhdFormService = {
     }
 
     return (data ?? []).map(mapFormLibraryRow);
+  },
+
+  /**
+   * Resolves the company's canonical intake form so module entry points can
+   * deep-link to the correct renderer while retaining the generic fallback.
+   */
+  async getFormIntakeDefault(
+    companyId: string,
+    intakeKind: MhdFormIntakeKind,
+  ): Promise<{ formId: string; formName: string } | null> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_get_form_intake_default', {
+        p_company_id: companyId,
+        p_intake_kind: intakeKind,
+      })
+      .returns<Database['public']['Functions']['mhd_get_form_intake_default']['Returns']>();
+
+    if (error) throw new Error(`Unable to load form intake default: ${error.message}`);
+    const row = data?.[0];
+    return row ? { formId: row.form_id, formName: row.form_name } : null;
+  },
+
+  /** Lists the company's configured canonical forms for the admin settings surfaces. */
+  async listFormIntakeDefaults(companyId: string): Promise<
+    Array<{
+      intakeKind: MhdFormIntakeKind;
+      formId: string;
+      formName: string;
+      formStatus: MhdFormStatus;
+    }>
+  > {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_form_intake_defaults', { p_company_id: companyId })
+      .returns<Database['public']['Functions']['mhd_list_form_intake_defaults']['Returns']>();
+
+    if (error) throw new Error(`Unable to list form intake defaults: ${error.message}`);
+    return (data ?? []).flatMap((row) => {
+      if (!mhdIsFormIntakeKind(row.intake_kind)) return [];
+      return [
+        {
+          intakeKind: row.intake_kind,
+          formId: row.form_id,
+          formName: row.form_name,
+          formStatus: row.form_status as MhdFormStatus,
+        },
+      ];
+    });
+  },
+
+  /** Sets the company's canonical form for a specific cross-module intake flow. */
+  async setFormIntakeDefault(
+    companyId: string,
+    intakeKind: MhdFormIntakeKind,
+    formId: string,
+  ): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_set_form_intake_default', {
+      p_company_id: companyId,
+      p_intake_kind: intakeKind,
+      p_form_id: formId,
+    });
+    if (error) throw new Error(`Unable to set form intake default: ${error.message}`);
+  },
+
+  /** Clears the company's canonical form for a specific cross-module intake flow. */
+  async clearFormIntakeDefault(companyId: string, intakeKind: MhdFormIntakeKind): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_clear_form_intake_default', {
+      p_company_id: companyId,
+      p_intake_kind: intakeKind,
+    });
+    if (error) throw new Error(`Unable to clear form intake default: ${error.message}`);
   },
 
   /**
