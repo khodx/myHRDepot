@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdPersonService } from '@/features/people/Service';
+import { mhdFormService } from '@/features/forms/Service';
+import type { MhdFormLibraryEntry } from '@/features/forms/Types';
 import { mhdAccommodationsService } from './Service';
 import type {
   MhdAccommodationStatus,
@@ -19,6 +21,8 @@ export const mhdAccommodationQueryKeys = {
     ['mhd-accommodations', 'manager-instructions', personId ?? ''] as const,
   optionCatalog: (companyId: string | null, category: string | null) =>
     ['mhd-accommodations', 'option-catalog', companyId ?? '', category ?? 'ALL'] as const,
+  documentTemplates: (companyId: string | null) =>
+    ['mhd-accommodations', 'document-templates', companyId ?? ''] as const,
 };
 
 function useInvalidateAccommodationCase() {
@@ -166,6 +170,26 @@ export function useMhdAccommodationOptionCatalog(
   return useQuery({
     queryKey: mhdAccommodationQueryKeys.optionCatalog(companyId, category ?? null),
     queryFn: () => mhdAccommodationsService.listOptionCatalog(companyId!, category),
+    enabled: Boolean(companyId),
+  });
+}
+
+const MHD_ACCOMMODATION_DOCUMENT_TEMPLATE_NAMES = new Set([
+  'Accommodation Request Letter',
+  'Employer Request for Additional Documentation',
+  'Temporary/Trial Accommodation Approval',
+  'Interactive Process Documentation Log',
+]);
+
+export function useMhdAccommodationDocumentTemplates(companyId: string | null | undefined) {
+  return useQuery({
+    queryKey: mhdAccommodationQueryKeys.documentTemplates(companyId ?? null),
+    queryFn: async () => {
+      const entries = await mhdFormService.listFormLibrary(companyId!);
+      return entries.filter((entry: MhdFormLibraryEntry) =>
+        MHD_ACCOMMODATION_DOCUMENT_TEMPLATE_NAMES.has(entry.name),
+      );
+    },
     enabled: Boolean(companyId),
   });
 }

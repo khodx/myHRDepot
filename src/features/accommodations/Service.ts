@@ -41,6 +41,7 @@ function mapOptionCatalogEntry(
     optionType: row.option_type,
     descriptionTemplate: row.description_template,
     category: row.category,
+    functionalLimitationTags: row.functional_limitation_tags ?? [],
     typicalCostRange: row.typical_cost_range,
     sourceOptionId: row.source_option_id,
     isActive: row.is_active,

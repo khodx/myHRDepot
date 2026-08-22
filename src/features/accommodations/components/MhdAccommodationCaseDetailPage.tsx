@@ -13,6 +13,7 @@ import {
 } from '@/appshell/mhdRouteAccess';
 import {
   useMhdAccommodationCase,
+  useMhdAccommodationDocumentTemplates,
   useMhdAccommodationDecision,
   useMhdAccommodationImplementation,
   useMhdAccommodationInteraction,
@@ -88,6 +89,7 @@ export function MhdAccommodationCaseDetailPage() {
   const canSeeMedical = mhdAccommodationsCanSeeMedical(roles);
   const detail = useMhdAccommodationCase(caseId);
   const optionCatalog = useMhdAccommodationOptionCatalog(profile?.companyId ?? null);
+  const documentTemplates = useMhdAccommodationDocumentTemplates(profile?.companyId);
   const readiness = useMhdAccommodationReadiness();
   const transition = useMhdAccommodationTransition(caseId);
   const addInteraction = useMhdAccommodationInteraction(caseId);
@@ -107,6 +109,7 @@ export function MhdAccommodationCaseDetailPage() {
   const [optionType, setOptionType] = useState('JOB_RESTRUCTURING');
   const [optionDescription, setOptionDescription] = useState('');
   const [catalogPickId, setCatalogPickId] = useState('');
+  const [catalogSearch, setCatalogSearch] = useState('');
   const [effectiveness, setEffectiveness] = useState('');
   const [selectedOptionId, setSelectedOptionId] = useState('');
   const [outcome, setOutcome] = useState<'APPROVED' | 'PARTIALLY_APPROVED' | 'DENIED'>('APPROVED');
@@ -132,6 +135,20 @@ export function MhdAccommodationCaseDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [closingCase, setClosingCase] = useState(false);
   const [closeReason, setCloseReason] = useState('');
+
+  const filteredCatalogOptions = (optionCatalog.data ?? []).filter((item) => {
+    const search = catalogSearch.trim().toLowerCase();
+    if (!search) return true;
+    return [
+      item.optionType,
+      item.descriptionTemplate,
+      mhdFormatAccommodationValue(item.category),
+      ...(item.functionalLimitationTags ?? []).flatMap((tag) => [
+        tag,
+        mhdFormatAccommodationValue(tag),
+      ]),
+    ].some((value) => value.toLowerCase().includes(search));
+  });
 
   const record = detail.data;
   if (detail.isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
@@ -447,7 +464,18 @@ export function MhdAccommodationCaseDetailPage() {
                 }
               />
               {(optionCatalog.data ?? []).length > 0 ? (
-                <label className="block text-sm font-medium">
+                <>
+                  <label className="block text-sm font-medium" htmlFor="mhd-accommodation-catalog-search">
+                    Search accommodation ideas
+                    <input
+                      id="mhd-accommodation-catalog-search"
+                      className={`mt-1 ${inputClass}`}
+                      value={catalogSearch}
+                      onChange={(event) => setCatalogSearch(event.target.value)}
+                      placeholder="Search by limitation or keyword (e.g. lifting, concentration, hearing)…"
+                    />
+                  </label>
+                  <label className="block text-sm font-medium">
                   Start from catalog{' '}
                   <span className="font-normal text-muted-foreground">
                     (optional — pre-fills the fields below, which remain fully editable; this is a
@@ -470,14 +498,19 @@ export function MhdAccommodationCaseDetailPage() {
                     }}
                   >
                     <option value="">Start from free text (default)…</option>
-                    {(optionCatalog.data ?? []).map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {mhdFormatAccommodationValue(item.category)} — {item.optionType}
-                        {item.isLibrary ? ' (Global)' : ''}
-                      </option>
-                    ))}
+                    {filteredCatalogOptions.length ? (
+                      filteredCatalogOptions.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {mhdFormatAccommodationValue(item.category)} — {item.optionType}
+                          {item.isLibrary ? ' (Global)' : ''}
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No matching accommodation ideas — try a different term.</option>
+                    )}
                   </select>
-                </label>
+                  </label>
+                </>
               ) : null}
               <select
                 className={inputClass}
@@ -533,6 +566,35 @@ export function MhdAccommodationCaseDetailPage() {
               >
                 Add option
               </Button>
+              <div className="space-y-3 pt-2">
+                <p className="text-xs text-muted-foreground">
+                  JAN (a free, U.S. Department of Labor-funded service) maintains a much larger,
+                  continually updated accommodation-ideas database.
+                  <br />
+                  <a
+                    href="https://askjan.org/soar.cfm"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent hover:text-accent-hover"
+                  >
+                    Search the Job Accommodation Network (JAN) for more ideas
+                  </a>
+                </p>
+                {documentTemplates.data?.length ? (
+                  <div>
+                    <MhdCardHeader title="Document templates" />
+                    <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
+                      {documentTemplates.data.map((entry) => (
+                        <li key={entry.id}>
+                          <Link className="text-accent hover:underline" to={`/forms/${entry.id}/render`}>
+                            {entry.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
             </MhdCard>
           ) : null}
         </div>

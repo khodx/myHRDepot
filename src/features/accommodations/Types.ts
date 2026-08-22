@@ -303,12 +303,44 @@ export const MHD_ACCOMMODATION_OPTION_CATALOG_CATEGORIES: readonly MhdAccommodat
     'OTHER',
   ];
 
+export type MhdAccommodationFunctionalLimitationTag =
+  | 'MOBILITY'
+  | 'LIFTING_CARRYING'
+  | 'STANDING_SITTING'
+  | 'FINE_MOTOR'
+  | 'VISION'
+  | 'HEARING'
+  | 'SPEECH_COMMUNICATION'
+  | 'CONCENTRATION_MEMORY'
+  | 'STRESS_MENTAL_HEALTH'
+  | 'FATIGUE_STAMINA'
+  | 'RESPIRATORY_ENVIRONMENTAL'
+  | 'COMMUTE_TRAVEL'
+  | 'TEMPERATURE_SENSITIVITY';
+
+export const MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS: readonly MhdAccommodationFunctionalLimitationTag[] = [
+  'MOBILITY',
+  'LIFTING_CARRYING',
+  'STANDING_SITTING',
+  'FINE_MOTOR',
+  'VISION',
+  'HEARING',
+  'SPEECH_COMMUNICATION',
+  'CONCENTRATION_MEMORY',
+  'STRESS_MENTAL_HEALTH',
+  'FATIGUE_STAMINA',
+  'RESPIRATORY_ENVIRONMENTAL',
+  'COMMUTE_TRAVEL',
+  'TEMPERATURE_SENSITIVITY',
+];
+
 export interface MhdAccommodationOptionCatalogEntryRpcRow {
   id: string;
   company_id: string | null;
   option_type: string;
   description_template: string;
   category: MhdAccommodationOptionCatalogCategory;
+  functional_limitation_tags: string[];
   typical_cost_range: string | null;
   source_option_id: string | null;
   is_active: boolean;
@@ -323,6 +355,7 @@ export interface MhdAccommodationOptionCatalogEntry {
   optionType: string;
   descriptionTemplate: string;
   category: MhdAccommodationOptionCatalogCategory;
+  functionalLimitationTags: string[];
   typicalCostRange: string | null;
   sourceOptionId: string | null;
   isActive: boolean;

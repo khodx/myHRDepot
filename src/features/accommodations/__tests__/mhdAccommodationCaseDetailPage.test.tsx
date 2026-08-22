@@ -37,6 +37,10 @@ vi.mock('../Hook', () => ({
   // option" card) -- empty/not-loading is a safe default since no test in
   // this file exercises the catalog-picker path itself.
   useMhdAccommodationOptionCatalog: () => ({ data: [], isLoading: false, isError: false, error: null }),
+  // Added 2026-08-22 (document-templates list on this page's "Evaluate an
+  // option" card) -- empty/not-loading is a safe default since no test in
+  // this file exercises the document-templates path itself.
+  useMhdAccommodationDocumentTemplates: () => ({ data: [], isLoading: false, isError: false, error: null }),
 }));
 
 const { MhdAccommodationCaseDetailPage } =
