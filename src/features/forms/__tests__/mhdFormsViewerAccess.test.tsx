@@ -57,6 +57,7 @@ const baseForm: MhdForm = {
   name: 'Onboarding',
   description: 'New hire onboarding form',
   status: 'ACTIVE',
+  intakeKind: null,
   employeeFileCategory: null,
   requiresEsignature: false,
   esignatureDocumentTemplateId: null,

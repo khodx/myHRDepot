@@ -147,6 +147,7 @@ describe('MhdFormBuilder', () => {
     name: 'New Hire - Direct Deposit',
     description: 'Direct deposit setup for new hires.',
     status: 'DRAFT',
+    intakeKind: null,
     employeeFileCategory: null,
     requiresEsignature: false,
     esignatureDocumentTemplateId: null,
