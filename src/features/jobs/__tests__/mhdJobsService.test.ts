@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mhdCanSeePayFromRow, mhdFormatPayRange } from '../Types';
 
-const { rpcMock } = vi.hoisted(() => ({ rpcMock: vi.fn() }));
+const { rpcMock, invokeMock } = vi.hoisted(() => ({ rpcMock: vi.fn(), invokeMock: vi.fn() }));
 
 vi.mock('@/lib/supabase/supabaseClient', () => ({
-  supabaseClient: { rpc: rpcMock },
+  supabaseClient: { rpc: rpcMock, functions: { invoke: invokeMock } },
 }));
 
 const { mhdJobsService } = await import('../Service');
@@ -233,5 +233,23 @@ describe('mhdJobsService — the consumer contract', () => {
   it('returns null when the person has no published description in force', async () => {
     rpcMock.mockResolvedValueOnce({ data: [], error: null });
     await expect(mhdJobsService.getPublishedForPerson('person-1')).resolves.toBeNull();
+  });
+});
+
+describe('mhdJobsService — CareerOneStop occupation lookup', () => {
+  it('invokes the function with wages disabled and duties enabled', async () => {
+    invokeMock.mockResolvedValue({
+      data: { success: true, socCode: '15-1252', tasks: ['Write code'], dwas: [], skills: [], knowledge: [], ability: [], source: 'CareerOneStop' },
+      error: null,
+    });
+    await mhdJobsService.careerOneStopOccupationLookup({ onetSocCode: '15-1252.00' });
+    expect(invokeMock).toHaveBeenCalledWith('careeronestop-occupation-lookup', {
+      body: { onetSocCode: '15-1252.00', location: undefined, includeWages: false, includeDuties: true },
+    });
+  });
+
+  it('throws when the function returns success false in its body', async () => {
+    invokeMock.mockResolvedValue({ data: { success: false, error: 'No CareerOneStop data' }, error: null });
+    await expect(mhdJobsService.careerOneStopOccupationLookup({ onetSocCode: '15-1252.00' })).rejects.toThrow('No CareerOneStop data');
   });
 });

@@ -49,4 +49,17 @@ describe('mhdCompensationService', () => {
     invoke.mockResolvedValue({ data: { success: false, error: 'No BLS data' }, error: null });
     await expect(mhdCompensationService.marketWageLookup({ jobId: 'j1', onetSocCode: '11-1011' })).rejects.toThrow('No BLS data');
   });
+
+  it('invokes the CareerOneStop function with the given job and SOC code', async () => {
+    invoke.mockResolvedValue({ data: { success: true, cached: false, socCode: '15-1252', source: 'CareerOneStop' }, error: null });
+    await mhdCompensationService.careerOneStopWageLookup({ jobId: 'j1', onetSocCode: '15-1252.00' });
+    expect(invoke).toHaveBeenCalledWith('careeronestop-occupation-lookup', {
+      body: { jobId: 'j1', onetSocCode: '15-1252.00', includeWages: true, includeDuties: false },
+    });
+  });
+
+  it('throws when the CareerOneStop function returns success false in its body', async () => {
+    invoke.mockResolvedValue({ data: { success: false, error: 'No CareerOneStop data' }, error: null });
+    await expect(mhdCompensationService.careerOneStopWageLookup({ jobId: 'j1', onetSocCode: '15-1252.00' })).rejects.toThrow('No CareerOneStop data');
+  });
 });
