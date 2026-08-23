@@ -70,7 +70,7 @@ describe('MhdSidebar rail', () => {
     expect(aside).not.toBeNull();
     expect(aside!.className).toContain('bg-rail');
     expect(aside!.className).toContain('border-rail-border');
-    expect(aside!.className).toContain('w-[365.7px]');
+    expect(aside!.className).toContain('w-[329.13px]');
     expect(screen.getByText('Fixture Company 01')).toBeInTheDocument();
     expect(screen.getByText('myHRDepot')).toBeInTheDocument();
   });
