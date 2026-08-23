@@ -700,9 +700,9 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
         >
           <Building2 className="h-4 w-4 shrink-0 text-white" aria-hidden />
           {collapsed ? null : (
-            <span className="truncate text-[18.72px] font-semibold text-white">
+            <h3 className="truncate text-[18.72px] font-semibold text-white">
               {profile.companyName}
-            </span>
+            </h3>
           )}
         </div>
       ) : null}
