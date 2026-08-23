@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
@@ -30,7 +31,7 @@ interface MhdTaskFormProps {
   currentUserCompanyId: string;
   /** Only SimplyHR members may change Company; everyone else gets it read-only. */
   canEditCompany: boolean;
-  onCreate: (input: MhdCreateTaskInput) => Promise<void>;
+  onCreate: (input: MhdCreateTaskInput, subtaskTitles: string[]) => Promise<void>;
   onUpdate: (input: MhdUpdateTaskInput) => Promise<void>;
   onCancelEdit: () => void;
 }
@@ -69,6 +70,8 @@ export function MhdTaskForm({
 }: MhdTaskFormProps) {
   const [values, setValues] = useState<MhdTaskFormValues>(EMPTY_VALUES);
   const [formError, setFormError] = useState<string | null>(null);
+  const [subtaskTitles, setSubtaskTitles] = useState<string[]>([]);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const dueDateTouchedRef = useRef(false);
 
   useEffect(() => {
@@ -140,6 +143,17 @@ export function MhdTaskForm({
     setValues((current) => ({ ...current, [key]: value }));
   }
 
+  function handleAddSubtaskTitle() {
+    const title = newSubtaskTitle.trim();
+    if (!title) return;
+    setSubtaskTitles((current) => [...current, title]);
+    setNewSubtaskTitle('');
+  }
+
+  function handleRemoveSubtaskTitle(index: number) {
+    setSubtaskTitles((current) => current.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
@@ -159,7 +173,7 @@ export function MhdTaskForm({
       if (selectedTask) {
         await onUpdate({ ...parsed.data, taskId: selectedTask.id });
       } else {
-        await onCreate(parsed.data);
+        await onCreate(parsed.data, subtaskTitles);
       }
       setValues({
         ...EMPTY_VALUES,
@@ -167,6 +181,8 @@ export function MhdTaskForm({
         statusId: statuses[0]?.id ?? '',
         priorityId: priorities[0]?.id ?? '',
       });
+      setSubtaskTitles([]);
+      setNewSubtaskTitle('');
       dueDateTouchedRef.current = false;
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Unable to save task.');
@@ -374,6 +390,62 @@ export function MhdTaskForm({
             emptyMessage="No assignable users match your search."
           />
         </label>
+
+        {!selectedTask ? (
+          <fieldset className="mt-4 space-y-2 rounded-md border border-border p-3 md:col-span-2">
+            <legend className="px-1 text-sm font-medium">Subtasks</legend>
+            <p className="text-xs text-muted-foreground">
+              Add a starter checklist now, or skip this and add subtasks later from the task's detail page.
+            </p>
+
+            {subtaskTitles.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No subtasks added.</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {subtaskTitles.map((title, index) => (
+                  <li
+                    key={`${index}-${title}`}
+                    className="flex items-center justify-between gap-2 rounded border border-border bg-card px-3 py-2 text-sm"
+                  >
+                    <span className="min-w-0 flex-1 truncate">{title}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSubtaskTitle(index)}
+                      aria-label={`Remove ${title}`}
+                      className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="flex items-center gap-2">
+              <input
+                value={newSubtaskTitle}
+                onChange={(event) => setNewSubtaskTitle(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    handleAddSubtaskTitle();
+                  }
+                }}
+                placeholder="Subtask title…"
+                className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+              <button
+                type="button"
+                onClick={handleAddSubtaskTitle}
+                disabled={newSubtaskTitle.trim().length === 0}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
+              >
+                <Plus className="h-4 w-4" />
+                Add
+              </button>
+            </div>
+          </fieldset>
+        ) : null}
       </div>
 
       <Button type="submit" disabled={isSaving} className="mt-4">

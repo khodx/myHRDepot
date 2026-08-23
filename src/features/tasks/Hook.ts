@@ -89,8 +89,9 @@ export function useMhdTasks(
       if (!context) throw new Error('Cannot create task without an authenticated user context.');
       setIsSaving(true);
       try {
-        await mhdTaskService.createTask(input, context);
+        const created = await mhdTaskService.createTask(input, context);
         await loadTasks();
+        return created;
       } finally {
         setIsSaving(false);
       }

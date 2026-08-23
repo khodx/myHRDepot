@@ -5,6 +5,7 @@ import { MhdTaskForm } from '@/features/tasks/components/MhdTaskForm';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdTasks } from '@/features/tasks/Hook';
+import { mhdSubtaskService } from '@/features/tasks/SubtaskService';
 
 export function MhdTaskFormPage() {
   const { taskId } = useParams<{ taskId?: string }>();
@@ -69,9 +70,31 @@ export function MhdTaskFormPage() {
         isSaving={taskState.isSaving}
         currentUserCompanyId={profile?.companyId ?? ''}
         canEditCompany={profile?.companyIsPlatformOrg ?? false}
-        onCreate={async (input) => {
-          await taskState.createTask(input);
-          navigate('/tasks');
+        onCreate={async (input, subtaskTitles) => {
+          const created = await taskState.createTask(input);
+          if (subtaskTitles.length > 0 && actorContext) {
+            try {
+              for (const [index, title] of subtaskTitles.entries()) {
+                await mhdSubtaskService.createSubtask(
+                  {
+                    taskId: created.id,
+                    title,
+                    statusId: taskState.statuses[0]?.id ?? '',
+                    manualProgressPercent: 0,
+                    sortOrder: index,
+                  },
+                  actorContext,
+                );
+              }
+            } catch (error) {
+              window.alert(
+                `Task ${created.reference_id} was created, but adding subtasks failed: ${
+                  error instanceof Error ? error.message : 'Unknown error'
+                }. Add the remaining subtasks from the task's detail page.`,
+              );
+            }
+          }
+          navigate(`/tasks/${created.id}`);
         }}
         onUpdate={async (input) => {
           await taskState.updateTask(input);
