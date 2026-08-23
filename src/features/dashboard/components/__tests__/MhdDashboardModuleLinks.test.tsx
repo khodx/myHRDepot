@@ -58,15 +58,6 @@ beforeEach(() => {
 });
 
 describe('MhdDashboardModuleLinks', () => {
-  it('renders section headers in the grouped default view', async () => {
-    mockAuth(['Platform Admin']);
-
-    await renderModuleLinks();
-
-    expect(screen.getByText('Work Tools')).toBeInTheDocument();
-    expect(screen.getByText('People & Org')).toBeInTheDocument();
-  });
-
   it('renders Checklists and My Checklists together in one card', async () => {
     mockAuth(['Platform Admin']);
 

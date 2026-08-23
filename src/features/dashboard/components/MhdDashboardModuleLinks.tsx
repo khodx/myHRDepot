@@ -55,9 +55,19 @@ export function MhdDashboardModuleLinks() {
   const allItems = NAV_SECTIONS.flatMap((section) =>
     section.items.flatMap((item) => [item, ...(item.children ?? [])]),
   );
-  const liveItems = allItems.filter((item) => hasRole(item) && isLive(item));
+  // The default (non-search) view must never show a child both nested under
+  // its visible parent card AND as its own separate top-level card — promote
+  // a child to a standalone top-level entry only when its parent isn't
+  // visible to this role (mirrors the identical promotion logic in
+  // MhdSidebar.tsx's own nesting).
+  const topLevelItems = NAV_SECTIONS.flatMap((section) =>
+    section.items.flatMap((item) => {
+      if (hasRole(item) && isLive(item)) return [item];
+      return (item.children ?? []).filter((child) => hasRole(child) && isLive(child));
+    }),
+  );
 
-  if (liveItems.length === 0) return null;
+  if (topLevelItems.length === 0) return null;
 
   const trimmedQuery = query.trim().toLowerCase();
   const isSearching = trimmedQuery.length > 0;
@@ -69,7 +79,7 @@ export function MhdDashboardModuleLinks() {
   // role either.
   const searchableItems = isSearching
     ? allItems.filter(hasRole)
-    : liveItems;
+    : topLevelItems;
 
   const matchedItems = isSearching
     ? searchableItems.filter(
@@ -186,12 +196,6 @@ export function MhdDashboardModuleLinks() {
     );
   };
 
-  const sectionItems = (section: (typeof NAV_SECTIONS)[number]) =>
-    section.items.flatMap((item) => {
-      if (hasRole(item) && isLive(item)) return [item];
-      return (item.children ?? []).filter((child) => hasRole(child) && isLive(child));
-    });
-
   const renderGrid = (items: NavItem[], includeChildren = true) => {
     const usersIndex = items.findIndex((item) => item.label === 'Users');
     const usersRow = usersIndex === -1 ? -1 : Math.floor(usersIndex / MODULE_GRID_COLUMNS);
@@ -245,26 +249,8 @@ export function MhdDashboardModuleLinks() {
         <p className="py-8 text-center text-sm text-muted-foreground">
           No modules match &ldquo;{query.trim()}&rdquo;.
         </p>
-      ) : isSearching ? (
-        renderGrid(visibleItems, false)
       ) : (
-        <div className="space-y-5">
-          {NAV_SECTIONS.map((section) => sectionItems(section).length > 0 ? section : null)
-            .filter((section): section is (typeof NAV_SECTIONS)[number] => section !== null)
-            .map((section, index) => {
-            const items = sectionItems(section);
-            const SectionIcon = section.icon;
-            return (
-              <section key={section.label}>
-                <h3 className={`mb-2 flex items-center gap-2 text-sm font-semibold text-muted-foreground ${index === 0 ? '' : 'mt-1'}`}>
-                  <SectionIcon className="h-4 w-4" aria-hidden />
-                  {section.label}
-                </h3>
-                {renderGrid(items)}
-              </section>
-            );
-          })}
-        </div>
+        renderGrid(visibleItems, !isSearching)
       )}
     </MhdCard>
   );
