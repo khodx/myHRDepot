@@ -73,6 +73,26 @@ export function useMhdSubtasks(taskId: string, context: MhdTaskMutationContext |
     [context, loadSubtasks],
   );
 
+  const reorderSubtask = useCallback(
+    async (subtask: MhdSubtask, direction: 'up' | 'down') => {
+      if (!context) throw new Error('Cannot reorder subtasks without an authenticated user context.');
+      const ordered = [...subtasks].sort((a, b) => a.sortOrder - b.sortOrder);
+      const index = ordered.findIndex((item) => item.id === subtask.id);
+      const swapWith = direction === 'up' ? ordered[index - 1] : ordered[index + 1];
+      if (!swapWith) return;
+
+      setIsSaving(true);
+      try {
+        await mhdSubtaskService.updateSubtask(toUpdateInput(subtask, swapWith.sortOrder), context);
+        await mhdSubtaskService.updateSubtask(toUpdateInput(swapWith, subtask.sortOrder), context);
+        await loadSubtasks();
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [context, subtasks, loadSubtasks],
+  );
+
   return {
     subtasks,
     isLoading,
@@ -82,5 +102,21 @@ export function useMhdSubtasks(taskId: string, context: MhdTaskMutationContext |
     createSubtask,
     updateSubtask,
     deleteSubtask,
+    reorderSubtask,
+  };
+}
+
+function toUpdateInput(subtask: MhdSubtask, sortOrder: number): MhdUpdateSubtaskInput {
+  return {
+    subtaskId: subtask.id,
+    taskId: subtask.taskId,
+    title: subtask.title,
+    descriptionPlainText: subtask.descriptionPlainText,
+    descriptionRichText: subtask.descriptionRichText,
+    statusId: subtask.statusId,
+    priorityId: subtask.priorityId ?? '',
+    dueDate: subtask.dueDate ?? undefined,
+    manualProgressPercent: subtask.manualProgressPercent,
+    sortOrder,
   };
 }

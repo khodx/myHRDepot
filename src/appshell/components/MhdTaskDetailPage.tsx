@@ -231,6 +231,8 @@ export function MhdTaskDetailPage() {
           taskId={task.id}
           onEdit={(subtask) => openSubtaskModal(subtask)}
           onDelete={(subtaskId) => void subtaskState.deleteSubtask(subtaskId)}
+          onReorder={(subtask, direction) => void subtaskState.reorderSubtask(subtask, direction)}
+          isReordering={subtaskState.isSaving}
         />
       </section>
 
