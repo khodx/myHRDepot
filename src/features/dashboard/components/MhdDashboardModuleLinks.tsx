@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
@@ -38,42 +38,14 @@ const ALERT_ROUTE_KEYS: Record<string, keyof MhdDashboardModuleAlerts> = {
 const TONE_COUNT = 15;
 const USERS_RESERVED_TONE = 16;
 
-/** Matches the grid's own Tailwind breakpoints below (sm: 3 cols, md: 4 cols). */
-function currentColumnCount(): number {
-  if (typeof window === 'undefined') return 4;
-  if (window.innerWidth >= 768) return 4;
-  if (window.innerWidth >= 640) return 3;
-  return 2;
-}
-
-/**
- * Row membership shifts with the column count, so it's recomputed on resize
- * rather than fixed with CSS nth-child, which can't track a changing column
- * count across the grid's own responsive breakpoints.
- */
-function useMhdModuleGridColumns(): number {
-  const [columns, setColumns] = useState(currentColumnCount);
-
-  useEffect(() => {
-    let resizeTimer: ReturnType<typeof setTimeout>;
-    const handleResize = () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => setColumns(currentColumnCount()), 100);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => {
-      clearTimeout(resizeTimer);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  return columns;
-}
+// Fixed 4-per-row at every breakpoint (deliberately not responsive — see the
+// grid's own className below) so row membership, and therefore each row's
+// assigned tone, never shifts with viewport width.
+const MODULE_GRID_COLUMNS = 4;
 
 export function MhdDashboardModuleLinks() {
   const { roles } = useMhdAuth();
   const { moduleAlerts } = useMhdDashboard();
-  const columns = useMhdModuleGridColumns();
   const [query, setQuery] = useState('');
 
   const hasRole = (item: NavItem) =>
@@ -126,7 +98,11 @@ export function MhdDashboardModuleLinks() {
     const visibleChildren = includeChildren
       ? (item.children ?? []).filter((child) => hasRole(child) && isLive(child))
       : [];
-    const cardClassName = `mhd-module-card relative flex flex-col gap-2.5 rounded-lg border border-border p-4 text-foreground ${
+    // Border color/width and box-shadow come from the .mhd-module-card CSS
+    // rule (global.css), driven by the --tone custom property set below —
+    // not a Tailwind border utility — so every card in a row shares the same
+    // bold, solid row color consistently, at rest and on hover alike.
+    const cardClassName = `mhd-module-card relative flex flex-col gap-2.5 rounded-lg p-4 text-foreground ${
       isGreyRow ? 'bg-[var(--mhd-module-row-grey)]' : 'bg-card'
     }`;
 
@@ -218,12 +194,12 @@ export function MhdDashboardModuleLinks() {
 
   const renderGrid = (items: NavItem[], includeChildren = true) => {
     const usersIndex = items.findIndex((item) => item.label === 'Users');
-    const usersRow = usersIndex === -1 ? -1 : Math.floor(usersIndex / columns);
+    const usersRow = usersIndex === -1 ? -1 : Math.floor(usersIndex / MODULE_GRID_COLUMNS);
 
     return (
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+      <div className="grid grid-cols-4 gap-3">
         {items.map((item, index) => {
-          const row = Math.floor(index / columns);
+          const row = Math.floor(index / MODULE_GRID_COLUMNS);
           const toneIndex = row === usersRow ? USERS_RESERVED_TONE : (row % TONE_COUNT) + 1;
           return renderModuleTile(item, toneIndex, row % 2 === 1, includeChildren);
         })}

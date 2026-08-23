@@ -526,11 +526,18 @@ body {
   --mhd-module-tone-16: #f472b6;
 }
 
-/* Card itself: border/radius/padding/background come from Tailwind utilities
-   on the element (see MhdDashboardModuleLinks.tsx); this only adds what
-   utilities can't express — a hover state driven by the per-card --tone
-   custom property set inline from the row's assigned tone. */
+/* Card itself: radius/padding/background come from Tailwind utilities on the
+   element (see MhdDashboardModuleLinks.tsx); border and box-shadow are owned
+   entirely here, driven by the per-card --tone custom property set inline
+   from the row's assigned tone, so every card in a row shows the same bold,
+   solid color consistently at rest — not only revealed on hover. */
 .mhd-module-card {
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--tone);
+  box-shadow:
+    0 1px 3px color-mix(in srgb, var(--tone) 35%, transparent),
+    0 6px 14px color-mix(in srgb, var(--tone) 22%, transparent);
   transition:
     transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
