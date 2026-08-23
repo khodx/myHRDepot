@@ -690,17 +690,20 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
           height with a bottom divider line. That gives the scrollable nav
           below a clean, full-width edge to butt up against, instead of a
           floating rounded card whose bottom edge the scrolled content could
-          appear to clip into. */}
+          appear to clip into. The row is a size container (`[container-type:size]`)
+          so the name's font-size is expressed in `cqh` — a percentage of this
+          row's own height — rather than a hardcoded px value that has to be
+          hand-recalculated every time the row or rail is resized. */}
       {profile?.companyName ? (
         <div
           title={profile.companyName}
-          className={`flex h-11 shrink-0 items-center gap-2 border-b border-rail-border ${
+          className={`flex h-11 shrink-0 items-center gap-2 border-b border-rail-border [container-type:size] ${
             collapsed ? 'justify-center px-2' : 'px-4'
           }`}
         >
           <Building2 className="h-4 w-4 shrink-0 text-white" aria-hidden />
           {collapsed ? null : (
-            <h3 className="truncate text-[18.72px] font-semibold text-white">
+            <h3 className="truncate text-[42.5cqh] font-semibold text-white">
               {profile.companyName}
             </h3>
           )}
