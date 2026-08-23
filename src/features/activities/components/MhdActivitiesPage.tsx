@@ -59,10 +59,27 @@ export function MhdActivitiesPage() {
   const tasksQuery = useMhdActivityTasks(selectedCompanyId);
 
   const activities = activitiesQuery.data ?? [];
-  async function handleCreate(input: MhdActivityFormSchemaInput) {
+  async function handleCreate(input: MhdActivityFormSchemaInput, checklistTitles: string[]) {
     setActionError(null);
     try {
-      await actions.createActivity.mutateAsync(toActivityMutationInput(input));
+      const created = await actions.createActivity.mutateAsync(toActivityMutationInput(input));
+      if (checklistTitles.length > 0) {
+        try {
+          for (const [index, title] of checklistTitles.entries()) {
+            await actions.createSubActivity.mutateAsync({
+              activityId: created.id,
+              title,
+              sortOrder: index,
+            });
+          }
+        } catch (error) {
+          window.alert(
+            `Activity ${created.referenceId} was created, but adding checklist items failed: ${
+              error instanceof Error ? error.message : 'Unknown error'
+            }. Add the remaining items from the activity's detail page.`,
+          );
+        }
+      }
       setIsCreating(false);
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to create activity.');

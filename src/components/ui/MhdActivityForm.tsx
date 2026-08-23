@@ -25,7 +25,7 @@ interface Props {
   people: MhdActivityOption[];
   users: MhdActivityOption[];
   tasks: MhdActivityOption[];
-  onSubmit: (input: MhdActivityFormSchemaInput) => Promise<void>;
+  onSubmit: (input: MhdActivityFormSchemaInput, checklistTitles: string[]) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
   /** Create mode only: pre-selects "Supports Task" (e.g. opened from a task's
@@ -92,6 +92,8 @@ export function MhdActivityForm({
 
   const { fields, append, remove } = useFieldArray({ control, name: 'participants' });
   const [rowKinds, setRowKinds] = useState<Record<string, ParticipantKind>>({});
+  const [checklistTitles, setChecklistTitles] = useState<string[]>([]);
+  const [newChecklistTitle, setNewChecklistTitle] = useState('');
   const participants = useWatch({ control, name: 'participants' });
   const isConfidential = useWatch({ control, name: 'isConfidential' });
   const selectedPersonId = useWatch({ control, name: 'personId' });
@@ -108,8 +110,22 @@ export function MhdActivityForm({
     setValue(`participants.${index}.personId`, undefined);
   }
 
+  function handleAddChecklistTitle() {
+    const title = newChecklistTitle.trim();
+    if (!title) return;
+    setChecklistTitles((current) => [...current, title]);
+    setNewChecklistTitle('');
+  }
+
+  function handleRemoveChecklistTitle(index: number) {
+    setChecklistTitles((current) => current.filter((_, i) => i !== index));
+  }
+
   return (
-    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+    <form
+      className="space-y-4"
+      onSubmit={handleSubmit((data) => onSubmit(data, checklistTitles))}
+    >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <label htmlFor="activityType" className="mb-1 block text-sm font-medium">
@@ -333,6 +349,62 @@ export function MhdActivityForm({
             <Plus className="h-4 w-4" />
             Add participant
           </button>
+        </fieldset>
+      ) : null}
+
+      {mode === 'create' ? (
+        <fieldset className="space-y-2 rounded-md border border-border p-3">
+          <legend className="px-1 text-sm font-medium">Checklist</legend>
+          <p className="text-xs text-muted-foreground">
+            Add starter checklist items now, or skip this and add them later from the activity's detail page.
+          </p>
+
+          {checklistTitles.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No checklist items added.</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {checklistTitles.map((title, index) => (
+                <li
+                  key={`${index}-${title}`}
+                  className="flex items-center justify-between gap-2 rounded border border-border bg-card px-3 py-2 text-sm"
+                >
+                  <span className="min-w-0 flex-1 truncate">{title}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveChecklistTitle(index)}
+                    aria-label={`Remove ${title}`}
+                    className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="flex items-center gap-2">
+            <input
+              value={newChecklistTitle}
+              onChange={(event) => setNewChecklistTitle(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  handleAddChecklistTitle();
+                }
+              }}
+              placeholder="Checklist item…"
+              className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            />
+            <button
+              type="button"
+              onClick={handleAddChecklistTitle}
+              disabled={newChecklistTitle.trim().length === 0}
+              className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
+            >
+              <Plus className="h-4 w-4" />
+              Add
+            </button>
+          </div>
         </fieldset>
       ) : null}
 

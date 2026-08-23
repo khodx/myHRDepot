@@ -32,8 +32,7 @@ function toActivityMutationInput(input: MhdActivityFormSchemaInput): MhdUpdateAc
 /**
  * Task Activities page content: the read-only linked list plus an
  * "Add Activity" button that opens MhdActivityForm, pre-linked to this
- * task, in a modal — the only modal on this page. No sub-activity support
- * (matches the standalone Activities module, which has none either).
+ * task, in a modal — the only modal on this page.
  */
 export function MhdTaskActivitiesSection({
   taskId,
@@ -49,10 +48,27 @@ export function MhdTaskActivitiesSection({
   const usersQuery = useMhdActivityUsers(companyId, isCreating);
   const tasksQuery = useMhdActivityTasks(companyId, isCreating);
 
-  async function handleCreate(input: MhdActivityFormSchemaInput) {
+  async function handleCreate(input: MhdActivityFormSchemaInput, checklistTitles: string[]) {
     setActionError(null);
     try {
-      await actions.createActivity.mutateAsync(toActivityMutationInput(input));
+      const created = await actions.createActivity.mutateAsync(toActivityMutationInput(input));
+      if (checklistTitles.length > 0) {
+        try {
+          for (const [index, title] of checklistTitles.entries()) {
+            await actions.createSubActivity.mutateAsync({
+              activityId: created.id,
+              title,
+              sortOrder: index,
+            });
+          }
+        } catch (error) {
+          window.alert(
+            `Activity ${created.referenceId} was created, but adding checklist items failed: ${
+              error instanceof Error ? error.message : 'Unknown error'
+            }. Add the remaining items from the activity's detail page.`,
+          );
+        }
+      }
       setIsCreating(false);
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to create activity.');
