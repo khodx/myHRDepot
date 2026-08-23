@@ -527,7 +527,7 @@ function readRailCollapsed(): boolean {
 /**
  * Desktop rail. Dark navy surface (bg-rail, #00157A) — the active nav item is
  * marked by a raised bevel on its amber selected fill (bg-rail-selected),
- * not by flooding the whole sidebar. 265px expanded, 72px collapsed
+ * not by flooding the whole sidebar. 318px expanded, 72px collapsed
  * (icon-only, persisted separately from the per-group collapse).
  */
 export function MhdSidebar() {
@@ -548,7 +548,7 @@ export function MhdSidebar() {
   return (
     <aside
       className={`hidden h-full flex-col border-r border-rail-border bg-rail text-rail-text transition-[width] duration-200 motion-reduce:transition-none lg:flex ${
-        railCollapsed ? 'w-[72px]' : 'w-[265px]'
+        railCollapsed ? 'w-[72px]' : 'w-[318px]'
       }`}
     >
       <MhdSidebarContent collapsed={railCollapsed} />
@@ -592,7 +592,7 @@ export function MhdMobileNavDrawer({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-label="Navigation"
-        className="absolute inset-y-0 left-0 flex w-[265px] flex-col border-r border-rail-border bg-rail text-rail-text shadow-xl transition-transform duration-200 motion-reduce:transition-none"
+        className="absolute inset-y-0 left-0 flex w-[318px] flex-col border-r border-rail-border bg-rail text-rail-text shadow-xl transition-transform duration-200 motion-reduce:transition-none"
       >
         <button
           type="button"
@@ -700,7 +700,7 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
         >
           <Building2 className="h-4 w-4 shrink-0 text-white" aria-hidden />
           {collapsed ? null : (
-            <span className="truncate text-[13px] font-semibold text-white">
+            <span className="truncate text-[15.6px] font-semibold text-white">
               {profile.companyName}
             </span>
           )}
