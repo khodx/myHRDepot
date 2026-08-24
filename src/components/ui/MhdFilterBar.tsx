@@ -1,5 +1,6 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
+import type { ChangeEvent, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
 import { cn } from '@/utils/cn';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 
 interface MhdFilterBarProps {
   children: ReactNode;
@@ -61,8 +62,27 @@ interface MhdFilterInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
 }
 
-export function MhdFilterInput({ label, className, id, ...props }: MhdFilterInputProps) {
+export function MhdFilterInput({ label, className, id, type, value, onChange, ...props }: MhdFilterInputProps) {
   const inputId = id ?? `mhd-filter-${label.toLowerCase().replace(/\s+/g, '-')}`;
+
+  if (type === 'date') {
+    return (
+      <label htmlFor={inputId} className="flex min-w-0 flex-col gap-1">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          {label}
+        </span>
+        <MhdDateField
+          id={inputId}
+          className={className}
+          value={typeof value === 'string' ? value : ''}
+          onChange={(nextValue) =>
+            onChange?.({ target: { value: nextValue } } as ChangeEvent<HTMLInputElement>)
+          }
+        />
+      </label>
+    );
+  }
+
   return (
     <label htmlFor={inputId} className="flex min-w-0 flex-col gap-1">
       <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -70,6 +90,9 @@ export function MhdFilterInput({ label, className, id, ...props }: MhdFilterInpu
       </span>
       <input
         id={inputId}
+        type={type}
+        value={value}
+        onChange={onChange}
         className={cn(
           'h-10 rounded-md border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',

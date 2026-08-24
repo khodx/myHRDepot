@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 
 interface Props {
   templateName: string;
@@ -51,12 +52,11 @@ export function MhdAssignTemplateDialog({
             <label htmlFor="assign-from" className="block text-sm font-medium text-foreground">
               Effective from <span className="font-normal text-muted-foreground">(required)</span>
             </label>
-            <input
+            <MhdDateField
               id="assign-from"
-              type="date"
               value={effectiveFrom}
-              onChange={(event) => setEffectiveFrom(event.target.value)}
-              className="mt-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              onChange={(nextValue) => setEffectiveFrom(nextValue)}
+              className="mt-1"
             />
           </div>
           <div>

@@ -10,11 +10,12 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { buttonBaseClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
@@ -57,6 +58,7 @@ function MhdCheckpointForm({
 }) {
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<MhdCoachingPlanItemSchemaInput>({
@@ -93,11 +95,16 @@ function MhdCheckpointForm({
           <label htmlFor={`${idPrefix}-due`} className="mb-1 block text-sm font-medium">
             Due Date
           </label>
-          <input
-            id={`${idPrefix}-due`}
-            type="date"
-            className="rounded border px-3 py-2 text-sm"
-            {...register('dueDate')}
+          <Controller
+            name="dueDate"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id={`${idPrefix}-due`}
+                value={field.value ?? ''}
+                onChange={(nextValue) => field.onChange(nextValue || undefined)}
+              />
+            )}
           />
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { mhdCoachingPlanFormSchema, type MhdCoachingPlanFormSchemaInput } from '../Schemas';
 import type { MhdCoachingPlan, MhdPerformanceOption } from '../Types';
 
@@ -33,6 +34,7 @@ export function MhdCoachingPlanForm({
 }: Props) {
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<MhdCoachingPlanFormSchemaInput>({
@@ -138,22 +140,34 @@ export function MhdCoachingPlanForm({
           <label htmlFor="mhd-coaching-form-start" className="mb-1 block text-sm font-medium">
             Start Date
           </label>
-          <input
-            id="mhd-coaching-form-start"
-            type="date"
-            className="w-full rounded border px-3 py-2"
-            {...register('startDate')}
+          <Controller
+            name="startDate"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="mhd-coaching-form-start"
+                className="w-full"
+                value={field.value ?? ''}
+                onChange={(nextValue) => field.onChange(nextValue || null)}
+              />
+            )}
           />
         </div>
         <div>
           <label htmlFor="mhd-coaching-form-target" className="mb-1 block text-sm font-medium">
             Target Date
           </label>
-          <input
-            id="mhd-coaching-form-target"
-            type="date"
-            className="w-full rounded border px-3 py-2"
-            {...register('targetDate')}
+          <Controller
+            name="targetDate"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="mhd-coaching-form-target"
+                className="w-full"
+                value={field.value ?? ''}
+                onChange={(nextValue) => field.onChange(nextValue || null)}
+              />
+            )}
           />
           {errors.targetDate ? (
             <p className="mt-1 text-xs text-red-600">{errors.targetDate.message}</p>

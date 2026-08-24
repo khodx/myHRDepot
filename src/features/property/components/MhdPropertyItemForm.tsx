@@ -1,5 +1,6 @@
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { mhdCreatePropertyItemSchema, type MhdCreatePropertyItemSchemaInput } from '../Schemas';
 import { MHD_PROPERTY_CATEGORIES } from '../Types';
@@ -19,6 +20,7 @@ export function MhdPropertyItemForm({
 }: MhdPropertyItemFormProps) {
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<MhdCreatePropertyItemSchemaInput>({
@@ -128,10 +130,16 @@ export function MhdPropertyItemForm({
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Acquisition Date</label>
-          <input
-            type="date"
-            className="w-full rounded-md border border-border px-3 py-2 text-sm"
-            {...register('acquisitionDate')}
+          <Controller
+            name="acquisitionDate"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                className="w-full"
+                value={field.value ?? ''}
+                onChange={(nextValue) => field.onChange(nextValue || null)}
+              />
+            )}
           />
         </div>
       </div>

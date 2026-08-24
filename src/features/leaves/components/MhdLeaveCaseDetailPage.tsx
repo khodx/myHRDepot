@@ -5,6 +5,7 @@ import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdLeaveCaseRecordTabs } from '@/appshell/components/MhdLeaveCaseRecordTabs';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdLeavesCanSeeMedical, mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
@@ -383,11 +384,10 @@ export function MhdLeaveCaseDetailPage() {
               <label htmlFor="designateDate" className="block text-sm font-medium text-foreground">
                 Effective date
               </label>
-              <input
+              <MhdDateField
                 id="designateDate"
-                type="date"
                 value={designateDate}
-                onChange={(event) => setDesignateDate(event.target.value)}
+                onChange={(nextValue) => setDesignateDate(nextValue)}
                 className={`mt-1 ${INPUT_CLASSES}`}
               />
             </div>

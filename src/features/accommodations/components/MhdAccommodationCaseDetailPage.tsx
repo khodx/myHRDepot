@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTabs } from '@/components/ui/MhdTabs';
@@ -733,17 +734,15 @@ export function MhdAccommodationCaseDetailPage() {
                 placeholder="Manager-safe implementation instruction—no medical facts"
               />
               <div className="grid gap-3 md:grid-cols-2">
-                <input
-                  type="date"
+                <MhdDateField
                   className={inputClass}
                   value={startDate}
-                  onChange={(event) => setStartDate(event.target.value)}
+                  onChange={(nextValue) => setStartDate(nextValue)}
                 />
-                <input
-                  type="date"
+                <MhdDateField
                   className={inputClass}
                   value={reviewDueDate}
-                  onChange={(event) => setReviewDueDate(event.target.value)}
+                  onChange={(nextValue) => setReviewDueDate(nextValue)}
                 />
               </div>
               <Button
@@ -955,20 +954,18 @@ export function MhdAccommodationCaseDetailPage() {
                 <div className="grid gap-3 md:grid-cols-2">
                   <label className="text-sm font-medium">
                     Requested on
-                    <input
-                      type="date"
+                    <MhdDateField
                       className={`mt-1 ${inputClass}`}
                       value={documentationRequestedAt}
-                      onChange={(event) => setDocumentationRequestedAt(event.target.value)}
+                      onChange={(nextValue) => setDocumentationRequestedAt(nextValue)}
                     />
                   </label>
                   <label className="text-sm font-medium">
                     Due
-                    <input
-                      type="date"
+                    <MhdDateField
                       className={`mt-1 ${inputClass}`}
                       value={documentationDueDate}
-                      onChange={(event) => setDocumentationDueDate(event.target.value)}
+                      onChange={(nextValue) => setDocumentationDueDate(nextValue)}
                     />
                   </label>
                 </div>

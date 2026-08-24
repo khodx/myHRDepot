@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdStartOnboardingPacket } from '../Hook';
@@ -96,12 +97,11 @@ export function MhdStartOnboardingDialog({ row, onClose }: MhdStartOnboardingDia
         <label className="mt-4 block text-sm font-medium text-foreground" htmlFor="mhd-packet-due">
           Due Date <span className="font-normal text-muted-foreground">(optional)</span>
         </label>
-        <input
+        <MhdDateField
           id="mhd-packet-due"
-          type="date"
           value={dueDate}
-          onChange={(event) => setDueDate(event.target.value)}
-          className="mt-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          onChange={(nextValue) => setDueDate(nextValue)}
+          className="mt-1"
         />
 
         <div className="mt-5 flex items-center justify-between">

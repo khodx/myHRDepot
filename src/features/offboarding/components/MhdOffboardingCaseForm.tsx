@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { mhdCaseFormSchema, type MhdCaseFormSchemaInput } from '../Schemas';
 import {
   MHD_SEPARATION_TYPES,
@@ -39,6 +40,7 @@ export function MhdOffboardingCaseForm({
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<MhdCaseFormSchemaInput>({
@@ -125,11 +127,17 @@ export function MhdOffboardingCaseForm({
           >
             Separation Date
           </label>
-          <input
-            id="mhd-offboarding-form-separation-date"
-            type="date"
-            className="w-full rounded border px-3 py-2"
-            {...register('separationDate')}
+          <Controller
+            name="separationDate"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="mhd-offboarding-form-separation-date"
+                className="w-full"
+                value={field.value ?? ''}
+                onChange={field.onChange}
+              />
+            )}
           />
           <p className="mt-1 text-xs text-muted-foreground">Notice / decision date.</p>
           {errors.separationDate ? (
@@ -144,11 +152,17 @@ export function MhdOffboardingCaseForm({
           >
             Last Working Day
           </label>
-          <input
-            id="mhd-offboarding-form-last-working-day"
-            type="date"
-            className="w-full rounded border px-3 py-2"
-            {...register('lastWorkingDay')}
+          <Controller
+            name="lastWorkingDay"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="mhd-offboarding-form-last-working-day"
+                className="w-full"
+                value={field.value ?? ''}
+                onChange={(nextValue) => field.onChange(nextValue || null)}
+              />
+            )}
           />
           <p className="mt-1 text-xs text-muted-foreground">
             Optional; on or after the separation date.

@@ -5,6 +5,7 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdPeoplePicker } from '@/features/people/Hook';
 import { useMhdCreateLeaveCase } from '../Hook';
@@ -111,8 +112,8 @@ function CaseBasicsStep({
         <Field label="Family relationship (optional)">
           <input className={inputClassName} value={value.familyRelationship} onChange={(e) => onChange({ ...value, familyRelationship: e.target.value })} placeholder="e.g. SPOUSE" />
         </Field>
-        <Field label="Requested start (optional)"><input className={inputClassName} type="date" value={value.requestedStart} onChange={(e) => onChange({ ...value, requestedStart: e.target.value })} /></Field>
-        <Field label="Requested end (optional)"><input className={inputClassName} type="date" value={value.requestedEnd} onChange={(e) => onChange({ ...value, requestedEnd: e.target.value })} /></Field>
+        <Field label="Requested start (optional)"><MhdDateField className={inputClassName} value={value.requestedStart} onChange={(nextValue) => onChange({ ...value, requestedStart: nextValue })} /></Field>
+        <Field label="Requested end (optional)"><MhdDateField className={inputClassName} value={value.requestedEnd} onChange={(nextValue) => onChange({ ...value, requestedEnd: nextValue })} /></Field>
       </div>
     </MhdCard>
   );

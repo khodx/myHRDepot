@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Lock } from 'lucide-react';
-import { useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { mhdReviewFormSchema, type MhdReviewFormSchemaInput } from '../Schemas';
 import {
   MHD_REVIEW_TYPES,
@@ -9,6 +9,7 @@ import {
   mhdFormatReviewType,
 } from '../Types';
 import { MhdRatingStars } from './MhdRatingStars';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 
 interface Props {
   mode: 'create' | 'edit';
@@ -151,12 +152,18 @@ export function MhdReviewForm({
           <label htmlFor="mhd-review-form-period-start" className="mb-1 block text-sm font-medium">
             Period Start
           </label>
-          <input
-            id="mhd-review-form-period-start"
-            type="date"
-            className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
-            disabled={setupLocked}
-            {...register('reviewPeriodStart')}
+          <Controller
+            name="reviewPeriodStart"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="mhd-review-form-period-start"
+                className="w-full"
+                disabled={setupLocked}
+                value={field.value ?? ''}
+                onChange={field.onChange}
+              />
+            )}
           />
           {errors.reviewPeriodStart ? (
             <p className="mt-1 text-xs text-red-600">{errors.reviewPeriodStart.message}</p>
@@ -167,12 +174,18 @@ export function MhdReviewForm({
           <label htmlFor="mhd-review-form-period-end" className="mb-1 block text-sm font-medium">
             Period End
           </label>
-          <input
-            id="mhd-review-form-period-end"
-            type="date"
-            className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
-            disabled={setupLocked}
-            {...register('reviewPeriodEnd')}
+          <Controller
+            name="reviewPeriodEnd"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="mhd-review-form-period-end"
+                className="w-full"
+                disabled={setupLocked}
+                value={field.value ?? ''}
+                onChange={field.onChange}
+              />
+            )}
           />
           {errors.reviewPeriodEnd ? (
             <p className="mt-1 text-xs text-red-600">{errors.reviewPeriodEnd.message}</p>
@@ -183,12 +196,18 @@ export function MhdReviewForm({
           <label htmlFor="mhd-review-form-due-date" className="mb-1 block text-sm font-medium">
             Due Date
           </label>
-          <input
-            id="mhd-review-form-due-date"
-            type="date"
-            className="w-full rounded border px-3 py-2 disabled:bg-muted disabled:text-muted-foreground"
-            disabled={setupLocked}
-            {...register('dueDate')}
+          <Controller
+            name="dueDate"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="mhd-review-form-due-date"
+                className="w-full"
+                disabled={setupLocked}
+                value={field.value ?? ''}
+                onChange={(nextValue) => field.onChange(nextValue || null)}
+              />
+            )}
           />
         </div>
       </div>

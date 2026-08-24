@@ -4,6 +4,7 @@ import { mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdModal } from '@/components/ui/MhdModal';
@@ -248,7 +249,7 @@ export function MhdChecklistLibraryPage() {
               <option value="">Choose a person...</option>
               {(people.data ?? []).map((person) => <option key={person.id} value={person.id}>{person.displayName}</option>)}
             </select>
-            <input type="date" className={inputClass} value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
+            <MhdDateField className={inputClass} value={dueDate} onChange={(nextValue) => setDueDate(nextValue)} />
             <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={() => setAssigning(null)}>Cancel</Button>
               <Button disabled={!assigneeId || assignInstance.isPending} onClick={() => void submitAssignment()}>{assignInstance.isPending ? 'Assigning...' : 'Assign Checklist'}</Button>

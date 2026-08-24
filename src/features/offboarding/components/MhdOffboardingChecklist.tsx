@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlarmClock, ExternalLink, ListChecks, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import {
@@ -133,6 +134,7 @@ function MhdCustomItemForm({
 }) {
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<MhdCustomItemSchemaInput>({
@@ -212,11 +214,16 @@ function MhdCustomItemForm({
           >
             Due Date
           </label>
-          <input
-            id="mhd-offboarding-custom-item-due"
-            type="date"
-            className="rounded border px-3 py-2"
-            {...register('dueDate')}
+          <Controller
+            name="dueDate"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="mhd-offboarding-custom-item-due"
+                value={field.value ?? ''}
+                onChange={(nextValue) => field.onChange(nextValue || null)}
+              />
+            )}
           />
         </div>
         <label

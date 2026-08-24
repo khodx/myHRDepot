@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/Button';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { useEffect } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { mhdOccurrenceFormSchema, type MhdOccurrenceFormValues } from '../Schemas';
 import {
   MHD_ATTENDANCE_CLASSIFICATIONS,
@@ -129,11 +130,17 @@ export function MhdOccurrenceForm({
           <label htmlFor="occurrenceDate" className="block text-sm font-medium text-foreground">
             Date
           </label>
-          <input
-            id="occurrenceDate"
-            type="date"
-            {...register('occurrenceDate')}
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          <Controller
+            name="occurrenceDate"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="occurrenceDate"
+                className="mt-1 w-full"
+                value={field.value ?? ''}
+                onChange={field.onChange}
+              />
+            )}
           />
           {errors.occurrenceDate ? (
             <p className="mt-1 text-xs text-rose-600">{errors.occurrenceDate.message}</p>

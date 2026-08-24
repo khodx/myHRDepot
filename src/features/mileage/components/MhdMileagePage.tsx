@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTabs } from '@/components/ui/MhdTabs';
 import { mhdCanManageMileageRates, mhdMileageIsPrivileged } from '@/appshell/mhdRouteAccess';
@@ -315,11 +316,17 @@ function MhdMileageBoard({
             <label htmlFor="period-start" className="block text-sm font-medium text-foreground">
               Period start
             </label>
-            <input
-              id="period-start"
-              type="date"
-              {...claimForm.register('periodStart')}
-              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            <Controller
+              name="periodStart"
+              control={claimForm.control}
+              render={({ field }) => (
+                <MhdDateField
+                  id="period-start"
+                  className="mt-1 w-full"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                />
+              )}
             />
             {claimForm.formState.errors.periodStart ? (
               <p className="mt-1 text-xs text-rose-600">
@@ -332,11 +339,17 @@ function MhdMileageBoard({
             <label htmlFor="period-end" className="block text-sm font-medium text-foreground">
               Period end
             </label>
-            <input
-              id="period-end"
-              type="date"
-              {...claimForm.register('periodEnd')}
-              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            <Controller
+              name="periodEnd"
+              control={claimForm.control}
+              render={({ field }) => (
+                <MhdDateField
+                  id="period-end"
+                  className="mt-1 w-full"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                />
+              )}
             />
             {claimForm.formState.errors.periodEnd ? (
               <p className="mt-1 text-xs text-rose-600">

@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/Button';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { mhdRecruitingService } from '../Service';
 import {
   mhdApplySchema,
@@ -194,11 +195,17 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                   >
                     Available from
                   </label>
-                  <input
-                    id="availabilityDate"
-                    type="date"
-                    {...applyForm.register('availabilityDate')}
-                    className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
+                  <Controller
+                    name="availabilityDate"
+                    control={applyForm.control}
+                    render={({ field }) => (
+                      <MhdDateField
+                        id="availabilityDate"
+                        className="mt-1 w-full"
+                        value={field.value ?? ''}
+                        onChange={(nextValue) => field.onChange(nextValue || null)}
+                      />
+                    )}
                   />
                 </div>
               </div>

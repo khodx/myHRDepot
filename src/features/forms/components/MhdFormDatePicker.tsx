@@ -1,5 +1,6 @@
 import { MhdFormFieldError } from './MhdFormFieldError';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 
 interface MhdFormDatePickerProps {
   id: string;
@@ -26,12 +27,12 @@ export function MhdFormDatePicker({
         {label}
         {required ? <span className="ml-1 text-red-500">*</span> : null}
       </label>
-      <input
+      <MhdDateField
         id={id}
-        type="date"
         value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className={`w-full rounded-md border px-3 py-2 text-sm ${error ? 'border-red-300' : 'border-border'}`}
+        onChange={onChange}
+        required={required}
+        className={error ? 'border-red-300' : undefined}
       />
       {helpText ? <MhdRichTextRenderer html={helpText} className="mt-1 text-xs" /> : null}
       <MhdFormFieldError message={error} />

@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { mhdLeaveCaseSelfFormSchema, type MhdLeaveCaseSelfFormValues } from '../Schemas';
 
 interface Props {
@@ -20,6 +21,7 @@ interface Props {
 export function MhdLeaveCaseSelfForm({ onSubmit, onCancel, isSubmitting }: Props) {
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<MhdLeaveCaseSelfFormValues>({
@@ -58,22 +60,34 @@ export function MhdLeaveCaseSelfForm({ onSubmit, onCancel, isSubmitting }: Props
           <label htmlFor="requestedStart" className="block text-sm font-medium text-foreground">
             Requested start <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
-          <input
-            id="requestedStart"
-            type="date"
-            {...register('requestedStart')}
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          <Controller
+            name="requestedStart"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="requestedStart"
+                className="mt-1 w-full"
+                value={field.value ?? ''}
+                onChange={(nextValue) => field.onChange(nextValue || null)}
+              />
+            )}
           />
         </div>
         <div>
           <label htmlFor="requestedEnd" className="block text-sm font-medium text-foreground">
             Requested end <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
-          <input
-            id="requestedEnd"
-            type="date"
-            {...register('requestedEnd')}
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          <Controller
+            name="requestedEnd"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="requestedEnd"
+                className="mt-1 w-full"
+                value={field.value ?? ''}
+                onChange={(nextValue) => field.onChange(nextValue || null)}
+              />
+            )}
           />
           {errors.requestedEnd ? (
             <p className="mt-1 text-xs text-rose-600">{errors.requestedEnd.message}</p>

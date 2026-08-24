@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/Button';
-import { useForm, useWatch } from 'react-hook-form';
+import { MhdDateField } from '@/components/ui/MhdDateField';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { mhdTripFormSchema, type MhdTripFormValues } from '../Schemas';
 import type { MhdMileageTrip } from '../Types';
 
@@ -124,12 +125,18 @@ export function MhdTripForm({
           <label htmlFor="tripDate" className="block text-sm font-medium text-foreground">
             Date
           </label>
-          <input
-            id="tripDate"
-            type="date"
-            {...register('tripDate')}
-            disabled={isLocked}
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
+          <Controller
+            name="tripDate"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="tripDate"
+                disabled={isLocked}
+                className="mt-1 w-full"
+                value={field.value ?? ''}
+                onChange={field.onChange}
+              />
+            )}
           />
           {errors.tripDate ? (
             <p className="mt-1 text-xs text-rose-600">{errors.tripDate.message}</p>

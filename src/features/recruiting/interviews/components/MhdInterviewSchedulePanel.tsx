@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useMhdCreateInterview, useMhdInterviewPeople } from '../Hook';
 import { mhdInterviewScheduleSchema, type MhdInterviewScheduleFormValues } from '../Schemas';
 
@@ -47,6 +48,7 @@ export function MhdInterviewSchedulePanel({ companyId, applicationId, guideId = 
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -134,11 +136,17 @@ export function MhdInterviewSchedulePanel({ companyId, applicationId, guideId = 
             <label htmlFor="scheduledDate" className="block text-sm font-medium text-foreground">
               Date <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
-            <input
-              id="scheduledDate"
-              type="date"
-              {...register('scheduledDate')}
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
+            <Controller
+              name="scheduledDate"
+              control={control}
+              render={({ field }) => (
+                <MhdDateField
+                  id="scheduledDate"
+                  className="mt-1 w-full"
+                  value={field.value ?? ''}
+                  onChange={(nextValue) => field.onChange(nextValue)}
+                />
+              )}
             />
           </div>
         </div>

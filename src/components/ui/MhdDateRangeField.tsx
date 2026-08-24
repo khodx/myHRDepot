@@ -3,6 +3,7 @@ import {
   MHD_DATE_RANGE_PRESETS,
   type MhdDateRangePresetId,
 } from '@/components/ui/MhdDateRangePresets';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { cn } from '@/utils/cn';
 
 interface MhdDateRangeFieldProps {
@@ -15,8 +16,7 @@ interface MhdDateRangeFieldProps {
   className?: string;
 }
 
-const dateInputClass =
-  'h-10 w-full min-w-0 rounded-md border border-border bg-card px-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
+const dateInputClass = 'w-full min-w-0';
 
 /**
  * Replaces what used to be two separate "X From" / "X To" filter boxes with one field:
@@ -60,22 +60,20 @@ export function MhdDateRangeField({
         </select>
       </div>
       <div className="flex items-center gap-1">
-        <input
+        <MhdDateField
           id={fieldId}
-          type="date"
           aria-label={`${label} from`}
           value={from}
-          onChange={(event) => onChangeFrom(event.target.value)}
+          onChange={onChangeFrom}
           className={dateInputClass}
         />
         <span className="text-xs text-muted-foreground" aria-hidden>
           –
         </span>
-        <input
-          type="date"
+        <MhdDateField
           aria-label={`${label} to`}
           value={to}
-          onChange={(event) => onChangeTo(event.target.value)}
+          onChange={onChangeTo}
           className={dateInputClass}
         />
       </div>

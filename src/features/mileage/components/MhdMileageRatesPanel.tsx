@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { mhdRateProposalSchema, type MhdRateProposalFormValues } from '../Schemas';
@@ -65,6 +66,7 @@ export function MhdMileageRatesPanel({
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -189,11 +191,17 @@ export function MhdMileageRatesPanel({
               <label htmlFor="effectiveFrom" className="block text-sm font-medium text-foreground">
                 Effective from
               </label>
-              <input
-                id="effectiveFrom"
-                type="date"
-                {...register('effectiveFrom')}
-                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              <Controller
+                name="effectiveFrom"
+                control={control}
+                render={({ field }) => (
+                  <MhdDateField
+                    id="effectiveFrom"
+                    className="mt-1 w-full"
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                  />
+                )}
               />
               {errors.effectiveFrom ? (
                 <p className="mt-1 text-xs text-rose-600">{errors.effectiveFrom.message}</p>
@@ -249,11 +257,17 @@ export function MhdMileageRatesPanel({
               >
                 Document date <span className="font-normal text-muted-foreground">(optional)</span>
               </label>
-              <input
-                id="sourceDocumentDate"
-                type="date"
-                {...register('sourceDocumentDate')}
-                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              <Controller
+                name="sourceDocumentDate"
+                control={control}
+                render={({ field }) => (
+                  <MhdDateField
+                    id="sourceDocumentDate"
+                    className="mt-1 w-full"
+                    value={field.value ?? ''}
+                    onChange={(nextValue) => field.onChange(nextValue || null)}
+                  />
+                )}
               />
               {errors.sourceDocumentDate ? (
                 <p className="mt-1 text-xs text-rose-600">{errors.sourceDocumentDate.message}</p>

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { mhdOfferFormSchema, type MhdOfferFormValues } from '../Schemas';
 
 interface PersonOption {
@@ -43,6 +44,7 @@ export function MhdOfferForm({
 }: Props) {
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<MhdOfferFormValues>({
@@ -85,11 +87,17 @@ export function MhdOfferForm({
           <label htmlFor="startDate" className="block text-sm font-medium text-foreground">
             Start date <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
-          <input
-            id="startDate"
-            type="date"
-            {...register('startDate')}
-            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
+          <Controller
+            name="startDate"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="startDate"
+                className="mt-1 w-full"
+                value={field.value ?? ''}
+                onChange={(nextValue) => field.onChange(nextValue || undefined)}
+              />
+            )}
           />
           <p className="mt-1 text-xs text-muted-foreground">
             The employment start — becomes the job assignment's effective date at hire.
@@ -175,11 +183,17 @@ export function MhdOfferForm({
           >
             Expiration date <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
-          <input
-            id="offerExpirationDate"
-            type="date"
-            {...register('offerExpirationDate')}
-            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
+          <Controller
+            name="offerExpirationDate"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="offerExpirationDate"
+                className="mt-1 w-full"
+                value={field.value ?? ''}
+                onChange={(nextValue) => field.onChange(nextValue || undefined)}
+              />
+            )}
           />
         </div>
       </div>

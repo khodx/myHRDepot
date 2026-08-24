@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdTabs } from '@/components/ui/MhdTabs';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import {
@@ -442,11 +443,10 @@ export function MhdLeaveWorkflowPanel({
             <MhdCard className="space-y-3">
               <label className="text-sm font-medium">
                 Expected return date
-                <input
+                <MhdDateField
                   className={`mt-1 ${inputClass}`}
-                  type="date"
                   value={expectedReturn}
-                  onChange={(e) => setExpectedReturn(e.target.value)}
+                  onChange={(nextValue) => setExpectedReturn(nextValue)}
                 />
               </label>
               <label className="flex items-center gap-2 text-sm">

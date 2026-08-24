@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import {
@@ -106,20 +107,18 @@ export function MhdTripListPanel({
 
         <label className="flex flex-col gap-1">
           <span className="text-xs font-medium text-muted-foreground">From</span>
-          <input
-            type="date"
+          <MhdDateField
             value={filters.from ?? ''}
-            onChange={(event) => onFiltersChange({ ...filters, from: event.target.value || null })}
+            onChange={(nextValue) => onFiltersChange({ ...filters, from: nextValue || null })}
             className={DATE_INPUT_CLASSES}
           />
         </label>
 
         <label className="flex flex-col gap-1">
           <span className="text-xs font-medium text-muted-foreground">To</span>
-          <input
-            type="date"
+          <MhdDateField
             value={filters.to ?? ''}
-            onChange={(event) => onFiltersChange({ ...filters, to: event.target.value || null })}
+            onChange={(nextValue) => onFiltersChange({ ...filters, to: nextValue || null })}
             className={DATE_INPUT_CLASSES}
           />
         </label>

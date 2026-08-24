@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import {
   MHD_LEAVE_CERTIFICATION_TYPES,
   mhdFormatLeaveCertificationType,
@@ -138,11 +139,10 @@ export function MhdLeaveCertificationPanel({
               <label htmlFor="certDue" className="block text-sm font-medium text-foreground">
                 Due date <span className="font-normal text-muted-foreground">(optional)</span>
               </label>
-              <input
+              <MhdDateField
                 id="certDue"
-                type="date"
                 value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
+                onChange={(nextValue) => setDueDate(nextValue)}
                 className={`mt-1 ${INPUT_CLASSES}`}
               />
             </div>

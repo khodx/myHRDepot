@@ -9,10 +9,11 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
@@ -126,6 +127,7 @@ function MhdExitInterviewQuickCreateForm({
 }) {
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<MhdExitInterviewQuickCreateSchemaInput>({
@@ -157,11 +159,17 @@ function MhdExitInterviewQuickCreateForm({
         >
           Date
         </label>
-        <input
-          id="mhd-offboarding-exit-interview-date"
-          type="date"
-          className="w-full rounded border px-3 py-2"
-          {...register('activityDate')}
+        <Controller
+          name="activityDate"
+          control={control}
+          render={({ field }) => (
+            <MhdDateField
+              id="mhd-offboarding-exit-interview-date"
+              className="w-full"
+              value={field.value ?? ''}
+              onChange={field.onChange}
+            />
+          )}
         />
         {errors.activityDate ? (
           <p className="mt-1 text-xs text-red-600">{errors.activityDate.message}</p>

@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/Button';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { MhdDateField } from '@/components/ui/MhdDateField';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { mhdAttendancePolicySchema, type MhdAttendancePolicyFormValues } from '../Schemas';
 import {
   MHD_ATTENDANCE_ACTION_LEVELS,
@@ -139,11 +140,17 @@ export function MhdAttendancePolicyEditor({
           <label htmlFor="effectiveFrom" className="block text-sm font-medium text-foreground">
             Effective from
           </label>
-          <input
-            id="effectiveFrom"
-            type="date"
-            {...register('effectiveFrom')}
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          <Controller
+            name="effectiveFrom"
+            control={control}
+            render={({ field }) => (
+              <MhdDateField
+                id="effectiveFrom"
+                className="mt-1 w-full"
+                value={field.value ?? ''}
+                onChange={field.onChange}
+              />
+            )}
           />
         </div>
       </div>

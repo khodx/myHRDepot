@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { MhdMultiSelectCombobox } from '@/components/ui/MhdMultiSelectCombobox';
@@ -321,23 +322,21 @@ export function MhdTaskForm({
 
         <label className="text-sm font-medium text-foreground">
           Start Date
-          <input
-            type="date"
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          <MhdDateField
+            className="mt-1 w-full"
             value={values.startDate}
-            onChange={(event) => updateValue('startDate', event.target.value)}
+            onChange={(nextValue) => updateValue('startDate', nextValue)}
           />
         </label>
 
         <label className="text-sm font-medium text-foreground">
           Due Date
-          <input
-            type="date"
-            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          <MhdDateField
+            className="mt-1 w-full"
             value={values.dueDate}
-            onChange={(event) => {
+            onChange={(nextValue) => {
               dueDateTouchedRef.current = true;
-              updateValue('dueDate', event.target.value);
+              updateValue('dueDate', nextValue);
             }}
           />
           {!selectedTask && (
@@ -350,11 +349,10 @@ export function MhdTaskForm({
         {selectedTask && (
           <label className="text-sm font-medium text-foreground">
             Completed Date
-            <input
-              type="date"
-              className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            <MhdDateField
+              className="mt-1 w-full"
               value={values.completedDate}
-              onChange={(event) => updateValue('completedDate', event.target.value)}
+              onChange={(nextValue) => updateValue('completedDate', nextValue)}
             />
           </label>
         )}

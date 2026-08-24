@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
@@ -282,23 +283,19 @@ export function MhdOffboardingPage() {
 
         <label className="flex min-w-36 flex-col gap-1" htmlFor="mhd-offboarding-filter-from">
           <span className="text-xs font-medium text-muted-foreground">Separation From</span>
-          <input
+          <MhdDateField
             id="mhd-offboarding-filter-from"
-            type="date"
             value={filters.from}
-            onChange={(event) => update({ from: event.target.value })}
-            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            onChange={(nextValue) => update({ from: nextValue })}
           />
         </label>
 
         <label className="flex min-w-36 flex-col gap-1" htmlFor="mhd-offboarding-filter-to">
           <span className="text-xs font-medium text-muted-foreground">Separation To</span>
-          <input
+          <MhdDateField
             id="mhd-offboarding-filter-to"
-            type="date"
             value={filters.to}
-            onChange={(event) => update({ to: event.target.value })}
-            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            onChange={(nextValue) => update({ to: nextValue })}
           />
         </label>
 

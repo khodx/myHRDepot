@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   MhdHandbookRecordTabs,
@@ -198,12 +199,11 @@ function MhdHandbookDraftEditor({ handbook, companyId, canManage, onGenerateDocu
             <label htmlFor="effectiveDate" className="block text-sm font-medium text-foreground">
               Effective date <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
-            <input
+            <MhdDateField
               id="effectiveDate"
-              type="date"
               value={effectiveDate}
-              onChange={(event) => setEffectiveDate(event.target.value)}
-              className="w-full rounded-md border border-border px-3 py-2 text-sm"
+              onChange={(nextValue) => setEffectiveDate(nextValue)}
+              className="w-full"
             />
             <p className="text-xs text-muted-foreground">
               Publishing freezes an immutable version with a content hash. A later change is a new

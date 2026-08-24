@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
@@ -141,12 +142,10 @@ function MhdScheduleBoard({ companyId, isPrivileged, selfPersonId }: BoardProps)
 
         <label htmlFor="rangeStart" className="flex flex-col gap-1">
           <span className="text-xs font-medium text-muted-foreground">From</span>
-          <input
+          <MhdDateField
             id="rangeStart"
-            type="date"
             value={rangeStart}
-            onChange={(event) => setRangeStart(event.target.value)}
-            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            onChange={(nextValue) => setRangeStart(nextValue)}
           />
         </label>
 
