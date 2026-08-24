@@ -366,6 +366,49 @@ export type MhdCareerOneStopOccupationLookupResponse =
   | MhdCareerOneStopOccupationLookupSuccess
   | MhdCareerOneStopOccupationLookupFailure;
 
+export interface MhdOnetOccupationSearchInput {
+  keyword: string;
+}
+
+export interface MhdOnetOccupationSearchResult {
+  code: string;
+  title: string;
+  brightOutlook: boolean;
+}
+
+export interface MhdOnetOccupationSearchSuccess {
+  success: true;
+  mode: 'search';
+  results: MhdOnetOccupationSearchResult[];
+  source: string;
+}
+
+export interface MhdOnetOccupationLookupInput {
+  onetSocCode: string;
+  includeDuties?: boolean;
+}
+
+export interface MhdOnetOccupationLookupSuccess {
+  success: true;
+  mode: 'occupation';
+  socCode: string;
+  title: string | null;
+  description: string | null;
+  tasks?: string[];
+  skills?: string[];
+  knowledge?: string[];
+  abilities?: string[];
+  source: string;
+}
+
+export interface MhdOnetLookupFailure {
+  success: false;
+  error: string;
+}
+
+export type MhdOnetOccupationSearchResponse = MhdOnetOccupationSearchSuccess | MhdOnetLookupFailure;
+export type MhdOnetOccupationLookupResponse = MhdOnetOccupationLookupSuccess | MhdOnetLookupFailure;
+
 // ---------------------------------------------------------------------------
 // Display + rule helpers
 // ---------------------------------------------------------------------------

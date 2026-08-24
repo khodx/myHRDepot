@@ -3,6 +3,8 @@ import type {
   MhdAssignJobInput,
   MhdCareerOneStopOccupationLookupInput,
   MhdCreateJobInput,
+  MhdOnetOccupationLookupInput,
+  MhdOnetOccupationSearchInput,
   MhdSetPayRangeInput,
   MhdUpdateDescriptionDraftInput,
   MhdUpdateJobInput,
@@ -254,5 +256,17 @@ export function useMhdPublishedJobForPerson(personId: string | null, asOf: strin
 export function useMhdCareerOneStopOccupationLookup() {
   return useMutation({
     mutationFn: (input: MhdCareerOneStopOccupationLookupInput) => mhdJobsService.careerOneStopOccupationLookup(input),
+  });
+}
+
+export function useMhdOnetOccupationSearch() {
+  return useMutation({
+    mutationFn: (input: MhdOnetOccupationSearchInput) => mhdJobsService.onetOccupationSearch(input),
+  });
+}
+
+export function useMhdOnetOccupationLookup() {
+  return useMutation({
+    mutationFn: (input: MhdOnetOccupationLookupInput) => mhdJobsService.onetOccupationLookup(input),
   });
 }

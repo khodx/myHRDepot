@@ -2,10 +2,16 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MhdJobDescriptionWizard } from '../components/MhdJobDescriptionWizard';
 
-const { mutate, draftMutate, noopMutation } = vi.hoisted(() => ({
+const { mutate, draftMutate, noopMutation, onetSearchMutate } = vi.hoisted(() => ({
   mutate: vi.fn().mockResolvedValue({ id: 'job-1' }),
   draftMutate: vi.fn().mockResolvedValue({ id: 'description-1' }),
   noopMutation: () => ({ mutateAsync: vi.fn().mockResolvedValue({}), isPending: false }),
+  onetSearchMutate: vi.fn().mockResolvedValue({
+    success: true,
+    mode: 'search',
+    results: [{ code: '53-3032.00', title: 'Heavy and Tractor-Trailer Truck Drivers', brightOutlook: false }],
+    source: 'O*NET attribution',
+  }),
 }));
 
 vi.mock('@/features/authentication/Hook', () => ({
@@ -25,12 +31,26 @@ vi.mock('../Hook', () => ({
   useMhdPublishDescription: noopMutation,
   useMhdCompetencies: () => ({ data: [] }),
   useMhdCareerOneStopOccupationLookup: noopMutation,
+  useMhdOnetOccupationSearch: () => ({ mutateAsync: onetSearchMutate, isPending: false }),
+  useMhdOnetOccupationLookup: noopMutation,
 }));
 
 function next() { fireEvent.click(screen.getByRole('button', { name: 'Next' })); }
 
 describe('MhdJobDescriptionWizard', () => {
-  beforeEach(() => { mutate.mockClear(); draftMutate.mockClear(); });
+  beforeEach(() => { mutate.mockClear(); draftMutate.mockClear(); onetSearchMutate.mockClear(); });
+
+  it('fills the O*NET-SOC code from a search result', async () => {
+    render(<MhdJobDescriptionWizard />);
+    fireEvent.change(screen.getByLabelText('Job title'), { target: { value: 'Driver' } });
+    next();
+    await waitFor(() => expect(screen.getByText('SOC & Wage Order')).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText('Find an O*NET-SOC code by job title'), { target: { value: 'truck driver' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Search O*NET' }));
+    await waitFor(() => expect(onetSearchMutate).toHaveBeenCalledWith({ keyword: 'truck driver' }));
+    fireEvent.click(await screen.findByText('Heavy and Tractor-Trailer Truck Drivers'));
+    expect(screen.getByLabelText('O*NET-SOC Code')).toHaveValue('53-3032.00');
+  });
 
   it('blocks each job step until the accumulated job schema is valid', () => {
     render(<MhdJobDescriptionWizard />);

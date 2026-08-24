@@ -10,6 +10,10 @@ import type {
   MhdJobAssignment,
   MhdJobAssignmentRpcRow,
   MhdJobRpcRow,
+  MhdOnetOccupationLookupInput,
+  MhdOnetOccupationLookupResponse,
+  MhdOnetOccupationSearchInput,
+  MhdOnetOccupationSearchResponse,
   MhdPublishedJobDescription,
   MhdPublishedJobRpcRow,
   MhdSetPayRangeInput,
@@ -390,5 +394,25 @@ export const mhdJobsService = {
     const response = data as MhdCareerOneStopOccupationLookupResponse | undefined;
     if (response?.success === false) throw new Error(response.error);
     return response as MhdCareerOneStopOccupationLookupResponse;
+  },
+
+  async onetOccupationSearch(input: MhdOnetOccupationSearchInput): Promise<MhdOnetOccupationSearchResponse> {
+    const { data, error } = await supabaseClient.functions.invoke('onet-online-lookup', {
+      body: { mode: 'search', keyword: input.keyword },
+    });
+    if (error) throw error;
+    const response = data as MhdOnetOccupationSearchResponse | undefined;
+    if (response?.success === false) throw new Error(response.error);
+    return response as MhdOnetOccupationSearchResponse;
+  },
+
+  async onetOccupationLookup(input: MhdOnetOccupationLookupInput): Promise<MhdOnetOccupationLookupResponse> {
+    const { data, error } = await supabaseClient.functions.invoke('onet-online-lookup', {
+      body: { mode: 'occupation', onetSocCode: input.onetSocCode, includeDuties: input.includeDuties ?? false },
+    });
+    if (error) throw error;
+    const response = data as MhdOnetOccupationLookupResponse | undefined;
+    if (response?.success === false) throw new Error(response.error);
+    return response as MhdOnetOccupationLookupResponse;
   },
 };
