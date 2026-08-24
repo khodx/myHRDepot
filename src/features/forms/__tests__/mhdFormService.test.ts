@@ -117,6 +117,96 @@ describe('mhdFormService', () => {
     expect(result[0].definition.fields[2]?.type).toBe('longtext');
   });
 
+  it('maps repeatable and grid field configs from the definition JSON (migration 0227 round trip)', async () => {
+    mockReturns.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'form-1',
+          reference_id: 'FORM-000002',
+          company_id: 'company-1',
+          name: 'Repeating Table Test',
+          description: '',
+          status: 'DRAFT',
+          version: 1,
+          previous_version_id: null,
+          created_at: '2026-07-17T00:00:00Z',
+          created_by: 'user-1',
+          updated_at: '2026-07-17T00:00:00Z',
+          updated_by: 'user-1',
+          published_at: null,
+          published_by: null,
+          definition: {
+            id: 'form-1',
+            name: 'Repeating Table Test',
+            description: '',
+            pages: [
+              {
+                id: 'page-1',
+                title: 'Page 1',
+                fields: ['field-1', 'field-2'],
+                order: 1,
+              },
+            ],
+            fields: [
+              {
+                id: 'field-1',
+                type: 'repeating_table',
+                label: 'Employment History',
+                required: false,
+                hidden: false,
+                options: [],
+                grid: null,
+                repeatable: {
+                  kind: 'table',
+                  columns: [
+                    { id: 'employer_name', label: 'Employer', type: 'text_field' },
+                    { id: 'date_from', label: 'From', type: 'date_field' },
+                  ],
+                  minRows: 0,
+                  maxRows: 5,
+                },
+              },
+              {
+                id: 'field-2',
+                type: 'grid',
+                label: 'Weekly Schedule',
+                required: false,
+                hidden: false,
+                options: [],
+                repeatable: null,
+                grid: {
+                  rowKey: 'row',
+                  rows: [{ value: 'monday', label: 'Monday' }],
+                  columns: [{ key: 'hours', label: 'Hours', type: 'number_field' }],
+                },
+              },
+            ],
+            logic: [],
+            calculations: [],
+            settings: { allowDraft: true, multiPage: false, progressBar: true },
+          },
+        },
+      ],
+      error: null,
+    });
+
+    const result = await mhdFormService.listFormsForCompany('company-1');
+
+    const table = result[0].definition.fields[0];
+    expect(table?.repeatable?.kind).toBe('table');
+    expect(table?.repeatable?.columns).toEqual([
+      { id: 'employer_name', label: 'Employer', type: 'text' },
+      { id: 'date_from', label: 'From', type: 'date' },
+    ]);
+    expect(table?.grid).toBeUndefined();
+
+    const grid = result[0].definition.fields[1];
+    expect(grid?.grid?.columns).toEqual([
+      { key: 'hours', label: 'Hours', type: 'number', options: [] },
+    ]);
+    expect(grid?.repeatable).toBeUndefined();
+  });
+
   it('omits optional create-form args rather than passing null', async () => {
     mockReturns
       .mockResolvedValueOnce({ data: [{ id: 'form-1' }], error: null })

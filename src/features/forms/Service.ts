@@ -35,6 +35,7 @@ import type {
   MhdVisibilityNode,
   MhdGridDefinition,
   MhdFormIntakeKind,
+  MhdRepeatableFieldConfig,
 } from './Types';
 import {
   mhdIsConditionGroup,
@@ -138,6 +139,7 @@ function mapField(value: unknown): MhdFormField | null {
           ? value.visibleWhen
           : undefined) as MhdVisibilityNode | undefined,
     grid: mapGrid(value.grid ?? value.gridDefinition ?? value.grid_definition),
+    repeatable: mapRepeatable(value.repeatable),
     clauseKey: asString(value.clauseKey) || asString(value.clause_key) || undefined,
   };
 }
@@ -161,6 +163,38 @@ function mapGrid(value: unknown): MhdGridDefinition | undefined {
     rows,
     columns,
   };
+}
+
+/**
+ * Maps the `repeatable` key `mhd_assemble_form_fields` emits (migration 0227)
+ * for `repeating_table`/`repeating_section` fields. Table-kind columns use
+ * `id` (matching `MhdRepeatableFieldConfig.columns`), a different key than
+ * `mapGrid`'s `key`-based `MhdGridDefinition.columns` -- the two field types
+ * share the same `grid_definition` storage column but not the same shape.
+ */
+function mapRepeatable(value: unknown): MhdRepeatableFieldConfig | undefined {
+  if (!isObject(value)) return undefined;
+  const kind = value.kind === 'section' ? 'section' : value.kind === 'table' ? 'table' : undefined;
+  if (!kind) return undefined;
+  const minRows = asNumber(value.minRows);
+  const maxRows = asNumber(value.maxRows);
+  if (kind === 'section') {
+    const rawFields = Array.isArray(value.fields) ? value.fields : [];
+    const fields = rawFields
+      .map((field) => mapField(field))
+      .filter((field): field is MhdFormField => field !== null);
+    return { kind, fields, minRows, maxRows };
+  }
+  const rawColumns = Array.isArray(value.columns) ? value.columns : [];
+  const columns = rawColumns
+    .filter(isObject)
+    .map((column) => ({
+      id: asString(column.id),
+      label: asString(column.label),
+      type: mhdNormalizeFieldType(asString(column.type, 'text')),
+    }))
+    .filter((column) => column.id !== '');
+  return { kind, columns, minRows, maxRows };
 }
 
 /**

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MhdFormRenderer } from '../components/MhdFormRenderer';
 import { mhdFormService } from '../Service';
@@ -156,5 +156,41 @@ describe('MhdFormRenderer', () => {
 
     expect(await screen.findByText('Save Draft')).toBeInTheDocument();
     expect(mhdFormService.createSubmission).toHaveBeenCalledTimes(1);
+  });
+
+  it('maps prefill values to matching fieldKeys and drops unmatched keys before saving a draft, so a live "email" -> uuid cast error cannot recur', async () => {
+    const draftForm = {
+      ...baseForm,
+      definition: {
+        ...baseForm.definition,
+        fields: [{ ...baseForm.definition.fields[0], fieldKey: 'email' }],
+        settings: { ...baseForm.definition.settings, allowDraft: true },
+      },
+    };
+
+    vi.mocked(mhdFormService.getFormById).mockResolvedValue(draftForm as never);
+    vi.mocked(mhdFormService.createSubmission).mockResolvedValue({ id: 'submission-1' } as never);
+    vi.mocked(mhdFormService.saveDraft).mockResolvedValue({ updatedAt: '2026-08-24T00:00:00Z' } as never);
+
+    render(
+      <MhdFormRenderer
+        formId="form-1"
+        userPrefillValues={{ email: 'demo@example.com', displayName: 'Demo User' }}
+      />,
+    );
+
+    const saveButton = await screen.findByText('Save Draft');
+    fireEvent.click(saveButton);
+
+    await waitFor(() => expect(mhdFormService.saveDraft).toHaveBeenCalledTimes(1));
+
+    const [submissionId, savedValues] = vi.mocked(mhdFormService.saveDraft).mock.calls[0];
+    expect(submissionId).toBe('submission-1');
+    // "field-1" carries fieldKey "email" -> the prefill value lands on its real id.
+    expect(savedValues).toEqual({ 'field-1': 'demo@example.com' });
+    // "displayName" has no matching fieldKey, so it must never reach the payload
+    // mhd_save_form_draft casts every key to uuid -- this is exactly what crashed live.
+    expect(savedValues).not.toHaveProperty('displayName');
+    expect(savedValues).not.toHaveProperty('email');
   });
 });

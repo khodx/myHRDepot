@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { mhdBuildFormValuesSchema } from '../Schemas';
 import { mhdFormCalculationEngine, mhdFormLogicEngine, mhdFormService } from '../Service';
-import type { MhdForm, MhdFormDefinition, MhdFormFileValue } from '../Types';
+import type { MhdForm, MhdFormDefinition, MhdFormField, MhdFormFileValue } from '../Types';
 import { mhdIsEncryptedFormValue } from '../Types';
 import type { MhdEmployeeFileTypeKey } from '@/features/employee-files/Types';
 import { MhdFormDraftSave } from './MhdFormDraftSave';
@@ -41,6 +41,38 @@ function readQueryPrefill(): Record<string, string> {
     values[key] = entry;
   });
   return values;
+}
+
+/**
+ * Prefill sources (query params, task/user prefill values, the
+ * employeeFile-category/person-id context) are keyed by semantic name -- "email",
+ * "personId", etc. -- never by a field's real uuid `id`, which is the only
+ * key `values`/`outboundValues` are ever read or written by (MhdFormPage
+ * looks up `values[field.id]`, mhd_save_form_draft casts every top-level
+ * key straight to uuid). Left unmapped, a semantic key with no matching
+ * field is dead weight that no field ever reads, yet still reaches
+ * `saveDraft`/`submitForm` and crashes the uuid cast the first time a real
+ * one shows up (confirmed live: "email" -> `invalid input syntax for type
+ * uuid`). Translate through `field.fieldKey`, the property the app already
+ * documents for exactly this correlation, and drop anything with no match
+ * rather than letting it leak into the outbound payload.
+ */
+function mapPrefillToFieldIds(
+  prefill: Record<string, unknown>,
+  fields: MhdFormField[],
+): Record<string, unknown> {
+  const fieldIdByKey = new Map<string, string>();
+  for (const field of fields) {
+    if (field.fieldKey) fieldIdByKey.set(field.fieldKey, field.id);
+  }
+  const mapped: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(prefill)) {
+    const fieldId = fieldIdByKey.get(key);
+    if (fieldId) {
+      mapped[fieldId] = value;
+    }
+  }
+  return mapped;
 }
 
 export function MhdFormRenderer({
@@ -84,7 +116,7 @@ export function MhdFormRenderer({
         if (isCancelled) return;
 
         setForm(loadedForm);
-        let prefill: Record<string, unknown> = {
+        const rawPrefill: Record<string, unknown> = {
           ...readQueryPrefill(),
           ...(employeeFileCategory ? { employeeFileCategory } : {}),
           ...(employeeFilePersonId ? { employeeFilePersonId, personId: employeeFilePersonId } : {}),
@@ -92,6 +124,10 @@ export function MhdFormRenderer({
           ...(taskPrefillValues ?? {}),
           ...(userPrefillValues ?? {}),
         };
+        let prefill: Record<string, unknown> = mapPrefillToFieldIds(
+          rawPrefill,
+          loadedForm.definition.fields,
+        );
 
         if (initialSubmissionId) {
           const submission = await mhdFormService.getSubmissionById(initialSubmissionId);
