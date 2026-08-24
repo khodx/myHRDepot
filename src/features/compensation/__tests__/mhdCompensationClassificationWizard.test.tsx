@@ -99,4 +99,34 @@ describe('MhdCompensationClassificationWizard', () => {
     await waitFor(() => expect(screen.getByText('No matching pay grade configured')).toBeInTheDocument());
     expect(mutate.market).not.toHaveBeenCalled();
   });
+
+  it('captures the license/credential evidence for PROFESSIONAL and omits it otherwise', async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Job' }), 'job-1');
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Exemption category' }), 'PROFESSIONAL');
+    await user.type(screen.getByRole('spinbutton', { name: 'Weekly salary' }), '1000');
+
+    expect(screen.queryByLabelText(/License or certification name/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox', { name: /legally requires a professional license/ }));
+    await user.type(screen.getByLabelText(/License or certification name/), 'California Bar');
+
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(mutate.evaluate).toHaveBeenCalledTimes(1));
+    expect(mutate.evaluate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ksaInputs: { requires_license: true, license_name: 'California Bar' },
+      }),
+    );
+  });
+
+  it('sends no ksaInputs for a non-PROFESSIONAL category', async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await selectJobAndFacts(user);
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(mutate.evaluate).toHaveBeenCalledTimes(1));
+    expect(mutate.evaluate).toHaveBeenCalledWith(expect.objectContaining({ ksaInputs: undefined }));
+  });
 });
