@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { mhdCanMutateJobs, mhdCanSeeJobPay } from '@/appshell/mhdRouteAccess';
 import { MhdJobRecordTabs } from '@/appshell/components/MhdJobRecordTabs';
 import { Button } from '@/components/ui/Button';
@@ -351,6 +351,7 @@ export function MhdJobDetailPage() {
               <select
                 id="flsaClassification"
                 value={flsaClassification}
+                disabled={job.flsaClassificationSource === 'CLASSIFICATION_WIZARD'}
                 onChange={(event) =>
                   setFlsaClassification(event.target.value as MhdFlsaClassification | '')
                 }
@@ -363,6 +364,15 @@ export function MhdJobDetailPage() {
                   </option>
                 ))}
               </select>
+              {job.flsaClassificationSource === 'CLASSIFICATION_WIZARD' ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {/* CA controls over FEDERAL whenever a CA determination is confirmed (0231's
+                      write-back priority) -- this field already reflects whichever one governs,
+                      so there is nothing further to show here beyond the single resolved value. */}
+                  Set by a confirmed classification determination.{' '}
+                  <Link to="/compensation" className="underline">Review in Classification Wizard</Link>
+                </p>
+              ) : null}
             </div>
             <div>
               <label htmlFor="employmentType" className="block text-sm font-medium text-foreground">
