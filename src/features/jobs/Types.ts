@@ -181,6 +181,7 @@ export interface MhdJob {
   jobLevel: string | null;
   department: string | null;
   flsaClassification: MhdFlsaClassification | null;
+  flsaClassificationSource: 'MANUAL' | 'CLASSIFICATION_WIZARD';
   employmentType: MhdEmploymentType;
   isSafetySensitive: boolean;
   industry: MhdIndustry;
@@ -318,6 +319,7 @@ export interface MhdUpdateDescriptionDraftInput {
   travelRequirement?: string | null;
   workEnvironment?: string | null;
   physicalRequirements?: string | null;
+  educationRequirements?: string | null;
 }
 
 export interface MhdAssignJobInput {
@@ -386,6 +388,7 @@ export interface MhdOnetOccupationSearchSuccess {
 export interface MhdOnetOccupationLookupInput {
   onetSocCode: string;
   includeDuties?: boolean;
+  includeRequirements?: boolean;
 }
 
 export interface MhdOnetOccupationLookupSuccess {
@@ -398,6 +401,14 @@ export interface MhdOnetOccupationLookupSuccess {
   skills?: string[];
   knowledge?: string[];
   abilities?: string[];
+  jobZone?: {
+    title: string | null;
+    education: string | null;
+    relatedExperience: string | null;
+    jobTraining: string | null;
+  } | null;
+  educationBreakdown?: Array<{ title: string; percentageOfRespondents: number | null }>;
+  workContext?: string[];
   source: string;
 }
 

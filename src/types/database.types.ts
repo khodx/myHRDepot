@@ -10961,6 +10961,73 @@ export type Database = {
           },
         ]
       }
+      job_description_disclaimers: {
+        Row: {
+          body: string
+          company_id: string | null
+          created_at: string
+          created_by: string
+          disclaimer_key: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          body: string
+          company_id?: string | null
+          created_at?: string
+          created_by: string
+          disclaimer_key: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          version: number
+        }
+        Update: {
+          body?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string
+          disclaimer_key?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_description_disclaimers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_description_disclaimers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_description_disclaimers_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_description_functions: {
         Row: {
           created_at: string | null
@@ -11040,6 +11107,7 @@ export type Database = {
           company_id: string
           created_at: string | null
           created_by: string
+          education_requirements: string | null
           effective_from: string | null
           id: string
           job_id: string
@@ -11061,6 +11129,7 @@ export type Database = {
           company_id: string
           created_at?: string | null
           created_by: string
+          education_requirements?: string | null
           effective_from?: string | null
           id?: string
           job_id: string
@@ -11082,6 +11151,7 @@ export type Database = {
           company_id?: string
           created_at?: string | null
           created_by?: string
+          education_requirements?: string | null
           effective_from?: string | null
           id?: string
           job_id?: string
@@ -11379,6 +11449,7 @@ export type Database = {
           department: string | null
           employment_type: string
           flsa_classification: string | null
+          flsa_classification_source: string
           id: string
           industry: string
           is_active: boolean
@@ -11402,6 +11473,7 @@ export type Database = {
           department?: string | null
           employment_type?: string
           flsa_classification?: string | null
+          flsa_classification_source?: string
           id?: string
           industry?: string
           is_active?: boolean
@@ -11425,6 +11497,7 @@ export type Database = {
           department?: string | null
           employment_type?: string
           flsa_classification?: string | null
+          flsa_classification_source?: string
           id?: string
           industry?: string
           is_active?: boolean
@@ -18537,6 +18610,196 @@ export type Database = {
           },
         ]
       }
+      person_i9_identity: {
+        Row: {
+          alien_foreign_passport_country: string | null
+          alien_foreign_passport_number_ciphertext: string | null
+          alien_i94_number_ciphertext: string | null
+          alien_uscis_number_ciphertext: string | null
+          alien_work_authorized_until: string | null
+          citizenship_status: string
+          company_id: string
+          created_at: string
+          created_by: string
+          date_of_birth: string | null
+          id: string
+          lawful_permanent_resident_number_ciphertext: string | null
+          mailing_address_apt: string | null
+          mailing_address_city: string | null
+          mailing_address_state: string | null
+          mailing_address_street: string | null
+          mailing_address_zip: string | null
+          person_id: string
+          ssn_ciphertext: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          alien_foreign_passport_country?: string | null
+          alien_foreign_passport_number_ciphertext?: string | null
+          alien_i94_number_ciphertext?: string | null
+          alien_uscis_number_ciphertext?: string | null
+          alien_work_authorized_until?: string | null
+          citizenship_status: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          date_of_birth?: string | null
+          id?: string
+          lawful_permanent_resident_number_ciphertext?: string | null
+          mailing_address_apt?: string | null
+          mailing_address_city?: string | null
+          mailing_address_state?: string | null
+          mailing_address_street?: string | null
+          mailing_address_zip?: string | null
+          person_id: string
+          ssn_ciphertext?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          alien_foreign_passport_country?: string | null
+          alien_foreign_passport_number_ciphertext?: string | null
+          alien_i94_number_ciphertext?: string | null
+          alien_uscis_number_ciphertext?: string | null
+          alien_work_authorized_until?: string | null
+          citizenship_status?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          date_of_birth?: string | null
+          id?: string
+          lawful_permanent_resident_number_ciphertext?: string | null
+          mailing_address_apt?: string | null
+          mailing_address_city?: string | null
+          mailing_address_state?: string | null
+          mailing_address_street?: string | null
+          mailing_address_zip?: string | null
+          person_id?: string
+          ssn_ciphertext?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_i9_identity_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_i9_identity_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_i9_identity_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: true
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_i9_identity_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      person_w4_withholding: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          deductions_amount: number
+          exempt_from_withholding: boolean
+          extra_withholding_amount: number
+          filing_status: string
+          id: string
+          multiple_jobs_checkbox: boolean
+          other_credits_amount: number
+          other_dependents_count: number
+          other_income_amount: number
+          person_id: string
+          qualifying_children_count: number
+          tax_year: number
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          deductions_amount?: number
+          exempt_from_withholding?: boolean
+          extra_withholding_amount?: number
+          filing_status: string
+          id?: string
+          multiple_jobs_checkbox?: boolean
+          other_credits_amount?: number
+          other_dependents_count?: number
+          other_income_amount?: number
+          person_id: string
+          qualifying_children_count?: number
+          tax_year: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          deductions_amount?: number
+          exempt_from_withholding?: boolean
+          extra_withholding_amount?: number
+          filing_status?: string
+          id?: string
+          multiple_jobs_checkbox?: boolean
+          other_credits_amount?: number
+          other_dependents_count?: number
+          other_income_amount?: number
+          person_id?: string
+          qualifying_children_count?: number
+          tax_year?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_w4_withholding_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_w4_withholding_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_w4_withholding_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_w4_withholding_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       policies: {
         Row: {
           category: string
@@ -22020,6 +22283,10 @@ export type Database = {
         Args: { p_review_id: string }
         Returns: boolean
       }
+      mhd_can_view_person_tax_identity: {
+        Args: { p_company_id: string; p_person_id: string }
+        Returns: boolean
+      }
       mhd_can_write_packet_evidence: {
         Args: { p_company_id: string; p_person_id: string }
         Returns: boolean
@@ -24379,6 +24646,10 @@ export type Database = {
         }[]
       }
       mhd_job_can_see_pay: { Args: never; Returns: boolean }
+      mhd_job_classification_apply_flsa_writeback: {
+        Args: { p_snapshot_id: string }
+        Returns: undefined
+      }
       mhd_job_classification_confirm: {
         Args: { p_determination_id: string }
         Returns: undefined
@@ -24443,6 +24714,67 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_job_description_disclaimer_history: {
+        Args: { p_company_id?: string; p_disclaimer_key: string }
+        Returns: {
+          body: string
+          company_id: string | null
+          created_at: string
+          created_by: string
+          disclaimer_key: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "job_description_disclaimers"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mhd_job_description_disclaimer_upsert: {
+        Args: {
+          p_body: string
+          p_company_id?: string
+          p_disclaimer_key: string
+          p_effective_from?: string
+        }
+        Returns: {
+          body: string
+          company_id: string | null
+          created_at: string
+          created_by: string
+          disclaimer_key: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "job_description_disclaimers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mhd_job_description_disclaimers_current: {
+        Args: { p_company_id: string }
+        Returns: {
+          body: string
+          disclaimer_key: string
+          effective_from: string
+          is_company_override: boolean
+          version: number
+        }[]
+      }
       mhd_job_description_publish: {
         Args: { p_description_id: string; p_effective_from?: string }
         Returns: undefined
@@ -24462,6 +24794,7 @@ export type Database = {
       mhd_job_description_update_draft: {
         Args: {
           p_description_id: string
+          p_education_requirements?: string
           p_physical_requirements?: string
           p_scope_of_role?: string
           p_summary?: string
@@ -24506,6 +24839,7 @@ export type Database = {
           department: string
           employment_type: string
           flsa_classification: string
+          flsa_classification_source: string
           id: string
           incumbent_count: number
           industry: string
@@ -26782,6 +27116,52 @@ export type Database = {
           state: string
         }[]
       }
+      mhd_person_i9_identity_get: {
+        Args: { p_person_id: string }
+        Returns: {
+          alien_foreign_passport_country: string
+          alien_work_authorized_until: string
+          citizenship_status: string
+          date_of_birth: string
+          has_alien_foreign_passport_number: boolean
+          has_alien_i94_number: boolean
+          has_alien_uscis_number: boolean
+          has_lawful_permanent_resident_number: boolean
+          has_ssn: boolean
+          id: string
+          mailing_address_apt: string
+          mailing_address_city: string
+          mailing_address_state: string
+          mailing_address_street: string
+          mailing_address_zip: string
+          person_id: string
+          updated_at: string
+        }[]
+      }
+      mhd_person_i9_identity_reveal_field: {
+        Args: { p_field_key: string; p_person_id: string }
+        Returns: string
+      }
+      mhd_person_i9_identity_upsert: {
+        Args: {
+          p_alien_foreign_passport_country: string
+          p_alien_foreign_passport_number: string
+          p_alien_i94_number: string
+          p_alien_uscis_number: string
+          p_alien_work_authorized_until: string
+          p_citizenship_status: string
+          p_date_of_birth: string
+          p_lawful_permanent_resident_number: string
+          p_mailing_address_apt: string
+          p_mailing_address_city: string
+          p_mailing_address_state: string
+          p_mailing_address_street: string
+          p_mailing_address_zip: string
+          p_person_id: string
+          p_ssn: string
+        }
+        Returns: string
+      }
       mhd_person_set_employment_state: {
         Args: {
           p_actor_user_id: string
@@ -26804,6 +27184,40 @@ export type Database = {
           reference_id: string
           state: string
         }[]
+      }
+      mhd_person_w4_withholding_get: {
+        Args: { p_person_id: string; p_tax_year?: number }
+        Returns: {
+          deductions_amount: number
+          exempt_from_withholding: boolean
+          extra_withholding_amount: number
+          filing_status: string
+          id: string
+          multiple_jobs_checkbox: boolean
+          other_credits_amount: number
+          other_dependents_count: number
+          other_income_amount: number
+          person_id: string
+          qualifying_children_count: number
+          tax_year: number
+          updated_at: string
+        }[]
+      }
+      mhd_person_w4_withholding_upsert: {
+        Args: {
+          p_deductions_amount: number
+          p_exempt_from_withholding: boolean
+          p_extra_withholding_amount: number
+          p_filing_status: string
+          p_multiple_jobs_checkbox: boolean
+          p_other_credits_amount: number
+          p_other_dependents_count: number
+          p_other_income_amount: number
+          p_person_id: string
+          p_qualifying_children_count: number
+          p_tax_year: number
+        }
+        Returns: string
       }
       mhd_policy_ack_board: {
         Args: { p_policy_version_id: string }

@@ -89,7 +89,10 @@ export function MhdRichTextEditor({
     const editor = editorRef.current;
     if (!editor) return;
     const nextHtml = editor.innerHTML;
-    const plainText = editor.innerText.trim();
+    // textContent, not innerText: innerText depends on computed layout (unsupported
+    // in jsdom, returning undefined there) and this plain-text derivation only
+    // needs the text itself, not layout-aware whitespace collapsing.
+    const plainText = (editor.textContent ?? '').trim();
     onChange(nextHtml, plainText, mhdRichTextToDocument(nextHtml, plainText));
   };
 

@@ -6,11 +6,12 @@ import {
   type ReactNode,
   type SetStateAction,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdExternalDataAttribution } from '@/components/ui/MhdExternalDataAttribution';
+import { MhdRichTextEditor, MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import careerOneStopLogo from '@/assets/careeronestop-logo.svg';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
@@ -83,6 +84,7 @@ interface MhdJobDescriptionWizardJobState {
   jobLevel: string;
   department: string;
   flsaClassification: MhdFlsaClassification | '';
+  flsaClassificationSource: 'MANUAL' | 'CLASSIFICATION_WIZARD';
   employmentType: MhdEmploymentType;
   industry: MhdIndustry;
   isSafetySensitive: boolean;
@@ -119,6 +121,10 @@ interface DutiesProps {
   summary: string;
   onetSocCode: string;
   setSummary: (value: string) => void;
+  physicalRequirements: string;
+  educationRequirements: string;
+  setPhysicalRequirements: (value: string) => void;
+  setEducationRequirements: (value: string) => void;
   functions: DraftFunction[];
   setFunctions: Dispatch<SetStateAction<DraftFunction[]>>;
   qualifications: DraftQualification[];
@@ -143,6 +149,20 @@ interface ReviewProps {
 const inputClasses =
   'mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 
+function mhdEscapeRichTextParagraph(text: string): string {
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return `<p>${escaped}</p>`;
+}
+
+/** These wizard fields persist as HTML strings (MhdRichTextEditor), so an "Add"
+ * action from a suggestion list appends an escaped paragraph, not a newline. */
+function mhdAppendRichTextParagraph(previousHtml: string, text: string): string {
+  return previousHtml + mhdEscapeRichTextParagraph(text);
+}
+
 function Field({ label, id, children, error }: { label: string; id: string; children: ReactNode; error?: string }) {
   return (
     <div>
@@ -166,6 +186,7 @@ export function MhdJobDescriptionWizard() {
   const [job, setJob] = useState<MhdJobDescriptionWizardJobState>({
     jobTitle: '', jobCode: '', jobFamily: '', jobLevel: '', department: '',
     flsaClassification: '' as MhdFlsaClassification | '',
+    flsaClassificationSource: 'MANUAL',
     employmentType: 'FULL_TIME' as MhdEmploymentType, industry: 'GENERAL' as MhdIndustry,
     isSafetySensitive: false, onetSocCode: '',
     caWageOrderClassification: '' as MhdCaWageOrderClassification | '',
@@ -173,6 +194,8 @@ export function MhdJobDescriptionWizard() {
     payPeriod: '' as MhdPayPeriod | '',
   });
   const [summary, setSummary] = useState('');
+  const [physicalRequirements, setPhysicalRequirements] = useState('');
+  const [educationRequirements, setEducationRequirements] = useState('');
   const [functions, setFunctions] = useState<DraftFunction[]>([{ functionText: '', isEssential: true }]);
   const [qualifications, setQualifications] = useState<DraftQualification[]>([]);
   const [selectedCompetencyIds, setSelectedCompetencyIds] = useState<string[]>([]);
@@ -254,7 +277,7 @@ export function MhdJobDescriptionWizard() {
       }
       if (currentStepIndex === DUTIES_STEP_INDEX && descriptionId && !dutiesSaved.current) {
         dutiesSaved.current = true;
-        await updateDraft.mutateAsync({ descriptionId, summary });
+        await updateDraft.mutateAsync({ descriptionId, summary, physicalRequirements, educationRequirements });
         await setFns.mutateAsync({ descriptionId, functions: functions.filter((fn) => fn.functionText.trim()) });
         await setQuals.mutateAsync({ descriptionId, qualifications: qualifications.filter((q) => q.qualificationText.trim()) });
       }
@@ -294,7 +317,7 @@ export function MhdJobDescriptionWizard() {
         {currentStepIndex === BASICS_STEP_INDEX ? <Basics job={job} updateJob={updateJob} fieldError={fieldError} /> : null}
         {currentStepIndex === SOC_STEP_INDEX ? <Soc job={job} updateJob={updateJob} fieldError={fieldError} /> : null}
         {currentStepIndex === PAY_STEP_INDEX ? <Pay job={job} updateJob={updateJob} fieldError={fieldError} /> : null}
-        {currentStepIndex === DUTIES_STEP_INDEX ? <Duties summary={summary} onetSocCode={job.onetSocCode} setSummary={setSummary} functions={functions} setFunctions={setFunctions} qualifications={qualifications} setQualifications={setQualifications} /> : null}
+        {currentStepIndex === DUTIES_STEP_INDEX ? <Duties summary={summary} onetSocCode={job.onetSocCode} setSummary={setSummary} physicalRequirements={physicalRequirements} educationRequirements={educationRequirements} setPhysicalRequirements={setPhysicalRequirements} setEducationRequirements={setEducationRequirements} functions={functions} setFunctions={setFunctions} qualifications={qualifications} setQualifications={setQualifications} /> : null}
         {currentStepIndex === COMPETENCIES_STEP_INDEX ? <CompetencyList data={competencies.data ?? []} selected={selectedCompetencyIds} setSelected={setSelectedCompetencyIds} /> : null}
         {currentStepIndex === REVIEW_STEP_INDEX ? <Review job={job} summary={summary} functions={functions} qualifications={qualifications} selectedCompetencyIds={selectedCompetencyIds} gate={gate} /> : null}
         {stepError ? <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{stepError}</p> : null}
@@ -359,21 +382,23 @@ function Soc({ job, updateJob, fieldError }: JobStepProps) {
 }
 
 function Pay({ job, updateJob, fieldError }: JobStepProps) {
+  const classificationLocked = job.flsaClassificationSource === 'CLASSIFICATION_WIZARD';
   return <div className="grid grid-cols-2 gap-3">
     <Field label="Pay minimum" id="wizard-payMin" error={fieldError?.field === 'payMin' ? fieldError.message : undefined}><input id="wizard-payMin" type="number" min="0" value={job.payMin ?? ''} onChange={(e) => updateJob('payMin', e.target.value === '' ? null : Number(e.target.value))} className={inputClasses} /></Field>
     <Field label="Pay maximum" id="wizard-payMax" error={fieldError?.field === 'payMax' ? fieldError.message : undefined}><input id="wizard-payMax" type="number" min="0" value={job.payMax ?? ''} onChange={(e) => updateJob('payMax', e.target.value === '' ? null : Number(e.target.value))} className={inputClasses} /></Field>
     <SelectField label="Pay period" id="wizard-payPeriod" value={job.payPeriod} onChange={(e) => updateJob('payPeriod', e.target.value as MhdPayPeriod | '')} options={[['', 'No pay range'] as const, ...MHD_PAY_PERIODS.map((v) => [v, v === 'HOURLY' ? 'Hourly' : 'Annual'] as const)]} error={fieldError?.field === 'payPeriod' ? fieldError.message : undefined} />
-    <SelectField label="FLSA classification" id="wizard-flsa" value={job.flsaClassification} onChange={(e) => updateJob('flsaClassification', e.target.value as MhdFlsaClassification | '')} options={[['', 'Not yet classified'] as const, ...MHD_FLSA_CLASSIFICATIONS.map((v) => [v, mhdFormatFlsa(v)] as const)]} />
+    <div><SelectField label="FLSA classification" id="wizard-flsa" value={job.flsaClassification} onChange={(e) => updateJob('flsaClassification', e.target.value as MhdFlsaClassification | '')} options={[['', 'Not yet classified'] as const, ...MHD_FLSA_CLASSIFICATIONS.map((v) => [v, mhdFormatFlsa(v)] as const)]} disabled={classificationLocked} />{classificationLocked ? <p className="mt-1 text-xs text-muted-foreground">Set by a confirmed classification determination. <Link to="/compensation" className="underline">Review in Classification Wizard</Link></p> : null}</div>
   </div>;
 }
 
-function SelectField({ label, id, value, onChange, options, error }: SelectFieldProps) { return <Field label={label} id={id} error={error}><select id={id} value={value} onChange={onChange} className={inputClasses}>{options.map(([v, text]) => <option key={v} value={v}>{text}</option>)}</select></Field>; }
+function SelectField({ label, id, value, onChange, options, error, disabled }: SelectFieldProps & { disabled?: boolean }) { return <Field label={label} id={id} error={error}><select id={id} value={value} onChange={onChange} disabled={disabled} className={inputClasses}>{options.map(([v, text]) => <option key={v} value={v}>{text}</option>)}</select></Field>; }
 
-function Duties({ summary, onetSocCode, setSummary, functions, setFunctions, qualifications, setQualifications }: DutiesProps) {
+function Duties({ summary, onetSocCode, setSummary, physicalRequirements, educationRequirements, setPhysicalRequirements, setEducationRequirements, functions, setFunctions, qualifications, setQualifications }: DutiesProps) {
   const careerOneStopOccupationLookup = useMhdCareerOneStopOccupationLookup();
   const onetOccupationLookup = useMhdOnetOccupationLookup();
   const [suggestion, setSuggestion] = useState<MhdCareerOneStopOccupationLookupSuccess | null>(null);
   const [onetSuggestion, setOnetSuggestion] = useState<MhdOnetOccupationLookupSuccess | null>(null);
+  const [requirementsSuggestion, setRequirementsSuggestion] = useState<MhdOnetOccupationLookupSuccess | null>(null);
   const [onetError, setOnetError] = useState<string | null>(null);
   async function handleSuggest() {
     if (!onetSocCode) return;
@@ -390,12 +415,24 @@ function Duties({ summary, onetSocCode, setSummary, functions, setFunctions, qua
       setOnetError(err instanceof Error ? err.message : 'The O*NET duties lookup failed.');
     }
   }
-  return <div className="space-y-6"><div className="space-y-2"><div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => void handleSuggest()} disabled={!onetSocCode || careerOneStopOccupationLookup.isPending}>Suggest Duties From CareerOneStop</Button><Button variant="secondary" onClick={() => void handleSuggestOnet()} disabled={!onetSocCode || onetOccupationLookup.isPending}>Suggest Duties From O*NET Online</Button></div>{!onetSocCode ? <p className="text-sm text-muted-foreground">Set an O*NET-SOC code on the SOC &amp; Wage Order step to enable this.</p> : null}{onetError ? <p className="text-xs text-rose-600">{onetError}</p> : null}{suggestion ? <div className="space-y-3 rounded-md border border-border p-3"><MhdExternalDataAttribution citation={suggestion.source} logoUrl={careerOneStopLogo} logoAlt="CareerOneStop" /><div className="space-y-2"><p className="text-sm font-medium">Suggested duties</p>{suggestion.tasks.map((task, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`task-${index}`}><span>{task}</span><Button variant="secondary" onClick={() => setFunctions((p) => [...p, { functionText: task, isEssential: true }])}>Add</Button></div>)}</div><div className="space-y-2"><p className="text-sm font-medium">Suggested skills and knowledge</p>{[...suggestion.skills, ...suggestion.knowledge].map((item, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`qualification-${index}`}><span>{item}</span><Button variant="secondary" onClick={() => setQualifications((p) => [...p, { qualificationText: item, qualificationType: 'SKILL', isRequired: false }])}>Add</Button></div>)}</div></div> : null}{onetSuggestion ? <div className="space-y-3 rounded-md border border-border p-3"><MhdExternalDataAttribution citation={onetSuggestion.source} /><div className="space-y-2"><p className="text-sm font-medium">Suggested duties</p>{(onetSuggestion.tasks ?? []).map((task, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`onet-task-${index}`}><span>{task}</span><Button variant="secondary" onClick={() => setFunctions((p) => [...p, { functionText: task, isEssential: true }])}>Add</Button></div>)}</div><div className="space-y-2"><p className="text-sm font-medium">Suggested skills, knowledge, and abilities</p>{[...(onetSuggestion.skills ?? []), ...(onetSuggestion.knowledge ?? []), ...(onetSuggestion.abilities ?? [])].map((item, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`onet-qualification-${index}`}><span>{item}</span><Button variant="secondary" onClick={() => setQualifications((p) => [...p, { qualificationText: item, qualificationType: 'SKILL', isRequired: false }])}>Add</Button></div>)}</div></div> : null}</div><div><label htmlFor="wizard-summary" className="block text-sm font-medium text-foreground">Role summary</label><textarea id="wizard-summary" rows={3} value={summary} onChange={(e) => setSummary(e.target.value)} className={inputClasses} /></div>
+  async function handleSuggestRequirements() {
+    if (!onetSocCode) return;
+    setOnetError(null);
+    try {
+      const result = await onetOccupationLookup.mutateAsync({ onetSocCode, includeRequirements: true });
+      if (result.success) setRequirementsSuggestion(result);
+    } catch (err) {
+      setOnetError(err instanceof Error ? err.message : 'The O*NET requirements lookup failed.');
+    }
+  }
+  return <div className="space-y-6"><div className="space-y-2"><div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => void handleSuggest()} disabled={!onetSocCode || careerOneStopOccupationLookup.isPending}>Suggest Duties From CareerOneStop</Button><Button variant="secondary" onClick={() => void handleSuggestOnet()} disabled={!onetSocCode || onetOccupationLookup.isPending}>Suggest Duties From O*NET Online</Button><Button variant="secondary" onClick={() => void handleSuggestRequirements()} disabled={!onetSocCode || onetOccupationLookup.isPending}>Suggest Requirements From O*NET Online</Button></div>{!onetSocCode ? <p className="text-sm text-muted-foreground">Set an O*NET-SOC code on the SOC &amp; Wage Order step to enable this.</p> : null}{onetError ? <p className="text-xs text-rose-600">{onetError}</p> : null}{suggestion ? <div className="space-y-3 rounded-md border border-border p-3"><MhdExternalDataAttribution citation={suggestion.source} logoUrl={careerOneStopLogo} logoAlt="CareerOneStop" /><div className="space-y-2"><p className="text-sm font-medium">Suggested duties</p>{suggestion.tasks.map((task, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`task-${index}`}><span>{task}</span><Button variant="secondary" onClick={() => setFunctions((p) => [...p, { functionText: task, isEssential: true }])}>Add</Button></div>)}</div><div className="space-y-2"><p className="text-sm font-medium">Suggested skills and knowledge</p>{[...suggestion.skills, ...suggestion.knowledge].map((item, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`qualification-${index}`}><span>{item}</span><Button variant="secondary" onClick={() => setQualifications((p) => [...p, { qualificationText: item, qualificationType: 'SKILL', isRequired: false }])}>Add</Button></div>)}</div></div> : null}{onetSuggestion ? <div className="space-y-3 rounded-md border border-border p-3"><MhdExternalDataAttribution citation={onetSuggestion.source} /><div className="space-y-2"><p className="text-sm font-medium">Suggested duties</p>{(onetSuggestion.tasks ?? []).map((task, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`onet-task-${index}`}><span>{task}</span><Button variant="secondary" onClick={() => setFunctions((p) => [...p, { functionText: task, isEssential: true }])}>Add</Button></div>)}</div><div className="space-y-2"><p className="text-sm font-medium">Suggested skills, knowledge, and abilities</p>{[...(onetSuggestion.skills ?? []), ...(onetSuggestion.knowledge ?? []), ...(onetSuggestion.abilities ?? [])].map((item, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`onet-qualification-${index}`}><span>{item}</span><Button variant="secondary" onClick={() => setQualifications((p) => [...p, { qualificationText: item, qualificationType: 'SKILL', isRequired: false }])}>Add</Button></div>)}</div></div> : null}{requirementsSuggestion ? <div className="space-y-3 rounded-md border border-border p-3"><MhdExternalDataAttribution citation={requirementsSuggestion.source} />{requirementsSuggestion.jobZone ? <div className="space-y-2"><p className="text-sm font-medium">Suggested education &amp; training level</p><div className="flex items-start justify-between gap-2 text-sm"><span>{[requirementsSuggestion.jobZone.education, requirementsSuggestion.jobZone.relatedExperience, requirementsSuggestion.jobZone.jobTraining].filter(Boolean).join(' ')}</span><Button variant="secondary" onClick={() => { const zone = requirementsSuggestion.jobZone!; const text = [zone.education, zone.relatedExperience, zone.jobTraining].filter(Boolean).join(' '); setEducationRequirements(mhdAppendRichTextParagraph(educationRequirements, text)); }}>Add</Button></div></div> : null}<div className="space-y-2"><p className="text-sm font-medium">Suggested education levels reported</p>{(requirementsSuggestion.educationBreakdown ?? []).map((item, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`education-${index}`}><span>{item.percentageOfRespondents != null ? `${item.title} (${item.percentageOfRespondents}% of respondents)` : item.title}</span><Button variant="secondary" onClick={() => { const text = item.percentageOfRespondents != null ? `${item.title} (${item.percentageOfRespondents}% of respondents)` : item.title; setEducationRequirements(mhdAppendRichTextParagraph(educationRequirements, text)); }}>Add</Button></div>)}</div><div className="space-y-2"><p className="text-sm font-medium">Suggested physical &amp; work context requirements</p>{(requirementsSuggestion.workContext ?? []).map((item, index) => <div className="flex items-center justify-between gap-2 text-sm" key={`work-context-${index}`}><span>{item}</span><Button variant="secondary" onClick={() => setPhysicalRequirements(mhdAppendRichTextParagraph(physicalRequirements, item))}>Add</Button></div>)}</div></div> : null}</div><MhdRichTextEditor label="Role summary" html={summary} onChange={(html) => setSummary(html)} />
     <fieldset><legend className="text-sm font-medium text-foreground">Functions</legend><div className="mt-2 space-y-2">{functions.map((fn: DraftFunction, i: number) => <div key={`fn-${i}`} className="flex items-start gap-2"><textarea rows={2} value={fn.functionText} onChange={(e) => setFunctions((p: DraftFunction[]) => p.map((x, j) => j === i ? { ...x, functionText: e.target.value } : x))} className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground" /><label className="mt-2 flex items-center gap-1.5 text-sm"><input type="checkbox" checked={fn.isEssential} onChange={(e) => setFunctions((p: DraftFunction[]) => p.map((x, j) => j === i ? { ...x, isEssential: e.target.checked } : x))} />Essential</label><button type="button" onClick={() => setFunctions((p: DraftFunction[]) => p.filter((_, j) => j !== i))} className="mt-2 text-sm text-muted-foreground">Remove</button></div>)}<Button variant="secondary" onClick={() => setFunctions((p: DraftFunction[]) => [...p, { functionText: '', isEssential: true }])}>Add function</Button></div></fieldset>
     <fieldset><legend className="text-sm font-medium text-foreground">Qualifications</legend><div className="mt-2 space-y-2">{qualifications.map((q: DraftQualification, i: number) => <div key={`qual-${i}`} className="flex items-start gap-2"><input value={q.qualificationText} onChange={(e) => setQualifications((p: DraftQualification[]) => p.map((x, j) => j === i ? { ...x, qualificationText: e.target.value } : x))} className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground" /><select value={q.qualificationType} onChange={(e) => setQualifications((p: DraftQualification[]) => p.map((x, j) => j === i ? { ...x, qualificationType: e.target.value as MhdQualificationType } : x))} className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground">{MHD_QUALIFICATION_TYPES.map((type) => <option key={type} value={type}>{mhdFormatQualificationType(type)}</option>)}</select><label className="mt-2 flex items-center gap-1.5 text-sm"><input type="checkbox" checked={q.isRequired} onChange={(e) => setQualifications((p: DraftQualification[]) => p.map((x, j) => j === i ? { ...x, isRequired: e.target.checked } : x))} />Required</label><button type="button" onClick={() => setQualifications((p: DraftQualification[]) => p.filter((_, j) => j !== i))} className="mt-2 text-sm text-muted-foreground">Remove</button></div>)}<Button variant="secondary" onClick={() => setQualifications((p: DraftQualification[]) => [...p, { qualificationText: '', qualificationType: 'EXPERIENCE', isRequired: true }])}>Add qualification</Button></div></fieldset>
+  <MhdRichTextEditor label="Physical Requirements" html={physicalRequirements} onChange={(html) => setPhysicalRequirements(html)} />
+    <MhdRichTextEditor label="Education & Training Requirements" html={educationRequirements} onChange={(html) => setEducationRequirements(html)} />
   </div>;
 }
 
 function CompetencyList({ data, selected, setSelected }: CompetencyListProps) { return <div><h2 className="text-sm font-medium text-foreground">Select competencies</h2><div className="mt-2 space-y-2">{data.length ? data.map((c) => <label key={c.id} className="flex items-start gap-2 text-sm"><input type="checkbox" checked={selected.includes(c.id)} onChange={(e) => setSelected((p) => e.target.checked ? [...p, c.id] : p.filter((id) => id !== c.id))} /><span><span className="font-medium">{c.competencyName}</span>{c.description ? <span className="block text-muted-foreground">{c.description}</span> : null}</span></label>) : <p className="text-sm text-muted-foreground">No competencies available for this industry.</p>}</div></div>; }
 
-function Review({ job, summary, functions, qualifications, selectedCompetencyIds, gate }: ReviewProps) { const pay = { payMin: job.payMin, payMax: job.payMax, payPeriod: job.payPeriod || null }; return <div className="space-y-3 text-sm"><h2 className="font-medium text-foreground">Review and publish</h2><dl className="grid grid-cols-2 gap-2"><dt>Job title</dt><dd className="font-medium">{job.jobTitle}</dd><dt>Employment</dt><dd>{mhdFormatEmploymentType(job.employmentType)}</dd><dt>Industry</dt><dd>{mhdFormatIndustry(job.industry)}</dd><dt>Pay range</dt><dd>{mhdFormatPayRange(pay) ?? 'Not set'}</dd><dt>Functions</dt><dd>{functions.filter((f) => f.functionText.trim()).length}</dd><dt>Qualifications</dt><dd>{qualifications.filter((q) => q.qualificationText.trim()).length}</dd><dt>Competencies</dt><dd>{selectedCompetencyIds.length}</dd></dl><p className="text-muted-foreground">{summary || 'No summary added.'}</p>{!gate.ok ? <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{gate.reason}</p> : null}</div>; }
+function Review({ job, summary, functions, qualifications, selectedCompetencyIds, gate }: ReviewProps) { const pay = { payMin: job.payMin, payMax: job.payMax, payPeriod: job.payPeriod || null }; return <div className="space-y-3 text-sm"><h2 className="font-medium text-foreground">Review and publish</h2><dl className="grid grid-cols-2 gap-2"><dt>Job title</dt><dd className="font-medium">{job.jobTitle}</dd><dt>Employment</dt><dd>{mhdFormatEmploymentType(job.employmentType)}</dd><dt>Industry</dt><dd>{mhdFormatIndustry(job.industry)}</dd><dt>Pay range</dt><dd>{mhdFormatPayRange(pay) ?? 'Not set'}</dd><dt>Functions</dt><dd>{functions.filter((f) => f.functionText.trim()).length}</dd><dt>Qualifications</dt><dd>{qualifications.filter((q) => q.qualificationText.trim()).length}</dd><dt>Competencies</dt><dd>{selectedCompetencyIds.length}</dd></dl>{summary ? <MhdRichTextRenderer html={summary} className="text-muted-foreground" /> : <p className="text-muted-foreground">No summary added.</p>}{!gate.ok ? <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{gate.reason}</p> : null}</div>; }

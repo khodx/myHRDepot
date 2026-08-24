@@ -1,8 +1,8 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MhdJobDescriptionWizard } from '../components/MhdJobDescriptionWizard';
 
-const { mutate, draftMutate, noopMutation, onetSearchMutate } = vi.hoisted(() => ({
+const { mutate, draftMutate, noopMutation, onetSearchMutate, onetLookupMutate } = vi.hoisted(() => ({
   mutate: vi.fn().mockResolvedValue({ id: 'job-1' }),
   draftMutate: vi.fn().mockResolvedValue({ id: 'description-1' }),
   noopMutation: () => ({ mutateAsync: vi.fn().mockResolvedValue({}), isPending: false }),
@@ -12,7 +12,27 @@ const { mutate, draftMutate, noopMutation, onetSearchMutate } = vi.hoisted(() =>
     results: [{ code: '53-3032.00', title: 'Heavy and Tractor-Trailer Truck Drivers', brightOutlook: false }],
     source: 'O*NET attribution',
   }),
+  onetLookupMutate: vi.fn().mockResolvedValue({
+    success: true,
+    mode: 'occupation',
+    socCode: '53-3032.00',
+    title: 'Heavy and Tractor-Trailer Truck Drivers',
+    description: null,
+    jobZone: { title: 'Job Zone Two', education: 'High school diploma preferred.', relatedExperience: null, jobTraining: null },
+    educationBreakdown: [{ title: 'High school diploma', percentageOfRespondents: 60 }],
+    workContext: ['Spend Time Sitting: Continually or almost continually'],
+    source: 'O*NET attribution',
+  }),
 }));
+
+/** MhdRichTextEditor's editable surface is a contentEditable div (aria-label
+ * set, but no .value / change event) — simulate typing by setting textContent
+ * directly and firing the input event the component actually listens for. */
+function typeIntoRichText(label: string, text: string) {
+  const editor = screen.getByLabelText(label);
+  editor.textContent = text;
+  fireEvent.input(editor);
+}
 
 vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => ({ profile: { companyId: 'company-1' } }),
@@ -32,13 +52,34 @@ vi.mock('../Hook', () => ({
   useMhdCompetencies: () => ({ data: [] }),
   useMhdCareerOneStopOccupationLookup: noopMutation,
   useMhdOnetOccupationSearch: () => ({ mutateAsync: onetSearchMutate, isPending: false }),
-  useMhdOnetOccupationLookup: noopMutation,
+  useMhdOnetOccupationLookup: () => ({ mutateAsync: onetLookupMutate, isPending: false }),
 }));
 
 function next() { fireEvent.click(screen.getByRole('button', { name: 'Next' })); }
 
 describe('MhdJobDescriptionWizard', () => {
-  beforeEach(() => { mutate.mockClear(); draftMutate.mockClear(); onetSearchMutate.mockClear(); });
+  beforeEach(() => { mutate.mockClear(); draftMutate.mockClear(); onetSearchMutate.mockClear(); onetLookupMutate.mockClear(); });
+
+  it('adds O*NET-suggested requirements into the education and physical requirements fields', async () => {
+    render(<MhdJobDescriptionWizard />);
+    fireEvent.change(screen.getByLabelText('Job title'), { target: { value: 'Driver' } });
+    next();
+    await waitFor(() => expect(screen.getByText('SOC & Wage Order')).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText('O*NET-SOC Code'), { target: { value: '53-3032.00' } });
+    next(); next();
+    await waitFor(() => expect(screen.getByText('Duties & Qualifications')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Suggest Requirements From O*NET Online' }));
+    await waitFor(() => expect(onetLookupMutate).toHaveBeenCalledWith({ onetSocCode: '53-3032.00', includeRequirements: true }));
+
+    const educationRow = screen.getByText('High school diploma preferred.').closest('div') as HTMLElement;
+    fireEvent.click(within(educationRow).getByRole('button', { name: 'Add' }));
+    expect(screen.getByLabelText('Education & Training Requirements').innerHTML).toContain('High school diploma preferred.');
+
+    const workContextRow = screen.getByText('Spend Time Sitting: Continually or almost continually').closest('div') as HTMLElement;
+    fireEvent.click(within(workContextRow).getByRole('button', { name: 'Add' }));
+    expect(screen.getByLabelText('Physical Requirements').innerHTML).toContain('Spend Time Sitting');
+  });
 
   it('fills the O*NET-SOC code from a search result', async () => {
     render(<MhdJobDescriptionWizard />);
@@ -89,7 +130,7 @@ describe('MhdJobDescriptionWizard', () => {
     fireEvent.change(screen.getByLabelText('Job title'), { target: { value: 'Driver' } });
     next(); next(); next();
     await waitFor(() => expect(screen.getByText('Duties & Qualifications')).toBeInTheDocument());
-    fireEvent.change(screen.getByLabelText('Role summary'), { target: { value: 'A role summary' } });
+    typeIntoRichText('Role summary', 'A role summary');
     fireEvent.change(screen.getAllByRole('textbox')[1], { target: { value: 'Drive safely' } });
     next();
     await waitFor(() => expect(screen.getByText('Competencies')).toBeInTheDocument());

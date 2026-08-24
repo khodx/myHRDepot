@@ -49,6 +49,7 @@ function mapJob(row: MhdJobRpcRow): MhdJob {
     jobLevel: row.job_level,
     department: row.department,
     flsaClassification: row.flsa_classification as MhdJob['flsaClassification'],
+    flsaClassificationSource: row.flsa_classification_source as MhdJob['flsaClassificationSource'],
     employmentType: row.employment_type as MhdJob['employmentType'],
     isSafetySensitive: row.is_safety_sensitive,
     industry: row.industry as MhdJob['industry'],
@@ -243,6 +244,7 @@ export const mhdJobsService = {
       p_travel_requirement: input.travelRequirement ?? undefined,
       p_work_environment: input.workEnvironment ?? undefined,
       p_physical_requirements: input.physicalRequirements ?? undefined,
+      p_education_requirements: input.educationRequirements ?? undefined,
     });
     if (error) throw error;
   },
@@ -408,7 +410,7 @@ export const mhdJobsService = {
 
   async onetOccupationLookup(input: MhdOnetOccupationLookupInput): Promise<MhdOnetOccupationLookupResponse> {
     const { data, error } = await supabaseClient.functions.invoke('onet-online-lookup', {
-      body: { mode: 'occupation', onetSocCode: input.onetSocCode, includeDuties: input.includeDuties ?? false },
+      body: { mode: 'occupation', onetSocCode: input.onetSocCode, includeDuties: input.includeDuties ?? false, includeRequirements: input.includeRequirements ?? false },
     });
     if (error) throw error;
     const response = data as MhdOnetOccupationLookupResponse | undefined;
