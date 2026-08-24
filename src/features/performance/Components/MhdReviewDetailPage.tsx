@@ -18,6 +18,7 @@ import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonS
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { cn } from '@/utils/cn';
 import { MhdReviewRecordTabs } from '@/appshell/components/MhdReviewRecordTabs';
@@ -26,6 +27,8 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdActivities } from '@/features/activities/Hook';
 import { useMhdEsignatureGeneratedDocuments } from '@/features/esignature/Hook';
 import { mhdBuildGoogleDriveViewUrl } from '@/features/esignature/Types';
+import { useMhdJobDescriptionDisclaimersCurrent } from '@/features/jobs/Hook';
+import { mhdFormatJobDescriptionDisclaimerKey } from '@/features/jobs/Types';
 import {
   mhdReviewWaiverSchema,
   type MhdReviewFormSchemaInput,
@@ -146,6 +149,10 @@ export function MhdReviewDetailPage() {
     review?.companyId ?? null,
     review?.personId ?? null,
   );
+  // The same registry the Job Description document draws from -- shown here
+  // before finalize so a reviewer sees exactly what will be stamped into the
+  // signed document, not just discovers it after the fact.
+  const disclaimersQuery = useMhdJobDescriptionDisclaimersCurrent(review?.companyId ?? null);
   const subjectSigner = useMemo(
     () => (usersQuery.data ?? []).find((user) => user.personId === review?.personId) ?? null,
     [review?.personId, usersQuery.data],
@@ -462,6 +469,41 @@ export function MhdReviewDetailPage() {
           <p>Updated: {new Date(review.updatedAt).toLocaleString()}</p>
         </div>
       </MhdCard>
+
+      {review.status === 'IN_REVIEW' ? (
+        <MhdCard className="p-6">
+          <h2 className="text-lg font-semibold text-foreground">Disclaimers</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Stamped into the review document when it's finalized and sent for signature. Edit them
+            for every module at{' '}
+            <Link to="/jobs/disclaimers" className="underline">
+              Job description disclaimers
+            </Link>
+            .
+          </p>
+          <div className="mt-4 space-y-4">
+            {disclaimersQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            ) : (disclaimersQuery.data ?? []).length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No disclaimer text has been published yet.
+              </p>
+            ) : (
+              (disclaimersQuery.data ?? []).map((disclaimer) => (
+                <div key={disclaimer.disclaimerKey}>
+                  <h3 className="text-sm font-medium text-foreground">
+                    {mhdFormatJobDescriptionDisclaimerKey(disclaimer.disclaimerKey)}
+                  </h3>
+                  <MhdRichTextRenderer
+                    html={disclaimer.body}
+                    className="mt-1 rounded-md border border-border bg-muted/30 p-3 text-sm"
+                  />
+                </div>
+              ))
+            )}
+          </div>
+        </MhdCard>
+      ) : null}
 
       {showFinalizePanel ? (
         <MhdCard className="p-6">
