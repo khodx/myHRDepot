@@ -166,4 +166,69 @@ describe('mhdPerformanceService', () => {
       }),
     );
   });
+
+  it('folds the company\'s current disclaimers into the generated review document', async () => {
+    const review = {
+      id: 'review-1', reference_id: 'PRFR-000001', company_id: 'company-1', company_name: 'Acme',
+      person_id: 'person-1', person_display_name: 'Pat Person', reviewer_user_id: 'reviewer-1',
+      reviewer_display_name: 'Riley Reviewer', review_type: 'ANNUAL', status: 'IN_REVIEW',
+      review_period_start: '2026-01-01', review_period_end: '2026-12-31', due_date: null,
+      overall_rating: 4, strengths_summary: null, improvement_summary: null, goals_summary: null,
+      reviewer_comments: null, employee_comments: null, review_activity_id: null,
+      document_generation_id: null, document_generation_reference_id: null,
+      document_generation_status: null, esignature_request_id: null,
+      esignature_request_reference_id: null, esignature_request_status: null,
+      acknowledged_at: null, waiver_reason: null, created_at: '2026-01-01T00:00:00Z',
+      created_by: 'reviewer-1', updated_at: '2026-01-01T00:00:00Z', updated_by: 'reviewer-1',
+    };
+    rpcMock.mockImplementation((name: string) => {
+      if (name === 'mhd_get_performance_review' || name === 'mhd_request_document_generation') {
+        return { returns: returnsMock };
+      }
+      if (name === 'mhd_job_description_disclaimers_current') {
+        return Promise.resolve({
+          data: [
+            { disclaimer_key: 'AT_WILL', body: '<p>At-will text.</p>', version: 1, effective_from: '2026-01-01', is_company_override: false },
+            { disclaimer_key: 'EQUAL_OPPORTUNITY', body: '<p>EEO text.</p>', version: 1, effective_from: '2026-01-01', is_company_override: false },
+          ],
+          error: null,
+        });
+      }
+      return Promise.resolve({ error: null });
+    });
+    returnsMock
+      .mockResolvedValueOnce({ data: [review], error: null })
+      .mockResolvedValueOnce({
+        data: [{ id: 'gen-1', reference_id: 'DGEN-1', status: 'PENDING' }],
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: [{ ...review, status: 'PENDING_SIGNATURE' }], error: null });
+    invokeMock.mockResolvedValueOnce({ data: { success: true }, error: null });
+    maybeSingleMock.mockResolvedValueOnce({
+      data: { id: 'gen-1', status: 'GENERATED', output_drive_file_id: 'drive-1', output_document_hash: 'hash-1' },
+      error: null,
+    });
+    createRequestFromGeneratedDocumentMock.mockResolvedValueOnce({
+      request: { id: 'signature-1' },
+      invitationErrors: [],
+    });
+
+    await mhdPerformanceService.finalizeReviewForSignature({
+      reviewId: 'review-1',
+      templateId: 'template-1',
+      signer: { kind: 'internal', userId: 'subject-user-1' },
+      pollIntervalMs: 0,
+    });
+
+    expect(rpcMock).toHaveBeenCalledWith(
+      'mhd_request_document_generation',
+      expect.objectContaining({
+        p_merge_data: expect.objectContaining({
+          'disclaimers.atWill': '<p>At-will text.</p>',
+          'disclaimers.reasonableAccommodation': '',
+          'disclaimers.equalOpportunity': '<p>EEO text.</p>',
+        }),
+      }),
+    );
+  });
 });

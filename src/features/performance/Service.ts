@@ -8,6 +8,8 @@ import {
   mhdPollDocumentGenerationUntilGenerated,
   mhdRenderDocumentGeneration,
 } from '@/features/documents/Service';
+import { mhdJobsService } from '@/features/jobs/Service';
+import type { MhdJobDescriptionDisclaimerCurrent } from '@/features/jobs/Types';
 import type {
   MhdCoachingPlan,
   MhdCoachingPlanFilters,
@@ -153,9 +155,13 @@ function mapCoachingPlanItemRow(row: MhdCoachingPlanItemRpcRow): MhdCoachingPlan
  * Keys mirror the template's merge fields exactly (Database.sql seeded
  * content: person_name, company_name, review_type, review_reference_id,
  * reviewer_name, review_period_start/end, overall_rating, the five content
- * sections, generated_date).
+ * sections, generated_date, plus the disclaimers.* keys 0235 added).
  */
-function buildReviewMergeData(review: MhdPerformanceReview): Record<string, unknown> {
+function buildReviewMergeData(
+  review: MhdPerformanceReview,
+  disclaimers: MhdJobDescriptionDisclaimerCurrent[],
+): Record<string, unknown> {
+  const disclaimerByKey = new Map(disclaimers.map((row) => [row.disclaimerKey, row.body]));
   return {
     person_name: review.personDisplayName,
     company_name: review.companyName,
@@ -171,6 +177,9 @@ function buildReviewMergeData(review: MhdPerformanceReview): Record<string, unkn
     reviewer_comments: review.reviewerComments ?? '',
     employee_comments: review.employeeComments ?? '',
     generated_date: new Date().toISOString().slice(0, 10),
+    'disclaimers.atWill': disclaimerByKey.get('AT_WILL') ?? '',
+    'disclaimers.reasonableAccommodation': disclaimerByKey.get('REASONABLE_ACCOMMODATION') ?? '',
+    'disclaimers.equalOpportunity': disclaimerByKey.get('EQUAL_OPPORTUNITY') ?? '',
   };
 }
 
@@ -383,6 +392,15 @@ export const mhdPerformanceService = {
       }
     }
 
+    // The current at-will/reasonable-accommodation/EEO disclaimers (0230, shared
+    // with the Job Description document) fold into every generated review the
+    // same way. A fetch failure here degrades to a blank disclaimers section
+    // rather than blocking the whole finalize-and-send ceremony over what is
+    // supplementary boilerplate, not review content.
+    const disclaimers: MhdJobDescriptionDisclaimerCurrent[] = await mhdJobsService
+      .listCurrentJobDescriptionDisclaimers(review.companyId)
+      .catch(() => []);
+
     input.onStep?.(1);
     // Step 1 — request the document generation.
     const { data: generationData, error: generationError } = await supabaseClient
@@ -391,7 +409,7 @@ export const mhdPerformanceService = {
         p_template_id: templateId,
         p_entity_type: 'PERFORMANCE_REVIEW',
         p_entity_id: review.id,
-        p_merge_data: buildReviewMergeData(review) as Json,
+        p_merge_data: buildReviewMergeData(review, disclaimers) as Json,
         ...(input.actorUserId ? { p_actor_user_id: input.actorUserId } : {}),
       })
       .returns<Array<{ id: string; reference_id: string; status: string }>>();
