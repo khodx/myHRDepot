@@ -5,9 +5,19 @@ import { MhdJobRecordTabs } from '@/appshell/components/MhdJobRecordTabs';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdExternalDataAttribution } from '@/components/ui/MhdExternalDataAttribution';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdDocumentGenerationPanel } from '@/components/ui/MhdDocumentGenerationPanel';
+import careerOneStopLogo from '@/assets/careeronestop-logo.svg';
+import {
+  useMhdCareerOneStopWageLookup,
+  useMhdMarketWageLookup,
+} from '@/features/compensation/Hook';
+import type {
+  MhdCareerOneStopWageLookupSuccess,
+  MhdMarketWageLookupSuccess,
+} from '@/features/compensation/Types';
 import {
   useMhdCreateDescriptionDraft,
   useMhdDeleteJob,
@@ -95,12 +105,46 @@ export function MhdJobDetailPage() {
   const updateJob = useMhdUpdateJob();
   const deleteJob = useMhdDeleteJob();
 
+  // Salary research for promotions: the same BLS/CareerOneStop wage lookup
+  // the Classification Wizard has, but reachable directly from a job's own
+  // record -- checking a current market rate doesn't need the classification/
+  // pay-grade steps a promotion decision has no reason to go through.
+  const marketWageLookup = useMhdMarketWageLookup();
+  const careerOneStopWageLookup = useMhdCareerOneStopWageLookup();
+  const [marketWageResult, setMarketWageResult] = useState<MhdMarketWageLookupSuccess | null>(null);
+  const [careerOneStopWageResult, setCareerOneStopWageResult] = useState<MhdCareerOneStopWageLookupSuccess | null>(null);
+  const [wageLookupError, setWageLookupError] = useState<string | null>(null);
+
   // Prefer the published description for document generation; fall back to
   // the open draft so a document can still be generated before anything's
   // been published yet.
   const generationDescriptionId = job?.publishedDescriptionId ?? draftId ?? null;
   const generationDescription = useMhdJobDescription(generationDescriptionId);
   const disclaimers = useMhdJobDescriptionDisclaimersCurrent(companyId);
+
+  async function handleMarketWageLookup() {
+    if (!jobId || !job?.onetSocCode) return;
+    setWageLookupError(null);
+    try {
+      const result = await marketWageLookup.mutateAsync({ jobId, onetSocCode: job.onetSocCode });
+      if (result.success) setMarketWageResult(result);
+      else setWageLookupError(result.error);
+    } catch (err) {
+      setWageLookupError(err instanceof Error ? err.message : 'The BLS market wage lookup failed.');
+    }
+  }
+
+  async function handleCareerOneStopWageLookup() {
+    if (!jobId || !job?.onetSocCode) return;
+    setWageLookupError(null);
+    try {
+      const result = await careerOneStopWageLookup.mutateAsync({ jobId, onetSocCode: job.onetSocCode });
+      if (result.success) setCareerOneStopWageResult(result);
+      else setWageLookupError(result.error);
+    } catch (err) {
+      setWageLookupError(err instanceof Error ? err.message : 'The CareerOneStop market wage lookup failed.');
+    }
+  }
 
   async function startDraft() {
     if (!jobId) return;
@@ -540,6 +584,70 @@ export function MhdJobDetailPage() {
           )}
         </section>
       )}
+
+      {canSeePay ? (
+        <MhdCard className="space-y-4">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Market Wage Reference</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Check the current market rate for this role — for a promotion decision or a general
+              pay check, without running the full classification/pay-grade wizard.
+            </p>
+          </div>
+          {!job.onetSocCode ? (
+            <p className="text-sm text-muted-foreground">
+              Set an O*NET-SOC code on this job to enable market wage lookups.
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={() => void handleMarketWageLookup()} disabled={marketWageLookup.isPending}>
+                  {marketWageLookup.isPending ? 'Checking…' : 'Check BLS Market Rate'}
+                </Button>
+                <Button variant="secondary" onClick={() => void handleCareerOneStopWageLookup()} disabled={careerOneStopWageLookup.isPending}>
+                  {careerOneStopWageLookup.isPending ? 'Checking…' : 'Compare With CareerOneStop'}
+                </Button>
+              </div>
+              {wageLookupError ? <p className="text-sm text-rose-600">{wageLookupError}</p> : null}
+              {marketWageResult ? (
+                <div className="space-y-2 rounded-md border border-border p-3">
+                  <MhdExternalDataAttribution citation={marketWageResult.source} dataYear={marketWageResult.dataYear} />
+                  <dl className="grid gap-2 text-sm sm:grid-cols-3">
+                    {Object.entries(marketWageResult)
+                      .filter(([key]) => key.includes('Percentile') || key.includes('Median'))
+                      .map(([key, value]) => (
+                        <div key={key}>
+                          <dt className="font-medium">{key}</dt>
+                          <dd>{value ?? 'Not reported'}</dd>
+                        </div>
+                      ))}
+                  </dl>
+                </div>
+              ) : null}
+              {careerOneStopWageResult ? (
+                <div className="space-y-2 rounded-md border border-border p-3">
+                  <MhdExternalDataAttribution
+                    citation={careerOneStopWageResult.source}
+                    dataYear={careerOneStopWageResult.dataYear ?? undefined}
+                    logoUrl={careerOneStopLogo}
+                    logoAlt="CareerOneStop"
+                  />
+                  <dl className="grid gap-2 text-sm sm:grid-cols-3">
+                    {Object.entries(careerOneStopWageResult)
+                      .filter(([key]) => key.includes('Percentile') || key.includes('Median'))
+                      .map(([key, value]) => (
+                        <div key={key}>
+                          <dt className="font-medium">{key}</dt>
+                          <dd>{value ?? 'Not reported'}</dd>
+                        </div>
+                      ))}
+                  </dl>
+                </div>
+              ) : null}
+            </>
+          )}
+        </MhdCard>
+      ) : null}
 
       {generationDescriptionId ? (
         <MhdCard>
