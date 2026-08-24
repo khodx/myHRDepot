@@ -9,6 +9,11 @@ import type {
   MhdJob,
   MhdJobAssignment,
   MhdJobAssignmentRpcRow,
+  MhdJobDescriptionDetail,
+  MhdJobDescriptionDisclaimerCurrent,
+  MhdJobDescriptionDisclaimerKey,
+  MhdJobDescriptionDisclaimerVersion,
+  MhdJobDescriptionStatus,
   MhdJobRpcRow,
   MhdOnetOccupationLookupInput,
   MhdOnetOccupationLookupResponse,
@@ -20,6 +25,7 @@ import type {
   MhdUpdateDescriptionDraftInput,
   MhdUpdateJobInput,
   MhdUpsertCompetencyInput,
+  MhdUpsertJobDescriptionDisclaimerInput,
 } from './Types';
 import { mhdToNullableNumber, mhdToNumber } from './Types';
 
@@ -416,5 +422,107 @@ export const mhdJobsService = {
     const response = data as MhdOnetOccupationLookupResponse | undefined;
     if (response?.success === false) throw new Error(response.error);
     return response as MhdOnetOccupationLookupResponse;
+  },
+
+  async getDescription(descriptionId: string): Promise<MhdJobDescriptionDetail> {
+    const [descriptionResult, functionsResult, qualificationsResult] = await Promise.all([
+      supabaseClient
+        .from('job_descriptions')
+        .select('id, job_id, status, summary, physical_requirements, education_requirements')
+        .eq('id', descriptionId)
+        .single(),
+      supabaseClient
+        .from('job_description_functions')
+        .select('function_text, is_essential, sort_order')
+        .eq('description_id', descriptionId)
+        .order('sort_order'),
+      supabaseClient
+        .from('job_description_qualifications')
+        .select('qualification_text, sort_order')
+        .eq('description_id', descriptionId)
+        .order('sort_order'),
+    ]);
+    if (descriptionResult.error) throw descriptionResult.error;
+    if (functionsResult.error) throw functionsResult.error;
+    if (qualificationsResult.error) throw qualificationsResult.error;
+
+    const row = descriptionResult.data;
+    return {
+      id: row.id,
+      jobId: row.job_id,
+      status: row.status as MhdJobDescriptionStatus,
+      summary: row.summary,
+      physicalRequirements: row.physical_requirements,
+      educationRequirements: row.education_requirements,
+      essentialFunctions: (functionsResult.data ?? [])
+        .filter((fn) => fn.is_essential)
+        .map((fn) => fn.function_text),
+      qualifications: (qualificationsResult.data ?? []).map((qual) => qual.qualification_text),
+    };
+  },
+
+  async listCurrentJobDescriptionDisclaimers(companyId: string): Promise<MhdJobDescriptionDisclaimerCurrent[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_job_description_disclaimers_current', {
+      p_company_id: companyId,
+    });
+    if (error) throw error;
+    return (data ?? []).map((row) => ({
+      disclaimerKey: row.disclaimer_key as MhdJobDescriptionDisclaimerKey,
+      body: row.body ?? '',
+      version: row.version,
+      effectiveFrom: row.effective_from,
+      isCompanyOverride: row.is_company_override,
+    }));
+  },
+
+  async listJobDescriptionDisclaimerHistory(
+    disclaimerKey: MhdJobDescriptionDisclaimerKey,
+    companyId: string | null,
+  ): Promise<MhdJobDescriptionDisclaimerVersion[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_job_description_disclaimer_history', {
+      p_disclaimer_key: disclaimerKey,
+      p_company_id: companyId ?? undefined,
+    });
+    if (error) throw error;
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      companyId: row.company_id,
+      disclaimerKey: row.disclaimer_key as MhdJobDescriptionDisclaimerKey,
+      version: row.version,
+      effectiveFrom: row.effective_from,
+      effectiveTo: row.effective_to,
+      status: row.status as MhdJobDescriptionDisclaimerVersion['status'],
+      body: row.body,
+      createdAt: row.created_at,
+      createdBy: row.created_by,
+      updatedAt: row.updated_at,
+      updatedBy: row.updated_by,
+    }));
+  },
+
+  async upsertJobDescriptionDisclaimer(
+    input: MhdUpsertJobDescriptionDisclaimerInput,
+  ): Promise<MhdJobDescriptionDisclaimerVersion> {
+    const { data, error } = await supabaseClient.rpc('mhd_job_description_disclaimer_upsert', {
+      p_disclaimer_key: input.disclaimerKey,
+      p_body: input.body,
+      p_company_id: input.companyId ?? undefined,
+      p_effective_from: input.effectiveFrom ?? undefined,
+    });
+    if (error) throw error;
+    return {
+      id: data.id,
+      companyId: data.company_id,
+      disclaimerKey: data.disclaimer_key as MhdJobDescriptionDisclaimerKey,
+      version: data.version,
+      effectiveFrom: data.effective_from,
+      effectiveTo: data.effective_to,
+      status: data.status as MhdJobDescriptionDisclaimerVersion['status'],
+      body: data.body,
+      createdAt: data.created_at,
+      createdBy: data.created_by,
+      updatedAt: data.updated_at,
+      updatedBy: data.updated_by,
+    };
   },
 };

@@ -1,3 +1,11 @@
+// Lives in the shared components tree (not src/features/documents/) despite
+// originating there: the mhd-feature-boundary/no-cross-feature-internals
+// ESLint rule only allows cross-feature imports to a feature's Hook/Service/
+// Types/Schemas contract files, never a components/ path — so this genuinely
+// generic, entityType-agnostic panel (any module drops it in with its own
+// entityType/entityId/companyId) had to move here to be legitimately
+// reusable outside the documents feature, the same reasoning that already
+// moved MhdAuditReportPanel here.
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdModal } from '@/components/ui/MhdModal';
@@ -8,13 +16,13 @@ import {
   useMhdDocumentGenerations,
   useMhdDocumentTemplateByKey,
   useMhdDocumentTemplates,
-} from '../Hook';
-import { mhdDocumentService } from '../Service';
+} from '@/features/documents/Hook';
+import { mhdDocumentService } from '@/features/documents/Service';
 import type {
   MhdDocumentContentFormat,
   MhdDocumentGeneration,
   MhdDocumentTemplate,
-} from '../Types';
+} from '@/features/documents/Types';
 
 interface MhdDocumentGenerationPanelProps {
   entityType: string;

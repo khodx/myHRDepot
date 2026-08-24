@@ -372,6 +372,10 @@ const MhdCompetencyLibraryPage = lazyPage(
   () => import('@/features/jobs/components/MhdCompetencyLibraryPage'),
   'MhdCompetencyLibraryPage',
 );
+const MhdJobDescriptionDisclaimersPage = lazyPage(
+  () => import('@/features/jobs/components/MhdJobDescriptionDisclaimersPage'),
+  'MhdJobDescriptionDisclaimersPage',
+);
 const MhdJobDetailPage = lazyPage(
   () => import('@/features/jobs/components/MhdJobDetailPage'),
   'MhdJobDetailPage',
@@ -772,6 +776,7 @@ function MhdAppRoutes() {
                 <Route path="/jobs" element={<MhdJobsPage />} />
                 <Route path="/compensation" element={<MhdCompensationClassificationWizard />} />
                 <Route path="/jobs/competencies" element={<MhdCompetencyLibraryPage />} />
+                <Route path="/jobs/disclaimers" element={<MhdJobDescriptionDisclaimersPage />} />
                 <Route path="/jobs/new" element={<MhdJobDescriptionWizard />} />
                 <Route path="/jobs/:jobId" element={<MhdJobDetailPage />} />
                 <Route path="/my-job" element={<MhdMyJobPage />} />

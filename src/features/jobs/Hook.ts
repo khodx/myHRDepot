@@ -3,12 +3,14 @@ import type {
   MhdAssignJobInput,
   MhdCareerOneStopOccupationLookupInput,
   MhdCreateJobInput,
+  MhdJobDescriptionDisclaimerKey,
   MhdOnetOccupationLookupInput,
   MhdOnetOccupationSearchInput,
   MhdSetPayRangeInput,
   MhdUpdateDescriptionDraftInput,
   MhdUpdateJobInput,
   MhdUpsertCompetencyInput,
+  MhdUpsertJobDescriptionDisclaimerInput,
 } from './Types';
 import { mhdJobsService } from './Service';
 
@@ -268,5 +270,43 @@ export function useMhdOnetOccupationSearch() {
 export function useMhdOnetOccupationLookup() {
   return useMutation({
     mutationFn: (input: MhdOnetOccupationLookupInput) => mhdJobsService.onetOccupationLookup(input),
+  });
+}
+
+export function useMhdJobDescription(descriptionId: string | null) {
+  return useQuery({
+    queryKey: ['mhd-jobs', 'description', descriptionId ?? ''],
+    queryFn: () => mhdJobsService.getDescription(descriptionId!),
+    enabled: Boolean(descriptionId),
+  });
+}
+
+export function useMhdJobDescriptionDisclaimersCurrent(companyId: string | null) {
+  return useQuery({
+    queryKey: ['mhd-jobs', 'disclaimers', 'current', companyId ?? ''],
+    queryFn: () => mhdJobsService.listCurrentJobDescriptionDisclaimers(companyId!),
+    enabled: Boolean(companyId),
+  });
+}
+
+export function useMhdJobDescriptionDisclaimerHistory(
+  disclaimerKey: MhdJobDescriptionDisclaimerKey | null,
+  companyId: string | null,
+) {
+  return useQuery({
+    queryKey: ['mhd-jobs', 'disclaimers', 'history', disclaimerKey ?? '', companyId ?? 'GLOBAL'],
+    queryFn: () => mhdJobsService.listJobDescriptionDisclaimerHistory(disclaimerKey!, companyId),
+    enabled: Boolean(disclaimerKey),
+  });
+}
+
+export function useMhdUpsertJobDescriptionDisclaimer() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpsertJobDescriptionDisclaimerInput) =>
+      mhdJobsService.upsertJobDescriptionDisclaimer(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-jobs', 'disclaimers'] });
+    },
   });
 }

@@ -421,6 +421,80 @@ export type MhdOnetOccupationSearchResponse = MhdOnetOccupationSearchSuccess | M
 export type MhdOnetOccupationLookupResponse = MhdOnetOccupationLookupSuccess | MhdOnetLookupFailure;
 
 // ---------------------------------------------------------------------------
+// Description detail (read) — for document generation merge data
+// ---------------------------------------------------------------------------
+
+/** A description's full authored content, for feeding into document generation. */
+export interface MhdJobDescriptionDetail {
+  id: MhdJobDescriptionId;
+  jobId: MhdJobId;
+  status: MhdJobDescriptionStatus;
+  summary: string | null;
+  physicalRequirements: string | null;
+  educationRequirements: string | null;
+  essentialFunctions: string[];
+  qualifications: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Job description disclaimers (versioned registry — 0230)
+// ---------------------------------------------------------------------------
+
+export type MhdJobDescriptionDisclaimerKey =
+  'AT_WILL' | 'REASONABLE_ACCOMMODATION' | 'EQUAL_OPPORTUNITY';
+
+export const MHD_JOB_DESCRIPTION_DISCLAIMER_KEYS = [
+  'AT_WILL',
+  'REASONABLE_ACCOMMODATION',
+  'EQUAL_OPPORTUNITY',
+] as const satisfies readonly MhdJobDescriptionDisclaimerKey[];
+
+const JOB_DESCRIPTION_DISCLAIMER_LABELS: Record<MhdJobDescriptionDisclaimerKey, string> = {
+  AT_WILL: 'At-Will Employment',
+  REASONABLE_ACCOMMODATION: 'Reasonable Accommodation',
+  EQUAL_OPPORTUNITY: 'Equal Employment Opportunity',
+};
+
+export function mhdFormatJobDescriptionDisclaimerKey(key: MhdJobDescriptionDisclaimerKey): string {
+  return JOB_DESCRIPTION_DISCLAIMER_LABELS[key];
+}
+
+/** The disclaimer text currently in force — an ACTIVE, in-window row, company
+ * override preferred over the platform default. What the wizard displays and
+ * what a generated document stamps. */
+export interface MhdJobDescriptionDisclaimerCurrent {
+  disclaimerKey: MhdJobDescriptionDisclaimerKey;
+  body: string;
+  version: number;
+  effectiveFrom: string;
+  isCompanyOverride: boolean;
+}
+
+/** One version in a disclaimer's full history — the admin editor's audit trail. */
+export interface MhdJobDescriptionDisclaimerVersion {
+  id: string;
+  companyId: string | null;
+  disclaimerKey: MhdJobDescriptionDisclaimerKey;
+  version: number;
+  effectiveFrom: string;
+  effectiveTo: string | null;
+  status: 'DRAFT' | 'ACTIVE' | 'RETIRED';
+  body: string;
+  createdAt: string;
+  createdBy: string;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface MhdUpsertJobDescriptionDisclaimerInput {
+  disclaimerKey: MhdJobDescriptionDisclaimerKey;
+  body: string;
+  /** Omit for the platform-wide default; set to publish a company override. */
+  companyId?: string | null;
+  effectiveFrom?: string;
+}
+
+// ---------------------------------------------------------------------------
 // Display + rule helpers
 // ---------------------------------------------------------------------------
 

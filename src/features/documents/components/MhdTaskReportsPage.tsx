@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTaskRecordTabs } from '@/appshell/components/MhdTaskRecordTabs';
 import { mhdTaskService } from '@/features/tasks/Service';
-import { MhdDocumentGenerationPanel } from './MhdDocumentGenerationPanel';
+import { MhdDocumentGenerationPanel } from '@/components/ui/MhdDocumentGenerationPanel';
 
 /**
  * Route: /tasks/:taskId/reports

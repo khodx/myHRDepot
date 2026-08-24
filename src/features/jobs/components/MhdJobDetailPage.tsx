@@ -7,9 +7,12 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { MhdDocumentGenerationPanel } from '@/components/ui/MhdDocumentGenerationPanel';
 import {
   useMhdCreateDescriptionDraft,
   useMhdDeleteJob,
+  useMhdJobDescription,
+  useMhdJobDescriptionDisclaimersCurrent,
   useMhdJobs,
   useMhdPublishedJobForPerson,
   useMhdSetPayRange,
@@ -25,10 +28,14 @@ import {
   mhdFormatFlsa,
   mhdFormatCaWageOrderClassification,
   mhdFormatIndustry,
+  mhdFormatPayRange,
   type MhdEmploymentType,
   type MhdFlsaClassification,
   type MhdIndustry,
   type MhdCaWageOrderClassification,
+  type MhdJob,
+  type MhdJobDescriptionDetail,
+  type MhdJobDescriptionDisclaimerCurrent,
   type MhdPayPeriod,
 } from '../Types';
 import { MhdEssentialFunctionList } from './MhdEssentialFunctionList';
@@ -87,6 +94,13 @@ export function MhdJobDetailPage() {
   const setPay = useMhdSetPayRange();
   const updateJob = useMhdUpdateJob();
   const deleteJob = useMhdDeleteJob();
+
+  // Prefer the published description for document generation; fall back to
+  // the open draft so a document can still be generated before anything's
+  // been published yet.
+  const generationDescriptionId = job?.publishedDescriptionId ?? draftId ?? null;
+  const generationDescription = useMhdJobDescription(generationDescriptionId);
+  const disclaimers = useMhdJobDescriptionDisclaimersCurrent(companyId);
 
   async function startDraft() {
     if (!jobId) return;
@@ -526,6 +540,63 @@ export function MhdJobDetailPage() {
           )}
         </section>
       )}
+
+      {generationDescriptionId ? (
+        <MhdCard>
+          <h2 className="mb-4 text-base font-semibold text-foreground">Generate document</h2>
+          {generationDescription.isLoading || disclaimers.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : (
+            <MhdDocumentGenerationPanel
+              entityType="JOB_DESCRIPTION"
+              entityId={generationDescriptionId}
+              companyId={companyId}
+              masterTemplateKey="JOB_DESCRIPTION_STANDARD"
+              defaultMergeData={mhdBuildJobDescriptionMergeData(
+                job,
+                generationDescription.data ?? null,
+                disclaimers.data ?? [],
+              )}
+            />
+          )}
+        </MhdCard>
+      ) : null}
     </div>
   );
+}
+
+function mhdEscapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/** Flat, string-only merge data for MhdDocumentGenerationPanel — arrays
+ * (essential functions, qualifications) are pre-joined into a single <li>
+ * HTML string per field since the panel's prop type has no repeat-block
+ * mechanism, only scalar substitution. */
+function mhdBuildJobDescriptionMergeData(
+  job: MhdJob,
+  description: MhdJobDescriptionDetail | null,
+  disclaimerRows: MhdJobDescriptionDisclaimerCurrent[],
+): Record<string, string> {
+  const disclaimerByKey = new Map(disclaimerRows.map((row) => [row.disclaimerKey, row.body]));
+  const pay = { payMin: job.payMin, payMax: job.payMax, payPeriod: job.payPeriod };
+  return {
+    'job.title': job.jobTitle,
+    'job.department': job.department ?? '',
+    'job.employmentType': mhdFormatEmploymentType(job.employmentType),
+    'job.flsaClassification': job.flsaClassification ? mhdFormatFlsa(job.flsaClassification) : 'Not yet classified',
+    'job.payRange': mhdFormatPayRange(pay) ?? 'Not set',
+    'description.summary': description?.summary ?? '',
+    'description.essentialFunctionsHtml': (description?.essentialFunctions ?? [])
+      .map((text) => `<li>${mhdEscapeHtml(text)}</li>`)
+      .join(''),
+    'description.qualificationsHtml': (description?.qualifications ?? [])
+      .map((text) => `<li>${mhdEscapeHtml(text)}</li>`)
+      .join(''),
+    'description.physicalRequirements': description?.physicalRequirements ?? '',
+    'description.educationRequirements': description?.educationRequirements ?? '',
+    'disclaimers.atWill': disclaimerByKey.get('AT_WILL') ?? '',
+    'disclaimers.reasonableAccommodation': disclaimerByKey.get('REASONABLE_ACCOMMODATION') ?? '',
+    'disclaimers.equalOpportunity': disclaimerByKey.get('EQUAL_OPPORTUNITY') ?? '',
+  };
 }
