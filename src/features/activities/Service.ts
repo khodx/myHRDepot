@@ -66,6 +66,8 @@ function mapActivityRow(row: MhdActivityListRow): MhdActivity {
     location: row.location,
     outcomeSummary: row.outcome_summary,
     followUpTaskId: row.follow_up_task_id,
+    linkLabel: row.link_label,
+    linkUrl: row.link_url,
     isConfidential: row.is_confidential,
     createdAt: row.created_at,
     createdBy: row.created_by,
@@ -204,6 +206,12 @@ export const mhdActivityService = {
           ? { p_participants: input.participants.map(mapParticipantInput) }
           : {}),
         ...(input.actorUserId ? { p_actor_user_id: input.actorUserId } : {}),
+        ...(trimmedOrUndefined(input.linkLabel)
+          ? { p_link_label: trimmedOrUndefined(input.linkLabel) }
+          : {}),
+        ...(trimmedOrUndefined(input.linkUrl)
+          ? { p_link_url: trimmedOrUndefined(input.linkUrl) }
+          : {}),
       })
       .returns<MhdActivityMutationResultRow[]>();
 
@@ -248,6 +256,12 @@ export const mhdActivityService = {
         ? { p_outcome_summary: trimmedOrUndefined(input.outcomeSummary) }
         : {}),
       ...(input.followUpTaskId ? { p_follow_up_task_id: input.followUpTaskId } : {}),
+      ...(trimmedOrUndefined(input.linkLabel)
+        ? { p_link_label: trimmedOrUndefined(input.linkLabel) }
+        : {}),
+      ...(trimmedOrUndefined(input.linkUrl)
+        ? { p_link_url: trimmedOrUndefined(input.linkUrl) }
+        : {}),
     });
 
     if (error) {

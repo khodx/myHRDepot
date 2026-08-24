@@ -55,6 +55,8 @@ export interface MhdActivity {
   location: string | null;
   outcomeSummary: string | null;
   followUpTaskId: string | null;
+  linkLabel: string | null;
+  linkUrl: string | null;
   isConfidential: boolean;
   createdAt: string;
   createdBy: string;
@@ -116,6 +118,8 @@ export interface MhdActivityFormInput {
   location?: string | null;
   outcomeSummary?: string | null;
   followUpTaskId?: string | null;
+  linkLabel?: string | null;
+  linkUrl?: string | null;
   isConfidential?: boolean;
   participants?: MhdActivityParticipantInput[];
   actorUserId?: string | null;

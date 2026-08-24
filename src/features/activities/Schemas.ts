@@ -48,6 +48,8 @@ export const mhdActivityFormSchema = z
     location: z.string().max(300).optional().nullable(),
     outcomeSummary: z.string().max(10000).optional().nullable(),
     followUpTaskId: z.string().optional().nullable(),
+    linkLabel: z.string().max(200, 'Link title cannot exceed 200 characters.').optional().nullable(),
+    linkUrl: z.string().max(2000, 'Link URL cannot exceed 2,000 characters.').optional().nullable(),
     isConfidential: z.boolean().default(false),
     participants: z.array(mhdActivityParticipantRowSchema).default([]),
     actorUserId: z.string().optional().nullable(),
@@ -58,6 +60,27 @@ export const mhdActivityFormSchema = z
     {
       message: 'Occurred date/time is required when the activity is completed.',
       path: ['occurredAt'],
+    },
+  )
+  .refine(
+    (form) => {
+      const label = (form.linkLabel ?? '').trim();
+      const url = (form.linkUrl ?? '').trim();
+      return (label === '') === (url === '');
+    },
+    {
+      message: 'Link Title and Link URL must be set together.',
+      path: ['linkUrl'],
+    },
+  )
+  .refine(
+    (form) => {
+      const url = (form.linkUrl ?? '').trim();
+      return url === '' || /^https?:\/\//i.test(url);
+    },
+    {
+      message: 'Link URL must start with http:// or https://.',
+      path: ['linkUrl'],
     },
   );
 

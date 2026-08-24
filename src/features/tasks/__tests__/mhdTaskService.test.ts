@@ -13,6 +13,8 @@ describe('MhdTask type contract', () => {
       descriptionRichText: null,
       detailedInstructionsPlainText: 'No detailed instructions required at this time',
       detailedInstructionsRichText: null,
+      linkLabel: null,
+      linkUrl: null,
       statusId: '33333333-3333-4333-8333-333333333333',
       statusName: 'In Progress',
       statusColorToken: 'blue',

@@ -33,6 +33,16 @@ export const mhdTaskFormSchema = z
       .string()
       .max(5000, 'Detailed instructions cannot exceed 5,000 characters.'),
     detailedInstructionsRichText: z.unknown().nullable().optional(),
+    linkLabel: z
+      .string()
+      .max(200, 'Link title cannot exceed 200 characters.')
+      .optional()
+      .default(''),
+    linkUrl: z
+      .string()
+      .max(2000, 'Link URL cannot exceed 2,000 characters.')
+      .optional()
+      .default(''),
     statusId: z.string().min(1, 'Status is required.'),
     priorityId: z.string(),
     startDate: mhdNullableDateStringSchema,
@@ -58,6 +68,29 @@ export const mhdTaskFormSchema = z
         code: z.ZodIssueCode.custom,
         path: ['completedDate'],
         message: 'Completed date cannot be before start date.',
+      });
+    }
+    const linkLabelTrimmed = value.linkLabel.trim();
+    const linkUrlTrimmed = value.linkUrl.trim();
+    if (linkLabelTrimmed !== '' && linkUrlTrimmed === '') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['linkUrl'],
+        message: 'Link URL is required when a Link Title is set.',
+      });
+    }
+    if (linkUrlTrimmed !== '' && linkLabelTrimmed === '') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['linkLabel'],
+        message: 'Link Title is required when a Link URL is set.',
+      });
+    }
+    if (linkUrlTrimmed !== '' && !/^https?:\/\//i.test(linkUrlTrimmed)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['linkUrl'],
+        message: 'Link URL must start with http:// or https://.',
       });
     }
   });

@@ -47,6 +47,8 @@ const EMPTY_VALUES: MhdTaskFormValues = {
   descriptionRichText: null,
   detailedInstructionsPlainText: '',
   detailedInstructionsRichText: null,
+  linkLabel: '',
+  linkUrl: '',
   statusId: '',
   priorityId: '',
   startDate: '',
@@ -85,6 +87,8 @@ export function MhdTaskForm({
         descriptionRichText: selectedTask.descriptionRichText ?? null,
         detailedInstructionsPlainText: selectedTask.detailedInstructionsPlainText ?? '',
         detailedInstructionsRichText: selectedTask.detailedInstructionsRichText ?? null,
+        linkLabel: selectedTask.linkLabel ?? '',
+        linkUrl: selectedTask.linkUrl ?? '',
         statusId: selectedTask.statusId,
         priorityId: selectedTask.priorityId ?? '',
         startDate: selectedTask.startDate ?? '',
@@ -234,6 +238,27 @@ export function MhdTaskForm({
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             value={values.title}
             onChange={(event) => updateValue('title', event.target.value)}
+          />
+        </label>
+
+        <label className="text-sm font-medium text-foreground">
+          Link Title
+          <input
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={values.linkLabel}
+            onChange={(event) => updateValue('linkLabel', event.target.value)}
+            placeholder="e.g. Job Posting"
+          />
+        </label>
+
+        <label className="text-sm font-medium text-foreground">
+          Link URL
+          <input
+            type="url"
+            className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={values.linkUrl}
+            onChange={(event) => updateValue('linkUrl', event.target.value)}
+            placeholder="https://example.com"
           />
         </label>
 

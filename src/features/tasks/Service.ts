@@ -26,6 +26,8 @@ type MhdTaskBoardRow = {
   description_rich_text: unknown | null;
   detailed_instructions_plain_text: string | null;
   detailed_instructions_rich_text: unknown | null;
+  link_label: string | null;
+  link_url: string | null;
   status_id: string;
   status_name: string;
   status_color_token: string | null;
@@ -109,6 +111,8 @@ function mapTaskRow(row: MhdTaskBoardRow): MhdTask {
     descriptionRichText: row.description_rich_text,
     detailedInstructionsPlainText: row.detailed_instructions_plain_text,
     detailedInstructionsRichText: row.detailed_instructions_rich_text,
+    linkLabel: row.link_label,
+    linkUrl: row.link_url,
     statusId: row.status_id,
     statusName: row.status_name,
     statusColorToken: row.status_color_token,
@@ -286,6 +290,8 @@ export const mhdTaskService = {
         p_detailed_instructions_plain_text: emptyToUndefined(input.detailedInstructionsPlainText),
         p_detailed_instructions_rich_text: (input.detailedInstructionsRichText ??
           undefined) as Json | undefined,
+        p_link_label: emptyToUndefined(input.linkLabel ?? ''),
+        p_link_url: emptyToUndefined(input.linkUrl ?? ''),
       })
       .returns<MhdTaskMutationResultRow[]>();
 
@@ -322,6 +328,8 @@ export const mhdTaskService = {
         p_detailed_instructions_plain_text: emptyToUndefined(input.detailedInstructionsPlainText),
         p_detailed_instructions_rich_text: (input.detailedInstructionsRichText ??
           undefined) as Json | undefined,
+        p_link_label: emptyToUndefined(input.linkLabel ?? ''),
+        p_link_url: emptyToUndefined(input.linkUrl ?? ''),
       })
       .returns<MhdTaskMutationResultRow[]>();
 

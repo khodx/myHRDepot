@@ -81,6 +81,8 @@ const baseActivity: MhdActivity = {
   location: 'Conference Room',
   outcomeSummary: null,
   followUpTaskId: null,
+  linkLabel: null,
+  linkUrl: null,
   isConfidential: true,
   createdAt: '2026-07-18T14:00:00.000Z',
   createdBy: 'user-1',

@@ -44,6 +44,8 @@ export interface MhdTask {
    *  the form applies a sentinel default when left blank. */
   detailedInstructionsPlainText: string | null;
   detailedInstructionsRichText: unknown | null;
+  linkLabel: string | null;
+  linkUrl: string | null;
   statusId: MhdTaskStatusId;
   statusName: string;
   statusColorToken: string | null;
@@ -118,6 +120,8 @@ export interface MhdCreateTaskInput {
   descriptionRichText?: unknown | null;
   detailedInstructionsPlainText: string;
   detailedInstructionsRichText?: unknown | null;
+  linkLabel?: string;
+  linkUrl?: string;
   statusId: MhdTaskStatusId;
   priorityId: MhdTaskPriorityId | '';
   startDate: string;

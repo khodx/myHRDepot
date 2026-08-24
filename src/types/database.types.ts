@@ -472,6 +472,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           description_template: string
+          functional_limitation_tags: string[]
           id: string
           is_active: boolean
           option_type: string
@@ -486,6 +487,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description_template: string
+          functional_limitation_tags?: string[]
           id?: string
           is_active?: boolean
           option_type: string
@@ -500,6 +502,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description_template?: string
+          functional_limitation_tags?: string[]
           id?: string
           is_active?: boolean
           option_type?: string
@@ -704,6 +707,8 @@ export type Database = {
           follow_up_task_id: string | null
           id: string
           is_confidential: boolean
+          link_label: string | null
+          link_url: string | null
           location: string | null
           occurred_at: string | null
           outcome_summary: string | null
@@ -727,6 +732,8 @@ export type Database = {
           follow_up_task_id?: string | null
           id?: string
           is_confidential?: boolean
+          link_label?: string | null
+          link_url?: string | null
           location?: string | null
           occurred_at?: string | null
           outcome_summary?: string | null
@@ -750,6 +757,8 @@ export type Database = {
           follow_up_task_id?: string | null
           id?: string
           is_confidential?: boolean
+          link_label?: string | null
+          link_url?: string | null
           location?: string | null
           occurred_at?: string | null
           outcome_summary?: string | null
@@ -20134,6 +20143,8 @@ export type Database = {
           detailed_instructions_rich_text: Json | null
           due_date: string | null
           id: string
+          link_label: string | null
+          link_url: string | null
           manual_progress_percent: number | null
           priority_id: string | null
           reference_id: string
@@ -20156,6 +20167,8 @@ export type Database = {
           detailed_instructions_rich_text?: Json | null
           due_date?: string | null
           id?: string
+          link_label?: string | null
+          link_url?: string | null
           manual_progress_percent?: number | null
           priority_id?: string | null
           reference_id: string
@@ -20178,6 +20191,8 @@ export type Database = {
           detailed_instructions_rich_text?: Json | null
           due_date?: string | null
           id?: string
+          link_label?: string | null
+          link_url?: string | null
           manual_progress_percent?: number | null
           priority_id?: string | null
           reference_id?: string
@@ -22361,6 +22376,7 @@ export type Database = {
           p_category?: string
           p_company_id: string
           p_description_template: string
+          p_functional_limitation_tags?: string[]
           p_option_type: string
           p_sort_order?: number
           p_source_option_id?: string
@@ -22378,6 +22394,8 @@ export type Database = {
           p_description_plain_text?: string
           p_description_rich_text?: Json
           p_is_confidential?: boolean
+          p_link_label?: string
+          p_link_url?: string
           p_location?: string
           p_parent_task_id?: string
           p_participants?: Json
@@ -22927,6 +22945,8 @@ export type Database = {
           p_detailed_instructions_plain_text?: string
           p_detailed_instructions_rich_text?: Json
           p_due_date?: string
+          p_link_label?: string
+          p_link_url?: string
           p_manual_progress_percent?: number
           p_priority_id?: string
           p_start_date?: string
@@ -23234,6 +23254,8 @@ export type Database = {
           follow_up_task_id: string
           id: string
           is_confidential: boolean
+          link_label: string
+          link_url: string
           location: string
           note_count: number
           occurred_at: string
@@ -23838,6 +23860,8 @@ export type Database = {
           detailed_instructions_rich_text: Json
           due_date: string
           id: string
+          link_label: string
+          link_url: string
           manual_progress_percent: number
           note_count: number
           priority_color_token: string
@@ -24902,6 +24926,7 @@ export type Database = {
           category: string
           company_id: string
           description_template: string
+          functional_limitation_tags: string[]
           id: string
           is_active: boolean
           is_library: boolean
@@ -24946,6 +24971,8 @@ export type Database = {
           follow_up_task_id: string
           id: string
           is_confidential: boolean
+          link_label: string
+          link_url: string
           location: string
           note_count: number
           occurred_at: string
@@ -26121,6 +26148,8 @@ export type Database = {
           detailed_instructions_rich_text: Json
           due_date: string
           id: string
+          link_label: string
+          link_url: string
           manual_progress_percent: number
           note_count: number
           priority_color_token: string
@@ -28045,6 +28074,7 @@ export type Database = {
           p_category?: string
           p_description_template?: string
           p_entry_id: string
+          p_functional_limitation_tags?: string[]
           p_is_active?: boolean
           p_sort_order?: number
           p_typical_cost_range?: string
@@ -28060,6 +28090,8 @@ export type Database = {
           p_duration_minutes?: number
           p_follow_up_task_id?: string
           p_is_confidential?: boolean
+          p_link_label?: string
+          p_link_url?: string
           p_location?: string
           p_occurred_at?: string
           p_outcome_summary?: string
@@ -28419,6 +28451,8 @@ export type Database = {
           p_detailed_instructions_plain_text?: string
           p_detailed_instructions_rich_text?: Json
           p_due_date?: string
+          p_link_label?: string
+          p_link_url?: string
           p_manual_progress_percent?: number
           p_priority_id?: string
           p_start_date?: string

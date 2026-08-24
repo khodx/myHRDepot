@@ -159,6 +159,19 @@ export function MhdTaskDetailPage() {
           <span>Attachments: {task.attachmentCount}</span>
         </div>
 
+        {task.linkUrl && task.linkLabel ? (
+          <div className="mt-4 border-t border-neutral-100 pt-4">
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-9 gap-1.5 px-3 text-[16.8px]"
+              onClick={() => window.open(task.linkUrl as string, '_blank', 'noopener,noreferrer')}
+            >
+              {task.linkLabel}
+            </Button>
+          </div>
+        ) : null}
+
         <div className="mt-4 border-t border-neutral-100 pt-4">
           <p className="mb-1 text-xs uppercase tracking-wide text-neutral-400">Progress</p>
           <MhdProgressBar percent={progressPercent} tone="graduated" showLabel />

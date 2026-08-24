@@ -77,6 +77,8 @@ export function MhdActivityForm({
           location: initial.location ?? undefined,
           outcomeSummary: initial.outcomeSummary ?? undefined,
           followUpTaskId: initial.followUpTaskId ?? undefined,
+          linkLabel: initial.linkLabel ?? undefined,
+          linkUrl: initial.linkUrl ?? undefined,
           isConfidential: initial.isConfidential,
           participants: [],
         }
@@ -218,6 +220,38 @@ export function MhdActivityForm({
             placeholder="Room, phone, or video link…"
             {...register('location')}
           />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div>
+          <label htmlFor="linkLabel" className="mb-1 block text-sm font-medium">
+            Link Title
+          </label>
+          <input
+            id="linkLabel"
+            className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            placeholder="e.g. Job Posting"
+            {...register('linkLabel')}
+          />
+          {errors.linkLabel ? (
+            <p className="mt-1 text-xs text-red-600">{errors.linkLabel.message}</p>
+          ) : null}
+        </div>
+        <div>
+          <label htmlFor="linkUrl" className="mb-1 block text-sm font-medium">
+            Link URL
+          </label>
+          <input
+            id="linkUrl"
+            type="url"
+            className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            placeholder="https://example.com"
+            {...register('linkUrl')}
+          />
+          {errors.linkUrl ? (
+            <p className="mt-1 text-xs text-red-600">{errors.linkUrl.message}</p>
+          ) : null}
         </div>
       </div>
 

@@ -479,6 +479,21 @@ export function MhdActivityDetailPage() {
           ) : null}
         </div>
 
+        {activity.linkUrl && activity.linkLabel ? (
+          <div className="mt-4">
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-9 gap-1.5 px-3 text-[16.8px]"
+              onClick={() =>
+                window.open(activity.linkUrl as string, '_blank', 'noopener,noreferrer')
+              }
+            >
+              {activity.linkLabel}
+            </Button>
+          </div>
+        ) : null}
+
         <div className="mt-4 grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-md bg-muted p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
