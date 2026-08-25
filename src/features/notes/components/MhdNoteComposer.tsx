@@ -2,7 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
 import { mhdPlainTextToRichHtml, mhdRichTextToDocument } from '@/components/ui/MhdRichTextUtils';
-import type { MhdNoteVisibility } from '../Types';
+import { MHD_NOTE_VISIBILITY_COPY, type MhdNoteVisibility } from '../Types';
+import { MhdNoteVisibilityConfirmDialog } from './MhdNoteVisibilityConfirmDialog';
 
 interface MhdNoteComposerProps {
   isSaving: boolean;
@@ -19,8 +20,9 @@ export function MhdNoteComposer({ isSaving, onCreate }: MhdNoteComposerProps) {
   const [noteRichText, setNoteRichText] = useState<unknown>(null);
   const [visibility, setVisibility] = useState<MhdNoteVisibility>('PUBLIC');
   const [localError, setLocalError] = useState<string | null>(null);
+  const [showVisibilityConfirm, setShowVisibilityConfirm] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmedNote = notePlainText.trim();
     if (!trimmedNote) {
@@ -28,6 +30,11 @@ export function MhdNoteComposer({ isSaving, onCreate }: MhdNoteComposerProps) {
       return;
     }
     setLocalError(null);
+    setShowVisibilityConfirm(true);
+  }
+
+  async function handleConfirmedCreate() {
+    const trimmedNote = notePlainText.trim();
     try {
       await onCreate(
         noteRichText ??
@@ -35,13 +42,15 @@ export function MhdNoteComposer({ isSaving, onCreate }: MhdNoteComposerProps) {
         trimmedNote,
         visibility,
       );
+      setShowVisibilityConfirm(false);
       setNotePlainText('');
       setNoteHtml('');
       setNoteRichText(null);
       setVisibility('PUBLIC');
     } catch (error) {
-      // The hook surfaces the failure via its own errorMessage; keep the draft text so the
-      // user can retry without retyping.
+      // The hook surfaces the failure via its own errorMessage; keep the draft text (and the
+      // dialog closed) so the user can see the error and retry without retyping.
+      setShowVisibilityConfirm(false);
       setLocalError(error instanceof Error ? error.message : 'Unable to save note.');
     }
   }
@@ -58,15 +67,23 @@ export function MhdNoteComposer({ isSaving, onCreate }: MhdNoteComposerProps) {
             Capture comments, updates, and internal context for this task.
           </p>
         </div>
-        <select
-          className="rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          value={visibility}
-          onChange={(event) => setVisibility(event.target.value as MhdNoteVisibility)}
-        >
-          <option value="PUBLIC">Public</option>
-          <option value="ADMIN">Admin</option>
-          <option value="PRIVATE">Private</option>
-        </select>
+        <div className="text-right">
+          <select
+            aria-label="Note visibility"
+            className="rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            value={visibility}
+            onChange={(event) => setVisibility(event.target.value as MhdNoteVisibility)}
+          >
+            {(Object.keys(MHD_NOTE_VISIBILITY_COPY) as MhdNoteVisibility[]).map((tier) => (
+              <option key={tier} value={tier}>
+                {MHD_NOTE_VISIBILITY_COPY[tier].label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+            {MHD_NOTE_VISIBILITY_COPY[visibility].description}
+          </p>
+        </div>
       </div>
       <div className="mt-4">
         <MhdRichTextEditor
@@ -87,6 +104,14 @@ export function MhdNoteComposer({ isSaving, onCreate }: MhdNoteComposerProps) {
           {isSaving ? 'Saving...' : 'Save Note'}
         </Button>
       </div>
+      {showVisibilityConfirm && (
+        <MhdNoteVisibilityConfirmDialog
+          visibility={visibility}
+          isSaving={isSaving}
+          onCancel={() => setShowVisibilityConfirm(false)}
+          onConfirm={() => void handleConfirmedCreate()}
+        />
+      )}
     </form>
   );
 }

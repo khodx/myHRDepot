@@ -5,6 +5,33 @@
 export type MhdNoteEntityType = 'TASK' | 'SUBTASK' | 'ACTIVITY';
 export type MhdNoteVisibility = 'PUBLIC' | 'ADMIN' | 'PRIVATE';
 
+/**
+ * Single source of truth for how each visibility tier is labeled and who can
+ * read it, shared by the composer, the pre-submit confirmation dialog, and
+ * the badge shown on existing notes — so the three never drift out of sync.
+ * The `PRIVATE` stored value keeps its display label "Private Internal SHR"
+ * to make clear it is scoped to the platform operator, not the client's own
+ * HR staff. Role list must match the RLS policy on `public.notes`
+ * (`notes_select_visibility_scoped`, most recently 0242_notes_visibility_tier_rescope.sql).
+ */
+export const MHD_NOTE_VISIBILITY_COPY: Record<
+  MhdNoteVisibility,
+  { label: string; description: string }
+> = {
+  PUBLIC: {
+    label: 'Public',
+    description: 'Visible to everyone in the company.',
+  },
+  ADMIN: {
+    label: 'Admin',
+    description: 'Visible to Client Admin, HR Partner, and HR Admin.',
+  },
+  PRIVATE: {
+    label: 'Private Internal SHR',
+    description: 'Visible to Platform Admin only.',
+  },
+};
+
 export interface MhdNote {
   id: string;
   referenceId: string;
