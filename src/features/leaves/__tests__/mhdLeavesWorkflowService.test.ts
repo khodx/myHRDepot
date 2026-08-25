@@ -433,6 +433,30 @@ describe('workflow evidence stays inside its sensitivity tier', () => {
   });
 });
 
+describe('leave notice document and delivery integration', () => {
+  it('records every migration-0238 notice argument under its declared p_ name', async () => {
+    rpcMock.mockResolvedValueOnce({ data: 'notice-1', error: null });
+    await expect(mhdLeaveWorkflowService.recordNotice({
+      caseId: CASE, noticeType: 'ELIGIBILITY', templateKey: 'FMLA_ELIGIBILITY_NOTICE', templateVersion: 3,
+      leaveTypeId: 'type-1', dueAt: '2026-09-01T00:00:00.000Z', authorityName: 'DOL',
+      authoritySourceUrl: 'https://dol.gov/fmla', contentRegistryId: 'content-1', snapshot: { outcome: 'ELIGIBLE' }, documentGenerationId: 'gen-1',
+    })).resolves.toBe('notice-1');
+    expect(rpcMock).toHaveBeenCalledWith('mhd_leave_notice_record', {
+      p_case_id: CASE, p_notice_type: 'ELIGIBILITY', p_template_key: 'FMLA_ELIGIBILITY_NOTICE', p_template_version: 3,
+      p_leave_type_id: 'type-1', p_due_at: '2026-09-01T00:00:00.000Z', p_authority_name: 'DOL',
+      p_authority_source_url: 'https://dol.gov/fmla', p_content_registry_id: 'content-1', p_snapshot: { outcome: 'ELIGIBLE' }, p_document_generation_id: 'gen-1',
+    });
+  });
+
+  it('marks notice delivery with status and optional physical-mail fields', async () => {
+    rpcMock.mockResolvedValueOnce({ error: null });
+    await mhdLeaveWorkflowService.markNoticeDelivery({ noticeId: 'notice-1', status: 'DELIVERED', deliveryMethod: 'CERTIFIED_MAIL', deliveryReference: '9400' });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_leave_notice_mark_delivery', {
+      p_notice_id: 'notice-1', p_status: 'DELIVERED', p_delivery_method: 'CERTIFIED_MAIL', p_delivery_reference: '9400',
+    });
+  });
+});
+
 /* ------------------------------------------------------------------ */
 /* Pre-live compliance gate                                            */
 /* ------------------------------------------------------------------ */
