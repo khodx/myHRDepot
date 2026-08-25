@@ -122,9 +122,6 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
             <span aria-hidden className="text-xs font-medium leading-none whitespace-nowrap">Calendar</span>
           </NavLink>
         ) : null}
-      </div>
-
-      <div className="flex items-center gap-3">
         <MhdThemeToggle />
         <Link
           to="/account/security"
@@ -136,6 +133,9 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
           <span aria-hidden className="text-xs font-medium leading-none whitespace-nowrap">Security</span>
         </Link>
         <MhdNotificationBell />
+      </div>
+
+      <div className="flex items-center gap-3">
         <MhdActingAsMenu />
         <MhdImpersonationMenu />
         <button
