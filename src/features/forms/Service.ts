@@ -20,6 +20,11 @@ import type {
   MhdFormPage,
   MhdFormStatus,
   MhdFormSubmission,
+  MhdFormWorkflowAction,
+  MhdFormWorkflowDefinition,
+  MhdFormWorkflowRole,
+  MhdFormWorkflowStatus,
+  MhdFormWorkflowTaskView,
   MhdLogicCondition,
   MhdLogicConditionGroup,
   MhdLogicConditionNode,
@@ -141,6 +146,12 @@ function mapField(value: unknown): MhdFormField | null {
     grid: mapGrid(value.grid ?? value.gridDefinition ?? value.grid_definition),
     repeatable: mapRepeatable(value.repeatable),
     clauseKey: asString(value.clauseKey) || asString(value.clause_key) || undefined,
+    width: (asString(value.width) || undefined) as MhdFormField['width'],
+    group: asString(value.group) || undefined,
+    maskingMode: (asString(value.maskingMode) ||
+      asString(value.masking_mode) ||
+      undefined) as MhdFormField['maskingMode'],
+    maskPattern: asString(value.maskPattern) || asString(value.mask_pattern) || undefined,
   };
 }
 
@@ -325,6 +336,88 @@ function mapCalculation(value: unknown): MhdFormCalculation | null {
   };
 }
 
+function mapWorkflowStatus(value: unknown): MhdFormWorkflowStatus | null {
+  if (!isObject(value)) return null;
+  return {
+    id: asString(value.id),
+    name: asString(value.name),
+    color: asString(value.color),
+    isInitial: asBoolean(value.isInitial) || undefined,
+    isTerminal: asBoolean(value.isTerminal) || undefined,
+    autoAssignWhen: asString(value.autoAssignWhen) || undefined,
+  };
+}
+
+function mapWorkflowRole(value: unknown): MhdFormWorkflowRole | null {
+  if (!isObject(value)) return null;
+  return {
+    id: asString(value.id),
+    name: asString(value.name),
+    type: (value.type as MhdFormWorkflowRole['type']) ?? 'INTERNAL',
+    description: asString(value.description) || undefined,
+  };
+}
+
+function mapWorkflowAction(value: unknown): MhdFormWorkflowAction | null {
+  if (!isObject(value)) return null;
+  return {
+    id: asString(value.id),
+    name: asString(value.name),
+    fromStatusId: asString(value.fromStatusId) || undefined,
+    toStatusId: asString(value.toStatusId) || undefined,
+    allowedRoleIds: asStringArray(value.allowedRoleIds),
+    triggerEvent: (value.triggerEvent as MhdFormWorkflowAction['triggerEvent']) ?? 'MANUAL',
+    condition: asString(value.condition) || undefined,
+    sendEmail: asBoolean(value.sendEmail) || undefined,
+    createTask: asBoolean(value.createTask) || undefined,
+    notifySubmitter: asBoolean(value.notifySubmitter) || undefined,
+    createActivity: asBoolean(value.createActivity) || undefined,
+    webhookUrl: asString(value.webhookUrl) || undefined,
+  };
+}
+
+function mapWorkflowTaskView(value: unknown): MhdFormWorkflowTaskView | null {
+  if (!isObject(value)) return null;
+  return {
+    id: asString(value.id),
+    name: asString(value.name),
+    roleId: asString(value.roleId) || undefined,
+    statusId: asString(value.statusId) || undefined,
+    dueInDays: asNumber(value.dueInDays),
+    reminderEnabled: asBoolean(value.reminderEnabled) || undefined,
+    reminderOffsetDays: asNumber(value.reminderOffsetDays),
+  };
+}
+
+/**
+ * `mhd_assemble_form_workflow` (0150) is the source of truth this maps —
+ * it currently hardcodes `statuses`/`roles` to `[]` (no backing tables yet
+ * for those two arrays; only `actions` is normalized into
+ * form_workflow_actions/form_workflow_action_roles). Mapped here anyway so
+ * the builder doesn't crash if that gap closes later.
+ */
+function mapWorkflow(value: unknown): MhdFormWorkflowDefinition | undefined {
+  if (!isObject(value)) return undefined;
+  return {
+    enabled: asBoolean(value.enabled),
+    saveAndResume: asBoolean(value.saveAndResume, true),
+    workflowLinkSharing: asBoolean(value.workflowLinkSharing, true),
+    formReadOnlyWhenComplete: asBoolean(value.formReadOnlyWhenComplete, true),
+    statuses: (Array.isArray(value.statuses) ? value.statuses : [])
+      .map(mapWorkflowStatus)
+      .filter((status): status is MhdFormWorkflowStatus => status !== null),
+    roles: (Array.isArray(value.roles) ? value.roles : [])
+      .map(mapWorkflowRole)
+      .filter((role): role is MhdFormWorkflowRole => role !== null),
+    actions: (Array.isArray(value.actions) ? value.actions : [])
+      .map(mapWorkflowAction)
+      .filter((action): action is MhdFormWorkflowAction => action !== null),
+    taskViews: (Array.isArray(value.taskViews) ? value.taskViews : [])
+      .map(mapWorkflowTaskView)
+      .filter((taskView): taskView is MhdFormWorkflowTaskView => taskView !== null),
+  };
+}
+
 function mapDefinition(
   rawDefinition: Json | null,
   meta: { id: string; name: string; description?: string | null },
@@ -381,6 +474,7 @@ function mapDefinition(
         ? asBoolean(definition.settings.progressBar, true)
         : true,
     },
+    workflow: mapWorkflow(definition.workflow),
   };
 }
 

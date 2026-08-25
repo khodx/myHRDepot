@@ -207,6 +207,74 @@ describe('mhdFormService', () => {
     expect(grid?.repeatable).toBeUndefined();
   });
 
+  it('maps workflow actions (including allowedRoleIds and the notifySubmitter/createActivity toggles) back out of the definition JSON', async () => {
+    mockReturns.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'form-1',
+          reference_id: 'FORM-000003',
+          company_id: 'company-1',
+          name: 'Employee Relations Intake',
+          description: '',
+          status: 'DRAFT',
+          version: 1,
+          previous_version_id: null,
+          created_at: '2026-07-17T00:00:00Z',
+          created_by: 'user-1',
+          updated_at: '2026-07-17T00:00:00Z',
+          updated_by: 'user-1',
+          published_at: null,
+          published_by: null,
+          definition: {
+            id: 'form-1',
+            name: 'Employee Relations Intake',
+            description: '',
+            pages: [{ id: 'page-1', title: 'Page 1', fields: [], order: 1 }],
+            fields: [],
+            logic: [],
+            calculations: [],
+            settings: { allowDraft: true, multiPage: false, progressBar: true },
+            workflow: {
+              enabled: true,
+              saveAndResume: true,
+              workflowLinkSharing: true,
+              formReadOnlyWhenComplete: true,
+              statuses: [],
+              roles: [],
+              actions: [
+                {
+                  id: 'action-submit',
+                  name: 'Submit',
+                  fromStatusId: 'status-open',
+                  toStatusId: 'status-submitted',
+                  allowedRoleIds: ['role-hr-partner'],
+                  triggerEvent: 'SUBMIT',
+                  sendEmail: true,
+                  createTask: false,
+                  notifySubmitter: true,
+                  createActivity: true,
+                },
+              ],
+              taskViews: [],
+            },
+          },
+        },
+      ],
+      error: null,
+    });
+
+    const result = await mhdFormService.listFormsForCompany('company-1');
+
+    expect(result[0].definition.workflow).toBeDefined();
+    expect(result[0].definition.workflow?.actions).toHaveLength(1);
+    const action = result[0].definition.workflow?.actions[0];
+    expect(action?.allowedRoleIds).toEqual(['role-hr-partner']);
+    expect(action?.triggerEvent).toBe('SUBMIT');
+    expect(action?.sendEmail).toBe(true);
+    expect(action?.notifySubmitter).toBe(true);
+    expect(action?.createActivity).toBe(true);
+  });
+
   it('omits optional create-form args rather than passing null', async () => {
     mockReturns
       .mockResolvedValueOnce({ data: [{ id: 'form-1' }], error: null })

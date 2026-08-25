@@ -212,6 +212,21 @@ export interface MhdGridDefinition {
   columns: MhdGridColumn[];
 }
 
+export type MhdFormFieldWidth = 'full' | 'half' | 'third' | 'quarter';
+
+/**
+ * Backed by `form_fields.masking_mode` (added 0067, wired to the definition
+ * round trip in 0237). `'SSN'` drives both the display mask and a
+ * format-as-you-type dash insertion (3-2-4) on `masked_text` fields; the
+ * others exist at the database/constraint level for future field types.
+ */
+export type MhdFormFieldMaskingMode =
+  | 'SSN'
+  | 'BANK_ACCOUNT'
+  | 'ROUTING_NUMBER'
+  | 'GOVERNMENT_ID'
+  | 'LAST_FOUR_ONLY';
+
 export interface MhdFormField {
   id: string;
   type: MhdFieldType;
@@ -225,12 +240,26 @@ export interface MhdFormField {
   validation?: MhdFormFieldValidation;
   options?: MhdFormFieldOption[];
   repeatable?: MhdRepeatableFieldConfig;
-  /** Key that authored visibility rules use to reference this field. */
+  /** Key that authored visibility rules use to reference this field. Backed by `form_fields.field_external_key`. */
   fieldKey?: string;
   visibilityRule?: MhdVisibilityNode;
   grid?: MhdGridDefinition;
   /** Clause this field captures assent to (initials / acknowledgment checkbox). */
   clauseKey?: string;
+  /**
+   * Backed by `form_fields.field_width`/`field_group`. Consecutive same-page
+   * fields sharing a non-empty `group` render side by side instead of the
+   * default vertical stack -- added for government-form replicas (I-9, W-4)
+   * whose printed layout requires e.g. first/middle/last name or
+   * city/state/zip on one line. `width` sizes each field within its group;
+   * ignored for fields with no group (or whose group has no sibling).
+   */
+  width?: MhdFormFieldWidth;
+  group?: string;
+  /** Backed by `form_fields.masking_mode`. */
+  maskingMode?: MhdFormFieldMaskingMode;
+  /** Backed by `form_fields.field_mask_pattern`; a custom mask pattern, distinct from `validation.pattern`'s submit-time regex. */
+  maskPattern?: string;
 }
 
 export interface MhdLogicCondition {
@@ -330,6 +359,15 @@ export interface MhdFormWorkflowAction {
   condition?: string;
   sendEmail?: boolean;
   createTask?: boolean;
+  /** Sends the submitter a confirmation, independent of `sendEmail`'s role-based recipients. */
+  notifySubmitter?: boolean;
+  /**
+   * Records the submission as a person-centric Activity (activity_type
+   * 'FORM_SUBMISSION') about the submission's resolved subject employee,
+   * rather than assigning a Task. Skipped server-side when no subject
+   * person is resolvable for the submission.
+   */
+  createActivity?: boolean;
   webhookUrl?: string;
 }
 

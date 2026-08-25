@@ -327,6 +327,26 @@ export function MhdFormWorkflowEditor({
                 />
                 Create Task
               </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={Boolean(action.notifySubmitter)}
+                  onChange={(event) =>
+                    updateAction(action.id, { notifySubmitter: event.target.checked })
+                  }
+                />
+                Notify Submitter
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={Boolean(action.createActivity)}
+                  onChange={(event) =>
+                    updateAction(action.id, { createActivity: event.target.checked })
+                  }
+                />
+                Create Activity
+              </label>
             </div>
           ))}
         </div>
