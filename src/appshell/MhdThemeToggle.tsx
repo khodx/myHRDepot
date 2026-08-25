@@ -22,7 +22,7 @@ export function MhdThemeToggle() {
       title={`Switch to ${next} mode`}
     >
       {theme === 'dark' ? <Sun className="mhd-topbar-icon-glyph h-[39.6px] w-[39.6px]" /> : <Moon className="mhd-topbar-icon-glyph h-[39.6px] w-[39.6px]" />}
-      <span aria-hidden className="text-xs font-medium leading-none whitespace-nowrap">Theme</span>
+      <span aria-hidden className="text-sm font-medium leading-none whitespace-nowrap">Theme</span>
     </button>
   );
 }

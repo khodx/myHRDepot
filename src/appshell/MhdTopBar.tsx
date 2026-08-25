@@ -51,7 +51,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
             }
           >
             <Target className="mhd-topbar-icon-glyph h-[39.6px] w-[39.6px]" aria-hidden />
-            <span aria-hidden className="text-xs font-medium leading-none whitespace-nowrap">Command Center</span>
+            <span aria-hidden className="text-sm font-medium leading-none whitespace-nowrap">Command Center</span>
           </NavLink>
         ) : null}
         {mhdCanAccessRoute('/tasks', roles) ? (
@@ -68,7 +68,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
             }
           >
             <ClipboardCheck className="mhd-topbar-icon-glyph h-[39.6px] w-[39.6px]" aria-hidden />
-            <span aria-hidden className="text-xs font-medium leading-none whitespace-nowrap">Tasks</span>
+            <span aria-hidden className="text-sm font-medium leading-none whitespace-nowrap">Tasks</span>
           </NavLink>
         ) : null}
         {mhdCanAccessRoute('/activities', roles) ? (
@@ -85,7 +85,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
             }
           >
             <HeartHandshake className="mhd-topbar-icon-glyph h-[39.6px] w-[39.6px]" aria-hidden />
-            <span aria-hidden className="text-xs font-medium leading-none whitespace-nowrap">Activities</span>
+            <span aria-hidden className="text-sm font-medium leading-none whitespace-nowrap">Activities</span>
           </NavLink>
         ) : null}
         {mhdCanAccessRoute('/communications', roles) ? (
@@ -102,7 +102,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
             }
           >
             <MessageSquarePlus className="mhd-topbar-icon-glyph h-[39.6px] w-[39.6px]" aria-hidden />
-            <span aria-hidden className="text-xs font-medium leading-none whitespace-nowrap">Communications</span>
+            <span aria-hidden className="text-sm font-medium leading-none whitespace-nowrap">Communications</span>
           </NavLink>
         ) : null}
         {mhdCanAccessRoute('/calendar', roles) ? (
@@ -119,7 +119,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
             }
           >
             <Calendar className="mhd-topbar-icon-glyph h-[39.6px] w-[39.6px]" aria-hidden />
-            <span aria-hidden className="text-xs font-medium leading-none whitespace-nowrap">Calendar</span>
+            <span aria-hidden className="text-sm font-medium leading-none whitespace-nowrap">Calendar</span>
           </NavLink>
         ) : null}
         <MhdThemeToggle />
@@ -130,7 +130,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
           className="mhd-topbar-icon-btn inline-flex flex-col items-center justify-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         >
           <ShieldCheck className="mhd-topbar-icon-glyph h-[39.6px] w-[39.6px]" aria-hidden />
-          <span aria-hidden className="text-xs font-medium leading-none whitespace-nowrap">Security</span>
+          <span aria-hidden className="text-sm font-medium leading-none whitespace-nowrap">Security</span>
         </Link>
         <MhdNotificationBell />
       </div>

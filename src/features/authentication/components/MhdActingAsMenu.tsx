@@ -65,7 +65,7 @@ export function MhdActingAsMenu() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="hidden items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs shadow-sm transition-colors hover:bg-muted sm:flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+        className="hidden items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-sm shadow-sm transition-colors hover:bg-muted sm:flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         aria-haspopup="menu"
         aria-expanded={isOpen}
         title="Choose which of your roles are active"

@@ -584,7 +584,7 @@ body {
 .mhd-topbar-icon-btn:hover,
 .mhd-topbar-icon-btn:focus-visible {
   transform: translateY(-3px) scale(1.06);
-  background-color: var(--mhd-accent);
+  background-color: var(--mhd-rail);
   color: #ffffff;
 }
 
