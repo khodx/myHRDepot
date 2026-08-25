@@ -1,8 +1,8 @@
 import { Link, NavLink } from 'react-router-dom';
 import {
+  Calendar,
   CalendarClock,
   CheckSquare,
-  LayoutDashboard,
   LogOut,
   Menu,
   MessageSquare,
@@ -37,11 +37,11 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
             <Menu className="h-5 w-5" aria-hidden />
           </button>
         ) : null}
-        {mhdCanAccessRoute('/dashboard', roles) ? (
+        {mhdCanAccessRoute('/command-center', roles) ? (
           <NavLink
-            to="/dashboard"
-            title="Home"
-            aria-label="Home"
+            to="/command-center"
+            title="Command Center"
+            aria-label="Command Center"
             className={({ isActive }) =>
               `inline-flex items-center justify-center rounded-full p-1.5 transition-colors ${
                 isActive
@@ -50,7 +50,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
               }`
             }
           >
-            <LayoutDashboard className="h-[39.6px] w-[39.6px]" aria-hidden />
+            <Zap className="h-[39.6px] w-[39.6px]" aria-hidden />
           </NavLink>
         ) : null}
         {mhdCanAccessRoute('/tasks', roles) ? (
@@ -85,22 +85,6 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
             <CalendarClock className="h-[39.6px] w-[39.6px]" aria-hidden />
           </NavLink>
         ) : null}
-        {mhdCanAccessRoute('/command-center', roles) ? (
-          <NavLink
-            to="/command-center"
-            title="Command Center"
-            aria-label="Command Center"
-            className={({ isActive }) =>
-              `inline-flex items-center justify-center rounded-full p-1.5 transition-colors ${
-                isActive
-                  ? 'bg-muted text-foreground'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`
-            }
-          >
-            <Zap className="h-[39.6px] w-[39.6px]" aria-hidden />
-          </NavLink>
-        ) : null}
         {mhdCanAccessRoute('/communications', roles) ? (
           <NavLink
             to="/communications"
@@ -115,6 +99,22 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
             }
           >
             <MessageSquare className="h-[39.6px] w-[39.6px]" aria-hidden />
+          </NavLink>
+        ) : null}
+        {mhdCanAccessRoute('/calendar', roles) ? (
+          <NavLink
+            to="/calendar"
+            title="Calendar"
+            aria-label="Calendar"
+            className={({ isActive }) =>
+              `inline-flex items-center justify-center rounded-full p-1.5 transition-colors ${
+                isActive
+                  ? 'bg-muted text-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`
+            }
+          >
+            <Calendar className="h-[39.6px] w-[39.6px]" aria-hidden />
           </NavLink>
         ) : null}
       </div>
