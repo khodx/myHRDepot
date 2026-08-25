@@ -572,6 +572,44 @@ body {
     0 0 0 3px var(--mhd-focus-ring);
 }
 
+/* Top bar icon-button equivalent of the dashboard module-card hover: one
+   fixed accent color replaces the dashboard's rotating per-row tone. */
+.mhd-topbar-icon-btn {
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border: 2px solid transparent;
+}
+
+.mhd-topbar-icon-btn:hover,
+.mhd-topbar-icon-btn:focus-visible {
+  transform: translateY(-3px) scale(1.06);
+  border-color: var(--mhd-accent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--mhd-accent) 55%, transparent),
+    0 0 12px color-mix(in srgb, var(--mhd-accent) 35%, transparent),
+    0 0 24px color-mix(in srgb, var(--mhd-accent) 22%, transparent);
+}
+
+.mhd-topbar-icon-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--mhd-accent) 55%, transparent),
+    0 0 12px color-mix(in srgb, var(--mhd-accent) 35%, transparent),
+    0 0 24px color-mix(in srgb, var(--mhd-accent) 22%, transparent),
+    0 0 0 3px var(--mhd-focus-ring);
+}
+
+.mhd-topbar-icon-glyph {
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.mhd-topbar-icon-btn:hover .mhd-topbar-icon-glyph,
+.mhd-topbar-icon-btn:focus-visible .mhd-topbar-icon-glyph {
+  transform: scale(1.1);
+}
+
 .mhd-module-icon {
   background: color-mix(in srgb, var(--tone) 16%, var(--color-card));
   color: var(--tone);
