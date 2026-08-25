@@ -465,6 +465,77 @@ export type Database = {
           },
         ]
       }
+      accommodation_notices: {
+        Row: {
+          accommodation_case_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          document_generation_id: string | null
+          id: string
+          issued_at: string | null
+          notice_type: string
+          status: string
+          template_key: string
+          template_version: number
+        }
+        Insert: {
+          accommodation_case_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          document_generation_id?: string | null
+          id?: string
+          issued_at?: string | null
+          notice_type: string
+          status?: string
+          template_key: string
+          template_version: number
+        }
+        Update: {
+          accommodation_case_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          document_generation_id?: string | null
+          id?: string
+          issued_at?: string | null
+          notice_type?: string
+          status?: string
+          template_key?: string
+          template_version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accommodation_notices_accommodation_case_id_fkey"
+            columns: ["accommodation_case_id"]
+            isOneToOne: false
+            referencedRelation: "accommodation_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_notices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_notices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_notices_document_generation_id_fkey"
+            columns: ["document_generation_id"]
+            isOneToOne: false
+            referencedRelation: "document_generations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accommodation_option_catalog: {
         Row: {
           category: string
@@ -4270,6 +4341,83 @@ export type Database = {
           },
         ]
       }
+      document_deliveries: {
+        Row: {
+          channel: string
+          correspondence_message_id: string | null
+          created_at: string
+          delivered_at: string | null
+          document_generation_id: string
+          id: string
+          recipient_email: string | null
+          recipient_person_id: string | null
+          recorded_by: string | null
+          sent_at: string | null
+          status: string
+          tracking_carrier: string | null
+          tracking_number: string | null
+        }
+        Insert: {
+          channel: string
+          correspondence_message_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          document_generation_id: string
+          id?: string
+          recipient_email?: string | null
+          recipient_person_id?: string | null
+          recorded_by?: string | null
+          sent_at?: string | null
+          status?: string
+          tracking_carrier?: string | null
+          tracking_number?: string | null
+        }
+        Update: {
+          channel?: string
+          correspondence_message_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          document_generation_id?: string
+          id?: string
+          recipient_email?: string | null
+          recipient_person_id?: string | null
+          recorded_by?: string | null
+          sent_at?: string | null
+          status?: string
+          tracking_carrier?: string | null
+          tracking_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_deliveries_correspondence_message_id_fkey"
+            columns: ["correspondence_message_id"]
+            isOneToOne: false
+            referencedRelation: "correspondence_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_deliveries_document_generation_id_fkey"
+            columns: ["document_generation_id"]
+            isOneToOne: false
+            referencedRelation: "document_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_deliveries_recipient_person_id_fkey"
+            columns: ["recipient_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_deliveries_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_generations: {
         Row: {
           company_id: string
@@ -4284,6 +4432,7 @@ export type Database = {
           output_document_hash: string | null
           output_drive_file_id: string | null
           output_file_name: string | null
+          output_format: string
           reference_id: string
           sensitivity_level: string
           status: string
@@ -4306,6 +4455,7 @@ export type Database = {
           output_document_hash?: string | null
           output_drive_file_id?: string | null
           output_file_name?: string | null
+          output_format?: string
           reference_id: string
           sensitivity_level?: string
           status?: string
@@ -4328,6 +4478,7 @@ export type Database = {
           output_document_hash?: string | null
           output_drive_file_id?: string | null
           output_file_name?: string | null
+          output_format?: string
           reference_id?: string
           sensitivity_level?: string
           status?: string
@@ -4374,6 +4525,155 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      document_merge_batch_items: {
+        Row: {
+          batch_id: string
+          created_at: string
+          document_generation_id: string | null
+          error_message: string | null
+          id: string
+          person_id: string
+          status: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          document_generation_id?: string | null
+          error_message?: string | null
+          id?: string
+          person_id: string
+          status?: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          document_generation_id?: string | null
+          error_message?: string | null
+          id?: string
+          person_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_merge_batch_items_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "document_merge_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_merge_batch_items_document_generation_id_fkey"
+            columns: ["document_generation_id"]
+            isOneToOne: false
+            referencedRelation: "document_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_merge_batch_items_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_merge_batches: {
+        Row: {
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          failed_count: number
+          id: string
+          launched_by: string | null
+          output_format: string
+          reference_id: string
+          status: string
+          succeeded_count: number
+          template_id: string
+          total_count: number
+        }
+        Insert: {
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          failed_count?: number
+          id?: string
+          launched_by?: string | null
+          output_format: string
+          reference_id: string
+          status?: string
+          succeeded_count?: number
+          template_id: string
+          total_count?: number
+        }
+        Update: {
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          failed_count?: number
+          id?: string
+          launched_by?: string | null
+          output_format?: string
+          reference_id?: string
+          status?: string
+          succeeded_count?: number
+          template_id?: string
+          total_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_merge_batches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_merge_batches_launched_by_fkey"
+            columns: ["launched_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_merge_batches_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_merge_field_catalog: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          path: string
+          sample_value: string | null
+          sort_order: number
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          path: string
+          sample_value?: string | null
+          sort_order?: number
+          source: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          path?: string
+          sample_value?: string | null
+          sort_order?: number
+          source?: string
+        }
+        Relationships: []
       }
       document_retention_schedules: {
         Row: {
@@ -9319,6 +9619,7 @@ export type Database = {
           action_key: string | null
           company_id: string
           condition: string | null
+          create_activity: boolean
           create_task: boolean
           created_at: string
           display_order: number
@@ -9326,6 +9627,7 @@ export type Database = {
           from_status_id: string | null
           id: string
           name: string | null
+          notify_submitter: boolean
           reference_id: string
           send_email: boolean
           to_status_id: string | null
@@ -9337,6 +9639,7 @@ export type Database = {
           action_key?: string | null
           company_id: string
           condition?: string | null
+          create_activity?: boolean
           create_task?: boolean
           created_at?: string
           display_order?: number
@@ -9344,6 +9647,7 @@ export type Database = {
           from_status_id?: string | null
           id?: string
           name?: string | null
+          notify_submitter?: boolean
           reference_id: string
           send_email?: boolean
           to_status_id?: string | null
@@ -9355,6 +9659,7 @@ export type Database = {
           action_key?: string | null
           company_id?: string
           condition?: string | null
+          create_activity?: boolean
           create_task?: boolean
           created_at?: string
           display_order?: number
@@ -9362,6 +9667,7 @@ export type Database = {
           from_status_id?: string | null
           id?: string
           name?: string | null
+          notify_submitter?: boolean
           reference_id?: string
           send_email?: boolean
           to_status_id?: string | null
@@ -16644,6 +16950,7 @@ export type Database = {
           form_submission_id: string | null
           id: string
           is_deleted: boolean
+          person_i9_identity_id: string | null
           person_id: string
           reference_id: string
           requires_signature: boolean
@@ -16675,6 +16982,7 @@ export type Database = {
           form_submission_id?: string | null
           id?: string
           is_deleted?: boolean
+          person_i9_identity_id?: string | null
           person_id: string
           reference_id: string
           requires_signature?: boolean
@@ -16706,6 +17014,7 @@ export type Database = {
           form_submission_id?: string | null
           id?: string
           is_deleted?: boolean
+          person_i9_identity_id?: string | null
           person_id?: string
           reference_id?: string
           requires_signature?: boolean
@@ -16749,6 +17058,13 @@ export type Database = {
             columns: ["form_submission_id"]
             isOneToOne: false
             referencedRelation: "form_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_i9_records_person_i9_identity_id_fkey"
+            columns: ["person_i9_identity_id"]
+            isOneToOne: false
+            referencedRelation: "person_i9_identity"
             referencedColumns: ["id"]
           },
           {
@@ -17349,6 +17665,7 @@ export type Database = {
           multiple_jobs_flag: boolean
           other_income_amount: number
           person_id: string
+          person_w4_withholding_id: string | null
           reference_id: string
           requires_signature: boolean
           signed_at: string | null
@@ -17378,6 +17695,7 @@ export type Database = {
           multiple_jobs_flag?: boolean
           other_income_amount?: number
           person_id: string
+          person_w4_withholding_id?: string | null
           reference_id: string
           requires_signature?: boolean
           signed_at?: string | null
@@ -17407,6 +17725,7 @@ export type Database = {
           multiple_jobs_flag?: boolean
           other_income_amount?: number
           person_id?: string
+          person_w4_withholding_id?: string | null
           reference_id?: string
           requires_signature?: boolean
           signed_at?: string | null
@@ -17449,6 +17768,13 @@ export type Database = {
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_w4_elections_person_w4_withholding_id_fkey"
+            columns: ["person_w4_withholding_id"]
+            isOneToOne: false
+            referencedRelation: "person_w4_withholding"
             referencedColumns: ["id"]
           },
           {
@@ -21516,6 +21842,20 @@ export type Database = {
         Args: { p_documentation_id: string }
         Returns: Json
       }
+      mhd_accommodation_notice_mark_delivery: {
+        Args: { p_notice_id: string; p_status: string }
+        Returns: undefined
+      }
+      mhd_accommodation_notice_record: {
+        Args: {
+          p_case_id: string
+          p_document_generation_id?: string
+          p_notice_type: string
+          p_template_key: string
+          p_template_version: number
+        }
+        Returns: string
+      }
       mhd_accommodation_transition: {
         Args: { p_case_id: string; p_new_status: string; p_reason?: string }
         Returns: undefined
@@ -23744,6 +24084,10 @@ export type Database = {
           template_id: string
         }[]
       }
+      mhd_get_document_merge_batch: {
+        Args: { p_batch_id: string }
+        Returns: Json
+      }
       mhd_get_document_template: {
         Args: { p_template_id: string }
         Returns: {
@@ -25135,6 +25479,7 @@ export type Database = {
           p_authority_source_url?: string
           p_case_id: string
           p_content_registry_id?: string
+          p_document_generation_id?: string
           p_due_at?: string
           p_leave_type_id?: string
           p_notice_type: string
@@ -25253,6 +25598,28 @@ export type Database = {
           esignature_request_id: string
           id: string
         }[]
+      }
+      mhd_list_accommodation_notices: {
+        Args: { p_case_id: string }
+        Returns: {
+          accommodation_case_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          document_generation_id: string | null
+          id: string
+          issued_at: string | null
+          notice_type: string
+          status: string
+          template_key: string
+          template_version: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "accommodation_notices"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       mhd_list_accommodation_option_catalog: {
         Args: { p_category?: string; p_company_id: string }
@@ -26896,6 +27263,7 @@ export type Database = {
         Args: {
           p_action_url?: string
           p_actor_user_id?: string
+          p_allow_self_notify?: boolean
           p_body?: string
           p_channels?: string[]
           p_company_id: string
@@ -27144,21 +27512,21 @@ export type Database = {
       }
       mhd_person_i9_identity_upsert: {
         Args: {
-          p_alien_foreign_passport_country: string
-          p_alien_foreign_passport_number: string
-          p_alien_i94_number: string
-          p_alien_uscis_number: string
-          p_alien_work_authorized_until: string
+          p_alien_foreign_passport_country?: string
+          p_alien_foreign_passport_number?: string
+          p_alien_i94_number?: string
+          p_alien_uscis_number?: string
+          p_alien_work_authorized_until?: string
           p_citizenship_status: string
-          p_date_of_birth: string
-          p_lawful_permanent_resident_number: string
-          p_mailing_address_apt: string
-          p_mailing_address_city: string
-          p_mailing_address_state: string
-          p_mailing_address_street: string
-          p_mailing_address_zip: string
+          p_date_of_birth?: string
+          p_lawful_permanent_resident_number?: string
+          p_mailing_address_apt?: string
+          p_mailing_address_city?: string
+          p_mailing_address_state?: string
+          p_mailing_address_street?: string
+          p_mailing_address_zip?: string
           p_person_id: string
-          p_ssn: string
+          p_ssn?: string
         }
         Returns: string
       }
@@ -27354,6 +27722,19 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      mhd_record_document_delivery: {
+        Args: {
+          p_channel: string
+          p_correspondence_message_id?: string
+          p_document_generation_id: string
+          p_recipient_email?: string
+          p_recipient_person_id?: string
+          p_status: string
+          p_tracking_carrier?: string
+          p_tracking_number?: string
+        }
+        Returns: string
       }
       mhd_record_esign_consent: {
         Args: {
@@ -27825,9 +28206,11 @@ export type Database = {
         Args: {
           p_actor_user_id?: string
           p_company_id: string
+          p_custom_merge_data?: Json
           p_entity_id: string
           p_entity_type: string
           p_merge_data: Json
+          p_output_format?: string
           p_template_id: string
         }
         Returns: {
@@ -27835,6 +28218,34 @@ export type Database = {
           reference_id: string
           status: string
         }[]
+      }
+      mhd_request_document_merge_batch: {
+        Args: {
+          p_company_id: string
+          p_output_format: string
+          p_person_ids: string[]
+          p_template_id: string
+        }
+        Returns: {
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          failed_count: number
+          id: string
+          launched_by: string | null
+          output_format: string
+          reference_id: string
+          status: string
+          succeeded_count: number
+          template_id: string
+          total_count: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "document_merge_batches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       mhd_request_submission_document_generation: {
         Args: { p_submission_id: string }
@@ -27856,6 +28267,10 @@ export type Database = {
       mhd_resolve_correspondence_company_by_alias: {
         Args: { p_alias_address: string }
         Returns: string
+      }
+      mhd_resolve_document_merge_context: {
+        Args: { p_custom?: Json; p_entity_id: string; p_entity_type: string }
+        Returns: Json
       }
       mhd_resolve_entity_company_id: {
         Args: { p_entity_id: string; p_entity_type: string }
