@@ -85,12 +85,12 @@ export function MhdImpersonationMenu() {
 
   if (!profile || !tier) {
     return (
-      <div className="hidden items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 shadow-sm sm:flex">
+      <div className="hidden items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 shadow-sm sm:flex">
         <MhdAvatarCircle
           name={avatarName}
           photoUrl={photoUrlQuery.data}
           size="md"
-          className="bg-accent text-accent-on"
+          className="h-10 w-10 text-sm bg-accent text-accent-on"
         />
         <div className="hidden max-w-44 flex-col gap-0.5 lg:flex">
           <span className="truncate text-sm font-semibold">{profile?.displayName ?? 'User'}</span>
@@ -164,7 +164,7 @@ export function MhdImpersonationMenu() {
       <button
         type="button"
         onClick={() => void handleOpen()}
-        className="hidden items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 shadow-sm transition-colors hover:bg-muted sm:flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+        className="hidden items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 shadow-sm transition-colors hover:bg-muted sm:flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         aria-haspopup="menu"
         aria-expanded={isOpen}
       >
@@ -172,7 +172,7 @@ export function MhdImpersonationMenu() {
           name={avatarName}
           photoUrl={photoUrlQuery.data}
           size="md"
-          className="bg-accent text-accent-on"
+          className="h-10 w-10 text-sm bg-accent text-accent-on"
         />
         <div className="hidden max-w-44 flex-col gap-0.5 lg:flex">
           <span className="truncate text-sm font-semibold">{profile.displayName ?? 'User'}</span>
