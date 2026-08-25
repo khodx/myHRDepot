@@ -152,6 +152,20 @@ export interface MhdAccommodationMedicalStatus {
   has_attachment: boolean;
 }
 
+export interface MhdAccommodationNotice {
+  id: string;
+  company_id: string;
+  accommodation_case_id: string;
+  notice_type: string;
+  status: string;
+  template_key: string;
+  template_version: number;
+  document_generation_id: string | null;
+  issued_at: string | null;
+  created_at: string;
+  created_by: string;
+}
+
 /**
  * The ONLY two medical facts this platform stores about an accommodation, both
  * encrypted at rest and revealable only through the audited

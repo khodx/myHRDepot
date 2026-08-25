@@ -69,3 +69,21 @@ export function useMhdLeaveReturnToWork(caseId: string) {
     onSuccess: refresh,
   });
 }
+
+export function useMhdLeaveNotice(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.recordNotice>[0]) =>
+      mhdLeaveWorkflowService.recordNotice(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveNoticeDelivery(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.markNoticeDelivery>[0]) =>
+      mhdLeaveWorkflowService.markNoticeDelivery(input),
+    onSuccess: refresh,
+  });
+}

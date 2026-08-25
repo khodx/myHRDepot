@@ -25,6 +25,9 @@ export const mhdAccommodationQueryKeys = {
     ['mhd-accommodations', 'document-templates', companyId ?? ''] as const,
 };
 
+export const mhdAccommodationNoticeQueryKey = (caseId: string | null) =>
+  ['mhd-accommodations', 'notices', caseId ?? ''] as const;
+
 function useInvalidateAccommodationCase() {
   const queryClient = useQueryClient();
   return (caseId?: string) => {
@@ -33,6 +36,7 @@ function useInvalidateAccommodationCase() {
       void queryClient.invalidateQueries({
         queryKey: mhdAccommodationQueryKeys.detail(caseId),
       });
+      void queryClient.invalidateQueries({ queryKey: mhdAccommodationNoticeQueryKey(caseId) });
     }
   };
 }
@@ -54,6 +58,32 @@ export function useMhdAccommodationCase(caseId: string | null) {
     queryKey: mhdAccommodationQueryKeys.detail(caseId),
     queryFn: () => mhdAccommodationsService.get(caseId!),
     enabled: Boolean(caseId),
+  });
+}
+
+export function useMhdAccommodationNotices(caseId: string | null) {
+  return useQuery({
+    queryKey: mhdAccommodationNoticeQueryKey(caseId),
+    queryFn: () => mhdAccommodationsService.listNotices(caseId!),
+    enabled: Boolean(caseId),
+  });
+}
+
+export function useMhdAccommodationNotice(caseId: string) {
+  const invalidate = useInvalidateAccommodationCase();
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdAccommodationsService.recordNotice>[0]) =>
+      mhdAccommodationsService.recordNotice(input),
+    onSuccess: () => invalidate(caseId),
+  });
+}
+
+export function useMhdAccommodationNoticeDelivery(caseId: string) {
+  const invalidate = useInvalidateAccommodationCase();
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdAccommodationsService.markNoticeDelivery>[0]) =>
+      mhdAccommodationsService.markNoticeDelivery(input),
+    onSuccess: () => invalidate(caseId),
   });
 }
 

@@ -4,6 +4,7 @@ import type {
   MhdAccommodationDetail,
   MhdAccommodationManagerInstruction,
   MhdAccommodationMedicalReveal,
+  MhdAccommodationNotice,
   MhdAccommodationOptionCatalogEntry,
   MhdAccommodationOptionCatalogEntryRpcRow,
   MhdAccommodationReviewEffectiveness,
@@ -82,6 +83,43 @@ export const mhdAccommodationsService = {
     const { data, error } = await supabaseClient.rpc('mhd_accommodation_case_get', { p_case_id: caseId });
     if (error) throw error;
     return data as unknown as MhdAccommodationDetail;
+  },
+
+  async listNotices(caseId: string): Promise<MhdAccommodationNotice[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_list_accommodation_notices', {
+      p_case_id: caseId,
+    } as never);
+    if (error) throw error;
+    return (data ?? []) as MhdAccommodationNotice[];
+  },
+
+  async recordNotice(input: {
+    caseId: string;
+    noticeType: string;
+    templateKey: string;
+    templateVersion: number;
+    documentGenerationId?: string | null;
+  }): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_notice_record', {
+      p_case_id: input.caseId,
+      p_notice_type: input.noticeType,
+      p_template_key: input.templateKey,
+      p_template_version: input.templateVersion,
+      p_document_generation_id: input.documentGenerationId ?? undefined,
+    } as never);
+    if (error) throw error;
+    return data as string;
+  },
+
+  async markNoticeDelivery(input: {
+    noticeId: string;
+    status: 'DELIVERED' | 'ACKNOWLEDGED' | 'VOID';
+  }): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_accommodation_notice_mark_delivery', {
+      p_notice_id: input.noticeId,
+      p_status: input.status,
+    } as never);
+    if (error) throw error;
   },
 
   async create(input: MhdCreateAccommodationInput): Promise<{ id: string; referenceId: string }> {

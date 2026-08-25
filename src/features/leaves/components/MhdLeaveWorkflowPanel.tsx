@@ -1,14 +1,19 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdTabs } from '@/components/ui/MhdTabs';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
+import { useMhdAuth } from '@/features/authentication/Hook';
+import { mhdDocumentService } from '@/features/documents/Service';
 import {
   useMhdConfirmLeaveEligibility,
   useMhdLeaveEligibility,
   useMhdLeaveEvent,
+  useMhdLeaveNotice,
+  useMhdLeaveNoticeDelivery,
   useMhdLeaveReadiness,
   useMhdLeaveReturnToWork,
   useMhdLeaveWorkflow,
@@ -27,12 +32,20 @@ export function MhdLeaveWorkflowPanel({
   privileged: boolean;
 }) {
   const workflow = useMhdLeaveWorkflow(caseId);
+  const { authUserId, profile } = useMhdAuth();
+  const templates = useQuery({
+    queryKey: ['mhd-leaves', 'document-templates', profile?.companyId ?? ''],
+    queryFn: () => mhdDocumentService.listTemplates(profile!.companyId),
+    enabled: Boolean(profile?.companyId),
+  });
   const readiness = useMhdLeaveReadiness();
   const evaluate = useMhdLeaveEligibility(caseId);
   const confirm = useMhdConfirmLeaveEligibility(caseId);
   const override = useMhdOverrideLeaveEligibility(caseId);
   const event = useMhdLeaveEvent(caseId);
   const returnToWork = useMhdLeaveReturnToWork(caseId);
+  const recordNotice = useMhdLeaveNotice(caseId);
+  const markNoticeDelivery = useMhdLeaveNoticeDelivery(caseId);
   const [tab, setTab] = useState<Tab>('eligibility');
   const [reasonCode, setReasonCode] = useState('OWN_SERIOUS_HEALTH_CONDITION');
   const [relationship, setRelationship] = useState('');
@@ -52,6 +65,10 @@ export function MhdLeaveWorkflowPanel({
   >('ELIGIBLE');
   const [overrideReason, setOverrideReason] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [newNoticeOpen, setNewNoticeOpen] = useState(false);
+  const [noticeType, setNoticeType] = useState('ELIGIBILITY');
+  const [templateId, setTemplateId] = useState('');
+  const [noticeDueAt, setNoticeDueAt] = useState('');
 
   const record = workflow.data;
   if (workflow.isLoading) return <p className="text-sm text-muted-foreground">Loading workflow…</p>;
@@ -324,14 +341,68 @@ export function MhdLeaveWorkflowPanel({
 
       {tab === 'notices' ? (
         <div className="space-y-2">
+          {privileged ? (
+            <div className="flex justify-end">
+              <Button variant="secondary" onClick={() => setNewNoticeOpen((open) => !open)}>
+                New Notice
+              </Button>
+            </div>
+          ) : null}
+          {newNoticeOpen ? (
+            <MhdCard className="space-y-3">
+              <MhdCardHeader title="New leave notice" />
+              <select className={inputClass} value={noticeType} onChange={(event) => setNoticeType(event.target.value)}>
+                {['ELIGIBILITY', 'RIGHTS_RESPONSIBILITIES', 'DESIGNATION', 'DEFICIENCY', 'CHANGE', 'BALANCE', 'BENEFITS', 'RETURN_TO_WORK', 'DENIAL'].map((value) => (
+                  <option key={value} value={value}>{value.replaceAll('_', ' ')}</option>
+                ))}
+              </select>
+              <select className={inputClass} value={templateId} onChange={(event) => setTemplateId(event.target.value)}>
+                <option value="">Select a document template</option>
+                {(templates.data ?? []).map((template) => (
+                  <option key={template.id} value={template.id}>{template.name} (v{template.version})</option>
+                ))}
+              </select>
+              <label className="text-sm">Due date (optional)<input className={`mt-1 ${inputClass}`} type="date" value={noticeDueAt} onChange={(event) => setNoticeDueAt(event.target.value)} /></label>
+              <div className="flex gap-2">
+                <Button
+                  disabled={recordNotice.isPending || !templateId || !authUserId || !profile?.companyId}
+                  onClick={() => void run(async () => {
+                    const template = (templates.data ?? []).find((item) => item.id === templateId);
+                    if (!template) throw new Error('Select a document template.');
+                    const generation = await mhdDocumentService.generateAndPoll({
+                      templateId: template.id,
+                      companyId: profile!.companyId,
+                      entityType: 'LEAVE_CASE',
+                      entityId: caseId,
+                      mergeData: {},
+                    }, { actorUserId: authUserId! });
+                    await recordNotice.mutateAsync({
+                      caseId,
+                      noticeType,
+                      templateKey: template.id || template.name,
+                      templateVersion: template.version,
+                      dueAt: noticeDueAt || null,
+                      documentGenerationId: generation.id,
+                    });
+                    setNewNoticeOpen(false);
+                    setTemplateId('');
+                    setNoticeDueAt('');
+                  })}
+                >{recordNotice.isPending ? 'Recording…' : 'Create Notice'}</Button>
+                <Button variant="secondary" onClick={() => setNewNoticeOpen(false)}>Cancel</Button>
+              </div>
+            </MhdCard>
+          ) : null}
           {record.notices.length ? (
             record.notices.map((item) => (
               <MhdCard key={item.id}>
-                <p className="font-medium">{item.notice_type.replaceAll('_', ' ')}</p>
-                <p className="text-sm text-muted-foreground">
-                  {item.status} · due {item.due_at ?? 'not set'} · delivered{' '}
-                  {item.delivered_at ?? 'not yet'}
-                </p>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-medium">{item.notice_type.replaceAll('_', ' ')}</p>
+                    <p className="text-sm text-muted-foreground">{item.status} · due {item.due_at ?? 'not set'} · delivered {item.delivered_at ?? 'not yet'}</p>
+                  </div>
+                  {privileged && item.status !== 'DELIVERED' ? <Button variant="secondary" disabled={markNoticeDelivery.isPending} onClick={() => void run(() => markNoticeDelivery.mutateAsync({ noticeId: item.id, status: 'DELIVERED' }))}>Mark Delivered</Button> : null}
+                </div>
               </MhdCard>
             ))
           ) : (

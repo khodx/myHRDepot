@@ -115,6 +115,51 @@ export const mhdLeaveWorkflowService = {
     return data as string;
   },
 
+  async recordNotice(input: {
+    caseId: string;
+    noticeType: string;
+    templateKey: string;
+    templateVersion: number;
+    leaveTypeId?: string | null;
+    dueAt?: string | null;
+    authorityName?: string | null;
+    authoritySourceUrl?: string | null;
+    contentRegistryId?: string | null;
+    snapshot?: Record<string, unknown>;
+    documentGenerationId?: string | null;
+  }): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_notice_record', {
+      p_case_id: input.caseId,
+      p_notice_type: input.noticeType,
+      p_template_key: input.templateKey,
+      p_template_version: input.templateVersion,
+      p_leave_type_id: input.leaveTypeId ?? undefined,
+      p_due_at: input.dueAt ?? undefined,
+      p_authority_name: input.authorityName ?? undefined,
+      p_authority_source_url: input.authoritySourceUrl ?? undefined,
+      p_content_registry_id: input.contentRegistryId ?? undefined,
+      p_snapshot: input.snapshot ?? {},
+      p_document_generation_id: input.documentGenerationId ?? undefined,
+    } as never);
+    if (error) throw error;
+    return data as string;
+  },
+
+  async markNoticeDelivery(input: {
+    noticeId: string;
+    status: 'DELIVERED' | 'ACKNOWLEDGED' | 'VOID';
+    deliveryMethod?: string | null;
+    deliveryReference?: string | null;
+  }): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_leave_notice_mark_delivery', {
+      p_notice_id: input.noticeId,
+      p_status: input.status,
+      p_delivery_method: input.deliveryMethod ?? undefined,
+      p_delivery_reference: input.deliveryReference ?? undefined,
+    } as never);
+    if (error) throw error;
+  },
+
   async readiness(): Promise<MhdComplianceReadiness | null> {
     const { data, error } = await supabaseClient.rpc('mhd_compliance_module_readiness', {
       p_module_key: 'LEAVES',

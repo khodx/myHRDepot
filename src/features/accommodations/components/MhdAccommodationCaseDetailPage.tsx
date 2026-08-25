@@ -40,10 +40,11 @@ import {
   type MhdAccommodationStatus,
 } from '../Types';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
+import { MhdAccommodationNoticesPanel } from './MhdAccommodationNoticesPanel';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
-type Tab = 'process' | 'options' | 'decision' | 'implementation' | 'medical';
+type Tab = 'process' | 'options' | 'decision' | 'implementation' | 'medical' | 'notices';
 
 /**
  * accommodation_options.option_type is CHECK-constrained server-side
@@ -205,6 +206,7 @@ export function MhdAccommodationCaseDetailPage() {
 
   const tabs = [
     { value: 'process' as const, label: 'Interactive process', count: record.interactions.length },
+    { value: 'notices' as const, label: 'Notices' },
     { value: 'options' as const, label: 'Options', count: record.options.length },
     { value: 'decision' as const, label: 'Decision', count: record.decisions.length },
     {
@@ -360,6 +362,8 @@ export function MhdAccommodationCaseDetailPage() {
 
       <MhdTabs tabs={tabs} value={tab} onChange={setTab} />
       {error ? <p className="rounded-md bg-rose-50 p-3 text-sm text-rose-800">{error}</p> : null}
+
+      {tab === 'notices' ? <MhdAccommodationNoticesPanel caseId={caseId} /> : null}
 
       {tab === 'process' ? (
         <div className="space-y-4">
