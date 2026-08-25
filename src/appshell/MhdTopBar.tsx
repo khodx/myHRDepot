@@ -25,7 +25,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
   const { roles, signOut } = useMhdAuth();
 
   return (
-    <header className="flex h-[72px] shrink-0 items-center justify-between gap-4 border-b-2 bg-card px-4 lg:px-6">
+    <header className="flex h-[72px] shrink-0 items-center justify-between gap-4 border-b-2 border-accent bg-card px-4 lg:px-6">
       <div className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto">
         {onOpenNav ? (
           <button
