@@ -94,9 +94,6 @@ export function MhdImpersonationMenu() {
         />
         <div className="hidden max-w-44 flex-col gap-0.5 lg:flex">
           <span className="truncate text-sm font-semibold">{profile?.displayName ?? 'User'}</span>
-          <span className="truncate text-sm text-muted-foreground">
-            {profile?.roleNames.join(', ') ?? ''}
-          </span>
         </div>
       </div>
     );
@@ -176,11 +173,11 @@ export function MhdImpersonationMenu() {
         />
         <div className="hidden max-w-44 flex-col gap-0.5 lg:flex">
           <span className="truncate text-sm font-semibold">{profile.displayName ?? 'User'}</span>
-          <span className="truncate text-sm text-muted-foreground">
-            {impersonation.isImpersonating
-              ? `Viewing as ${impersonation.role}`
-              : profile.roleNames.join(', ')}
-          </span>
+          {impersonation.isImpersonating ? (
+            <span className="truncate text-sm text-muted-foreground">
+              Viewing as {impersonation.role}
+            </span>
+          ) : null}
         </div>
         <ChevronDown className="h-4 w-4 text-muted-foreground" aria-hidden />
       </button>

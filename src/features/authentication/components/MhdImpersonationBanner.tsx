@@ -13,7 +13,7 @@ export function MhdImpersonationBanner() {
   if (!impersonation?.isImpersonating) return null;
 
   return (
-    <div className="flex shrink-0 items-center justify-center gap-3 bg-amber-500 px-4 py-1.5 text-xs font-medium text-amber-950">
+    <div className="flex shrink-0 items-center justify-center gap-3 bg-amber-500 px-4 py-1.5 text-sm font-medium text-amber-950">
       <Eye className="h-3.5 w-3.5" aria-hidden />
       <span>
         Viewing as <strong>{impersonation.role}</strong>
