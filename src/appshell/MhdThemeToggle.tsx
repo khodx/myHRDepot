@@ -17,11 +17,11 @@ export function MhdThemeToggle() {
         mhdApplyTheme(next);
         setTheme(next);
       }}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary"
+      className="inline-flex items-center justify-center rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary"
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
     >
-      {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {theme === 'dark' ? <Sun className="h-[39.6px] w-[39.6px]" /> : <Moon className="h-[39.6px] w-[39.6px]" />}
     </button>
   );
 }

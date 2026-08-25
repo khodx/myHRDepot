@@ -16,7 +16,7 @@ export function MhdNotificationBell() {
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
         className="relative rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
       >
-        <Bell className="h-11 w-11" />
+        <Bell className="h-[39.6px] w-[39.6px]" />
         <MhdCountBadge
           count={unreadCount}
           className="h-[27px] w-[27px] text-[17px]"

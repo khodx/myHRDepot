@@ -1,10 +1,20 @@
-import { Link } from 'react-router-dom';
-import { LogOut, Menu, ShieldCheck } from 'lucide-react';
+import { Link, NavLink } from 'react-router-dom';
+import {
+  CalendarClock,
+  CheckSquare,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  MessageSquare,
+  ShieldCheck,
+  Zap,
+} from 'lucide-react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdActingAsMenu } from '@/features/authentication/components/MhdActingAsMenu';
 import { MhdImpersonationMenu } from '@/features/authentication/components/MhdImpersonationMenu';
 import { MhdNotificationBell } from '@/features/notifications/components/MhdNotificationBell';
 import { MhdThemeToggle } from './MhdThemeToggle';
+import { mhdCanAccessRoute } from './mhdRouteAccess';
 
 /**
  * Neutral 72px utility bar. Never takes the category color — only restrained
@@ -12,7 +22,7 @@ import { MhdThemeToggle } from './MhdThemeToggle';
  * lives on the rail's company card.
  */
 export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
-  const { signOut } = useMhdAuth();
+  const { roles, signOut } = useMhdAuth();
 
   return (
     <header className="flex h-[72px] shrink-0 items-center justify-between gap-4 border-b bg-card px-4 lg:px-6">
@@ -27,6 +37,86 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
             <Menu className="h-5 w-5" aria-hidden />
           </button>
         ) : null}
+        {mhdCanAccessRoute('/dashboard', roles) ? (
+          <NavLink
+            to="/dashboard"
+            title="Home"
+            aria-label="Home"
+            className={({ isActive }) =>
+              `inline-flex items-center justify-center rounded-full p-1.5 transition-colors ${
+                isActive
+                  ? 'bg-muted text-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`
+            }
+          >
+            <LayoutDashboard className="h-[39.6px] w-[39.6px]" aria-hidden />
+          </NavLink>
+        ) : null}
+        {mhdCanAccessRoute('/tasks', roles) ? (
+          <NavLink
+            to="/tasks"
+            title="Tasks"
+            aria-label="Tasks"
+            className={({ isActive }) =>
+              `inline-flex items-center justify-center rounded-full p-1.5 transition-colors ${
+                isActive
+                  ? 'bg-muted text-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`
+            }
+          >
+            <CheckSquare className="h-[39.6px] w-[39.6px]" aria-hidden />
+          </NavLink>
+        ) : null}
+        {mhdCanAccessRoute('/activities', roles) ? (
+          <NavLink
+            to="/activities"
+            title="Activities"
+            aria-label="Activities"
+            className={({ isActive }) =>
+              `inline-flex items-center justify-center rounded-full p-1.5 transition-colors ${
+                isActive
+                  ? 'bg-muted text-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`
+            }
+          >
+            <CalendarClock className="h-[39.6px] w-[39.6px]" aria-hidden />
+          </NavLink>
+        ) : null}
+        {mhdCanAccessRoute('/command-center', roles) ? (
+          <NavLink
+            to="/command-center"
+            title="Command Center"
+            aria-label="Command Center"
+            className={({ isActive }) =>
+              `inline-flex items-center justify-center rounded-full p-1.5 transition-colors ${
+                isActive
+                  ? 'bg-muted text-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`
+            }
+          >
+            <Zap className="h-[39.6px] w-[39.6px]" aria-hidden />
+          </NavLink>
+        ) : null}
+        {mhdCanAccessRoute('/communications', roles) ? (
+          <NavLink
+            to="/communications"
+            title="Communications"
+            aria-label="Communications"
+            className={({ isActive }) =>
+              `inline-flex items-center justify-center rounded-full p-1.5 transition-colors ${
+                isActive
+                  ? 'bg-muted text-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`
+            }
+          >
+            <MessageSquare className="h-[39.6px] w-[39.6px]" aria-hidden />
+          </NavLink>
+        ) : null}
       </div>
 
       <div className="flex items-center gap-3">
@@ -35,9 +125,9 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
           to="/account/security"
           title="Account security"
           aria-label="Account security"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          className="inline-flex items-center justify-center rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         >
-          <ShieldCheck className="h-4.5 w-4.5" aria-hidden />
+          <ShieldCheck className="h-[39.6px] w-[39.6px]" aria-hidden />
         </Link>
         <MhdNotificationBell />
         <MhdActingAsMenu />
