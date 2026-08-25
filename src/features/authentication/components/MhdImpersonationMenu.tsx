@@ -161,7 +161,7 @@ export function MhdImpersonationMenu() {
       <button
         type="button"
         onClick={() => void handleOpen()}
-        className="hidden items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 shadow-sm transition-colors hover:bg-muted sm:flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+        className="mhd-topbar-icon-btn hidden items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 shadow-sm transition-colors sm:flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         aria-haspopup="menu"
         aria-expanded={isOpen}
       >
