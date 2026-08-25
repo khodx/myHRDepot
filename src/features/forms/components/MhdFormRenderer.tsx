@@ -21,6 +21,14 @@ interface MhdFormRendererProps {
   employeeFileCategory?: MhdEmployeeFileTypeKey | null;
   taskPrefillValues?: Record<string, unknown>;
   userPrefillValues?: Record<string, unknown>;
+  /**
+   * Data about the *target* employee (`employeeFilePersonId`), as opposed to
+   * `userPrefillValues` which is always the logged-in actor filling the form
+   * -- distinct people whenever HR fills a form on an employee's behalf. Keys
+   * are namespaced (`targetPerson.*`) so they can never collide with the
+   * actor-scoped `userPrefillValues` keys.
+   */
+  targetPersonPrefillValues?: Record<string, unknown>;
   onSubmitted?: (submissionId: string, form: MhdForm, values: Record<string, unknown>) => void;
   /**
    * Read-only mode (e.g. the Viewer role): the form renders for inspection
@@ -84,6 +92,7 @@ export function MhdFormRenderer({
   employeeFileCategory,
   taskPrefillValues,
   userPrefillValues,
+  targetPersonPrefillValues,
   onSubmitted,
   readOnly = false,
   previewDefinition,
@@ -123,6 +132,7 @@ export function MhdFormRenderer({
           ...(employeeFileUserId ? { employeeFileUserId, userId: employeeFileUserId } : {}),
           ...(taskPrefillValues ?? {}),
           ...(userPrefillValues ?? {}),
+          ...(targetPersonPrefillValues ?? {}),
         };
         let prefill: Record<string, unknown> = mapPrefillToFieldIds(
           rawPrefill,
@@ -189,6 +199,7 @@ export function MhdFormRenderer({
     taskId,
     taskPrefillValues,
     userPrefillValues,
+    targetPersonPrefillValues,
   ]);
 
   const definition = previewDefinition ?? form?.definition ?? null;

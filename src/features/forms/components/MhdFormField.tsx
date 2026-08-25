@@ -148,14 +148,22 @@ export function MhdFormField({
         </div>
       );
 
-    case 'masked_text':
+    case 'masked_text': {
+      // 'SSN' formats-as-you-type to XXX-XX-XXXX and caps input at 9 digits;
+      // validation.pattern still governs submit-time enforcement.
+      const formatSsn = (raw: string) => {
+        const digits = raw.replace(/\D/g, '').slice(0, 9);
+        const parts = [digits.slice(0, 3), digits.slice(3, 5), digits.slice(5, 9)].filter(Boolean);
+        return parts.join('-');
+      };
+      const isSsn = field.maskingMode === 'SSN';
       return (
         <MhdFormTextInput
           id={field.id}
           label={field.label}
           value={String(value ?? '')}
-          onChange={onChange}
-          placeholder={field.placeholder}
+          onChange={isSsn ? (next) => onChange(formatSsn(next)) : onChange}
+          placeholder={isSsn ? 'XXX-XX-XXXX' : field.placeholder}
           required={isRequired}
           helpText={field.helpText}
           error={error}
@@ -163,6 +171,7 @@ export function MhdFormField({
           type="password"
         />
       );
+    }
 
     case 'longtext':
     case 'long_text':

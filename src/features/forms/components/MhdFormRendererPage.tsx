@@ -15,7 +15,13 @@ import {
   mhdIsOnboardingDocumentKey,
 } from '@/features/onboarding/Types';
 import { mhdIsEmployeeFileTypeKey } from '@/features/employee-files/Types';
-import type { MhdForm, MhdFormSubmission } from '../Types';
+import { mhdPersonService } from '@/features/people/Service';
+import { mhdPersonTaxIdentityService } from '@/features/person-tax-identity/Service';
+import type {
+  MhdCitizenshipStatus,
+  MhdW4FilingStatus,
+} from '@/features/person-tax-identity/Types';
+import type { MhdForm, MhdFormField, MhdFormSubmission } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormRenderer } from './MhdFormRenderer';
 import { MhdFormResumeDrafts } from './MhdFormDraftSave';
@@ -44,6 +50,130 @@ function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+const I9_FIELD_KEY_PREFIX = 'targetPerson.i9.';
+const W4_FIELD_KEY_PREFIX = 'targetPerson.w4.';
+
+function stringFromSubmission(value: unknown): string | undefined {
+  return typeof value === 'string' ? trimmedOrUndefined(value) : undefined;
+}
+
+function numberFromSubmission(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
+}
+
+function booleanFromSubmission(value: unknown): boolean {
+  return value === true || value === 'true';
+}
+
+/**
+ * Writes the durable person_i9_identity/person_w4_withholding record from a
+ * just-submitted form's values, the write-back counterpart to
+ * targetPersonPrefillValues' read. Driven entirely by fieldKey convention
+ * (targetPerson.i9.* / targetPerson.w4.*) rather than hardcoding "this is
+ * THE I-9/W-4 form" -- any form authored with these fieldKeys gets write-back
+ * automatically, matching how the prefill side already works. A no-op when
+ * the submission carries no employeeFilePersonId (no target employee to
+ * attribute the identity/withholding data to) or no matching fieldKeys.
+ */
+async function syncPersonTaxIdentityFromSubmission(
+  submittedForm: MhdForm,
+  submittedValues: Record<string, unknown>,
+  personId: string | undefined,
+): Promise<void> {
+  if (!personId) return;
+
+  const fieldByKey = new Map<string, MhdFormField>();
+  for (const field of submittedForm.definition.fields) {
+    if (field.fieldKey?.startsWith(I9_FIELD_KEY_PREFIX) || field.fieldKey?.startsWith(W4_FIELD_KEY_PREFIX)) {
+      fieldByKey.set(field.fieldKey, field);
+    }
+  }
+  if (fieldByKey.size === 0) return;
+
+  const valueFor = (key: string): unknown => {
+    const field = fieldByKey.get(key);
+    return field ? submittedValues[field.id] : undefined;
+  };
+
+  const hasI9Fields = [...fieldByKey.keys()].some((key) => key.startsWith(I9_FIELD_KEY_PREFIX));
+  if (hasI9Fields) {
+    const citizenshipStatus = stringFromSubmission(
+      valueFor(`${I9_FIELD_KEY_PREFIX}citizenshipStatus`),
+    ) as MhdCitizenshipStatus | undefined;
+    // citizenshipStatus is required by mhd_person_i9_identity_upsert; if the
+    // form didn't collect it (e.g. an unrelated form reusing one targetPerson.i9.*
+    // key on its own), there is nothing coherent to write back.
+    if (citizenshipStatus) {
+      await mhdPersonTaxIdentityService.upsertI9Identity({
+        personId,
+        ssn: stringFromSubmission(valueFor(`${I9_FIELD_KEY_PREFIX}ssn`)),
+        dateOfBirth: stringFromSubmission(valueFor(`${I9_FIELD_KEY_PREFIX}dateOfBirth`)),
+        mailingAddressStreet: stringFromSubmission(
+          valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressStreet`),
+        ),
+        mailingAddressApt: stringFromSubmission(valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressApt`)),
+        mailingAddressCity: stringFromSubmission(valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressCity`)),
+        mailingAddressState: stringFromSubmission(
+          valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressState`),
+        ),
+        mailingAddressZip: stringFromSubmission(valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressZip`)),
+        citizenshipStatus,
+        lawfulPermanentResidentNumber: stringFromSubmission(
+          valueFor(`${I9_FIELD_KEY_PREFIX}lawfulPermanentResidentNumber`),
+        ),
+        alienUscisNumber: stringFromSubmission(valueFor(`${I9_FIELD_KEY_PREFIX}alienUscisNumber`)),
+        alienI94Number: stringFromSubmission(valueFor(`${I9_FIELD_KEY_PREFIX}alienI94Number`)),
+        alienForeignPassportNumber: stringFromSubmission(
+          valueFor(`${I9_FIELD_KEY_PREFIX}alienForeignPassportNumber`),
+        ),
+        alienForeignPassportCountry: stringFromSubmission(
+          valueFor(`${I9_FIELD_KEY_PREFIX}alienForeignPassportCountry`),
+        ),
+        alienWorkAuthorizedUntil: stringFromSubmission(
+          valueFor(`${I9_FIELD_KEY_PREFIX}alienWorkAuthorizedUntil`),
+        ),
+      });
+    }
+  }
+
+  const hasW4Fields = [...fieldByKey.keys()].some((key) => key.startsWith(W4_FIELD_KEY_PREFIX));
+  if (hasW4Fields) {
+    const filingStatus = stringFromSubmission(
+      valueFor(`${W4_FIELD_KEY_PREFIX}filingStatus`),
+    ) as MhdW4FilingStatus | undefined;
+    // filingStatus is required by mhd_person_w4_withholding_upsert; same
+    // guard rationale as citizenshipStatus above.
+    if (filingStatus) {
+      await mhdPersonTaxIdentityService.upsertW4Withholding({
+        personId,
+        taxYear: new Date().getFullYear(),
+        filingStatus,
+        multipleJobsCheckbox: booleanFromSubmission(valueFor(`${W4_FIELD_KEY_PREFIX}multipleJobsCheckbox`)),
+        qualifyingChildrenCount: numberFromSubmission(
+          valueFor(`${W4_FIELD_KEY_PREFIX}qualifyingChildrenCount`),
+        ),
+        otherDependentsCount: numberFromSubmission(
+          valueFor(`${W4_FIELD_KEY_PREFIX}otherDependentsCount`),
+        ),
+        otherCreditsAmount: numberFromSubmission(valueFor(`${W4_FIELD_KEY_PREFIX}otherCreditsAmount`)),
+        otherIncomeAmount: numberFromSubmission(valueFor(`${W4_FIELD_KEY_PREFIX}otherIncomeAmount`)),
+        deductionsAmount: numberFromSubmission(valueFor(`${W4_FIELD_KEY_PREFIX}deductionsAmount`)),
+        extraWithholdingAmount: numberFromSubmission(
+          valueFor(`${W4_FIELD_KEY_PREFIX}extraWithholdingAmount`),
+        ),
+        exemptFromWithholding: booleanFromSubmission(
+          valueFor(`${W4_FIELD_KEY_PREFIX}exemptFromWithholding`),
+        ),
+      });
+    }
+  }
 }
 
 async function fetchSubmissionGenerationUntilGenerated(
@@ -183,6 +313,83 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
     [profile],
   );
 
+  // Prefill from the *target* employee's own record (People + the I-9/W-4
+  // identity tables) -- distinct from userPrefillValues above, which is
+  // always the logged-in actor and would be wrong here whenever HR fills a
+  // form on someone else's behalf. Ciphertext-backed fields (SSN, A-number,
+  // I-94 number, foreign passport number) are deliberately never included:
+  // mhd_person_i9_identity_get only returns masked has* flags for those, the
+  // same "start blank, re-enter" convention already used for every other
+  // encrypted form field in this renderer.
+  const [targetPersonPrefillValues, setTargetPersonPrefillValues] = useState<
+    Record<string, unknown>
+  >({});
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadTargetPersonPrefill = async () => {
+      if (!employeeFilePersonId) {
+        if (!isCancelled) setTargetPersonPrefillValues({});
+        return;
+      }
+      try {
+        const [person, i9Identity, w4Withholding] = await Promise.all([
+          mhdPersonService.getPersonById(employeeFilePersonId),
+          mhdPersonTaxIdentityService.getI9Identity(employeeFilePersonId),
+          mhdPersonTaxIdentityService.getW4Withholding(employeeFilePersonId),
+        ]);
+        if (isCancelled) return;
+        setTargetPersonPrefillValues({
+          'targetPerson.firstName': person.firstName,
+          'targetPerson.middleName': person.middleName ?? '',
+          'targetPerson.lastName': person.lastName,
+          'targetPerson.email': person.primaryEmail ?? '',
+          'targetPerson.phone': person.primaryPhone ?? '',
+          ...(i9Identity
+            ? {
+                'targetPerson.i9.dateOfBirth': i9Identity.dateOfBirth ?? '',
+                'targetPerson.i9.mailingAddressStreet': i9Identity.mailingAddressStreet ?? '',
+                'targetPerson.i9.mailingAddressApt': i9Identity.mailingAddressApt ?? '',
+                'targetPerson.i9.mailingAddressCity': i9Identity.mailingAddressCity ?? '',
+                'targetPerson.i9.mailingAddressState': i9Identity.mailingAddressState ?? '',
+                'targetPerson.i9.mailingAddressZip': i9Identity.mailingAddressZip ?? '',
+                'targetPerson.i9.citizenshipStatus': i9Identity.citizenshipStatus,
+                'targetPerson.i9.alienForeignPassportCountry':
+                  i9Identity.alienForeignPassportCountry ?? '',
+                'targetPerson.i9.alienWorkAuthorizedUntil':
+                  i9Identity.alienWorkAuthorizedUntil ?? '',
+              }
+            : {}),
+          ...(w4Withholding
+            ? {
+                'targetPerson.w4.filingStatus': w4Withholding.filingStatus,
+                'targetPerson.w4.multipleJobsCheckbox': w4Withholding.multipleJobsCheckbox,
+                'targetPerson.w4.qualifyingChildrenCount': w4Withholding.qualifyingChildrenCount,
+                'targetPerson.w4.otherDependentsCount': w4Withholding.otherDependentsCount,
+                'targetPerson.w4.otherCreditsAmount': w4Withholding.otherCreditsAmount,
+                'targetPerson.w4.otherIncomeAmount': w4Withholding.otherIncomeAmount,
+                'targetPerson.w4.deductionsAmount': w4Withholding.deductionsAmount,
+                'targetPerson.w4.extraWithholdingAmount': w4Withholding.extraWithholdingAmount,
+                'targetPerson.w4.exemptFromWithholding': w4Withholding.exemptFromWithholding,
+              }
+            : {}),
+        });
+      } catch {
+        // Prefill is a convenience, not a requirement -- if the caller lacks
+        // permission to view this person's tax identity data (RLS denies
+        // it), the form still renders and can be filled in from scratch.
+        if (!isCancelled) setTargetPersonPrefillValues({});
+      }
+    };
+
+    void loadTargetPersonPrefill();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [employeeFilePersonId]);
+
   async function handleSubmissionSuccess(
     nextSubmissionId: string,
     submittedForm: MhdForm,
@@ -190,6 +397,20 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
   ) {
     setSyncError(null);
     let nextMessage = 'Submission submitted successfully.';
+
+    try {
+      await syncPersonTaxIdentityFromSubmission(
+        submittedForm,
+        submittedValues,
+        employeeFilePersonId,
+      );
+    } catch (error) {
+      setSyncError(
+        error instanceof Error
+          ? `Submission submitted, but saving identity/withholding data failed: ${error.message}`
+          : 'Submission submitted, but saving identity/withholding data failed.',
+      );
+    }
 
     if (onboardingPersonId && onboardingDocumentKey && profile?.userId && profile?.companyId) {
       try {
@@ -444,6 +665,7 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
             employeeFileCategory={employeeFileCategory}
             readOnly={!canMutate}
             userPrefillValues={userPrefillValues}
+            targetPersonPrefillValues={targetPersonPrefillValues}
             onSubmitted={(nextSubmissionId, submittedForm, submittedValues) => {
               void handleSubmissionSuccess(nextSubmissionId, submittedForm, submittedValues);
             }}
