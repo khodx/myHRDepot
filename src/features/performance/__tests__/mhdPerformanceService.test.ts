@@ -224,9 +224,11 @@ describe('mhdPerformanceService', () => {
       'mhd_request_document_generation',
       expect.objectContaining({
         p_merge_data: expect.objectContaining({
-          'disclaimers.atWill': '<p>At-will text.</p>',
-          'disclaimers.reasonableAccommodation': '',
-          'disclaimers.equalOpportunity': '<p>EEO text.</p>',
+          disclaimers: {
+            atWill: '<p>At-will text.</p>',
+            reasonableAccommodation: '',
+            equalOpportunity: '<p>EEO text.</p>',
+          },
         }),
       }),
     );

@@ -42,6 +42,8 @@ export const MHD_DOCUMENT_TEMPLATE_ENTITY_TYPES: { value: string; label: string 
 
 export type MhdDocumentContentFormat = 'HTML' | 'DOCX' | 'MARKDOWN';
 
+export type MhdDocumentOutputFormat = 'HTML' | 'PDF' | 'DOCX';
+
 export const MHD_DOCUMENT_CONTENT_FORMATS: MhdDocumentContentFormat[] = [
   'HTML',
   'DOCX',
@@ -59,6 +61,14 @@ export interface MhdDocumentMergeField {
   path: string;
   label: string;
   source: MhdDocumentMergeFieldSource;
+}
+
+export interface MhdDocumentMergeFieldCatalogEntry {
+  source: MhdDocumentMergeFieldSource;
+  path: string;
+  label: string;
+  sampleValue: string | null;
+  sortOrder: number;
 }
 
 export interface MhdDocumentTemplate {
@@ -95,6 +105,7 @@ export interface MhdDocumentGeneration {
   templateName: string;
   companyId: string;
   status: MhdDocumentGenerationStatus;
+  outputFormat: MhdDocumentOutputFormat;
   outputFileName: string | null;
   outputDriveFileId: string | null;
   generatedAt: string | null;
@@ -125,6 +136,7 @@ export interface MhdRequestDocumentGenerationInput {
   entityType: string;
   entityId: string;
   mergeData: Record<string, unknown>;
+  outputFormat?: MhdDocumentOutputFormat;
 }
 
 export interface MhdDocumentMutationContext {

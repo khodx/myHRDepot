@@ -21,6 +21,7 @@ import { mhdDocumentService } from '@/features/documents/Service';
 import type {
   MhdDocumentContentFormat,
   MhdDocumentGeneration,
+  MhdDocumentOutputFormat,
   MhdDocumentTemplate,
 } from '@/features/documents/Types';
 
@@ -116,6 +117,7 @@ export function MhdDocumentGenerationPanel({
   const [uploadTemplate, setUploadTemplate] = useState<MhdDocumentTemplate | null>(null);
   const [emailGeneration, setEmailGeneration] = useState<MhdDocumentGeneration | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [outputFormat, setOutputFormat] = useState<MhdDocumentOutputFormat>('HTML');
   const [formError, setFormError] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
@@ -155,6 +157,7 @@ export function MhdDocumentGenerationPanel({
         entityType,
         entityId,
         mergeData,
+        outputFormat,
       });
       setGenerateTemplate(null);
     } catch (error) {
@@ -306,6 +309,21 @@ export function MhdDocumentGenerationPanel({
                 ))}
               </dl>
             ) : null}
+
+            <label className="block text-sm font-medium text-foreground">
+              Output format
+              <select
+                className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                value={outputFormat}
+                onChange={(event) =>
+                  setOutputFormat(event.target.value as MhdDocumentOutputFormat)
+                }
+              >
+                <option value="HTML">HTML</option>
+                <option value="PDF">PDF</option>
+                <option value="DOCX">DOCX</option>
+              </select>
+            </label>
 
             {formError && (
               <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">

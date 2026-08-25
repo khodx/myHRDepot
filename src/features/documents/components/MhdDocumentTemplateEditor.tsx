@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import type { MhdCompany } from '@/features/companies/Types';
@@ -7,10 +7,12 @@ import {
   MHD_DOCUMENT_TEMPLATE_ENTITY_TYPES,
   MHD_DOCUMENT_TEMPLATE_TYPES,
   type MhdDocumentMergeField,
+  type MhdDocumentMergeFieldCatalogEntry,
   type MhdDocumentMergeFieldSource,
   type MhdDocumentTemplateDetail,
 } from '../Types';
 import { mhdDocumentTemplateFormSchema } from '../Schemas';
+import { mhdDocumentService } from '../Service';
 
 interface MhdDocumentTemplateEditorProps {
   companies: MhdCompany[];
@@ -54,7 +56,18 @@ export function MhdDocumentTemplateEditor({
   const [requiresSignature, setRequiresSignature] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [mergeFields, setMergeFields] = useState<MhdDocumentMergeField[]>([]);
+  const [mergeFieldCatalog, setMergeFieldCatalog] = useState<
+    MhdDocumentMergeFieldCatalogEntry[]
+  >([]);
   const [formError, setFormError] = useState<string | null>(null);
+  const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    void mhdDocumentService
+      .listMergeFieldCatalog()
+      .then(setMergeFieldCatalog)
+      .catch(() => setMergeFieldCatalog([]));
+  }, []);
 
   useEffect(() => {
     if (selectedTemplate) {
@@ -87,6 +100,31 @@ export function MhdDocumentTemplateEditor({
     setMergeFields((current) =>
       current.map((field, i) => (i === index ? { ...field, ...patch } : field)),
     );
+  }
+
+  function insertCatalogField(entry: MhdDocumentMergeFieldCatalogEntry) {
+    const placeholder = `{{${entry.source}.${entry.path}}}`;
+    const textarea = contentTextareaRef.current;
+    const start = textarea?.selectionStart ?? content.length;
+    const end = textarea?.selectionEnd ?? start;
+    setContent((current) => `${current.slice(0, start)}${placeholder}${current.slice(end)}`);
+    setMergeFields((current) =>
+      current.some((field) => field.source === entry.source && field.path === entry.path)
+        ? current
+        : [
+            ...current,
+            {
+              source: entry.source,
+              path: entry.path,
+              label: entry.label,
+            },
+          ],
+    );
+    requestAnimationFrame(() => {
+      const nextCursor = start + placeholder.length;
+      contentTextareaRef.current?.focus();
+      contentTextareaRef.current?.setSelectionRange(nextCursor, nextCursor);
+    });
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -230,6 +268,7 @@ export function MhdDocumentTemplateEditor({
         <label className="text-sm font-medium text-foreground md:col-span-2">
           Content
           <textarea
+            ref={contentTextareaRef}
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 font-mono text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             rows={8}
             placeholder="Dear {{person.first_name}}, ..."
@@ -250,6 +289,33 @@ export function MhdDocumentTemplateEditor({
               Add field
             </button>
           </div>
+          {mergeFieldCatalog.length > 0 && (
+            <div className="mt-3 space-y-2 rounded-md border border-border bg-muted/20 p-3">
+              <p className="text-xs font-medium text-muted-foreground">Catalog fields</p>
+              {MERGE_FIELD_SOURCES.map((source) => {
+                const sourceEntries = mergeFieldCatalog.filter((entry) => entry.source === source);
+                if (sourceEntries.length === 0) return null;
+                return (
+                  <div key={source} className="flex flex-wrap items-center gap-2">
+                    <span className="w-16 text-xs font-semibold capitalize text-muted-foreground">
+                      {source}
+                    </span>
+                    {sourceEntries.map((entry) => (
+                      <button
+                        key={`${entry.source}.${entry.path}`}
+                        type="button"
+                        title={`Insert {{${entry.source}.${entry.path}}}`}
+                        onClick={() => insertCatalogField(entry)}
+                        className="rounded-full border border-border bg-card px-2.5 py-1 text-xs text-foreground hover:bg-muted"
+                      >
+                        {entry.label}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div className="mt-2 space-y-2">
             {mergeFields.map((field, index) => (
               <div key={index} className="flex flex-wrap items-center gap-2">

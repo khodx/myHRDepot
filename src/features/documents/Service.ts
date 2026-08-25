@@ -10,6 +10,7 @@ import { mhdRenderDocumentGeneration } from './generationEngine';
 import type {
   MhdCreateDocumentTemplateInput,
   MhdDocumentGeneration,
+  MhdDocumentMergeFieldCatalogEntry,
   MhdDocumentMutationContext,
   MhdDocumentTemplate,
   MhdDocumentTemplateDetail,
@@ -51,11 +52,20 @@ type MhdDocumentGenerationRow = {
   template_name: string;
   company_id: string;
   status: string;
+  output_format: string;
   output_file_name: string | null;
   output_drive_file_id: string | null;
   generated_at: string | null;
   esignature_request_id: string | null;
   created_at: string;
+};
+
+type MhdDocumentMergeFieldCatalogRow = {
+  source: string;
+  path: string;
+  label: string;
+  sample_value: string | null;
+  sort_order: number;
 };
 
 export type MhdDocumentGenerationDetailRow = {
@@ -99,6 +109,7 @@ function mapGenerationRow(row: MhdDocumentGenerationRow): MhdDocumentGeneration 
     templateName: row.template_name,
     companyId: row.company_id,
     status: row.status as MhdDocumentGeneration['status'],
+    outputFormat: row.output_format as MhdDocumentGeneration['outputFormat'],
     outputFileName: row.output_file_name,
     outputDriveFileId: row.output_drive_file_id,
     generatedAt: row.generated_at,
@@ -108,6 +119,27 @@ function mapGenerationRow(row: MhdDocumentGenerationRow): MhdDocumentGeneration 
 }
 
 export const mhdDocumentService = {
+  async listMergeFieldCatalog(): Promise<MhdDocumentMergeFieldCatalogEntry[]> {
+    const { data, error } = await supabaseClient
+      .from('document_merge_field_catalog' as never)
+      .select('source, path, label, sample_value, sort_order')
+      .order('source')
+      .order('sort_order')
+      .returns<MhdDocumentMergeFieldCatalogRow[]>();
+
+    if (error) {
+      throw new Error(`Unable to load document merge field catalog: ${error.message}`);
+    }
+
+    return (data ?? []).map((row) => ({
+      source: row.source as MhdDocumentMergeFieldCatalogEntry['source'],
+      path: row.path,
+      label: row.label,
+      sampleValue: row.sample_value,
+      sortOrder: row.sort_order,
+    }));
+  },
+
   async listTemplates(
     companyId: string | null,
     templateType?: string,
@@ -292,6 +324,7 @@ export const mhdDocumentService = {
         p_entity_type: input.entityType,
         p_entity_id: input.entityId,
         p_merge_data: input.mergeData as Json,
+        p_output_format: input.outputFormat ?? 'HTML',
         p_actor_user_id: context.actorUserId,
       })
       .returns<{ id: string; reference_id: string; status: string }[]>();

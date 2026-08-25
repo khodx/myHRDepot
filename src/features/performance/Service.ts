@@ -177,9 +177,11 @@ function buildReviewMergeData(
     reviewer_comments: review.reviewerComments ?? '',
     employee_comments: review.employeeComments ?? '',
     generated_date: new Date().toISOString().slice(0, 10),
-    'disclaimers.atWill': disclaimerByKey.get('AT_WILL') ?? '',
-    'disclaimers.reasonableAccommodation': disclaimerByKey.get('REASONABLE_ACCOMMODATION') ?? '',
-    'disclaimers.equalOpportunity': disclaimerByKey.get('EQUAL_OPPORTUNITY') ?? '',
+    disclaimers: {
+      atWill: disclaimerByKey.get('AT_WILL') ?? '',
+      reasonableAccommodation: disclaimerByKey.get('REASONABLE_ACCOMMODATION') ?? '',
+      equalOpportunity: disclaimerByKey.get('EQUAL_OPPORTUNITY') ?? '',
+    },
   };
 }
 
