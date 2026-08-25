@@ -154,7 +154,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
           </button>
         </div>
       </header>
-      <div aria-hidden className="h-1 bg-accent/60" style={{ marginTop: '5px' }} />
+      <div aria-hidden className="h-1 bg-accent" style={{ marginTop: '5px' }} />
     </>
   );
 }
