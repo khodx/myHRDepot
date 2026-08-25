@@ -76,6 +76,7 @@ type MhdDocumentGenerationRow = {
   company_id: string;
   status: string;
   output_format: string;
+  subject_person_id: string | null;
   output_file_name: string | null;
   output_drive_file_id: string | null;
   generated_at: string | null;
@@ -133,6 +134,7 @@ function mapGenerationRow(row: MhdDocumentGenerationRow): MhdDocumentGeneration 
     companyId: row.company_id,
     status: row.status as MhdDocumentGeneration['status'],
     outputFormat: row.output_format as MhdDocumentGeneration['outputFormat'],
+    subjectPersonId: row.subject_person_id,
     outputFileName: row.output_file_name,
     outputDriveFileId: row.output_drive_file_id,
     generatedAt: row.generated_at,
@@ -318,6 +320,38 @@ export const mhdDocumentService = {
     }
 
     return (data ?? []).map(mapGenerationRow);
+  },
+
+  async recordDelivery(input: {
+    documentGenerationId: string;
+    channel: 'EMAIL' | 'US_MAIL' | 'CERTIFIED_MAIL' | 'HAND_DELIVERED';
+    status: 'PENDING' | 'SENT' | 'DELIVERED' | 'FAILED' | 'RETURNED';
+    recipientPersonId?: string | null;
+    recipientEmail?: string | null;
+    correspondenceMessageId?: string | null;
+    trackingCarrier?: string | null;
+    trackingNumber?: string | null;
+  }): Promise<string> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_record_document_delivery', {
+        p_document_generation_id: input.documentGenerationId,
+        p_channel: input.channel,
+        p_status: input.status,
+        p_recipient_person_id: input.recipientPersonId ?? undefined,
+        p_recipient_email: input.recipientEmail ?? undefined,
+        p_correspondence_message_id: input.correspondenceMessageId ?? undefined,
+        p_tracking_carrier: input.trackingCarrier ?? undefined,
+        p_tracking_number: input.trackingNumber ?? undefined,
+      })
+      .returns<string>();
+
+    if (error) {
+      throw new Error(`Unable to record document delivery: ${error.message}`);
+    }
+    if (!data) {
+      throw new Error('Unable to record document delivery: no record returned.');
+    }
+    return data;
   },
 
   async getGeneration(generationId: string): Promise<MhdDocumentGenerationDetailRow> {

@@ -33,6 +33,7 @@ describe('Document Generation type contract', () => {
       companyId: '33333333-3333-4333-8333-333333333333',
       status: 'GENERATED',
       outputFormat: 'PDF',
+      subjectPersonId: null,
       outputFileName: 'task-summary.pdf',
       outputDriveFileId: 'drive-file-id',
       generatedAt: '2026-07-30T00:00:00Z',

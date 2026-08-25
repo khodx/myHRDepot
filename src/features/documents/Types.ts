@@ -68,6 +68,9 @@ export const MHD_DOCUMENT_CONTENT_FORMATS: MhdDocumentContentFormat[] = [
 
 export type MhdDocumentGenerationStatus = 'PENDING' | 'GENERATED' | 'FAILED' | 'SIGNED' | 'VOIDED';
 
+export type MhdDocumentDeliveryChannel = 'EMAIL' | 'US_MAIL' | 'CERTIFIED_MAIL' | 'HAND_DELIVERED';
+export type MhdDocumentDeliveryStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'FAILED' | 'RETURNED';
+
 /** One of the "Merge Field Sources" the Bible spec documents — the source a
  *  declared merge field's value is resolved from at generation time. */
 export type MhdDocumentMergeFieldSource = 'person' | 'company' | 'user' | 'task' | 'system' | 'custom';
@@ -122,6 +125,7 @@ export interface MhdDocumentGeneration {
   companyId: string;
   status: MhdDocumentGenerationStatus;
   outputFormat: MhdDocumentOutputFormat;
+  subjectPersonId: string | null;
   outputFileName: string | null;
   outputDriveFileId: string | null;
   generatedAt: string | null;

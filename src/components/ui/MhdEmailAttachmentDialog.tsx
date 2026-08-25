@@ -12,6 +12,7 @@ interface Props {
   entityId: string;
   attachment: { driveFileId: string; filename: string };
   defaultSubject: string;
+  defaultRecipientEmail?: string | null;
   onClose: () => void;
   onSent: (threadId: string) => void;
 }
@@ -23,10 +24,11 @@ export function MhdEmailAttachmentDialog({
   entityId,
   attachment,
   defaultSubject,
+  defaultRecipientEmail,
   onClose,
   onSent,
 }: Props) {
-  const [recipientEmails, setRecipientEmails] = useState('');
+  const [recipientEmails, setRecipientEmails] = useState(defaultRecipientEmail ?? '');
   const [ccEmails, setCcEmails] = useState('');
   const [subject, setSubject] = useState(defaultSubject);
   const [body, setBody] = useState('');

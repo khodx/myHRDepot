@@ -6,11 +6,12 @@
 // entityType/entityId/companyId) had to move here to be legitimately
 // reusable outside the documents feature, the same reasoning that already
 // moved MhdAuditReportPanel here.
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdEmailAttachmentDialog } from '@/components/ui/MhdEmailAttachmentDialog';
+import { MhdRecordDeliveryDialog } from '@/components/ui/MhdRecordDeliveryDialog';
 import {
   useMhdDocumentGenerationActions,
   useMhdDocumentGenerations,
@@ -18,6 +19,7 @@ import {
   useMhdDocumentTemplates,
 } from '@/features/documents/Hook';
 import { mhdDocumentService } from '@/features/documents/Service';
+import { mhdPersonService } from '@/features/people/Service';
 import type {
   MhdDocumentContentFormat,
   MhdDocumentGeneration,
@@ -116,6 +118,11 @@ export function MhdDocumentGenerationPanel({
   const [generateTemplate, setGenerateTemplate] = useState<MhdDocumentTemplate | null>(null);
   const [uploadTemplate, setUploadTemplate] = useState<MhdDocumentTemplate | null>(null);
   const [emailGeneration, setEmailGeneration] = useState<MhdDocumentGeneration | null>(null);
+  const [deliveryGeneration, setDeliveryGeneration] = useState<MhdDocumentGeneration | null>(null);
+  const [recipientLookup, setRecipientLookup] = useState<{
+    personId: string;
+    email: string | null;
+  } | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [outputFormat, setOutputFormat] = useState<MhdDocumentOutputFormat>('HTML');
   const [formError, setFormError] = useState<string | null>(null);
@@ -126,6 +133,22 @@ export function MhdDocumentGenerationPanel({
     (template) => template.id !== masterTemplate?.id,
   );
   const generations = generationsQuery.data ?? [];
+  const selectedSubjectPersonId = emailGeneration?.subjectPersonId ?? deliveryGeneration?.subjectPersonId;
+  const recipientEmail =
+    recipientLookup && recipientLookup.personId === selectedSubjectPersonId
+      ? recipientLookup.email
+      : null;
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!selectedSubjectPersonId) return undefined;
+    void mhdPersonService.getPersonById(selectedSubjectPersonId).then((person) => {
+      if (!cancelled) setRecipientLookup({ personId: selectedSubjectPersonId, email: person.primaryEmail });
+    }).catch(() => {
+      if (!cancelled) setRecipientLookup({ personId: selectedSubjectPersonId, email: null });
+    });
+    return () => { cancelled = true; };
+  }, [selectedSubjectPersonId]);
   // Every module's merge data is automatically extended with the same system
   // fields (who generated it, and when) — no caller needs to supply these.
   const mergeData = useMemo(
@@ -429,6 +452,15 @@ export function MhdDocumentGenerationPanel({
                     </button>
                   </div>
                 ) : null}
+                {generation.status === 'GENERATED' ? (
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryGeneration(generation)}
+                    className="text-xs font-medium text-accent-hover hover:underline"
+                  >
+                    Record Delivery
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -446,8 +478,18 @@ export function MhdDocumentGenerationPanel({
             filename: emailGeneration.outputFileName ?? emailGeneration.templateName,
           }}
           defaultSubject={emailGeneration.templateName}
+          defaultRecipientEmail={recipientEmail}
           onClose={() => setEmailGeneration(null)}
           onSent={() => setEmailGeneration(null)}
+        />
+      ) : null}
+      {deliveryGeneration ? (
+        <MhdRecordDeliveryDialog
+          documentGenerationId={deliveryGeneration.id}
+          recipientPersonId={deliveryGeneration.subjectPersonId}
+          defaultRecipientEmail={recipientEmail}
+          onClose={() => setDeliveryGeneration(null)}
+          onRecorded={() => setDeliveryGeneration(null)}
         />
       ) : null}
     </div>
