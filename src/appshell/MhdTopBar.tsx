@@ -141,7 +141,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
         <button
           type="button"
           onClick={() => signOut()}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          className="mhd-topbar-icon-btn inline-flex h-16 items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         >
           <LogOut className="h-4 w-4" />
           Sign out
