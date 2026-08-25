@@ -70,7 +70,7 @@ export function MhdActingAsMenu() {
         aria-expanded={isOpen}
         title="Choose which of your roles are active"
       >
-        <span className="max-w-40 truncate font-medium">
+        <span className="max-w-40 truncate font-bold">
           {isFiltered ? `Acting as ${activeRoles.join(', ')}` : 'All roles'}
         </span>
         <ChevronDown className="h-4 w-4 text-muted-foreground" aria-hidden />
