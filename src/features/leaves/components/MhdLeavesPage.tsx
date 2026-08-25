@@ -43,6 +43,7 @@ import { MhdLeaveCaseForm } from './MhdLeaveCaseForm';
 import { MhdLeaveCaseSelfForm } from './MhdLeaveCaseSelfForm';
 import { MhdLeaveStatusBadge } from './MhdLeaveStatusBadge';
 import { useMhdFormIntakeDefault } from '@/features/forms/Hook';
+import { MhdDocumentMergeBatchLauncher } from '@/components/ui/MhdDocumentMergeBatchLauncher';
 
 const MHD_LEAVES_VIEW_KEY = 'mhd:leaves:view';
 
@@ -76,6 +77,8 @@ export function MhdLeavesPage() {
   const [viewMode, setViewMode] = useState<MhdViewMode>(() =>
     mhdReadPersistedViewMode(MHD_LEAVES_VIEW_KEY),
   );
+  const [selectedCaseIds, setSelectedCaseIds] = useState<Set<string>>(new Set());
+  const [launcherOpen, setLauncherOpen] = useState(false);
 
   function handleViewModeChange(mode: MhdViewMode) {
     setViewMode(mode);
@@ -90,6 +93,26 @@ export function MhdLeavesPage() {
   const people = useMhdPeoplePicker(isPrivileged ? companyId || null : null);
   const createCase = useMhdCreateLeaveCase(companyId || null);
   const createCaseSelf = useMhdCreateLeaveCaseSelf();
+  const visibleCases = pagination.sliceItems(casesData);
+  const visibleCaseIds = visibleCases.map((leaveCase) => leaveCase.id);
+  const allVisibleCasesSelected = visibleCaseIds.length > 0 && visibleCaseIds.every((id) => selectedCaseIds.has(id));
+
+  function toggleCase(caseId: string) {
+    setSelectedCaseIds((current) => {
+      const next = new Set(current);
+      if (next.has(caseId)) next.delete(caseId);
+      else next.add(caseId);
+      return next;
+    });
+  }
+
+  function toggleVisibleCases() {
+    setSelectedCaseIds((current) => {
+      const next = new Set(current);
+      visibleCaseIds.forEach((id) => (allVisibleCasesSelected ? next.delete(id) : next.add(id)));
+      return next;
+    });
+  }
 
   const peopleOptions = useMemo(
     () =>
@@ -251,10 +274,23 @@ export function MhdLeavesPage() {
           isPrivileged={isPrivileged}
         />
       ) : (
-        <MhdCard className="overflow-hidden p-0">
+        <>
+          {selectedCaseIds.size > 0 ? (
+            <div className="mb-3 flex items-center justify-between gap-3 text-sm">
+              <span className="text-muted-foreground">{selectedCaseIds.size} selected</span>
+              <div className="flex items-center gap-2">
+                <button type="button" className="text-sm text-muted-foreground underline" onClick={() => setSelectedCaseIds(new Set())}>Clear selection</button>
+                <Button onClick={() => setLauncherOpen(true)} disabled={!companyId}>Generate Documents</Button>
+              </div>
+            </div>
+          ) : null}
+          <MhdCard className="overflow-hidden p-0">
           <MhdTable>
             <thead>
               <tr>
+                <MhdTh className="w-10">
+                  <input type="checkbox" aria-label="Select all leave cases" checked={allVisibleCasesSelected} onChange={toggleVisibleCases} className="h-4 w-4 rounded" />
+                </MhdTh>
                 <MhdTh>Reference</MhdTh>
                 {isPrivileged ? <MhdTh>Employee</MhdTh> : null}
                 <MhdTh>Reason</MhdTh>
@@ -265,8 +301,11 @@ export function MhdLeavesPage() {
               </tr>
             </thead>
             <tbody>
-              {pagination.sliceItems(casesData).map((leaveCase) => (
+              {visibleCases.map((leaveCase) => (
                 <MhdTr key={leaveCase.id} to={`/leaves/${leaveCase.id}`}>
+                  <MhdTd>
+                    <input type="checkbox" checked={selectedCaseIds.has(leaveCase.id)} onChange={() => toggleCase(leaveCase.id)} aria-label={`Select ${leaveCase.referenceId}`} className="h-4 w-4 rounded" />
+                  </MhdTd>
                   <MhdTd className="whitespace-nowrap font-mono text-xs">
                     {leaveCase.referenceId}
                   </MhdTd>
@@ -295,7 +334,17 @@ export function MhdLeavesPage() {
           >
             <MhdPaginationControls pagination={pagination} />
           </MhdTableFooter>
-        </MhdCard>
+          </MhdCard>
+          {launcherOpen ? (
+            <MhdDocumentMergeBatchLauncher
+              companyId={companyId}
+              personIds={casesData
+                .filter((leaveCase) => selectedCaseIds.has(leaveCase.id))
+                .map((leaveCase) => leaveCase.personId)}
+              onClose={() => setLauncherOpen(false)}
+            />
+          ) : null}
+        </>
       )}
 
       {isCreating && isPrivileged && companyId ? (

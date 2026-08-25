@@ -44,6 +44,22 @@ export type MhdDocumentContentFormat = 'HTML' | 'DOCX' | 'MARKDOWN';
 
 export type MhdDocumentOutputFormat = 'HTML' | 'PDF' | 'DOCX';
 
+export interface MhdDocumentMergeBatchItem {
+  id: string;
+  personId: string;
+  status: string;
+  errorMessage: string | null;
+}
+
+export interface MhdDocumentMergeBatch {
+  id: string;
+  status: string;
+  totalCount: number;
+  succeededCount: number;
+  failedCount: number;
+  items: MhdDocumentMergeBatchItem[];
+}
+
 export const MHD_DOCUMENT_CONTENT_FORMATS: MhdDocumentContentFormat[] = [
   'HTML',
   'DOCX',

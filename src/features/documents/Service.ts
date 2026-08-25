@@ -11,12 +11,35 @@ import type {
   MhdCreateDocumentTemplateInput,
   MhdDocumentGeneration,
   MhdDocumentMergeFieldCatalogEntry,
+  MhdDocumentMergeBatch,
+  MhdDocumentOutputFormat,
   MhdDocumentMutationContext,
   MhdDocumentTemplate,
   MhdDocumentTemplateDetail,
   MhdRequestDocumentGenerationInput,
   MhdUpdateDocumentTemplateInput,
 } from './Types';
+
+type MhdDocumentMergeBatchRow = {
+  id: string;
+  reference_id: string;
+  status: string;
+  total_count: number;
+  succeeded_count: number;
+  failed_count: number;
+};
+
+type MhdDocumentMergeBatchItemRow = {
+  id: string;
+  person_id: string;
+  status: string;
+  error_message: string | null;
+};
+
+type MhdDocumentMergeBatchPayload = {
+  batch: MhdDocumentMergeBatchRow;
+  items: MhdDocumentMergeBatchItemRow[];
+};
 
 const DEFAULT_POLL_ATTEMPTS = 10;
 const DEFAULT_POLL_INTERVAL_MS = 1500;
@@ -338,6 +361,83 @@ export const mhdDocumentService = {
       throw new Error('Unable to request document generation: no record returned.');
     }
     return { id: row.id, referenceId: row.reference_id, status: row.status };
+  },
+
+  async requestMergeBatch(input: {
+    companyId: string;
+    templateId: string;
+    outputFormat: MhdDocumentOutputFormat;
+    personIds: string[];
+  }): Promise<{ id: string; referenceId: string }> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_request_document_merge_batch', {
+        p_company_id: input.companyId,
+        p_template_id: input.templateId,
+        p_output_format: input.outputFormat,
+        p_person_ids: input.personIds,
+      })
+      .returns<MhdDocumentMergeBatchRow>();
+
+    if (error) {
+      throw new Error(`Unable to request document merge batch: ${error.message}`);
+    }
+    if (!data) {
+      throw new Error('Unable to request document merge batch: no record returned.');
+    }
+    return { id: data.id, referenceId: data.reference_id };
+  },
+
+  async runMergeBatch(
+    batchId: string,
+  ): Promise<{ success: boolean; succeededCount: number; failedCount: number; error?: string }> {
+    const { data, error } = await supabaseClient.functions.invoke<{
+      success: boolean;
+      succeeded_count?: number;
+      failed_count?: number;
+      succeededCount?: number;
+      failedCount?: number;
+      error?: string;
+    }>('document-merge-batch', { body: { batch_id: batchId } });
+
+    if (error) {
+      throw new Error(`Unable to run document merge batch: ${error.message}`);
+    }
+    if (data?.success === false) {
+      throw new Error(`Unable to run document merge batch: ${data.error ?? 'unknown error.'}`);
+    }
+    return {
+      success: data?.success ?? false,
+      succeededCount: data?.succeededCount ?? data?.succeeded_count ?? 0,
+      failedCount: data?.failedCount ?? data?.failed_count ?? 0,
+      ...(data?.error ? { error: data.error } : {}),
+    };
+  },
+
+  async getMergeBatch(batchId: string): Promise<MhdDocumentMergeBatch> {
+    const { data, error } = await supabaseClient.rpc('mhd_get_document_merge_batch', {
+      p_batch_id: batchId,
+    });
+
+    if (error) {
+      throw new Error(`Unable to load document merge batch: ${error.message}`);
+    }
+    const payload = data as MhdDocumentMergeBatchPayload | null;
+    if (!payload?.batch) {
+      throw new Error(`Document merge batch not found: ${batchId}`);
+    }
+    return {
+      id: payload.batch.id,
+      status: payload.batch.status,
+      totalCount: payload.batch.total_count,
+      succeededCount: payload.batch.succeeded_count,
+      failedCount: payload.batch.failed_count,
+      items: (payload.items ?? []).map((item) => ({
+        id: item.id,
+        personId: item.person_id,
+        status: item.status,
+        errorMessage: item.error_message,
+      })),
+    };
   },
 
   /**
