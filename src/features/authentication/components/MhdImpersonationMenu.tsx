@@ -92,7 +92,7 @@ export function MhdImpersonationMenu() {
           size="md"
           className="h-10 w-10 text-sm bg-accent text-accent-on"
         />
-        <div className="hidden max-w-44 flex-col gap-0.5 lg:flex">
+        <div className="hidden max-w-[280px] flex-col gap-0.5 lg:flex">
           <span className="truncate text-base font-semibold">{profile?.displayName ?? 'User'}</span>
         </div>
       </div>
@@ -171,7 +171,7 @@ export function MhdImpersonationMenu() {
           size="md"
           className="h-10 w-10 text-sm bg-accent text-accent-on"
         />
-        <div className="hidden max-w-44 flex-col gap-0.5 lg:flex">
+        <div className="hidden max-w-[280px] flex-col gap-0.5 lg:flex">
           <span className="truncate text-base font-semibold">{profile.displayName ?? 'User'}</span>
           {impersonation.isImpersonating ? (
             <span className="truncate text-base text-muted-foreground">

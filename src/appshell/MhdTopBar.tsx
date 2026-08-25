@@ -26,7 +26,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
 
   return (
     <header className="flex h-[72px] shrink-0 items-center justify-between gap-4 border-b bg-card px-4 lg:px-6">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
+      <div className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto">
         {onOpenNav ? (
           <button
             type="button"
