@@ -6,14 +6,16 @@ import { MhdAdminOverviewSection } from './MhdAdminOverviewSection';
 import { MhdAdminSystemSection } from './MhdAdminSystemSection';
 import { MhdAdminAuditSection } from './MhdAdminAuditSection';
 import { MhdAdminQuotesSection } from './MhdAdminQuotesSection';
+import { MhdAdminCalculatorTemplatesSection } from './MhdAdminCalculatorTemplatesSection';
 
-type MhdAdminTab = 'overview' | 'system' | 'audit' | 'quotes';
+type MhdAdminTab = 'overview' | 'system' | 'audit' | 'quotes' | 'calculator-templates';
 
 const ALL_TABS: Array<{ key: MhdAdminTab; label: string; platformAdminOnly: boolean }> = [
   { key: 'overview', label: 'Overview', platformAdminOnly: true },
   { key: 'system', label: 'System & Compliance', platformAdminOnly: true },
   { key: 'audit', label: 'Audit & Activity', platformAdminOnly: true },
   { key: 'quotes', label: 'Quotes', platformAdminOnly: false },
+  { key: 'calculator-templates', label: 'Calculator Templates', platformAdminOnly: true },
 ];
 
 /**
@@ -71,6 +73,7 @@ export function MhdAdminSettingsPage() {
       {isPlatformAdmin && activeTab === 'overview' && <MhdAdminOverviewSection />}
       {isPlatformAdmin && activeTab === 'system' && <MhdAdminSystemSection />}
       {isPlatformAdmin && activeTab === 'audit' && <MhdAdminAuditSection />}
+      {isPlatformAdmin && activeTab === 'calculator-templates' && <MhdAdminCalculatorTemplatesSection />}
       {activeTab === 'quotes' && <MhdAdminQuotesSection />}
     </div>
   );

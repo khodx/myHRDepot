@@ -13,6 +13,7 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdActingAsMenu } from '@/features/authentication/components/MhdActingAsMenu';
 import { MhdImpersonationMenu } from '@/features/authentication/components/MhdImpersonationMenu';
 import { MhdNotificationBell } from '@/features/notifications/components/MhdNotificationBell';
+import { MhdCalculatorTopBarButton } from '@/features/calculator/components/MhdCalculatorTopBarButton';
 import { MhdThemeToggle } from './MhdThemeToggle';
 import { mhdCanAccessRoute } from './mhdRouteAccess';
 
@@ -109,6 +110,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
               </span>
             </NavLink>
           ) : null}
+          <MhdCalculatorTopBarButton />
           {mhdCanAccessRoute('/calendar', roles) ? (
             <NavLink
               to="/calendar"

@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { useMhdHandbookSafetyJurisdictions } from '../Hook';
 import { mhdCreateHandbookSchema, type MhdCreateHandbookFormValues } from '../Schemas';
 import {
   MHD_HANDBOOK_JURISDICTIONS_BY_TYPE,
@@ -14,18 +15,45 @@ interface Props {
   onSubmit: (values: MhdCreateHandbookFormValues) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+  /** Pre-selects the content pack — used by the Workplace Safety module's cross-link. */
+  defaultHandbookType?: MhdCreateHandbookFormValues['handbookType'];
+  /**
+   * When the caller arrived from a specific establishment (the Workplace
+   * Safety module's cross-link), the SAFETY jurisdiction lookup is scoped to
+   * that establishment rather than the whole company.
+   */
+  establishmentId?: string | null;
 }
 
 /**
  * Step one of the wizard: pick the content pack + jurisdictions.
  *
- * The jurisdiction choices are the ones the chosen pack offers (EMPLOYEE draws
- * federal + states; SAFETY draws the OSHA scopes) — assembly is jurisdiction-
- * driven, and choosing a jurisdiction pulls its required sections in. The RPC
- * raises if no jurisdiction is chosen; the schema mirrors that as a field message.
- * Clause bodies are not authored here — they are attorney content.
+ * The jurisdiction choices EMPLOYEE offers remain the static federal + states
+ * list (unchanged by this stage). SAFETY's choices now come from the
+ * Workplace Safety module's real, computed jurisdiction set
+ * (`mhd_compute_osha_thresholds`, via `useMhdHandbookSafetyJurisdictions`)
+ * instead of always offering both FED_OSHA and CAL_OSHA regardless of the
+ * company's actual establishments — a static "always both" list is exactly
+ * the kind of hardcoded-value-pretending-to-be-real-data the CLAUDE.md
+ * engineering standard prohibits once real data exists. When the company has
+ * no `osha_establishments` rows yet (or none currently meet a threshold),
+ * the RPC returns an empty set and this form falls back to the static list
+ * with a visible note — Workplace Safety (03.31) is optional-adoption, not a
+ * hard prerequisite for handbook creation, so this never blocks the flow.
+ *
+ * Assembly is jurisdiction-driven either way: choosing a jurisdiction pulls
+ * its required sections in. The RPC raises if no jurisdiction is chosen; the
+ * schema mirrors that as a field message. Clause bodies are not authored
+ * here — they are attorney content.
  */
-export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitting }: Props) {
+export function MhdHandbookCreateForm({
+  companyId,
+  onSubmit,
+  onCancel,
+  isSubmitting,
+  defaultHandbookType,
+  establishmentId,
+}: Props) {
   const {
     register,
     handleSubmit,
@@ -35,14 +63,23 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
     resolver: zodResolver(mhdCreateHandbookSchema),
     defaultValues: {
       companyId,
-      handbookType: 'EMPLOYEE',
+      handbookType: defaultHandbookType ?? 'EMPLOYEE',
       title: '',
       jurisdictions: [],
     },
   });
 
   const handbookType = useWatch({ control, name: 'handbookType' });
-  const jurisdictionChoices = MHD_HANDBOOK_JURISDICTIONS_BY_TYPE[handbookType] ?? [];
+  const safetyJurisdictions = useMhdHandbookSafetyJurisdictions(
+    handbookType === 'SAFETY' ? companyId : null,
+    establishmentId,
+  );
+  const staticJurisdictionChoices = MHD_HANDBOOK_JURISDICTIONS_BY_TYPE[handbookType] ?? [];
+  const usingComputedSafetyJurisdictions =
+    handbookType === 'SAFETY' && (safetyJurisdictions.data?.length ?? 0) > 0;
+  const jurisdictionChoices = usingComputedSafetyJurisdictions
+    ? (safetyJurisdictions.data as MhdCreateHandbookFormValues['jurisdictions'])
+    : staticJurisdictionChoices;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -87,6 +124,12 @@ export function MhdHandbookCreateForm({ companyId, onSubmit, onCancel, isSubmitt
         <p className="mt-0.5 text-xs text-muted-foreground">
           Assembly pulls in each jurisdiction's required sections.
         </p>
+        {handbookType === 'SAFETY' && !usingComputedSafetyJurisdictions ? (
+          <p className="mt-1 text-xs text-amber-700">
+            Using general Fed-OSHA/Cal-OSHA defaults — configure establishments in the Workplace
+            Safety module for jurisdiction-specific accuracy.
+          </p>
+        ) : null}
         {/* A controlled checkbox group over the pack's jurisdictions — the value is
             a string[] the create RPC consumes as `p_jurisdictions`. */}
         <Controller

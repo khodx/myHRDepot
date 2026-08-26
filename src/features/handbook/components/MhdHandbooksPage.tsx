@@ -1,6 +1,7 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { mhdHandbookIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import type { MhdCreateHandbookFormValues } from '../Schemas';
 import { MhdHandbookListPage } from './MhdHandbookListPage';
 
 /**
@@ -16,8 +17,19 @@ import { MhdHandbookListPage } from './MhdHandbookListPage';
 export function MhdHandbooksPage() {
   const { profile, roles } = useMhdAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const companyId = profile?.companyId ?? '';
   const canManage = mhdHandbookIsPrivileged(roles);
+
+  // Cross-link from the Workplace Safety module
+  // (`/handbooks?handbookType=SAFETY&establishmentId=...`) — pre-fills and
+  // auto-opens the existing create flow; this route never duplicates it.
+  const requestedHandbookType = searchParams.get('handbookType');
+  const initialHandbookType: MhdCreateHandbookFormValues['handbookType'] | undefined =
+    requestedHandbookType === 'SAFETY' || requestedHandbookType === 'EMPLOYEE'
+      ? requestedHandbookType
+      : undefined;
+  const initialEstablishmentId = searchParams.get('establishmentId');
 
   if (!companyId) {
     return (
@@ -32,6 +44,8 @@ export function MhdHandbooksPage() {
       companyId={companyId}
       canManage={canManage}
       onOpenHandbook={(handbookId) => navigate(`/handbooks/${handbookId}`)}
+      initialHandbookType={initialHandbookType}
+      initialEstablishmentId={initialEstablishmentId}
     />
   );
 }

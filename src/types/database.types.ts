@@ -2645,6 +2645,60 @@ export type Database = {
           },
         ]
       }
+      ca_ab5_exemption_categories: {
+        Row: {
+          category_label: string
+          citation: string
+          content_registry_id: string | null
+          created_at: string
+          created_by: string | null
+          criteria_summary: string
+          effective_from: string
+          effective_to: string | null
+          exemption_key: string
+          id: string
+        }
+        Insert: {
+          category_label: string
+          citation: string
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          criteria_summary: string
+          effective_from: string
+          effective_to?: string | null
+          exemption_key: string
+          id?: string
+        }
+        Update: {
+          category_label?: string
+          citation?: string
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          criteria_summary?: string
+          effective_from?: string
+          effective_to?: string | null
+          exemption_key?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ca_ab5_exemption_categories_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ca_ab5_exemption_categories_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ca_minimum_wage_rates: {
         Row: {
           content_registry_id: string | null
@@ -2749,6 +2803,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      calculator_templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          formula: string
+          icon: string
+          id: string
+          input_fields: Json
+          is_active: boolean
+          result_decimals: number
+          result_label: string
+          result_unit: string | null
+          template_key: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          formula: string
+          icon: string
+          id?: string
+          input_fields: Json
+          is_active?: boolean
+          result_decimals?: number
+          result_label: string
+          result_unit?: string | null
+          template_key: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          formula?: string
+          icon?: string
+          id?: string
+          input_fields?: Json
+          is_active?: boolean
+          result_decimals?: number
+          result_label?: string
+          result_unit?: string | null
+          template_key?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: []
       }
       candidate_evaluations: {
         Row: {
@@ -4028,6 +4142,247 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      contractor_classification_determinations: {
+        Row: {
+          company_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          effective_outcome: string
+          evaluated_at: string
+          evaluated_by: string
+          evaluated_outcome: string
+          findings: Json
+          id: string
+          jurisdiction: string
+          overridden_at: string | null
+          overridden_by: string | null
+          override_reason: string | null
+          rule_set_id: string | null
+          snapshot_id: string
+          test_key: string
+        }
+        Insert: {
+          company_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          effective_outcome: string
+          evaluated_at?: string
+          evaluated_by: string
+          evaluated_outcome: string
+          findings?: Json
+          id?: string
+          jurisdiction: string
+          overridden_at?: string | null
+          overridden_by?: string | null
+          override_reason?: string | null
+          rule_set_id?: string | null
+          snapshot_id: string
+          test_key: string
+        }
+        Update: {
+          company_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          effective_outcome?: string
+          evaluated_at?: string
+          evaluated_by?: string
+          evaluated_outcome?: string
+          findings?: Json
+          id?: string
+          jurisdiction?: string
+          overridden_at?: string | null
+          overridden_by?: string | null
+          override_reason?: string | null
+          rule_set_id?: string | null
+          snapshot_id?: string
+          test_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_classification_determinations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_classification_determinations_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_classification_determinations_evaluated_by_fkey"
+            columns: ["evaluated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_classification_determinations_overridden_by_fkey"
+            columns: ["overridden_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_classification_determinations_rule_set_id_fkey"
+            columns: ["rule_set_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_classification_rule_sets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_classification_determinations_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_classification_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_classification_rule_sets: {
+        Row: {
+          citation: string
+          company_id: string | null
+          content_registry_id: string | null
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          jurisdiction: string
+          rules: Json
+          source_url: string
+          status: string
+          test_key: string
+          version: number
+        }
+        Insert: {
+          citation: string
+          company_id?: string | null
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          jurisdiction: string
+          rules: Json
+          source_url: string
+          status?: string
+          test_key: string
+          version: number
+        }
+        Update: {
+          citation?: string
+          company_id?: string | null
+          content_registry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          jurisdiction?: string
+          rules?: Json
+          source_url?: string
+          status?: string
+          test_key?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_classification_rule_sets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_classification_rule_sets_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_classification_rule_sets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_classification_snapshots: {
+        Row: {
+          as_of_date: string
+          company_id: string
+          created_at: string
+          created_by: string
+          engagement_facts: Json
+          engagement_label: string
+          facts_source: string
+          id: string
+          person_id: string | null
+          selected_ca_exemption_id: string | null
+        }
+        Insert: {
+          as_of_date: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          engagement_facts?: Json
+          engagement_label: string
+          facts_source?: string
+          id?: string
+          person_id?: string | null
+          selected_ca_exemption_id?: string | null
+        }
+        Update: {
+          as_of_date?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          engagement_facts?: Json
+          engagement_label?: string
+          facts_source?: string
+          id?: string
+          person_id?: string | null
+          selected_ca_exemption_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_classification_snapsho_selected_ca_exemption_id_fkey"
+            columns: ["selected_ca_exemption_id"]
+            isOneToOne: false
+            referencedRelation: "ca_ab5_exemption_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_classification_snapshots_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_classification_snapshots_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_classification_snapshots_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       correspondence_branding_settings: {
         Row: {
@@ -13085,6 +13440,152 @@ export type Database = {
           },
         ]
       }
+      legal_jurisdictions: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          level: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          level: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          level?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      legal_search_index: {
+        Row: {
+          body_text: string | null
+          cache_expires_at: string | null
+          created_at: string
+          external_provider: string
+          external_ref: string
+          fetched_at: string | null
+          id: string
+          is_active: boolean
+          jurisdiction_id: string
+          search_vector: unknown
+          source_lane: string
+          source_url: string | null
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body_text?: string | null
+          cache_expires_at?: string | null
+          created_at?: string
+          external_provider: string
+          external_ref: string
+          fetched_at?: string | null
+          id?: string
+          is_active?: boolean
+          jurisdiction_id: string
+          search_vector?: unknown
+          source_lane: string
+          source_url?: string | null
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body_text?: string | null
+          cache_expires_at?: string | null
+          created_at?: string
+          external_provider?: string
+          external_ref?: string
+          fetched_at?: string | null
+          id?: string
+          is_active?: boolean
+          jurisdiction_id?: string
+          search_vector?: unknown
+          source_lane?: string
+          source_url?: string | null
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_search_index_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "legal_jurisdictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_search_index_topics: {
+        Row: {
+          search_index_id: string
+          topic_id: string
+        }
+        Insert: {
+          search_index_id: string
+          topic_id: string
+        }
+        Update: {
+          search_index_id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_search_index_topics_search_index_id_fkey"
+            columns: ["search_index_id"]
+            isOneToOne: false
+            referencedRelation: "legal_search_index"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legal_search_index_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "legal_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_topics: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_name: string
+          id: string
+          is_active: boolean
+          topic_key: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean
+          topic_key: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          topic_key?: string
+        }
+        Relationships: []
+      }
       market_wage_reference_snapshots: {
         Row: {
           annual_median: number | null
@@ -18082,6 +18583,308 @@ export type Database = {
           },
         ]
       }
+      osha_annual_summaries: {
+        Row: {
+          average_employee_count: number
+          calendar_year: number
+          certified_at: string | null
+          certifying_official_name: string | null
+          certifying_official_title: string | null
+          company_id: string
+          created_at: string
+          establishment_id: string
+          id: string
+          reference_id: string
+          signature_id: string | null
+          status: string
+          total_days_away_cases: number
+          total_days_away_count: number
+          total_days_restricted_count: number
+          total_deaths: number
+          total_hearing_loss_cases: number
+          total_hours_worked: number
+          total_injuries: number
+          total_job_transfer_restriction_cases: number
+          total_other_illnesses: number
+          total_other_recordable_cases: number
+          total_poisonings: number
+          total_respiratory_conditions: number
+          total_skin_disorders: number
+          updated_at: string
+        }
+        Insert: {
+          average_employee_count?: number
+          calendar_year: number
+          certified_at?: string | null
+          certifying_official_name?: string | null
+          certifying_official_title?: string | null
+          company_id: string
+          created_at?: string
+          establishment_id: string
+          id?: string
+          reference_id: string
+          signature_id?: string | null
+          status?: string
+          total_days_away_cases?: number
+          total_days_away_count?: number
+          total_days_restricted_count?: number
+          total_deaths?: number
+          total_hearing_loss_cases?: number
+          total_hours_worked?: number
+          total_injuries?: number
+          total_job_transfer_restriction_cases?: number
+          total_other_illnesses?: number
+          total_other_recordable_cases?: number
+          total_poisonings?: number
+          total_respiratory_conditions?: number
+          total_skin_disorders?: number
+          updated_at?: string
+        }
+        Update: {
+          average_employee_count?: number
+          calendar_year?: number
+          certified_at?: string | null
+          certifying_official_name?: string | null
+          certifying_official_title?: string | null
+          company_id?: string
+          created_at?: string
+          establishment_id?: string
+          id?: string
+          reference_id?: string
+          signature_id?: string | null
+          status?: string
+          total_days_away_cases?: number
+          total_days_away_count?: number
+          total_days_restricted_count?: number
+          total_deaths?: number
+          total_hearing_loss_cases?: number
+          total_hours_worked?: number
+          total_injuries?: number
+          total_job_transfer_restriction_cases?: number
+          total_other_illnesses?: number
+          total_other_recordable_cases?: number
+          total_poisonings?: number
+          total_respiratory_conditions?: number
+          total_skin_disorders?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "osha_annual_summaries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "osha_annual_summaries_establishment_company_match"
+            columns: ["establishment_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "osha_establishments"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
+            foreignKeyName: "osha_annual_summaries_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "osha_establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "osha_annual_summaries_signature_id_fkey"
+            columns: ["signature_id"]
+            isOneToOne: false
+            referencedRelation: "esignature_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      osha_establishments: {
+        Row: {
+          address_city: string | null
+          address_state: string
+          address_street: string | null
+          address_zip: string | null
+          average_employee_count: number
+          company_id: string
+          created_at: string
+          created_by: string
+          establishment_name: string
+          id: string
+          is_active: boolean
+          naics_code: string
+          reference_id: string
+          total_hours_worked_ytd: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          address_city?: string | null
+          address_state: string
+          address_street?: string | null
+          address_zip?: string | null
+          average_employee_count?: number
+          company_id: string
+          created_at?: string
+          created_by: string
+          establishment_name: string
+          id?: string
+          is_active?: boolean
+          naics_code: string
+          reference_id: string
+          total_hours_worked_ytd?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          address_city?: string | null
+          address_state?: string
+          address_street?: string | null
+          address_zip?: string | null
+          average_employee_count?: number
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          establishment_name?: string
+          id?: string
+          is_active?: boolean
+          naics_code?: string
+          reference_id?: string
+          total_hours_worked_ytd?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "osha_establishments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "osha_establishments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "osha_establishments_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      osha_ita_submission_queue: {
+        Row: {
+          calendar_year: number
+          company_id: string
+          error_detail: string | null
+          establishment_id: string
+          id: string
+          payload: Json
+          queued_at: string
+          queued_by: string
+          response: Json | null
+          sent_at: string | null
+          status: string
+          submission_type: string
+        }
+        Insert: {
+          calendar_year: number
+          company_id: string
+          error_detail?: string | null
+          establishment_id: string
+          id?: string
+          payload: Json
+          queued_at?: string
+          queued_by: string
+          response?: Json | null
+          sent_at?: string | null
+          status?: string
+          submission_type: string
+        }
+        Update: {
+          calendar_year?: number
+          company_id?: string
+          error_detail?: string | null
+          establishment_id?: string
+          id?: string
+          payload?: Json
+          queued_at?: string
+          queued_by?: string
+          response?: Json | null
+          sent_at?: string | null
+          status?: string
+          submission_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "osha_ita_queue_establishment_company_match"
+            columns: ["establishment_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "osha_establishments"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
+            foreignKeyName: "osha_ita_submission_queue_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "osha_ita_submission_queue_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "osha_establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "osha_ita_submission_queue_queued_by_fkey"
+            columns: ["queued_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      osha_reporting_thresholds: {
+        Row: {
+          description: string
+          forms_required: string[]
+          id: string
+          jurisdiction: string
+          max_employee_count: number | null
+          min_employee_count: number
+          requires_naics_in: string[] | null
+          rule_key: string
+        }
+        Insert: {
+          description: string
+          forms_required: string[]
+          id?: string
+          jurisdiction: string
+          max_employee_count?: number | null
+          min_employee_count: number
+          requires_naics_in?: string[] | null
+          rule_key: string
+        }
+        Update: {
+          description?: string
+          forms_required?: string[]
+          id?: string
+          jurisdiction?: string
+          max_employee_count?: number | null
+          min_employee_count?: number
+          requires_naics_in?: string[] | null
+          rule_key?: string
+        }
+        Relationships: []
+      }
       pay_grades: {
         Row: {
           company_id: string
@@ -20255,6 +21058,143 @@ export type Database = {
           },
         ]
       }
+      safety_incidents: {
+        Row: {
+          case_number: number
+          classification: string
+          company_id: string
+          created_at: string
+          created_by: string
+          date_of_incident: string
+          days_away_count: number
+          days_restricted_or_transferred_count: number
+          establishment_id: string
+          id: string
+          illness_type: string | null
+          incident_year: number
+          injury_illness_description: string
+          is_privacy_case: boolean
+          job_title: string | null
+          location_description: string | null
+          non_employee_name: string | null
+          person_id: string | null
+          reference_id: string
+          reported_at: string | null
+          reported_by: string | null
+          status: string
+          time_of_incident: string | null
+          updated_at: string
+          updated_by: string | null
+          what_happened: string
+        }
+        Insert: {
+          case_number: number
+          classification: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          date_of_incident: string
+          days_away_count?: number
+          days_restricted_or_transferred_count?: number
+          establishment_id: string
+          id?: string
+          illness_type?: string | null
+          incident_year: number
+          injury_illness_description: string
+          is_privacy_case?: boolean
+          job_title?: string | null
+          location_description?: string | null
+          non_employee_name?: string | null
+          person_id?: string | null
+          reference_id: string
+          reported_at?: string | null
+          reported_by?: string | null
+          status?: string
+          time_of_incident?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          what_happened: string
+        }
+        Update: {
+          case_number?: number
+          classification?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          date_of_incident?: string
+          days_away_count?: number
+          days_restricted_or_transferred_count?: number
+          establishment_id?: string
+          id?: string
+          illness_type?: string | null
+          incident_year?: number
+          injury_illness_description?: string
+          is_privacy_case?: boolean
+          job_title?: string | null
+          location_description?: string | null
+          non_employee_name?: string | null
+          person_id?: string | null
+          reference_id?: string
+          reported_at?: string | null
+          reported_by?: string | null
+          status?: string
+          time_of_incident?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          what_happened?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_incidents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_establishment_company_match"
+            columns: ["establishment_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "osha_establishments"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "osha_establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule_assignments: {
         Row: {
           assignment_note: string | null
@@ -22057,6 +22997,10 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: undefined
       }
+      mhd_assert_contractor_classification_mutate: {
+        Args: { p_company_id: string }
+        Returns: undefined
+      }
       mhd_assert_investigation_access: {
         Args: { p_case_id: string }
         Returns: undefined
@@ -22495,6 +23439,140 @@ export type Database = {
           task_id: string
         }[]
       }
+      mhd_calculator_template_create: {
+        Args: {
+          p_category: string
+          p_description: string
+          p_formula: string
+          p_icon: string
+          p_input_fields: Json
+          p_result_decimals?: number
+          p_result_label: string
+          p_result_unit?: string
+          p_template_key: string
+          p_title: string
+        }
+        Returns: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          formula: string
+          icon: string
+          id: string
+          input_fields: Json
+          is_active: boolean
+          result_decimals: number
+          result_label: string
+          result_unit: string | null
+          template_key: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "calculator_templates"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mhd_calculator_template_list: {
+        Args: { p_include_inactive?: boolean }
+        Returns: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          formula: string
+          icon: string
+          id: string
+          input_fields: Json
+          is_active: boolean
+          result_decimals: number
+          result_label: string
+          result_unit: string | null
+          template_key: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "calculator_templates"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mhd_calculator_template_set_active: {
+        Args: { p_is_active: boolean; p_template_id: string }
+        Returns: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          formula: string
+          icon: string
+          id: string
+          input_fields: Json
+          is_active: boolean
+          result_decimals: number
+          result_label: string
+          result_unit: string | null
+          template_key: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "calculator_templates"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mhd_calculator_template_update: {
+        Args: {
+          p_category?: string
+          p_description?: string
+          p_formula?: string
+          p_icon?: string
+          p_input_fields?: Json
+          p_result_decimals?: number
+          p_result_label?: string
+          p_result_unit?: string
+          p_template_id: string
+          p_title?: string
+        }
+        Returns: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          formula: string
+          icon: string
+          id: string
+          input_fields: Json
+          is_active: boolean
+          result_decimals: number
+          result_label: string
+          result_unit: string | null
+          template_key: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "calculator_templates"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       mhd_calendar_list_events: {
         Args: {
           p_company_id?: string
@@ -22603,6 +23681,7 @@ export type Database = {
         Args: { p_person_id: string }
         Returns: boolean
       }
+      mhd_can_view_legal_search: { Args: never; Returns: boolean }
       mhd_can_view_linked_entity: {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: boolean
@@ -22625,6 +23704,10 @@ export type Database = {
       }
       mhd_can_view_person_tax_identity: {
         Args: { p_company_id: string; p_person_id: string }
+        Returns: boolean
+      }
+      mhd_can_view_safety_incident: {
+        Args: { p_company_id: string }
         Returns: boolean
       }
       mhd_can_write_packet_evidence: {
@@ -22825,6 +23908,13 @@ export type Database = {
         Args: { p_hire_date: string; p_termination_date?: string }
         Returns: string
       }
+      mhd_compute_osha_thresholds: {
+        Args: { p_establishment_id: string }
+        Returns: {
+          forms_required: string[]
+          rule_key: string
+        }[]
+      }
       mhd_conduct_create_action: {
         Args: {
           p_action_summary?: string
@@ -22940,6 +24030,39 @@ export type Database = {
       mhd_consume_mfa_recovery_code: {
         Args: { p_code: string }
         Returns: undefined
+      }
+      mhd_contractor_classification_confirm: {
+        Args: {
+          p_confirmed_outcome: string
+          p_determination_id: string
+          p_override_reason?: string
+        }
+        Returns: undefined
+      }
+      mhd_contractor_classification_evaluate: {
+        Args: {
+          p_as_of_date?: string
+          p_company_id: string
+          p_engagement_facts?: Json
+          p_engagement_label?: string
+          p_facts_source?: string
+          p_person_id?: string
+          p_selected_ca_exemption_id?: string
+        }
+        Returns: {
+          determination_id: string
+          effective_outcome: string
+          evaluated_outcome: string
+          findings: Json
+          jurisdiction: string
+          rule_set_id: string
+          snapshot_id: string
+          test_key: string
+        }[]
+      }
+      mhd_contractor_classification_is_privileged: {
+        Args: never
+        Returns: boolean
       }
       mhd_correspondence_notify_inbound: {
         Args: {
@@ -24034,6 +25157,35 @@ export type Database = {
           updated_by: string
         }[]
       }
+      mhd_get_contractor_classification_snapshot: {
+        Args: { p_snapshot_id: string }
+        Returns: {
+          as_of_date: string
+          company_id: string
+          confirmed_at: string
+          confirmed_by: string
+          created_at: string
+          created_by: string
+          determination_id: string
+          effective_outcome: string
+          engagement_facts: Json
+          engagement_label: string
+          evaluated_at: string
+          evaluated_by: string
+          evaluated_outcome: string
+          facts_source: string
+          findings: Json
+          jurisdiction: string
+          overridden_at: string
+          overridden_by: string
+          override_reason: string
+          person_id: string
+          rule_set_id: string
+          selected_ca_exemption_id: string
+          snapshot_id: string
+          test_key: string
+        }[]
+      }
       mhd_get_corrective_action_template_id: {
         Args: { p_severity: string }
         Returns: string
@@ -24262,6 +25414,43 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_get_osha_annual_summary: {
+        Args: { p_summary_id: string }
+        Returns: {
+          average_employee_count: number
+          calendar_year: number
+          certified_at: string | null
+          certifying_official_name: string | null
+          certifying_official_title: string | null
+          company_id: string
+          created_at: string
+          establishment_id: string
+          id: string
+          reference_id: string
+          signature_id: string | null
+          status: string
+          total_days_away_cases: number
+          total_days_away_count: number
+          total_days_restricted_count: number
+          total_deaths: number
+          total_hearing_loss_cases: number
+          total_hours_worked: number
+          total_injuries: number
+          total_job_transfer_restriction_cases: number
+          total_other_illnesses: number
+          total_other_recordable_cases: number
+          total_poisonings: number
+          total_respiratory_conditions: number
+          total_skin_disorders: number
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "osha_annual_summaries"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       mhd_get_performance_review: {
         Args: { p_review_id: string }
         Returns: {
@@ -24346,6 +25535,32 @@ export type Database = {
           title_es: string
           version_label: string
           viewed_at: string
+        }[]
+      }
+      mhd_get_safety_incident: {
+        Args: { p_incident_id: string }
+        Returns: {
+          case_number: number
+          classification: string
+          company_id: string
+          created_at: string
+          date_of_incident: string
+          days_away_count: number
+          days_restricted_or_transferred_count: number
+          displayed_subject_name: string
+          establishment_id: string
+          id: string
+          illness_type: string
+          incident_year: number
+          injury_illness_description: string
+          is_privacy_case: boolean
+          job_title: string
+          location_description: string
+          person_id: string
+          reference_id: string
+          status: string
+          time_of_incident: string
+          what_happened: string
         }[]
       }
       mhd_get_signature_events: {
@@ -24592,6 +25807,10 @@ export type Database = {
           reference_id: string
           version_number: number
         }[]
+      }
+      mhd_handbook_safety_jurisdictions: {
+        Args: { p_company_id: string; p_establishment_id?: string }
+        Returns: string[]
       }
       mhd_handbook_section_list: {
         Args: {
@@ -25537,6 +26756,35 @@ export type Database = {
         Args: { p_status: string }
         Returns: string
       }
+      mhd_legal_search_cache_refresh_dispatch: {
+        Args: never
+        Returns: undefined
+      }
+      mhd_legal_search_index_upsert_external: {
+        Args: {
+          p_body_text: string
+          p_cache_expires_at: string
+          p_external_provider: string
+          p_external_ref: string
+          p_jurisdiction_code?: string
+          p_source_lane?: string
+          p_source_url: string
+          p_summary: string
+          p_title: string
+          p_topic_ids: string[]
+        }
+        Returns: string
+      }
+      mhd_legal_search_index_upsert_from_registry: {
+        Args: {
+          p_jurisdiction_id: string
+          p_registry_id: string
+          p_summary: string
+          p_title: string
+          p_topic_ids: string[]
+        }
+        Returns: string
+      }
       mhd_link_correspondence_thread: {
         Args: {
           p_entity_id: string
@@ -25862,6 +27110,19 @@ export type Database = {
           user_agent: string
         }[]
       }
+      mhd_list_ca_ab5_exemption_categories: {
+        Args: never
+        Returns: {
+          category_label: string
+          citation: string
+          content_registry_id: string
+          criteria_summary: string
+          effective_from: string
+          effective_to: string
+          exemption_key: string
+          id: string
+        }[]
+      }
       mhd_list_case_documents_for_source: {
         Args: { p_source_entity_id: string; p_source_entity_type: string }
         Returns: {
@@ -25973,6 +27234,35 @@ export type Database = {
           reference_id: string
           updated_at: string
           updated_by: string
+        }[]
+      }
+      mhd_list_contractor_classification_snapshots: {
+        Args: { p_company_id: string; p_person_id?: string }
+        Returns: {
+          as_of_date: string
+          ca_confirmed_at: string
+          ca_determination_id: string
+          ca_effective_outcome: string
+          ca_evaluated_outcome: string
+          ca_findings: Json
+          ca_rule_set_id: string
+          ca_test_key: string
+          company_id: string
+          created_at: string
+          created_by: string
+          engagement_facts: Json
+          engagement_label: string
+          facts_source: string
+          federal_confirmed_at: string
+          federal_determination_id: string
+          federal_effective_outcome: string
+          federal_evaluated_outcome: string
+          federal_findings: Json
+          federal_rule_set_id: string
+          federal_test_key: string
+          person_id: string
+          selected_ca_exemption_id: string
+          snapshot_id: string
         }[]
       }
       mhd_list_correspondence_mailbox_aliases: {
@@ -26479,6 +27769,70 @@ export type Database = {
           voided_count: number
         }[]
       }
+      mhd_list_osha_annual_summaries: {
+        Args: { p_establishment_id: string }
+        Returns: {
+          average_employee_count: number
+          calendar_year: number
+          certified_at: string | null
+          certifying_official_name: string | null
+          certifying_official_title: string | null
+          company_id: string
+          created_at: string
+          establishment_id: string
+          id: string
+          reference_id: string
+          signature_id: string | null
+          status: string
+          total_days_away_cases: number
+          total_days_away_count: number
+          total_days_restricted_count: number
+          total_deaths: number
+          total_hearing_loss_cases: number
+          total_hours_worked: number
+          total_injuries: number
+          total_job_transfer_restriction_cases: number
+          total_other_illnesses: number
+          total_other_recordable_cases: number
+          total_poisonings: number
+          total_respiratory_conditions: number
+          total_skin_disorders: number
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "osha_annual_summaries"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mhd_list_osha_establishments: {
+        Args: { p_company_id: string }
+        Returns: {
+          address_city: string | null
+          address_state: string
+          address_street: string | null
+          address_zip: string | null
+          average_employee_count: number
+          company_id: string
+          created_at: string
+          created_by: string
+          establishment_name: string
+          id: string
+          is_active: boolean
+          naics_code: string
+          reference_id: string
+          total_hours_worked_ytd: number
+          updated_at: string
+          updated_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "osha_establishments"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       mhd_list_pending_approvals_for_user: {
         Args: { p_user_id: string }
         Returns: {
@@ -26717,6 +28071,36 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      mhd_list_safety_incidents: {
+        Args: {
+          p_calendar_year?: number
+          p_company_id: string
+          p_establishment_id?: string
+        }
+        Returns: {
+          case_number: number
+          classification: string
+          company_id: string
+          created_at: string
+          date_of_incident: string
+          days_away_count: number
+          days_restricted_or_transferred_count: number
+          displayed_subject_name: string
+          establishment_id: string
+          id: string
+          illness_type: string
+          incident_year: number
+          injury_illness_description: string
+          is_privacy_case: boolean
+          job_title: string
+          location_description: string
+          person_id: string
+          reference_id: string
+          status: string
+          time_of_incident: string
+          what_happened: string
+        }[]
       }
       mhd_list_signature_requests_for_company: {
         Args: { p_company_id: string }
@@ -27305,6 +28689,39 @@ export type Database = {
           p_wotc_8850_id?: string
         }
         Returns: number
+      }
+      mhd_osha_annual_summary_certify: {
+        Args: {
+          p_certifying_official_name: string
+          p_certifying_official_title: string
+          p_document_generation_id?: string
+          p_summary_id: string
+        }
+        Returns: undefined
+      }
+      mhd_osha_annual_summary_generate: {
+        Args: { p_calendar_year: number; p_establishment_id: string }
+        Returns: string
+      }
+      mhd_osha_establishment_upsert: {
+        Args: {
+          p_address_city?: string
+          p_address_state?: string
+          p_address_street?: string
+          p_address_zip?: string
+          p_average_employee_count?: number
+          p_company_id?: string
+          p_establishment_name?: string
+          p_id?: string
+          p_is_active?: boolean
+          p_naics_code?: string
+          p_total_hours_worked_ytd?: number
+        }
+        Returns: string
+      }
+      mhd_osha_ita_submission_queue: {
+        Args: { p_summary_id: string }
+        Returns: string
       }
       mhd_people_display_name: {
         Args: {
@@ -28336,6 +29753,41 @@ export type Database = {
         Args: { p_role_id: string; p_user_id: string }
         Returns: undefined
       }
+      mhd_safety_incident_create: {
+        Args: {
+          p_classification: string
+          p_company_id: string
+          p_date_of_incident: string
+          p_days_away_count?: number
+          p_days_restricted_or_transferred_count?: number
+          p_establishment_id: string
+          p_illness_type?: string
+          p_injury_illness_description: string
+          p_is_privacy_case?: boolean
+          p_job_title?: string
+          p_location_description?: string
+          p_non_employee_name?: string
+          p_person_id?: string
+          p_time_of_incident?: string
+          p_what_happened: string
+        }
+        Returns: string
+      }
+      mhd_safety_incident_update: {
+        Args: {
+          p_classification?: string
+          p_days_away_count?: number
+          p_days_restricted_or_transferred_count?: number
+          p_illness_type?: string
+          p_incident_id: string
+          p_injury_illness_description?: string
+          p_is_privacy_case?: boolean
+          p_job_title?: string
+          p_location_description?: string
+          p_what_happened?: string
+        }
+        Returns: undefined
+      }
       mhd_satisfy_compliance_deadline: {
         Args: { p_deadline_id: string; p_note?: string }
         Returns: undefined
@@ -28494,6 +29946,17 @@ export type Database = {
           match_rank: number
           reference_id: string
         }[]
+      }
+      mhd_search_legal_content: {
+        Args: {
+          p_jurisdiction_ids?: string[]
+          p_lanes?: string[]
+          p_limit?: number
+          p_offset?: number
+          p_query: string
+          p_topic_ids?: string[]
+        }
+        Returns: Json
       }
       mhd_search_notes: {
         Args: {

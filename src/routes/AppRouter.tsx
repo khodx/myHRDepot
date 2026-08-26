@@ -62,6 +62,10 @@ const MhdDashboardPage = lazyPage(
   () => import('@/features/dashboard/components/MhdDashboardPage'),
   'MhdDashboardPage',
 );
+const MhdLegalSearchPage = lazyPage(
+  () => import('@/features/legal-search/components/MhdLegalSearchPage'),
+  'MhdLegalSearchPage',
+);
 const MhdTasksPage = lazyPage(
   () => import('@/features/tasks/components/MhdTasksPage'),
   'MhdTasksPage',
@@ -368,6 +372,10 @@ const MhdCompensationClassificationWizard = lazyPage(
   () => import('@/features/compensation/components/MhdCompensationClassificationWizard'),
   'MhdCompensationClassificationWizard',
 );
+const MhdContractorClassificationWizard = lazyPage(
+  () => import('@/features/contractor-classification/components/MhdContractorClassificationWizard'),
+  'MhdContractorClassificationWizard',
+);
 const MhdCompetencyLibraryPage = lazyPage(
   () => import('@/features/jobs/components/MhdCompetencyLibraryPage'),
   'MhdCompetencyLibraryPage',
@@ -435,6 +443,14 @@ const MhdAccommodationCaseMessagesPage = lazyPage(
 const MhdAccommodationCaseCorrespondencePage = lazyPage(
   () => import('@/features/correspondence/components/MhdAccommodationCaseCorrespondencePage'),
   'MhdAccommodationCaseCorrespondencePage',
+);
+const MhdSafetyModulePage = lazyPage(
+  () => import('@/features/safety/components/MhdSafetyModulePage'),
+  'MhdSafetyModulePage',
+);
+const MhdOshaAnnualSummaryPage = lazyPage(
+  () => import('@/features/safety/components/MhdOshaAnnualSummaryPage'),
+  'MhdOshaAnnualSummaryPage',
 );
 const MhdInvestigationsPage = lazyPage(
   () => import('@/features/investigations/components/MhdInvestigationsPage'),
@@ -775,6 +791,7 @@ function MhdAppRoutes() {
                   never a filtered /jobs — see mhdRouteAccess. */}
                 <Route path="/jobs" element={<MhdJobsPage />} />
                 <Route path="/compensation" element={<MhdCompensationClassificationWizard />} />
+                <Route path="/contractor-classification" element={<MhdContractorClassificationWizard />} />
                 <Route path="/jobs/competencies" element={<MhdCompetencyLibraryPage />} />
                 <Route path="/jobs/disclaimers" element={<MhdJobDescriptionDisclaimersPage />} />
                 <Route path="/jobs/new" element={<MhdJobDescriptionWizard />} />
@@ -808,6 +825,15 @@ function MhdAppRoutes() {
                   element={<MhdAccommodationOptionCatalogPage />}
                 />
                 <Route path="/accommodations" element={<MhdAccommodationsPage />} />
+                <Route path="/legal-search" element={<MhdLegalSearchPage />} />
+                {/* Workplace Safety (MVP Module 03.31). /safety/:establishmentId/annual-summary
+                  must precede the general '/safety' rule per the established
+                  more-specific-path-before-general-path ordering convention. */}
+                <Route
+                  path="/safety/:establishmentId/annual-summary"
+                  element={<MhdOshaAnnualSummaryPage />}
+                />
+                <Route path="/safety" element={<MhdSafetyModulePage />} />
                 <Route
                   path="/accommodations/:caseId"
                   element={<MhdAccommodationCaseDetailPage />}

@@ -21,6 +21,14 @@ interface Props {
   canManage: boolean;
   /** Route to the wizard for a handbook (the create flow lands here on success). */
   onOpenHandbook: (handbookId: string) => void;
+  /**
+   * Pre-fills and auto-opens the create form — used by the Workplace Safety
+   * module's "Create or update Safety Handbook" cross-link
+   * (`/handbooks?handbookType=SAFETY&establishmentId=...`). This page only
+   * launches the existing create flow; it never duplicates any of its steps.
+   */
+  initialHandbookType?: MhdCreateHandbookFormValues['handbookType'];
+  initialEstablishmentId?: string | null;
 }
 
 /**
@@ -28,8 +36,14 @@ interface Props {
  * "New handbook" launches the wizard (create → assemble → publish). A company
  * keeps one live handbook per type at a time; archived ones remain for history.
  */
-export function MhdHandbookListPage({ companyId, canManage, onOpenHandbook }: Props) {
-  const [isCreating, setIsCreating] = useState(false);
+export function MhdHandbookListPage({
+  companyId,
+  canManage,
+  onOpenHandbook,
+  initialHandbookType,
+  initialEstablishmentId,
+}: Props) {
+  const [isCreating, setIsCreating] = useState(Boolean(initialHandbookType));
   const handbooks = useMhdHandbooks({ companyId });
   const createHandbook = useMhdCreateHandbook();
 
@@ -112,6 +126,8 @@ export function MhdHandbookListPage({ companyId, canManage, onOpenHandbook }: Pr
               onSubmit={handleCreate}
               onCancel={() => setIsCreating(false)}
               isSubmitting={createHandbook.isPending}
+              defaultHandbookType={initialHandbookType}
+              establishmentId={initialEstablishmentId}
             />
           </div>
         </div>

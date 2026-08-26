@@ -35,6 +35,7 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/attendance', 'time-leave'],
   ['/leaves', 'time-leave'],
   ['/accommodations', 'time-leave'],
+  ['/legal-search', 'work-tools'],
   ['/mileage', 'time-leave'],
   ['/performance', 'talent'], // includes /performance/invitations
   ['/recruiting', 'talent'], // includes /recruiting/eeo
@@ -52,6 +53,8 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/investigations', 'employee-relations'],
   ['/offboarding', 'employee-relations'],
   ['/audit-reports', 'employee-relations'],
+  ['/contractor-classification', 'employee-relations'],
+  ['/safety', 'employee-relations'],
   ['/tasks', 'work-tools'],
   ['/activities', 'work-tools'],
   ['/calendar', 'work-tools'],

@@ -260,6 +260,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
   },
   { path: '/compensation', roles: ['Platform Admin', 'HR Partner', 'HR Admin'] },
+  { path: '/contractor-classification', roles: ['Platform Admin', 'HR Partner', 'HR Admin'] },
   { path: '/my-job', roles: ['Employee', 'Manager', 'Supervisor', 'Lead'] },
   // Mileage & Reimbursement. A single tabbed route: Platform Admin / HR Partner /
   // Client Admin see the whole company plus the rate registry and company-rate
@@ -315,6 +316,25 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
       'Manager', 'Supervisor', 'Lead', 'Employee',
     ],
   },
+  // Legal & Regulatory Search. Stage 1 of the Legal & Regulatory Search
+  // Engine build (migration 0245) deliberately gated
+  // mhd_can_view_legal_search() to every current application role,
+  // including '3rd Party' and 'Viewer' — this is non-medical, non-case
+  // reference material (no PHI, no case data), the same category as
+  // /tasks, /checklists, and /my-policies above, which all use 'ALL'. This
+  // rule must match that decision exactly rather than reusing the
+  // narrower Leaves/Accommodations privileged-set pattern (which
+  // deliberately excludes Viewer/3rd Party because those ARE case-workflow
+  // tools) — a narrower frontend list here would block roles the backend
+  // RPC already admits.
+  { path: '/legal-search', roles: 'ALL' },
+  // Workplace Safety (OSHA/Cal-OSHA recordkeeping, MVP Module 03.31).
+  // Locked-in role set from the Workplace Safety master plan: Platform
+  // Admin, HR Partner, HR Admin, Client Admin only — no dedicated Safety
+  // role exists in the current 14-role model and none is invented here.
+  // Server-side mhd_can_view_safety_incident enforces the identical set;
+  // this is not the only enforcement, just the UI-affordance mirror.
+  { path: '/safety', roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin'] },
   // Investigations — the strictest access model in the platform. Route access
   // does NOT grant case visibility: reaching /investigations (and
   // /investigations/:caseId via the guard's prefix match) only lets a user

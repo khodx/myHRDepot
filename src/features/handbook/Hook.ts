@@ -16,6 +16,8 @@ import { mhdHandbookService } from './Service';
 
 export const mhdHandbookQueryKeys = {
   privileged: () => ['mhd-handbook', 'privileged'] as const,
+  safetyJurisdictions: (companyId: string | null, establishmentId: string | null) =>
+    ['mhd-handbook', 'safety-jurisdictions', companyId ?? '', establishmentId ?? ''] as const,
   sections: (filters: MhdHandbookSectionFilters) => ['mhd-handbook', 'sections', filters] as const,
   handbooks: (filters: MhdHandbookListFilters) => ['mhd-handbook', 'handbooks', filters] as const,
   preview: (handbookId: string | null) => ['mhd-handbook', 'preview', handbookId ?? ''] as const,
@@ -38,6 +40,24 @@ export function useMhdHandbookIsPrivileged() {
   return useQuery({
     queryKey: mhdHandbookQueryKeys.privileged(),
     queryFn: () => mhdHandbookService.isPrivileged(),
+  });
+}
+
+/**
+ * The SAFETY content pack's real, computed jurisdiction set for a company
+ * (optionally narrowed to one establishment) — see
+ * `mhdHandbookService.safetyJurisdictions`. Only enabled when `companyId` is
+ * present; the caller falls back to the static jurisdiction list when this
+ * returns an empty array (no `osha_establishments` rows yet).
+ */
+export function useMhdHandbookSafetyJurisdictions(
+  companyId: string | null,
+  establishmentId?: string | null,
+) {
+  return useQuery({
+    queryKey: mhdHandbookQueryKeys.safetyJurisdictions(companyId, establishmentId ?? null),
+    queryFn: () => mhdHandbookService.safetyJurisdictions(companyId!, establishmentId),
+    enabled: Boolean(companyId),
   });
 }
 

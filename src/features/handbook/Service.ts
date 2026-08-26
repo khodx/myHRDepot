@@ -182,6 +182,24 @@ export const mhdHandbookService = {
     return Boolean(data);
   },
 
+  /**
+   * The SAFETY content pack's real, computed jurisdiction set
+   * (`FED_OSHA`/`CAL_OSHA`), sourced from the Workplace Safety module's
+   * `mhd_compute_osha_thresholds` rather than the static
+   * `MHD_HANDBOOK_JURISDICTIONS_BY_TYPE.SAFETY` constant. Returns an empty
+   * array when the company has no `osha_establishments` rows yet (or none
+   * currently meet a threshold) — the caller falls back to the static list
+   * with a visible note in that case; this never blocks handbook creation.
+   */
+  async safetyJurisdictions(companyId: string, establishmentId?: string | null): Promise<string[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_handbook_safety_jurisdictions', {
+      p_company_id: companyId,
+      p_establishment_id: establishmentId ?? undefined,
+    });
+    if (error) throw new Error(`Unable to load Safety Handbook jurisdictions: ${error.message}`);
+    return (data ?? []) as string[];
+  },
+
   // ----- Library / assembly -----
 
   /**

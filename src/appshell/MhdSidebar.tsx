@@ -28,6 +28,7 @@ import {
   FolderOpen,
   Gavel,
   GraduationCap,
+  HardHat,
   IdCard,
   LayoutDashboard,
   Library,
@@ -418,6 +419,16 @@ export const NAV_SECTIONS: NavSection[] = [
         roles: mhdRouteRoles('/offboarding'),
         status: mhdRouteStatus('/offboarding'),
       },
+      // Platform Admin / HR Partner / HR Admin / Client Admin only (the
+      // Workplace Safety master plan's locked-in role set) — no dedicated
+      // Safety role exists in the current 14-role model.
+      {
+        label: 'Workplace Safety',
+        description: 'OSHA/Cal-OSHA recordkeeping: incidents and the annual 300A summary.',
+        route: '/safety',
+        icon: HardHat,
+        roles: mhdRouteRoles('/safety'),
+      },
       // Platform Admin / HR Partner only — same strictly-gated,
       // no-subject-facing precedent as Conduct/Investigations above. The
       // audit trail it reads (mhd_list_audit_events) spans every task,
@@ -429,6 +440,13 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/audit-reports',
         icon: FileSearch,
         roles: mhdRouteRoles('/audit-reports'),
+      },
+      {
+        label: 'Contractor Classification',
+        description: 'Evaluate worker-classification compliance recommendations.',
+        route: '/contractor-classification',
+        icon: Scale,
+        roles: mhdRouteRoles('/contractor-classification'),
       },
     ],
   },
