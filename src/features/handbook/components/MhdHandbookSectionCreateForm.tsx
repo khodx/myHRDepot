@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdCreateHandbookSectionSchema, type MhdCreateHandbookSectionFormValues } from '../Schemas';
 import {
   MHD_HANDBOOK_ATTORNEY_PLACEHOLDER,
@@ -100,7 +101,7 @@ export function MhdHandbookSectionCreateForm({
         <input type="hidden" value={companyId} {...register('companyId')} readOnly />
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="handbookType" className="block text-sm font-medium text-foreground">
             Handbook type
@@ -140,7 +141,7 @@ export function MhdHandbookSectionCreateForm({
             <p className="mt-1 text-xs text-rose-600">{errors.jurisdiction.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label htmlFor="sectionKey" className="block text-sm font-medium text-foreground">
@@ -190,7 +191,7 @@ export function MhdHandbookSectionCreateForm({
         ) : null}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <MhdFormFieldStack>
         <label className="flex items-center gap-2 text-sm text-foreground">
           <input type="checkbox" {...register('isRequired')} className="h-4 w-4 rounded border-border" />
           Required (auto-includes on assembly)
@@ -210,7 +211,7 @@ export function MhdHandbookSectionCreateForm({
             <p className="mt-1 text-xs text-rose-600">{errors.sortOrder.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div className="flex justify-end gap-2 pt-2">
         <Button variant="secondary" onClick={onCancel}>

@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { useMhdHandbookSafetyJurisdictions } from '../Hook';
 import { mhdCreateHandbookSchema, type MhdCreateHandbookFormValues } from '../Schemas';
 import {
@@ -136,7 +137,7 @@ export function MhdHandbookCreateForm({
           control={control}
           name="jurisdictions"
           render={({ field }) => (
-            <div className="mt-2 grid grid-cols-2 gap-2">
+            <MhdFormFieldStack className="mt-2">
               {jurisdictionChoices.map((jurisdiction) => {
                 const checked = field.value.includes(jurisdiction);
                 return (
@@ -160,7 +161,7 @@ export function MhdHandbookCreateForm({
                   </label>
                 );
               })}
-            </div>
+            </MhdFormFieldStack>
           )}
         />
         {errors.jurisdictions ? (

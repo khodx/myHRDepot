@@ -108,7 +108,7 @@ describe('MhdCompensationClassificationWizard', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: 'Exemption category' }), 'PROFESSIONAL');
     await user.type(screen.getByRole('spinbutton', { name: 'Weekly salary' }), '1000');
 
-    expect(screen.queryByLabelText(/License or certification name/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/License or certification name/)).toBeInTheDocument();
     await user.click(screen.getByRole('checkbox', { name: /legally requires a professional license/ }));
     await user.type(screen.getByLabelText(/License or certification name/), 'California Bar');
 

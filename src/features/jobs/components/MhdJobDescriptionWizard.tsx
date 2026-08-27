@@ -9,6 +9,8 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { Button } from '@/components/ui/Button';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdExternalDataAttribution } from '@/components/ui/MhdExternalDataAttribution';
 import { MhdRichTextEditor, MhdRichTextRenderer } from '@/components/ui/MhdRichText';
@@ -328,7 +330,7 @@ export function MhdJobDescriptionWizard() {
 }
 
 function Basics({ job, updateJob, fieldError }: JobStepProps) {
-  return <div className="grid grid-cols-2 gap-3">
+  return <MhdFormFieldStack>
     <Field label="Job title" id="wizard-jobTitle" error={fieldError?.field === 'jobTitle' ? fieldError.message : undefined}><input id="wizard-jobTitle" value={job.jobTitle} onChange={(e) => updateJob('jobTitle', e.target.value)} className={inputClasses} /></Field>
     <Field label="Job code" id="wizard-jobCode"><input id="wizard-jobCode" value={job.jobCode} onChange={(e) => updateJob('jobCode', e.target.value)} className={inputClasses} /></Field>
     <Field label="Job family" id="wizard-jobFamily"><input id="wizard-jobFamily" value={job.jobFamily} onChange={(e) => updateJob('jobFamily', e.target.value)} className={inputClasses} /></Field>
@@ -337,7 +339,7 @@ function Basics({ job, updateJob, fieldError }: JobStepProps) {
     <SelectField label="Employment type" id="wizard-employmentType" value={job.employmentType} onChange={(e) => updateJob('employmentType', e.target.value as MhdEmploymentType)} options={MHD_EMPLOYMENT_TYPES.map((v) => [v, mhdFormatEmploymentType(v)] as const)} />
     <SelectField label="Industry" id="wizard-industry" value={job.industry} onChange={(e) => updateJob('industry', e.target.value as MhdIndustry)} options={MHD_INDUSTRIES.map((v) => [v, mhdFormatIndustry(v)] as const)} />
     <label className="flex items-center gap-2 self-end text-sm text-foreground"><input type="checkbox" checked={job.isSafetySensitive} onChange={(e) => updateJob('isSafetySensitive', e.target.checked)} />Safety-sensitive role</label>
-  </div>;
+  </MhdFormFieldStack>;
 }
 
 function Soc({ job, updateJob, fieldError }: JobStepProps) {
@@ -374,21 +376,21 @@ function Soc({ job, updateJob, fieldError }: JobStepProps) {
         )) : <p className="px-2 py-1 text-sm text-muted-foreground">No O*NET occupations matched.</p>}
       </div> : null}
     </div>
-    <div className="grid grid-cols-2 gap-3">
+    <MhdFormFieldStack>
       <Field label="O*NET-SOC Code" id="wizard-onetSocCode" error={fieldError?.field === 'onetSocCode' ? fieldError.message : undefined}><input id="wizard-onetSocCode" placeholder="e.g. 53-3032.00" value={job.onetSocCode} onChange={(e) => updateJob('onetSocCode', e.target.value)} className={inputClasses} /></Field>
       <SelectField label="CA Wage Order Classification" id="wizard-caWageOrder" value={job.caWageOrderClassification} onChange={(e) => updateJob('caWageOrderClassification', e.target.value as MhdCaWageOrderClassification | '')} options={[['', 'Unclassified'] as const, ...MHD_CA_WAGE_ORDER_CLASSIFICATIONS.map((v) => [v, mhdFormatCaWageOrderClassification(v)] as const)]} />
-    </div>
+    </MhdFormFieldStack>
   </div>;
 }
 
 function Pay({ job, updateJob, fieldError }: JobStepProps) {
   const classificationLocked = job.flsaClassificationSource === 'CLASSIFICATION_WIZARD';
-  return <div className="grid grid-cols-2 gap-3">
+  return <MhdFormFieldStack>
     <Field label="Pay minimum" id="wizard-payMin" error={fieldError?.field === 'payMin' ? fieldError.message : undefined}><input id="wizard-payMin" type="number" min="0" value={job.payMin ?? ''} onChange={(e) => updateJob('payMin', e.target.value === '' ? null : Number(e.target.value))} className={inputClasses} /></Field>
     <Field label="Pay maximum" id="wizard-payMax" error={fieldError?.field === 'payMax' ? fieldError.message : undefined}><input id="wizard-payMax" type="number" min="0" value={job.payMax ?? ''} onChange={(e) => updateJob('payMax', e.target.value === '' ? null : Number(e.target.value))} className={inputClasses} /></Field>
     <SelectField label="Pay period" id="wizard-payPeriod" value={job.payPeriod} onChange={(e) => updateJob('payPeriod', e.target.value as MhdPayPeriod | '')} options={[['', 'No pay range'] as const, ...MHD_PAY_PERIODS.map((v) => [v, v === 'HOURLY' ? 'Hourly' : 'Annual'] as const)]} error={fieldError?.field === 'payPeriod' ? fieldError.message : undefined} />
     <div><SelectField label="FLSA classification" id="wizard-flsa" value={job.flsaClassification} onChange={(e) => updateJob('flsaClassification', e.target.value as MhdFlsaClassification | '')} options={[['', 'Not yet classified'] as const, ...MHD_FLSA_CLASSIFICATIONS.map((v) => [v, mhdFormatFlsa(v)] as const)]} disabled={classificationLocked} />{classificationLocked ? <p className="mt-1 text-xs text-muted-foreground">Set by a confirmed classification determination. <Link to="/compensation" className="underline">Review in Classification Wizard</Link></p> : null}</div>
-  </div>;
+  </MhdFormFieldStack>;
 }
 
 function SelectField({ label, id, value, onChange, options, error, disabled }: SelectFieldProps & { disabled?: boolean }) { return <Field label={label} id={id} error={error}><select id={id} value={value} onChange={onChange} disabled={disabled} className={inputClasses}>{options.map(([v, text]) => <option key={v} value={v}>{text}</option>)}</select></Field>; }
@@ -435,4 +437,4 @@ function Duties({ summary, onetSocCode, setSummary, physicalRequirements, educat
 
 function CompetencyList({ data, selected, setSelected }: CompetencyListProps) { return <div><h2 className="text-sm font-medium text-foreground">Select competencies</h2><div className="mt-2 space-y-2">{data.length ? data.map((c) => <label key={c.id} className="flex items-start gap-2 text-sm"><input type="checkbox" checked={selected.includes(c.id)} onChange={(e) => setSelected((p) => e.target.checked ? [...p, c.id] : p.filter((id) => id !== c.id))} /><span><span className="font-medium">{c.competencyName}</span>{c.description ? <span className="block text-muted-foreground">{c.description}</span> : null}</span></label>) : <p className="text-sm text-muted-foreground">No competencies available for this industry.</p>}</div></div>; }
 
-function Review({ job, summary, functions, qualifications, selectedCompetencyIds, gate }: ReviewProps) { const pay = { payMin: job.payMin, payMax: job.payMax, payPeriod: job.payPeriod || null }; return <div className="space-y-3 text-sm"><h2 className="font-medium text-foreground">Review and publish</h2><dl className="grid grid-cols-2 gap-2"><dt>Job title</dt><dd className="font-medium">{job.jobTitle}</dd><dt>Employment</dt><dd>{mhdFormatEmploymentType(job.employmentType)}</dd><dt>Industry</dt><dd>{mhdFormatIndustry(job.industry)}</dd><dt>Pay range</dt><dd>{mhdFormatPayRange(pay) ?? 'Not set'}</dd><dt>Functions</dt><dd>{functions.filter((f) => f.functionText.trim()).length}</dd><dt>Qualifications</dt><dd>{qualifications.filter((q) => q.qualificationText.trim()).length}</dd><dt>Competencies</dt><dd>{selectedCompetencyIds.length}</dd></dl>{summary ? <MhdRichTextRenderer html={summary} className="text-muted-foreground" /> : <p className="text-muted-foreground">No summary added.</p>}{!gate.ok ? <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{gate.reason}</p> : null}</div>; }
+function Review({ job, summary, functions, qualifications, selectedCompetencyIds, gate }: ReviewProps) { const pay = { payMin: job.payMin, payMax: job.payMax, payPeriod: job.payPeriod || null }; return <div className="space-y-3 text-sm"><h2 className="font-medium text-foreground">Review and publish</h2><MhdFormFieldStack><MhdDetailField label="Job title" value={job.jobTitle} /><MhdDetailField label="Employment" value={mhdFormatEmploymentType(job.employmentType)} /><MhdDetailField label="Industry" value={mhdFormatIndustry(job.industry)} /><MhdDetailField label="Pay range" value={mhdFormatPayRange(pay)} /><MhdDetailField label="Functions" value={functions.filter((f) => f.functionText.trim()).length} /><MhdDetailField label="Qualifications" value={qualifications.filter((q) => q.qualificationText.trim()).length} /><MhdDetailField label="Competencies" value={selectedCompetencyIds.length} /></MhdFormFieldStack>{summary ? <MhdRichTextRenderer html={summary} className="text-muted-foreground" /> : <p className="text-muted-foreground">No summary added.</p>}{!gate.ok ? <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{gate.reason}</p> : null}</div>; }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -108,9 +109,9 @@ function DeterminationCard({
         {confirmed ? <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-900">Recorded</span> : null}
       </div>
       <p><strong>Recommendation:</strong> {determination.evaluatedOutcome}</p>
-      <dl className="grid gap-2 text-sm sm:grid-cols-2">
+      <MhdFormFieldStack>
         {Object.entries(determination.findings).map(([key, value]) => <div key={key}><dt className="font-medium">{key}</dt><dd>{formatFinding(value)}</dd></div>)}
-      </dl>
+      </MhdFormFieldStack>
       {privileged && !confirmed ? <div className="space-y-2">
         <div className="flex flex-wrap gap-2">
           <button type="button" className={`${buttonBaseClasses} ${buttonVariantClasses.secondary}`} onClick={() => void save()}>Confirm recommendation</button>
@@ -178,14 +179,14 @@ export function MhdContractorClassificationWizard() {
     <MhdComplianceGateBanner readiness={readiness.data} />
     {error ? <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">{error}</p> : null}
     <section className="space-y-5 rounded-lg border border-border bg-card p-5">
-      {step === 0 ? <div className="grid gap-4 md:grid-cols-2">
+      {step === 0 ? <MhdFormFieldStack>
         <label className="block text-sm font-medium">Engagement label<input className={inputClass} value={engagementLabel} onChange={(event) => setEngagementLabel(event.target.value)} placeholder="e.g. Marketing consultant" /></label>
         <label className="block text-sm font-medium">Person (optional)<select className={inputClass} value={personId} onChange={(event) => setPersonId(event.target.value)}><option value="">No person selected</option>{(people.data ?? []).map((person) => <option key={person.id} value={person.id}>{[person.firstName, person.lastName].filter(Boolean).join(' ') || person.id}</option>)}</select></label>
         <label className="block text-sm font-medium">As-of date<input className={inputClass} type="date" value={asOfDate} onChange={(event) => setAsOfDate(event.target.value)} /></label>
         <label className="block text-sm font-medium">California AB 5 exemption<select className={inputClass} value={selectedCaExemptionId} onChange={(event) => setSelectedCaExemptionId(event.target.value)}><option value="">None apply — evaluate CA ABC</option>{(exemptions.data ?? []).map((category) => <option key={category.id} value={category.id}>{category.categoryLabel} ({category.citation})</option>)}</select></label>
-      </div> : null}
-      {step === 1 ? <div className="space-y-5">{factorGroups.map((group) => <fieldset key={group.testKey} className="space-y-3 rounded-md border border-border p-4"><legend className="px-1 font-semibold">{group.title}</legend>{group.factors.map(([key, label]) => <label key={key} className="grid gap-2 text-sm sm:grid-cols-[1fr_12rem] sm:items-center"><span>{label}</span><select className={inputClass} value={facts[key]} onChange={(event) => setFacts((current) => ({ ...current, [key]: event.target.value as FactorValue }))}>{factorValues.map((value) => <option key={value}>{value}</option>)}</select></label>)}</fieldset>)}</div> : null}
-      {step === 2 || step === 3 ? <div className="grid gap-4 lg:grid-cols-2">{results.map((determination) => <DeterminationCard key={determination.determinationId} determination={determination} privileged={privileged} confirmed={confirmedIds.has(determination.determinationId)} onConfirm={confirmOne} />)}</div> : null}
+      </MhdFormFieldStack> : null}
+      {step === 1 ? <div className="space-y-5">{factorGroups.map((group) => <fieldset key={group.testKey} className="space-y-3 rounded-md border border-border p-4"><legend className="px-1 font-semibold">{group.title}</legend>{group.factors.map(([key, label]) => <label key={key} className="space-y-2 text-sm"><span>{label}</span><select className={inputClass} value={facts[key]} onChange={(event) => setFacts((current) => ({ ...current, [key]: event.target.value as FactorValue }))}>{factorValues.map((value) => <option key={value}>{value}</option>)}</select></label>)}</fieldset>)}</div> : null}
+      {step === 2 || step === 3 ? <MhdFormFieldStack>{results.map((determination) => <DeterminationCard key={determination.determinationId} determination={determination} privileged={privileged} confirmed={confirmedIds.has(determination.determinationId)} onConfirm={confirmOne} />)}</MhdFormFieldStack> : null}
       {step === 2 && !results.length ? <p className="text-sm text-muted-foreground">Run the evaluation to see the federal and California recommendations.</p> : null}
       <MhdStepper steps={steps} currentStepIndex={step} onNavigate={(nextStep) => void navigate(nextStep)} validateCurrentStep={validate} onSubmit={() => void navigate(3)} isSubmitting={evaluate.isPending || confirm.isPending} />
     </section>

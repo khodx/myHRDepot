@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { mhdUpdateHandbookSectionSchema, type MhdUpdateHandbookSectionFormValues } from '../Schemas';
 import type { MhdHandbookSection } from '../Types';
 
@@ -39,20 +41,11 @@ export function MhdHandbookSectionEditForm({ section, onSubmit, onCancel, isSubm
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <input type="hidden" {...register('sectionId')} readOnly />
 
-      <dl className="grid gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground sm:grid-cols-3">
-        <div>
-          <dt className="font-medium text-foreground">Key</dt>
-          <dd className="font-mono">{section.sectionKey}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-foreground">Type</dt>
-          <dd>{section.handbookType}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-foreground">Jurisdiction</dt>
-          <dd>{section.jurisdiction}</dd>
-        </div>
-      </dl>
+      <MhdFormFieldStack className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+        <MhdDetailField label="Key" value={section.sectionKey} className="font-mono" />
+        <MhdDetailField label="Type" value={section.handbookType} />
+        <MhdDetailField label="Jurisdiction" value={section.jurisdiction} />
+      </MhdFormFieldStack>
 
       <div>
         <label htmlFor="edit-title" className="block text-sm font-medium text-foreground">
@@ -85,7 +78,7 @@ export function MhdHandbookSectionEditForm({ section, onSubmit, onCancel, isSubm
         ) : null}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <MhdFormFieldStack>
         <label className="flex items-center gap-2 text-sm text-foreground">
           <input type="checkbox" {...register('isRequired')} className="h-4 w-4 rounded border-border" />
           Required
@@ -110,7 +103,7 @@ export function MhdHandbookSectionEditForm({ section, onSubmit, onCancel, isSubm
             <p className="mt-1 text-xs text-rose-600">{errors.sortOrder.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div className="flex justify-end gap-2 pt-2">
         <Button variant="secondary" onClick={onCancel}>
