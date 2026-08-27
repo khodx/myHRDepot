@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdNextPreferredName } from '@/components/ui/MhdPersonIdentityFields';
 import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import type { MhdCompany } from '@/features/companies/Types';
@@ -148,8 +149,8 @@ export function MhdPersonForm({
         </h2>
       </div>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <div className="sm:col-span-2">
+      <MhdFormFieldStack className="mt-5">
+        <div>
           <MhdPersonCompanySelect
             companies={companies}
             value={values.companyId}
@@ -225,7 +226,7 @@ export function MhdPersonForm({
             emptyMessage="No people match your search."
           />
         </label>
-      </div>
+      </MhdFormFieldStack>
 
       {formError ? (
         <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p>

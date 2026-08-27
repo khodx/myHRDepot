@@ -1,23 +1,13 @@
 import { Button } from '@/components/ui/Button';
 import { MhdAvatar } from '@/components/ui/MhdAvatar';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import type { MhdPerson } from '@/features/people/Types';
 import { MhdPersonContactMethods } from './MhdPersonContactMethods';
 
 interface MhdPersonDetailsPanelProps {
   person: MhdPerson | null;
   onEdit: () => void;
-}
-
-function MhdDetailRow({ label, value }: { label: string; value: string | null | undefined }) {
-  return (
-    <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-sm text-foreground">
-        {value && value.length > 0 ? value : 'Not provided'}
-      </dd>
-    </div>
-  );
 }
 
 export function MhdPersonDetailsPanel({ person, onEdit }: MhdPersonDetailsPanelProps) {
@@ -44,15 +34,15 @@ export function MhdPersonDetailsPanel({ person, onEdit }: MhdPersonDetailsPanelP
         </Button>
       </div>
       <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-        <MhdDetailRow label="Company" value={person.companyName} />
-        <MhdDetailRow label="Manager" value={person.managerDisplayName} />
-        <MhdDetailRow label="First name" value={person.firstName} />
-        <MhdDetailRow label="Middle name" value={person.middleName} />
-        <MhdDetailRow label="Last name" value={person.lastName} />
-        <MhdDetailRow label="Preferred name" value={person.preferredName} />
-        <MhdDetailRow label="Email" value={person.primaryEmail} />
-        <MhdDetailRow label="Phone" value={person.primaryPhone} />
-        <MhdDetailRow label="Mobile" value={person.primaryMobile} />
+        <MhdDetailField label="Company" value={person.companyName} />
+        <MhdDetailField label="Manager" value={person.managerDisplayName} />
+        <MhdDetailField label="First name" value={person.firstName} />
+        <MhdDetailField label="Middle name" value={person.middleName} />
+        <MhdDetailField label="Last name" value={person.lastName} />
+        <MhdDetailField label="Preferred name" value={person.preferredName} />
+        <MhdDetailField label="Email" value={person.primaryEmail} />
+        <MhdDetailField label="Phone" value={person.primaryPhone} />
+        <MhdDetailField label="Mobile" value={person.primaryMobile} />
       </dl>
       <p className="mt-4 text-xs text-muted-foreground">
         Showing the primary email/phone/mobile only. A person may have additional contact methods —
