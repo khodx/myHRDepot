@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdActivities, useMhdActivityActions } from '@/features/activities/Hook';
 import type { MhdActivityBoardFilters, MhdActivityStatus } from '@/features/activities/Types';
@@ -121,7 +122,7 @@ export function MhdOneOnOneTab({ companyId, currentUserId, canMutate, people }: 
           className="space-y-3 rounded-lg border border-border bg-card p-4 shadow-sm"
           onSubmit={handleQuickCreate}
         >
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <MhdFormFieldStack>
             <div>
               <label htmlFor="mhd-one-on-one-title" className="mb-1 block text-sm font-medium">
                 Title
@@ -146,7 +147,7 @@ export function MhdOneOnOneTab({ companyId, currentUserId, canMutate, people }: 
                 className="w-full rounded border px-3 py-2 text-sm"
               />
             </div>
-          </div>
+          </MhdFormFieldStack>
           {personId === 'ALL' ? (
             <p className="text-xs text-amber-700">
               Select a person above — one-on-ones are person-centered.

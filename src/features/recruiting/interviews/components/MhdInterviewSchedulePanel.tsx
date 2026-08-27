@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
@@ -94,7 +95,7 @@ export function MhdInterviewSchedulePanel({ companyId, applicationId, guideId = 
         <input type="hidden" {...register('applicationId')} readOnly />
         <input type="hidden" {...register('guideId')} readOnly />
 
-        <div className="grid grid-cols-3 gap-4">
+        <MhdFormFieldStack>
           <div>
             <label
               htmlFor="interviewerPersonId"
@@ -149,7 +150,7 @@ export function MhdInterviewSchedulePanel({ companyId, applicationId, guideId = 
               )}
             />
           </div>
-        </div>
+        </MhdFormFieldStack>
 
         <div className="flex justify-end">
           <Button type="submit" disabled={createInterview.isPending}>

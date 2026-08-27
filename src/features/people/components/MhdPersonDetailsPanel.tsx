@@ -33,7 +33,7 @@ export function MhdPersonDetailsPanel({ person, onEdit }: MhdPersonDetailsPanelP
           Edit
         </Button>
       </div>
-      <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+      <dl className="mt-5 space-y-4">
         <MhdDetailField label="Company" value={person.companyName} />
         <MhdDetailField label="Manager" value={person.managerDisplayName} />
         <MhdDetailField label="First name" value={person.firstName} />

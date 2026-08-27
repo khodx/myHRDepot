@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
@@ -92,7 +93,7 @@ function CaseBasicsStep({
 }) {
   return (
     <MhdCard>
-      <div className="grid gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <Field label="Subject person">
           <select className={inputClassName} value={value.personId} onChange={(e) => onChange({ ...value, personId: e.target.value })}>
             <option value="">Select a person</option>
@@ -114,7 +115,7 @@ function CaseBasicsStep({
         </Field>
         <Field label="Requested start (optional)"><MhdDateField className={inputClassName} value={value.requestedStart} onChange={(nextValue) => onChange({ ...value, requestedStart: nextValue })} /></Field>
         <Field label="Requested end (optional)"><MhdDateField className={inputClassName} value={value.requestedEnd} onChange={(nextValue) => onChange({ ...value, requestedEnd: nextValue })} /></Field>
-      </div>
+      </MhdFormFieldStack>
     </MhdCard>
   );
 }
@@ -127,7 +128,7 @@ function FactsStep({ value, onChange }: { value: FactsState; onChange: (next: Fa
   );
   return (
     <MhdCard>
-      <div className="grid gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         {numberField('Employer employee count', 'employerEmployeeCount')}
         {numberField('Months of service', 'monthsOfService')}
         {numberField('Hours worked in last 12 months', 'hoursWorked12Months')}
@@ -135,7 +136,7 @@ function FactsStep({ value, onChange }: { value: FactsState; onChange: (next: Fa
         {numberField('Scheduled weekly hours', 'scheduledWeeklyHours')}
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={value.designatedPersonSelected} onChange={(e) => onChange({ ...value, designatedPersonSelected: e.target.checked })} /> Designated person selected</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={value.coveredEmployerOverride} onChange={(e) => onChange({ ...value, coveredEmployerOverride: e.target.checked })} /> Apply covered-employer override</label>
-      </div>
+      </MhdFormFieldStack>
     </MhdCard>
   );
 }

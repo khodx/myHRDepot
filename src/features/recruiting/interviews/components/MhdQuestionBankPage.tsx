@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMemo, useState } from 'react';
@@ -154,7 +155,7 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
               ) : null}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <MhdFormFieldStack>
               <div>
                 <label htmlFor="categoryId" className="block text-sm font-medium text-foreground">
                   Category
@@ -191,9 +192,9 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
                   <p className="mt-1 text-xs text-rose-600">{errors.questionKey.message}</p>
                 ) : null}
               </div>
-            </div>
+            </MhdFormFieldStack>
 
-            <div className="grid grid-cols-3 gap-4">
+            <MhdFormFieldStack>
               <div>
                 <label htmlFor="scope" className="block text-sm font-medium text-foreground">
                   Scope
@@ -246,7 +247,7 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
                   ))}
                 </select>
               </div>
-            </div>
+            </MhdFormFieldStack>
 
             <div>
               <label htmlFor="guidance" className="block text-sm font-medium text-foreground">
@@ -262,7 +263,7 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <MhdFormFieldStack>
               <div>
                 <label
                   htmlFor="complianceStatus"
@@ -299,7 +300,7 @@ export function MhdQuestionBankPage({ companyId, canManage, competencies = [] }:
                   className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </div>
-            </div>
+            </MhdFormFieldStack>
 
             <div className="flex justify-end">
               <Button type="submit" disabled={createQuestion.isPending}>

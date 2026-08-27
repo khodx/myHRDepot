@@ -3,6 +3,7 @@ import { Lock, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { mhdActivityFormSchema, type MhdActivityFormSchemaInput } from '@/features/activities/Schemas';
@@ -128,7 +129,7 @@ export function MhdActivityForm({
       className="space-y-4"
       onSubmit={handleSubmit((data) => onSubmit(data, checklistTitles))}
     >
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="activityType" className="mb-1 block text-sm font-medium">
             Type
@@ -166,7 +167,7 @@ export function MhdActivityForm({
             ))}
           </select>
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label htmlFor="title" className="mb-1 block text-sm font-medium">
@@ -198,7 +199,7 @@ export function MhdActivityForm({
         </select>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="scheduledAt" className="mb-1 block text-sm font-medium">
             Scheduled Date &amp; Time
@@ -221,9 +222,9 @@ export function MhdActivityForm({
             {...register('location')}
           />
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="linkLabel" className="mb-1 block text-sm font-medium">
             Link Title
@@ -253,7 +254,7 @@ export function MhdActivityForm({
             <p className="mt-1 text-xs text-red-600">{errors.linkUrl.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div className="rounded-md border border-border p-3">
         <label className="flex items-start gap-2 text-sm">

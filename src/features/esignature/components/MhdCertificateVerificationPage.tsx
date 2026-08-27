@@ -4,6 +4,8 @@ import { CheckCircle2, CircleAlert, ShieldCheck } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { cn } from '@/utils/cn';
 import { mhdEsignatureService } from '../Service';
 import type { MhdAuditCertificateVerification } from '../Types';
@@ -101,39 +103,14 @@ export function MhdCertificateVerificationPage() {
         ) : null}
 
         {!loadError && isValid && result ? (
-          <div className="mt-6 grid gap-4 rounded-2xl border border-border bg-muted p-4 text-sm text-foreground sm:grid-cols-2">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Entity Type
-              </p>
-              <p className="mt-2">{result.entityType ?? 'Unavailable'}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Status
-              </p>
-              <p className="mt-2">{result.status ?? 'Unavailable'}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Generated
-              </p>
-              <p className="mt-2">
-                {result.generatedAt ? new Date(result.generatedAt).toLocaleString() : 'Unavailable'}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Authenticity
-              </p>
-              <div className="mt-2 flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-accent" />
-                <MhdBadge variant={result.digitallySigned ? 'success' : 'warning'}>
-                  {result.digitallySigned ? 'Digitally signed' : 'Hash-verified only'}
-                </MhdBadge>
-              </div>
-            </div>
-          </div>
+          <dl className="mt-6 rounded-2xl border border-border bg-muted p-4">
+            <MhdFormFieldStack>
+              <MhdDetailField label="Entity type" value={result.entityType} />
+              <MhdDetailField label="Status" value={result.status} />
+              <MhdDetailField label="Generated" value={result.generatedAt ? new Date(result.generatedAt).toLocaleString() : undefined} />
+              <MhdDetailField label="Authenticity" value={<span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-accent" /><MhdBadge variant={result.digitallySigned ? 'success' : 'warning'}>{result.digitallySigned ? 'Digitally signed' : 'Hash-verified only'}</MhdBadge></span>} />
+            </MhdFormFieldStack>
+          </dl>
         ) : null}
 
         {!loadError && !isValid ? (

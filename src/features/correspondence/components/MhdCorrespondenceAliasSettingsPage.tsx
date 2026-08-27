@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
@@ -126,7 +127,7 @@ export function MhdCorrespondenceAliasSettingsPage() {
             onSubmit={handleSubmit(submitAlias)}
             className="space-y-4 rounded-md border border-border bg-muted p-4"
           >
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <MhdFormFieldStack>
               <div>
                 <label htmlFor="companyId" className="block text-sm font-medium text-foreground">
                   Company
@@ -202,7 +203,7 @@ export function MhdCorrespondenceAliasSettingsPage() {
                 <input type="checkbox" {...register('isPrimary')} className="h-4 w-4" />
                 Primary alias
               </label>
-            </div>
+            </MhdFormFieldStack>
 
             {companiesQuery.isError || mailboxesQuery.isError || createAlias.isError ? (
               <p className="text-sm text-rose-600">

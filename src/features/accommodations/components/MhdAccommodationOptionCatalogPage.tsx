@@ -35,6 +35,7 @@ interface NewEntryDraft {
   sortOrder: string;
   isGlobal: boolean;
 }
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 
 const EMPTY_DRAFT: NewEntryDraft = {
   optionType: '',
@@ -200,7 +201,7 @@ export function MhdAccommodationOptionCatalogPage() {
       {creating && companyId ? (
         <MhdCard className="space-y-3">
           <MhdCardHeader title="Add a catalog entry" />
-          <div className="grid gap-3 md:grid-cols-2">
+          <MhdFormFieldStack>
             <label className="text-sm font-medium">
               Option type / title
               <input
@@ -231,7 +232,7 @@ export function MhdAccommodationOptionCatalogPage() {
                 ))}
               </select>
             </label>
-          </div>
+          </MhdFormFieldStack>
           <label className="block text-sm font-medium">
             Description template
             <textarea
@@ -243,7 +244,7 @@ export function MhdAccommodationOptionCatalogPage() {
               placeholder="A starting description a case can copy and edit for the specific employee/role."
             />
           </label>
-          <div className="grid gap-3 md:grid-cols-2">
+          <MhdFormFieldStack>
             <label className="text-sm font-medium">
               Typical cost range{' '}
               <span className="font-normal text-muted-foreground">(optional)</span>
@@ -267,12 +268,12 @@ export function MhdAccommodationOptionCatalogPage() {
                 }
               />
             </label>
-          </div>
+          </MhdFormFieldStack>
           <fieldset>
             <legend className="text-sm font-medium">
               Functional limitations addressed (optional)
             </legend>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <MhdFormFieldStack className="mt-2">
               {MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS.map((tag) => (
                 <label key={tag} className="flex items-center gap-2 text-sm">
                   <input
@@ -290,7 +291,7 @@ export function MhdAccommodationOptionCatalogPage() {
                   {mhdFormatAccommodationValue(tag)}
                 </label>
               ))}
-            </div>
+            </MhdFormFieldStack>
           </fieldset>
           {isPlatformAdminOrHrPartner ? (
             <label className="flex items-center gap-2 text-sm">
@@ -422,7 +423,7 @@ export function MhdAccommodationOptionCatalogPage() {
 
                     {editingId === entry.id && editDraft ? (
                       <div className="mt-4 space-y-3 border-t border-border pt-3">
-                        <div className="grid gap-3 md:grid-cols-2">
+                        <MhdFormFieldStack>
                           <label className="text-sm font-medium">
                             Category
                             <select
@@ -461,7 +462,7 @@ export function MhdAccommodationOptionCatalogPage() {
                               }
                             />
                           </label>
-                        </div>
+                        </MhdFormFieldStack>
                         <label className="block text-sm font-medium">
                           Description template
                           <textarea
@@ -480,7 +481,7 @@ export function MhdAccommodationOptionCatalogPage() {
                           <legend className="text-sm font-medium">
                             Functional limitations addressed (optional)
                           </legend>
-                          <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                          <MhdFormFieldStack className="mt-2">
                             {MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS.map((tag) => (
                               <label key={tag} className="flex items-center gap-2 text-sm">
                                 <input
@@ -504,9 +505,9 @@ export function MhdAccommodationOptionCatalogPage() {
                                 {mhdFormatAccommodationValue(tag)}
                               </label>
                             ))}
-                          </div>
+                          </MhdFormFieldStack>
                         </fieldset>
-                        <div className="grid gap-3 md:grid-cols-2">
+                        <MhdFormFieldStack>
                           <label className="text-sm font-medium">
                             Sort order
                             <input
@@ -532,7 +533,7 @@ export function MhdAccommodationOptionCatalogPage() {
                             />
                             Active
                           </label>
-                        </div>
+                        </MhdFormFieldStack>
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="secondary"

@@ -42,6 +42,8 @@ import {
 } from '../Types';
 import { MhdActivityAttachmentsPanel } from './MhdActivityAttachmentsPanel';
 import { MhdActivityForm } from '@/components/ui/MhdActivityForm';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdActivityNotesPanel } from './MhdActivityNotesPanel';
 import { MhdActivityParticipantChips } from './MhdActivityParticipantChips';
 import { MhdActivityStatusBadge } from './MhdActivityStatusBadge';
@@ -76,7 +78,7 @@ function MhdCompleteActivityForm({
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label className="mb-1 block text-sm font-medium">Occurred Date &amp; Time</label>
           <input
@@ -100,7 +102,7 @@ function MhdCompleteActivityForm({
             <p className="mt-1 text-xs text-red-600">{errors.durationMinutes.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
       <div>
         <label className="mb-1 block text-sm font-medium">Outcome Summary</label>
         <textarea
@@ -455,90 +457,33 @@ export function MhdActivityDetailPage() {
 
       <MhdCard className="p-6">
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          {activity.personId ? (
-            <span>
-              About{' '}
-              <Link
-                to={`/people/${activity.personId}`}
-                className="text-accent hover:text-accent-hover"
-              >
-                {activity.personDisplayName ?? 'View person'}
-              </Link>
-            </span>
-          ) : null}
-          {activity.parentTaskId ? (
-            <span>
-              Supports task{' '}
-              <Link
-                to={`/tasks/${activity.parentTaskId}`}
-                className="text-accent hover:text-accent-hover"
-              >
-                View task
-              </Link>
-            </span>
-          ) : null}
-        </div>
-
-        {activity.linkUrl && activity.linkLabel ? (
-          <div className="mt-4">
+          {activity.linkUrl && activity.linkLabel ? (
             <Button
               type="button"
               variant="secondary"
               className="h-9 gap-1.5 px-3 text-[16.8px]"
-              onClick={() =>
-                window.open(activity.linkUrl as string, '_blank', 'noopener,noreferrer')
-              }
+              onClick={() => window.open(activity.linkUrl as string, '_blank', 'noopener,noreferrer')}
             >
               {activity.linkLabel}
             </Button>
-          </div>
-        ) : null}
-
-        <div className="mt-4 grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Scheduled
-            </p>
-            <p className="mt-2">{mhdFormatDateTime(activity.scheduledAt, 'Not scheduled')}</p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Occurred
-            </p>
-            <p className="mt-2">{mhdFormatDateTime(activity.occurredAt, 'Not yet recorded')}</p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Duration
-            </p>
-            <p className="mt-2">
-              {activity.durationMinutes != null
-                ? `${activity.durationMinutes} minutes`
-                : 'Not recorded'}
-            </p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Location
-            </p>
-            <p className="mt-2">{activity.location || 'Not recorded'}</p>
-          </div>
+          ) : null}
         </div>
 
-        {activity.descriptionRichText || activity.descriptionPlainText ? (
-          <div className="mt-4 rounded-md bg-muted p-4 text-sm text-muted-foreground">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Description
-            </p>
-            <MhdRichTextRenderer
-              html={mhdDocumentToRichHtml(
-                activity.descriptionRichText,
-                activity.descriptionPlainText ?? '',
-              )}
-              className="mt-2 text-foreground"
-            />
-          </div>
-        ) : null}
+        <dl className="mt-4">
+          <MhdFormFieldStack>
+            <MhdDetailField label="Person" value={activity.personId ? <Link to={`/people/${activity.personId}`} className="text-accent hover:text-accent-hover">{activity.personDisplayName ?? 'View person'}</Link> : undefined} />
+            <MhdDetailField label="Supports task" value={activity.parentTaskId ? <Link to={`/tasks/${activity.parentTaskId}`} className="text-accent hover:text-accent-hover">View task</Link> : undefined} />
+            <MhdDetailField label="Scheduled" value={mhdFormatDateTime(activity.scheduledAt, 'Not scheduled')} />
+            <MhdDetailField label="Occurred" value={mhdFormatDateTime(activity.occurredAt, 'Not yet recorded')} />
+            <MhdDetailField label="Duration" value={activity.durationMinutes != null ? `${activity.durationMinutes} minutes` : undefined} />
+            <MhdDetailField label="Location" value={activity.location} />
+            <MhdDetailField label="Description" value={<MhdRichTextRenderer html={mhdDocumentToRichHtml(activity.descriptionRichText, activity.descriptionPlainText ?? '')} className="text-foreground" />} />
+            <MhdDetailField label="Outcome" value={activity.outcomeSummary} />
+            <MhdDetailField label="Link title" value={activity.linkLabel} />
+            <MhdDetailField label="Link URL" value={activity.linkUrl} />
+            <MhdDetailField label="Follow-up task" value={activity.followUpTaskId ? <Link to={`/tasks/${activity.followUpTaskId}`} className="text-accent hover:text-accent-hover">View task</Link> : undefined} />
+          </MhdFormFieldStack>
+        </dl>
 
         <div className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
           <p>Created: {mhdFormatDateTime(activity.createdAt)}</p>
@@ -690,18 +635,6 @@ export function MhdActivityDetailPage() {
             ) : (
               <p className="mt-3 text-sm text-muted-foreground">No outcome recorded yet.</p>
             )}
-
-            {activity.followUpTaskId ? (
-              <p className="mt-3 text-sm">
-                Follow-up task:{' '}
-                <Link
-                  to={`/tasks/${activity.followUpTaskId}`}
-                  className="text-accent hover:text-accent-hover"
-                >
-                  View task
-                </Link>
-              </p>
-            ) : null}
 
             {canMutate ? (
               <div className="mt-4 space-y-4">
