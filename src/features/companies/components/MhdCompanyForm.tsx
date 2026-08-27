@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import type {
   MhdCompany,
   MhdCreateCompanyInput,
@@ -61,7 +62,8 @@ export function MhdCompanyForm({
   }
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
+      <MhdFormFieldStack>
       <div>
         <label className="block text-sm font-medium text-slate-700" htmlFor="mhd-company-name">
           Company name
@@ -125,6 +127,7 @@ export function MhdCompanyForm({
         />
       </div>
 
+      </MhdFormFieldStack>
       {formError ? (
         <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p>
       ) : null}

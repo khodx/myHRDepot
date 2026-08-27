@@ -1,6 +1,7 @@
 import { Send } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdReplyCorrespondenceSchema } from '../Schemas';
 import { useMhdSendCorrespondence } from '../Hook';
 import { mhdCorrespondenceHtmlFromText } from '../Service';
@@ -59,7 +60,7 @@ export function MhdCorrespondenceComposer({ threadId, lastMessage }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 border-t border-border p-4">
-      <div className="grid gap-3 md:grid-cols-2">
+      <MhdFormFieldStack>
         <label className="text-sm font-medium text-foreground">
           To
           <input
@@ -76,7 +77,7 @@ export function MhdCorrespondenceComposer({ threadId, lastMessage }: Props) {
             className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </label>
-      </div>
+      </MhdFormFieldStack>
       <label className="sr-only" htmlFor="mhd-correspondence-reply-body">
         Reply
       </label>

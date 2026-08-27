@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdUserRolesPanel } from '@/components/ui/MhdUserRolesPanel';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -106,31 +107,12 @@ export function MhdUserDetailPage() {
       />
 
       <MhdCard className="p-6">
-        <dl className="grid gap-4 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Company</dt>
-            <dd className="mt-0.5 text-foreground">{user.companyName ?? 'Company unavailable'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Linked person</dt>
-            <dd className="mt-0.5 text-foreground">{user.personDisplayName ?? 'None'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Created</dt>
-            <dd className="mt-0.5 text-foreground">{new Date(user.createdAt).toLocaleString()}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Updated</dt>
-            <dd className="mt-0.5 text-foreground">{new Date(user.updatedAt).toLocaleString()}</dd>
-          </div>
-          {user.deactivatedAt ? (
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Deactivated</dt>
-              <dd className="mt-0.5 text-foreground">
-                {new Date(user.deactivatedAt).toLocaleString()}
-              </dd>
-            </div>
-          ) : null}
+        <dl className="space-y-4 text-sm">
+          <MhdDetailField label="Company" value={user.companyName} />
+          <MhdDetailField label="Linked person" value={user.personDisplayName} />
+          <MhdDetailField label="Created" value={new Date(user.createdAt).toLocaleString()} />
+          <MhdDetailField label="Updated" value={new Date(user.updatedAt).toLocaleString()} />
+          <MhdDetailField label="Deactivated" value={user.deactivatedAt ? new Date(user.deactivatedAt).toLocaleString() : null} />
         </dl>
       </MhdCard>
 

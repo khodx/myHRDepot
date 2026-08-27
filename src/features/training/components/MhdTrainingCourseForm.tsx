@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdTrainingCourseFormSchema, type MhdTrainingCourseFormValues } from '../Schemas';
 import {
   MHD_TRAINING_CATEGORIES,
@@ -64,7 +65,7 @@ export function MhdTrainingCourseForm({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <input type="hidden" value={companyId} {...register('companyId')} readOnly />
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="courseKey" className="block text-sm font-medium text-foreground">
             Course key
@@ -108,7 +109,7 @@ export function MhdTrainingCourseForm({
             <p className="mt-1 text-xs text-rose-600">{errors.category.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-foreground">
@@ -139,7 +140,7 @@ export function MhdTrainingCourseForm({
         ) : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="deliveryMode" className="block text-sm font-medium text-foreground">
             Delivery mode
@@ -176,9 +177,9 @@ export function MhdTrainingCourseForm({
             <p className="mt-1 text-xs text-rose-600">{errors.durationMinutes.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="recurrenceMonths" className="block text-sm font-medium text-foreground">
             Recurrence (months){' '}
@@ -219,7 +220,7 @@ export function MhdTrainingCourseForm({
             <p className="mt-1 text-xs text-rose-600">{errors.externalUrl.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div className="flex items-start gap-2">
         <input

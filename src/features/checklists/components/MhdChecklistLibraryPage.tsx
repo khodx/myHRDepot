@@ -6,6 +6,7 @@ import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -224,12 +225,12 @@ export function MhdChecklistLibraryPage() {
             ) : null}
             <div className="space-y-2">
               {draft.items.map((item, index) => (
-                <div key={index} className="grid gap-2 rounded-md border border-border p-3 md:grid-cols-[1fr_auto_auto_auto]">
-                  <input className={inputClass} placeholder="Item title" value={item.title} onChange={(event) => setDraft((value) => ({ ...value, items: value.items.map((row, rowIndex) => rowIndex === index ? { ...row, title: event.target.value } : row) }))} />
+                <MhdFormFieldStack key={index} className="rounded-md border border-border p-3">
+                  <label className="text-sm font-medium">Item title<input className={`mt-1 ${inputClass}`} placeholder="Item title" value={item.title} onChange={(event) => setDraft((value) => ({ ...value, items: value.items.map((row, rowIndex) => rowIndex === index ? { ...row, title: event.target.value } : row) }))} /></label>
                   <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={item.isRequired} onChange={(event) => setDraft((value) => ({ ...value, items: value.items.map((row, rowIndex) => rowIndex === index ? { ...row, isRequired: event.target.checked } : row) }))} />Required</label>
                   <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={item.requiresEvidence} onChange={(event) => setDraft((value) => ({ ...value, items: value.items.map((row, rowIndex) => rowIndex === index ? { ...row, requiresEvidence: event.target.checked } : row) }))} />Evidence</label>
                   <Button variant="secondary" onClick={() => setDraft((value) => ({ ...value, items: value.items.filter((_, rowIndex) => rowIndex !== index) }))}>Remove</Button>
-                </div>
+                </MhdFormFieldStack>
               ))}
               <Button variant="secondary" onClick={() => setDraft((value) => ({ ...value, items: [...value.items, { ...EMPTY_ITEM }] }))}>Add Item</Button>
             </div>

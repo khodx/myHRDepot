@@ -5,6 +5,7 @@ import { mhdCanMutateAnnouncements } from '@/appshell/mhdRouteAccess';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
@@ -91,13 +92,11 @@ export function MhdAnnouncementDetailPage() {
               <MhdBadge variant={detail.status === 'published' ? 'success' : 'neutral'}>
                 {MHD_ANNOUNCEMENT_STATUS_LABELS[detail.status]}
               </MhdBadge>
-              <div className="text-sm text-muted-foreground">
-                {detail.audienceScope === 'roles' ? `Audience: ${(detail.audienceRoles ?? []).join(', ')}` : 'Audience: Company-wide'}
-              </div>
+              <MhdDetailField label="Audience" value={detail.audienceScope === 'roles' ? (detail.audienceRoles ?? []).join(', ') : 'Company-wide'} />
             </div>
-            <div className="mt-2 text-xs text-muted-foreground">
-              {detail.publishedAt ? `Published ${new Date(detail.publishedAt).toLocaleString()}` : `Scheduled for ${new Date(detail.publishAt).toLocaleString()}`}
-              {detail.expiresAt ? ` · Expires ${new Date(detail.expiresAt).toLocaleString()}` : ''}
+            <div className="mt-2 space-y-4">
+              <MhdDetailField label="Published or scheduled" value={detail.publishedAt ? `Published ${new Date(detail.publishedAt).toLocaleString()}` : detail.publishAt ? `Scheduled for ${new Date(detail.publishAt).toLocaleString()}` : null} />
+              <MhdDetailField label="Expires" value={detail.expiresAt ? new Date(detail.expiresAt).toLocaleString() : null} />
             </div>
           </MhdCard>
 

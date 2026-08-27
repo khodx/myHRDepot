@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
@@ -218,8 +219,8 @@ export function MhdTaskForm({
         </div>
       )}
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <label className="text-sm font-medium text-foreground md:col-span-2">
+      <MhdFormFieldStack className="mt-4">
+        <label className="text-sm font-medium text-foreground">
           Company
           <MhdSearchableSelect
             className="mt-1"
@@ -232,7 +233,7 @@ export function MhdTaskForm({
           />
         </label>
 
-        <label className="text-sm font-medium text-foreground md:col-span-2">
+        <label className="text-sm font-medium text-foreground">
           Title
           <input
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -262,7 +263,7 @@ export function MhdTaskForm({
           />
         </label>
 
-        <div className="md:col-span-2">
+        <div>
           <MhdRichTextEditor
             label="Description"
             html={
@@ -278,7 +279,7 @@ export function MhdTaskForm({
           />
         </div>
 
-        <div className="md:col-span-2">
+        <div>
           <MhdRichTextEditor
             label="Detailed Instructions"
             html={
@@ -364,23 +365,19 @@ export function MhdTaskForm({
               updateValue('dueDate', nextValue);
             }}
           />
-          {!selectedTask && (
-            <span className="mt-1 block text-xs font-normal text-muted-foreground">
-              Suggested {DUE_DATE_SUGGESTION_BUSINESS_DAYS} business days from today; edit freely.
-            </span>
-          )}
+          <span className="mt-1 block text-xs font-normal text-muted-foreground">
+            Suggested {DUE_DATE_SUGGESTION_BUSINESS_DAYS} business days from today; edit freely.
+          </span>
         </label>
 
-        {selectedTask && (
-          <label className="text-sm font-medium text-foreground">
+        <label className="text-sm font-medium text-foreground">
             Completed Date
             <MhdDateField
               className="mt-1 w-full"
               value={values.completedDate}
               onChange={(nextValue) => updateValue('completedDate', nextValue)}
             />
-          </label>
-        )}
+        </label>
 
         <label className="text-sm font-medium text-foreground">
           Progress %
@@ -402,7 +399,7 @@ export function MhdTaskForm({
           )}
         </label>
 
-        <label className="text-sm font-medium text-foreground md:col-span-2">
+        <label className="text-sm font-medium text-foreground">
           Assigned Users
           <MhdMultiSelectCombobox
             className="mt-1"
@@ -414,9 +411,9 @@ export function MhdTaskForm({
           />
         </label>
 
-        {!selectedTask ? (
-          <fieldset className="mt-4 space-y-2 rounded-md border border-border p-3 md:col-span-2">
+        <fieldset disabled={!selectedTask} className="mt-4 space-y-2 rounded-md border border-border p-3">
             <legend className="px-1 text-sm font-medium">Subtasks</legend>
+            {!selectedTask ? <p className="text-xs text-muted-foreground">Available after saving.</p> : null}
             <p className="text-xs text-muted-foreground">
               Add a starter checklist now, or skip this and add subtasks later from the task's detail page.
             </p>
@@ -467,9 +464,8 @@ export function MhdTaskForm({
                 Add
               </button>
             </div>
-          </fieldset>
-        ) : null}
-      </div>
+        </fieldset>
+      </MhdFormFieldStack>
 
       <Button type="submit" disabled={isSaving} className="mt-4">
         {isSaving ? 'Saving...' : selectedTask ? 'Update Task' : 'Create Task'}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdPeople } from '@/features/people/Hook';
@@ -64,7 +65,8 @@ export function MhdUserForm({
   }
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
+      <MhdFormFieldStack>
       <div>
         <span className="block text-sm font-medium text-slate-700">Email</span>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -119,6 +121,7 @@ export function MhdUserForm({
         Platform admin (bypasses company scoping and implicitly holds every role)
       </label>
 
+      </MhdFormFieldStack>
       {formError ? (
         <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p>
       ) : null}

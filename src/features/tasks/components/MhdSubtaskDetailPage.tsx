@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { Button } from '@/components/ui/Button';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdEntityMessagingPanel } from '@/components/ui/MhdEntityMessagingPanel';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
@@ -120,16 +121,11 @@ export function MhdSubtaskDetailPage() {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-neutral-100 pt-4">
-          <MhdTaskStatusBadge statusName={subtask.statusName} colorToken={subtask.statusColorToken} />
-          <MhdTaskPriorityBadge
-            priorityName={subtask.priorityName}
-            colorToken={subtask.priorityColorToken}
-          />
-          {subtask.dueDate ? (
-            <span className="text-sm text-neutral-500">
-              Due {new Date(subtask.dueDate).toLocaleDateString()}
-            </span>
-          ) : null}
+          <dl className="w-full space-y-4">
+            <MhdDetailField label="Status" value={<MhdTaskStatusBadge statusName={subtask.statusName} colorToken={subtask.statusColorToken} />} />
+            <MhdDetailField label="Priority" value={<MhdTaskPriorityBadge priorityName={subtask.priorityName} colorToken={subtask.priorityColorToken} />} />
+            <MhdDetailField label="Due date" value={subtask.dueDate ? new Date(subtask.dueDate).toLocaleDateString() : null} />
+          </dl>
         </div>
 
         <div className="mt-4 border-t border-neutral-100 pt-4">
@@ -137,18 +133,15 @@ export function MhdSubtaskDetailPage() {
           <MhdProgressBar percent={subtask.overallProgressPercent} tone="graduated" showLabel />
         </div>
 
-        {subtask.descriptionRichText || subtask.descriptionPlainText ? (
-          <div className="mt-4 border-t border-neutral-100 pt-4">
-            <p className="mb-1 text-xs uppercase tracking-wide text-neutral-400">Description</p>
-            <MhdRichTextRenderer
+        <div className="mt-4 border-t border-neutral-100 pt-4">
+            <MhdDetailField label="Description" value={<MhdRichTextRenderer
               html={mhdDocumentToRichHtml(
                 subtask.descriptionRichText,
                 subtask.descriptionPlainText ?? '',
               )}
               className="text-neutral-700"
-            />
+            />} />
           </div>
-        ) : null}
       </div>
 
       <MhdEntityMessagingPanel

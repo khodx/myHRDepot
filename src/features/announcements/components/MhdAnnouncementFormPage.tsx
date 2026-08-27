@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdMultiSelectCombobox, type MhdMultiSelectComboboxOption } from '@/components/ui/MhdMultiSelectCombobox';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
@@ -135,7 +136,8 @@ export function MhdAnnouncementFormPage() {
         backLabel="Announcements"
       />
 
-      <MhdCard className="space-y-4">
+      <MhdCard>
+        <MhdFormFieldStack>
         <label className="block text-sm font-medium">
           Title
           <input className={`mt-1 ${inputClass}`} value={title} onChange={(event) => setTitle(event.target.value)} />
@@ -166,11 +168,7 @@ export function MhdAnnouncementFormPage() {
             <option value="company">Company-wide</option>
             <option value="roles">Specific roles</option>
           </select>
-          {audienceScope === 'roles' ? (
-            <div className="mt-2">
-              <MhdMultiSelectCombobox options={ROLE_OPTIONS} value={audienceRoles} onChange={setAudienceRoles} placeholder="Search roles..." />
-            </div>
-          ) : null}
+          <MhdMultiSelectCombobox className="mt-2" options={ROLE_OPTIONS} value={audienceRoles} onChange={setAudienceRoles} placeholder="Search roles..." />
         </div>
 
         <div>
@@ -179,14 +177,8 @@ export function MhdAnnouncementFormPage() {
             <option value="now">Save as draft (publish later)</option>
             <option value="scheduled">Schedule for a future date/time</option>
           </select>
-          {publishMode === 'scheduled' ? (
-            <input
-              type="datetime-local"
-              className={`mt-2 ${inputClass}`}
-              value={scheduledPublishAt}
-              onChange={(event) => setScheduledPublishAt(event.target.value)}
-            />
-          ) : null}
+          <input type="datetime-local" className={`mt-2 ${inputClass}`} value={scheduledPublishAt} onChange={(event) => setScheduledPublishAt(event.target.value)} disabled={publishMode !== 'scheduled'} />
+          {publishMode !== 'scheduled' ? <p className="mt-1 text-xs text-muted-foreground">Available when scheduling a future publish.</p> : null}
         </div>
 
         <div>
@@ -195,17 +187,12 @@ export function MhdAnnouncementFormPage() {
             <option value="none">Never expires</option>
             <option value="onDate">Expires on a date</option>
           </select>
-          {expirationMode === 'onDate' ? (
-            <input
-              type="datetime-local"
-              className={`mt-2 ${inputClass}`}
-              value={expiresAt}
-              onChange={(event) => setExpiresAt(event.target.value)}
-            />
-          ) : null}
+          <input type="datetime-local" className={`mt-2 ${inputClass}`} value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} disabled={expirationMode !== 'onDate'} />
+          {expirationMode !== 'onDate' ? <p className="mt-1 text-xs text-muted-foreground">Available when an expiration date is selected.</p> : null}
         </div>
 
-        {error ? <p className="text-sm text-rose-700">{error}</p> : null}
+        </MhdFormFieldStack>
+        {error ? <p className="mt-4 text-sm text-rose-700">{error}</p> : null}
 
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={() => navigate('/communications/announcements')}>

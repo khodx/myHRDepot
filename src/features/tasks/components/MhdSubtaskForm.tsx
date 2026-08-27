@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
@@ -123,7 +124,7 @@ export function MhdSubtaskForm({
         </div>
       )}
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
+      <MhdFormFieldStack className="mt-4">
         <label className="text-sm font-medium text-foreground md:col-span-2">
           Title
           <input
@@ -201,7 +202,7 @@ export function MhdSubtaskForm({
             onChange={(event) => updateValue('manualProgressPercent', Number(event.target.value))}
           />
         </label>
-      </div>
+      </MhdFormFieldStack>
 
       <div className="mt-4 flex items-center gap-2">
         <Button type="submit" disabled={isSaving}>

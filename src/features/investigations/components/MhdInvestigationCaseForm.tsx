@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdInvestigationCaseFormSchema, type MhdInvestigationCaseFormValues } from '../Schemas';
 import {
   MHD_INVESTIGATION_CASE_TYPES,
@@ -101,7 +102,7 @@ export function MhdInvestigationCaseForm({
         ) : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label
             htmlFor="assignedInvestigator"
@@ -144,7 +145,7 @@ export function MhdInvestigationCaseForm({
             ))}
           </select>
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label htmlFor="severity" className="block text-sm font-medium text-foreground">

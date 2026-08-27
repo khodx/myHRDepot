@@ -49,11 +49,9 @@ function MessageBubble({ message }: { message: MhdCorrespondenceMessage }) {
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
           To: {message.recipientEmails.join(', ') || 'None'}
-          {message.ccEmails.length ? ` | CC: ${message.ccEmails.join(', ')}` : ''}
+          {' | CC: '}{message.ccEmails.join(', ') || 'Not provided'}
         </p>
-        {message.failureReason ? (
-          <p className="mt-2 text-xs text-red-600">{message.failureReason}</p>
-        ) : null}
+        <p className="mt-2 text-xs text-red-600">Failure reason: {message.failureReason || 'Not provided'}</p>
       </article>
     </li>
   );

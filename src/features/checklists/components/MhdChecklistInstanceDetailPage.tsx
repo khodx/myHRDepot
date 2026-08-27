@@ -4,6 +4,7 @@ import { ClipboardCheck } from 'lucide-react';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdChecklistInstance, useMhdCompleteChecklistItem } from '../Hook';
 import { mhdFormatChecklistValue, type MhdChecklistInstanceItem } from '../Types';
@@ -62,9 +63,7 @@ export function MhdChecklistInstanceDetailPage() {
               <MhdBadge variant={detail.status === 'COMPLETED' ? 'neutral' : 'info'}>
                 {mhdFormatChecklistValue(detail.status)}
               </MhdBadge>
-              {detail.completedAt ? (
-                <span className="text-sm text-muted-foreground">Completed {detail.completedAt}</span>
-              ) : null}
+              <MhdDetailField label="Completed" value={detail.completedAt} />
             </div>
           </MhdCard>
 
@@ -83,15 +82,11 @@ export function MhdChecklistInstanceDetailPage() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-medium text-foreground">{item.title}</p>
-                      {item.description ? (
-                        <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
-                      ) : null}
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {item.isRequired ? <MhdBadge variant="neutral">Required</MhdBadge> : null}
-                        {item.requiresEvidence ? (
-                          <MhdBadge variant="info">Evidence Required</MhdBadge>
-                        ) : null}
-                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">{item.description || 'Not provided'}</p>
+                      <dl className="mt-2 space-y-2">
+                        <MhdDetailField label="Required" value={item.isRequired ? 'Yes' : 'No'} />
+                        <MhdDetailField label="Evidence required" value={item.requiresEvidence ? 'Yes' : 'No'} />
+                      </dl>
                     </div>
                     <label className="flex items-center gap-2 text-sm">
                       <input
@@ -103,8 +98,7 @@ export function MhdChecklistInstanceDetailPage() {
                       Complete
                     </label>
                   </div>
-                  {item.requiresEvidence ? (
-                    <label className="mt-3 block text-sm font-medium">
+                  <label className="mt-3 block text-sm font-medium">
                       Evidence note
                       <input
                         className={`mt-1 ${inputClass}`}
@@ -114,8 +108,7 @@ export function MhdChecklistInstanceDetailPage() {
                           setNotes((value) => ({ ...value, [item.id]: event.target.value }))
                         }
                       />
-                    </label>
-                  ) : null}
+                  </label>
                 </li>
               ))}
             </ul>

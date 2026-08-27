@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdNewCorrespondenceSchema } from '../Schemas';
 import { useMhdSendCorrespondence } from '../Hook';
 import { mhdCorrespondenceHtmlFromText } from '../Service';
@@ -80,7 +81,7 @@ export function MhdNewCorrespondenceDialog({
           </Button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 p-4">
-          <div className="grid gap-3 md:grid-cols-2">
+          <MhdFormFieldStack>
             <label className="text-sm font-medium text-foreground">
               To
               <input
@@ -97,7 +98,7 @@ export function MhdNewCorrespondenceDialog({
                 className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
               />
             </label>
-          </div>
+          </MhdFormFieldStack>
           <label className="text-sm font-medium text-foreground">
             Subject
             <input

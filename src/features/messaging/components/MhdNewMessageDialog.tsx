@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdMultiSelectCombobox } from '@/components/ui/MhdMultiSelectCombobox';
 import { mhdTaskService } from '@/features/tasks/Service';
 import { mhdCreateMessageThreadSchema } from '../Schemas';
@@ -82,7 +83,7 @@ export function MhdNewMessageDialog({
           </Button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 p-4">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <MhdFormFieldStack>
             <label className="text-sm font-medium text-foreground">
               Type
               <select
@@ -102,10 +103,9 @@ export function MhdNewMessageDialog({
                 className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
               />
             </label>
-          </div>
+          </MhdFormFieldStack>
 
-          {threadType === 'MODULE' && (
-            <div className="grid gap-3 sm:grid-cols-2">
+          <MhdFormFieldStack>
               <label className="text-sm font-medium text-foreground">
                 Entity type
                 <input
@@ -122,8 +122,7 @@ export function MhdNewMessageDialog({
                   className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </label>
-            </div>
-          )}
+          </MhdFormFieldStack>
 
           <div>
             <span className="text-sm font-medium text-foreground">Participants</span>

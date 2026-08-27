@@ -1,4 +1,5 @@
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import type { MhdCompany, MhdUpdateCompanyInput } from '@/features/companies/Types';
 import { MhdCompanyForm } from './MhdCompanyForm';
 
@@ -33,27 +34,12 @@ export function MhdCompanyDetailsPanel({
         <h2 className="mt-1 text-lg font-semibold text-foreground">{company.companyName}</h2>
       </div>
 
-      <dl className="mt-4 grid grid-cols-1 gap-2 text-sm">
-        <div>
-          <dt className="font-medium text-muted-foreground">Industry</dt>
-          <dd className="text-slate-800">{company.industry ?? '—'}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-muted-foreground">Employee count</dt>
-          <dd className="text-slate-800">{company.employeeCount ?? '—'}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-muted-foreground">Headquarters location</dt>
-          <dd className="text-slate-800">{company.headquartersLocation ?? '—'}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-muted-foreground">Created</dt>
-          <dd className="text-slate-800">{new Date(company.createdAt).toLocaleString()}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-muted-foreground">Updated</dt>
-          <dd className="text-slate-800">{new Date(company.updatedAt).toLocaleString()}</dd>
-        </div>
+      <dl className="mt-4 space-y-4 text-sm">
+        <MhdDetailField label="Industry" value={company.industry} />
+        <MhdDetailField label="Employee count" value={company.employeeCount} />
+        <MhdDetailField label="Headquarters location" value={company.headquartersLocation} />
+        <MhdDetailField label="Created" value={new Date(company.createdAt).toLocaleString()} />
+        <MhdDetailField label="Updated" value={new Date(company.updatedAt).toLocaleString()} />
       </dl>
 
       <div className="mt-6 border-t border-border pt-6">

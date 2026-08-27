@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdInvestigationCaseRecordTabs } from '@/appshell/components/MhdInvestigationCaseRecordTabs';
@@ -160,8 +161,10 @@ export function MhdInvestigationCaseDetailPage() {
             <span className="font-mono">{detail.referenceId}</span>
             {' · '}
             {mhdFormatInvestigationConfidentiality(detail.confidentialityLevel)} confidentiality
-            {detail.severity ? ` · severity ${detail.severity}` : ''}
-            {detail.closedAt ? ` · closed ${detail.closedAt}` : ''}
+            {' · '}
+            severity {detail.severity ?? 'Not provided'}
+            {' · '}
+            closed {detail.closedAt ?? 'Not provided'}
           </>
         }
       />
@@ -269,16 +272,7 @@ export function MhdInvestigationCaseDetailPage() {
             className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
-        {detail.findingSummary ? (
-          <div className="rounded-md bg-muted p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Recorded finding
-            </p>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
-              {detail.findingSummary}
-            </p>
-          </div>
-        ) : null}
+        <MhdDetailField label="Recorded finding" value={detail.findingSummary} />
         {transitionError ? <p className="text-xs text-rose-600">{transitionError}</p> : null}
       </MhdCard>
 
