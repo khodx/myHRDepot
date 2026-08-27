@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTabs } from '@/components/ui/MhdTabs';
@@ -288,7 +290,7 @@ export function MhdAccommodationCaseDetailPage() {
 
       <MhdCard>
         <MhdCardHeader title="Request and job context" />
-        <p className="text-sm text-foreground">{record.case.request_summary}</p>
+        <MhdDetailField label="Request summary" value={record.case.request_summary} />
         {record.case.leave_case_id ? (
           <p className="mt-2 text-sm">
             Linked leave:{' '}
@@ -369,19 +371,14 @@ export function MhdAccommodationCaseDetailPage() {
         <div className="space-y-4">
           {record.interactions.map((item) => (
             <MhdCard key={item.id}>
-              <div className="flex justify-between gap-3">
-                <p className="font-medium">{mhdFormatAccommodationValue(item.channel)}</p>
-                <time className="text-xs text-muted-foreground">
-                  {new Date(item.occurred_at).toLocaleString()}
-                </time>
-              </div>
-              <p className="mt-2 text-sm">{item.summary}</p>
-              {item.next_step ? (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Next: {item.next_step}
-                  {item.next_step_due ? ` · ${item.next_step_due}` : ''}
-                </p>
-              ) : null}
+              <MhdDetailField label="Channel" value={mhdFormatAccommodationValue(item.channel)} />
+              <MhdDetailField label="Occurred" value={new Date(item.occurred_at).toLocaleString()} className="mt-2" />
+              <MhdDetailField label="Summary" value={item.summary} className="mt-2" />
+              <MhdDetailField
+                label="Next step"
+                value={item.next_step ? `${item.next_step}${item.next_step_due ? ` · ${item.next_step_due}` : ''}` : null}
+                className="mt-2"
+              />
             </MhdCard>
           ))}
           {privileged ? (
@@ -447,12 +444,10 @@ export function MhdAccommodationCaseDetailPage() {
         <div className="space-y-4">
           {record.options.map((item) => (
             <MhdCard key={item.id}>
-              <p className="font-medium">{mhdFormatAccommodationValue(item.option_type)}</p>
-              <p className="mt-1 text-sm">{item.description}</p>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Expected effectiveness: {item.expected_effectiveness} ·{' '}
-                {mhdFormatAccommodationValue(item.disposition)}
-              </p>
+              <MhdDetailField label="Option type" value={mhdFormatAccommodationValue(item.option_type)} />
+              <MhdDetailField label="Description" value={item.description} className="mt-2" />
+              <MhdDetailField label="Expected effectiveness" value={item.expected_effectiveness} className="mt-2" />
+              <MhdDetailField label="Disposition" value={mhdFormatAccommodationValue(item.disposition)} className="mt-2" />
             </MhdCard>
           ))}
           {privileged ? (
@@ -609,13 +604,9 @@ export function MhdAccommodationCaseDetailPage() {
         <div className="space-y-4">
           {activeDecision ? (
             <MhdCard>
-              <p className="font-semibold">{mhdFormatAccommodationValue(activeDecision.outcome)}</p>
-              <p className="mt-2 text-sm">{activeDecision.decision_summary}</p>
-              {activeDecision.denial_reason_code ? (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Reason: {mhdFormatAccommodationValue(activeDecision.denial_reason_code)}
-                </p>
-              ) : null}
+              <MhdDetailField label="Outcome" value={mhdFormatAccommodationValue(activeDecision.outcome)} />
+              <MhdDetailField label="Decision summary" value={activeDecision.decision_summary} className="mt-2" />
+              <MhdDetailField label="Denial reason" value={activeDecision.denial_reason_code ? mhdFormatAccommodationValue(activeDecision.denial_reason_code) : null} className="mt-2" />
             </MhdCard>
           ) : null}
           {privileged ? (
@@ -720,35 +711,40 @@ export function MhdAccommodationCaseDetailPage() {
         <div className="space-y-4">
           {record.implementations.map((item) => (
             <MhdCard key={item.id}>
-              <p className="font-medium">{item.manager_instruction}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {item.start_date}
-                {item.end_date ? ` → ${item.end_date}` : ''} · {item.status}
-              </p>
+              <MhdDetailField label="Manager instruction" value={item.manager_instruction} />
+              <MhdDetailField label="Start date" value={item.start_date} className="mt-2" />
+              <MhdDetailField label="End date" value={item.end_date} className="mt-2" />
+              <MhdDetailField label="Status" value={item.status} className="mt-2" />
             </MhdCard>
           ))}
           {privileged && implementableOptionId && implementableOption ? (
             <MhdCard className="space-y-3">
               <MhdCardHeader title="Implement selected option" />
-              <p className="text-sm">{implementableOption.description}</p>
+              <MhdDetailField label="Selected option" value={implementableOption.description} />
               <textarea
                 className={`min-h-20 ${inputClass}`}
                 value={managerInstruction}
                 onChange={(event) => setManagerInstruction(event.target.value)}
                 placeholder="Manager-safe implementation instruction—no medical facts"
               />
-              <div className="grid gap-3 md:grid-cols-2">
-                <MhdDateField
-                  className={inputClass}
-                  value={startDate}
-                  onChange={(nextValue) => setStartDate(nextValue)}
-                />
-                <MhdDateField
-                  className={inputClass}
-                  value={reviewDueDate}
-                  onChange={(nextValue) => setReviewDueDate(nextValue)}
-                />
-              </div>
+              <MhdFormFieldStack>
+                <label className="text-sm font-medium">
+                  Start date
+                  <MhdDateField
+                    className={`mt-1 ${inputClass}`}
+                    value={startDate}
+                    onChange={(nextValue) => setStartDate(nextValue)}
+                  />
+                </label>
+                <label className="text-sm font-medium">
+                  Review due date
+                  <MhdDateField
+                    className={`mt-1 ${inputClass}`}
+                    value={reviewDueDate}
+                    onChange={(nextValue) => setReviewDueDate(nextValue)}
+                  />
+                </label>
+              </MhdFormFieldStack>
               <Button
                 disabled={implement.isPending || !managerInstruction.trim()}
                 onClick={() =>
@@ -769,10 +765,9 @@ export function MhdAccommodationCaseDetailPage() {
           ) : null}
           {record.reviews.map((review) => (
             <MhdCard key={review.id}>
-              <p className="font-medium">Effectiveness review due {review.due_date}</p>
-              {review.completed_at ? (
-                <p className="mt-1 text-sm">{review.summary}</p>
-              ) : privileged ? (
+              <MhdDetailField label="Effectiveness review due" value={review.due_date} />
+              <MhdDetailField label="Review summary" value={review.completed_at ? review.summary : null} className="mt-2" />
+              {!review.completed_at && privileged ? (
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button
                     variant="secondary"

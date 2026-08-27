@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdTabs } from '@/components/ui/MhdTabs';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -142,18 +144,16 @@ export function MhdLeaveWorkflowPanel({
                * after an override — they are the evidence the override departed
                * from, not a draft it replaced.
                */}
-              {item.findings.length ? (
-                <ul className="mt-2 list-disc pl-5 text-xs text-amber-800">
-                  {item.findings.map((finding, index) => (
-                    <li key={index}>{String(finding.code ?? 'Review finding')}</li>
-                  ))}
-                </ul>
-              ) : null}
-              {item.override_reason ? (
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Overridden from {item.evaluated_outcome}: {item.override_reason}
-                </p>
-              ) : null}
+              <MhdDetailField
+                label="Findings"
+                value={item.findings.length ? item.findings.map((finding) => String(finding.code ?? 'Review finding')).join(', ') : null}
+                className="mt-2"
+              />
+              <MhdDetailField
+                label="Override reason"
+                value={item.override_reason ? `Overridden from ${item.evaluated_outcome}: ${item.override_reason}` : null}
+                className="mt-2"
+              />
               {privileged && overriding === item.id ? (
                 <div className="mt-3 space-y-2 rounded-md border border-border p-3">
                   <p className="text-xs text-muted-foreground">
@@ -208,7 +208,7 @@ export function MhdLeaveWorkflowPanel({
                 The engine evaluates each legal basis separately. CFRA does not use a 75-mile test;
                 that count is used only for FMLA. A human must confirm every result.
               </p>
-              <div className="grid gap-3 md:grid-cols-3">
+              <MhdFormFieldStack>
                 <select
                   className={inputClass}
                   value={reasonCode}
@@ -294,7 +294,7 @@ export function MhdLeaveWorkflowPanel({
                     onChange={(e) => setHours(e.target.value)}
                   />
                 </label>
-              </div>
+              </MhdFormFieldStack>
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -398,8 +398,10 @@ export function MhdLeaveWorkflowPanel({
               <MhdCard key={item.id}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-medium">{item.notice_type.replaceAll('_', ' ')}</p>
-                    <p className="text-sm text-muted-foreground">{item.status} · due {item.due_at ?? 'not set'} · delivered {item.delivered_at ?? 'not yet'}</p>
+                    <MhdDetailField label="Notice type" value={item.notice_type.replaceAll('_', ' ')} />
+                    <MhdDetailField label="Status" value={item.status} />
+                    <MhdDetailField label="Due" value={item.due_at} />
+                    <MhdDetailField label="Delivered" value={item.delivered_at} />
                   </div>
                   {privileged && item.status !== 'DELIVERED' ? <Button variant="secondary" disabled={markNoticeDelivery.isPending} onClick={() => void run(() => markNoticeDelivery.mutateAsync({ noticeId: item.id, status: 'DELIVERED' }))}>Mark Delivered</Button> : null}
                 </div>
@@ -416,12 +418,11 @@ export function MhdLeaveWorkflowPanel({
           {record.segments.length ? (
             record.segments.map((item) => (
               <MhdCard key={item.id}>
-                <p className="font-medium">{item.segment_mode.replaceAll('_', ' ')}</p>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(item.start_at).toLocaleString()} →{' '}
-                  {new Date(item.end_at).toLocaleString()} ·{' '}
-                  {item.actual_hours ?? item.planned_hours} hours · {item.status}
-                </p>
+                <MhdDetailField label="Segment mode" value={item.segment_mode.replaceAll('_', ' ')} />
+                <MhdDetailField label="Start" value={new Date(item.start_at).toLocaleString()} />
+                <MhdDetailField label="End" value={new Date(item.end_at).toLocaleString()} />
+                <MhdDetailField label="Hours" value={item.actual_hours ?? item.planned_hours} />
+                <MhdDetailField label="Status" value={item.status} />
               </MhdCard>
             ))
           ) : (
@@ -434,11 +435,10 @@ export function MhdLeaveWorkflowPanel({
         <div className="space-y-3">
           {record.events.map((item) => (
             <MhdCard key={item.id}>
-              <p className="font-medium">{item.event_type.replaceAll('_', ' ')}</p>
-              <p className="mt-1 text-sm">{item.summary}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {new Date(item.occurred_at).toLocaleString()} · {item.channel}
-              </p>
+              <MhdDetailField label="Contact type" value={item.event_type.replaceAll('_', ' ')} />
+              <MhdDetailField label="Summary" value={item.summary} className="mt-2" />
+              <MhdDetailField label="Occurred" value={new Date(item.occurred_at).toLocaleString()} className="mt-2" />
+              <MhdDetailField label="Channel" value={item.channel} className="mt-2" />
             </MhdCard>
           ))}
           {privileged ? (
@@ -476,11 +476,11 @@ export function MhdLeaveWorkflowPanel({
           {record.benefits.length ? (
             record.benefits.map((item) => (
               <MhdCard key={item.id}>
-                <p className="font-medium">{item.benefit_type.replaceAll('_', ' ')}</p>
-                <p className="text-sm text-muted-foreground">
-                  {item.coverage_start} · employee {item.employee_amount} / employer{' '}
-                  {item.employer_amount} · {item.status}
-                </p>
+                <MhdDetailField label="Benefit type" value={item.benefit_type.replaceAll('_', ' ')} />
+                <MhdDetailField label="Coverage start" value={item.coverage_start} className="mt-2" />
+                <MhdDetailField label="Employee amount" value={item.employee_amount} className="mt-2" />
+                <MhdDetailField label="Employer amount" value={item.employer_amount} className="mt-2" />
+                <MhdDetailField label="Status" value={item.status} className="mt-2" />
               </MhdCard>
             ))
           ) : (

@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdLeaveTypeFormSchema, type MhdLeaveTypeFormValues } from '../Schemas';
 import {
   MHD_LEAVE_JURISDICTIONS,
@@ -72,7 +73,7 @@ export function MhdLeaveTypeForm({
       <input type="hidden" value={companyId} {...register('companyId')} readOnly />
       {leaveType ? <input type="hidden" value={leaveType.id} {...register('typeId')} readOnly /> : null}
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="typeKey" className="block text-sm font-medium text-foreground">
             Type key
@@ -117,7 +118,7 @@ export function MhdLeaveTypeForm({
             <p className="mt-1 text-xs text-rose-600">{errors.jurisdiction.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label htmlFor="typeName" className="block text-sm font-medium text-foreground">
@@ -152,7 +153,7 @@ export function MhdLeaveTypeForm({
         </p>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="entitlementHours" className="block text-sm font-medium text-foreground">
             Entitlement hours <span className="font-normal text-muted-foreground">(optional)</span>
@@ -192,9 +193,9 @@ export function MhdLeaveTypeForm({
             <p className="mt-1 text-xs text-rose-600">{errors.measurementMethod.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="measurementMonths" className="block text-sm font-medium text-foreground">
             Measurement window (months){' '}
@@ -230,7 +231,7 @@ export function MhdLeaveTypeForm({
           />
           {errors.citation ? <p className="mt-1 text-xs text-rose-600">{errors.citation.message}</p> : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <label className="flex items-center gap-2 text-sm text-foreground">
         <input

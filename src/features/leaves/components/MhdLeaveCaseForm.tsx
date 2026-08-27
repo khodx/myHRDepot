@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdLeaveCaseFormSchema, type MhdLeaveCaseFormValues } from '../Schemas';
 
 interface PersonOption {
@@ -91,7 +92,7 @@ export function MhdLeaveCaseForm({ companyId, people, onSubmit, onCancel, isSubm
         ) : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="requestedStart" className="block text-sm font-medium text-foreground">
             Requested start <span className="font-normal text-muted-foreground">(optional)</span>
@@ -129,7 +130,7 @@ export function MhdLeaveCaseForm({ companyId, people, onSubmit, onCancel, isSubm
             <p className="mt-1 text-xs text-rose-600">{errors.requestedEnd.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <label className="flex items-center gap-2 text-sm text-foreground">
         <input type="checkbox" {...register('isIntermittent')} className="rounded border-border" />

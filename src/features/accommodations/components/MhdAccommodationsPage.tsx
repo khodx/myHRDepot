@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Accessibility } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -153,7 +154,7 @@ export function MhdAccommodationsPage() {
               the workplace change or assistance requested—never a diagnosis or medical history.
             </p>
           </div>
-          <div className="grid gap-3 md:grid-cols-2">
+          <MhdFormFieldStack>
             {isPrivileged ? (
               <label className="text-sm font-medium">
                 Person
@@ -203,7 +204,7 @@ export function MhdAccommodationsPage() {
                 ))}
               </select>
             </label>
-          </div>
+          </MhdFormFieldStack>
           <label className="block text-sm font-medium">
             Requested workplace change or assistance
             <textarea
