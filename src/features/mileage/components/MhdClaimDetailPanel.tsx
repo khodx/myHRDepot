@@ -2,6 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { mhdClaimDecisionSchema, type MhdClaimDecisionFormValues } from '../Schemas';
 import { type MhdMileageClaimDetail } from '../Types';
@@ -198,30 +200,11 @@ export function MhdClaimDetailPanel({
         </tbody>
       </MhdTable>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-md border border-border px-3 py-2">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Total miles</p>
-          <p className="mt-1 text-sm tabular-nums text-foreground">
-            {claim.totalMiles == null ? '—' : milesFormatter.format(claim.totalMiles)}
-          </p>
-        </div>
-        <div className="rounded-md border border-border px-3 py-2">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">At the IRS rate</p>
-          <p className="mt-1 text-sm tabular-nums text-foreground">
-            {claim.totalIrsAmount == null ? '—' : currencyFormatter.format(claim.totalIrsAmount)}
-          </p>
-        </div>
-        <div className="rounded-md border border-border px-3 py-2">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Company reimbursement
-          </p>
-          <p className="mt-1 text-sm tabular-nums text-foreground">
-            {claim.totalCompanyAmount == null
-              ? '—'
-              : currencyFormatter.format(claim.totalCompanyAmount)}
-          </p>
-        </div>
-      </div>
+      <MhdFormFieldStack>
+        <MhdDetailField label="Total miles" value={claim.totalMiles == null ? null : milesFormatter.format(claim.totalMiles)} />
+        <MhdDetailField label="At the IRS rate" value={claim.totalIrsAmount == null ? null : currencyFormatter.format(claim.totalIrsAmount)} />
+        <MhdDetailField label="Company reimbursement" value={claim.totalCompanyAmount == null ? null : currencyFormatter.format(claim.totalCompanyAmount)} />
+      </MhdFormFieldStack>
 
       {/*
         Surfaced, never hidden and never blocked. Paying above the IRS business
@@ -236,17 +219,13 @@ export function MhdClaimDetailPanel({
         </div>
       ) : null}
 
-      {claim.decisionNote ? (
-        <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
-          <span className="font-medium">Decision note:</span> {claim.decisionNote}
-        </div>
-      ) : null}
+      <MhdDetailField label="Decision note" value={claim.decisionNote} className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground" />
 
-      {claim.exportedAt ? (
-        <p className="text-xs text-muted-foreground">
-          Exported {new Date(claim.exportedAt).toLocaleDateString()}.
-        </p>
-      ) : null}
+      <MhdDetailField
+        label="Exported"
+        value={claim.exportedAt ? new Date(claim.exportedAt).toLocaleDateString() : null}
+        className="text-xs text-muted-foreground"
+      />
 
       <div className="flex flex-wrap justify-end gap-2">
         {onSubmitClaim && claim.status === 'DRAFT' ? (

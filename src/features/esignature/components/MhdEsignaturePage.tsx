@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterInput } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -562,7 +563,7 @@ export function MhdEsignaturePage() {
                               </select>
                             </label>
                           ) : (
-                            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                            <MhdFormFieldStack className="mt-3">
                               <label className="block text-sm font-medium text-foreground">
                                 Signer name
                                 <input
@@ -590,7 +591,7 @@ export function MhdEsignaturePage() {
                                   className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                                 />
                               </label>
-                            </div>
+                            </MhdFormFieldStack>
                           )}
                         </div>
                       ))}

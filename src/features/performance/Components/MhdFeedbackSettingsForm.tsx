@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { cn } from '@/utils/cn';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { useMhdFeedbackSettings, useMhdUpsertFeedbackSettings } from '../Hook-v2';
 import { MHD_FEEDBACK_THRESHOLD_FLOOR } from '../Types-v2';
 import { mhdFeedbackSettingsSchema, type MhdFeedbackSettingsFormValues } from '../Schemas-v2';
@@ -73,7 +74,7 @@ export function MhdFeedbackSettingsForm({ companyId }: Props) {
     <form onSubmit={onSubmit} className="max-w-xl space-y-6">
       <h2 className="text-base font-semibold text-foreground">360 feedback settings</h2>
 
-      <div>
+      <MhdFormFieldStack>
         <label
           htmlFor="minResponsesForRelease"
           className="block text-sm font-medium text-foreground"
@@ -98,7 +99,7 @@ export function MhdFeedbackSettingsForm({ companyId }: Props) {
           invited, so it cannot be set lower. Raise it for greater protection; upward feedback,
           where a direct report rates the manager who decides their pay, is the case it exists for.
         </p>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label className="flex items-start gap-2 text-sm text-foreground">

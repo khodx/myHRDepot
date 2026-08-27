@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { useMhdCreateSafetyIncident } from '../Hook';
 import { mhdSafetyIncidentSchema } from '../Schemas';
 import type { MhdSafetyIncidentClassification, MhdSafetyIllnessType } from '../Types';
@@ -109,7 +110,7 @@ export function MhdSafetyIncidentForm({
         </p>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <MhdFormFieldStack>
         <label className="text-sm font-medium">
           Employee
           <select
@@ -213,7 +214,7 @@ export function MhdSafetyIncidentForm({
             onChange={(event) => setDaysRestrictedOrTransferredCount(Number(event.target.value) || 0)}
           />
         </label>
-      </div>
+      </MhdFormFieldStack>
 
       <label className="block text-sm font-medium">
         What happened

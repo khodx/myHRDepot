@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/Button';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { useEffect } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { mhdCompanyRatePolicySchema, type MhdCompanyRatePolicyFormValues } from '../Schemas';
@@ -92,7 +93,7 @@ export function MhdCompanyRatePolicyForm({
         </p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="rateMode" className="block text-sm font-medium text-foreground">
             Rate mode
@@ -134,15 +135,14 @@ export function MhdCompanyRatePolicyForm({
             the rate they were stamped against.
           </p>
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       {/*
         The fixed-rate input exists only under FIXED. Rendering it disabled under
         a tracking policy would invite the reader to believe some number here
         still applies; only one figure can be the one that governs.
       */}
-      {isFixed ? (
-        <div>
+      <div>
           <label htmlFor="fixedRatePerMile" className="block text-sm font-medium text-foreground">
             Fixed rate per mile
           </label>
@@ -158,10 +158,14 @@ export function MhdCompanyRatePolicyForm({
                 return Number.isFinite(parsed) ? parsed : null;
               },
             })}
+            disabled={!isFixed}
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:w-48"
           />
           {errors.fixedRatePerMile ? (
             <p className="mt-1 text-xs text-rose-600">{errors.fixedRatePerMile.message}</p>
+          ) : null}
+          {!isFixed ? (
+            <p className="mt-1 text-xs text-muted-foreground">Not applicable for tracking IRS rate mode.</p>
           ) : null}
           {irsRate != null ? (
             <p className="mt-1 text-xs text-muted-foreground">
@@ -174,12 +178,13 @@ export function MhdCompanyRatePolicyForm({
             </p>
           )}
         </div>
-      ) : (
+
+      {!isFixed ? (
         <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
           Reimbursement follows the confirmed IRS business rate on each trip's own date. Nothing
           paid under this mode is reportable wages.
         </div>
-      )}
+      ) : null}
 
       {exceedsIrs ? (
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">

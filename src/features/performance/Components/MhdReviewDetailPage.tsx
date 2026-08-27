@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
@@ -417,42 +418,15 @@ export function MhdReviewDetailPage() {
       ) : null}
 
       <MhdCard className="p-6">
-        <div className="grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Review Period
-            </p>
-            <p className="mt-2">
-              {formatDate(review.reviewPeriodStart)} – {formatDate(review.reviewPeriodEnd)}
-            </p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Due
-            </p>
-            <p className="mt-2">{formatDate(review.dueDate)}</p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Overall Rating
-            </p>
-            <p className="mt-2">
-              <MhdRatingStars value={review.overallRating} size="sm" />
-            </p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Acknowledged
-            </p>
-            <p className="mt-2">
-              {review.acknowledgedAt
-                ? new Date(review.acknowledgedAt).toLocaleString()
-                : review.waiverReason
-                  ? 'Waived'
-                  : 'Not yet acknowledged'}
-            </p>
-          </div>
-        </div>
+        <dl className="space-y-4 text-sm text-muted-foreground">
+          <MhdDetailField label="Review Period" value={`${formatDate(review.reviewPeriodStart)} – ${formatDate(review.reviewPeriodEnd)}`} />
+          <MhdDetailField label="Due" value={formatDate(review.dueDate)} />
+          <MhdDetailField label="Overall Rating" value={<MhdRatingStars value={review.overallRating} size="sm" />} />
+          <MhdDetailField
+            label="Acknowledged"
+            value={review.acknowledgedAt ? new Date(review.acknowledgedAt).toLocaleString() : review.waiverReason ? 'Waived' : 'Not yet acknowledged'}
+          />
+        </dl>
 
         {review.waiverReason ? (
           <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
@@ -590,14 +564,7 @@ export function MhdReviewDetailPage() {
                 ['Reviewer Comments', review.reviewerComments],
                 ['Employee Comments', review.employeeComments],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-md bg-muted p-4">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {label}
-                  </dt>
-                  <dd className="mt-2 whitespace-pre-wrap">
-                    {value || <span className="text-muted-foreground">Not recorded</span>}
-                  </dd>
-                </div>
+                <MhdDetailField key={String(label)} label={String(label)} value={value} className="whitespace-pre-wrap" />
               ))}
             </dl>
           </MhdCard>

@@ -10,6 +10,7 @@ import {
 } from '../Types';
 import { MhdRatingStars } from './MhdRatingStars';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 
 interface Props {
   mode: 'create' | 'edit';
@@ -80,7 +81,7 @@ export function MhdReviewForm({
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="mhd-review-form-person" className="mb-1 block text-sm font-medium">
             Subject
@@ -124,9 +125,9 @@ export function MhdReviewForm({
             <p className="mt-1 text-xs text-red-600">{errors.reviewerUserId.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="mhd-review-form-type" className="mb-1 block text-sm font-medium">
             Review Type
@@ -210,7 +211,7 @@ export function MhdReviewForm({
             )}
           />
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       {setupLocked ? (
         <p className="text-xs text-muted-foreground">

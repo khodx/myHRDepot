@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type UseFormRegisterReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdConductActionFormSchema, type MhdConductActionFormSchemaInput } from '../Schemas';
 import { MHD_CONDUCT_SEVERITIES, type MhdConductAction, mhdFormatConductSeverity } from '../Types';
 
@@ -145,7 +146,7 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
           actions freeze this content with the document.
         </p>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <MhdFormFieldStack className="mt-4">
           <MhdPayloadInput
             id="mhd-conduct-payload-company"
             label="Company Name"
@@ -183,9 +184,9 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
             registration={register('documentPayload.dateOfNotice')}
             placeholder="Tuesday, June 22, 2026"
           />
-        </div>
+        </MhdFormFieldStack>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <MhdFormFieldStack className="mt-4">
           <MhdPayloadInput
             id="mhd-conduct-payload-incident-dates"
             label="Date(s) of Incident"
@@ -207,7 +208,7 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
             registration={register('documentPayload.previouslyAddressed')}
             placeholder="Yes / No"
           />
-        </div>
+        </MhdFormFieldStack>
 
         <div className="mt-4 space-y-3">
           <MhdPayloadTextarea
@@ -246,7 +247,7 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
             registration={register('documentPayload.trainingItems')}
             placeholder="One requirement per line."
           />
-          <div className="grid gap-3 md:grid-cols-2">
+          <MhdFormFieldStack>
             <MhdPayloadInput
               id="mhd-conduct-payload-training-deadline"
               label="Training/Completion Deadline"
@@ -257,7 +258,7 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
               label="Follow-Up Review Date"
               registration={register('documentPayload.followUpReviewDate')}
             />
-          </div>
+          </MhdFormFieldStack>
           <MhdPayloadTextarea
             id="mhd-conduct-payload-expectations"
             label="Expectations"
@@ -270,7 +271,7 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
             registration={register('documentPayload.consequencesText')}
             rows={4}
           />
-          <div className="grid gap-3 md:grid-cols-2">
+          <MhdFormFieldStack>
             <MhdPayloadInput
               id="mhd-conduct-payload-extenuating-considered"
               label="Extenuating Circumstances Considered"
@@ -282,7 +283,7 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
               label="Extenuating Circumstances Explanation"
               registration={register('documentPayload.extenuatingCircumstancesExplanation')}
             />
-          </div>
+          </MhdFormFieldStack>
         </div>
       </div>
 

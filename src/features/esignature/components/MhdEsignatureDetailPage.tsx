@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { BellRing, Clock3, FileClock, ShieldCheck } from 'lucide-react';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdEsignatureRecordTabs } from '@/appshell/components/MhdEsignatureRecordTabs';
 import { mhdCanMutateEsignature } from '@/appshell/mhdRouteAccess';
@@ -144,37 +145,13 @@ export function MhdEsignatureDetailPage() {
           </div>
         ) : null}
 
-        <MhdCard className="grid gap-4 rounded-2xl p-5 lg:grid-cols-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Request ID
-            </p>
-            <p className="mt-2 text-sm text-foreground">{request.referenceId}</p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Created
-            </p>
-            <p className="mt-2 text-sm text-foreground">
-              {new Date(request.createdAt).toLocaleString()}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Document Hash
-            </p>
-            <p className="mt-2 break-all font-mono text-xs text-foreground">
-              {request.documentHash ?? 'Missing'}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Signed Hash
-            </p>
-            <p className="mt-2 break-all font-mono text-xs text-foreground">
-              {request.signedDocumentHash ?? 'Pending completion'}
-            </p>
-          </div>
+        <MhdCard className="rounded-2xl p-5">
+          <dl className="space-y-4">
+            <MhdDetailField label="Request ID" value={request.referenceId} />
+            <MhdDetailField label="Created" value={new Date(request.createdAt).toLocaleString()} />
+            <MhdDetailField label="Document Hash" value={request.documentHash} className="break-all font-mono" />
+            <MhdDetailField label="Signed Hash" value={request.signedDocumentHash} className="break-all font-mono" />
+          </dl>
         </MhdCard>
 
         <MhdCard className="rounded-2xl p-5">
@@ -213,15 +190,13 @@ export function MhdEsignatureDetailPage() {
                             : 'Hash-verified only'}
                         </MhdBadge>
                       </div>
-                      <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
-                        <p>
-                          Generated:{' '}
-                          {certificate.generatedAt
-                            ? new Date(certificate.generatedAt).toLocaleString()
-                            : 'Pending'}
-                        </p>
-                        <p className="break-all">Verification: {certificate.verificationCode}</p>
-                      </div>
+                      <dl className="mt-3 space-y-2 text-xs text-muted-foreground">
+                        <MhdDetailField
+                          label="Generated"
+                          value={certificate.generatedAt ? new Date(certificate.generatedAt).toLocaleString() : 'Pending'}
+                        />
+                        <MhdDetailField label="Verification" value={certificate.verificationCode} className="break-all" />
+                      </dl>
                     </div>
                     {certificateUrl ? (
                       <a
@@ -276,22 +251,12 @@ export function MhdEsignatureDetailPage() {
                         <p className="mt-1 text-xs text-muted-foreground">
                           Order position {signer.signerOrder}
                         </p>
-                        <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
-                          <p>
-                            Consent:{' '}
-                            {signer.consentedAt
-                              ? new Date(signer.consentedAt).toLocaleString()
-                              : 'Not yet recorded'}
-                          </p>
-                          <p>
-                            Signed:{' '}
-                            {signer.signedAt
-                              ? new Date(signer.signedAt).toLocaleString()
-                              : 'Pending'}
-                          </p>
-                          <p>Typed name: {signer.signatureName ?? 'Pending'}</p>
-                          <p>Decline reason: {signer.declinedReason ?? '—'}</p>
-                        </div>
+                        <dl className="mt-3 space-y-2 text-xs text-muted-foreground">
+                          <MhdDetailField label="Consent" value={signer.consentedAt ? new Date(signer.consentedAt).toLocaleString() : 'Not yet recorded'} />
+                          <MhdDetailField label="Signed" value={signer.signedAt ? new Date(signer.signedAt).toLocaleString() : 'Pending'} />
+                          <MhdDetailField label="Typed name" value={signer.signatureName} />
+                          <MhdDetailField label="Decline reason" value={signer.declinedReason} />
+                        </dl>
                       </div>
 
                       {canMutate && ['PENDING', 'VIEWED'].includes(signer.status) ? (
@@ -350,11 +315,11 @@ export function MhdEsignatureDetailPage() {
                           {new Date(event.eventAt).toLocaleString()}
                         </span>
                       </div>
-                      <div className="mt-2 grid gap-1 text-xs text-muted-foreground">
-                        <p>Signer: {event.signerId ?? 'System'}</p>
-                        <p>IP: {event.ipAddress ?? '—'}</p>
-                        <p>User agent: {event.userAgent ?? '—'}</p>
-                      </div>
+                      <dl className="mt-2 space-y-1 text-xs text-muted-foreground">
+                        <MhdDetailField label="Signer" value={event.signerId ?? 'System'} />
+                        <MhdDetailField label="IP" value={event.ipAddress} />
+                        <MhdDetailField label="User agent" value={event.userAgent} />
+                      </dl>
                     </div>
                   </div>
                   {Object.keys(event.metadata).length > 0 ? (

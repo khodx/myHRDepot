@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { MhdConductCaseRecordTabs } from '@/appshell/components/MhdConductCaseRecordTabs';
@@ -297,11 +298,11 @@ function MhdConductActionRow({
             <MhdActionOutcomeBadge status={action.status} />
             <span className="text-xs text-muted-foreground">{action.referenceId}</span>
           </div>
-          {action.actionSummary ? (
-            <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
-              {action.actionSummary}
-            </p>
-          ) : null}
+          <MhdDetailField
+            label="Action summary"
+            value={action.actionSummary}
+            className="mt-2 whitespace-pre-wrap"
+          />
 
           {action.esignatureRequestId ? (
             <p className="mt-2 text-xs text-muted-foreground">
@@ -315,14 +316,11 @@ function MhdConductActionRow({
             </p>
           ) : null}
 
-          {action.outcomeReason ? (
-            <p className="mt-2 rounded-md bg-muted p-2 text-xs text-muted-foreground">
-              <span className="font-medium">
-                {mhdFormatConductActionStatus(action.status)} reason:
-              </span>{' '}
-              {action.outcomeReason}
-            </p>
-          ) : null}
+          <MhdDetailField
+            label={`${mhdFormatConductActionStatus(action.status)} reason`}
+            value={action.outcomeReason}
+            className="mt-2 rounded-md bg-muted p-2 text-xs text-muted-foreground"
+          />
         </div>
 
         {canMutate && caseIsOpen ? (

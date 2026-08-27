@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/Button';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { useEffect } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { mhdOccurrenceFormSchema, type MhdOccurrenceFormValues } from '../Schemas';
@@ -125,7 +126,7 @@ export function MhdOccurrenceForm({
         ) : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="occurrenceDate" className="block text-sm font-medium text-foreground">
             Date
@@ -163,10 +164,9 @@ export function MhdOccurrenceForm({
             ))}
           </select>
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      {showsMinutes ? (
-        <div>
+      <div>
           <label htmlFor="minutesVariance" className="block text-sm font-medium text-foreground">
             Minutes
           </label>
@@ -175,13 +175,16 @@ export function MhdOccurrenceForm({
             type="number"
             min={0}
             {...register('minutesVariance', { valueAsNumber: true })}
+            disabled={!showsMinutes}
             className="mt-1 w-40 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
           {errors.minutesVariance ? (
             <p className="mt-1 text-xs text-rose-600">{errors.minutesVariance.message}</p>
           ) : null}
-        </div>
-      ) : null}
+          {!showsMinutes ? (
+            <p className="mt-1 text-xs text-muted-foreground">Not applicable for this occurrence type.</p>
+          ) : null}
+      </div>
 
       <div>
         <label htmlFor="classification" className="block text-sm font-medium text-foreground">
@@ -200,8 +203,7 @@ export function MhdOccurrenceForm({
         </select>
       </div>
 
-      {isProtected ? (
-        <div>
+      <div>
           <label
             htmlFor="protectedLeaveCategory"
             className="block text-sm font-medium text-foreground"
@@ -211,6 +213,7 @@ export function MhdOccurrenceForm({
           <select
             id="protectedLeaveCategory"
             {...register('protectedLeaveCategory')}
+            disabled={!isProtected}
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <option value="">Select a category…</option>
@@ -223,8 +226,10 @@ export function MhdOccurrenceForm({
           {errors.protectedLeaveCategory ? (
             <p className="mt-1 text-xs text-rose-600">{errors.protectedLeaveCategory.message}</p>
           ) : null}
-        </div>
-      ) : null}
+          {!isProtected ? (
+            <p className="mt-1 text-xs text-muted-foreground">Not applicable unless classification is Protected.</p>
+          ) : null}
+      </div>
 
       {/*
         The points consequence, stated plainly. Protected leave gets its own

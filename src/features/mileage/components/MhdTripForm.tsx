@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/Button';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { mhdTripFormSchema, type MhdTripFormValues } from '../Schemas';
 import type { MhdMileageTrip } from '../Types';
@@ -98,7 +99,7 @@ export function MhdTripForm({
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="personId" className="block text-sm font-medium text-foreground">
             Traveller
@@ -142,9 +143,9 @@ export function MhdTripForm({
             <p className="mt-1 text-xs text-rose-600">{errors.tripDate.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="origin" className="block text-sm font-medium text-foreground">
             From
@@ -176,9 +177,9 @@ export function MhdTripForm({
             <p className="mt-1 text-xs text-rose-600">{errors.destination.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="miles" className="block text-sm font-medium text-foreground">
             Miles
@@ -233,7 +234,7 @@ export function MhdTripForm({
             Round trip
           </label>
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label htmlFor="businessPurpose" className="block text-sm font-medium text-foreground">
@@ -286,7 +287,7 @@ export function MhdTripForm({
         ) : null}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="odometerStart" className="block text-sm font-medium text-foreground">
             Odometer start <span className="font-normal text-muted-foreground">(optional)</span>
@@ -335,7 +336,7 @@ export function MhdTripForm({
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label htmlFor="notes" className="block text-sm font-medium text-foreground">

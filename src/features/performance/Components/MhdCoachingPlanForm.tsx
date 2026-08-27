@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdCoachingPlanFormSchema, type MhdCoachingPlanFormSchemaInput } from '../Schemas';
 import type { MhdCoachingPlan, MhdPerformanceOption } from '../Types';
 
@@ -65,7 +66,7 @@ export function MhdCoachingPlanForm({
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="mhd-coaching-form-person" className="mb-1 block text-sm font-medium">
             Person
@@ -108,7 +109,7 @@ export function MhdCoachingPlanForm({
             <p className="mt-1 text-xs text-red-600">{errors.coachUserId.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label htmlFor="mhd-coaching-form-title" className="mb-1 block text-sm font-medium">
@@ -135,7 +136,7 @@ export function MhdCoachingPlanForm({
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="mhd-coaching-form-start" className="mb-1 block text-sm font-medium">
             Start Date
@@ -173,10 +174,9 @@ export function MhdCoachingPlanForm({
             <p className="mt-1 text-xs text-red-600">{errors.targetDate.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      {mode === 'edit' ? (
-        <div>
+      <div>
           <label htmlFor="mhd-coaching-form-outcome" className="mb-1 block text-sm font-medium">
             Outcome Summary
           </label>
@@ -187,8 +187,7 @@ export function MhdCoachingPlanForm({
             placeholder="What was the result of this plan?"
             {...register('outcomeSummary')}
           />
-        </div>
-      ) : null}
+      </div>
 
       <div className="flex gap-3">
         <button

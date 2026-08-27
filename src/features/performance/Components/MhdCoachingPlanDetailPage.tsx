@@ -17,6 +17,8 @@ import { buttonBaseClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { cn } from '@/utils/cn';
@@ -76,7 +78,7 @@ function MhdCheckpointForm({
 
   return (
     <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto]">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor={`${idPrefix}-title`} className="mb-1 block text-sm font-medium">
             Checkpoint
@@ -107,7 +109,7 @@ function MhdCheckpointForm({
             )}
           />
         </div>
-      </div>
+      </MhdFormFieldStack>
       <div>
         <label htmlFor={`${idPrefix}-description`} className="mb-1 block text-sm font-medium">
           Description (optional)
@@ -435,52 +437,21 @@ export function MhdCoachingPlanDetailPage() {
       ) : null}
 
       <MhdCard className="p-6">
-        <div className="grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Start
-            </p>
-            <p className="mt-2">{formatDate(plan.startDate)}</p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Target
-            </p>
-            <p className="mt-2">{formatDate(plan.targetDate)}</p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Checkpoints
-            </p>
-            <p className="mt-2">
-              {items.length > 0 ? `${completedItemCount} of ${items.length} done` : 'None yet'}
-            </p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Coach
-            </p>
-            <p className="mt-2">{plan.coachDisplayName ?? '—'}</p>
-          </div>
-        </div>
-
-        {plan.objective ? (
-          <div className="mt-4 rounded-md bg-muted p-4 text-sm text-muted-foreground">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Objective
-            </p>
-            <p className="mt-2 whitespace-pre-wrap">{plan.objective}</p>
-          </div>
-        ) : null}
-
-        {plan.outcomeSummary ? (
-          <div className="mt-4 rounded-md bg-muted p-4 text-sm text-muted-foreground">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Outcome
-            </p>
-            <p className="mt-2 whitespace-pre-wrap">{plan.outcomeSummary}</p>
-          </div>
-        ) : null}
+        <dl className="space-y-4 text-sm text-muted-foreground">
+          <MhdDetailField label="Start" value={formatDate(plan.startDate)} />
+          <MhdDetailField label="Target" value={formatDate(plan.targetDate)} />
+          <MhdDetailField
+            label="Checkpoints"
+            value={items.length > 0 ? `${completedItemCount} of ${items.length} done` : 'None yet'}
+          />
+          <MhdDetailField label="Coach" value={plan.coachDisplayName} />
+          <MhdDetailField label="Objective" value={plan.objective} className="whitespace-pre-wrap" />
+          <MhdDetailField
+            label="Outcome"
+            value={plan.outcomeSummary}
+            className="whitespace-pre-wrap"
+          />
+        </dl>
 
         <div className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
           <p>Created: {new Date(plan.createdAt).toLocaleString()}</p>
