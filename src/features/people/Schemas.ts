@@ -33,7 +33,5 @@ export function mhdPersonDisplayName(
   const firstName = values.firstName.trim();
   const lastName = values.lastName.trim();
   const preferredName = values.preferredName.trim();
-  return preferredName.length > 0
-    ? `${preferredName} ${lastName}`.trim()
-    : `${firstName} ${lastName}`.trim();
+  return preferredName.length > 0 ? preferredName : `${firstName} ${lastName}`.trim();
 }

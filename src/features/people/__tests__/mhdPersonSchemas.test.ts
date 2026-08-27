@@ -29,9 +29,15 @@ describe('mhdPersonFormSchema', () => {
     ).toThrow();
   });
 
-  it('builds display name from preferred name when supplied', () => {
+  it('uses preferred name alone as the display name when supplied', () => {
     expect(
       mhdPersonDisplayName({ firstName: 'Marcel', lastName: 'Furnace', preferredName: 'Mac' }),
-    ).toBe('Mac Furnace');
+    ).toBe('Mac');
+  });
+
+  it('falls back to first and last name when no preferred name is set', () => {
+    expect(
+      mhdPersonDisplayName({ firstName: 'Marcel', lastName: 'Furnace', preferredName: '' }),
+    ).toBe('Marcel Furnace');
   });
 });
