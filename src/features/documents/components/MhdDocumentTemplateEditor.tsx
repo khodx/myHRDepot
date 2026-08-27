@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import type { MhdCompany } from '@/features/companies/Types';
 import {
   MHD_DOCUMENT_CONTENT_FORMATS,
@@ -184,7 +185,7 @@ export function MhdDocumentTemplateEditor({
         </div>
       )}
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
+      <MhdFormFieldStack className="mt-4">
         <label className="text-sm font-medium text-foreground">
           Company
           <select
@@ -256,7 +257,7 @@ export function MhdDocumentTemplateEditor({
           </select>
         </label>
 
-        <label className="text-sm font-medium text-foreground md:col-span-2">
+        <label className="text-sm font-medium text-foreground">
           Description
           <input
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -265,7 +266,7 @@ export function MhdDocumentTemplateEditor({
           />
         </label>
 
-        <label className="text-sm font-medium text-foreground md:col-span-2">
+        <label className="text-sm font-medium text-foreground">
           Content
           <textarea
             ref={contentTextareaRef}
@@ -277,7 +278,7 @@ export function MhdDocumentTemplateEditor({
           />
         </label>
 
-        <div className="md:col-span-2">
+        <div>
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-foreground">Merge Fields</p>
             <button
@@ -378,7 +379,7 @@ export function MhdDocumentTemplateEditor({
           />
           Active
         </label>
-      </div>
+      </MhdFormFieldStack>
 
       <Button type="submit" disabled={isSaving} className="mt-4">
         {isSaving ? 'Saving...' : selectedTemplate ? 'Update Template' : 'Create Template'}

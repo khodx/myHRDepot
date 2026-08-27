@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { useMhdAssignJob, useMhdJobAssignments, useMhdJobs } from '../Hook';
 import { useMhdPeoplePicker } from '@/features/people/Hook';
@@ -89,7 +90,7 @@ export function MhdJobAssignmentPanel({ companyId, personId, canAssign }: Props)
 
       {isAssigning && canAssign ? (
         <MhdCard className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <MhdFormFieldStack>
             <div>
               <label htmlFor="assignJob" className="block text-sm font-medium text-foreground">
                 Job
@@ -121,7 +122,7 @@ export function MhdJobAssignmentPanel({ companyId, personId, canAssign }: Props)
                 className="mt-1 w-full"
               />
             </div>
-          </div>
+          </MhdFormFieldStack>
 
           <div>
             <label htmlFor="assignManager" className="block text-sm font-medium text-foreground">

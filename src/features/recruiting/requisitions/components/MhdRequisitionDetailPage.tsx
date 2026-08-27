@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdRequisitionRecordTabs } from '@/appshell/components/MhdRequisitionRecordTabs';
 import { useMhdRecruitingRequisitions, useMhdTransitionRequisition } from '../Hook';
@@ -76,43 +77,14 @@ export function MhdRequisitionDetailPage({ companyId, requisitionId, canManage }
       />
 
       <MhdCard>
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm md:grid-cols-4">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-              Hiring manager
-            </dt>
-            <dd className="text-foreground">{requisition.hiringManagerName ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Department</dt>
-            <dd className="text-foreground">{requisition.department ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Location</dt>
-            <dd className="text-foreground">{requisition.location ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-              Employment type
-            </dt>
-            <dd className="text-foreground">{requisition.employmentType ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Headcount</dt>
-            <dd className="text-foreground">{requisition.headcount}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-              Active applicants
-            </dt>
-            <dd className="text-foreground">{requisition.openApplicationCount}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-              Requires approval
-            </dt>
-            <dd className="text-foreground">{requisition.requiresApproval ? 'Yes' : 'No'}</dd>
-          </div>
+        <dl className="space-y-4 text-sm">
+          <MhdDetailField label="Hiring manager" value={requisition.hiringManagerName} />
+          <MhdDetailField label="Department" value={requisition.department} />
+          <MhdDetailField label="Location" value={requisition.location} />
+          <MhdDetailField label="Employment type" value={requisition.employmentType} />
+          <MhdDetailField label="Headcount" value={requisition.headcount} />
+          <MhdDetailField label="Active applicants" value={requisition.openApplicationCount} />
+          <MhdDetailField label="Requires approval" value={requisition.requiresApproval ? 'Yes' : 'No'} />
         </dl>
       </MhdCard>
 

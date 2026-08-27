@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import {
@@ -147,7 +148,7 @@ function MhdCustomItemForm({
       className="space-y-4 rounded-md border border-border bg-muted p-4"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label
             htmlFor="mhd-offboarding-custom-item-title"
@@ -189,7 +190,7 @@ function MhdCustomItemForm({
             <p className="mt-1 text-xs text-red-600">{errors.assignedUserId.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label

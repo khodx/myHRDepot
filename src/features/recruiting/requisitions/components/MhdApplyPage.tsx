@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/Button';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -165,7 +166,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
             </div>
           ) : (
             <form onSubmit={applyForm.handleSubmit(handleApply)} className="mt-6 space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <MhdFormFieldStack>
                 <div>
                   <label
                     htmlFor="desiredPayRate"
@@ -208,7 +209,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                     )}
                   />
                 </div>
-              </div>
+              </MhdFormFieldStack>
 
               <div>
                 <label
@@ -273,7 +274,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
             </div>
           ) : (
             <form onSubmit={eeoForm.handleSubmit(handleEeo)} className="mt-6 space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <MhdFormFieldStack>
                 <div>
                   <label
                     htmlFor="raceEthnicity"
@@ -354,7 +355,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
                     ))}
                   </select>
                 </div>
-              </div>
+              </MhdFormFieldStack>
 
               <label className="flex items-start gap-3 rounded-2xl border border-border bg-muted p-4 text-sm text-foreground">
                 <input type="checkbox" {...eeoForm.register('declined')} className="mt-0.5" />

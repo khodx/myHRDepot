@@ -13,6 +13,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -192,7 +193,7 @@ function MhdExitInterviewQuickCreateForm({
 }
 
 function formatDate(value: string | null): string {
-  return value ? new Date(`${value}T00:00:00`).toLocaleDateString() : '—';
+  return value ? new Date(`${value}T00:00:00`).toLocaleDateString() : '';
 }
 
 /** /offboarding/:caseId — admits the same three privileged roles as the board route. */
@@ -508,58 +509,25 @@ export function MhdOffboardingCaseDetailPage() {
           </p>
         ) : null}
 
-        <div className="grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Separation Date
-            </p>
-            <p className="mt-2">{formatDate(offboardingCase.separationDate)}</p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Last Working Day
-            </p>
-            <p className="mt-2">{formatDate(offboardingCase.lastWorkingDay)}</p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Eligible for Rehire
-            </p>
-            <p className="mt-2">
-              {offboardingCase.eligibleForRehire === null
-                ? 'Undetermined'
-                : offboardingCase.eligibleForRehire
-                  ? 'Yes'
-                  : 'No'}
-            </p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Completed
-            </p>
-            <p className="mt-2">
-              {offboardingCase.completedAt
-                ? new Date(offboardingCase.completedAt).toLocaleString()
-                : 'Not completed'}
-            </p>
-          </div>
+        <div className="space-y-4">
+          <MhdDetailField label="Separation date" value={formatDate(offboardingCase.separationDate)} />
+          <MhdDetailField label="Last working day" value={formatDate(offboardingCase.lastWorkingDay)} />
+          <MhdDetailField
+            label="Eligible for rehire"
+            value={offboardingCase.eligibleForRehire === null ? null : offboardingCase.eligibleForRehire ? 'Yes' : 'No'}
+          />
+          <MhdDetailField
+            label="Completed"
+            value={offboardingCase.completedAt ? new Date(offboardingCase.completedAt).toLocaleString() : null}
+          />
         </div>
 
-        {offboardingCase.reasonSummary ? (
-          <div className="mt-4 rounded-md bg-muted p-4 text-sm text-muted-foreground">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Reason Summary
-            </p>
-            <p className="mt-2 whitespace-pre-wrap">{offboardingCase.reasonSummary}</p>
-          </div>
-        ) : null}
-
-        {offboardingCase.cancelReason ? (
-          <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-            <p className="text-xs font-semibold uppercase tracking-wide">Cancelled</p>
-            <p className="mt-2 whitespace-pre-wrap">{offboardingCase.cancelReason}</p>
-          </div>
-        ) : null}
+        <div className="mt-4 rounded-md bg-muted p-4">
+          <MhdDetailField label="Reason summary" value={offboardingCase.reasonSummary} />
+        </div>
+        <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-4">
+          <MhdDetailField label="Cancellation reason" value={offboardingCase.cancelReason} />
+        </div>
 
         <div className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
           <p>Created: {new Date(offboardingCase.createdAt).toLocaleString()}</p>
@@ -640,7 +608,7 @@ export function MhdOffboardingCaseDetailPage() {
         </MhdCard>
       ) : null}
 
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <section className="space-y-6">
         <div className="space-y-6">
           <MhdCard>
             {itemsQuery.isLoading ? (

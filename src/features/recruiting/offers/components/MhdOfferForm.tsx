@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/Button';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { mhdOfferFormSchema, type MhdOfferFormValues } from '../Schemas';
@@ -82,7 +83,7 @@ export function MhdOfferForm({
         ) : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="startDate" className="block text-sm font-medium text-foreground">
             Start date <span className="font-normal text-muted-foreground">(optional)</span>
@@ -121,9 +122,9 @@ export function MhdOfferForm({
             <p className="mt-1 text-xs text-rose-600">{errors.baseSalary.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="payFrequency" className="block text-sm font-medium text-foreground">
             Pay frequency <span className="font-normal text-muted-foreground">(optional)</span>
@@ -149,9 +150,9 @@ export function MhdOfferForm({
             className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label
             htmlFor="reportingManagerPersonId"
@@ -196,7 +197,7 @@ export function MhdOfferForm({
             )}
           />
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div className="flex items-start gap-2">
         <input

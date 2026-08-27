@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -130,7 +131,7 @@ export function MhdStartOnboardingDialog({ row, onClose }: MhdStartOnboardingDia
           </div>
         </div>
 
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <MhdFormFieldStack className="mt-3">
           {MHD_ONBOARDING_PACKET_DEFINITIONS.map((packet) => (
             <label
               key={packet.documentKey}
@@ -150,7 +151,7 @@ export function MhdStartOnboardingDialog({ row, onClose }: MhdStartOnboardingDia
               </span>
             </label>
           ))}
-        </div>
+        </MhdFormFieldStack>
 
         <div className="mt-6 flex justify-end gap-3">
           <button

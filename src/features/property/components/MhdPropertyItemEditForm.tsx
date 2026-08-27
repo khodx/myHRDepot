@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { mhdUpdatePropertyItemSchema, type MhdUpdatePropertyItemSchemaInput } from '../Schemas';
 import { MHD_PROPERTY_ITEM_STATUSES, type MhdPropertyItem } from '../Types';
@@ -61,7 +62,7 @@ export function MhdPropertyItemEditForm({
         {errors.name ? <p className="mt-1 text-xs text-red-600">{errors.name.message}</p> : null}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Status</label>
           <select
@@ -85,7 +86,7 @@ export function MhdPropertyItemEditForm({
             <p className="mt-1 text-xs text-red-600">{errors.conditionNotes.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">Description</label>

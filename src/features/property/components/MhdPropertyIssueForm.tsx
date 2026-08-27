@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { mhdIssuePropertySchema, type MhdIssuePropertySchemaInput } from '../Schemas';
 import type { MhdPropertyItem, MhdPropertyPersonOption } from '../Types';
@@ -86,7 +87,7 @@ export function MhdPropertyIssueForm({
         ) : null}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Quantity</label>
           <input
@@ -112,7 +113,7 @@ export function MhdPropertyIssueForm({
             {...register('issuerTitle')}
           />
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">

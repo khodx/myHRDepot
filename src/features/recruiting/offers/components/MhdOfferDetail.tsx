@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import {
   useMhdAcceptOffer,
   useMhdDeclineOffer,
@@ -49,15 +50,6 @@ interface Props {
 function defaultBuildSignatureUrl(esignatureRequestId: string): string {
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   return `${origin}/sign/${encodeURIComponent(esignatureRequestId)}`;
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-4 py-1.5">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="text-right text-sm font-medium text-foreground">{value}</dd>
-    </div>
-  );
 }
 
 /**
@@ -166,13 +158,13 @@ export function MhdOfferDetail({
         <MhdOfferStatusBadge status={o.status} />
       </header>
 
-      <dl className="divide-y divide-border rounded-md border border-border px-4 py-2">
-        <DetailRow label="Start date" value={o.startDate ?? '—'} />
-        <DetailRow label="Base salary" value={salaryText} />
-        <DetailRow label="Pay frequency" value={o.payFrequency ?? '—'} />
-        <DetailRow label="Employment type" value={o.employmentType ?? '—'} />
-        <DetailRow label="Offer expires" value={o.offerExpirationDate ?? '—'} />
-        {o.requiresApproval ? <DetailRow label="Approval" value="Required" /> : null}
+      <dl className="space-y-4 rounded-md border border-border p-4">
+        <MhdDetailField label="Start date" value={o.startDate} />
+        <MhdDetailField label="Base salary" value={salaryText} />
+        <MhdDetailField label="Pay frequency" value={o.payFrequency} />
+        <MhdDetailField label="Employment type" value={o.employmentType} />
+        <MhdDetailField label="Offer expires" value={o.offerExpirationDate} />
+        <MhdDetailField label="Approval" value={o.requiresApproval ? 'Required' : 'Not required'} />
       </dl>
 
       {/* EXTENDED: the e-sign link (soft-linked signature request, created app-layer). */}
@@ -220,21 +212,20 @@ export function MhdOfferDetail({
               Onboarding candidate evaluation: {handoff.onboardingCandidateEvaluationId}
             </p>
           ) : null}
-          {o.acceptedAt ? (
-            <p className="text-xs text-emerald-700">
-              Accepted {new Date(o.acceptedAt).toLocaleString()}
-            </p>
-          ) : null}
+          <MhdDetailField
+            label="Accepted"
+            value={o.acceptedAt ? new Date(o.acceptedAt).toLocaleString() : null}
+          />
         </div>
       ) : null}
 
       {/* Terminal decline / rescind — show the recorded reason. */}
-      {(o.status === 'DECLINED' || o.status === 'RESCINDED') && o.declineReason ? (
+      {o.status === 'DECLINED' || o.status === 'RESCINDED' ? (
         <div className="rounded-md border border-border bg-muted p-3">
           <p className="text-sm font-medium text-foreground">
             {o.status === 'DECLINED' ? 'Declined' : 'Rescinded'}
           </p>
-          <p className="mt-0.5 text-sm text-muted-foreground">{o.declineReason}</p>
+          <MhdDetailField label="Reason" value={o.declineReason} className="mt-2" />
         </div>
       ) : null}
 

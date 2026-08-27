@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdApplicationRecordTabs } from '@/appshell/components/MhdApplicationRecordTabs';
 import {
@@ -22,19 +23,19 @@ interface Props {
 }
 
 function formatDateTime(value: string | null): string {
-  if (!value) return '—';
+  if (!value) return '';
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
 }
 
 function formatDate(value: string | null): string {
-  if (!value) return '—';
+  if (!value) return '';
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString();
 }
 
 function formatPayRate(value: number | null): string {
-  if (value == null) return '—';
+  if (value == null) return '';
   return value.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
 }
 
@@ -112,62 +113,30 @@ export function MhdApplicationDetailPage({ companyId, applicationId, canManage }
       <MhdApplicationRecordTabs appId={applicationId} active="detail" showOfferTab={canManage} />
 
       <MhdCard>
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm md:grid-cols-3">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Current stage</dt>
-            <dd className="text-foreground">{detail.stageName ?? 'Not yet in a stage'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Lifecycle</dt>
-            <dd className="text-foreground">{mhdFormatApplicationLifecycle(detail.lifecycle)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Source</dt>
-            <dd className="text-foreground">{detail.source ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-              Desired pay rate
-            </dt>
-            <dd className="text-foreground">{formatPayRate(detail.desiredPayRate)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-              Available from
-            </dt>
-            <dd className="text-foreground">{formatDate(detail.availabilityDate)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-              Employment type
-            </dt>
-            <dd className="text-foreground">{detail.employmentTypeDesired ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Invited</dt>
-            <dd className="text-foreground">{formatDateTime(detail.invitedAt)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Submitted</dt>
-            <dd className="text-foreground">{formatDateTime(detail.submittedAt)}</dd>
-          </div>
+        <dl className="space-y-4 text-sm">
+          <MhdDetailField label="Current stage" value={detail.stageName} />
+          <MhdDetailField label="Lifecycle" value={mhdFormatApplicationLifecycle(detail.lifecycle)} />
+          <MhdDetailField label="Source" value={detail.source} />
+          <MhdDetailField label="Desired pay rate" value={formatPayRate(detail.desiredPayRate)} />
+          <MhdDetailField label="Available from" value={formatDate(detail.availabilityDate)} />
+          <MhdDetailField label="Employment type" value={detail.employmentTypeDesired} />
+          <MhdDetailField label="Invited" value={formatDateTime(detail.invitedAt)} />
+          <MhdDetailField label="Submitted" value={formatDateTime(detail.submittedAt)} />
         </dl>
       </MhdCard>
 
-      {detail.coverNote ? (
-        <section>
-          <h2 className="text-sm font-semibold text-foreground">Cover note</h2>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{detail.coverNote}</p>
-        </section>
-      ) : null}
+      <section>
+        <h2 className="text-sm font-semibold text-foreground">Cover note</h2>
+        <MhdDetailField label="Cover note" value={detail.coverNote} className="mt-2" />
+      </section>
 
       {detail.lifecycle === 'REJECTED' ? (
         <section className="rounded-md border border-rose-200 bg-rose-50 p-4">
           <h2 className="text-sm font-semibold text-rose-800">Rejected</h2>
-          <p className="mt-1 text-sm text-rose-700">
-            Reason: {detail.rejectionReasonText ?? '—'}
-            {detail.rejectionNote ? ` · ${detail.rejectionNote}` : ''}
-          </p>
+          <dl className="mt-2 space-y-3 text-sm text-rose-700">
+            <MhdDetailField label="Reason" value={detail.rejectionReasonText} />
+            <MhdDetailField label="Note" value={detail.rejectionNote} />
+          </dl>
         </section>
       ) : null}
 

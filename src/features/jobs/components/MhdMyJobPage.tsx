@@ -1,4 +1,5 @@
 import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdPublishedJobForPerson } from '../Hook';
@@ -58,12 +59,7 @@ export function MhdMyJobPage() {
         }
       />
 
-      {job.summary ? (
-        <section>
-          <h2 className="text-sm font-semibold text-foreground">Summary</h2>
-          <p className="mt-1 text-sm text-foreground">{job.summary}</p>
-        </section>
-      ) : null}
+      <MhdDetailField label="Summary" value={job.summary} />
 
       <MhdEssentialFunctionList
         essential={job.essentialFunctions}
@@ -71,43 +67,46 @@ export function MhdMyJobPage() {
         readOnly
       />
 
-      {job.qualifications.length > 0 ? (
-        <section>
-          <h2 className="text-sm font-semibold text-foreground">Qualifications</h2>
-          <ul className="mt-1 space-y-1 text-sm text-foreground">
-            {job.qualifications.map((qual, index) => (
-              <li key={`qual-${index}`}>
-                {qual.text}{' '}
-                <span className="text-xs text-muted-foreground">
-                  ({mhdFormatQualificationType(qual.type)} ·{' '}
-                  {qual.required ? 'required' : 'preferred'})
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <MhdDetailField
+        label="Qualifications"
+        value={
+          job.qualifications.length > 0 ? (
+            <ul className="space-y-1">
+              {job.qualifications.map((qual, index) => (
+                <li key={`qual-${index}`}>
+                  {qual.text}{' '}
+                  <span className="text-xs text-muted-foreground">
+                    ({mhdFormatQualificationType(qual.type)} · {qual.required ? 'required' : 'preferred'})
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null
+        }
+      />
 
-      {job.competencies.length > 0 ? (
-        <section>
-          <h2 className="text-sm font-semibold text-foreground">Competencies</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            These are what a performance review of this role is assessed against.
-          </p>
-          <ul className="mt-1 space-y-1 text-sm text-foreground">
-            {job.competencies.map((competency) => (
-              <li key={competency.competencyId}>
-                {competency.name}
-                {competency.isRegulated ? (
-                  <MhdBadge variant="warning" className="ml-2">
-                    Regulated
-                  </MhdBadge>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <MhdDetailField
+        label="Competencies"
+        value={
+          job.competencies.length > 0 ? (
+            <>
+              <p className="mb-1 text-xs text-muted-foreground">
+                These are what a performance review of this role is assessed against.
+              </p>
+              <ul className="space-y-1">
+                {job.competencies.map((competency) => (
+                  <li key={competency.competencyId}>
+                    {competency.name}
+                    {competency.isRegulated ? (
+                      <MhdBadge variant="warning" className="ml-2">Regulated</MhdBadge>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null
+        }
+      />
 
       <p className="text-xs text-muted-foreground">
         This is the published version of your job description. If your role has changed and this no

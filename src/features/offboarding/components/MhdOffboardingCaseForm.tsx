@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdCaseFormSchema, type MhdCaseFormSchemaInput } from '../Schemas';
 import {
   MHD_SEPARATION_TYPES,
@@ -65,7 +66,7 @@ export function MhdOffboardingCaseForm({
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="mhd-offboarding-form-person" className="mb-1 block text-sm font-medium">
             Person
@@ -117,9 +118,9 @@ export function MhdOffboardingCaseForm({
             <p className="mt-1 text-xs text-red-600">{errors.separationType.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <MhdFormFieldStack>
         <div>
           <label
             htmlFor="mhd-offboarding-form-separation-date"
@@ -189,7 +190,7 @@ export function MhdOffboardingCaseForm({
             <p className="mt-1 text-xs text-red-600">{errors.eligibleForRehire.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label htmlFor="mhd-offboarding-form-reason" className="mb-1 block text-sm font-medium">

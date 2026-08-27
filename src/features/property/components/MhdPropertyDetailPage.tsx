@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MhdPropertyRecordTabs } from '@/appshell/components/MhdPropertyRecordTabs';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -189,12 +190,8 @@ export function MhdPropertyDetailPage() {
             <span>
               {item.quantityAvailable} available / {item.quantityTotal} total
             </span>
-            {item.serialNumber ? (
-              <>
-                <span className="mx-2">·</span>
-                <span>Serial: {item.serialNumber}</span>
-              </>
-            ) : null}
+            <span className="mx-2">·</span>
+            <span>Serial: {item.serialNumber ?? 'Not provided'}</span>
           </>
         }
       />
@@ -231,39 +228,19 @@ export function MhdPropertyDetailPage() {
       />
 
       <MhdCard>
-        <div className="grid gap-4 text-sm text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Description
-            </p>
-            <p className="mt-2">{item.description || 'No description recorded.'}</p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Condition
-            </p>
-            <p className="mt-2">{item.conditionNotes || 'No condition notes recorded.'}</p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Acquisition
-            </p>
-            <p className="mt-2">
-              {item.acquisitionDate
-                ? new Date(item.acquisitionDate).toLocaleDateString()
-                : 'Not recorded'}
-            </p>
-            <p className="mt-1">
-              {item.unitCost != null ? `$${item.unitCost.toFixed(2)}` : 'Unit cost not recorded'}
-            </p>
-          </div>
-          <div className="rounded-md bg-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Inventory Record
-            </p>
-            <p className="mt-2">Added {new Date(item.createdAt).toLocaleDateString()}</p>
-            <p className="mt-1">Created by {item.createdBy}</p>
-          </div>
+        <div className="space-y-4">
+          <MhdDetailField label="Description" value={item.description} />
+          <MhdDetailField label="Condition" value={item.conditionNotes} />
+          <MhdDetailField
+            label="Acquisition date"
+            value={item.acquisitionDate ? new Date(item.acquisitionDate).toLocaleDateString() : null}
+          />
+          <MhdDetailField
+            label="Unit cost"
+            value={item.unitCost != null ? `$${item.unitCost.toFixed(2)}` : null}
+          />
+          <MhdDetailField label="Added" value={new Date(item.createdAt).toLocaleDateString()} />
+          <MhdDetailField label="Created by" value={item.createdBy} />
         </div>
       </MhdCard>
 

@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { MhdAutomationRunRecordTabs } from '@/appshell/components/MhdAutomationRunRecordTabs';
@@ -69,26 +70,14 @@ export function MhdAutomationRunDetailPage() {
         </MhdCard>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="space-y-4">
         <MhdCard className="p-5">
           <h2 className="text-base font-semibold text-foreground">Timing</h2>
-          <dl className="mt-3 space-y-1 text-sm">
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Event Occurred</dt>
-              <dd>{formatWhen(detail.event.occurredAt)}</dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Run Started</dt>
-              <dd>{formatWhen(detail.startedAt)}</dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Run Finished</dt>
-              <dd>{formatWhen(detail.finishedAt)}</dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Chain Depth</dt>
-              <dd>{detail.depth}</dd>
-            </div>
+          <dl className="mt-3 space-y-4 text-sm">
+            <MhdDetailField label="Event occurred" value={formatWhen(detail.event.occurredAt)} />
+            <MhdDetailField label="Run started" value={formatWhen(detail.startedAt)} />
+            <MhdDetailField label="Run finished" value={formatWhen(detail.finishedAt)} />
+            <MhdDetailField label="Chain depth" value={detail.depth} />
           </dl>
         </MhdCard>
 

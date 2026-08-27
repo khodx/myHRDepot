@@ -1,6 +1,7 @@
 import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { mhdCreatePropertyItemSchema, type MhdCreatePropertyItemSchemaInput } from '../Schemas';
 import { MHD_PROPERTY_CATEGORIES } from '../Types';
@@ -66,7 +67,7 @@ export function MhdPropertyItemForm({
         {errors.name ? <p className="mt-1 text-xs text-red-600">{errors.name.message}</p> : null}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Category</label>
           <select
@@ -90,9 +91,9 @@ export function MhdPropertyItemForm({
             <p className="mt-1 text-xs text-red-600">{errors.serialNumber.message}</p>
           ) : null}
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <MhdFormFieldStack>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Quantity Total</label>
           <input
@@ -142,7 +143,7 @@ export function MhdPropertyItemForm({
             )}
           />
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">Description</label>

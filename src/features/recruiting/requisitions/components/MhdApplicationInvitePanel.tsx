@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -111,7 +112,7 @@ export function MhdApplicationInvitePanel({
       <form onSubmit={handleSubmit(handleInvite)} className="space-y-4">
         <input type="hidden" {...register('requisitionId')} readOnly />
 
-        <div className="grid grid-cols-2 gap-4">
+        <MhdFormFieldStack>
           <div>
             <label htmlFor="invitePerson" className="block text-sm font-medium text-foreground">
               Person
@@ -145,7 +146,7 @@ export function MhdApplicationInvitePanel({
               className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
             />
           </div>
-        </div>
+        </MhdFormFieldStack>
 
         <div className="flex justify-end">
           <Button type="submit" disabled={invite.isPending}>

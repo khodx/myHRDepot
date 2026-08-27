@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -201,7 +202,7 @@ export function MhdApprovalDetailPage({ tab = 'detail' }: MhdApprovalDetailPageP
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       {tab === 'timeline' ? (
-        <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="space-y-6">
           <MhdCard className="p-6">
             <MhdCardHeader title="Comments" />
             <div className="space-y-3">
@@ -258,27 +259,18 @@ export function MhdApprovalDetailPage({ tab = 'detail' }: MhdApprovalDetailPageP
       ) : (
         <>
           <MhdCard className="p-6">
-            <div className="grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
-              <p>Requester: {approval.requesterName || approval.requesterId}</p>
-              <p>
-                Current level: {approval.currentLevel} of {approval.totalLevels}
-              </p>
-              <p>Created: {format(new Date(approval.createdAt), 'PPp')}</p>
-              <p>
-                Updated: {approval.updatedAt ? format(new Date(approval.updatedAt), 'PPp') : '—'}
-              </p>
-              <p>Type: {approval.approvalType}</p>
-              <p>Viewer: {profile?.displayName || profile?.email || 'Unknown user'}</p>
-            </div>
-
-            {approval.reason ? (
-              <p className="mt-4 rounded-md bg-muted p-3 text-sm text-foreground">
-                {approval.reason}
-              </p>
-            ) : null}
+            <dl className="space-y-4 text-sm">
+              <MhdDetailField label="Requester" value={approval.requesterName || approval.requesterId} />
+              <MhdDetailField label="Current level" value={`${approval.currentLevel} of ${approval.totalLevels}`} />
+              <MhdDetailField label="Created" value={format(new Date(approval.createdAt), 'PPp')} />
+              <MhdDetailField label="Updated" value={approval.updatedAt ? format(new Date(approval.updatedAt), 'PPp') : null} />
+              <MhdDetailField label="Type" value={approval.approvalType} />
+              <MhdDetailField label="Viewer" value={profile?.displayName || profile?.email} />
+              <MhdDetailField label="Reason" value={approval.reason} />
+            </dl>
           </MhdCard>
 
-          <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <section className="space-y-6">
             <MhdCard className="p-6">
               <MhdCardHeader title="Chain" />
               <MhdApprovalChain approvalId={approval.id} />

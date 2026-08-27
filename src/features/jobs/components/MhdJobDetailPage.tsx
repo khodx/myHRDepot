@@ -4,6 +4,8 @@ import { mhdCanMutateJobs, mhdCanSeeJobPay } from '@/appshell/mhdRouteAccess';
 import { MhdJobRecordTabs } from '@/appshell/components/MhdJobRecordTabs';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDetailField } from '@/components/ui/MhdDetailField';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdExternalDataAttribution } from '@/components/ui/MhdExternalDataAttribution';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -283,7 +285,7 @@ export function MhdJobDetailPage() {
       {isEditingJob && canMutate ? (
         <MhdCard className="space-y-3">
           <h2 className="text-base font-semibold text-foreground">Edit job</h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <MhdFormFieldStack>
             <div>
               <label htmlFor="jobTitle" className="block text-sm font-medium text-foreground">
                 Title
@@ -443,7 +445,7 @@ export function MhdJobDetailPage() {
                 ))}
               </select>
             </div>
-          </div>
+          </MhdFormFieldStack>
           <div className="flex flex-wrap items-center gap-4">
             <label className="flex items-center gap-2 text-sm text-foreground">
               <input
@@ -476,7 +478,7 @@ export function MhdJobDetailPage() {
 
       {isEditingPay && canSeePay ? (
         <MhdCard className="space-y-3">
-          <div className="flex flex-wrap items-end gap-3">
+          <MhdFormFieldStack>
             <div>
               <label htmlFor="payMin" className="block text-sm font-medium text-foreground">
                 From
@@ -518,7 +520,7 @@ export function MhdJobDetailPage() {
                 ))}
               </select>
             </div>
-          </div>
+          </MhdFormFieldStack>
           {/* The statutory standard is what the employer expects to pay, not a
               market figure — so this field is a decision, not a lookup. */}
           <p className="text-xs text-muted-foreground">
@@ -580,9 +582,7 @@ export function MhdJobDetailPage() {
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : published.data ? (
             <>
-              {published.data.summary ? (
-                <p className="text-sm text-foreground">{published.data.summary}</p>
-              ) : null}
+              <MhdDetailField label="Summary" value={published.data.summary} />
               <MhdEssentialFunctionList
                 essential={published.data.essentialFunctions}
                 marginal={published.data.marginalFunctions}
@@ -622,14 +622,11 @@ export function MhdJobDetailPage() {
               {marketWageResult ? (
                 <div className="space-y-2 rounded-md border border-border p-3">
                   <MhdExternalDataAttribution citation={marketWageResult.source} dataYear={marketWageResult.dataYear} />
-                  <dl className="grid gap-2 text-sm sm:grid-cols-3">
+                  <dl className="space-y-2 text-sm">
                     {Object.entries(marketWageResult)
                       .filter(([key]) => key.includes('Percentile') || key.includes('Median'))
                       .map(([key, value]) => (
-                        <div key={key}>
-                          <dt className="font-medium">{key}</dt>
-                          <dd>{value ?? 'Not reported'}</dd>
-                        </div>
+                        <MhdDetailField key={key} label={key} value={value} />
                       ))}
                   </dl>
                 </div>
@@ -642,14 +639,11 @@ export function MhdJobDetailPage() {
                     logoUrl={careerOneStopLogo}
                     logoAlt="CareerOneStop"
                   />
-                  <dl className="grid gap-2 text-sm sm:grid-cols-3">
+                  <dl className="space-y-2 text-sm">
                     {Object.entries(careerOneStopWageResult)
                       .filter(([key]) => key.includes('Percentile') || key.includes('Median'))
                       .map(([key, value]) => (
-                        <div key={key}>
-                          <dt className="font-medium">{key}</dt>
-                          <dd>{value ?? 'Not reported'}</dd>
-                        </div>
+                        <MhdDetailField key={key} label={key} value={value} />
                       ))}
                   </dl>
                 </div>

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdProgressBar } from '@/components/ui/MhdProgressBar';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -168,7 +169,7 @@ export function MhdCandidateEvaluationPanel({ applicationId, canFinalize }: Prop
           </h3>
           <input type="hidden" {...register('applicationId')} readOnly />
 
-          <div className="grid grid-cols-2 gap-4">
+          <MhdFormFieldStack>
             <div>
               <label htmlFor="recommendation" className="block text-sm font-medium text-foreground">
                 Recommendation
@@ -205,7 +206,7 @@ export function MhdCandidateEvaluationPanel({ applicationId, canFinalize }: Prop
                 ))}
               </select>
             </div>
-          </div>
+          </MhdFormFieldStack>
 
           <div>
             <label htmlFor="summary" className="block text-sm font-medium text-foreground">

@@ -4,6 +4,7 @@ import { mhdCanMutateJobs, mhdCanSeeJobPay } from '@/appshell/mhdRouteAccess';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdFilterBar, MhdFilterInput } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
@@ -145,7 +146,7 @@ export function MhdJobsPage() {
 
       {isCreating ? (
         <MhdCard className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <MhdFormFieldStack>
             <div>
               <label htmlFor="newTitle" className="block text-sm font-medium text-foreground">
                 Job title
@@ -244,7 +245,7 @@ export function MhdJobsPage() {
                 ))}
               </select>
             </div>
-          </div>
+          </MhdFormFieldStack>
           <label className="flex items-center gap-2 text-sm text-foreground">
             <input
               type="checkbox"

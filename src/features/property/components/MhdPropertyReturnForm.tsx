@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdReturnPropertySchema, type MhdReturnPropertySchemaInput } from '../Schemas';
 import type { MhdPropertyAssignment } from '../Types';
 
@@ -53,7 +54,7 @@ export function MhdPropertyReturnForm({
         </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <MhdFormFieldStack>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Receiver Title</label>
           <input
@@ -70,7 +71,7 @@ export function MhdPropertyReturnForm({
             {...register('returnConditionNotes')}
           />
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <fieldset className="space-y-3 rounded-lg border border-border p-4">
         <legend className="px-1 text-sm font-semibold text-foreground">

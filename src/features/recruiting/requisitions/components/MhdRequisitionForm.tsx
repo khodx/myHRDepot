@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { mhdRequisitionFormSchema, type MhdRequisitionFormValues } from '../Schemas';
@@ -84,7 +85,7 @@ export function MhdRequisitionForm({
         {errors.title ? <p className="mt-1 text-xs text-rose-600">{errors.title.message}</p> : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="jobId" className="block text-sm font-medium text-foreground">
             Job <span className="font-normal text-muted-foreground">(optional)</span>
@@ -129,9 +130,9 @@ export function MhdRequisitionForm({
             Grants that person read access to their own requisition.
           </p>
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid grid-cols-3 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="department" className="block text-sm font-medium text-foreground">
             Department <span className="font-normal text-muted-foreground">(optional)</span>
@@ -168,9 +169,9 @@ export function MhdRequisitionForm({
             className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
-      </div>
+      </MhdFormFieldStack>
 
-      <div className="grid grid-cols-2 gap-4">
+      <MhdFormFieldStack>
         <div>
           <label htmlFor="headcount" className="block text-sm font-medium text-foreground">
             Headcount
@@ -202,7 +203,7 @@ export function MhdRequisitionForm({
             </span>
           </label>
         </div>
-      </div>
+      </MhdFormFieldStack>
 
       <div className="flex justify-end gap-2 pt-2">
         <button
