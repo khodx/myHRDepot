@@ -36,6 +36,7 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/leaves', 'time-leave'],
   ['/accommodations', 'time-leave'],
   ['/legal-search', 'work-tools'],
+  ['/calculator', 'work-tools'],
   ['/mileage', 'time-leave'],
   ['/performance', 'talent'], // includes /performance/invitations
   ['/recruiting', 'talent'], // includes /recruiting/eeo

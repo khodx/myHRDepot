@@ -328,6 +328,12 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // tools) — a narrower frontend list here would block roles the backend
   // RPC already admits.
   { path: '/legal-search', roles: 'ALL' },
+  // Calculator (04.18). Formerly an unconditional topbar panel available to
+  // every signed-in user regardless of role; promoted to a normal sidebar
+  // module route while keeping that same unrestricted access — the
+  // underlying template-read RPCs have no per-role gate, so 'ALL' matches
+  // the pre-existing behavior rather than narrowing it.
+  { path: '/calculator', roles: 'ALL' },
   // Workplace Safety (OSHA/Cal-OSHA recordkeeping, MVP Module 03.31).
   // Locked-in role set from the Workplace Safety master plan: Platform
   // Admin, HR Partner, HR Admin, Client Admin only — no dedicated Safety

@@ -66,6 +66,10 @@ const MhdLegalSearchPage = lazyPage(
   () => import('@/features/legal-search/components/MhdLegalSearchPage'),
   'MhdLegalSearchPage',
 );
+const MhdCalculatorPage = lazyPage(
+  () => import('@/features/calculator/components/MhdCalculatorPage'),
+  'MhdCalculatorPage',
+);
 const MhdTasksPage = lazyPage(
   () => import('@/features/tasks/components/MhdTasksPage'),
   'MhdTasksPage',
@@ -826,6 +830,7 @@ function MhdAppRoutes() {
                 />
                 <Route path="/accommodations" element={<MhdAccommodationsPage />} />
                 <Route path="/legal-search" element={<MhdLegalSearchPage />} />
+                <Route path="/calculator" element={<MhdCalculatorPage />} />
                 {/* Workplace Safety (MVP Module 03.31). /safety/:establishmentId/annual-summary
                   must precede the general '/safety' rule per the established
                   more-specific-path-before-general-path ordering convention. */}

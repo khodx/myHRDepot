@@ -9,6 +9,7 @@ import {
   Briefcase,
   Building2,
   Bot,
+  Calculator,
   Calendar,
   CalendarClock,
   CalendarDays,
@@ -39,6 +40,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Scale,
+  Search,
   Settings,
   ShieldAlert,
   Stamp,
@@ -165,6 +167,23 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/esignature',
         icon: FileSignature,
         roles: mhdRouteRoles('/esignature'),
+      },
+      {
+        label: 'Calculator',
+        description: 'Standard and guided calculators for common HR math.',
+        route: '/calculator',
+        icon: Calculator,
+        roles: mhdRouteRoles('/calculator'),
+      },
+      // Non-medical, non-case reference material — open to every role, same
+      // category as Tasks/Checklists/My Policies above (see the 'ALL' note
+      // in mhdRouteAccess.ts next to this route).
+      {
+        label: 'Legal & Regulatory Search',
+        description: 'Search attorney-reviewed guidance, regulatory text, and pending legislation.',
+        route: '/legal-search',
+        icon: Search,
+        roles: mhdRouteRoles('/legal-search'),
       },
     ],
   },
