@@ -2864,6 +2864,80 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_events: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          event_date: string
+          event_end_date: string | null
+          id: string
+          person_id: string
+          reference_id: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          event_date: string
+          event_end_date?: string | null
+          id?: string
+          person_id: string
+          reference_id: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          event_date?: string
+          event_end_date?: string | null
+          id?: string
+          person_id?: string
+          reference_id?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_evaluations: {
         Row: {
           application_id: string
@@ -23573,6 +23647,43 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      mhd_calendar_event_can_act_for_person: {
+        Args: { p_person_id: string }
+        Returns: boolean
+      }
+      mhd_calendar_event_create: {
+        Args: {
+          p_description?: string
+          p_event_date: string
+          p_event_end_date?: string
+          p_person_id: string
+          p_title: string
+        }
+        Returns: string
+      }
+      mhd_calendar_event_delete: { Args: { p_id: string }; Returns: undefined }
+      mhd_calendar_event_get: {
+        Args: { p_id: string }
+        Returns: {
+          created_by: string
+          description: string
+          event_date: string
+          event_end_date: string
+          id: string
+          person_id: string
+          title: string
+        }[]
+      }
+      mhd_calendar_event_update: {
+        Args: {
+          p_description?: string
+          p_event_date: string
+          p_event_end_date?: string
+          p_id: string
+          p_title: string
+        }
+        Returns: undefined
+      }
       mhd_calendar_list_events: {
         Args: {
           p_company_id?: string
@@ -24719,7 +24830,9 @@ export type Database = {
           approvals_needs_attention: number
           attendance_needs_attention: number
           communications_needs_attention: number
+          compensation_needs_attention: number
           conduct_needs_attention: number
+          contractor_classification_needs_attention: number
           esignature_needs_attention: number
           handbooks_needs_attention: number
           investigations_needs_attention: number
@@ -24728,6 +24841,7 @@ export type Database = {
           my_training_needs_attention: number
           tasks_needs_attention: number
           training_needs_attention: number
+          workplace_safety_needs_attention: number
         }[]
       }
       mhd_dashboard_my_tasks: {
@@ -29664,6 +29778,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      mhd_request_ip_address: { Args: never; Returns: string }
       mhd_request_submission_document_generation: {
         Args: { p_submission_id: string }
         Returns: {
@@ -29672,6 +29787,7 @@ export type Database = {
           status: string
         }[]
       }
+      mhd_request_user_agent: { Args: never; Returns: string }
       mhd_require_aal2: { Args: never; Returns: undefined }
       mhd_resolve_activity_company_id: {
         Args: { p_activity_id: string }

@@ -11,6 +11,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from 'date-fns';
+import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { MhdCalendarEvent, MhdCalendarSourceType, MhdCalendarView } from '../Types';
 import { mhdFormatCalendarSourceType } from '../Types';
@@ -19,6 +20,8 @@ interface Props {
   anchorDate: Date;
   view: MhdCalendarView;
   events: MhdCalendarEvent[];
+  onAddEvent?: (date: Date) => void;
+  onOpenEvent?: (event: MhdCalendarEvent) => void;
 }
 
 const SOURCE_ACCENT_CLASSES: Record<MhdCalendarSourceType, string> = {
@@ -28,6 +31,7 @@ const SOURCE_ACCENT_CLASSES: Record<MhdCalendarSourceType, string> = {
   ACCOMMODATION: 'border-l-violet-500',
   MILEAGE: 'border-l-sky-500',
   FORM: 'border-l-rose-500',
+  EVENT: 'border-l-fuchsia-500',
 };
 
 export function mhdCalendarRangeForView(anchorDate: Date, view: MhdCalendarView) {
@@ -51,15 +55,23 @@ export function mhdCalendarRangeForView(anchorDate: Date, view: MhdCalendarView)
   };
 }
 
-export function MhdCalendarGrid({ anchorDate, view, events }: Props) {
+export function MhdCalendarGrid({ anchorDate, view, events, onAddEvent, onOpenEvent }: Props) {
   if (view === 'AGENDA') {
-    return <MhdCalendarAgenda anchorDate={anchorDate} events={events} />;
+    return <MhdCalendarAgenda anchorDate={anchorDate} events={events} onOpenEvent={onOpenEvent} />;
   }
 
-  return <MhdCalendarDayGrid anchorDate={anchorDate} view={view} events={events} />;
+  return (
+    <MhdCalendarDayGrid
+      anchorDate={anchorDate}
+      view={view}
+      events={events}
+      onAddEvent={onAddEvent}
+      onOpenEvent={onOpenEvent}
+    />
+  );
 }
 
-function MhdCalendarDayGrid({ anchorDate, view, events }: Props) {
+function MhdCalendarDayGrid({ anchorDate, view, events, onAddEvent, onOpenEvent }: Props) {
   const range = mhdCalendarRangeForView(anchorDate, view);
   const days = eachDayOfInterval(range);
 
@@ -79,7 +91,7 @@ function MhdCalendarDayGrid({ anchorDate, view, events }: Props) {
             return (
               <div
                 key={day.toISOString()}
-                className={`min-h-32 border-b border-r border-border p-2 ${
+                className={`group min-h-32 border-b border-r border-border p-2 ${
                   isSameMonth(day, anchorDate) || view === 'WEEK' ? 'bg-card' : 'bg-muted/25'
                 }`}
               >
@@ -94,12 +106,23 @@ function MhdCalendarDayGrid({ anchorDate, view, events }: Props) {
                     {format(day, 'd')}
                   </span>
                   <span className="sr-only">{format(day, 'EEEE, MMMM d')}</span>
+                  {onAddEvent ? (
+                    <button
+                      type="button"
+                      onClick={() => onAddEvent(day)}
+                      aria-label={`Add event on ${format(day, 'MMMM d, yyyy')}`}
+                      className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100"
+                    >
+                      <Plus className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                  ) : null}
                 </div>
                 <div className="space-y-1">
                   {dayEvents.map((event) => (
                     <MhdCalendarEventChip
                       key={`${event.eventId}-${format(day, 'yyyy-MM-dd')}`}
                       event={event}
+                      onOpenEvent={onOpenEvent}
                     />
                   ))}
                 </div>
@@ -112,7 +135,11 @@ function MhdCalendarDayGrid({ anchorDate, view, events }: Props) {
   );
 }
 
-function MhdCalendarAgenda({ anchorDate, events }: Pick<Props, 'anchorDate' | 'events'>) {
+function MhdCalendarAgenda({
+  anchorDate,
+  events,
+  onOpenEvent,
+}: Pick<Props, 'anchorDate' | 'events' | 'onOpenEvent'>) {
   const range = mhdCalendarRangeForView(anchorDate, 'AGENDA');
   const days = eachDayOfInterval(range);
 
@@ -129,6 +156,7 @@ function MhdCalendarAgenda({ anchorDate, events }: Pick<Props, 'anchorDate' | 'e
                   <MhdCalendarAgendaRow
                     key={`${event.eventId}-${format(day, 'yyyy-MM-dd')}`}
                     event={event}
+                    onOpenEvent={onOpenEvent}
                   />
                 ))}
               </div>
@@ -142,25 +170,46 @@ function MhdCalendarAgenda({ anchorDate, events }: Pick<Props, 'anchorDate' | 'e
   );
 }
 
-function MhdCalendarEventChip({ event }: { event: MhdCalendarEvent }) {
-  return (
-    <Link
-      to={event.linkPath}
-      title={`${event.title} - ${event.personName}`}
-      className={`block rounded border border-border border-l-4 bg-background px-2 py-1 text-xs shadow-sm hover:border-accent hover:text-accent ${SOURCE_ACCENT_CLASSES[event.sourceType]}`}
-    >
+function MhdCalendarEventChip({
+  event,
+  onOpenEvent,
+}: {
+  event: MhdCalendarEvent;
+  onOpenEvent?: (event: MhdCalendarEvent) => void;
+}) {
+  const className = `block w-full rounded border border-border border-l-4 bg-background px-2 py-1 text-left text-xs shadow-sm hover:border-accent hover:text-accent ${SOURCE_ACCENT_CLASSES[event.sourceType]}`;
+  const content = (
+    <>
       <span className="block truncate font-semibold">{event.title}</span>
       <span className="block truncate text-muted-foreground">{event.personName}</span>
+    </>
+  );
+
+  if (event.sourceType === 'EVENT' && onOpenEvent) {
+    return (
+      <button type="button" title={event.title} onClick={() => onOpenEvent(event)} className={className}>
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link to={event.linkPath} title={`${event.title} - ${event.personName}`} className={className}>
+      {content}
     </Link>
   );
 }
 
-function MhdCalendarAgendaRow({ event }: { event: MhdCalendarEvent }) {
-  return (
-    <Link
-      to={event.linkPath}
-      className={`block rounded-md border border-border border-l-4 bg-background p-3 hover:border-accent ${SOURCE_ACCENT_CLASSES[event.sourceType]}`}
-    >
+function MhdCalendarAgendaRow({
+  event,
+  onOpenEvent,
+}: {
+  event: MhdCalendarEvent;
+  onOpenEvent?: (event: MhdCalendarEvent) => void;
+}) {
+  const className = `block w-full rounded-md border border-border border-l-4 bg-background p-3 text-left hover:border-accent ${SOURCE_ACCENT_CLASSES[event.sourceType]}`;
+  const content = (
+    <>
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-semibold text-foreground">{event.title}</span>
         <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
@@ -173,6 +222,20 @@ function MhdCalendarAgendaRow({ event }: { event: MhdCalendarEvent }) {
         ) : null}
       </div>
       <div className="mt-1 text-sm text-muted-foreground">{event.personName}</div>
+    </>
+  );
+
+  if (event.sourceType === 'EVENT' && onOpenEvent) {
+    return (
+      <button type="button" onClick={() => onOpenEvent(event)} className={className}>
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link to={event.linkPath} className={className}>
+      {content}
     </Link>
   );
 }

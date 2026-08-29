@@ -126,4 +126,103 @@ describe('mhdCalendarService', () => {
       }),
     ).rejects.toThrow('Unable to load calendar events: permission denied for calendar events');
   });
+
+  it('gets a single event and maps it to camelCase', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'event-1',
+          person_id: 'person-1',
+          title: 'Quarterly check-in',
+          description: 'Discuss Q3 goals',
+          event_date: '2026-08-15',
+          event_end_date: '2026-08-16',
+          created_by: 'user-1',
+        },
+      ],
+      error: null,
+    });
+
+    const result = await mhdCalendarService.getEvent('event-1');
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_calendar_event_get', { p_id: 'event-1' });
+    expect(result).toEqual({
+      id: 'event-1',
+      personId: 'person-1',
+      title: 'Quarterly check-in',
+      description: 'Discuss Q3 goals',
+      eventDate: '2026-08-15',
+      eventEndDate: '2026-08-16',
+      createdBy: 'user-1',
+    });
+  });
+
+  it('throws when getEvent finds nothing', async () => {
+    rpcMock.mockResolvedValueOnce({ data: [], error: null });
+
+    await expect(mhdCalendarService.getEvent('missing')).rejects.toThrow('Calendar event not found.');
+  });
+
+  it('creates an event through the create RPC', async () => {
+    rpcMock.mockResolvedValueOnce({ data: 'new-event-id', error: null });
+
+    const result = await mhdCalendarService.createEvent({
+      personId: 'person-1',
+      title: 'Quarterly check-in',
+      eventDate: '2026-08-15',
+      description: 'Discuss Q3 goals',
+      eventEndDate: '2026-08-16',
+    });
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_calendar_event_create', {
+      p_person_id: 'person-1',
+      p_title: 'Quarterly check-in',
+      p_event_date: '2026-08-15',
+      p_description: 'Discuss Q3 goals',
+      p_event_end_date: '2026-08-16',
+    });
+    expect(result).toBe('new-event-id');
+  });
+
+  it('throws a calendar-specific error when create fails', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: { message: 'title is required' } });
+
+    await expect(
+      mhdCalendarService.createEvent({ personId: 'person-1', title: '', eventDate: '2026-08-15' }),
+    ).rejects.toThrow('Unable to create calendar event: title is required');
+  });
+
+  it('updates an event through the update RPC', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: null });
+
+    await mhdCalendarService.updateEvent('event-1', {
+      personId: 'person-1',
+      title: 'Updated title',
+      eventDate: '2026-08-16',
+    });
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_calendar_event_update', {
+      p_id: 'event-1',
+      p_title: 'Updated title',
+      p_event_date: '2026-08-16',
+      p_description: null,
+      p_event_end_date: null,
+    });
+  });
+
+  it('deletes an event through the delete RPC', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: null });
+
+    await mhdCalendarService.deleteEvent('event-1');
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_calendar_event_delete', { p_id: 'event-1' });
+  });
+
+  it('throws a calendar-specific error when delete fails', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: { message: 'not authorized' } });
+
+    await expect(mhdCalendarService.deleteEvent('event-1')).rejects.toThrow(
+      'Unable to delete calendar event: not authorized',
+    );
+  });
 });

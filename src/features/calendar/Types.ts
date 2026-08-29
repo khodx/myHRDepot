@@ -4,7 +4,8 @@ export type MhdCalendarSourceType =
   | 'LEAVE'
   | 'ACCOMMODATION'
   | 'MILEAGE'
-  | 'FORM';
+  | 'FORM'
+  | 'EVENT';
 
 export interface MhdCalendarEvent {
   eventId: string;
@@ -35,6 +36,7 @@ export const MHD_CALENDAR_SOURCE_TYPES = [
   'ACCOMMODATION',
   'MILEAGE',
   'FORM',
+  'EVENT',
 ] as const satisfies readonly MhdCalendarSourceType[];
 
 export function mhdFormatCalendarSourceType(sourceType: MhdCalendarSourceType): string {
@@ -45,7 +47,26 @@ export function mhdFormatCalendarSourceType(sourceType: MhdCalendarSourceType): 
     ACCOMMODATION: 'Accommodations',
     MILEAGE: 'Mileage',
     FORM: 'Forms',
+    EVENT: 'Events',
   };
 
   return labels[sourceType];
+}
+
+export interface MhdCalendarEventDetail {
+  id: string;
+  personId: string;
+  title: string;
+  description: string | null;
+  eventDate: string;
+  eventEndDate: string | null;
+  createdBy: string;
+}
+
+export interface MhdCalendarEventInput {
+  personId: string;
+  title: string;
+  eventDate: string;
+  description?: string | null;
+  eventEndDate?: string | null;
 }

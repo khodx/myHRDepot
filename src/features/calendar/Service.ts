@@ -1,5 +1,10 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
-import type { MhdCalendarEvent, MhdCalendarFilters } from './Types';
+import type {
+  MhdCalendarEvent,
+  MhdCalendarEventDetail,
+  MhdCalendarEventInput,
+  MhdCalendarFilters,
+} from './Types';
 
 interface MhdCalendarEventRow {
   event_id: string;
@@ -55,5 +60,63 @@ export const mhdCalendarService = {
     }
 
     return (data ?? []).map(mapCalendarEventRow);
+  },
+
+  async getEvent(id: string): Promise<MhdCalendarEventDetail> {
+    const { data, error } = await supabaseClient.rpc('mhd_calendar_event_get', { p_id: id });
+    if (error) {
+      throw new Error(`Unable to load calendar event: ${error.message}`);
+    }
+    const row = (data ?? [])[0];
+    if (!row) {
+      throw new Error('Calendar event not found.');
+    }
+    return {
+      id: row.id,
+      personId: row.person_id,
+      title: row.title,
+      description: row.description,
+      eventDate: row.event_date,
+      eventEndDate: row.event_end_date,
+      createdBy: row.created_by,
+    };
+  },
+
+  async createEvent(input: MhdCalendarEventInput): Promise<string> {
+    // gen:types omits null from these two optional RPC arguments even though
+    // mhd_calendar_event_create accepts null (its SQL default) for both at
+    // runtime -- same documented compatibility gap as the Forms RPC
+    // arguments (see CLAUDE.md's Leaves v2 handoff section).
+    const { data, error } = await supabaseClient.rpc('mhd_calendar_event_create', {
+      p_person_id: input.personId,
+      p_title: input.title,
+      p_event_date: input.eventDate,
+      p_description: input.description ?? null,
+      p_event_end_date: input.eventEndDate ?? null,
+    } as never);
+    if (error) {
+      throw new Error(`Unable to create calendar event: ${error.message}`);
+    }
+    return data as string;
+  },
+
+  async updateEvent(id: string, input: MhdCalendarEventInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_calendar_event_update', {
+      p_id: id,
+      p_title: input.title,
+      p_event_date: input.eventDate,
+      p_description: input.description ?? null,
+      p_event_end_date: input.eventEndDate ?? null,
+    } as never);
+    if (error) {
+      throw new Error(`Unable to update calendar event: ${error.message}`);
+    }
+  },
+
+  async deleteEvent(id: string): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_calendar_event_delete', { p_id: id });
+    if (error) {
+      throw new Error(`Unable to delete calendar event: ${error.message}`);
+    }
   },
 };

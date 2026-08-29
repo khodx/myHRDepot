@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {
   mhdAppendCalculatorHistoryEntry,
@@ -42,7 +42,7 @@ export function MhdStandardCalculator() {
     return Number.isFinite(value) ? value : 0;
   }
 
-  function append(value: string) {
+  const append = useCallback((value: string) => {
     setError(null);
     if (hasResult && !['+', '-', '*', '/', '%'].includes(value)) {
       setExpression(value === '.' ? '0.' : value);
@@ -61,19 +61,19 @@ export function MhdStandardCalculator() {
         setResult(next || '0');
       }
     }
-  }
+  }, [expression, hasResult]);
 
-  function clear() {
+  const clear = useCallback(() => {
     setExpression(''); setResult('0'); setHasResult(false); setError(null);
-  }
+  }, []);
 
-  function backspace() {
+  const backspace = useCallback(() => {
     setError(null);
     const next = expression.slice(0, -1);
     setExpression(next); setResult(next || '0'); setHasResult(false);
-  }
+  }, [expression]);
 
-  function calculate() {
+  const calculate = useCallback(() => {
     if (!expression || /[+\-*/%]$/.test(expression) || !authUserId) return;
     try {
       const value = mhdEvaluateFormula(expression, {});
@@ -86,7 +86,7 @@ export function MhdStandardCalculator() {
     } catch {
       setError('That calculation is not valid.');
     }
-  }
+  }, [expression, authUserId]);
 
   function memoryAction(action: 'clear' | 'add' | 'subtract' | 'recall') {
     const value = currentValue();
@@ -104,16 +104,28 @@ export function MhdStandardCalculator() {
     setExpression(recalled); setResult(recalled); setHasResult(true); setError(null);
   }
 
-  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-    const key = event.key;
-    if (/^[0-9.]$/.test(key)) append(key);
-    else if (['+', '-', '*', '/', '%'].includes(key)) append(key);
-    else if (key === 'Enter' || key === '=') calculate();
-    else if (key === 'Backspace') backspace();
-    else if (key === 'Escape') clear();
-    else return;
-    event.preventDefault();
-  }
+  // Listens on window rather than requiring the calculator to be clicked into
+  // focus first, so the numpad/operator keys work as soon as the page is
+  // open. Skips typing targets (inputs, textareas, contenteditable) so it
+  // never steals keystrokes meant for something else on the page.
+  useEffect(() => {
+    function handleWindowKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return;
+      }
+      const key = event.key;
+      if (/^[0-9.]$/.test(key)) append(key);
+      else if (['+', '-', '*', '/', '%'].includes(key)) append(key);
+      else if (key === 'Enter' || key === '=') calculate();
+      else if (key === 'Backspace') backspace();
+      else if (key === 'Escape') clear();
+      else return;
+      event.preventDefault();
+    }
+    window.addEventListener('keydown', handleWindowKeyDown);
+    return () => window.removeEventListener('keydown', handleWindowKeyDown);
+  }, [append, backspace, calculate, clear]);
 
   const buttonClass = 'rounded-lg border border-border px-3 py-3 text-lg text-foreground transition-colors hover:bg-muted';
   const operatorClass = 'rounded-lg border border-border px-3 py-3 text-lg text-muted-foreground transition-colors hover:bg-muted';
@@ -121,9 +133,7 @@ export function MhdStandardCalculator() {
   return (
     <div className="grid gap-4 md:grid-cols-[minmax(280px,360px)_minmax(240px,1fr)]">
       <div
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        className="rounded-lg border border-border bg-card p-4 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="rounded-lg border border-border bg-card p-4"
         aria-label="Standard calculator"
       >
         <div className="mb-4 rounded-lg border border-border bg-muted/30 px-4 py-3 text-right">
