@@ -328,11 +328,18 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // tools) — a narrower frontend list here would block roles the backend
   // RPC already admits.
   { path: '/legal-search', roles: 'ALL' },
-  { path: '/knowledge-center', roles: 'ALL' },
-  { path: '/knowledge-center/functions', roles: 'ALL' },
+  // mhdCanAccessRoute returns the FIRST matching rule via prefix match
+  // (same ordering discipline as /attendance/policy before /attendance,
+  // /performance/templates before /performance): the admin/functions/
+  // articles sub-routes MUST precede the bare '/knowledge-center' rule, or
+  // that broader prefix silently wins for every sub-path and the narrower
+  // rules below it become dead code — including the Platform Admin/HR
+  // Partner restriction on '/knowledge-center/admin'.
   { path: '/knowledge-center/admin', roles: ['Platform Admin', 'HR Partner'] },
-  { path: '/knowledge-center/:categoryKey', roles: 'ALL' },
+  { path: '/knowledge-center/functions', roles: 'ALL' },
   { path: '/knowledge-center/articles/:slug', roles: 'ALL' },
+  { path: '/knowledge-center/:categoryKey', roles: 'ALL' },
+  { path: '/knowledge-center', roles: 'ALL' },
   // Calculator (04.18). Formerly an unconditional topbar panel available to
   // every signed-in user regardless of role; promoted to a normal sidebar
   // module route while keeping that same unrestricted access — the

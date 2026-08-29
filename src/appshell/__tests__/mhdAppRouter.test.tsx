@@ -188,6 +188,18 @@ vi.mock('@/features/accommodations/components/MhdAccommodationsPage', () => ({
 vi.mock('@/features/accommodations/components/MhdAccommodationCaseDetailPage', () => ({
   MhdAccommodationCaseDetailPage: () => <div>Accommodation Case Detail Page</div>,
 }));
+vi.mock('@/features/knowledge-center/components/MhdKnowledgeCenterPage', () => ({
+  MhdKnowledgeCenterPage: () => <div>Knowledge Center Page</div>,
+}));
+vi.mock('@/features/knowledge-center/components/MhdKnowledgeCenterArticlePage', () => ({
+  MhdKnowledgeCenterArticlePage: () => <div>Knowledge Center Article Page</div>,
+}));
+vi.mock('@/features/knowledge-center/components/MhdFunctionsReferencePage', () => ({
+  MhdFunctionsReferencePage: () => <div>Functions Reference Page</div>,
+}));
+vi.mock('@/features/knowledge-center/components/MhdKnowledgeCenterAdminEditorPage', () => ({
+  MhdKnowledgeCenterAdminEditorPage: () => <div>Knowledge Center Admin Page</div>,
+}));
 vi.mock('../components/MhdNotFoundPage', () => ({
   MhdNotFoundPage: () => <div>Page Not Found</div>,
 }));
@@ -715,6 +727,40 @@ describe('MhdAppRouter', () => {
 
       expect(await screen.findByText('Tasks Page')).toBeInTheDocument();
     });
+
+    it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Employee', 'Viewer'])(
+      'renders "/knowledge-center" and "/knowledge-center/functions" for an authenticated %s',
+      async (role) => {
+        mockAuth({ isAuthenticated: true, roles: [role] });
+        setUrl('/knowledge-center');
+        const { unmount } = render(<MhdAppRouter />);
+        expect(await screen.findByText('Knowledge Center Page')).toBeInTheDocument();
+        unmount();
+
+        setUrl('/knowledge-center/functions');
+        render(<MhdAppRouter />);
+        expect(await screen.findByText('Functions Reference Page')).toBeInTheDocument();
+      },
+    );
+
+    it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner'])(
+      'renders "/knowledge-center/admin" for %s',
+      async (role) => {
+        mockAuth({ isAuthenticated: true, roles: [role] });
+        setUrl('/knowledge-center/admin');
+        render(<MhdAppRouter />);
+        expect(await screen.findByText('Knowledge Center Admin Page')).toBeInTheDocument();
+      },
+    );
+
+    it('redirects an authenticated Viewer away from "/knowledge-center/admin" to "/404"', async () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
+      setUrl('/knowledge-center/admin');
+      render(<MhdAppRouter />);
+      expect(screen.queryByText('Knowledge Center Admin Page')).not.toBeInTheDocument();
+      expect(await screen.findByText('Page Not Found')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/404');
+    });
   });
 });
 
@@ -723,6 +769,16 @@ describe('MhdAppRouter', () => {
 // ---------------------------------------------------------------------------
 
 describe('MhdSidebar role-based visibility', () => {
+  it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Employee', 'Viewer'])(
+    'shows Knowledge Center for %s', async (role) => {
+      mockAuth({ isAuthenticated: true, roles: [role] });
+      const { MhdSidebar } = await import('../MhdSidebar');
+      const { MemoryRouter } = await import('react-router-dom');
+      render(<MemoryRouter><MhdSidebar /></MemoryRouter>);
+      expect(screen.getByRole('link', { name: 'Knowledge Center' })).toHaveAttribute('href', '/knowledge-center');
+    },
+  );
+
   it('hides "Companies" for a Client User', async () => {
     mockAuth({ isAuthenticated: true, roles: ['Employee'] });
     const { MhdSidebar } = await import('../MhdSidebar');
