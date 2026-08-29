@@ -24,3 +24,45 @@ export interface MhdKbArticleListItem {
 export interface MhdKbArticle extends MhdKbArticleListItem {
   body: string;
 }
+
+export interface MhdKbFunctionListItem {
+  id: string;
+  name: string;
+  category: string;
+  syntax: string;
+  relatedEngine: string;
+  isDeprecated: boolean;
+}
+
+export interface MhdKbFunction extends MhdKbFunctionListItem {
+  description: string;
+  exampleInput: string;
+  exampleOutput: string;
+}
+
+export type MhdKbArticleStatus = 'draft' | 'published' | 'archived';
+
+export interface MhdKbArticleAdminListItem extends MhdKbArticleListItem {
+  status: MhdKbArticleStatus;
+  isDeleted: boolean;
+  updatedAt: string;
+}
+
+export interface MhdKbArticleAdmin extends MhdKbArticle {
+  searchKeywords: string;
+  status: MhdKbArticleStatus;
+  isDeleted: boolean;
+  updatedAt: string;
+}
+
+export interface MhdKbFunctionAdminListItem extends MhdKbFunctionListItem {
+  audience: MhdKbArticleAudience;
+  isDeleted: boolean;
+  updatedAt: string;
+}
+
+export interface MhdKbFunctionAdmin extends MhdKbFunction {
+  audience: MhdKbArticleAudience;
+  isDeleted: boolean;
+  updatedAt: string;
+}

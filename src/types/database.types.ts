@@ -25753,6 +25753,24 @@ export type Database = {
           title: string
         }[]
       }
+      mhd_get_kb_article_admin: {
+        Args: { p_article_id: string }
+        Returns: {
+          audience: string
+          body: string
+          category_id: string
+          id: string
+          is_deleted: boolean
+          published_at: string
+          route_context: string[]
+          search_keywords: string
+          slug: string
+          status: string
+          summary: string
+          title: string
+          updated_at: string
+        }[]
+      }
       mhd_get_kb_function: {
         Args: { p_id: string }
         Returns: {
@@ -25765,6 +25783,23 @@ export type Database = {
           name: string
           related_engine: string
           syntax: string
+        }[]
+      }
+      mhd_get_kb_function_admin: {
+        Args: { p_function_id: string }
+        Returns: {
+          audience: string
+          category: string
+          description: string
+          example_input: string
+          example_output: string
+          id: string
+          is_deleted: boolean
+          is_deprecated: boolean
+          name: string
+          related_engine: string
+          syntax: string
+          updated_at: string
         }[]
       }
       mhd_get_memorandum: {
@@ -27966,6 +28001,29 @@ export type Database = {
           total_count: number
         }[]
       }
+      mhd_list_kb_articles_admin: {
+        Args: {
+          p_category_id?: string
+          p_include_archived?: boolean
+          p_limit?: number
+          p_offset?: number
+          p_search_term?: string
+          p_status?: string
+        }
+        Returns: {
+          audience: string
+          category_id: string
+          id: string
+          is_deleted: boolean
+          published_at: string
+          slug: string
+          status: string
+          summary: string
+          title: string
+          total_count: number
+          updated_at: string
+        }[]
+      }
       mhd_list_kb_categories: {
         Args: never
         Returns: {
@@ -27993,6 +28051,27 @@ export type Database = {
           related_engine: string
           syntax: string
           total_count: number
+        }[]
+      }
+      mhd_list_kb_functions_admin: {
+        Args: {
+          p_include_archived?: boolean
+          p_limit?: number
+          p_offset?: number
+          p_related_engine?: string
+          p_search_term?: string
+        }
+        Returns: {
+          audience: string
+          category: string
+          id: string
+          is_deleted: boolean
+          is_deprecated: boolean
+          name: string
+          related_engine: string
+          syntax: string
+          total_count: number
+          updated_at: string
         }[]
       }
       mhd_list_medical_provider_designations: {

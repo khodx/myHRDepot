@@ -329,6 +329,8 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // RPC already admits.
   { path: '/legal-search', roles: 'ALL' },
   { path: '/knowledge-center', roles: 'ALL' },
+  { path: '/knowledge-center/functions', roles: 'ALL' },
+  { path: '/knowledge-center/admin', roles: ['Platform Admin', 'HR Partner'] },
   { path: '/knowledge-center/:categoryKey', roles: 'ALL' },
   { path: '/knowledge-center/articles/:slug', roles: 'ALL' },
   // Calculator (04.18). Formerly an unconditional topbar panel available to

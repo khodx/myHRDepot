@@ -3,12 +3,16 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdKbArticles, useMhdKbCategories } from '../Hook';
+import { useMhdAuth } from '@/features/authentication/Hook';
+import { mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
 
 export function MhdKnowledgeCenterPage() {
   const { categoryKey } = useParams<{ categoryKey: string }>();
   const categories = useMhdKbCategories();
   const articles = useMhdKbArticles({ categoryKey });
   const category = categories.data?.find((item) => item.key === categoryKey);
+  const { roles } = useMhdAuth();
+  const canManage = mhdIsPlatformAdminOrHrPartner(roles);
 
   if (!categoryKey) {
     return (
@@ -16,6 +20,12 @@ export function MhdKnowledgeCenterPage() {
         <MhdPageHeader
           title="Knowledge Center"
           description="Browse published HR guidance and reference content."
+          actions={
+            <div className="flex gap-3 text-sm font-medium">
+              <Link to="/knowledge-center/functions">Functions &amp; Formulas Reference</Link>
+              {canManage ? <Link to="/knowledge-center/admin">Manage Content</Link> : null}
+            </div>
+          }
         />
         {categories.isLoading ? (
           <p className="text-sm text-muted-foreground">Loading categories…</p>
@@ -46,6 +56,12 @@ export function MhdKnowledgeCenterPage() {
         description={category?.description ?? 'Published HR guidance and reference content.'}
         backTo="/knowledge-center"
         backLabel="categories"
+        actions={
+          <div className="flex gap-3 text-sm font-medium">
+            <Link to="/knowledge-center/functions">Functions &amp; Formulas Reference</Link>
+            {canManage ? <Link to="/knowledge-center/admin">Manage Content</Link> : null}
+          </div>
+        }
       />
       <h2 className="text-xl font-semibold text-foreground">{category?.label ?? 'Category'}</h2>
       {categories.isLoading || articles.isLoading ? (

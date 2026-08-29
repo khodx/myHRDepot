@@ -74,6 +74,14 @@ const MhdKnowledgeCenterArticlePage = lazyPage(
   () => import('@/features/knowledge-center/components/MhdKnowledgeCenterArticlePage'),
   'MhdKnowledgeCenterArticlePage',
 );
+const MhdFunctionsReferencePage = lazyPage(
+  () => import('@/features/knowledge-center/components/MhdFunctionsReferencePage'),
+  'MhdFunctionsReferencePage',
+);
+const MhdKnowledgeCenterAdminEditorPage = lazyPage(
+  () => import('@/features/knowledge-center/components/MhdKnowledgeCenterAdminEditorPage'),
+  'MhdKnowledgeCenterAdminEditorPage',
+);
 const MhdCalculatorPage = lazyPage(
   () => import('@/features/calculator/components/MhdCalculatorPage'),
   'MhdCalculatorPage',
@@ -840,6 +848,8 @@ function MhdAppRoutes() {
                 <Route path="/legal-search" element={<MhdLegalSearchPage />} />
                 <Route path="/knowledge-center" element={<MhdKnowledgeCenterPage />} />
                 <Route path="/knowledge-center/articles/:slug" element={<MhdKnowledgeCenterArticlePage />} />
+                <Route path="/knowledge-center/functions" element={<MhdFunctionsReferencePage />} />
+                <Route path="/knowledge-center/admin" element={<MhdKnowledgeCenterAdminEditorPage />} />
                 <Route path="/knowledge-center/:categoryKey" element={<MhdKnowledgeCenterPage />} />
                 <Route path="/calculator" element={<MhdCalculatorPage />} />
                 {/* Workplace Safety (MVP Module 03.31). /safety/:establishmentId/annual-summary
