@@ -13,6 +13,7 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { MhdActingAsMenu } from '@/features/authentication/components/MhdActingAsMenu';
 import { MhdImpersonationMenu } from '@/features/authentication/components/MhdImpersonationMenu';
 import { MhdNotificationBell } from '@/features/notifications/components/MhdNotificationBell';
+import { MhdContextualHelpButton } from '@/features/knowledge-center/components/MhdContextualHelpButton';
 import { MhdThemeToggle } from './MhdThemeToggle';
 import { mhdCanAccessRoute } from './mhdRouteAccess';
 
@@ -139,6 +140,7 @@ export function MhdTopBar({ onOpenNav }: { onOpenNav?: () => void }) {
             </span>
           </Link>
           <MhdNotificationBell />
+          <MhdContextualHelpButton />
         </div>
 
         <div className="flex items-center gap-3">

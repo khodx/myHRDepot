@@ -45,6 +45,11 @@ export const mhdKnowledgeCenterService = {
     return parseMhdKbArticles(data ?? []);
   },
 
+  async listAllPublishedArticleRoutes(): Promise<MhdKbArticleListItem[]> {
+    const { items } = await mhdKnowledgeCenterService.listArticles({ limit: 200 });
+    return items;
+  },
+
   async getArticle(slug: string): Promise<MhdKbArticle | null> {
     const { data, error } = await supabaseClient.rpc('mhd_get_kb_article', {
       p_slug: slug,

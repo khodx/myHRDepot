@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdKnowledgeCenterService } from './Service';
-import type { MhdKbArticleAdmin, MhdKbFunctionAdmin } from './Types';
+import type { MhdKbArticleAdmin, MhdKbFunctionAdmin, MhdKbArticleListItem } from './Types';
 
 export const mhdKnowledgeCenterQueryKeys = {
   categories: () => ['mhd-knowledge-center', 'categories'] as const,
   articles: (categoryKey?: string, searchTerm?: string) =>
     ['mhd-knowledge-center', 'articles', categoryKey, searchTerm] as const,
+  allArticleRoutes: () => ['mhd-knowledge-center', 'all-article-routes'] as const,
   article: (slug: string) => ['mhd-knowledge-center', 'article', slug] as const,
   functions: (filters: unknown) => ['mhd-knowledge-center', 'functions', filters] as const,
   function: (id: string) => ['mhd-knowledge-center', 'function', id] as const,
@@ -40,6 +41,26 @@ export function useMhdKbArticles({
     queryFn: () => mhdKnowledgeCenterService.listArticles({ categoryId, searchTerm }),
     enabled: categories.isSuccess && hasResolvedCategory,
   });
+}
+
+function articleMatchesPath(article: MhdKbArticleListItem, pathname: string) {
+  return article.routeContext.some(
+    (route) =>
+      route === pathname || (route.endsWith('/*') && pathname.startsWith(route.slice(0, -1))),
+  );
+}
+
+export function useMhdContextualHelpArticles(pathname: string) {
+  const query = useQuery({
+    queryKey: mhdKnowledgeCenterQueryKeys.allArticleRoutes(),
+    queryFn: mhdKnowledgeCenterService.listAllPublishedArticleRoutes,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return {
+    ...query,
+    data: query.data?.filter((article) => articleMatchesPath(article, pathname)) ?? [],
+  };
 }
 
 export function useMhdKbArticle(slug: string) {
