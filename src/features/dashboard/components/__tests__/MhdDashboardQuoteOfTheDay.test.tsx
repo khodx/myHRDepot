@@ -56,12 +56,12 @@ describe('MhdDashboardQuoteOfTheDay', () => {
     expect(screen.queryByText(quote.updatedAt)).not.toBeInTheDocument();
   });
 
-  it('renders the quote on a single non-wrapping line', () => {
+  it('renders the quote at a fixed, readable size that wraps rather than shrinking to fit', () => {
     mockUseMhdQuoteOfTheDay.mockReturnValue({ data: quote });
     render(<MhdDashboardQuoteOfTheDay />);
 
-    expect(screen.getByText(/Progress is built one careful step at a time\./)).toHaveClass(
-      'whitespace-nowrap',
-    );
+    const quoteEl = screen.getByText(/Progress is built one careful step at a time\./);
+    expect(quoteEl).not.toHaveClass('whitespace-nowrap');
+    expect(quoteEl).toHaveClass('text-[22px]');
   });
 });
