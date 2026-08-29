@@ -66,6 +66,14 @@ const MhdLegalSearchPage = lazyPage(
   () => import('@/features/legal-search/components/MhdLegalSearchPage'),
   'MhdLegalSearchPage',
 );
+const MhdKnowledgeCenterPage = lazyPage(
+  () => import('@/features/knowledge-center/components/MhdKnowledgeCenterPage'),
+  'MhdKnowledgeCenterPage',
+);
+const MhdKnowledgeCenterArticlePage = lazyPage(
+  () => import('@/features/knowledge-center/components/MhdKnowledgeCenterArticlePage'),
+  'MhdKnowledgeCenterArticlePage',
+);
 const MhdCalculatorPage = lazyPage(
   () => import('@/features/calculator/components/MhdCalculatorPage'),
   'MhdCalculatorPage',
@@ -830,6 +838,9 @@ function MhdAppRoutes() {
                 />
                 <Route path="/accommodations" element={<MhdAccommodationsPage />} />
                 <Route path="/legal-search" element={<MhdLegalSearchPage />} />
+                <Route path="/knowledge-center" element={<MhdKnowledgeCenterPage />} />
+                <Route path="/knowledge-center/articles/:slug" element={<MhdKnowledgeCenterArticlePage />} />
+                <Route path="/knowledge-center/:categoryKey" element={<MhdKnowledgeCenterPage />} />
                 <Route path="/calculator" element={<MhdCalculatorPage />} />
                 {/* Workplace Safety (MVP Module 03.31). /safety/:establishmentId/annual-summary
                   must precede the general '/safety' rule per the established

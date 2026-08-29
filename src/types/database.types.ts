@@ -12265,6 +12265,281 @@ export type Database = {
           },
         ]
       }
+      kb_article_revisions: {
+        Row: {
+          article_id: string
+          audience: string
+          body: string
+          created_at: string
+          edited_at: string
+          edited_by: string
+          id: string
+          revision_number: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          article_id: string
+          audience: string
+          body: string
+          created_at?: string
+          edited_at?: string
+          edited_by: string
+          id?: string
+          revision_number: number
+          status: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          article_id?: string
+          audience?: string
+          body?: string
+          created_at?: string
+          edited_at?: string
+          edited_by?: string
+          id?: string
+          revision_number?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_article_revisions_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "kb_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_article_revisions_edited_by_fkey"
+            columns: ["edited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_articles: {
+        Row: {
+          audience: string
+          body: string
+          category_id: string
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
+          id: string
+          is_deleted: boolean
+          published_at: string | null
+          route_context: string[]
+          search_keywords: string | null
+          slug: string
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          audience?: string
+          body: string
+          category_id: string
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          is_deleted?: boolean
+          published_at?: string | null
+          route_context?: string[]
+          search_keywords?: string | null
+          slug: string
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          audience?: string
+          body?: string
+          category_id?: string
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          is_deleted?: boolean
+          published_at?: string | null
+          route_context?: string[]
+          search_keywords?: string | null
+          slug?: string
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_articles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "kb_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_articles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_articles_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_articles_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          key: string
+          label: string
+          parent_category_id: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          key: string
+          label: string
+          parent_category_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          key?: string
+          label?: string
+          parent_category_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_categories_parent_category_id_fkey"
+            columns: ["parent_category_id"]
+            isOneToOne: false
+            referencedRelation: "kb_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_functions: {
+        Row: {
+          audience: string
+          category: string
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string
+          example_input: string | null
+          example_output: string | null
+          id: string
+          is_deleted: boolean
+          is_deprecated: boolean
+          name: string
+          related_engine: string
+          syntax: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          audience?: string
+          category: string
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description: string
+          example_input?: string | null
+          example_output?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_deprecated?: boolean
+          name: string
+          related_engine: string
+          syntax: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          audience?: string
+          category?: string
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string
+          example_input?: string | null
+          example_output?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_deprecated?: boolean
+          name?: string
+          related_engine?: string
+          syntax?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_functions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_functions_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_functions_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_benefit_obligations: {
         Row: {
           benefit_type: string
@@ -23002,6 +23277,14 @@ export type Database = {
       }
       mhd_archive_announcement: { Args: { p_id: string }; Returns: undefined }
       mhd_archive_form: { Args: { p_form_id: string }; Returns: undefined }
+      mhd_archive_kb_article: {
+        Args: { p_article_id: string }
+        Returns: undefined
+      }
+      mhd_archive_kb_function: {
+        Args: { p_function_id: string }
+        Returns: undefined
+      }
       mhd_archive_message_thread: {
         Args: { p_is_archived: boolean; p_thread_id: string }
         Returns: undefined
@@ -24527,6 +24810,32 @@ export type Database = {
           id: string
         }[]
       }
+      mhd_create_kb_article: {
+        Args: {
+          p_audience?: string
+          p_body?: string
+          p_category_id: string
+          p_route_context?: string[]
+          p_search_keywords?: string
+          p_slug: string
+          p_summary?: string
+          p_title: string
+        }
+        Returns: string
+      }
+      mhd_create_kb_function: {
+        Args: {
+          p_audience?: string
+          p_category: string
+          p_description: string
+          p_example_input?: string
+          p_example_output?: string
+          p_name: string
+          p_related_engine?: string
+          p_syntax: string
+        }
+        Returns: string
+      }
       mhd_create_leave_case_from_submission: {
         Args: { p_submission_id: string; p_values: Json }
         Returns: {
@@ -25428,6 +25737,34 @@ export type Database = {
           is_impersonating: boolean
           session_id: string
           started_at: string
+        }[]
+      }
+      mhd_get_kb_article: {
+        Args: { p_slug: string }
+        Returns: {
+          audience: string
+          body: string
+          category_id: string
+          id: string
+          published_at: string
+          route_context: string[]
+          slug: string
+          summary: string
+          title: string
+        }[]
+      }
+      mhd_get_kb_function: {
+        Args: { p_id: string }
+        Returns: {
+          category: string
+          description: string
+          example_input: string
+          example_output: string
+          id: string
+          is_deprecated: boolean
+          name: string
+          related_engine: string
+          syntax: string
         }[]
       }
       mhd_get_memorandum: {
@@ -27610,6 +27947,54 @@ export type Database = {
           started_at: string
         }[]
       }
+      mhd_list_kb_articles: {
+        Args: {
+          p_category_id?: string
+          p_limit?: number
+          p_offset?: number
+          p_search_term?: string
+        }
+        Returns: {
+          audience: string
+          category_id: string
+          id: string
+          published_at: string
+          route_context: string[]
+          slug: string
+          summary: string
+          title: string
+          total_count: number
+        }[]
+      }
+      mhd_list_kb_categories: {
+        Args: never
+        Returns: {
+          description: string
+          icon: string
+          id: string
+          key: string
+          label: string
+          parent_category_id: string
+          sort_order: number
+        }[]
+      }
+      mhd_list_kb_functions: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_related_engine?: string
+          p_search_term?: string
+        }
+        Returns: {
+          category: string
+          id: string
+          is_deprecated: boolean
+          name: string
+          related_engine: string
+          syntax: string
+          total_count: number
+        }[]
+      }
       mhd_list_medical_provider_designations: {
         Args: { p_as_of?: string; p_person_id: string }
         Returns: {
@@ -29163,6 +29548,10 @@ export type Database = {
       }
       mhd_publish_announcement: { Args: { p_id: string }; Returns: undefined }
       mhd_publish_form: { Args: { p_form_id: string }; Returns: undefined }
+      mhd_publish_kb_article: {
+        Args: { p_article_id: string }
+        Returns: undefined
+      }
       mhd_publish_memorandum: {
         Args: {
           p_audience_label?: string
@@ -29840,6 +30229,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      mhd_restore_kb_article: {
+        Args: { p_article_id: string }
+        Returns: undefined
+      }
+      mhd_restore_kb_function: {
+        Args: { p_function_id: string }
+        Returns: undefined
       }
       mhd_return_property: {
         Args: {
@@ -30675,6 +31072,35 @@ export type Database = {
           p_section_id: string
           p_sort_order?: number
           p_title?: string
+        }
+        Returns: undefined
+      }
+      mhd_update_kb_article: {
+        Args: {
+          p_article_id: string
+          p_audience: string
+          p_body: string
+          p_category_id: string
+          p_route_context: string[]
+          p_search_keywords: string
+          p_slug: string
+          p_summary: string
+          p_title: string
+        }
+        Returns: undefined
+      }
+      mhd_update_kb_function: {
+        Args: {
+          p_audience: string
+          p_category: string
+          p_description: string
+          p_example_input: string
+          p_example_output: string
+          p_function_id: string
+          p_is_deprecated: boolean
+          p_name: string
+          p_related_engine: string
+          p_syntax: string
         }
         Returns: undefined
       }
