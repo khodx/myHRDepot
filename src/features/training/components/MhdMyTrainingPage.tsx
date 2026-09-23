@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
@@ -213,6 +214,14 @@ function MhdMyTrainingAssignmentRow({ assignment, course, onAttachCertificate }:
               ? 'Complete With Certificate'
               : 'Attest Completion'}
         </Button>
+        {course?.contentMode === 'AUTHORED' ? (
+          <Link
+            to={`/my-training/course/${assignment.id}`}
+            className="inline-flex min-h-10 items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Open course
+          </Link>
+        ) : null}
       </div>
 
       {/* Surface the server's error — notably the evidence-gate refusal — verbatim. */}

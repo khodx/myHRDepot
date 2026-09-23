@@ -883,3 +883,70 @@ export function mhdToNumber(value: number | string | null | undefined): number {
   const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
+
+// ---------------------------------------------------------------------------
+// LMS v2 learner delivery
+// ---------------------------------------------------------------------------
+
+export interface MhdTrainingRichTextContent { html: string }
+export interface MhdTrainingImageContent { url: string }
+export interface MhdTrainingVideoContent { url: string }
+export interface MhdTrainingFileDownloadContent { url: string; fileName?: string }
+export interface MhdTrainingCalloutContent { tone?: 'info' | 'warning' | 'success'; text: string }
+export interface MhdTrainingChecklistContent { items: string[] }
+export interface MhdTrainingTableContent { headers: string[]; rows: string[][] }
+export interface MhdTrainingKnowledgeCheckContent {
+  question: string;
+  options: string[];
+  answerIndex: number;
+}
+export interface MhdTrainingReflectionPromptContent { prompt: string }
+
+export type MhdTrainingBlockContent =
+  | { blockType: 'RICH_TEXT'; content: MhdTrainingRichTextContent }
+  | { blockType: 'IMAGE'; content: MhdTrainingImageContent }
+  | { blockType: 'VIDEO'; content: MhdTrainingVideoContent }
+  | { blockType: 'FILE_DOWNLOAD'; content: MhdTrainingFileDownloadContent }
+  | { blockType: 'CALLOUT'; content: MhdTrainingCalloutContent }
+  | { blockType: 'CHECKLIST'; content: MhdTrainingChecklistContent }
+  | { blockType: 'TABLE'; content: MhdTrainingTableContent }
+  | { blockType: 'KNOWLEDGE_CHECK'; content: MhdTrainingKnowledgeCheckContent }
+  | { blockType: 'REFLECTION_PROMPT'; content: MhdTrainingReflectionPromptContent }
+  | { blockType: Exclude<MhdTrainingBlockType, 'RICH_TEXT' | 'IMAGE' | 'VIDEO' | 'FILE_DOWNLOAD' | 'CALLOUT' | 'CHECKLIST' | 'TABLE' | 'KNOWLEDGE_CHECK' | 'REFLECTION_PROMPT'>; content: Record<string, unknown> };
+
+export interface MhdTrainingContentTreeBlock {
+  id: MhdTrainingBlockId;
+  blockType: MhdTrainingBlockType;
+  title: string | null;
+  content: Record<string, unknown>;
+  sortOrder: number;
+  altText: string | null;
+  transcript: string | null;
+}
+
+export interface MhdTrainingContentTreeLesson {
+  id: MhdTrainingLessonId;
+  title: string;
+  sortOrder: number;
+  blocks: MhdTrainingContentTreeBlock[];
+}
+
+export interface MhdTrainingContentTreeModule {
+  id: MhdTrainingCourseModuleId;
+  title: string;
+  sortOrder: number;
+  lessons: MhdTrainingContentTreeLesson[];
+}
+
+export type MhdTrainingContentTree = MhdTrainingContentTreeModule[];
+export type MhdTrainingBlockProgressStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETE';
+
+export interface MhdTrainingBlockProgress {
+  blockId: MhdTrainingBlockId;
+  status: MhdTrainingBlockProgressStatus;
+  response: Record<string, unknown> | null;
+  startedAt: string | null;
+  completedAt: string | null;
+}
+
+export interface MhdTrainingBlockCompletionResult { courseCompleted: boolean }

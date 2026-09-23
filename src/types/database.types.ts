@@ -22255,6 +22255,64 @@ export type Database = {
           },
         ]
       }
+      training_block_progress: {
+        Row: {
+          assignment_id: string
+          block_id: string
+          completed_at: string | null
+          id: string
+          person_id: string
+          response: Json | null
+          started_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          assignment_id: string
+          block_id: string
+          completed_at?: string | null
+          id?: string
+          person_id: string
+          response?: Json | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          assignment_id?: string
+          block_id?: string
+          completed_at?: string | null
+          id?: string
+          person_id?: string
+          response?: Json | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_block_progress_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "training_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_block_progress_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "training_blocks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_block_progress_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_block_translations: {
         Row: {
           alt_text: string | null
@@ -31536,6 +31594,12 @@ export type Database = {
           course_id: string
         }[]
       }
+      mhd_training_block_complete: {
+        Args: { p_assignment_id: string; p_block_id: string; p_response?: Json }
+        Returns: {
+          course_completed: boolean
+        }[]
+      }
       mhd_training_block_create: {
         Args: {
           p_alt_text?: string
@@ -31550,6 +31614,20 @@ export type Database = {
           id: string
           reference_id: string
         }[]
+      }
+      mhd_training_block_progress_get: {
+        Args: { p_assignment_id: string }
+        Returns: {
+          block_id: string
+          completed_at: string
+          response: Json
+          started_at: string
+          status: string
+        }[]
+      }
+      mhd_training_block_start: {
+        Args: { p_assignment_id: string; p_block_id: string }
+        Returns: undefined
       }
       mhd_training_cancel_assignment: {
         Args: { p_assignment_id: string }
@@ -31646,6 +31724,17 @@ export type Database = {
       mhd_training_content_submit_for_review: {
         Args: { p_course_id: string }
         Returns: undefined
+      }
+      mhd_training_course_block_order: {
+        Args: { p_course_id: string }
+        Returns: {
+          block_id: string
+          block_position: number
+        }[]
+      }
+      mhd_training_course_content_tree: {
+        Args: { p_course_id: string }
+        Returns: Json
       }
       mhd_training_course_create: {
         Args: {

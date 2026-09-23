@@ -277,3 +277,40 @@ export type MhdCreateProgramFormValues = z.infer<typeof mhdCreateProgramSchema>;
 export type MhdCreateCourseModuleFormValues = z.infer<typeof mhdCreateCourseModuleSchema>;
 export type MhdCreateLessonFormValues = z.infer<typeof mhdCreateLessonSchema>;
 export type MhdCreateBlockFormValues = z.infer<typeof mhdCreateBlockSchema>;
+
+const mhdTrainingProgressStatusSchema = z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETE']);
+const mhdTrainingTreeBlockSchema = z.object({
+  id: z.string(),
+  blockType: z.enum(MHD_TRAINING_BLOCK_TYPES),
+  title: z.string().nullable(),
+  content: z.record(z.string(), z.unknown()),
+  sortOrder: z.number(),
+  altText: z.string().nullable(),
+  transcript: z.string().nullable(),
+});
+
+export const mhdTrainingContentTreeSchema = z.array(
+  z.object({
+    id: z.string(),
+    title: z.string(),
+    sortOrder: z.number(),
+    lessons: z.array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        sortOrder: z.number(),
+        blocks: z.array(mhdTrainingTreeBlockSchema),
+      }),
+    ),
+  }),
+);
+
+export const mhdTrainingBlockProgressSchema = z.object({
+  block_id: z.string(),
+  status: mhdTrainingProgressStatusSchema,
+  response: z.record(z.string(), z.unknown()).nullable(),
+  started_at: z.string().nullable(),
+  completed_at: z.string().nullable(),
+});
+
+export type MhdTrainingContentTreeValues = z.infer<typeof mhdTrainingContentTreeSchema>;

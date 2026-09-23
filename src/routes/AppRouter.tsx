@@ -488,6 +488,10 @@ const MhdMyTrainingRoutePage = lazyPage(
   () => import('@/features/training/components/MhdMyTrainingRoutePage'),
   'MhdMyTrainingRoutePage',
 );
+const MhdTrainingCourseShellPage = lazyPage(
+  () => import('@/features/training/components/MhdTrainingCourseShellPage'),
+  'MhdTrainingCourseShellPage',
+);
 const MhdHandbooksPage = lazyPage(
   () => import('@/features/handbook/components/MhdHandbooksPage'),
   'MhdHandbooksPage',
@@ -901,6 +905,7 @@ function MhdAppRoutes() {
                   courses are read-only to every tenant admin. */}
                 <Route path="/training" element={<MhdTrainingPage />} />
                 <Route path="/my-training" element={<MhdMyTrainingRoutePage />} />
+                <Route path="/my-training/course/:assignmentId" element={<MhdTrainingCourseShellPage />} />
                 {/* Handbook Engine. Two SEPARATE routes, never one filtered surface:
                   /handbooks is the admin wizard + acknowledgment board (Platform
                   Admin / HR Partner / Client Admin), /handbooks/:handbookId is the

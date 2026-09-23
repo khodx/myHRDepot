@@ -1,6 +1,7 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { Json } from '@/types/database.types';
 import { mhdToNumber } from './Types';
+import { mhdTrainingContentTreeSchema, mhdTrainingBlockProgressSchema } from './Schemas';
 import type {
   MhdAssignTrainingInput,
   MhdApplyTrainingComplianceRuleInput,
@@ -61,6 +62,9 @@ import type {
   MhdTrainingBlock,
   MhdUpdateCourseInput,
   MhdWaiveAssignmentInput,
+  MhdTrainingContentTree,
+  MhdTrainingBlockProgress,
+  MhdTrainingBlockCompletionResult,
 } from './Types';
 
 // Contract-only access. Every method below calls `.rpc()` and nothing else —
@@ -280,6 +284,54 @@ function mapCompletionResult(row: MhdTrainingCompletionResultRpcRow): MhdTrainin
 
 export const mhdTrainingService = {
   // ----- LMS v2 content layer -----
+
+  async getCourseContentTree(courseId: string): Promise<MhdTrainingContentTree> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_course_content_tree', {
+      p_course_id: courseId,
+    });
+    if (error) throw error;
+    return mhdTrainingContentTreeSchema.parse(data ?? []);
+  },
+
+  async getBlockProgress(assignmentId: string): Promise<MhdTrainingBlockProgress[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_block_progress_get', {
+      p_assignment_id: assignmentId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as unknown[]).map((value) => {
+      const row = mhdTrainingBlockProgressSchema.parse(value);
+      return {
+        blockId: row.block_id,
+        status: row.status,
+        response: row.response,
+        startedAt: row.started_at,
+        completedAt: row.completed_at,
+      };
+    });
+  },
+
+  async startBlock(assignmentId: string, blockId: string): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_block_start', {
+      p_assignment_id: assignmentId,
+      p_block_id: blockId,
+    });
+    if (error) throw error;
+  },
+
+  async completeBlock(
+    assignmentId: string,
+    blockId: string,
+    response?: Record<string, unknown>,
+  ): Promise<MhdTrainingBlockCompletionResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_block_complete', {
+      p_assignment_id: assignmentId,
+      p_block_id: blockId,
+      p_response: (response ?? null) as Json,
+    });
+    if (error) throw error;
+    const row = (Array.isArray(data) ? data[0] : data) as { course_completed?: boolean } | null;
+    return { courseCompleted: row?.course_completed === true };
+  },
 
   async listCurriculums(companyId: string): Promise<MhdTrainingCurriculum[]> {
     const { data, error } = await supabaseClient.rpc('mhd_training_curriculum_list', {
