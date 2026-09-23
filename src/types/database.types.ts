@@ -22598,6 +22598,138 @@ export type Database = {
           },
         ]
       }
+      training_audit_statements: {
+        Row: {
+          actor_person_id: string
+          client_timestamp: string
+          company_id: string
+          context: Json | null
+          id: string
+          object_id: string
+          object_type: string
+          result: Json | null
+          server_timestamp: string
+          verb: string
+        }
+        Insert: {
+          actor_person_id: string
+          client_timestamp?: string
+          company_id: string
+          context?: Json | null
+          id?: string
+          object_id: string
+          object_type: string
+          result?: Json | null
+          server_timestamp?: string
+          verb: string
+        }
+        Update: {
+          actor_person_id?: string
+          client_timestamp?: string
+          company_id?: string
+          context?: Json | null
+          id?: string
+          object_id?: string
+          object_type?: string
+          result?: Json | null
+          server_timestamp?: string
+          verb?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_audit_statements_actor_person_id_fkey"
+            columns: ["actor_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_audit_statements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_audit_statements_2026_09: {
+        Row: {
+          actor_person_id: string
+          client_timestamp: string
+          company_id: string
+          context: Json | null
+          id: string
+          object_id: string
+          object_type: string
+          result: Json | null
+          server_timestamp: string
+          verb: string
+        }
+        Insert: {
+          actor_person_id: string
+          client_timestamp?: string
+          company_id: string
+          context?: Json | null
+          id?: string
+          object_id: string
+          object_type: string
+          result?: Json | null
+          server_timestamp?: string
+          verb: string
+        }
+        Update: {
+          actor_person_id?: string
+          client_timestamp?: string
+          company_id?: string
+          context?: Json | null
+          id?: string
+          object_id?: string
+          object_type?: string
+          result?: Json | null
+          server_timestamp?: string
+          verb?: string
+        }
+        Relationships: []
+      }
+      training_audit_statements_2026_10: {
+        Row: {
+          actor_person_id: string
+          client_timestamp: string
+          company_id: string
+          context: Json | null
+          id: string
+          object_id: string
+          object_type: string
+          result: Json | null
+          server_timestamp: string
+          verb: string
+        }
+        Insert: {
+          actor_person_id: string
+          client_timestamp?: string
+          company_id: string
+          context?: Json | null
+          id?: string
+          object_id: string
+          object_type: string
+          result?: Json | null
+          server_timestamp?: string
+          verb: string
+        }
+        Update: {
+          actor_person_id?: string
+          client_timestamp?: string
+          company_id?: string
+          context?: Json | null
+          id?: string
+          object_id?: string
+          object_type?: string
+          result?: Json | null
+          server_timestamp?: string
+          verb?: string
+        }
+        Relationships: []
+      }
       training_block_progress: {
         Row: {
           assignment_id: string
@@ -23321,6 +23453,67 @@ export type Database = {
           },
         ]
       }
+      training_external_auditor_grants: {
+        Row: {
+          auditor_label: string
+          company_id: string
+          course_id: string
+          created_at: string | null
+          granted_by: string
+          id: string
+          reference_id: string
+          revoked_at: string | null
+          valid_from: string
+          valid_until: string
+        }
+        Insert: {
+          auditor_label: string
+          company_id: string
+          course_id: string
+          created_at?: string | null
+          granted_by: string
+          id?: string
+          reference_id: string
+          revoked_at?: string | null
+          valid_from?: string
+          valid_until: string
+        }
+        Update: {
+          auditor_label?: string
+          company_id?: string
+          course_id?: string
+          created_at?: string | null
+          granted_by?: string
+          id?: string
+          reference_id?: string
+          revoked_at?: string | null
+          valid_from?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_external_auditor_grants_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_external_auditor_grants_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_external_auditor_grants_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_lessons: {
         Row: {
           created_at: string | null
@@ -23545,6 +23738,32 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "training_course_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_time_on_task_settings: {
+        Row: {
+          company_id: string
+          max_session_minutes: number
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          max_session_minutes?: number
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          max_session_minutes?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_time_on_task_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -32057,6 +32276,23 @@ export type Database = {
           course_id: string
         }[]
       }
+      mhd_training_audit_ensure_partition: {
+        Args: { p_month: string }
+        Returns: undefined
+      }
+      mhd_training_audit_record: {
+        Args: {
+          p_actor_person_id: string
+          p_client_timestamp?: string
+          p_company_id: string
+          p_context?: Json
+          p_object_id: string
+          p_object_type: string
+          p_result?: Json
+          p_verb: string
+        }
+        Returns: string
+      }
       mhd_training_block_complete: {
         Args: { p_assignment_id: string; p_block_id: string; p_response?: Json }
         Returns: {
@@ -32285,7 +32521,36 @@ export type Database = {
           title: string
         }[]
       }
+      mhd_training_external_auditor_grant_create: {
+        Args: {
+          p_auditor_label: string
+          p_company_id: string
+          p_course_id: string
+          p_valid_until: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_external_auditor_grant_revoke: {
+        Args: { p_grant_id: string }
+        Returns: undefined
+      }
+      mhd_training_external_auditor_report: {
+        Args: { p_grant_id: string }
+        Returns: {
+          completed_at: string
+          person_display_name: string
+          person_id: string
+          status: string
+        }[]
+      }
       mhd_training_is_privileged: { Args: never; Returns: boolean }
+      mhd_training_learner_export: {
+        Args: { p_person_id: string }
+        Returns: Json
+      }
       mhd_training_lesson_create: {
         Args: {
           p_description?: string
@@ -32423,6 +32688,23 @@ export type Database = {
       mhd_training_status_category: {
         Args: { p_status: string }
         Returns: string
+      }
+      mhd_training_time_on_task_report: {
+        Args: {
+          p_company_id: string
+          p_from?: string
+          p_person_id?: string
+          p_to?: string
+        }
+        Returns: {
+          block_id: string
+          minutes: number
+          person_id: string
+        }[]
+      }
+      mhd_training_time_on_task_set: {
+        Args: { p_company_id: string; p_max_session_minutes: number }
+        Returns: undefined
       }
       mhd_training_waive_assignment: {
         Args: { p_assignment_id: string; p_reason: string }

@@ -9,6 +9,7 @@ import {
   MHD_TRAINING_ASSIGNMENT_SOURCE_TYPES,
   MHD_TRAINING_COMPLIANCE_RULE_TARGET_TYPES,
   MHD_TRAINING_SELF_ENROLLMENT_STATUSES,
+  MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES,
 } from './Types';
 
 // ---------------------------------------------------------------------------
@@ -178,6 +179,33 @@ export const mhdRecordAdminCompletionSchema = z.object({
   attachmentId: z.string().trim().optional().nullable(),
 });
 
+export const mhdSetTrainingTimeOnTaskSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  maxSessionMinutes: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES),
+});
+
+export const mhdTrainingTimeOnTaskFiltersSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.').nullable(),
+  personId: z.string().trim().min(1).optional().nullable(),
+  from: z.string().date().optional().nullable(),
+  to: z.string().date().optional().nullable(),
+});
+
+export const mhdCreateTrainingExternalAuditorGrantSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  courseId: z.string().trim().min(1, 'Choose a course.'),
+  auditorLabel: z.string().trim().min(1, 'An auditor label is required.').max(300),
+  validUntil: z.string().datetime({ offset: true }),
+});
+
+export const mhdTrainingExternalAuditorGrantRevokeSchema = z.object({
+  grantId: z.string().trim().min(1),
+});
+
 // ---------------------------------------------------------------------------
 // LMS v2 content authoring
 // ---------------------------------------------------------------------------
@@ -272,6 +300,16 @@ export type MhdDecideTrainingSelfEnrollmentFormValues = z.infer<
 export type MhdAssignTrainingProgramFormValues = z.infer<typeof mhdAssignTrainingProgramSchema>;
 export type MhdWaiveAssignmentFormValues = z.infer<typeof mhdWaiveAssignmentSchema>;
 export type MhdRecordAdminCompletionFormValues = z.infer<typeof mhdRecordAdminCompletionSchema>;
+export type MhdSetTrainingTimeOnTaskFormValues = z.infer<typeof mhdSetTrainingTimeOnTaskSchema>;
+export type MhdTrainingTimeOnTaskFiltersValues = z.infer<
+  typeof mhdTrainingTimeOnTaskFiltersSchema
+>;
+export type MhdCreateTrainingExternalAuditorGrantFormValues = z.infer<
+  typeof mhdCreateTrainingExternalAuditorGrantSchema
+>;
+export type MhdTrainingExternalAuditorGrantRevokeFormValues = z.infer<
+  typeof mhdTrainingExternalAuditorGrantRevokeSchema
+>;
 export type MhdCreateCurriculumFormValues = z.infer<typeof mhdCreateCurriculumSchema>;
 export type MhdCreateProgramFormValues = z.infer<typeof mhdCreateProgramSchema>;
 export type MhdCreateCourseModuleFormValues = z.infer<typeof mhdCreateCourseModuleSchema>;

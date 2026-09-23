@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   mhdAssignTrainingSchema,
+  mhdCreateTrainingExternalAuditorGrantSchema,
   mhdRecordAdminCompletionSchema,
+  mhdSetTrainingTimeOnTaskSchema,
+  mhdTrainingTimeOnTaskFiltersSchema,
   mhdTrainingCourseFormSchema,
   mhdWaiveAssignmentSchema,
 } from '../Schemas';
@@ -77,6 +80,41 @@ describe('training course form schema', () => {
         deliveryMode: 'DOCUMENT',
       }).requiresEvidence,
     ).toBe(false);
+  });
+});
+
+describe('training audit engine schemas', () => {
+  it('defaults the time-on-task session cap to 480 minutes and validates date filters', () => {
+    expect(mhdSetTrainingTimeOnTaskSchema.parse({ companyId: 'company-1' })).toMatchObject({
+      companyId: 'company-1',
+      maxSessionMinutes: 480,
+    });
+    expect(
+      mhdTrainingTimeOnTaskFiltersSchema.parse({
+        companyId: 'company-1',
+        from: '2026-09-01',
+        to: '2026-09-23',
+      }).to,
+    ).toBe('2026-09-23');
+  });
+
+  it('requires an auditor label and an offset-aware valid-until timestamp', () => {
+    expect(() =>
+      mhdCreateTrainingExternalAuditorGrantSchema.parse({
+        companyId: 'company-1',
+        courseId: 'course-1',
+        auditorLabel: '',
+        validUntil: '2026-10-01T00:00:00Z',
+      }),
+    ).toThrow('An auditor label is required.');
+    expect(() =>
+      mhdCreateTrainingExternalAuditorGrantSchema.parse({
+        companyId: 'company-1',
+        courseId: 'course-1',
+        auditorLabel: 'Auditor',
+        validUntil: '2026-10-01',
+      }),
+    ).toThrow();
   });
 });
 

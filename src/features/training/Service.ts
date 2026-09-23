@@ -1,5 +1,6 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { Json } from '@/types/database.types';
+import { MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES } from './Types';
 import { mhdToNumber } from './Types';
 import { mhdTrainingContentTreeSchema, mhdTrainingBlockProgressSchema } from './Schemas';
 import type {
@@ -65,6 +66,17 @@ import type {
   MhdTrainingContentTree,
   MhdTrainingBlockProgress,
   MhdTrainingBlockCompletionResult,
+  MhdCreateTrainingExternalAuditorGrantInput,
+  MhdSetTrainingTimeOnTaskInput,
+  MhdTrainingTimeOnTaskFilters,
+  MhdTrainingTimeOnTaskRpcRow,
+  MhdTrainingTimeOnTaskRow,
+  MhdTrainingLearnerExportBundle,
+  MhdTrainingExternalAuditorGrant,
+  MhdTrainingExternalAuditorGrantRpcRow,
+  MhdTrainingExternalAuditorGrantRevokeInput,
+  MhdTrainingExternalAuditorReportRpcRow,
+  MhdTrainingExternalAuditorReportRow,
 } from './Types';
 
 // Contract-only access. Every method below calls `.rpc()` and nothing else —
@@ -276,6 +288,27 @@ function mapMutationResult(row: MhdTrainingMutationRpcRow): MhdMutationResult {
 
 function mapCompletionResult(row: MhdTrainingCompletionResultRpcRow): MhdTrainingCompletionResult {
   return { id: row.id, referenceId: row.reference_id, expiresAt: row.expires_at };
+}
+
+function mapTimeOnTask(row: MhdTrainingTimeOnTaskRpcRow): MhdTrainingTimeOnTaskRow {
+  return { personId: row.person_id, blockId: row.block_id, minutes: mhdToNumber(row.minutes) };
+}
+
+function mapExternalAuditorGrant(
+  row: MhdTrainingExternalAuditorGrantRpcRow,
+): MhdTrainingExternalAuditorGrant {
+  return { id: row.id, referenceId: row.reference_id as MhdTrainingExternalAuditorGrant['referenceId'] };
+}
+
+function mapExternalAuditorReport(
+  row: MhdTrainingExternalAuditorReportRpcRow,
+): MhdTrainingExternalAuditorReportRow {
+  return {
+    personId: row.person_id,
+    personDisplayName: row.person_display_name,
+    status: row.status,
+    completedAt: row.completed_at,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -772,5 +805,83 @@ export const mhdTrainingService = {
     });
     if (error) throw error;
     return ((data ?? []) as MhdTrainingComplianceMatrixRpcRow[]).map(mapComplianceMatrixRow);
+  },
+
+  // ----- Audit engine -----
+
+  async setTimeOnTask(input: MhdSetTrainingTimeOnTaskInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_time_on_task_set', {
+      p_company_id: input.companyId,
+      p_max_session_minutes:
+        input.maxSessionMinutes ?? MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES,
+    });
+    if (error) throw error;
+  },
+
+  async timeOnTaskReport(
+    filters: MhdTrainingTimeOnTaskFilters,
+  ): Promise<MhdTrainingTimeOnTaskRow[]> {
+    if (!filters.companyId) return [];
+    const { data, error } = await supabaseClient.rpc('mhd_training_time_on_task_report', {
+      p_company_id: filters.companyId,
+      p_person_id: trimmedOrUndefined(filters.personId),
+      p_from: trimmedOrUndefined(filters.from),
+      p_to: trimmedOrUndefined(filters.to),
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingTimeOnTaskRpcRow[]).map(mapTimeOnTask);
+  },
+
+  async learnerExport(personId: string): Promise<MhdTrainingLearnerExportBundle> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_learner_export', {
+      p_person_id: personId,
+    });
+    if (error) throw error;
+    return (data ?? {
+      assignments: [],
+      completions: [],
+      blockProgress: [],
+      assessmentAttempts: [],
+      auditStatements: [],
+    }) as unknown as MhdTrainingLearnerExportBundle;
+  },
+
+  async createExternalAuditorGrant(
+    input: MhdCreateTrainingExternalAuditorGrantInput,
+  ): Promise<MhdTrainingExternalAuditorGrant> {
+    const { data, error } = await supabaseClient.rpc(
+      'mhd_training_external_auditor_grant_create',
+      {
+        p_company_id: input.companyId,
+        p_course_id: input.courseId,
+        p_auditor_label: input.auditorLabel.trim(),
+        p_valid_until: input.validUntil,
+      },
+    );
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingExternalAuditorGrantRpcRow[])[0];
+    if (!row) throw new Error('External auditor grant creation returned no row.');
+    return mapExternalAuditorGrant(row);
+  },
+
+  async revokeExternalAuditorGrant(
+    input: MhdTrainingExternalAuditorGrantRevokeInput,
+  ): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_external_auditor_grant_revoke', {
+      p_grant_id: input.grantId,
+    });
+    if (error) throw error;
+  },
+
+  async externalAuditorReport(
+    grantId: string,
+  ): Promise<MhdTrainingExternalAuditorReportRow[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_external_auditor_report', {
+      p_grant_id: grantId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingExternalAuditorReportRpcRow[]).map(
+      mapExternalAuditorReport,
+    );
   },
 };

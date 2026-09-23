@@ -28,6 +28,10 @@ import type {
   MhdTrainingProgramFilters,
   MhdUpdateCourseInput,
   MhdWaiveAssignmentInput,
+  MhdSetTrainingTimeOnTaskInput,
+  MhdTrainingTimeOnTaskFilters,
+  MhdCreateTrainingExternalAuditorGrantInput,
+  MhdTrainingExternalAuditorGrantRevokeInput,
 } from './Types';
 import { mhdTrainingService } from './Service';
 
@@ -51,6 +55,11 @@ export const mhdTrainingQueryKeys = {
     ['mhd-training', 'self-enrollments', input] as const,
   courseContentTree: (courseId: string) => ['mhd-training', 'content-tree', courseId] as const,
   blockProgress: (assignmentId: string) => ['mhd-training', 'block-progress', assignmentId] as const,
+  timeOnTask: (filters: MhdTrainingTimeOnTaskFilters) =>
+    ['mhd-training', 'time-on-task', filters] as const,
+  learnerExport: (personId: string) => ['mhd-training', 'learner-export', personId] as const,
+  externalAuditorReport: (grantId: string) =>
+    ['mhd-training', 'external-auditor-report', grantId] as const,
 };
 
 export function useMhdTrainingCourseContentTree(courseId: string | null) {
@@ -418,6 +427,54 @@ export function useMhdTrainingComplianceMatrix(filters: MhdTrainingComplianceMat
     queryKey: mhdTrainingQueryKeys.complianceMatrix(filters),
     queryFn: () => mhdTrainingService.complianceMatrix(filters),
     enabled: Boolean(filters.companyId),
+  });
+}
+
+export function useMhdTrainingTimeOnTaskReport(filters: MhdTrainingTimeOnTaskFilters) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.timeOnTask(filters),
+    queryFn: () => mhdTrainingService.timeOnTaskReport(filters),
+    enabled: Boolean(filters.companyId),
+  });
+}
+
+export function useMhdSetTrainingTimeOnTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdSetTrainingTimeOnTaskInput) => mhdTrainingService.setTimeOnTask(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'time-on-task'] });
+    },
+  });
+}
+
+export function useMhdTrainingLearnerExport(personId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.learnerExport(personId ?? ''),
+    queryFn: () => mhdTrainingService.learnerExport(personId!),
+    enabled: Boolean(personId),
+  });
+}
+
+export function useMhdCreateTrainingExternalAuditorGrant() {
+  return useMutation({
+    mutationFn: (input: MhdCreateTrainingExternalAuditorGrantInput) =>
+      mhdTrainingService.createExternalAuditorGrant(input),
+  });
+}
+
+export function useMhdRevokeTrainingExternalAuditorGrant() {
+  return useMutation({
+    mutationFn: (input: MhdTrainingExternalAuditorGrantRevokeInput) =>
+      mhdTrainingService.revokeExternalAuditorGrant(input),
+  });
+}
+
+export function useMhdTrainingExternalAuditorReport(grantId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.externalAuditorReport(grantId ?? ''),
+    queryFn: () => mhdTrainingService.externalAuditorReport(grantId!),
+    enabled: Boolean(grantId),
   });
 }
 

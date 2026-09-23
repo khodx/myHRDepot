@@ -1,4 +1,6 @@
 // ---------------------------------------------------------------------------
+import type { Database } from '@/types/database.types';
+
 // RPC row shapes (local snake_case interfaces)
 //
 // These mirror the shapes in `Database['public']['Functions']['mhd_training_*']`
@@ -179,6 +181,43 @@ export interface MhdTrainingCompletionResultRpcRow {
   expires_at: string | null;
 }
 
+export interface MhdTrainingTimeOnTaskRpcRow {
+  person_id: string;
+  block_id: string;
+  minutes: number | string;
+}
+
+export interface MhdTrainingExternalAuditorGrantRpcRow {
+  id: string;
+  reference_id: string;
+}
+
+export interface MhdTrainingExternalAuditorReportRpcRow {
+  person_id: string;
+  person_display_name: string;
+  status: string;
+  completed_at: string | null;
+}
+
+export type MhdTrainingAssignmentExportRow =
+  Database['public']['Tables']['training_assignments']['Row'];
+export type MhdTrainingCompletionExportRow =
+  Database['public']['Tables']['training_completions']['Row'];
+export type MhdTrainingBlockProgressExportRow =
+  Database['public']['Tables']['training_block_progress']['Row'];
+export type MhdTrainingAssessmentAttemptExportRow =
+  Database['public']['Tables']['training_assessment_attempts']['Row'];
+export type MhdTrainingAuditStatementExportRow =
+  Database['public']['Tables']['training_audit_statements']['Row'];
+
+export interface MhdTrainingLearnerExportBundle {
+  assignments: MhdTrainingAssignmentExportRow[];
+  completions: MhdTrainingCompletionExportRow[];
+  blockProgress: MhdTrainingBlockProgressExportRow[];
+  assessmentAttempts: MhdTrainingAssessmentAttemptExportRow[];
+  auditStatements: MhdTrainingAuditStatementExportRow[];
+}
+
 // ---------------------------------------------------------------------------
 // Ids and vocabularies
 // ---------------------------------------------------------------------------
@@ -193,6 +232,8 @@ export type MhdTrainingLessonId = string;
 export type MhdTrainingBlockId = string;
 export type MhdTrainingComplianceRuleId = string;
 export type MhdTrainingSelfEnrollmentRequestId = string;
+export type MhdTrainingExternalAuditorGrantId = string;
+export const MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES = 480;
 
 export type MhdTrainingCourseReferenceId = `TRN-${string}`;
 export type MhdTrainingAssignmentReferenceId = `TRA-${string}`;
@@ -205,6 +246,7 @@ export type MhdTrainingLessonReferenceId = `LSN-${string}`;
 export type MhdTrainingBlockReferenceId = `BLK-${string}`;
 export type MhdTrainingComplianceRuleReferenceId = `TCR-${string}`;
 export type MhdTrainingSelfEnrollmentRequestReferenceId = `TSR-${string}`;
+export type MhdTrainingExternalAuditorGrantReferenceId = `EAG-${string}`;
 
 export type MhdTrainingCategory =
   'HARASSMENT' | 'SAFETY' | 'COMPLIANCE' | 'SKILLS' | 'ONBOARDING' | 'OTHER';
@@ -531,6 +573,24 @@ export interface MhdTrainingCompletionResult {
   expiresAt: string | null;
 }
 
+export interface MhdTrainingTimeOnTaskRow {
+  personId: string;
+  blockId: MhdTrainingBlockId;
+  minutes: number;
+}
+
+export interface MhdTrainingExternalAuditorGrant extends MhdMutationResult {
+  id: MhdTrainingExternalAuditorGrantId;
+  referenceId: MhdTrainingExternalAuditorGrantReferenceId;
+}
+
+export interface MhdTrainingExternalAuditorReportRow {
+  personId: string;
+  personDisplayName: string;
+  status: string;
+  completedAt: string | null;
+}
+
 // ---------------------------------------------------------------------------
 // Inputs and filters
 // ---------------------------------------------------------------------------
@@ -705,6 +765,29 @@ export interface MhdRecordAdminCompletionInput {
   personId: string;
   completedAt: string;
   attachmentId?: string | null;
+}
+
+export interface MhdSetTrainingTimeOnTaskInput {
+  companyId: string;
+  maxSessionMinutes?: number;
+}
+
+export interface MhdTrainingTimeOnTaskFilters {
+  companyId: string | null;
+  personId?: string | null;
+  from?: string | null;
+  to?: string | null;
+}
+
+export interface MhdCreateTrainingExternalAuditorGrantInput {
+  companyId: string;
+  courseId: MhdTrainingCourseId;
+  auditorLabel: string;
+  validUntil: string;
+}
+
+export interface MhdTrainingExternalAuditorGrantRevokeInput {
+  grantId: MhdTrainingExternalAuditorGrantId;
 }
 
 export interface MhdTrainingCourseFilters {
