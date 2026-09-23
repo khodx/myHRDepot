@@ -22183,8 +22183,11 @@ export type Database = {
           created_at: string | null
           due_date: string | null
           id: string
+          is_emergency_priority: boolean
           person_id: string
           reference_id: string
+          source_id: string | null
+          source_type: string
           status: string
           updated_at: string | null
           waived_reason: string | null
@@ -22196,8 +22199,11 @@ export type Database = {
           created_at?: string | null
           due_date?: string | null
           id?: string
+          is_emergency_priority?: boolean
           person_id: string
           reference_id: string
+          source_id?: string | null
+          source_type?: string
           status?: string
           updated_at?: string | null
           waived_reason?: string | null
@@ -22209,8 +22215,11 @@ export type Database = {
           created_at?: string | null
           due_date?: string | null
           id?: string
+          is_emergency_priority?: boolean
           person_id?: string
           reference_id?: string
+          source_id?: string | null
+          source_type?: string
           status?: string
           updated_at?: string | null
           waived_reason?: string | null
@@ -22450,6 +22459,86 @@ export type Database = {
             columns: ["recorded_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_compliance_rules: {
+        Row: {
+          company_id: string
+          course_id: string
+          created_at: string | null
+          created_by: string
+          due_offset_days: number | null
+          id: string
+          is_active: boolean
+          reference_id: string
+          target_department: string | null
+          target_job_id: string | null
+          target_jurisdiction: string | null
+          target_type: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          course_id: string
+          created_at?: string | null
+          created_by: string
+          due_offset_days?: number | null
+          id?: string
+          is_active?: boolean
+          reference_id: string
+          target_department?: string | null
+          target_job_id?: string | null
+          target_jurisdiction?: string | null
+          target_type: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          course_id?: string
+          created_at?: string | null
+          created_by?: string
+          due_offset_days?: number | null
+          id?: string
+          is_active?: boolean
+          reference_id?: string
+          target_department?: string | null
+          target_job_id?: string | null
+          target_jurisdiction?: string | null
+          target_type?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_compliance_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_compliance_rules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_compliance_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_compliance_rules_target_job_id_fkey"
+            columns: ["target_job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -22942,6 +23031,84 @@ export type Database = {
             columns: ["curriculum_id"]
             isOneToOne: false
             referencedRelation: "training_curricula"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_self_enrollment_requests: {
+        Row: {
+          company_id: string
+          course_id: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          id: string
+          person_id: string
+          reference_id: string
+          requested_at: string
+          requested_by: string
+          status: string
+        }
+        Insert: {
+          company_id: string
+          course_id: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          id?: string
+          person_id: string
+          reference_id: string
+          requested_at?: string
+          requested_by: string
+          status?: string
+        }
+        Update: {
+          company_id?: string
+          course_id?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          id?: string
+          person_id?: string
+          reference_id?: string
+          requested_at?: string
+          requested_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_self_enrollment_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_self_enrollment_requests_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_self_enrollment_requests_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_self_enrollment_requests_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_self_enrollment_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -31347,11 +31514,26 @@ export type Database = {
           p_company_id: string
           p_course_id: string
           p_due_date?: string
+          p_is_emergency_priority?: boolean
           p_person_id: string
+          p_source_id?: string
+          p_source_type?: string
         }
         Returns: {
           id: string
           reference_id: string
+        }[]
+      }
+      mhd_training_assign_program: {
+        Args: {
+          p_company_id: string
+          p_due_date?: string
+          p_person_id: string
+          p_program_id: string
+        }
+        Returns: {
+          assignment_id: string
+          course_id: string
         }[]
       }
       mhd_training_block_create: {
@@ -31407,6 +31589,46 @@ export type Database = {
           person_display_name: string
           person_id: string
           status: string
+        }[]
+      }
+      mhd_training_compliance_rule_apply: {
+        Args: { p_rule_id: string }
+        Returns: {
+          assigned_person_id: string
+          assignment_id: string
+        }[]
+      }
+      mhd_training_compliance_rule_create: {
+        Args: {
+          p_company_id: string
+          p_course_id: string
+          p_due_offset_days?: number
+          p_target_department?: string
+          p_target_job_id?: string
+          p_target_jurisdiction?: string
+          p_target_type: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_compliance_rule_list: {
+        Args: { p_company_id: string }
+        Returns: {
+          company_id: string
+          course_id: string
+          course_title: string
+          due_offset_days: number
+          id: string
+          is_active: boolean
+          reference_id: string
+          target_department: string
+          target_job_id: string
+          target_jurisdiction: string
+          target_type: string
+          title: string
         }[]
       }
       mhd_training_compliance_status: {
@@ -31535,9 +31757,12 @@ export type Database = {
           created_at: string
           due_date: string
           id: string
+          is_emergency_priority: boolean
           person_display_name: string
           person_id: string
           reference_id: string
+          source_id: string
+          source_type: string
           status: string
         }[]
       }
@@ -31611,6 +31836,34 @@ export type Database = {
         }
         Returns: {
           expires_at: string
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_self_enroll_decide: {
+        Args: { p_approve: boolean; p_notes?: string; p_request_id: string }
+        Returns: {
+          assignment_id: string
+        }[]
+      }
+      mhd_training_self_enroll_list: {
+        Args: { p_company_id: string; p_status?: string }
+        Returns: {
+          course_id: string
+          course_title: string
+          decided_at: string
+          decision_notes: string
+          id: string
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          requested_at: string
+          status: string
+        }[]
+      }
+      mhd_training_self_enroll_request: {
+        Args: { p_company_id: string; p_course_id: string }
+        Returns: {
           id: string
           reference_id: string
         }[]

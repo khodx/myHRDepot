@@ -6,6 +6,9 @@ import {
   MHD_TRAINING_CONTENT_MODES,
   MHD_TRAINING_DELIVERY_MODES,
   MHD_TRAINING_FORK_STATES,
+  MHD_TRAINING_ASSIGNMENT_SOURCE_TYPES,
+  MHD_TRAINING_COMPLIANCE_RULE_TARGET_TYPES,
+  MHD_TRAINING_SELF_ENROLLMENT_STATUSES,
 } from './Types';
 
 // ---------------------------------------------------------------------------
@@ -84,6 +87,59 @@ export const mhdAssignTrainingSchema = z.object({
   companyId: z.string().trim().min(1, 'Company is required.'),
   courseId: z.string().trim().min(1, 'Choose a course to assign.'),
   personId: z.string().trim().min(1, 'Choose a person to assign it to.'),
+  dueDate: z.string().trim().optional().nullable(),
+  sourceType: z.enum(MHD_TRAINING_ASSIGNMENT_SOURCE_TYPES).optional(),
+  sourceId: z.string().trim().min(1).optional().nullable(),
+  isEmergencyPriority: z.boolean().optional(),
+});
+
+export const mhdCreateTrainingComplianceRuleSchema = z
+  .object({
+    companyId: z.string().trim().min(1, 'Company is required.'),
+    title: z.string().trim().min(1, 'A title is required.').max(300),
+    targetType: z.enum(MHD_TRAINING_COMPLIANCE_RULE_TARGET_TYPES),
+    courseId: z.string().trim().min(1, 'Choose a course.'),
+    targetDepartment: z.string().trim().min(1).optional().nullable(),
+    targetJobId: z.string().trim().min(1).optional().nullable(),
+    targetJurisdiction: z.string().trim().min(1).optional().nullable(),
+    dueOffsetDays: z.coerce.number().int().optional().nullable(),
+  })
+  .refine(
+    (value) => {
+      const fields = [value.targetDepartment, value.targetJobId, value.targetJurisdiction];
+      const populated = fields.filter((field) => field != null && field.trim() !== '').length;
+      const matching =
+        (value.targetType === 'ORG_UNIT' && value.targetDepartment) ||
+        (value.targetType === 'JOB_TITLE' && value.targetJobId) ||
+        (value.targetType === 'JURISDICTION' && value.targetJurisdiction);
+      return populated === 1 && Boolean(matching);
+    },
+    {
+      message: 'Set exactly one target field matching the target type.',
+      path: ['targetType'],
+    },
+  );
+
+export const mhdSelfEnrollTrainingSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  courseId: z.string().trim().min(1, 'Choose a course.'),
+});
+
+export const mhdListTrainingSelfEnrollmentsSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  status: z.enum(MHD_TRAINING_SELF_ENROLLMENT_STATUSES).optional().nullable(),
+});
+
+export const mhdDecideTrainingSelfEnrollmentSchema = z.object({
+  requestId: z.string().trim().min(1),
+  approve: z.boolean(),
+  notes: z.string().trim().max(2000).optional().nullable(),
+});
+
+export const mhdAssignTrainingProgramSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  programId: z.string().trim().min(1, 'Choose a program.'),
+  personId: z.string().trim().min(1, 'Choose a person.'),
   dueDate: z.string().trim().optional().nullable(),
 });
 
@@ -203,6 +259,17 @@ export const mhdTrainingForkStateSchema = z.enum(MHD_TRAINING_FORK_STATES);
 
 export type MhdTrainingCourseFormValues = z.infer<typeof mhdTrainingCourseFormSchema>;
 export type MhdAssignTrainingFormValues = z.infer<typeof mhdAssignTrainingSchema>;
+export type MhdCreateTrainingComplianceRuleFormValues = z.infer<
+  typeof mhdCreateTrainingComplianceRuleSchema
+>;
+export type MhdSelfEnrollTrainingFormValues = z.infer<typeof mhdSelfEnrollTrainingSchema>;
+export type MhdListTrainingSelfEnrollmentsFormValues = z.infer<
+  typeof mhdListTrainingSelfEnrollmentsSchema
+>;
+export type MhdDecideTrainingSelfEnrollmentFormValues = z.infer<
+  typeof mhdDecideTrainingSelfEnrollmentSchema
+>;
+export type MhdAssignTrainingProgramFormValues = z.infer<typeof mhdAssignTrainingProgramSchema>;
 export type MhdWaiveAssignmentFormValues = z.infer<typeof mhdWaiveAssignmentSchema>;
 export type MhdRecordAdminCompletionFormValues = z.infer<typeof mhdRecordAdminCompletionSchema>;
 export type MhdCreateCurriculumFormValues = z.infer<typeof mhdCreateCurriculumSchema>;

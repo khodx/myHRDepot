@@ -77,7 +77,57 @@ export interface MhdTrainingAssignmentRpcRow {
   // recompute compliance/expiry client-side — the frozen completion rows are the
   // only authority and they live server-side.
   compliance_status: string;
+  source_type: string;
+  source_id: string | null;
+  is_emergency_priority: boolean;
   created_at: string;
+}
+
+export interface MhdTrainingComplianceRuleRpcRow {
+  id: string;
+  reference_id: string;
+  company_id: string;
+  title: string;
+  target_type: string;
+  target_department: string | null;
+  target_job_id: string | null;
+  target_jurisdiction: string | null;
+  course_id: string;
+  course_title: string;
+  due_offset_days: number | string | null;
+  is_active: boolean;
+}
+
+export interface MhdTrainingSelfEnrollmentRequestRpcRow {
+  id: string;
+  reference_id: string;
+  course_id: string;
+  course_title: string;
+  person_id: string;
+  person_display_name: string;
+  status: string;
+  requested_at: string;
+  decided_at: string | null;
+  decision_notes: string | null;
+}
+
+export interface MhdTrainingAssignProgramRpcRow {
+  course_id: string;
+  assignment_id: string;
+}
+
+export interface MhdTrainingComplianceRuleApplyRpcRow {
+  assigned_person_id: string;
+  assignment_id: string;
+}
+
+export interface MhdTrainingComplianceRuleApplyResult {
+  assignedPersonId: string;
+  assignmentId: string;
+}
+
+export interface MhdTrainingSelfEnrollmentDecisionRpcRow {
+  assignment_id: string | null;
 }
 
 /** Row shape returned by `mhd_training_list_completions`. */
@@ -141,6 +191,8 @@ export type MhdTrainingProgramId = string;
 export type MhdTrainingCourseModuleId = string;
 export type MhdTrainingLessonId = string;
 export type MhdTrainingBlockId = string;
+export type MhdTrainingComplianceRuleId = string;
+export type MhdTrainingSelfEnrollmentRequestId = string;
 
 export type MhdTrainingCourseReferenceId = `TRN-${string}`;
 export type MhdTrainingAssignmentReferenceId = `TRA-${string}`;
@@ -151,6 +203,8 @@ export type MhdTrainingTemplateReferenceId = `TPL-${string}`;
 export type MhdTrainingCourseModuleReferenceId = `TCM-${string}`;
 export type MhdTrainingLessonReferenceId = `LSN-${string}`;
 export type MhdTrainingBlockReferenceId = `BLK-${string}`;
+export type MhdTrainingComplianceRuleReferenceId = `TCR-${string}`;
+export type MhdTrainingSelfEnrollmentRequestReferenceId = `TSR-${string}`;
 
 export type MhdTrainingCategory =
   'HARASSMENT' | 'SAFETY' | 'COMPLIANCE' | 'SKILLS' | 'ONBOARDING' | 'OTHER';
@@ -158,6 +212,15 @@ export type MhdTrainingCategory =
 export type MhdTrainingDeliveryMode = 'IN_PERSON' | 'ONLINE' | 'DOCUMENT' | 'EXTERNAL';
 
 export type MhdTrainingAssignmentStatus = 'ASSIGNED' | 'COMPLETED' | 'WAIVED' | 'CANCELLED';
+export type MhdTrainingAssignmentSourceType =
+  | 'MANUAL'
+  | 'COMPLIANCE_RULE'
+  | 'COMPETENCY_GAP'
+  | 'SELF_ENROLLMENT'
+  | 'ONBOARDING_BUNDLE'
+  | 'CORRECTIVE_ACTION';
+export type MhdTrainingComplianceRuleTargetType = 'ORG_UNIT' | 'JOB_TITLE' | 'JURISDICTION';
+export type MhdTrainingSelfEnrollmentStatus = 'PENDING' | 'APPROVED' | 'DENIED';
 
 export type MhdTrainingCompletionMethod = 'ATTESTED' | 'CERTIFICATE' | 'ADMIN_RECORDED';
 export type MhdTrainingContentMode = 'EVIDENCE_ONLY' | 'AUTHORED';
@@ -216,6 +279,27 @@ export const MHD_TRAINING_ASSIGNMENT_STATUSES = [
   'WAIVED',
   'CANCELLED',
 ] as const satisfies readonly MhdTrainingAssignmentStatus[];
+
+export const MHD_TRAINING_ASSIGNMENT_SOURCE_TYPES = [
+  'MANUAL',
+  'COMPLIANCE_RULE',
+  'COMPETENCY_GAP',
+  'SELF_ENROLLMENT',
+  'ONBOARDING_BUNDLE',
+  'CORRECTIVE_ACTION',
+] as const satisfies readonly MhdTrainingAssignmentSourceType[];
+
+export const MHD_TRAINING_COMPLIANCE_RULE_TARGET_TYPES = [
+  'ORG_UNIT',
+  'JOB_TITLE',
+  'JURISDICTION',
+] as const satisfies readonly MhdTrainingComplianceRuleTargetType[];
+
+export const MHD_TRAINING_SELF_ENROLLMENT_STATUSES = [
+  'PENDING',
+  'APPROVED',
+  'DENIED',
+] as const satisfies readonly MhdTrainingSelfEnrollmentStatus[];
 
 export const MHD_TRAINING_COMPLETION_METHODS = [
   'ATTESTED',
@@ -352,7 +436,47 @@ export interface MhdTrainingAssignment {
   dueDate: string | null;
   status: MhdTrainingAssignmentStatus;
   complianceStatus: MhdTrainingComplianceStatus;
+  sourceType: MhdTrainingAssignmentSourceType;
+  sourceId: string | null;
+  isEmergencyPriority: boolean;
   createdAt: string;
+}
+
+export interface MhdTrainingComplianceRule {
+  id: MhdTrainingComplianceRuleId;
+  referenceId: MhdTrainingComplianceRuleReferenceId;
+  companyId: string;
+  title: string;
+  targetType: MhdTrainingComplianceRuleTargetType;
+  targetDepartment: string | null;
+  targetJobId: string | null;
+  targetJurisdiction: string | null;
+  courseId: MhdTrainingCourseId;
+  courseTitle: string;
+  dueOffsetDays: number | null;
+  isActive: boolean;
+}
+
+export interface MhdTrainingSelfEnrollmentRequest {
+  id: MhdTrainingSelfEnrollmentRequestId;
+  referenceId: MhdTrainingSelfEnrollmentRequestReferenceId;
+  courseId: MhdTrainingCourseId;
+  courseTitle: string;
+  personId: string;
+  personDisplayName: string;
+  status: MhdTrainingSelfEnrollmentStatus;
+  requestedAt: string;
+  decidedAt: string | null;
+  decisionNotes: string | null;
+}
+
+export interface MhdTrainingAssignProgramResult {
+  courseId: MhdTrainingCourseId;
+  assignmentId: MhdTrainingAssignmentId;
+}
+
+export interface MhdTrainingSelfEnrollmentDecisionResult {
+  assignmentId: MhdTrainingAssignmentId | null;
 }
 
 /**
@@ -511,6 +635,51 @@ export interface MhdAssignTrainingInput {
   courseId: MhdTrainingCourseId;
   personId: string;
   dueDate?: string | null;
+  sourceType?: MhdTrainingAssignmentSourceType;
+  sourceId?: string | null;
+  isEmergencyPriority?: boolean;
+}
+
+export interface MhdCreateTrainingComplianceRuleInput {
+  companyId: string;
+  title: string;
+  targetType: MhdTrainingComplianceRuleTargetType;
+  courseId: MhdTrainingCourseId;
+  targetDepartment?: string | null;
+  targetJobId?: string | null;
+  targetJurisdiction?: string | null;
+  dueOffsetDays?: number | null;
+}
+
+export interface MhdListTrainingComplianceRulesInput {
+  companyId: string;
+}
+
+export interface MhdApplyTrainingComplianceRuleInput {
+  ruleId: MhdTrainingComplianceRuleId;
+}
+
+export interface MhdSelfEnrollTrainingInput {
+  companyId: string;
+  courseId: MhdTrainingCourseId;
+}
+
+export interface MhdListTrainingSelfEnrollmentsInput {
+  companyId: string;
+  status?: MhdTrainingSelfEnrollmentStatus | null;
+}
+
+export interface MhdDecideTrainingSelfEnrollmentInput {
+  requestId: MhdTrainingSelfEnrollmentRequestId;
+  approve: boolean;
+  notes?: string | null;
+}
+
+export interface MhdAssignTrainingProgramInput {
+  companyId: string;
+  programId: MhdTrainingProgramId;
+  personId: string;
+  dueDate?: string | null;
 }
 
 export interface MhdWaiveAssignmentInput {
@@ -580,6 +749,24 @@ const ASSIGNMENT_STATUS_LABELS: Record<MhdTrainingAssignmentStatus, string> = {
   WAIVED: 'Waived',
   CANCELLED: 'Cancelled',
 };
+const ASSIGNMENT_SOURCE_TYPE_LABELS: Record<MhdTrainingAssignmentSourceType, string> = {
+  MANUAL: 'Manual',
+  COMPLIANCE_RULE: 'Compliance rule',
+  COMPETENCY_GAP: 'Competency gap',
+  SELF_ENROLLMENT: 'Self-enrollment',
+  ONBOARDING_BUNDLE: 'Onboarding bundle',
+  CORRECTIVE_ACTION: 'Corrective action',
+};
+const COMPLIANCE_RULE_TARGET_TYPE_LABELS: Record<MhdTrainingComplianceRuleTargetType, string> = {
+  ORG_UNIT: 'Organization unit',
+  JOB_TITLE: 'Job title',
+  JURISDICTION: 'Jurisdiction',
+};
+const SELF_ENROLLMENT_STATUS_LABELS: Record<MhdTrainingSelfEnrollmentStatus, string> = {
+  PENDING: 'Pending',
+  APPROVED: 'Approved',
+  DENIED: 'Denied',
+};
 
 const COMPLETION_METHOD_LABELS: Record<MhdTrainingCompletionMethod, string> = {
   ATTESTED: 'Self-attested',
@@ -630,6 +817,24 @@ export function mhdFormatTrainingAssignmentStatus(
   value: MhdTrainingAssignmentStatus | string,
 ): string {
   return ASSIGNMENT_STATUS_LABELS[value as MhdTrainingAssignmentStatus] ?? value;
+}
+
+export function mhdFormatTrainingAssignmentSourceType(
+  value: MhdTrainingAssignmentSourceType | string,
+): string {
+  return ASSIGNMENT_SOURCE_TYPE_LABELS[value as MhdTrainingAssignmentSourceType] ?? value;
+}
+
+export function mhdFormatTrainingComplianceRuleTargetType(
+  value: MhdTrainingComplianceRuleTargetType | string,
+): string {
+  return COMPLIANCE_RULE_TARGET_TYPE_LABELS[value as MhdTrainingComplianceRuleTargetType] ?? value;
+}
+
+export function mhdFormatTrainingSelfEnrollmentStatus(
+  value: MhdTrainingSelfEnrollmentStatus | string,
+): string {
+  return SELF_ENROLLMENT_STATUS_LABELS[value as MhdTrainingSelfEnrollmentStatus] ?? value;
 }
 
 export function mhdFormatTrainingCompletionMethod(

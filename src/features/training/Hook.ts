@@ -2,6 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdPersonService } from '@/features/people/Service';
 import type {
   MhdAssignTrainingInput,
+  MhdAssignTrainingProgramInput,
+  MhdCreateTrainingComplianceRuleInput,
+  MhdDecideTrainingSelfEnrollmentInput,
+  MhdListTrainingSelfEnrollmentsInput,
+  MhdSelfEnrollTrainingInput,
   MhdCompleteTrainingInput,
   MhdCreateCourseInput,
   MhdCreateCurriculumInput,
@@ -40,6 +45,10 @@ export const mhdTrainingQueryKeys = {
   complianceMatrix: (filters: MhdTrainingComplianceMatrixFilters) =>
     ['mhd-training', 'compliance-matrix', filters] as const,
   people: (companyId: string | null) => ['mhd-training', 'people', companyId ?? 'ALL'] as const,
+  complianceRules: (companyId: string | null) =>
+    ['mhd-training', 'compliance-rules', companyId ?? 'ALL'] as const,
+  selfEnrollments: (input: MhdListTrainingSelfEnrollmentsInput) =>
+    ['mhd-training', 'self-enrollments', input] as const,
 };
 
 export function useMhdTrainingCurriculums(companyId: string | null) {
@@ -203,6 +212,79 @@ export function useMhdAssignTraining() {
   return useMutation({
     mutationFn: (input: MhdAssignTrainingInput) => mhdTrainingService.assign(input),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'assignments'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'compliance-matrix'] });
+    },
+  });
+}
+
+export function useMhdAssignTrainingProgram() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdAssignTrainingProgramInput) => mhdTrainingService.assignProgram(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'assignments'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'compliance-matrix'] });
+    },
+  });
+}
+
+export function useMhdTrainingComplianceRules(companyId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.complianceRules(companyId),
+    queryFn: () => mhdTrainingService.listComplianceRules(companyId!),
+    enabled: Boolean(companyId),
+  });
+}
+
+export function useMhdCreateTrainingComplianceRule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateTrainingComplianceRuleInput) =>
+      mhdTrainingService.createComplianceRule(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'compliance-rules'] });
+    },
+  });
+}
+
+export function useMhdApplyTrainingComplianceRule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ruleId: string) => mhdTrainingService.applyComplianceRule({ ruleId }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'assignments'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'compliance-matrix'] });
+    },
+  });
+}
+
+export function useMhdTrainingSelfEnrollments(input: MhdListTrainingSelfEnrollmentsInput) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.selfEnrollments(input),
+    queryFn: () => mhdTrainingService.listSelfEnrollments(input),
+    enabled: Boolean(input.companyId),
+  });
+}
+
+export function useMhdRequestTrainingSelfEnrollment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdSelfEnrollTrainingInput) =>
+      mhdTrainingService.requestSelfEnrollment(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'self-enrollments'] });
+    },
+  });
+}
+
+export function useMhdDecideTrainingSelfEnrollment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdDecideTrainingSelfEnrollmentInput) =>
+      mhdTrainingService.decideSelfEnrollment(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'self-enrollments'] });
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'assignments'] });
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'compliance-matrix'] });
     },

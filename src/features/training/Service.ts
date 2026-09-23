@@ -3,6 +3,8 @@ import type { Json } from '@/types/database.types';
 import { mhdToNumber } from './Types';
 import type {
   MhdAssignTrainingInput,
+  MhdApplyTrainingComplianceRuleInput,
+  MhdAssignTrainingProgramInput,
   MhdCompleteTrainingInput,
   MhdCreateCourseInput,
   MhdCreateCurriculumInput,
@@ -23,6 +25,13 @@ import type {
   MhdTrainingAssignment,
   MhdTrainingAssignmentFilters,
   MhdTrainingAssignmentRpcRow,
+  MhdTrainingAssignProgramRpcRow,
+  MhdTrainingAssignProgramResult,
+  MhdTrainingComplianceRuleApplyResult,
+  MhdTrainingComplianceRuleApplyRpcRow,
+  MhdTrainingComplianceRule,
+  MhdTrainingComplianceRuleRpcRow,
+  MhdCreateTrainingComplianceRuleInput,
   MhdTrainingCompletion,
   MhdTrainingCompletionResult,
   MhdTrainingCompletionResultRpcRow,
@@ -40,6 +49,13 @@ import type {
   MhdTrainingProgram,
   MhdTrainingProgramRpcRow,
   MhdTrainingProgramFilters,
+  MhdTrainingSelfEnrollmentRequest,
+  MhdTrainingSelfEnrollmentRequestRpcRow,
+  MhdSelfEnrollTrainingInput,
+  MhdListTrainingSelfEnrollmentsInput,
+  MhdDecideTrainingSelfEnrollmentInput,
+  MhdTrainingSelfEnrollmentDecisionResult,
+  MhdTrainingSelfEnrollmentDecisionRpcRow,
   MhdTrainingCourseModule,
   MhdTrainingLesson,
   MhdTrainingBlock,
@@ -153,8 +169,61 @@ function mapAssignment(row: MhdTrainingAssignmentRpcRow): MhdTrainingAssignment 
     status: row.status as MhdTrainingAssignment['status'],
     // Server-derived; copied through verbatim. Nothing downstream recomputes it.
     complianceStatus: row.compliance_status as MhdTrainingAssignment['complianceStatus'],
+    sourceType: row.source_type as MhdTrainingAssignment['sourceType'],
+    sourceId: row.source_id,
+    isEmergencyPriority: row.is_emergency_priority,
     createdAt: row.created_at,
   };
+}
+
+function mapComplianceRule(row: MhdTrainingComplianceRuleRpcRow): MhdTrainingComplianceRule {
+  return {
+    id: row.id,
+    referenceId: row.reference_id as MhdTrainingComplianceRule['referenceId'],
+    companyId: row.company_id,
+    title: row.title,
+    targetType: row.target_type as MhdTrainingComplianceRule['targetType'],
+    targetDepartment: row.target_department,
+    targetJobId: row.target_job_id,
+    targetJurisdiction: row.target_jurisdiction,
+    courseId: row.course_id,
+    courseTitle: row.course_title,
+    dueOffsetDays: row.due_offset_days == null ? null : mhdToNumber(row.due_offset_days),
+    isActive: row.is_active,
+  };
+}
+
+function mapSelfEnrollmentRequest(
+  row: MhdTrainingSelfEnrollmentRequestRpcRow,
+): MhdTrainingSelfEnrollmentRequest {
+  return {
+    id: row.id,
+    referenceId: row.reference_id as MhdTrainingSelfEnrollmentRequest['referenceId'],
+    courseId: row.course_id,
+    courseTitle: row.course_title,
+    personId: row.person_id,
+    personDisplayName: row.person_display_name,
+    status: row.status as MhdTrainingSelfEnrollmentRequest['status'],
+    requestedAt: row.requested_at,
+    decidedAt: row.decided_at,
+    decisionNotes: row.decision_notes,
+  };
+}
+
+function mapAssignProgramResult(row: MhdTrainingAssignProgramRpcRow): MhdTrainingAssignProgramResult {
+  return { courseId: row.course_id, assignmentId: row.assignment_id };
+}
+
+function mapComplianceRuleApplyResult(
+  row: MhdTrainingComplianceRuleApplyRpcRow,
+): MhdTrainingComplianceRuleApplyResult {
+  return { assignedPersonId: row.assigned_person_id, assignmentId: row.assignment_id };
+}
+
+function mapSelfEnrollmentDecisionResult(
+  row: MhdTrainingSelfEnrollmentDecisionRpcRow,
+): MhdTrainingSelfEnrollmentDecisionResult {
+  return { assignmentId: row.assignment_id };
 }
 
 function mapCompletion(row: MhdTrainingCompletionRpcRow): MhdTrainingCompletion {
@@ -430,6 +499,9 @@ export const mhdTrainingService = {
       p_course_id: input.courseId,
       p_person_id: input.personId,
       p_due_date: trimmedOrUndefined(input.dueDate),
+      p_source_type: input.sourceType ?? 'MANUAL',
+      p_source_id: input.sourceId ?? undefined,
+      p_is_emergency_priority: input.isEmergencyPriority ?? false,
     });
     if (error) throw error;
     const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
@@ -452,6 +524,95 @@ export const mhdTrainingService = {
     });
     if (error) throw error;
     return ((data ?? []) as MhdTrainingAssignmentRpcRow[]).map(mapAssignment);
+  },
+
+  async listComplianceRules(companyId: string): Promise<MhdTrainingComplianceRule[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_compliance_rule_list', {
+      p_company_id: companyId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingComplianceRuleRpcRow[]).map(mapComplianceRule);
+  },
+
+  async createComplianceRule(
+    input: MhdCreateTrainingComplianceRuleInput,
+  ): Promise<MhdMutationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_compliance_rule_create', {
+      p_company_id: input.companyId,
+      p_title: input.title.trim(),
+      p_target_type: input.targetType,
+      p_course_id: input.courseId,
+      p_target_department: trimmedOrUndefined(input.targetDepartment),
+      p_target_job_id: input.targetJobId ?? undefined,
+      p_target_jurisdiction: trimmedOrUndefined(input.targetJurisdiction),
+      p_due_offset_days: input.dueOffsetDays ?? undefined,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
+    if (!row) throw new Error('Compliance rule creation returned no row.');
+    return mapMutationResult(row);
+  },
+
+  async applyComplianceRule(
+    input: MhdApplyTrainingComplianceRuleInput,
+  ): Promise<MhdTrainingComplianceRuleApplyResult[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_compliance_rule_apply', {
+      p_rule_id: input.ruleId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingComplianceRuleApplyRpcRow[]).map(
+      mapComplianceRuleApplyResult,
+    );
+  },
+
+  async assignProgram(
+    input: MhdAssignTrainingProgramInput,
+  ): Promise<MhdTrainingAssignProgramResult[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_assign_program', {
+      p_company_id: input.companyId,
+      p_program_id: input.programId,
+      p_person_id: input.personId,
+      p_due_date: trimmedOrUndefined(input.dueDate),
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingAssignProgramRpcRow[]).map(mapAssignProgramResult);
+  },
+
+  async requestSelfEnrollment(input: MhdSelfEnrollTrainingInput): Promise<MhdMutationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_self_enroll_request', {
+      p_company_id: input.companyId,
+      p_course_id: input.courseId,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
+    if (!row) throw new Error('Self-enrollment request returned no row.');
+    return mapMutationResult(row);
+  },
+
+  async listSelfEnrollments(
+    input: MhdListTrainingSelfEnrollmentsInput,
+  ): Promise<MhdTrainingSelfEnrollmentRequest[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_self_enroll_list', {
+      p_company_id: input.companyId,
+      p_status: input.status ?? undefined,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingSelfEnrollmentRequestRpcRow[]).map(
+      mapSelfEnrollmentRequest,
+    );
+  },
+
+  async decideSelfEnrollment(
+    input: MhdDecideTrainingSelfEnrollmentInput,
+  ): Promise<MhdTrainingSelfEnrollmentDecisionResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_self_enroll_decide', {
+      p_request_id: input.requestId,
+      p_approve: input.approve,
+      p_notes: trimmedOrUndefined(input.notes),
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingSelfEnrollmentDecisionRpcRow[])[0];
+    return mapSelfEnrollmentDecisionResult(row ?? { assignment_id: null });
   },
 
   async cancelAssignment(assignmentId: string): Promise<void> {
