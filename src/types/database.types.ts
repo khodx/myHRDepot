@@ -22175,6 +22175,349 @@ export type Database = {
           },
         ]
       }
+      training_accommodation_requests: {
+        Row: {
+          assessment_id: string
+          attempt_count_override: number | null
+          company_id: string
+          created_at: string | null
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          extended_time_percent: number | null
+          id: string
+          integrity_profile_override: string | null
+          person_id: string
+          reference_id: string
+          requested_by: string
+          status: string
+        }
+        Insert: {
+          assessment_id: string
+          attempt_count_override?: number | null
+          company_id: string
+          created_at?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          extended_time_percent?: number | null
+          id?: string
+          integrity_profile_override?: string | null
+          person_id: string
+          reference_id: string
+          requested_by: string
+          status?: string
+        }
+        Update: {
+          assessment_id?: string
+          attempt_count_override?: number | null
+          company_id?: string
+          created_at?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          extended_time_percent?: number | null
+          id?: string
+          integrity_profile_override?: string | null
+          person_id?: string
+          reference_id?: string
+          requested_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_accommodation_requests_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "training_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_accommodation_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_accommodation_requests_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_accommodation_requests_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_accommodation_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_assessment_attempts: {
+        Row: {
+          assessment_id: string
+          assignment_id: string | null
+          attempt_number: number
+          graded_at: string | null
+          graded_by: string | null
+          id: string
+          passed: boolean | null
+          person_id: string
+          reference_id: string
+          responses: Json
+          score_percent: number | null
+          started_at: string
+          status: string
+          submitted_at: string | null
+        }
+        Insert: {
+          assessment_id: string
+          assignment_id?: string | null
+          attempt_number: number
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          passed?: boolean | null
+          person_id: string
+          reference_id: string
+          responses?: Json
+          score_percent?: number | null
+          started_at?: string
+          status?: string
+          submitted_at?: string | null
+        }
+        Update: {
+          assessment_id?: string
+          assignment_id?: string | null
+          attempt_number?: number
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          passed?: boolean | null
+          person_id?: string
+          reference_id?: string
+          responses?: Json
+          score_percent?: number | null
+          started_at?: string
+          status?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_assessment_attempts_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "training_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_assessment_attempts_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "training_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_assessment_attempts_graded_by_fkey"
+            columns: ["graded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_assessment_attempts_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_assessment_item_map: {
+        Row: {
+          assessment_id: string
+          item_id: string
+          sort_order: number
+        }
+        Insert: {
+          assessment_id: string
+          item_id: string
+          sort_order?: number
+        }
+        Update: {
+          assessment_id?: string
+          item_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_assessment_item_map_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "training_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_assessment_item_map_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "training_assessment_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_assessment_items: {
+        Row: {
+          company_id: string | null
+          competency_id: string | null
+          correct_answer: Json | null
+          created_at: string | null
+          created_by: string
+          difficulty: string | null
+          id: string
+          is_active: boolean
+          options: Json
+          prompt: string
+          question_type: string
+          reference_id: string
+          requires_manual_grading: boolean
+          tags: string[]
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          competency_id?: string | null
+          correct_answer?: Json | null
+          created_at?: string | null
+          created_by: string
+          difficulty?: string | null
+          id?: string
+          is_active?: boolean
+          options?: Json
+          prompt: string
+          question_type: string
+          reference_id: string
+          requires_manual_grading?: boolean
+          tags?: string[]
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          competency_id?: string | null
+          correct_answer?: Json | null
+          created_at?: string | null
+          created_by?: string
+          difficulty?: string | null
+          id?: string
+          is_active?: boolean
+          options?: Json
+          prompt?: string
+          question_type?: string
+          reference_id?: string
+          requires_manual_grading?: boolean
+          tags?: string[]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_assessment_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_assessment_items_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_assessment_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_assessments: {
+        Row: {
+          assembly_mode: string
+          company_id: string
+          course_id: string | null
+          created_at: string | null
+          created_by: string
+          id: string
+          integrity_profile: string
+          is_active: boolean
+          reference_id: string
+          time_limit_minutes: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assembly_mode?: string
+          company_id: string
+          course_id?: string | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          integrity_profile?: string
+          is_active?: boolean
+          reference_id: string
+          time_limit_minutes?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assembly_mode?: string
+          company_id?: string
+          course_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          integrity_profile?: string
+          is_active?: boolean
+          reference_id?: string
+          time_limit_minutes?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_assessments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_assessments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_assessments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_assignments: {
         Row: {
           assigned_by: string
@@ -31566,6 +31909,126 @@ export type Database = {
       mhd_tasks_status_category: {
         Args: { p_status_name: string }
         Returns: string
+      }
+      mhd_training_accommodation_request_create: {
+        Args: {
+          p_assessment_id: string
+          p_attempt_count_override?: number
+          p_company_id: string
+          p_extended_time_percent?: number
+          p_integrity_profile_override?: string
+          p_person_id: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_accommodation_request_decide: {
+        Args: { p_approve: boolean; p_notes?: string; p_request_id: string }
+        Returns: undefined
+      }
+      mhd_training_assessment_attempt_grade: {
+        Args: {
+          p_attempt_id: string
+          p_passed: boolean
+          p_score_percent: number
+        }
+        Returns: undefined
+      }
+      mhd_training_assessment_attempt_list: {
+        Args: { p_assessment_id: string; p_person_id?: string }
+        Returns: {
+          attempt_number: number
+          id: string
+          passed: boolean
+          person_id: string
+          reference_id: string
+          score_percent: number
+          started_at: string
+          status: string
+          submitted_at: string
+        }[]
+      }
+      mhd_training_assessment_attempt_start: {
+        Args: { p_assessment_id: string; p_assignment_id?: string }
+        Returns: {
+          attempt_number: number
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_assessment_attempt_submit: {
+        Args: { p_attempt_id: string; p_responses: Json }
+        Returns: {
+          passed: boolean
+          score_percent: number
+          status: string
+        }[]
+      }
+      mhd_training_assessment_create: {
+        Args: {
+          p_assembly_mode?: string
+          p_company_id: string
+          p_course_id?: string
+          p_integrity_profile?: string
+          p_item_ids?: string[]
+          p_time_limit_minutes?: number
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_assessment_get: {
+        Args: { p_assessment_id: string }
+        Returns: {
+          assembly_mode: string
+          company_id: string
+          course_id: string
+          id: string
+          integrity_profile: string
+          item_id: string
+          options: Json
+          prompt: string
+          question_type: string
+          reference_id: string
+          sort_order: number
+          time_limit_minutes: number
+          title: string
+        }[]
+      }
+      mhd_training_assessment_item_create: {
+        Args: {
+          p_company_id: string
+          p_competency_id?: string
+          p_correct_answer?: Json
+          p_difficulty?: string
+          p_options?: Json
+          p_prompt: string
+          p_question_type: string
+          p_tags?: string[]
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_assessment_item_list: {
+        Args: { p_company_id: string; p_tag?: string }
+        Returns: {
+          competency_id: string
+          difficulty: string
+          id: string
+          is_active: boolean
+          options: Json
+          prompt: string
+          question_type: string
+          reference_id: string
+          requires_manual_grading: boolean
+          tags: string[]
+        }[]
       }
       mhd_training_assign: {
         Args: {
