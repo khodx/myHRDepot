@@ -1,9 +1,21 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
+import type { Json } from '@/types/database.types';
 import { mhdToNumber } from './Types';
 import type {
   MhdAssignTrainingInput,
   MhdCompleteTrainingInput,
   MhdCreateCourseInput,
+  MhdCreateCurriculumInput,
+  MhdCreateProgramInput,
+  MhdCreateCourseModuleInput,
+  MhdCreateLessonInput,
+  MhdCreateBlockInput,
+  MhdSetCourseContentModeInput,
+  MhdForkCourseInput,
+  MhdApproveContentInput,
+  MhdSubmitContentForReviewInput,
+  MhdPublishContentInput,
+  MhdPrerequisiteInput,
   MhdMutationResult,
   MhdTrainingMutationRpcRow,
   MhdRecordAdminCompletionInput,
@@ -23,6 +35,14 @@ import type {
   MhdTrainingCourse,
   MhdTrainingCourseFilters,
   MhdTrainingCourseRpcRow,
+  MhdTrainingCurriculum,
+  MhdTrainingCurriculumRpcRow,
+  MhdTrainingProgram,
+  MhdTrainingProgramRpcRow,
+  MhdTrainingProgramFilters,
+  MhdTrainingCourseModule,
+  MhdTrainingLesson,
+  MhdTrainingBlock,
   MhdUpdateCourseInput,
   MhdWaiveAssignmentInput,
 } from './Types';
@@ -72,7 +92,51 @@ function mapCourse(row: MhdTrainingCourseRpcRow): MhdTrainingCourse {
     externalUrl: row.external_url,
     isActive: row.is_active,
     isGlobal: row.is_global,
+    contentMode: row.content_mode as MhdTrainingCourse['contentMode'],
+    programId: row.program_id,
+    templateId: row.template_id as MhdTrainingCourse['templateId'],
+    sourceCourseId: row.source_course_id,
+    forkState: row.fork_state as MhdTrainingCourse['forkState'],
+    contentVersion: mhdToNumber(row.content_version),
+    approvalStatus: row.approval_status as MhdTrainingCourse['approvalStatus'],
   };
+}
+
+function mapCurriculum(row: MhdTrainingCurriculumRpcRow): MhdTrainingCurriculum {
+  return {
+    id: row.id,
+    referenceId: row.reference_id as MhdTrainingCurriculum['referenceId'],
+    companyId: row.company_id,
+    title: row.title,
+    description: row.description,
+    isActive: row.is_active,
+    isGlobal: row.is_global,
+  };
+}
+
+function mapProgram(row: MhdTrainingProgramRpcRow): MhdTrainingProgram {
+  return {
+    id: row.id,
+    referenceId: row.reference_id as MhdTrainingProgram['referenceId'],
+    companyId: row.company_id,
+    curriculumId: row.curriculum_id,
+    title: row.title,
+    description: row.description,
+    sortOrder: mhdToNumber(row.sort_order),
+    isGlobal: row.is_global,
+  };
+}
+
+function mapCourseModule(row: MhdTrainingMutationRpcRow): MhdTrainingCourseModule {
+  return { id: row.id, referenceId: row.reference_id as MhdTrainingCourseModule['referenceId'] };
+}
+
+function mapLesson(row: MhdTrainingMutationRpcRow): MhdTrainingLesson {
+  return { id: row.id, referenceId: row.reference_id as MhdTrainingLesson['referenceId'] };
+}
+
+function mapBlock(row: MhdTrainingMutationRpcRow): MhdTrainingBlock {
+  return { id: row.id, referenceId: row.reference_id as MhdTrainingBlock['referenceId'] };
 }
 
 function mapAssignment(row: MhdTrainingAssignmentRpcRow): MhdTrainingAssignment {
@@ -146,6 +210,147 @@ function mapCompletionResult(row: MhdTrainingCompletionResultRpcRow): MhdTrainin
 // ---------------------------------------------------------------------------
 
 export const mhdTrainingService = {
+  // ----- LMS v2 content layer -----
+
+  async listCurriculums(companyId: string): Promise<MhdTrainingCurriculum[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_curriculum_list', {
+      p_company_id: companyId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingCurriculumRpcRow[]).map(mapCurriculum);
+  },
+
+  async createCurriculum(input: MhdCreateCurriculumInput): Promise<MhdMutationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_curriculum_create', {
+      p_company_id: input.companyId,
+      p_title: input.title.trim(),
+      p_description: trimmedOrUndefined(input.description),
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
+    if (!row) throw new Error('Curriculum creation returned no row.');
+    return mapMutationResult(row);
+  },
+
+  async listPrograms(filters: MhdTrainingProgramFilters): Promise<MhdTrainingProgram[]> {
+    if (!filters.companyId) return [];
+    const { data, error } = await supabaseClient.rpc('mhd_training_program_list', {
+      p_company_id: filters.companyId,
+      p_curriculum_id: trimmedOrUndefined(filters.curriculumId),
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingProgramRpcRow[]).map(mapProgram);
+  },
+
+  async createProgram(input: MhdCreateProgramInput): Promise<MhdMutationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_program_create', {
+      p_company_id: input.companyId,
+      p_title: input.title.trim(),
+      p_curriculum_id: trimmedOrUndefined(input.curriculumId),
+      p_description: trimmedOrUndefined(input.description),
+      p_sort_order: input.sortOrder ?? 0,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
+    if (!row) throw new Error('Program creation returned no row.');
+    return mapMutationResult(row);
+  },
+
+  async setCourseContentMode(input: MhdSetCourseContentModeInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_course_set_content_mode', {
+      p_course_id: input.courseId,
+      p_content_mode: input.contentMode,
+    });
+    if (error) throw error;
+  },
+
+  async createCourseModule(input: MhdCreateCourseModuleInput): Promise<MhdTrainingCourseModule> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_module_create', {
+      p_course_id: input.courseId,
+      p_title: input.title.trim(),
+      p_description: trimmedOrUndefined(input.description),
+      p_sort_order: input.sortOrder ?? 0,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
+    if (!row) throw new Error('Course module creation returned no row.');
+    return mapCourseModule(row);
+  },
+
+  async createLesson(input: MhdCreateLessonInput): Promise<MhdTrainingLesson> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_lesson_create', {
+      p_module_id: input.moduleId,
+      p_title: input.title.trim(),
+      p_description: trimmedOrUndefined(input.description),
+      p_sort_order: input.sortOrder ?? 0,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
+    if (!row) throw new Error('Lesson creation returned no row.');
+    return mapLesson(row);
+  },
+
+  async createBlock(input: MhdCreateBlockInput): Promise<MhdTrainingBlock> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_block_create', {
+      p_lesson_id: input.lessonId,
+      p_block_type: input.blockType,
+      p_content: (input.content ?? {}) as Json,
+      p_title: trimmedOrUndefined(input.title),
+      p_sort_order: input.sortOrder ?? 0,
+      p_alt_text: trimmedOrUndefined(input.altText),
+      p_transcript: trimmedOrUndefined(input.transcript),
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
+    if (!row) throw new Error('Block creation returned no row.');
+    return mapBlock(row);
+  },
+
+  async forkCourse(input: MhdForkCourseInput): Promise<MhdMutationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_course_fork', {
+      p_course_id: input.courseId,
+      p_company_id: input.companyId,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
+    if (!row) throw new Error('Course fork returned no row.');
+    return mapMutationResult(row);
+  },
+
+  async submitContentForReview(input: MhdSubmitContentForReviewInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_content_submit_for_review', {
+      p_course_id: input.courseId,
+    });
+    if (error) throw error;
+  },
+  async approveContent(input: MhdApproveContentInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_content_approve', {
+      p_course_id: input.courseId,
+      p_review_notes: trimmedOrUndefined(input.reviewNotes),
+    });
+    if (error) throw error;
+  },
+  async publishContent(input: MhdPublishContentInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_content_publish', {
+      p_course_id: input.courseId,
+    });
+    if (error) throw error;
+  },
+  async addPrerequisite(input: MhdPrerequisiteInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_prerequisite_add', {
+      p_course_id: input.courseId,
+      p_prerequisite_course_id: input.prerequisiteCourseId,
+    });
+    if (error) throw error;
+  },
+  async removePrerequisite(input: MhdPrerequisiteInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_prerequisite_remove', {
+      p_course_id: input.courseId,
+      p_prerequisite_course_id: input.prerequisiteCourseId,
+    });
+    if (error) throw error;
+  },
+
   // ----- Catalog -----
 
   /**
@@ -175,6 +380,7 @@ export const mhdTrainingService = {
       p_recurrence_months: input.recurrenceMonths ?? undefined,
       p_requires_evidence: input.requiresEvidence ?? false,
       p_external_url: trimmedOrUndefined(input.externalUrl),
+      p_program_id: input.programId ?? undefined,
     });
     if (error) throw error;
     const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];

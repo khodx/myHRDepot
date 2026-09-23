@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { MHD_TRAINING_CATEGORIES, MHD_TRAINING_DELIVERY_MODES } from './Types';
+import {
+  MHD_TRAINING_APPROVAL_STATUSES,
+  MHD_TRAINING_BLOCK_TYPES,
+  MHD_TRAINING_CATEGORIES,
+  MHD_TRAINING_CONTENT_MODES,
+  MHD_TRAINING_DELIVERY_MODES,
+  MHD_TRAINING_FORK_STATES,
+} from './Types';
 
 // ---------------------------------------------------------------------------
 // Courses
@@ -116,6 +123,81 @@ export const mhdRecordAdminCompletionSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// LMS v2 content authoring
+// ---------------------------------------------------------------------------
+
+const requiredTitle = z.string().trim().min(1, 'A title is required.').max(300);
+const optionalDescription = z.string().trim().max(4000).optional().nullable();
+const sortOrder = z.number().int().min(0).default(0);
+
+export const mhdCreateCurriculumSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  title: requiredTitle,
+  description: optionalDescription,
+});
+
+export const mhdTrainingProgramFiltersSchema = z.object({
+  companyId: z.string().trim().min(1).nullable(),
+  curriculumId: z.string().trim().min(1).optional().nullable(),
+});
+
+export const mhdCreateProgramSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  title: requiredTitle,
+  curriculumId: z.string().trim().min(1).optional().nullable(),
+  description: optionalDescription,
+  sortOrder,
+});
+
+export const mhdCreateCourseModuleSchema = z.object({
+  courseId: z.string().trim().min(1, 'Choose a course.'),
+  title: requiredTitle,
+  description: optionalDescription,
+  sortOrder,
+});
+
+export const mhdCreateLessonSchema = z.object({
+  moduleId: z.string().trim().min(1, 'Choose a module.'),
+  title: requiredTitle,
+  description: optionalDescription,
+  sortOrder,
+});
+
+export const mhdCreateBlockSchema = z.object({
+  lessonId: z.string().trim().min(1, 'Choose a lesson.'),
+  blockType: z.enum(MHD_TRAINING_BLOCK_TYPES),
+  content: z.record(z.string(), z.unknown()).default({}),
+  title: z.string().trim().max(300).optional().nullable(),
+  sortOrder,
+  altText: z.string().trim().max(2000).optional().nullable(),
+  transcript: z.string().trim().max(20000).optional().nullable(),
+});
+
+export const mhdSetCourseContentModeSchema = z.object({
+  courseId: z.string().trim().min(1, 'Choose a course.'),
+  contentMode: z.enum(MHD_TRAINING_CONTENT_MODES),
+});
+
+export const mhdForkCourseSchema = z.object({
+  courseId: z.string().trim().min(1, 'Choose a course.'),
+  companyId: z.string().trim().min(1, 'Company is required.'),
+});
+
+export const mhdSubmitContentForReviewSchema = z.object({ courseId: z.string().trim().min(1) });
+export const mhdApproveContentSchema = z.object({
+  courseId: z.string().trim().min(1),
+  reviewNotes: z.string().trim().max(4000).optional().nullable(),
+});
+export const mhdPublishContentSchema = z.object({ courseId: z.string().trim().min(1) });
+export const mhdPrerequisiteSchema = z.object({
+  courseId: z.string().trim().min(1),
+  prerequisiteCourseId: z.string().trim().min(1),
+});
+
+export const mhdTrainingApprovalStatusSchema = z.enum(MHD_TRAINING_APPROVAL_STATUSES);
+export const mhdTrainingForkStateSchema = z.enum(MHD_TRAINING_FORK_STATES);
+
+// ---------------------------------------------------------------------------
 // Inferred form types
 // ---------------------------------------------------------------------------
 
@@ -123,3 +205,8 @@ export type MhdTrainingCourseFormValues = z.infer<typeof mhdTrainingCourseFormSc
 export type MhdAssignTrainingFormValues = z.infer<typeof mhdAssignTrainingSchema>;
 export type MhdWaiveAssignmentFormValues = z.infer<typeof mhdWaiveAssignmentSchema>;
 export type MhdRecordAdminCompletionFormValues = z.infer<typeof mhdRecordAdminCompletionSchema>;
+export type MhdCreateCurriculumFormValues = z.infer<typeof mhdCreateCurriculumSchema>;
+export type MhdCreateProgramFormValues = z.infer<typeof mhdCreateProgramSchema>;
+export type MhdCreateCourseModuleFormValues = z.infer<typeof mhdCreateCourseModuleSchema>;
+export type MhdCreateLessonFormValues = z.infer<typeof mhdCreateLessonSchema>;
+export type MhdCreateBlockFormValues = z.infer<typeof mhdCreateBlockSchema>;

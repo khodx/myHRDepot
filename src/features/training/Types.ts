@@ -31,6 +31,34 @@ export interface MhdTrainingCourseRpcRow {
   // and read-only to a tenant admin (update / set_active refuse it) — the UI
   // reads this flag to hide the edit and retire affordances.
   is_global: boolean;
+  content_mode: string;
+  program_id: string | null;
+  template_id: string | null;
+  source_course_id: string | null;
+  fork_state: string;
+  content_version: number | string;
+  approval_status: string;
+}
+
+export interface MhdTrainingCurriculumRpcRow {
+  id: string;
+  reference_id: string;
+  company_id: string | null;
+  title: string;
+  description: string | null;
+  is_active: boolean;
+  is_global: boolean;
+}
+
+export interface MhdTrainingProgramRpcRow {
+  id: string;
+  reference_id: string;
+  company_id: string | null;
+  curriculum_id: string | null;
+  title: string;
+  description: string | null;
+  sort_order: number | string;
+  is_global: boolean;
 }
 
 /** Row shape returned by `mhd_training_list_assignments`. */
@@ -108,10 +136,21 @@ export interface MhdTrainingCompletionResultRpcRow {
 export type MhdTrainingCourseId = string;
 export type MhdTrainingAssignmentId = string;
 export type MhdTrainingCompletionId = string;
+export type MhdTrainingCurriculumId = string;
+export type MhdTrainingProgramId = string;
+export type MhdTrainingCourseModuleId = string;
+export type MhdTrainingLessonId = string;
+export type MhdTrainingBlockId = string;
 
 export type MhdTrainingCourseReferenceId = `TRN-${string}`;
 export type MhdTrainingAssignmentReferenceId = `TRA-${string}`;
 export type MhdTrainingCompletionReferenceId = `TRC-${string}`;
+export type MhdTrainingCurriculumReferenceId = `CUR-${string}`;
+export type MhdTrainingProgramReferenceId = `PRG-${string}`;
+export type MhdTrainingTemplateReferenceId = `TPL-${string}`;
+export type MhdTrainingCourseModuleReferenceId = `TCM-${string}`;
+export type MhdTrainingLessonReferenceId = `LSN-${string}`;
+export type MhdTrainingBlockReferenceId = `BLK-${string}`;
 
 export type MhdTrainingCategory =
   'HARASSMENT' | 'SAFETY' | 'COMPLIANCE' | 'SKILLS' | 'ONBOARDING' | 'OTHER';
@@ -121,6 +160,32 @@ export type MhdTrainingDeliveryMode = 'IN_PERSON' | 'ONLINE' | 'DOCUMENT' | 'EXT
 export type MhdTrainingAssignmentStatus = 'ASSIGNED' | 'COMPLETED' | 'WAIVED' | 'CANCELLED';
 
 export type MhdTrainingCompletionMethod = 'ATTESTED' | 'CERTIFICATE' | 'ADMIN_RECORDED';
+export type MhdTrainingContentMode = 'EVIDENCE_ONLY' | 'AUTHORED';
+export type MhdTrainingForkState = 'LINKED' | 'FORKED';
+export type MhdTrainingApprovalStatus = 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'PUBLISHED';
+export type MhdTrainingBlockType =
+  | 'RICH_TEXT'
+  | 'VIDEO'
+  | 'AUDIO'
+  | 'IMAGE'
+  | 'FILE_DOWNLOAD'
+  | 'EMBED'
+  | 'CALLOUT'
+  | 'ACCORDION'
+  | 'FLIP_CARDS'
+  | 'HOTSPOT_IMAGE'
+  | 'DRAG_DROP_SORT'
+  | 'MATCHING'
+  | 'TIMELINE'
+  | 'SCENARIO_BRANCHING'
+  | 'REFLECTION_PROMPT'
+  | 'KNOWLEDGE_CHECK'
+  | 'DISCUSSION_PROMPT'
+  | 'CODE_FORMULA'
+  | 'TABLE'
+  | 'CHECKLIST'
+  | 'JOB_AID'
+  | 'AI_CONVERSATION';
 
 /**
  * The DERIVED compliance vocabulary. Never stored — `mhd_training_compliance_status`
@@ -166,6 +231,45 @@ export const MHD_TRAINING_COMPLIANCE_STATUSES = [
   'NONE',
 ] as const satisfies readonly MhdTrainingComplianceStatus[];
 
+export const MHD_TRAINING_CONTENT_MODES = [
+  'EVIDENCE_ONLY',
+  'AUTHORED',
+] as const satisfies readonly MhdTrainingContentMode[];
+export const MHD_TRAINING_FORK_STATES = [
+  'LINKED',
+  'FORKED',
+] as const satisfies readonly MhdTrainingForkState[];
+export const MHD_TRAINING_APPROVAL_STATUSES = [
+  'DRAFT',
+  'IN_REVIEW',
+  'APPROVED',
+  'PUBLISHED',
+] as const satisfies readonly MhdTrainingApprovalStatus[];
+export const MHD_TRAINING_BLOCK_TYPES = [
+  'RICH_TEXT',
+  'VIDEO',
+  'AUDIO',
+  'IMAGE',
+  'FILE_DOWNLOAD',
+  'EMBED',
+  'CALLOUT',
+  'ACCORDION',
+  'FLIP_CARDS',
+  'HOTSPOT_IMAGE',
+  'DRAG_DROP_SORT',
+  'MATCHING',
+  'TIMELINE',
+  'SCENARIO_BRANCHING',
+  'REFLECTION_PROMPT',
+  'KNOWLEDGE_CHECK',
+  'DISCUSSION_PROMPT',
+  'CODE_FORMULA',
+  'TABLE',
+  'CHECKLIST',
+  'JOB_AID',
+  'AI_CONVERSATION',
+] as const satisfies readonly MhdTrainingBlockType[];
+
 // ---------------------------------------------------------------------------
 // Domain models (camelCase)
 // ---------------------------------------------------------------------------
@@ -191,6 +295,44 @@ export interface MhdTrainingCourse {
   externalUrl: string | null;
   isActive: boolean;
   isGlobal: boolean;
+  contentMode: MhdTrainingContentMode;
+  programId: MhdTrainingProgramId | null;
+  templateId: string | null;
+  sourceCourseId: MhdTrainingCourseId | null;
+  forkState: MhdTrainingForkState;
+  contentVersion: number;
+  approvalStatus: MhdTrainingApprovalStatus;
+}
+
+export interface MhdTrainingCurriculum {
+  id: MhdTrainingCurriculumId;
+  referenceId: MhdTrainingCurriculumReferenceId;
+  companyId: string | null;
+  title: string;
+  description: string | null;
+  isActive: boolean;
+  isGlobal: boolean;
+}
+
+export interface MhdTrainingProgram {
+  id: MhdTrainingProgramId;
+  referenceId: MhdTrainingProgramReferenceId;
+  companyId: string | null;
+  curriculumId: MhdTrainingCurriculumId | null;
+  title: string;
+  description: string | null;
+  sortOrder: number;
+  isGlobal: boolean;
+}
+
+export interface MhdTrainingCourseModule extends MhdMutationResult {
+  referenceId: MhdTrainingCourseModuleReferenceId;
+}
+export interface MhdTrainingLesson extends MhdMutationResult {
+  referenceId: MhdTrainingLessonReferenceId;
+}
+export interface MhdTrainingBlock extends MhdMutationResult {
+  referenceId: MhdTrainingBlockReferenceId;
 }
 
 /**
@@ -280,6 +422,71 @@ export interface MhdCreateCourseInput {
   recurrenceMonths?: number | null;
   requiresEvidence?: boolean;
   externalUrl?: string | null;
+  // The remaining new-in-v2 course fields (contentMode, templateId, sourceCourseId, forkState,
+  // contentVersion, approvalStatus) are NOT creation inputs — the RPC sets them server-side
+  // (defaults, or via mhd_training_course_set_content_mode / the fork / approval RPCs). Only
+  // programId is accepted at creation.
+  programId?: MhdTrainingProgramId | null;
+}
+
+export interface MhdCreateCurriculumInput {
+  companyId: string;
+  title: string;
+  description?: string | null;
+}
+export interface MhdTrainingProgramFilters {
+  companyId: string | null;
+  curriculumId?: MhdTrainingCurriculumId | null;
+}
+export interface MhdCreateProgramInput {
+  companyId: string;
+  title: string;
+  curriculumId?: MhdTrainingCurriculumId | null;
+  description?: string | null;
+  sortOrder?: number;
+}
+export interface MhdCreateCourseModuleInput {
+  courseId: MhdTrainingCourseId;
+  title: string;
+  description?: string | null;
+  sortOrder?: number;
+}
+export interface MhdCreateLessonInput {
+  moduleId: MhdTrainingCourseModuleId;
+  title: string;
+  description?: string | null;
+  sortOrder?: number;
+}
+export interface MhdCreateBlockInput {
+  lessonId: MhdTrainingLessonId;
+  blockType: MhdTrainingBlockType;
+  content?: Record<string, unknown>;
+  title?: string | null;
+  sortOrder?: number;
+  altText?: string | null;
+  transcript?: string | null;
+}
+export interface MhdSetCourseContentModeInput {
+  courseId: MhdTrainingCourseId;
+  contentMode: MhdTrainingContentMode;
+}
+export interface MhdForkCourseInput {
+  courseId: MhdTrainingCourseId;
+  companyId: string;
+}
+export interface MhdSubmitContentForReviewInput {
+  courseId: MhdTrainingCourseId;
+}
+export interface MhdApproveContentInput {
+  courseId: MhdTrainingCourseId;
+  reviewNotes?: string | null;
+}
+export interface MhdPublishContentInput {
+  courseId: MhdTrainingCourseId;
+}
+export interface MhdPrerequisiteInput {
+  courseId: MhdTrainingCourseId;
+  prerequisiteCourseId: MhdTrainingCourseId;
 }
 
 export interface MhdUpdateCourseInput {
@@ -387,6 +594,29 @@ const COMPLIANCE_STATUS_LABELS: Record<MhdTrainingComplianceStatus, string> = {
   ASSIGNED: 'Assigned',
   NONE: 'None',
 };
+const CONTENT_MODE_LABELS: Record<MhdTrainingContentMode, string> = {
+  EVIDENCE_ONLY: 'Evidence only',
+  AUTHORED: 'Authored',
+};
+const FORK_STATE_LABELS: Record<MhdTrainingForkState, string> = {
+  LINKED: 'Linked',
+  FORKED: 'Forked',
+};
+const APPROVAL_STATUS_LABELS: Record<MhdTrainingApprovalStatus, string> = {
+  DRAFT: 'Draft',
+  IN_REVIEW: 'In review',
+  APPROVED: 'Approved',
+  PUBLISHED: 'Published',
+};
+const BLOCK_TYPE_LABELS: Record<MhdTrainingBlockType, string> = Object.fromEntries(
+  MHD_TRAINING_BLOCK_TYPES.map((value) => [
+    value,
+    value
+      .replaceAll('_', ' ')
+      .toLowerCase()
+      .replace(/^./, (c) => c.toUpperCase()),
+  ]),
+) as Record<MhdTrainingBlockType, string>;
 
 export function mhdFormatTrainingCategory(value: MhdTrainingCategory | string): string {
   return CATEGORY_LABELS[value as MhdTrainingCategory] ?? value;
@@ -412,6 +642,19 @@ export function mhdFormatTrainingComplianceStatus(
   value: MhdTrainingComplianceStatus | string,
 ): string {
   return COMPLIANCE_STATUS_LABELS[value as MhdTrainingComplianceStatus] ?? value;
+}
+
+export function mhdFormatTrainingContentMode(value: MhdTrainingContentMode | string): string {
+  return CONTENT_MODE_LABELS[value as MhdTrainingContentMode] ?? value;
+}
+export function mhdFormatTrainingForkState(value: MhdTrainingForkState | string): string {
+  return FORK_STATE_LABELS[value as MhdTrainingForkState] ?? value;
+}
+export function mhdFormatTrainingApprovalStatus(value: MhdTrainingApprovalStatus | string): string {
+  return APPROVAL_STATUS_LABELS[value as MhdTrainingApprovalStatus] ?? value;
+}
+export function mhdFormatTrainingBlockType(value: MhdTrainingBlockType | string): string {
+  return BLOCK_TYPE_LABELS[value as MhdTrainingBlockType] ?? value;
 }
 
 /**

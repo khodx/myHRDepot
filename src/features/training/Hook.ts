@@ -4,17 +4,32 @@ import type {
   MhdAssignTrainingInput,
   MhdCompleteTrainingInput,
   MhdCreateCourseInput,
+  MhdCreateCurriculumInput,
+  MhdCreateProgramInput,
+  MhdCreateCourseModuleInput,
+  MhdCreateLessonInput,
+  MhdCreateBlockInput,
+  MhdSetCourseContentModeInput,
+  MhdForkCourseInput,
+  MhdApproveContentInput,
+  MhdSubmitContentForReviewInput,
+  MhdPublishContentInput,
+  MhdPrerequisiteInput,
   MhdRecordAdminCompletionInput,
   MhdSetCourseActiveInput,
   MhdTrainingAssignmentFilters,
   MhdTrainingComplianceMatrixFilters,
   MhdTrainingCourseFilters,
+  MhdTrainingProgramFilters,
   MhdUpdateCourseInput,
   MhdWaiveAssignmentInput,
 } from './Types';
 import { mhdTrainingService } from './Service';
 
 export const mhdTrainingQueryKeys = {
+  curriculums: (companyId: string | null) =>
+    ['mhd-training', 'curriculums', companyId ?? 'ALL'] as const,
+  programs: (filters: MhdTrainingProgramFilters) => ['mhd-training', 'programs', filters] as const,
   courses: (filters: MhdTrainingCourseFilters) => ['mhd-training', 'courses', filters] as const,
   assignments: (filters: MhdTrainingAssignmentFilters) =>
     ['mhd-training', 'assignments', filters] as const,
@@ -26,6 +41,103 @@ export const mhdTrainingQueryKeys = {
     ['mhd-training', 'compliance-matrix', filters] as const,
   people: (companyId: string | null) => ['mhd-training', 'people', companyId ?? 'ALL'] as const,
 };
+
+export function useMhdTrainingCurriculums(companyId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.curriculums(companyId),
+    queryFn: () => mhdTrainingService.listCurriculums(companyId!),
+    enabled: Boolean(companyId),
+  });
+}
+
+export function useMhdCreateTrainingCurriculum() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateCurriculumInput) => mhdTrainingService.createCurriculum(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'curriculums'] });
+    },
+  });
+}
+
+export function useMhdTrainingPrograms(filters: MhdTrainingProgramFilters) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.programs(filters),
+    queryFn: () => mhdTrainingService.listPrograms(filters),
+    enabled: Boolean(filters.companyId),
+  });
+}
+
+export function useMhdCreateTrainingProgram() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateProgramInput) => mhdTrainingService.createProgram(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'programs'] });
+    },
+  });
+}
+
+function useMhdTrainingContentMutation<T>(mutationFn: (input: T) => Promise<unknown>) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'courses'] });
+    },
+  });
+}
+
+export function useMhdSetTrainingCourseContentMode() {
+  return useMhdTrainingContentMutation<MhdSetCourseContentModeInput>((input) =>
+    mhdTrainingService.setCourseContentMode(input),
+  );
+}
+export function useMhdCreateTrainingCourseModule() {
+  return useMhdTrainingContentMutation<MhdCreateCourseModuleInput>((input) =>
+    mhdTrainingService.createCourseModule(input),
+  );
+}
+export function useMhdCreateTrainingLesson() {
+  return useMhdTrainingContentMutation<MhdCreateLessonInput>((input) =>
+    mhdTrainingService.createLesson(input),
+  );
+}
+export function useMhdCreateTrainingBlock() {
+  return useMhdTrainingContentMutation<MhdCreateBlockInput>((input) =>
+    mhdTrainingService.createBlock(input),
+  );
+}
+export function useMhdForkTrainingCourse() {
+  return useMhdTrainingContentMutation<MhdForkCourseInput>((input) =>
+    mhdTrainingService.forkCourse(input),
+  );
+}
+export function useMhdSubmitTrainingContentForReview() {
+  return useMhdTrainingContentMutation<MhdSubmitContentForReviewInput>((input) =>
+    mhdTrainingService.submitContentForReview(input),
+  );
+}
+export function useMhdApproveTrainingContent() {
+  return useMhdTrainingContentMutation<MhdApproveContentInput>((input) =>
+    mhdTrainingService.approveContent(input),
+  );
+}
+export function useMhdPublishTrainingContent() {
+  return useMhdTrainingContentMutation<MhdPublishContentInput>((input) =>
+    mhdTrainingService.publishContent(input),
+  );
+}
+export function useMhdAddTrainingPrerequisite() {
+  return useMhdTrainingContentMutation<MhdPrerequisiteInput>((input) =>
+    mhdTrainingService.addPrerequisite(input),
+  );
+}
+export function useMhdRemoveTrainingPrerequisite() {
+  return useMhdTrainingContentMutation<MhdPrerequisiteInput>((input) =>
+    mhdTrainingService.removePrerequisite(input),
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Catalog

@@ -22246,6 +22246,130 @@ export type Database = {
           },
         ]
       }
+      training_block_translations: {
+        Row: {
+          alt_text: string | null
+          block_id: string
+          content: Json
+          created_at: string | null
+          created_by: string
+          id: string
+          locale: string
+          transcript: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          alt_text?: string | null
+          block_id: string
+          content?: Json
+          created_at?: string | null
+          created_by: string
+          id?: string
+          locale: string
+          transcript?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          alt_text?: string | null
+          block_id?: string
+          content?: Json
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          locale?: string
+          transcript?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_block_translations_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "training_blocks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_block_translations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_blocks: {
+        Row: {
+          alt_text: string | null
+          block_type: string
+          content: Json
+          created_at: string | null
+          created_by: string
+          id: string
+          lesson_id: string
+          reference_id: string
+          reuse_propagates: boolean
+          sort_order: number
+          source_block_id: string | null
+          title: string | null
+          transcript: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          alt_text?: string | null
+          block_type: string
+          content?: Json
+          created_at?: string | null
+          created_by: string
+          id?: string
+          lesson_id: string
+          reference_id: string
+          reuse_propagates?: boolean
+          sort_order?: number
+          source_block_id?: string | null
+          title?: string | null
+          transcript?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          alt_text?: string | null
+          block_type?: string
+          content?: Json
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          lesson_id?: string
+          reference_id?: string
+          reuse_propagates?: boolean
+          sort_order?: number
+          source_block_id?: string | null
+          title?: string | null
+          transcript?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_blocks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_blocks_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "training_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_blocks_source_block_id_fkey"
+            columns: ["source_block_id"]
+            isOneToOne: false
+            referencedRelation: "training_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_completions: {
         Row: {
           assignment_id: string | null
@@ -22330,10 +22454,225 @@ export type Database = {
           },
         ]
       }
+      training_content_approvals: {
+        Row: {
+          content_version: number
+          course_id: string
+          created_at: string | null
+          from_status: string
+          id: string
+          review_notes: string | null
+          reviewed_by: string
+          to_status: string
+        }
+        Insert: {
+          content_version: number
+          course_id: string
+          created_at?: string | null
+          from_status: string
+          id?: string
+          review_notes?: string | null
+          reviewed_by: string
+          to_status: string
+        }
+        Update: {
+          content_version?: number
+          course_id?: string
+          created_at?: string | null
+          from_status?: string
+          id?: string
+          review_notes?: string | null
+          reviewed_by?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_content_approvals_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_content_approvals_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_course_modules: {
+        Row: {
+          course_id: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          reference_id: string
+          sort_order: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          reference_id: string
+          sort_order?: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          reference_id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_course_modules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_course_modules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_course_prerequisites: {
+        Row: {
+          course_id: string
+          created_at: string | null
+          created_by: string
+          prerequisite_course_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string | null
+          created_by: string
+          prerequisite_course_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string | null
+          created_by?: string
+          prerequisite_course_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_course_prerequisites_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_course_prerequisites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_course_prerequisites_prerequisite_course_id_fkey"
+            columns: ["prerequisite_course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_course_templates: {
+        Row: {
+          company_id: string | null
+          content_version: number
+          created_at: string | null
+          created_by: string
+          description: string | null
+          fork_state: string
+          id: string
+          is_active: boolean
+          reference_id: string
+          rigidity: string
+          source_template_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          content_version?: number
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          fork_state?: string
+          id?: string
+          is_active?: boolean
+          reference_id: string
+          rigidity?: string
+          source_template_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          content_version?: number
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          fork_state?: string
+          id?: string
+          is_active?: boolean
+          reference_id?: string
+          rigidity?: string
+          source_template_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_course_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_course_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_course_templates_source_template_id_fkey"
+            columns: ["source_template_id"]
+            isOneToOne: false
+            referencedRelation: "training_course_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_courses: {
         Row: {
+          approval_status: string
           category: string
           company_id: string | null
+          content_mode: string
+          content_version: number
           course_key: string
           created_at: string | null
           created_by: string
@@ -22341,17 +22680,24 @@ export type Database = {
           description: string | null
           duration_minutes: number | null
           external_url: string | null
+          fork_state: string
           id: string
           is_active: boolean
+          program_id: string | null
           recurrence_months: number | null
           reference_id: string
           requires_evidence: boolean
+          source_course_id: string | null
+          template_id: string | null
           title: string
           updated_at: string | null
         }
         Insert: {
+          approval_status?: string
           category?: string
           company_id?: string | null
+          content_mode?: string
+          content_version?: number
           course_key: string
           created_at?: string | null
           created_by: string
@@ -22359,17 +22705,24 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           external_url?: string | null
+          fork_state?: string
           id?: string
           is_active?: boolean
+          program_id?: string | null
           recurrence_months?: number | null
           reference_id: string
           requires_evidence?: boolean
+          source_course_id?: string | null
+          template_id?: string | null
           title: string
           updated_at?: string | null
         }
         Update: {
+          approval_status?: string
           category?: string
           company_id?: string | null
+          content_mode?: string
+          content_version?: number
           course_key?: string
           created_at?: string | null
           created_by?: string
@@ -22377,11 +22730,15 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           external_url?: string | null
+          fork_state?: string
           id?: string
           is_active?: boolean
+          program_id?: string | null
           recurrence_months?: number | null
           reference_id?: string
           requires_evidence?: boolean
+          source_course_id?: string | null
+          template_id?: string | null
           title?: string
           updated_at?: string | null
         }
@@ -22398,6 +22755,228 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_courses_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "training_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_courses_source_course_id_fkey"
+            columns: ["source_course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_courses_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "training_course_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_curricula: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean
+          reference_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          reference_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          reference_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_curricula_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_curricula_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_lessons: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          module_id: string
+          reference_id: string
+          sort_order: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          module_id: string
+          reference_id: string
+          sort_order?: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          module_id?: string
+          reference_id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_lessons_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_lessons_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "training_course_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_programs: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          created_by: string
+          curriculum_id: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          reference_id: string
+          sort_order: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by: string
+          curriculum_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          reference_id: string
+          sort_order?: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          curriculum_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          reference_id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_programs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_programs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_programs_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "training_curricula"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_template_slots: {
+        Row: {
+          expected_block_type: string | null
+          id: string
+          is_required: boolean
+          slot_label: string
+          sort_order: number
+          template_id: string
+        }
+        Insert: {
+          expected_block_type?: string | null
+          id?: string
+          is_required?: boolean
+          slot_label: string
+          sort_order?: number
+          template_id: string
+        }
+        Update: {
+          expected_block_type?: string | null
+          id?: string
+          is_required?: boolean
+          slot_label?: string
+          sort_order?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_template_slots_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "training_course_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -30539,6 +31118,26 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_search_kb_articles: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: {
+          id: string
+          rank: number
+          slug: string
+          summary: string
+          title: string
+        }[]
+      }
+      mhd_search_kb_functions: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: {
+          category: string
+          id: string
+          name: string
+          rank: number
+          syntax: string
+        }[]
+      }
       mhd_search_legal_content: {
         Args: {
           p_jurisdiction_ids?: string[]
@@ -30755,6 +31354,21 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_training_block_create: {
+        Args: {
+          p_alt_text?: string
+          p_block_type: string
+          p_content?: Json
+          p_lesson_id: string
+          p_sort_order?: number
+          p_title?: string
+          p_transcript?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
       mhd_training_cancel_assignment: {
         Args: { p_assignment_id: string }
         Returns: undefined
@@ -30799,6 +31413,18 @@ export type Database = {
         Args: { p_course_id: string; p_person_id: string }
         Returns: string
       }
+      mhd_training_content_approve: {
+        Args: { p_course_id: string; p_review_notes?: string }
+        Returns: undefined
+      }
+      mhd_training_content_publish: {
+        Args: { p_course_id: string }
+        Returns: undefined
+      }
+      mhd_training_content_submit_for_review: {
+        Args: { p_course_id: string }
+        Returns: undefined
+      }
       mhd_training_course_create: {
         Args: {
           p_category?: string
@@ -30808,10 +31434,18 @@ export type Database = {
           p_description?: string
           p_duration_minutes?: number
           p_external_url?: string
+          p_program_id?: string
           p_recurrence_months?: number
           p_requires_evidence?: boolean
           p_title: string
         }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_course_fork: {
+        Args: { p_company_id: string; p_course_id: string }
         Returns: {
           id: string
           reference_id: string
@@ -30840,6 +31474,10 @@ export type Database = {
         Args: { p_course_id: string; p_is_active: boolean }
         Returns: undefined
       }
+      mhd_training_course_set_content_mode: {
+        Args: { p_content_mode: string; p_course_id: string }
+        Returns: undefined
+      }
       mhd_training_course_update: {
         Args: {
           p_category?: string
@@ -30854,7 +31492,38 @@ export type Database = {
         }
         Returns: undefined
       }
+      mhd_training_curriculum_create: {
+        Args: { p_company_id: string; p_description?: string; p_title: string }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_curriculum_list: {
+        Args: { p_company_id: string }
+        Returns: {
+          company_id: string
+          description: string
+          id: string
+          is_active: boolean
+          is_global: boolean
+          reference_id: string
+          title: string
+        }[]
+      }
       mhd_training_is_privileged: { Args: never; Returns: boolean }
+      mhd_training_lesson_create: {
+        Args: {
+          p_description?: string
+          p_module_id: string
+          p_sort_order?: number
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
       mhd_training_list_assignments: {
         Args: { p_company_id: string; p_person_id?: string; p_status?: string }
         Returns: {
@@ -30884,6 +31553,52 @@ export type Database = {
           id: string
           is_expired: boolean
           reference_id: string
+        }[]
+      }
+      mhd_training_module_create: {
+        Args: {
+          p_course_id: string
+          p_description?: string
+          p_sort_order?: number
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_prerequisite_add: {
+        Args: { p_course_id: string; p_prerequisite_course_id: string }
+        Returns: undefined
+      }
+      mhd_training_prerequisite_remove: {
+        Args: { p_course_id: string; p_prerequisite_course_id: string }
+        Returns: undefined
+      }
+      mhd_training_program_create: {
+        Args: {
+          p_company_id: string
+          p_curriculum_id?: string
+          p_description?: string
+          p_sort_order?: number
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_program_list: {
+        Args: { p_company_id: string; p_curriculum_id?: string }
+        Returns: {
+          company_id: string
+          curriculum_id: string
+          description: string
+          id: string
+          is_global: boolean
+          reference_id: string
+          sort_order: number
+          title: string
         }[]
       }
       mhd_training_record_admin_completion: {

@@ -36,6 +36,13 @@ function course(overrides: Partial<MhdTrainingCourse>): MhdTrainingCourse {
     externalUrl: null,
     isActive: true,
     isGlobal: false,
+    contentMode: 'EVIDENCE_ONLY',
+    programId: null,
+    templateId: null,
+    sourceCourseId: null,
+    forkState: 'FORKED',
+    contentVersion: 1,
+    approvalStatus: 'PUBLISHED',
     ...overrides,
   };
 }
