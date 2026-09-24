@@ -32693,6 +32693,10 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_training_send_deadline_reminders: {
+        Args: { p_company_id: string; p_days_before?: number }
+        Returns: number
+      }
       mhd_training_status_category: {
         Args: { p_status: string }
         Returns: string

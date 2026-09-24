@@ -86,6 +86,18 @@ describe('mhdTrainingService — catalog mapping', () => {
 });
 
 describe('mhdTrainingService — server-derived compliance passthrough', () => {
+  it('returns the scalar count from deadline reminder dispatch', async () => {
+    rpcMock.mockResolvedValueOnce({ data: 3, error: null });
+
+    const result = await mhdTrainingService.sendDeadlineReminders({ companyId: 'company-1' });
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_training_send_deadline_reminders', {
+      p_company_id: 'company-1',
+      p_days_before: 7,
+    });
+    expect(result).toBe(3);
+  });
+
   it('generates a certificate through the shared document render and poll helpers', async () => {
     rpcMock.mockResolvedValueOnce({
       data: [{ id: 'generation-1', reference_id: 'DOC-0001', status: 'PENDING' }],

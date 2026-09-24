@@ -714,6 +714,11 @@ export interface MhdAssignTrainingInput {
   isEmergencyPriority?: boolean;
 }
 
+export interface MhdSendTrainingDeadlineRemindersInput {
+  companyId: string;
+  daysBefore?: number;
+}
+
 export interface MhdCreateTrainingComplianceRuleInput {
   companyId: string;
   title: string;

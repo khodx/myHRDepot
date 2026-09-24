@@ -64,6 +64,7 @@ import type {
   MhdDecideTrainingSelfEnrollmentInput,
   MhdTrainingSelfEnrollmentDecisionResult,
   MhdTrainingSelfEnrollmentDecisionRpcRow,
+  MhdSendTrainingDeadlineRemindersInput,
   MhdTrainingCourseModule,
   MhdTrainingLesson,
   MhdTrainingBlock,
@@ -621,6 +622,15 @@ export const mhdTrainingService = {
     });
     if (error) throw error;
     return ((data ?? []) as MhdTrainingAssignmentRpcRow[]).map(mapAssignment);
+  },
+
+  async sendDeadlineReminders(input: MhdSendTrainingDeadlineRemindersInput): Promise<number> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_send_deadline_reminders', {
+      p_company_id: input.companyId,
+      p_days_before: input.daysBefore ?? 7,
+    });
+    if (error) throw error;
+    return mhdToNumber(data as number | string | null);
   },
 
   async listComplianceRules(companyId: string): Promise<MhdTrainingComplianceRule[]> {

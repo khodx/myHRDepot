@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdPersonService } from '@/features/people/Service';
 import type {
   MhdAssignTrainingInput,
+  MhdSendTrainingDeadlineRemindersInput,
   MhdAssignTrainingProgramInput,
   MhdCreateTrainingComplianceRuleInput,
   MhdDecideTrainingSelfEnrollmentInput,
@@ -252,6 +253,13 @@ export function useMhdTrainingAssignments(filters: MhdTrainingAssignmentFilters)
     queryKey: mhdTrainingQueryKeys.assignments(filters),
     queryFn: () => mhdTrainingService.listAssignments(filters),
     enabled: Boolean(filters.companyId),
+  });
+}
+
+export function useMhdSendTrainingDeadlineReminders() {
+  return useMutation({
+    mutationFn: (input: MhdSendTrainingDeadlineRemindersInput) =>
+      mhdTrainingService.sendDeadlineReminders(input),
   });
 }
 

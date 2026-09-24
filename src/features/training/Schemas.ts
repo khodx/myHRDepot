@@ -94,6 +94,11 @@ export const mhdAssignTrainingSchema = z.object({
   isEmergencyPriority: z.boolean().optional(),
 });
 
+export const mhdSendTrainingDeadlineRemindersSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  daysBefore: z.coerce.number().int().default(7),
+});
+
 export const mhdCreateTrainingComplianceRuleSchema = z
   .object({
     companyId: z.string().trim().min(1, 'Company is required.'),

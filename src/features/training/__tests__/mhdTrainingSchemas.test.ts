@@ -8,6 +8,7 @@ import {
   mhdTrainingTimeOnTaskFiltersSchema,
   mhdTrainingCourseFormSchema,
   mhdWaiveAssignmentSchema,
+  mhdSendTrainingDeadlineRemindersSchema,
 } from '../Schemas';
 
 describe('training course form schema', () => {
@@ -120,6 +121,17 @@ describe('training audit engine schemas', () => {
 });
 
 describe('training assignment / waiver / admin-completion schemas', () => {
+  it('defaults deadline reminder lead time to seven days', () => {
+    expect(mhdSendTrainingDeadlineRemindersSchema.parse({ companyId: 'company-1' })).toEqual({
+      companyId: 'company-1',
+      daysBefore: 7,
+    });
+    expect(
+      mhdSendTrainingDeadlineRemindersSchema.parse({ companyId: 'company-1', daysBefore: '14' })
+        .daysBefore,
+    ).toBe(14);
+  });
+
   it('requires a completion id to generate a certificate', () => {
     expect(() => mhdGenerateTrainingCertificateSchema.parse({ completionId: ' ' })).toThrow(
       'Completion is required.',
