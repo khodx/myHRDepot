@@ -181,6 +181,13 @@ export interface MhdTrainingCompletionResultRpcRow {
   expires_at: string | null;
 }
 
+/** Row returned by `mhd_training_certificate_generate`. */
+export interface MhdTrainingCertificateGenerationRpcRow {
+  id: string;
+  reference_id: string;
+  status: string;
+}
+
 export interface MhdTrainingTimeOnTaskRpcRow {
   person_id: string;
   block_id: string;
@@ -571,6 +578,13 @@ export interface MhdTrainingCompletionResult {
   id: string;
   referenceId: string;
   expiresAt: string | null;
+}
+
+/** Mapped document generation requested for a training completion certificate. */
+export interface MhdTrainingCertificateGenerationResult {
+  id: string;
+  referenceId: string;
+  status: string;
 }
 
 export interface MhdTrainingTimeOnTaskRow {

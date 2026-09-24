@@ -1,9 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { rpcMock } = vi.hoisted(() => ({ rpcMock: vi.fn() }));
+const { renderMock, pollMock } = vi.hoisted(() => ({
+  renderMock: vi.fn(),
+  pollMock: vi.fn(),
+}));
 
 vi.mock('@/lib/supabase/supabaseClient', () => ({
   supabaseClient: { rpc: rpcMock },
+}));
+
+vi.mock('@/features/documents/Service', () => ({
+  mhdRenderDocumentGeneration: renderMock,
+  mhdPollDocumentGenerationUntilGenerated: pollMock,
 }));
 
 const { mhdTrainingService } = await import('../Service');
@@ -77,6 +86,31 @@ describe('mhdTrainingService — catalog mapping', () => {
 });
 
 describe('mhdTrainingService — server-derived compliance passthrough', () => {
+  it('generates a certificate through the shared document render and poll helpers', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [{ id: 'generation-1', reference_id: 'DOC-0001', status: 'PENDING' }],
+      error: null,
+    });
+    renderMock.mockResolvedValueOnce(undefined);
+    pollMock.mockResolvedValueOnce({
+      id: 'generation-1',
+      status: 'GENERATED',
+      output_drive_file_id: 'drive-1',
+      output_document_hash: null,
+    });
+
+    const result = await mhdTrainingService.generateCertificate('completion-1');
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_training_certificate_generate', {
+      p_completion_id: 'completion-1',
+    });
+    expect(renderMock).toHaveBeenCalledWith('generation-1', 'Training certificate render');
+    expect(pollMock).toHaveBeenCalledWith('generation-1', {
+      timeoutHint: 'Retry the certificate generation once rendering finishes.',
+    });
+    expect(result).toEqual({ id: 'generation-1', referenceId: 'DOC-0001', status: 'GENERATED' });
+  });
+
   it('copies the RPC compliance_status VERBATIM onto the assignment — no client recompute', async () => {
     // The row is EXPIRED per the server even though a naive client re-derivation
     // from a far-future-looking record might disagree; the mapper must not touch it.

@@ -179,6 +179,10 @@ export const mhdRecordAdminCompletionSchema = z.object({
   attachmentId: z.string().trim().optional().nullable(),
 });
 
+export const mhdGenerateTrainingCertificateSchema = z.object({
+  completionId: z.string().trim().min(1, 'Completion is required.'),
+});
+
 export const mhdSetTrainingTimeOnTaskSchema = z.object({
   companyId: z.string().trim().min(1, 'Company is required.'),
   maxSessionMinutes: z.coerce

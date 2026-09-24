@@ -3,6 +3,7 @@ import {
   mhdAssignTrainingSchema,
   mhdCreateTrainingExternalAuditorGrantSchema,
   mhdRecordAdminCompletionSchema,
+  mhdGenerateTrainingCertificateSchema,
   mhdSetTrainingTimeOnTaskSchema,
   mhdTrainingTimeOnTaskFiltersSchema,
   mhdTrainingCourseFormSchema,
@@ -119,6 +120,15 @@ describe('training audit engine schemas', () => {
 });
 
 describe('training assignment / waiver / admin-completion schemas', () => {
+  it('requires a completion id to generate a certificate', () => {
+    expect(() => mhdGenerateTrainingCertificateSchema.parse({ completionId: ' ' })).toThrow(
+      'Completion is required.',
+    );
+    expect(mhdGenerateTrainingCertificateSchema.parse({ completionId: 'completion-1' })).toEqual({
+      completionId: 'completion-1',
+    });
+  });
+
   it('assignment requires a course and a person; due date is optional', () => {
     expect(() =>
       mhdAssignTrainingSchema.parse({ companyId: 'company-1', courseId: '', personId: 'p' }),

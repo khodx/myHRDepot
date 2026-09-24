@@ -396,6 +396,12 @@ export function useMhdCompleteTraining() {
   });
 }
 
+export function useMhdGenerateTrainingCertificate() {
+  return useMutation({
+    mutationFn: (completionId: string) => mhdTrainingService.generateCertificate(completionId),
+  });
+}
+
 export function useMhdRecordAdminCompletion() {
   const queryClient = useQueryClient();
   return useMutation({

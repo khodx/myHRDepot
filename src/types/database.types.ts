@@ -32332,6 +32332,14 @@ export type Database = {
         Args: { p_assignment_id: string }
         Returns: undefined
       }
+      mhd_training_certificate_generate: {
+        Args: { p_completion_id: string }
+        Returns: {
+          id: string
+          reference_id: string
+          status: string
+        }[]
+      }
       mhd_training_complete: {
         Args: {
           p_assignment_id: string

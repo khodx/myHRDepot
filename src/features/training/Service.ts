@@ -3,6 +3,10 @@ import type { Json } from '@/types/database.types';
 import { MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES } from './Types';
 import { mhdToNumber } from './Types';
 import { mhdTrainingContentTreeSchema, mhdTrainingBlockProgressSchema } from './Schemas';
+import {
+  mhdPollDocumentGenerationUntilGenerated,
+  mhdRenderDocumentGeneration,
+} from '@/features/documents/Service';
 import type {
   MhdAssignTrainingInput,
   MhdApplyTrainingComplianceRuleInput,
@@ -37,6 +41,8 @@ import type {
   MhdTrainingCompletion,
   MhdTrainingCompletionResult,
   MhdTrainingCompletionResultRpcRow,
+  MhdTrainingCertificateGenerationResult,
+  MhdTrainingCertificateGenerationRpcRow,
   MhdTrainingCompletionRpcRow,
   MhdTrainingCompliance,
   MhdTrainingComplianceMatrixFilters,
@@ -288,6 +294,12 @@ function mapMutationResult(row: MhdTrainingMutationRpcRow): MhdMutationResult {
 
 function mapCompletionResult(row: MhdTrainingCompletionResultRpcRow): MhdTrainingCompletionResult {
   return { id: row.id, referenceId: row.reference_id, expiresAt: row.expires_at };
+}
+
+function mapCertificateGenerationResult(
+  row: MhdTrainingCertificateGenerationRpcRow,
+): MhdTrainingCertificateGenerationResult {
+  return { id: row.id, referenceId: row.reference_id, status: row.status };
 }
 
 function mapTimeOnTask(row: MhdTrainingTimeOnTaskRpcRow): MhdTrainingTimeOnTaskRow {
@@ -773,6 +785,25 @@ export const mhdTrainingService = {
     });
     if (error) throw error;
     return ((data ?? []) as MhdTrainingCompletionRpcRow[]).map(mapCompletion);
+  },
+
+  /** Generate a PDF certificate through the shared document engine lifecycle. */
+  async generateCertificate(completionId: string): Promise<MhdTrainingCertificateGenerationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_certificate_generate', {
+      p_completion_id: completionId,
+    });
+    if (error) throw error;
+
+    const row = ((data ?? []) as unknown as MhdTrainingCertificateGenerationRpcRow[])[0];
+    if (!row) throw new Error('Training certificate generation returned no row.');
+
+    const requested = mapCertificateGenerationResult(row);
+    await mhdRenderDocumentGeneration(requested.id, 'Training certificate render');
+    const generated = await mhdPollDocumentGenerationUntilGenerated(requested.id, {
+      timeoutHint: 'Retry the certificate generation once rendering finishes.',
+    });
+
+    return { ...requested, status: generated.status };
   },
 
   // ----- Compliance (derived, never stored) -----
