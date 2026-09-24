@@ -1,8 +1,8 @@
-// Matches the TBL-012 (Locked) shape: polymorphic entity_type/entity_id ('TASK'|'SUBTASK'|'ACTIVITY'), a
-// real 3-tier `visibility` enum, and separate rich-text (jsonb) / plain-text (generated
-// companion) columns.
+// Matches the TBL-012 (Locked) shape: polymorphic entity_type/entity_id
+// ('TASK'|'SUBTASK'|'ACTIVITY'|'TRAINING_LESSON'), a real 3-tier `visibility` enum, and separate
+// rich-text (jsonb) / plain-text (generated companion) columns.
 
-export type MhdNoteEntityType = 'TASK' | 'SUBTASK' | 'ACTIVITY';
+export type MhdNoteEntityType = 'TASK' | 'SUBTASK' | 'ACTIVITY' | 'TRAINING_LESSON';
 export type MhdNoteVisibility = 'PUBLIC' | 'ADMIN' | 'PRIVATE';
 
 /**

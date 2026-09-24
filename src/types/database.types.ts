@@ -4217,6 +4217,76 @@ export type Database = {
         }
         Relationships: []
       }
+      content_moderation_flags: {
+        Row: {
+          action_taken: string | null
+          company_id: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          flagged_by: string
+          id: string
+          reason: string
+          reference_id: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          action_taken?: string | null
+          company_id: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          flagged_by: string
+          id?: string
+          reason: string
+          reference_id: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          action_taken?: string | null
+          company_id?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          flagged_by?: string
+          id?: string
+          reason?: string
+          reference_id?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_moderation_flags_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_moderation_flags_flagged_by_fkey"
+            columns: ["flagged_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_moderation_flags_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_classification_determinations: {
         Row: {
           company_id: string
@@ -22730,6 +22800,96 @@ export type Database = {
         }
         Relationships: []
       }
+      training_badge_awards: {
+        Row: {
+          awarded_at: string
+          awarded_reason: string | null
+          badge_id: string
+          id: string
+          person_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          awarded_reason?: string | null
+          badge_id: string
+          id?: string
+          person_id: string
+        }
+        Update: {
+          awarded_at?: string
+          awarded_reason?: string | null
+          badge_id?: string
+          id?: string
+          person_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_badge_awards_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "training_badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_badge_awards_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_badges: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          icon_key: string
+          id: string
+          is_active: boolean
+          reference_id: string
+          title: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          icon_key?: string
+          id?: string
+          is_active?: boolean
+          reference_id: string
+          title: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          icon_key?: string
+          id?: string
+          is_active?: boolean
+          reference_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_badges_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_badges_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_block_progress: {
         Row: {
           assignment_id: string
@@ -23124,6 +23284,48 @@ export type Database = {
           },
         ]
       }
+      training_course_feedback: {
+        Row: {
+          comments: string | null
+          course_id: string
+          id: string
+          person_id: string
+          rating: number
+          submitted_at: string
+        }
+        Insert: {
+          comments?: string | null
+          course_id: string
+          id?: string
+          person_id: string
+          rating: number
+          submitted_at?: string
+        }
+        Update: {
+          comments?: string | null
+          course_id?: string
+          id?: string
+          person_id?: string
+          rating?: number
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_course_feedback_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_course_feedback_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_course_modules: {
         Row: {
           course_id: string
@@ -23514,6 +23716,42 @@ export type Database = {
           },
         ]
       }
+      training_leaderboard_opt_ins: {
+        Row: {
+          company_id: string
+          opted_in: boolean
+          person_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          opted_in?: boolean
+          person_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          opted_in?: boolean
+          person_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_leaderboard_opt_ins_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_leaderboard_opt_ins_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: true
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_lessons: {
         Row: {
           created_at: string | null
@@ -23561,6 +23799,105 @@ export type Database = {
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "training_course_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_peer_reviews: {
+        Row: {
+          assigned_at: string
+          block_progress_id: string
+          feedback: string | null
+          id: string
+          reference_id: string
+          reviewer_person_id: string
+          rubric_score: number | null
+          status: string
+          submitted_at: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          block_progress_id: string
+          feedback?: string | null
+          id?: string
+          reference_id: string
+          reviewer_person_id: string
+          rubric_score?: number | null
+          status?: string
+          submitted_at?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          block_progress_id?: string
+          feedback?: string | null
+          id?: string
+          reference_id?: string
+          reviewer_person_id?: string
+          rubric_score?: number | null
+          status?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_peer_reviews_block_progress_id_fkey"
+            columns: ["block_progress_id"]
+            isOneToOne: false
+            referencedRelation: "training_block_progress"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_peer_reviews_reviewer_person_id_fkey"
+            columns: ["reviewer_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_points_ledger: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          person_id: string
+          points: number
+          reason: string
+          source_id: string | null
+          source_type: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          person_id: string
+          points: number
+          reason: string
+          source_id?: string | null
+          source_type: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          person_id?: string
+          points?: number
+          reason?: string
+          source_id?: string | null
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_points_ledger_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_points_ledger_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
             referencedColumns: ["id"]
           },
         ]
@@ -23703,6 +24040,48 @@ export type Database = {
             columns: ["requested_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_streak_state: {
+        Row: {
+          company_id: string
+          current_streak_days: number
+          last_activity_date: string | null
+          longest_streak_days: number
+          person_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          current_streak_days?: number
+          last_activity_date?: string | null
+          longest_streak_days?: number
+          person_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          current_streak_days?: number
+          last_activity_date?: string | null
+          longest_streak_days?: number
+          person_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_streak_state_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_streak_state_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: true
+            referencedRelation: "people"
             referencedColumns: ["id"]
           },
         ]
@@ -25789,6 +26168,29 @@ export type Database = {
       }
       mhd_consume_mfa_recovery_code: {
         Args: { p_code: string }
+        Returns: undefined
+      }
+      mhd_content_flag_create: {
+        Args: { p_entity_id: string; p_entity_type: string; p_reason: string }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_content_flag_list: {
+        Args: { p_company_id: string; p_status?: string }
+        Returns: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          reason: string
+          reference_id: string
+          status: string
+        }[]
+      }
+      mhd_content_flag_resolve: {
+        Args: { p_action: string; p_flag_id: string; p_notes?: string }
         Returns: undefined
       }
       mhd_contractor_classification_confirm: {
@@ -32293,6 +32695,44 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_training_award_points_internal: {
+        Args: {
+          p_company_id: string
+          p_person_id: string
+          p_points: number
+          p_reason: string
+          p_source_id: string
+          p_source_type: string
+        }
+        Returns: undefined
+      }
+      mhd_training_badge_award: {
+        Args: { p_badge_id: string; p_person_id: string; p_reason?: string }
+        Returns: undefined
+      }
+      mhd_training_badge_create: {
+        Args: {
+          p_company_id: string
+          p_description?: string
+          p_icon_key?: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_badge_list: {
+        Args: { p_company_id: string }
+        Returns: {
+          description: string
+          icon_key: string
+          id: string
+          is_global: boolean
+          reference_id: string
+          title: string
+        }[]
+      }
       mhd_training_block_complete: {
         Args: { p_assignment_id: string; p_block_id: string; p_response?: Json }
         Returns: {
@@ -32462,6 +32902,17 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_training_course_feedback_submit: {
+        Args: { p_comments?: string; p_course_id: string; p_rating: number }
+        Returns: undefined
+      }
+      mhd_training_course_feedback_summary: {
+        Args: { p_course_id: string }
+        Returns: {
+          average_rating: number
+          response_count: number
+        }[]
+      }
       mhd_training_course_fork: {
         Args: { p_company_id: string; p_course_id: string }
         Returns: {
@@ -32555,6 +33006,19 @@ export type Database = {
         }[]
       }
       mhd_training_is_privileged: { Args: never; Returns: boolean }
+      mhd_training_leaderboard: {
+        Args: { p_company_id: string; p_limit?: number }
+        Returns: {
+          current_streak_days: number
+          person_display_name: string
+          person_id: string
+          total_points: number
+        }[]
+      }
+      mhd_training_leaderboard_opt_in: {
+        Args: { p_opted_in: boolean }
+        Returns: undefined
+      }
       mhd_training_learner_export: {
         Args: { p_person_id: string }
         Returns: Json
@@ -32616,6 +33080,37 @@ export type Database = {
           id: string
           reference_id: string
         }[]
+      }
+      mhd_training_peer_review_assign: {
+        Args: { p_block_progress_id: string; p_reviewer_person_id: string }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_peer_review_list: {
+        Args: { p_block_progress_id: string }
+        Returns: {
+          feedback: string
+          id: string
+          reference_id: string
+          reviewer_person_id: string
+          rubric_score: number
+          status: string
+          submitted_at: string
+        }[]
+      }
+      mhd_training_peer_review_submit: {
+        Args: {
+          p_feedback: string
+          p_review_id: string
+          p_rubric_score: number
+        }
+        Returns: undefined
+      }
+      mhd_training_points_balance: {
+        Args: { p_person_id: string }
+        Returns: number
       }
       mhd_training_prerequisite_add: {
         Args: { p_course_id: string; p_prerequisite_course_id: string }
@@ -32716,6 +33211,10 @@ export type Database = {
       }
       mhd_training_time_on_task_set: {
         Args: { p_company_id: string; p_max_session_minutes: number }
+        Returns: undefined
+      }
+      mhd_training_touch_streak_internal: {
+        Args: { p_company_id: string; p_person_id: string }
         Returns: undefined
       }
       mhd_training_waive_assignment: {

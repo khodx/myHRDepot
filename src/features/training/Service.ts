@@ -84,6 +84,30 @@ import type {
   MhdTrainingExternalAuditorGrantRevokeInput,
   MhdTrainingExternalAuditorReportRpcRow,
   MhdTrainingExternalAuditorReportRow,
+  MhdTrainingBadge,
+  MhdTrainingBadgeCreateResult,
+  MhdTrainingBadgeRpcRow,
+  MhdCreateTrainingBadgeInput,
+  MhdAwardTrainingBadgeInput,
+  MhdContentFlag,
+  MhdContentFlagCreateResult,
+  MhdContentFlagRpcRow,
+  MhdCreateContentFlagInput,
+  MhdListContentFlagsInput,
+  MhdResolveContentFlagInput,
+  MhdTrainingPeerReview,
+  MhdTrainingPeerReviewAssignmentResult,
+  MhdTrainingPeerReviewRpcRow,
+  MhdAssignTrainingPeerReviewInput,
+  MhdSubmitTrainingPeerReviewInput,
+  MhdListTrainingPeerReviewsInput,
+  MhdTrainingLeaderboardRow,
+  MhdTrainingLeaderboardRpcRow,
+  MhdTrainingLeaderboardInput,
+  MhdSetTrainingLeaderboardOptInInput,
+  MhdSubmitTrainingCourseFeedbackInput,
+  MhdTrainingCourseFeedbackSummary,
+  MhdTrainingCourseFeedbackSummaryRpcRow,
 } from './Types';
 
 // Contract-only access. Every method below calls `.rpc()` and nothing else —
@@ -233,7 +257,9 @@ function mapSelfEnrollmentRequest(
   };
 }
 
-function mapAssignProgramResult(row: MhdTrainingAssignProgramRpcRow): MhdTrainingAssignProgramResult {
+function mapAssignProgramResult(
+  row: MhdTrainingAssignProgramRpcRow,
+): MhdTrainingAssignProgramResult {
   return { courseId: row.course_id, assignmentId: row.assignment_id };
 }
 
@@ -310,7 +336,10 @@ function mapTimeOnTask(row: MhdTrainingTimeOnTaskRpcRow): MhdTrainingTimeOnTaskR
 function mapExternalAuditorGrant(
   row: MhdTrainingExternalAuditorGrantRpcRow,
 ): MhdTrainingExternalAuditorGrant {
-  return { id: row.id, referenceId: row.reference_id as MhdTrainingExternalAuditorGrant['referenceId'] };
+  return {
+    id: row.id,
+    referenceId: row.reference_id as MhdTrainingExternalAuditorGrant['referenceId'],
+  };
 }
 
 function mapExternalAuditorReport(
@@ -321,6 +350,47 @@ function mapExternalAuditorReport(
     personDisplayName: row.person_display_name,
     status: row.status,
     completedAt: row.completed_at,
+  };
+}
+
+function mapBadge(row: MhdTrainingBadgeRpcRow): MhdTrainingBadge {
+  return {
+    id: row.id,
+    referenceId: row.reference_id as MhdTrainingBadge['referenceId'],
+    title: row.title,
+    description: row.description,
+    iconKey: row.icon_key,
+    isGlobal: row.is_global,
+  };
+}
+function mapContentFlag(row: MhdContentFlagRpcRow): MhdContentFlag {
+  return {
+    id: row.id,
+    referenceId: row.reference_id as MhdContentFlag['referenceId'],
+    entityType: row.entity_type as MhdContentFlag['entityType'],
+    entityId: row.entity_id,
+    reason: row.reason,
+    status: row.status as MhdContentFlag['status'],
+    createdAt: row.created_at,
+  };
+}
+function mapPeerReview(row: MhdTrainingPeerReviewRpcRow): MhdTrainingPeerReview {
+  return {
+    id: row.id,
+    referenceId: row.reference_id as MhdTrainingPeerReview['referenceId'],
+    reviewerPersonId: row.reviewer_person_id,
+    rubricScore: mhdToNumber(row.rubric_score),
+    feedback: row.feedback,
+    status: row.status as MhdTrainingPeerReview['status'],
+    submittedAt: row.submitted_at,
+  };
+}
+function mapLeaderboardRow(row: MhdTrainingLeaderboardRpcRow): MhdTrainingLeaderboardRow {
+  return {
+    personId: row.person_id,
+    personDisplayName: row.person_display_name,
+    totalPoints: mhdToNumber(row.total_points),
+    currentStreakDays: mhdToNumber(row.current_streak_days),
   };
 }
 
@@ -704,9 +774,7 @@ export const mhdTrainingService = {
       p_status: input.status ?? undefined,
     });
     if (error) throw error;
-    return ((data ?? []) as MhdTrainingSelfEnrollmentRequestRpcRow[]).map(
-      mapSelfEnrollmentRequest,
-    );
+    return ((data ?? []) as MhdTrainingSelfEnrollmentRequestRpcRow[]).map(mapSelfEnrollmentRequest);
   },
 
   async decideSelfEnrollment(
@@ -853,8 +921,7 @@ export const mhdTrainingService = {
   async setTimeOnTask(input: MhdSetTrainingTimeOnTaskInput): Promise<void> {
     const { error } = await supabaseClient.rpc('mhd_training_time_on_task_set', {
       p_company_id: input.companyId,
-      p_max_session_minutes:
-        input.maxSessionMinutes ?? MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES,
+      p_max_session_minutes: input.maxSessionMinutes ?? MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES,
     });
     if (error) throw error;
   },
@@ -890,15 +957,12 @@ export const mhdTrainingService = {
   async createExternalAuditorGrant(
     input: MhdCreateTrainingExternalAuditorGrantInput,
   ): Promise<MhdTrainingExternalAuditorGrant> {
-    const { data, error } = await supabaseClient.rpc(
-      'mhd_training_external_auditor_grant_create',
-      {
-        p_company_id: input.companyId,
-        p_course_id: input.courseId,
-        p_auditor_label: input.auditorLabel.trim(),
-        p_valid_until: input.validUntil,
-      },
-    );
+    const { data, error } = await supabaseClient.rpc('mhd_training_external_auditor_grant_create', {
+      p_company_id: input.companyId,
+      p_course_id: input.courseId,
+      p_auditor_label: input.auditorLabel.trim(),
+      p_valid_until: input.validUntil,
+    });
     if (error) throw error;
     const row = ((data ?? []) as MhdTrainingExternalAuditorGrantRpcRow[])[0];
     if (!row) throw new Error('External auditor grant creation returned no row.');
@@ -914,15 +978,145 @@ export const mhdTrainingService = {
     if (error) throw error;
   },
 
-  async externalAuditorReport(
-    grantId: string,
-  ): Promise<MhdTrainingExternalAuditorReportRow[]> {
+  async externalAuditorReport(grantId: string): Promise<MhdTrainingExternalAuditorReportRow[]> {
     const { data, error } = await supabaseClient.rpc('mhd_training_external_auditor_report', {
       p_grant_id: grantId,
     });
     if (error) throw error;
-    return ((data ?? []) as MhdTrainingExternalAuditorReportRpcRow[]).map(
-      mapExternalAuditorReport,
-    );
+    return ((data ?? []) as MhdTrainingExternalAuditorReportRpcRow[]).map(mapExternalAuditorReport);
+  },
+
+  // ----- LMS v2 engagement and social features -----
+
+  async pointsBalance(personId: string): Promise<number> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_points_balance', {
+      p_person_id: personId,
+    });
+    if (error) throw error;
+    return mhdToNumber(data as number | string | null);
+  },
+  async createBadge(input: MhdCreateTrainingBadgeInput): Promise<MhdTrainingBadgeCreateResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_badge_create', {
+      p_company_id: input.companyId,
+      p_title: input.title.trim(),
+      p_description: trimmedOrUndefined(input.description),
+      p_icon_key: input.iconKey?.trim() || 'award',
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingBadgeRpcRow[])[0];
+    if (!row) throw new Error('Badge creation returned no row.');
+    return {
+      id: row.id,
+      referenceId: row.reference_id as MhdTrainingBadgeCreateResult['referenceId'],
+    };
+  },
+  async listBadges(companyId: string): Promise<MhdTrainingBadge[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_badge_list', {
+      p_company_id: companyId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingBadgeRpcRow[]).map(mapBadge);
+  },
+  async awardBadge(input: MhdAwardTrainingBadgeInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_badge_award', {
+      p_badge_id: input.badgeId,
+      p_person_id: input.personId,
+      p_reason: trimmedOrUndefined(input.reason),
+    });
+    if (error) throw error;
+  },
+  async setLeaderboardOptIn(input: MhdSetTrainingLeaderboardOptInInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_leaderboard_opt_in', {
+      p_opted_in: input.optedIn,
+    });
+    if (error) throw error;
+  },
+  async leaderboard(input: MhdTrainingLeaderboardInput): Promise<MhdTrainingLeaderboardRow[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_leaderboard', {
+      p_company_id: input.companyId,
+      p_limit: input.limit ?? 20,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingLeaderboardRpcRow[]).map(mapLeaderboardRow);
+  },
+  async createContentFlag(input: MhdCreateContentFlagInput): Promise<MhdContentFlagCreateResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_content_flag_create', {
+      p_entity_type: input.entityType,
+      p_entity_id: input.entityId,
+      p_reason: input.reason.trim(),
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdContentFlagRpcRow[])[0];
+    if (!row) throw new Error('Content flag creation returned no row.');
+    return {
+      id: row.id,
+      referenceId: row.reference_id as MhdContentFlagCreateResult['referenceId'],
+    };
+  },
+  async listContentFlags(input: MhdListContentFlagsInput): Promise<MhdContentFlag[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_content_flag_list', {
+      p_company_id: input.companyId,
+      p_status: input.status ?? 'PENDING',
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdContentFlagRpcRow[]).map(mapContentFlag);
+  },
+  async resolveContentFlag(input: MhdResolveContentFlagInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_content_flag_resolve', {
+      p_flag_id: input.flagId,
+      p_action: input.action,
+      p_notes: trimmedOrUndefined(input.notes),
+    });
+    if (error) throw error;
+  },
+  async assignPeerReview(
+    input: MhdAssignTrainingPeerReviewInput,
+  ): Promise<MhdTrainingPeerReviewAssignmentResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_peer_review_assign', {
+      p_block_progress_id: input.blockProgressId,
+      p_reviewer_person_id: input.reviewerPersonId,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
+    if (!row) throw new Error('Peer review assignment returned no row.');
+    return {
+      id: row.id,
+      referenceId: row.reference_id as MhdTrainingPeerReviewAssignmentResult['referenceId'],
+    };
+  },
+  async submitPeerReview(input: MhdSubmitTrainingPeerReviewInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_peer_review_submit', {
+      p_review_id: input.reviewId,
+      p_rubric_score: input.rubricScore,
+      p_feedback: input.feedback.trim(),
+    });
+    if (error) throw error;
+  },
+  async listPeerReviews(input: MhdListTrainingPeerReviewsInput): Promise<MhdTrainingPeerReview[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_peer_review_list', {
+      p_block_progress_id: input.blockProgressId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingPeerReviewRpcRow[]).map(mapPeerReview);
+  },
+  async submitCourseFeedback(input: MhdSubmitTrainingCourseFeedbackInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_course_feedback_submit', {
+      p_course_id: input.courseId,
+      p_rating: input.rating,
+      p_comments: trimmedOrUndefined(input.comments),
+    });
+    if (error) throw error;
+  },
+  async courseFeedbackSummary(courseId: string): Promise<MhdTrainingCourseFeedbackSummary> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_course_feedback_summary', {
+      p_course_id: courseId,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingCourseFeedbackSummaryRpcRow[])[0];
+    if (!row) return { averageRating: 0, responseCount: 0 };
+    return {
+      averageRating: mhdToNumber(row.average_rating),
+      responseCount: mhdToNumber(row.response_count),
+    };
   },
 };

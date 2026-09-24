@@ -12,6 +12,64 @@ import {
   MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES,
 } from './Types';
 
+export const mhdContentFlagEntityTypeSchema = z.enum([
+  'TASK',
+  'SUBTASK',
+  'ACTIVITY',
+  'TRAINING_LESSON',
+  'NOTE',
+]);
+export const mhdContentFlagStatusSchema = z.enum(['PENDING', 'RESOLVED']);
+export const mhdContentFlagResolveActionSchema = z.enum(['NONE', 'HIDDEN', 'REMOVED', 'WARNED']);
+
+export const mhdCreateTrainingBadgeSchema = z.object({
+  companyId: z.string().trim().min(1),
+  title: z.string().trim().min(1).max(300),
+  description: z.string().trim().max(4000).optional().nullable(),
+  iconKey: z.string().trim().min(1).max(100).default('award'),
+});
+export const mhdAwardTrainingBadgeSchema = z.object({
+  badgeId: z.string().trim().min(1),
+  personId: z.string().trim().min(1),
+  reason: z.string().trim().max(4000).optional().nullable(),
+});
+export const mhdSetTrainingLeaderboardOptInSchema = z.object({ optedIn: z.boolean() });
+export const mhdTrainingLeaderboardSchema = z.object({
+  companyId: z.string().trim().min(1),
+  limit: z.number().int().positive().max(100).default(20),
+});
+export const mhdCreateContentFlagSchema = z.object({
+  entityType: mhdContentFlagEntityTypeSchema,
+  entityId: z.string().trim().min(1),
+  reason: z.string().trim().min(1).max(4000),
+});
+export const mhdListContentFlagsSchema = z.object({
+  companyId: z.string().trim().min(1),
+  status: mhdContentFlagStatusSchema.default('PENDING'),
+});
+export const mhdResolveContentFlagSchema = z.object({
+  flagId: z.string().trim().min(1),
+  action: mhdContentFlagResolveActionSchema,
+  notes: z.string().trim().max(4000).optional().nullable(),
+});
+export const mhdAssignTrainingPeerReviewSchema = z.object({
+  blockProgressId: z.string().trim().min(1),
+  reviewerPersonId: z.string().trim().min(1),
+});
+export const mhdSubmitTrainingPeerReviewSchema = z.object({
+  reviewId: z.string().trim().min(1),
+  rubricScore: z.number().min(0),
+  feedback: z.string().trim().min(1).max(10000),
+});
+export const mhdListTrainingPeerReviewsSchema = z.object({
+  blockProgressId: z.string().trim().min(1),
+});
+export const mhdSubmitTrainingCourseFeedbackSchema = z.object({
+  courseId: z.string().trim().min(1),
+  rating: z.number().int().min(1).max(5),
+  comments: z.string().trim().max(10000).optional().nullable(),
+});
+
 // ---------------------------------------------------------------------------
 // Courses
 // ---------------------------------------------------------------------------
@@ -310,9 +368,7 @@ export type MhdAssignTrainingProgramFormValues = z.infer<typeof mhdAssignTrainin
 export type MhdWaiveAssignmentFormValues = z.infer<typeof mhdWaiveAssignmentSchema>;
 export type MhdRecordAdminCompletionFormValues = z.infer<typeof mhdRecordAdminCompletionSchema>;
 export type MhdSetTrainingTimeOnTaskFormValues = z.infer<typeof mhdSetTrainingTimeOnTaskSchema>;
-export type MhdTrainingTimeOnTaskFiltersValues = z.infer<
-  typeof mhdTrainingTimeOnTaskFiltersSchema
->;
+export type MhdTrainingTimeOnTaskFiltersValues = z.infer<typeof mhdTrainingTimeOnTaskFiltersSchema>;
 export type MhdCreateTrainingExternalAuditorGrantFormValues = z.infer<
   typeof mhdCreateTrainingExternalAuditorGrantSchema
 >;
@@ -324,6 +380,19 @@ export type MhdCreateProgramFormValues = z.infer<typeof mhdCreateProgramSchema>;
 export type MhdCreateCourseModuleFormValues = z.infer<typeof mhdCreateCourseModuleSchema>;
 export type MhdCreateLessonFormValues = z.infer<typeof mhdCreateLessonSchema>;
 export type MhdCreateBlockFormValues = z.infer<typeof mhdCreateBlockSchema>;
+export type MhdCreateTrainingBadgeFormValues = z.infer<typeof mhdCreateTrainingBadgeSchema>;
+export type MhdAwardTrainingBadgeFormValues = z.infer<typeof mhdAwardTrainingBadgeSchema>;
+export type MhdCreateContentFlagFormValues = z.infer<typeof mhdCreateContentFlagSchema>;
+export type MhdResolveContentFlagFormValues = z.infer<typeof mhdResolveContentFlagSchema>;
+export type MhdAssignTrainingPeerReviewFormValues = z.infer<
+  typeof mhdAssignTrainingPeerReviewSchema
+>;
+export type MhdSubmitTrainingPeerReviewFormValues = z.infer<
+  typeof mhdSubmitTrainingPeerReviewSchema
+>;
+export type MhdSubmitTrainingCourseFeedbackFormValues = z.infer<
+  typeof mhdSubmitTrainingCourseFeedbackSchema
+>;
 
 const mhdTrainingProgressStatusSchema = z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETE']);
 const mhdTrainingTreeBlockSchema = z.object({

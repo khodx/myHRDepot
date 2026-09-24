@@ -606,6 +606,154 @@ export interface MhdTrainingExternalAuditorReportRow {
 }
 
 // ---------------------------------------------------------------------------
+// LMS v2 engagement and social features
+// ---------------------------------------------------------------------------
+
+export type MhdTrainingBadgeId = string;
+export type MhdContentFlagId = string;
+export type MhdTrainingPeerReviewId = string;
+export type MhdTrainingBadgeReferenceId = `BDG-${string}`;
+export type MhdContentFlagReferenceId = `FLG-${string}`;
+export type MhdTrainingPeerReviewReferenceId = `PRV-${string}`;
+export type MhdContentFlagEntityType = 'TASK' | 'SUBTASK' | 'ACTIVITY' | 'TRAINING_LESSON' | 'NOTE';
+export type MhdContentFlagStatus = 'PENDING' | 'RESOLVED';
+export type MhdContentFlagResolveAction = 'NONE' | 'HIDDEN' | 'REMOVED' | 'WARNED';
+export type MhdTrainingPeerReviewStatus = 'PENDING' | 'SUBMITTED';
+
+export interface MhdTrainingPointsBalanceRpcRow {
+  points: number | string;
+}
+export interface MhdTrainingBadgeRpcRow {
+  id: string;
+  reference_id: string;
+  title: string;
+  description: string | null;
+  icon_key: string;
+  is_global: boolean;
+}
+export interface MhdContentFlagRpcRow {
+  id: string;
+  reference_id: string;
+  entity_type: string;
+  entity_id: string;
+  reason: string;
+  status: string;
+  created_at: string;
+}
+export interface MhdTrainingPeerReviewRpcRow {
+  id: string;
+  reference_id: string;
+  reviewer_person_id: string;
+  rubric_score: number | string;
+  feedback: string;
+  status: string;
+  submitted_at: string | null;
+}
+export interface MhdTrainingLeaderboardRpcRow {
+  person_id: string;
+  person_display_name: string;
+  total_points: number | string;
+  current_streak_days: number | string;
+}
+export interface MhdTrainingCourseFeedbackSummaryRpcRow {
+  average_rating: number | string;
+  response_count: number | string;
+}
+
+export interface MhdTrainingBadge extends MhdMutationResult {
+  referenceId: MhdTrainingBadgeReferenceId;
+  title: string;
+  description: string | null;
+  iconKey: string;
+  isGlobal: boolean;
+}
+export interface MhdTrainingBadgeCreateResult extends MhdMutationResult {
+  referenceId: MhdTrainingBadgeReferenceId;
+}
+export interface MhdContentFlag extends MhdMutationResult {
+  referenceId: MhdContentFlagReferenceId;
+  entityType: MhdContentFlagEntityType;
+  entityId: string;
+  reason: string;
+  status: MhdContentFlagStatus;
+  createdAt: string;
+}
+export interface MhdContentFlagCreateResult extends MhdMutationResult {
+  referenceId: MhdContentFlagReferenceId;
+}
+export interface MhdTrainingPeerReview extends MhdMutationResult {
+  referenceId: MhdTrainingPeerReviewReferenceId;
+  reviewerPersonId: string;
+  rubricScore: number;
+  feedback: string;
+  status: MhdTrainingPeerReviewStatus;
+  submittedAt: string | null;
+}
+export interface MhdTrainingPeerReviewAssignmentResult extends MhdMutationResult {
+  referenceId: MhdTrainingPeerReviewReferenceId;
+}
+export interface MhdTrainingLeaderboardRow {
+  personId: string;
+  personDisplayName: string;
+  totalPoints: number;
+  currentStreakDays: number;
+}
+export interface MhdTrainingCourseFeedbackSummary {
+  averageRating: number;
+  responseCount: number;
+}
+
+export interface MhdCreateTrainingBadgeInput {
+  companyId: string;
+  title: string;
+  description?: string | null;
+  iconKey?: string;
+}
+export interface MhdAwardTrainingBadgeInput {
+  badgeId: MhdTrainingBadgeId;
+  personId: string;
+  reason?: string | null;
+}
+export interface MhdSetTrainingLeaderboardOptInInput {
+  optedIn: boolean;
+}
+export interface MhdTrainingLeaderboardInput {
+  companyId: string;
+  limit?: number;
+}
+export interface MhdCreateContentFlagInput {
+  entityType: MhdContentFlagEntityType;
+  entityId: string;
+  reason: string;
+}
+export interface MhdListContentFlagsInput {
+  companyId: string;
+  status?: MhdContentFlagStatus;
+}
+export interface MhdResolveContentFlagInput {
+  flagId: MhdContentFlagId;
+  action: MhdContentFlagResolveAction;
+  notes?: string | null;
+}
+export interface MhdAssignTrainingPeerReviewInput {
+  blockProgressId: string;
+  reviewerPersonId: string;
+}
+export interface MhdSubmitTrainingPeerReviewInput {
+  reviewId: MhdTrainingPeerReviewId;
+  rubricScore: number;
+  feedback: string;
+}
+export interface MhdListTrainingPeerReviewsInput {
+  blockProgressId: string;
+}
+export interface MhdSubmitTrainingCourseFeedbackInput {
+  courseId: MhdTrainingCourseId;
+  rating: number;
+  comments?: string | null;
+}
+
+// ---------------------------------------------------------------------------
 // Inputs and filters
 // ---------------------------------------------------------------------------
 
@@ -990,19 +1138,38 @@ export function mhdToNumber(value: number | string | null | undefined): number {
 // LMS v2 learner delivery
 // ---------------------------------------------------------------------------
 
-export interface MhdTrainingRichTextContent { html: string }
-export interface MhdTrainingImageContent { url: string }
-export interface MhdTrainingVideoContent { url: string }
-export interface MhdTrainingFileDownloadContent { url: string; fileName?: string }
-export interface MhdTrainingCalloutContent { tone?: 'info' | 'warning' | 'success'; text: string }
-export interface MhdTrainingChecklistContent { items: string[] }
-export interface MhdTrainingTableContent { headers: string[]; rows: string[][] }
+export interface MhdTrainingRichTextContent {
+  html: string;
+}
+export interface MhdTrainingImageContent {
+  url: string;
+}
+export interface MhdTrainingVideoContent {
+  url: string;
+}
+export interface MhdTrainingFileDownloadContent {
+  url: string;
+  fileName?: string;
+}
+export interface MhdTrainingCalloutContent {
+  tone?: 'info' | 'warning' | 'success';
+  text: string;
+}
+export interface MhdTrainingChecklistContent {
+  items: string[];
+}
+export interface MhdTrainingTableContent {
+  headers: string[];
+  rows: string[][];
+}
 export interface MhdTrainingKnowledgeCheckContent {
   question: string;
   options: string[];
   answerIndex: number;
 }
-export interface MhdTrainingReflectionPromptContent { prompt: string }
+export interface MhdTrainingReflectionPromptContent {
+  prompt: string;
+}
 
 export type MhdTrainingBlockContent =
   | { blockType: 'RICH_TEXT'; content: MhdTrainingRichTextContent }
@@ -1014,7 +1181,21 @@ export type MhdTrainingBlockContent =
   | { blockType: 'TABLE'; content: MhdTrainingTableContent }
   | { blockType: 'KNOWLEDGE_CHECK'; content: MhdTrainingKnowledgeCheckContent }
   | { blockType: 'REFLECTION_PROMPT'; content: MhdTrainingReflectionPromptContent }
-  | { blockType: Exclude<MhdTrainingBlockType, 'RICH_TEXT' | 'IMAGE' | 'VIDEO' | 'FILE_DOWNLOAD' | 'CALLOUT' | 'CHECKLIST' | 'TABLE' | 'KNOWLEDGE_CHECK' | 'REFLECTION_PROMPT'>; content: Record<string, unknown> };
+  | {
+      blockType: Exclude<
+        MhdTrainingBlockType,
+        | 'RICH_TEXT'
+        | 'IMAGE'
+        | 'VIDEO'
+        | 'FILE_DOWNLOAD'
+        | 'CALLOUT'
+        | 'CHECKLIST'
+        | 'TABLE'
+        | 'KNOWLEDGE_CHECK'
+        | 'REFLECTION_PROMPT'
+      >;
+      content: Record<string, unknown>;
+    };
 
 export interface MhdTrainingContentTreeBlock {
   id: MhdTrainingBlockId;
@@ -1051,4 +1232,6 @@ export interface MhdTrainingBlockProgress {
   completedAt: string | null;
 }
 
-export interface MhdTrainingBlockCompletionResult { courseCompleted: boolean }
+export interface MhdTrainingBlockCompletionResult {
+  courseCompleted: boolean;
+}

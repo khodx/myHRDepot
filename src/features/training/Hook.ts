@@ -33,6 +33,17 @@ import type {
   MhdTrainingTimeOnTaskFilters,
   MhdCreateTrainingExternalAuditorGrantInput,
   MhdTrainingExternalAuditorGrantRevokeInput,
+  MhdCreateTrainingBadgeInput,
+  MhdAwardTrainingBadgeInput,
+  MhdSetTrainingLeaderboardOptInInput,
+  MhdTrainingLeaderboardInput,
+  MhdCreateContentFlagInput,
+  MhdListContentFlagsInput,
+  MhdResolveContentFlagInput,
+  MhdAssignTrainingPeerReviewInput,
+  MhdSubmitTrainingPeerReviewInput,
+  MhdListTrainingPeerReviewsInput,
+  MhdSubmitTrainingCourseFeedbackInput,
 } from './Types';
 import { mhdTrainingService } from './Service';
 
@@ -55,12 +66,22 @@ export const mhdTrainingQueryKeys = {
   selfEnrollments: (input: MhdListTrainingSelfEnrollmentsInput) =>
     ['mhd-training', 'self-enrollments', input] as const,
   courseContentTree: (courseId: string) => ['mhd-training', 'content-tree', courseId] as const,
-  blockProgress: (assignmentId: string) => ['mhd-training', 'block-progress', assignmentId] as const,
+  blockProgress: (assignmentId: string) =>
+    ['mhd-training', 'block-progress', assignmentId] as const,
   timeOnTask: (filters: MhdTrainingTimeOnTaskFilters) =>
     ['mhd-training', 'time-on-task', filters] as const,
   learnerExport: (personId: string) => ['mhd-training', 'learner-export', personId] as const,
   externalAuditorReport: (grantId: string) =>
     ['mhd-training', 'external-auditor-report', grantId] as const,
+  pointsBalance: (personId: string) => ['mhd-training', 'points-balance', personId] as const,
+  badges: (companyId: string | null) => ['mhd-training', 'badges', companyId ?? 'ALL'] as const,
+  leaderboard: (input: MhdTrainingLeaderboardInput) =>
+    ['mhd-training', 'leaderboard', input] as const,
+  contentFlags: (input: MhdListContentFlagsInput) =>
+    ['mhd-training', 'content-flags', input] as const,
+  peerReviews: (input: MhdListTrainingPeerReviewsInput) =>
+    ['mhd-training', 'peer-reviews', input] as const,
+  feedbackSummary: (courseId: string) => ['mhd-training', 'feedback-summary', courseId] as const,
 };
 
 export function useMhdTrainingCourseContentTree(courseId: string | null) {
@@ -85,7 +106,9 @@ export function useMhdStartTrainingBlock() {
     mutationFn: (input: { assignmentId: string; blockId: string }) =>
       mhdTrainingService.startBlock(input.assignmentId, input.blockId),
     onSuccess: (_data, input) => {
-      void queryClient.invalidateQueries({ queryKey: mhdTrainingQueryKeys.blockProgress(input.assignmentId) });
+      void queryClient.invalidateQueries({
+        queryKey: mhdTrainingQueryKeys.blockProgress(input.assignmentId),
+      });
     },
   });
 }
@@ -93,10 +116,15 @@ export function useMhdStartTrainingBlock() {
 export function useMhdCompleteTrainingBlock() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: { assignmentId: string; blockId: string; response?: Record<string, unknown> }) =>
-      mhdTrainingService.completeBlock(input.assignmentId, input.blockId, input.response),
+    mutationFn: (input: {
+      assignmentId: string;
+      blockId: string;
+      response?: Record<string, unknown>;
+    }) => mhdTrainingService.completeBlock(input.assignmentId, input.blockId, input.response),
     onSuccess: (_data, input) => {
-      void queryClient.invalidateQueries({ queryKey: mhdTrainingQueryKeys.blockProgress(input.assignmentId) });
+      void queryClient.invalidateQueries({
+        queryKey: mhdTrainingQueryKeys.blockProgress(input.assignmentId),
+      });
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'assignments'] });
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'completions'] });
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'compliance'] });
@@ -503,5 +531,126 @@ export function useMhdTrainingPeople(companyId: string | null) {
     // wants the whole company roster, so searchTerm is blank.
     queryFn: () => mhdPersonService.listPeople({ companyId: companyId!, searchTerm: '' }),
     enabled: Boolean(companyId),
+  });
+}
+
+export function useMhdTrainingPointsBalance(personId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.pointsBalance(personId ?? ''),
+    queryFn: () => mhdTrainingService.pointsBalance(personId!),
+    enabled: Boolean(personId),
+  });
+}
+export function useMhdTrainingBadges(companyId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.badges(companyId),
+    queryFn: () => mhdTrainingService.listBadges(companyId!),
+    enabled: Boolean(companyId),
+  });
+}
+export function useMhdCreateTrainingBadge() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateTrainingBadgeInput) => mhdTrainingService.createBadge(input),
+    onSuccess: (_data, input) => {
+      void queryClient.invalidateQueries({
+        queryKey: mhdTrainingQueryKeys.badges(input.companyId),
+      });
+    },
+  });
+}
+export function useMhdAwardTrainingBadge() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdAwardTrainingBadgeInput) => mhdTrainingService.awardBadge(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'points-balance'] });
+    },
+  });
+}
+export function useMhdSetTrainingLeaderboardOptIn() {
+  return useMutation({
+    mutationFn: (input: MhdSetTrainingLeaderboardOptInInput) =>
+      mhdTrainingService.setLeaderboardOptIn(input),
+  });
+}
+export function useMhdTrainingLeaderboard(input: MhdTrainingLeaderboardInput) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.leaderboard(input),
+    queryFn: () => mhdTrainingService.leaderboard(input),
+    enabled: Boolean(input.companyId),
+  });
+}
+export function useMhdCreateContentFlag() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateContentFlagInput) => mhdTrainingService.createContentFlag(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'content-flags'] });
+    },
+  });
+}
+export function useMhdContentFlags(input: MhdListContentFlagsInput) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.contentFlags(input),
+    queryFn: () => mhdTrainingService.listContentFlags(input),
+    enabled: Boolean(input.companyId),
+  });
+}
+export function useMhdResolveContentFlag() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdResolveContentFlagInput) => mhdTrainingService.resolveContentFlag(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'content-flags'] });
+    },
+  });
+}
+export function useMhdAssignTrainingPeerReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdAssignTrainingPeerReviewInput) =>
+      mhdTrainingService.assignPeerReview(input),
+    onSuccess: (_data, input) => {
+      void queryClient.invalidateQueries({
+        queryKey: mhdTrainingQueryKeys.peerReviews({ blockProgressId: input.blockProgressId }),
+      });
+    },
+  });
+}
+export function useMhdSubmitTrainingPeerReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdSubmitTrainingPeerReviewInput) =>
+      mhdTrainingService.submitPeerReview(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'peer-reviews'] });
+    },
+  });
+}
+export function useMhdTrainingPeerReviews(input: MhdListTrainingPeerReviewsInput) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.peerReviews(input),
+    queryFn: () => mhdTrainingService.listPeerReviews(input),
+    enabled: Boolean(input.blockProgressId),
+  });
+}
+export function useMhdSubmitTrainingCourseFeedback() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdSubmitTrainingCourseFeedbackInput) =>
+      mhdTrainingService.submitCourseFeedback(input),
+    onSuccess: (_data, input) => {
+      void queryClient.invalidateQueries({
+        queryKey: mhdTrainingQueryKeys.feedbackSummary(input.courseId),
+      });
+    },
+  });
+}
+export function useMhdTrainingCourseFeedbackSummary(courseId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.feedbackSummary(courseId ?? ''),
+    queryFn: () => mhdTrainingService.courseFeedbackSummary(courseId!),
+    enabled: Boolean(courseId),
   });
 }
