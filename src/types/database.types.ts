@@ -23284,6 +23284,42 @@ export type Database = {
           },
         ]
       }
+      training_content_licenses: {
+        Row: {
+          company_id: string
+          course_id: string
+          expires_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          course_id: string
+          expires_at: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          course_id?: string
+          expires_at?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_content_licenses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_content_licenses_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_course_feedback: {
         Row: {
           comments: string | null
@@ -23511,7 +23547,9 @@ export type Database = {
           recurrence_months: number | null
           reference_id: string
           requires_evidence: boolean
+          retired_at: string | null
           source_course_id: string | null
+          successor_course_id: string | null
           template_id: string | null
           title: string
           updated_at: string | null
@@ -23536,7 +23574,9 @@ export type Database = {
           recurrence_months?: number | null
           reference_id: string
           requires_evidence?: boolean
+          retired_at?: string | null
           source_course_id?: string | null
+          successor_course_id?: string | null
           template_id?: string | null
           title: string
           updated_at?: string | null
@@ -23561,7 +23601,9 @@ export type Database = {
           recurrence_months?: number | null
           reference_id?: string
           requires_evidence?: boolean
+          retired_at?: string | null
           source_course_id?: string | null
+          successor_course_id?: string | null
           template_id?: string | null
           title?: string
           updated_at?: string | null
@@ -23591,6 +23633,13 @@ export type Database = {
           {
             foreignKeyName: "training_courses_source_course_id_fkey"
             columns: ["source_course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_courses_successor_course_id_fkey"
+            columns: ["successor_course_id"]
             isOneToOne: false
             referencedRelation: "training_courses"
             referencedColumns: ["id"]
@@ -32768,6 +32817,18 @@ export type Database = {
         Args: { p_assignment_id: string; p_block_id: string }
         Returns: undefined
       }
+      mhd_training_bulk_assign: {
+        Args: {
+          p_company_id: string
+          p_course_id: string
+          p_due_date?: string
+          p_person_ids: string[]
+        }
+        Returns: {
+          assignment_id: string
+          person_id: string
+        }[]
+      }
       mhd_training_cancel_assignment: {
         Args: { p_assignment_id: string }
         Returns: undefined
@@ -32864,6 +32925,14 @@ export type Database = {
         Args: { p_course_id: string; p_review_notes?: string }
         Returns: undefined
       }
+      mhd_training_content_license_set: {
+        Args: {
+          p_company_id: string
+          p_course_id: string
+          p_expires_at: string
+        }
+        Returns: undefined
+      }
       mhd_training_content_publish: {
         Args: { p_course_id: string }
         Returns: undefined
@@ -32938,6 +33007,10 @@ export type Database = {
           requires_evidence: boolean
           title: string
         }[]
+      }
+      mhd_training_course_retire: {
+        Args: { p_course_id: string; p_successor_course_id?: string }
+        Returns: undefined
       }
       mhd_training_course_set_active: {
         Args: { p_course_id: string; p_is_active: boolean }
@@ -33069,6 +33142,18 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_training_manager_team_status: {
+        Args: { p_manager_person_id: string }
+        Returns: {
+          compliance_status: string
+          course_id: string
+          course_title: string
+          due_date: string
+          person_display_name: string
+          person_id: string
+          status: string
+        }[]
+      }
       mhd_training_module_create: {
         Args: {
           p_course_id: string
@@ -33159,6 +33244,10 @@ export type Database = {
           id: string
           reference_id: string
         }[]
+      }
+      mhd_training_resolve_active_successor: {
+        Args: { p_course_id: string }
+        Returns: string
       }
       mhd_training_self_enroll_decide: {
         Args: { p_approve: boolean; p_notes?: string; p_request_id: string }

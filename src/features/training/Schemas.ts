@@ -152,6 +152,32 @@ export const mhdAssignTrainingSchema = z.object({
   isEmergencyPriority: z.boolean().optional(),
 });
 
+export const mhdRetireTrainingCourseSchema = z.object({
+  courseId: z.string().trim().min(1, 'Choose a course to retire.'),
+  successorCourseId: z.string().trim().min(1).optional().nullable(),
+});
+
+export const mhdResolveActiveSuccessorSchema = z.object({
+  courseId: z.string().trim().min(1, 'Choose a course.'),
+});
+
+export const mhdSetTrainingContentLicenseSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  courseId: z.string().trim().min(1, 'Choose a global course.'),
+  expiresAt: z.string().datetime({ offset: true }),
+});
+
+export const mhdTrainingManagerTeamStatusSchema = z.object({
+  managerPersonId: z.string().trim().min(1, 'Choose a manager.'),
+});
+
+export const mhdBulkAssignTrainingSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  courseId: z.string().trim().min(1, 'Choose a course to assign.'),
+  personIds: z.array(z.string().trim().min(1)).min(1, 'Choose at least one person.'),
+  dueDate: z.string().trim().optional().nullable(),
+});
+
 export const mhdSendTrainingDeadlineRemindersSchema = z.object({
   companyId: z.string().trim().min(1, 'Company is required.'),
   daysBefore: z.coerce.number().int().default(7),
@@ -354,6 +380,17 @@ export const mhdTrainingForkStateSchema = z.enum(MHD_TRAINING_FORK_STATES);
 
 export type MhdTrainingCourseFormValues = z.infer<typeof mhdTrainingCourseFormSchema>;
 export type MhdAssignTrainingFormValues = z.infer<typeof mhdAssignTrainingSchema>;
+export type MhdRetireTrainingCourseFormValues = z.infer<typeof mhdRetireTrainingCourseSchema>;
+export type MhdResolveActiveSuccessorFormValues = z.infer<
+  typeof mhdResolveActiveSuccessorSchema
+>;
+export type MhdSetTrainingContentLicenseFormValues = z.infer<
+  typeof mhdSetTrainingContentLicenseSchema
+>;
+export type MhdTrainingManagerTeamStatusFormValues = z.infer<
+  typeof mhdTrainingManagerTeamStatusSchema
+>;
+export type MhdBulkAssignTrainingFormValues = z.infer<typeof mhdBulkAssignTrainingSchema>;
 export type MhdCreateTrainingComplianceRuleFormValues = z.infer<
   typeof mhdCreateTrainingComplianceRuleSchema
 >;

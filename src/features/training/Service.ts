@@ -28,6 +28,11 @@ import type {
   MhdTrainingMutationRpcRow,
   MhdRecordAdminCompletionInput,
   MhdSetCourseActiveInput,
+  MhdRetireTrainingCourseInput,
+  MhdResolveActiveSuccessorInput,
+  MhdSetTrainingContentLicenseInput,
+  MhdTrainingManagerTeamStatusInput,
+  MhdBulkAssignTrainingInput,
   MhdTrainingAssignment,
   MhdTrainingAssignmentFilters,
   MhdTrainingAssignmentRpcRow,
@@ -52,6 +57,10 @@ import type {
   MhdTrainingCourse,
   MhdTrainingCourseFilters,
   MhdTrainingCourseRpcRow,
+  MhdTrainingManagerTeamStatusRpcRow,
+  MhdTrainingManagerTeamStatusRow,
+  MhdTrainingBulkAssignRpcRow,
+  MhdTrainingBulkAssignResult,
   MhdTrainingCurriculum,
   MhdTrainingCurriculumRpcRow,
   MhdTrainingProgram,
@@ -163,6 +172,24 @@ function mapCourse(row: MhdTrainingCourseRpcRow): MhdTrainingCourse {
     contentVersion: mhdToNumber(row.content_version),
     approvalStatus: row.approval_status as MhdTrainingCourse['approvalStatus'],
   };
+}
+
+function mapManagerTeamStatus(
+  row: MhdTrainingManagerTeamStatusRpcRow,
+): MhdTrainingManagerTeamStatusRow {
+  return {
+    personId: row.person_id,
+    personDisplayName: row.person_display_name,
+    courseId: row.course_id,
+    courseTitle: row.course_title,
+    status: row.status as MhdTrainingManagerTeamStatusRow['status'],
+    complianceStatus: row.compliance_status as MhdTrainingManagerTeamStatusRow['complianceStatus'],
+    dueDate: row.due_date,
+  };
+}
+
+function mapBulkAssignResult(row: MhdTrainingBulkAssignRpcRow): MhdTrainingBulkAssignResult {
+  return { personId: row.person_id, assignmentId: row.assignment_id };
 }
 
 function mapCurriculum(row: MhdTrainingCurriculumRpcRow): MhdTrainingCurriculum {
@@ -654,6 +681,31 @@ export const mhdTrainingService = {
     if (error) throw error;
   },
 
+  async retireCourse(input: MhdRetireTrainingCourseInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_course_retire', {
+      p_course_id: input.courseId,
+      p_successor_course_id: input.successorCourseId ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async resolveActiveSuccessor(input: MhdResolveActiveSuccessorInput): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_resolve_active_successor', {
+      p_course_id: input.courseId,
+    });
+    if (error) throw error;
+    return data as string;
+  },
+
+  async setContentLicense(input: MhdSetTrainingContentLicenseInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_content_license_set', {
+      p_company_id: input.companyId,
+      p_course_id: input.courseId,
+      p_expires_at: input.expiresAt,
+    });
+    if (error) throw error;
+  },
+
   // ----- Assignments -----
 
   /**
@@ -675,6 +727,27 @@ export const mhdTrainingService = {
     const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
     if (!row) throw new Error('Training assignment returned no row.');
     return mapMutationResult(row);
+  },
+
+  async bulkAssign(input: MhdBulkAssignTrainingInput): Promise<MhdTrainingBulkAssignResult[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_bulk_assign', {
+      p_company_id: input.companyId,
+      p_course_id: input.courseId,
+      p_person_ids: input.personIds,
+      p_due_date: input.dueDate ?? undefined,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingBulkAssignRpcRow[]).map(mapBulkAssignResult);
+  },
+
+  async managerTeamStatus(
+    input: MhdTrainingManagerTeamStatusInput,
+  ): Promise<MhdTrainingManagerTeamStatusRow[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_manager_team_status', {
+      p_manager_person_id: input.managerPersonId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingManagerTeamStatusRpcRow[]).map(mapManagerTeamStatus);
   },
 
   /**

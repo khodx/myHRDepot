@@ -85,6 +85,94 @@ describe('mhdTrainingService — catalog mapping', () => {
   });
 });
 
+describe('mhdTrainingService — LMS v2 lifecycle and access RPCs', () => {
+  it('retires a course with an optional successor', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: null });
+
+    await mhdTrainingService.retireCourse({
+      courseId: 'course-old',
+      successorCourseId: 'course-new',
+    });
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_training_course_retire', {
+      p_course_id: 'course-old',
+      p_successor_course_id: 'course-new',
+    });
+  });
+
+  it('resolves the active successor and sets a global-course license', async () => {
+    rpcMock
+      .mockResolvedValueOnce({ data: 'course-new', error: null })
+      .mockResolvedValueOnce({ data: null, error: null });
+
+    await expect(
+      mhdTrainingService.resolveActiveSuccessor({ courseId: 'course-old' }),
+    ).resolves.toBe('course-new');
+    await mhdTrainingService.setContentLicense({
+      companyId: 'company-1',
+      courseId: 'course-global',
+      expiresAt: '2027-01-01T00:00:00Z',
+    });
+
+    expect(rpcMock).toHaveBeenLastCalledWith('mhd_training_content_license_set', {
+      p_company_id: 'company-1',
+      p_course_id: 'course-global',
+      p_expires_at: '2027-01-01T00:00:00Z',
+    });
+  });
+
+  it('maps manager visibility rows and bulk assignment results without adding write semantics', async () => {
+    rpcMock
+      .mockResolvedValueOnce({
+        data: [
+          {
+            person_id: 'person-1',
+            person_display_name: 'Dana Doe',
+            course_id: 'course-1',
+            course_title: 'Safety',
+            status: 'ASSIGNED',
+            compliance_status: 'OVERDUE',
+            due_date: '2026-10-01',
+          },
+        ],
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: [{ person_id: 'person-1', assignment_id: 'assignment-1' }],
+        error: null,
+      });
+
+    await expect(
+      mhdTrainingService.managerTeamStatus({ managerPersonId: 'manager-1' }),
+    ).resolves.toEqual([
+      {
+        personId: 'person-1',
+        personDisplayName: 'Dana Doe',
+        courseId: 'course-1',
+        courseTitle: 'Safety',
+        status: 'ASSIGNED',
+        complianceStatus: 'OVERDUE',
+        dueDate: '2026-10-01',
+      },
+    ]);
+    await expect(
+      mhdTrainingService.bulkAssign({
+        companyId: 'company-1',
+        courseId: 'course-1',
+        personIds: ['person-1'],
+        dueDate: null,
+      }),
+    ).resolves.toEqual([{ personId: 'person-1', assignmentId: 'assignment-1' }]);
+
+    expect(rpcMock).toHaveBeenLastCalledWith('mhd_training_bulk_assign', {
+      p_company_id: 'company-1',
+      p_course_id: 'course-1',
+      p_person_ids: ['person-1'],
+      p_due_date: undefined,
+    });
+  });
+});
+
 describe('mhdTrainingService — server-derived compliance passthrough', () => {
   it('returns the scalar count from deadline reminder dispatch', async () => {
     rpcMock.mockResolvedValueOnce({ data: 3, error: null });

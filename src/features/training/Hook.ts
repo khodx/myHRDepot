@@ -23,6 +23,10 @@ import type {
   MhdPrerequisiteInput,
   MhdRecordAdminCompletionInput,
   MhdSetCourseActiveInput,
+  MhdRetireTrainingCourseInput,
+  MhdSetTrainingContentLicenseInput,
+  MhdBulkAssignTrainingInput,
+  MhdTrainingManagerTeamStatusInput,
   MhdTrainingAssignmentFilters,
   MhdTrainingComplianceMatrixFilters,
   MhdTrainingCourseFilters,
@@ -82,6 +86,9 @@ export const mhdTrainingQueryKeys = {
   peerReviews: (input: MhdListTrainingPeerReviewsInput) =>
     ['mhd-training', 'peer-reviews', input] as const,
   feedbackSummary: (courseId: string) => ['mhd-training', 'feedback-summary', courseId] as const,
+  activeSuccessor: (courseId: string) => ['mhd-training', 'active-successor', courseId] as const,
+  managerTeamStatus: (input: MhdTrainingManagerTeamStatusInput) =>
+    ['mhd-training', 'manager-team-status', input] as const,
 };
 
 export function useMhdTrainingCourseContentTree(courseId: string | null) {
@@ -272,6 +279,33 @@ export function useMhdSetTrainingCourseActive() {
   });
 }
 
+export function useMhdRetireTrainingCourse() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdRetireTrainingCourseInput) => mhdTrainingService.retireCourse(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'courses'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'assignments'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'compliance-matrix'] });
+    },
+  });
+}
+
+export function useMhdResolveActiveTrainingSuccessor(courseId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.activeSuccessor(courseId ?? ''),
+    queryFn: () => mhdTrainingService.resolveActiveSuccessor({ courseId: courseId! }),
+    enabled: Boolean(courseId),
+  });
+}
+
+export function useMhdSetTrainingContentLicense() {
+  return useMutation({
+    mutationFn: (input: MhdSetTrainingContentLicenseInput) =>
+      mhdTrainingService.setContentLicense(input),
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Assignments
 // ---------------------------------------------------------------------------
@@ -304,6 +338,26 @@ export function useMhdAssignTraining() {
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'assignments'] });
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'compliance-matrix'] });
     },
+  });
+}
+
+export function useMhdBulkAssignTraining() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdBulkAssignTrainingInput) => mhdTrainingService.bulkAssign(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'assignments'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'compliance-matrix'] });
+    },
+  });
+}
+
+export function useMhdTrainingManagerTeamStatus(managerPersonId: string | null) {
+  const input = { managerPersonId: managerPersonId ?? '' };
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.managerTeamStatus(input),
+    queryFn: () => mhdTrainingService.managerTeamStatus({ managerPersonId: managerPersonId! }),
+    enabled: Boolean(managerPersonId),
   });
 }
 

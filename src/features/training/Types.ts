@@ -42,6 +42,21 @@ export interface MhdTrainingCourseRpcRow {
   approval_status: string;
 }
 
+export interface MhdTrainingManagerTeamStatusRpcRow {
+  person_id: string;
+  person_display_name: string;
+  course_id: string;
+  course_title: string;
+  status: string;
+  compliance_status: string;
+  due_date: string | null;
+}
+
+export interface MhdTrainingBulkAssignRpcRow {
+  person_id: string;
+  assignment_id: string;
+}
+
 export interface MhdTrainingCurriculumRpcRow {
   id: string;
   reference_id: string;
@@ -435,6 +450,21 @@ export interface MhdTrainingCourse {
   forkState: MhdTrainingForkState;
   contentVersion: number;
   approvalStatus: MhdTrainingApprovalStatus;
+}
+
+export interface MhdTrainingManagerTeamStatusRow {
+  personId: string;
+  personDisplayName: string;
+  courseId: MhdTrainingCourseId;
+  courseTitle: string;
+  status: MhdTrainingAssignmentStatus;
+  complianceStatus: MhdTrainingComplianceStatus;
+  dueDate: string | null;
+}
+
+export interface MhdTrainingBulkAssignResult {
+  personId: string;
+  assignmentId: MhdTrainingAssignmentId;
 }
 
 export interface MhdTrainingCurriculum {
@@ -850,6 +880,32 @@ export interface MhdUpdateCourseInput {
 export interface MhdSetCourseActiveInput {
   courseId: MhdTrainingCourseId;
   isActive: boolean;
+}
+
+export interface MhdRetireTrainingCourseInput {
+  courseId: MhdTrainingCourseId;
+  successorCourseId?: MhdTrainingCourseId | null;
+}
+
+export interface MhdResolveActiveSuccessorInput {
+  courseId: MhdTrainingCourseId;
+}
+
+export interface MhdSetTrainingContentLicenseInput {
+  companyId: string;
+  courseId: MhdTrainingCourseId;
+  expiresAt: string;
+}
+
+export interface MhdTrainingManagerTeamStatusInput {
+  managerPersonId: string;
+}
+
+export interface MhdBulkAssignTrainingInput {
+  companyId: string;
+  courseId: MhdTrainingCourseId;
+  personIds: string[];
+  dueDate?: string | null;
 }
 
 export interface MhdAssignTrainingInput {

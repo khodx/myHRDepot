@@ -9,6 +9,9 @@ import {
   mhdTrainingCourseFormSchema,
   mhdWaiveAssignmentSchema,
   mhdSendTrainingDeadlineRemindersSchema,
+  mhdRetireTrainingCourseSchema,
+  mhdSetTrainingContentLicenseSchema,
+  mhdBulkAssignTrainingSchema,
 } from '../Schemas';
 
 describe('training course form schema', () => {
@@ -172,5 +175,33 @@ describe('training assignment / waiver / admin-completion schemas', () => {
         completedAt: '',
       }),
     ).toThrow('A completion date is required.');
+  });
+});
+
+describe('training lifecycle and access schemas', () => {
+  it('accepts an optional successor when retiring a course', () => {
+    expect(
+      mhdRetireTrainingCourseSchema.parse({
+        courseId: 'course-old',
+        successorCourseId: 'course-new',
+      }),
+    ).toEqual({ courseId: 'course-old', successorCourseId: 'course-new' });
+  });
+
+  it('requires an offset-aware license expiry and at least one bulk-assignment person', () => {
+    expect(() =>
+      mhdSetTrainingContentLicenseSchema.parse({
+        companyId: 'company-1',
+        courseId: 'course-1',
+        expiresAt: '2027-01-01',
+      }),
+    ).toThrow();
+    expect(() =>
+      mhdBulkAssignTrainingSchema.parse({
+        companyId: 'company-1',
+        courseId: 'course-1',
+        personIds: [],
+      }),
+    ).toThrow('Choose at least one person.');
   });
 });
