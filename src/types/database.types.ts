@@ -24201,6 +24201,196 @@ export type Database = {
           },
         ]
       }
+      training_scenario_ai_turns: {
+        Row: {
+          block_progress_id: string
+          created_at: string
+          id: string
+          message: string
+          node_id: string
+          role: string
+          turn_number: number
+        }
+        Insert: {
+          block_progress_id: string
+          created_at?: string
+          id?: string
+          message: string
+          node_id: string
+          role: string
+          turn_number: number
+        }
+        Update: {
+          block_progress_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          node_id?: string
+          role?: string
+          turn_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_scenario_ai_turns_block_progress_id_fkey"
+            columns: ["block_progress_id"]
+            isOneToOne: false
+            referencedRelation: "training_block_progress"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_scenario_ai_turns_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "training_scenario_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_scenario_choices: {
+        Row: {
+          feedback_text: string | null
+          id: string
+          label: string
+          next_node_id: string | null
+          node_id: string
+          score_delta: number | null
+          sort_order: number
+        }
+        Insert: {
+          feedback_text?: string | null
+          id?: string
+          label: string
+          next_node_id?: string | null
+          node_id: string
+          score_delta?: number | null
+          sort_order?: number
+        }
+        Update: {
+          feedback_text?: string | null
+          id?: string
+          label?: string
+          next_node_id?: string | null
+          node_id?: string
+          score_delta?: number | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_scenario_choices_next_node_id_fkey"
+            columns: ["next_node_id"]
+            isOneToOne: false
+            referencedRelation: "training_scenario_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_scenario_choices_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "training_scenario_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_scenario_nodes: {
+        Row: {
+          block_id: string
+          content: Json
+          created_at: string | null
+          created_by: string
+          id: string
+          is_start: boolean
+          is_terminal: boolean
+          node_key: string
+          node_type: string
+          scenario_contract: Json | null
+        }
+        Insert: {
+          block_id: string
+          content?: Json
+          created_at?: string | null
+          created_by: string
+          id?: string
+          is_start?: boolean
+          is_terminal?: boolean
+          node_key: string
+          node_type?: string
+          scenario_contract?: Json | null
+        }
+        Update: {
+          block_id?: string
+          content?: Json
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          is_start?: boolean
+          is_terminal?: boolean
+          node_key?: string
+          node_type?: string
+          scenario_contract?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_scenario_nodes_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "training_blocks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_scenario_nodes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_scenario_paths: {
+        Row: {
+          block_progress_id: string
+          choice_id: string | null
+          id: string
+          node_id: string
+          visited_at: string
+        }
+        Insert: {
+          block_progress_id: string
+          choice_id?: string | null
+          id?: string
+          node_id: string
+          visited_at?: string
+        }
+        Update: {
+          block_progress_id?: string
+          choice_id?: string | null
+          id?: string
+          node_id?: string
+          visited_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_scenario_paths_block_progress_id_fkey"
+            columns: ["block_progress_id"]
+            isOneToOne: false
+            referencedRelation: "training_block_progress"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_scenario_paths_choice_id_fkey"
+            columns: ["choice_id"]
+            isOneToOne: false
+            referencedRelation: "training_scenario_choices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_scenario_paths_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "training_scenario_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_self_enrollment_requests: {
         Row: {
           company_id: string
@@ -33052,6 +33242,7 @@ export type Database = {
         Returns: {
           block_id: string
           completed_at: string
+          id: string
           response: Json
           started_at: string
           status: string
@@ -33557,6 +33748,66 @@ export type Database = {
       mhd_training_resolve_active_successor: {
         Args: { p_course_id: string }
         Returns: string
+      }
+      mhd_training_scenario_ai_respond: {
+        Args: {
+          p_block_progress_id: string
+          p_learner_message: string
+          p_node_id: string
+        }
+        Returns: {
+          ai_available: boolean
+          learner_turn_recorded: boolean
+          message: string
+        }[]
+      }
+      mhd_training_scenario_ai_transcript: {
+        Args: { p_block_progress_id: string }
+        Returns: {
+          created_at: string
+          message: string
+          role: string
+          turn_number: number
+        }[]
+      }
+      mhd_training_scenario_choice_create: {
+        Args: {
+          p_feedback_text?: string
+          p_label: string
+          p_next_node_id?: string
+          p_node_id: string
+          p_score_delta?: number
+          p_sort_order?: number
+        }
+        Returns: {
+          id: string
+        }[]
+      }
+      mhd_training_scenario_graph: {
+        Args: { p_block_id: string }
+        Returns: Json
+      }
+      mhd_training_scenario_node_create: {
+        Args: {
+          p_block_id: string
+          p_content?: Json
+          p_is_start?: boolean
+          p_is_terminal?: boolean
+          p_node_key: string
+          p_node_type?: string
+          p_scenario_contract?: Json
+        }
+        Returns: {
+          id: string
+        }[]
+      }
+      mhd_training_scenario_record_visit: {
+        Args: {
+          p_block_progress_id: string
+          p_choice_id?: string
+          p_node_id: string
+        }
+        Returns: undefined
       }
       mhd_training_self_enroll_decide: {
         Args: { p_approve: boolean; p_notes?: string; p_request_id: string }

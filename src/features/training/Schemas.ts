@@ -549,11 +549,46 @@ export const mhdTrainingVideoUploadSchema = z
   });
 
 export const mhdTrainingBlockProgressSchema = z.object({
+  id: z.string(),
   block_id: z.string(),
   status: mhdTrainingProgressStatusSchema,
   response: z.record(z.string(), z.unknown()).nullable(),
   started_at: z.string().nullable(),
   completed_at: z.string().nullable(),
+});
+
+export const mhdTrainingScenarioChoiceSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  nextNodeId: z.string().nullable(),
+  feedbackText: z.string().nullable(),
+  scoreDelta: z.number().nullable(),
+});
+
+export const mhdTrainingScenarioNodeSchema = z.object({
+  id: z.string(),
+  nodeKey: z.string(),
+  nodeType: z.string(),
+  content: z.record(z.string(), z.unknown()),
+  scenarioContract: z.record(z.string(), z.unknown()).nullable(),
+  isStart: z.boolean(),
+  isTerminal: z.boolean(),
+  choices: z.array(mhdTrainingScenarioChoiceSchema),
+});
+
+export const mhdTrainingScenarioGraphSchema = z.array(mhdTrainingScenarioNodeSchema);
+
+export const mhdTrainingScenarioAiResponseSchema = z.object({
+  learner_turn_recorded: z.boolean(),
+  ai_available: z.boolean(),
+  message: z.string(),
+});
+
+export const mhdTrainingScenarioAiTranscriptSchema = z.object({
+  turn_number: z.number(),
+  role: z.string(),
+  message: z.string(),
+  created_at: z.string(),
 });
 
 export type MhdTrainingContentTreeValues = z.infer<typeof mhdTrainingContentTreeSchema>;

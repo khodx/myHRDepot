@@ -8,6 +8,9 @@ import { mhdToNumber } from './Types';
 import {
   mhdTrainingContentTreeSchema,
   mhdTrainingBlockProgressSchema,
+  mhdTrainingScenarioGraphSchema,
+  mhdTrainingScenarioAiResponseSchema,
+  mhdTrainingScenarioAiTranscriptSchema,
   mhdTrainingVideoUploadSchema,
 } from './Schemas';
 import {
@@ -89,6 +92,13 @@ import type {
   MhdTrainingContentTree,
   MhdTrainingBlockProgress,
   MhdTrainingBlockCompletionResult,
+  MhdTrainingScenarioGraph,
+  MhdTrainingScenarioAiResponse,
+  MhdTrainingScenarioAiTurn,
+  MhdCreateTrainingScenarioNodeInput,
+  MhdCreateTrainingScenarioChoiceInput,
+  MhdRecordTrainingScenarioVisitInput,
+  MhdRespondToTrainingScenarioAiInput,
   MhdTrainingVideoUploadFunctionResponse,
   MhdTrainingVideoUploadResult,
   MhdTrainingVideoUploadRequest,
@@ -551,6 +561,80 @@ export const mhdTrainingService = {
     return mhdTrainingContentTreeSchema.parse(data ?? []);
   },
 
+  async getScenarioGraph(blockId: string): Promise<MhdTrainingScenarioGraph> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_scenario_graph', {
+      p_block_id: blockId,
+    });
+    if (error) throw error;
+    return mhdTrainingScenarioGraphSchema.parse(data ?? []);
+  },
+
+  async recordScenarioVisit(input: MhdRecordTrainingScenarioVisitInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_scenario_record_visit', {
+      p_block_progress_id: input.blockProgressId,
+      p_node_id: input.nodeId,
+      p_choice_id: input.choiceId ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async respondToAiConversation(input: MhdRespondToTrainingScenarioAiInput): Promise<MhdTrainingScenarioAiResponse> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_scenario_ai_respond', {
+      p_block_progress_id: input.blockProgressId,
+      p_node_id: input.nodeId,
+      p_learner_message: input.learnerMessage,
+    });
+    if (error) throw error;
+    const row = mhdTrainingScenarioAiResponseSchema.parse(Array.isArray(data) ? data[0] : data);
+    return {
+      learnerTurnRecorded: row.learner_turn_recorded,
+      aiAvailable: row.ai_available,
+      message: row.message,
+    };
+  },
+
+  async getAiTranscript(blockProgressId: string): Promise<MhdTrainingScenarioAiTurn[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_scenario_ai_transcript', {
+      p_block_progress_id: blockProgressId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as unknown[]).map((value) => {
+      const row = mhdTrainingScenarioAiTranscriptSchema.parse(value);
+      return { turnNumber: row.turn_number, role: row.role, message: row.message, createdAt: row.created_at };
+    });
+  },
+
+  async createScenarioNode(input: MhdCreateTrainingScenarioNodeInput): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_scenario_node_create', {
+      p_block_id: input.blockId,
+      p_node_key: input.nodeKey,
+      p_content: (input.content ?? {}) as Json,
+      p_is_start: input.isStart ?? false,
+      p_is_terminal: input.isTerminal ?? false,
+      p_node_type: input.nodeType ?? 'AUTHORED',
+      p_scenario_contract: (input.scenarioContract ?? null) as Json,
+    });
+    if (error) throw error;
+    const row = (Array.isArray(data) ? data[0] : data) as { id?: string } | null;
+    if (!row?.id) throw new Error('Scenario node create returned no id.');
+    return row.id;
+  },
+
+  async createScenarioChoice(input: MhdCreateTrainingScenarioChoiceInput): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_scenario_choice_create', {
+      p_node_id: input.nodeId,
+      p_label: input.label,
+      p_next_node_id: input.nextNodeId ?? undefined,
+      p_feedback_text: input.feedbackText ?? undefined,
+      p_score_delta: input.scoreDelta ?? undefined,
+      p_sort_order: input.sortOrder ?? 0,
+    });
+    if (error) throw error;
+    const row = (Array.isArray(data) ? data[0] : data) as { id?: string } | null;
+    if (!row?.id) throw new Error('Scenario choice create returned no id.');
+    return row.id;
+  },
+
   async uploadVideo(request: MhdTrainingVideoUploadRequest): Promise<MhdTrainingVideoUploadResult> {
     const { blockId, file } = mhdTrainingVideoUploadSchema.parse(request);
 
@@ -602,6 +686,7 @@ export const mhdTrainingService = {
     return ((data ?? []) as unknown[]).map((value) => {
       const row = mhdTrainingBlockProgressSchema.parse(value);
       return {
+        id: row.id,
         blockId: row.block_id,
         status: row.status,
         response: row.response,

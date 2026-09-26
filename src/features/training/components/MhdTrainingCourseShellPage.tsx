@@ -73,7 +73,7 @@ export function MhdTrainingCourseShellPage() {
           })}</div>)}
         </nav>
         <main className="min-w-0 space-y-3">
-          {currentBlock ? <MhdTrainingBlockRenderer block={currentBlock} onComplete={handleComplete} isCompleting={complete.isPending} /> : <p className="text-sm text-muted-foreground">This course has no content blocks yet.</p>}
+          {currentBlock ? <MhdTrainingBlockRenderer block={currentBlock} onComplete={handleComplete} isCompleting={complete.isPending} blockProgressId={progressByBlock.get(currentBlock.id)?.id} /> : <p className="text-sm text-muted-foreground">This course has no content blocks yet.</p>}
           {start.isError || complete.isError ? <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">{(start.error ?? complete.error) instanceof Error ? (start.error ?? complete.error)?.message : 'Unable to update this block.'}</p> : null}
           {complete.data?.courseCompleted ? <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800" role="status">Course complete. Your training and compliance records have been refreshed.</p> : null}
         </main>

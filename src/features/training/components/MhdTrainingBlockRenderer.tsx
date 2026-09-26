@@ -1,18 +1,26 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Download, LockKeyhole } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
-import type { MhdTrainingContentTreeBlock } from '../Types';
+import type { MhdTrainingContentTreeBlock, MhdTrainingScenarioAiTurn, MhdTrainingScenarioNode } from '../Types';
+import {
+  useMhdRecordTrainingScenarioVisit,
+  useMhdRespondToTrainingScenarioAi,
+  useMhdTrainingAiTranscript,
+  useMhdTrainingScenarioGraph,
+} from '../Hook';
 
 interface Props {
   block: MhdTrainingContentTreeBlock;
   onComplete: (response?: Record<string, unknown>) => void;
   isCompleting?: boolean;
+  blockProgressId?: string;
 }
 
 const supportedBlockTypes = new Set([
   'RICH_TEXT', 'IMAGE', 'VIDEO', 'FILE_DOWNLOAD', 'CALLOUT', 'CHECKLIST', 'TABLE',
   'KNOWLEDGE_CHECK', 'REFLECTION_PROMPT',
+  'SCENARIO_BRANCHING', 'AI_CONVERSATION',
 ]);
 
 function stringValue(value: unknown): string { return typeof value === 'string' ? value : ''; }
@@ -20,7 +28,7 @@ function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
-export function MhdTrainingBlockRenderer({ block, onComplete, isCompleting = false }: Props) {
+export function MhdTrainingBlockRenderer({ block, onComplete, isCompleting = false, blockProgressId }: Props) {
   const content = block.content;
   const title = block.title ?? block.blockType.replaceAll('_', ' ');
 
@@ -61,6 +69,12 @@ export function MhdTrainingBlockRenderer({ block, onComplete, isCompleting = fal
       return <KnowledgeCheck content={content} onComplete={onComplete} isCompleting={isCompleting} title={title} />;
     case 'REFLECTION_PROMPT':
       return <ReflectionPrompt content={content} onComplete={onComplete} isCompleting={isCompleting} title={title} />;
+    case 'SCENARIO_BRANCHING':
+      if (!blockProgressId) return <BlockFrame title={title}><p className="text-sm text-muted-foreground">Loading scenario…</p></BlockFrame>;
+      return <ScenarioBranching blockId={block.id} blockProgressId={blockProgressId} onComplete={onComplete} isCompleting={isCompleting} title={title} />;
+    case 'AI_CONVERSATION':
+      if (!blockProgressId) return <BlockFrame title={title}><p className="text-sm text-muted-foreground">Loading conversation…</p></BlockFrame>;
+      return <AiConversation blockId={block.id} blockProgressId={blockProgressId} onComplete={onComplete} isCompleting={isCompleting} title={title} />;
     default:
       return null;
   }
@@ -90,4 +104,87 @@ function KnowledgeCheck({ content, onComplete, isCompleting, title }: { content:
 function ReflectionPrompt({ content, onComplete, isCompleting, title }: { content: Record<string, unknown>; onComplete: Props['onComplete']; isCompleting: boolean; title: string }) {
   const [text, setText] = useState('');
   return <BlockFrame title={title}><p className="text-sm">{stringValue(content.prompt)}</p><textarea className="min-h-32 w-full rounded-md border border-border bg-background p-3 text-sm" value={text} onChange={(event) => setText(event.target.value)} placeholder="Write your reflection" /><Button onClick={() => onComplete({ text })} disabled={!text.trim() || isCompleting}>{isCompleting ? 'Saving…' : 'Save reflection and continue'}</Button></BlockFrame>;
+}
+
+function ScenarioBranching({ blockId, blockProgressId, onComplete, isCompleting, title }: { blockId: string; blockProgressId: string; onComplete: Props['onComplete']; isCompleting: boolean; title: string }) {
+  const graph = useMhdTrainingScenarioGraph(blockId);
+  const recordVisit = useMhdRecordTrainingScenarioVisit();
+  const startNode = graph.data?.find((node) => node.isStart) ?? null;
+  const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const recordedStart = useRef<string | null>(null);
+  const completedTerminal = useRef<string | null>(null);
+  const currentNode = graph.data?.find((node) => node.id === (currentNodeId ?? startNode?.id)) ?? startNode;
+
+  useEffect(() => {
+    if (!startNode) return;
+    if (recordedStart.current === `${blockProgressId}:${startNode.id}`) return;
+    recordedStart.current = `${blockProgressId}:${startNode.id}`;
+    void recordVisit.mutateAsync({ blockProgressId, nodeId: startNode.id, choiceId: null });
+  // A new graph represents a new arrival at its start node.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startNode?.id, blockProgressId]);
+
+  useEffect(() => {
+    if (currentNode?.isTerminal && completedTerminal.current !== currentNode.id) {
+      completedTerminal.current = currentNode.id;
+      onComplete();
+    }
+  }, [currentNode?.id, currentNode?.isTerminal, onComplete]);
+
+  const choose = async (choice: MhdTrainingScenarioNode['choices'][number]) => {
+    if (!currentNode || recordVisit.isPending) return;
+    setFeedback(choice.feedbackText);
+    await recordVisit.mutateAsync({ blockProgressId, nodeId: currentNode.id, choiceId: choice.id });
+    if (!choice.nextNodeId) {
+      onComplete({ choiceId: choice.id });
+      return;
+    }
+    setCurrentNodeId(choice.nextNodeId);
+  };
+
+  if (graph.isLoading) return <BlockFrame title={title}><p className="text-sm text-muted-foreground">Loading scenario…</p></BlockFrame>;
+  if (graph.isError) return <BlockFrame title={title}><p className="text-sm text-rose-600" role="alert">Unable to load this scenario.</p><CompleteButton onComplete={onComplete} isCompleting={isCompleting} /></BlockFrame>;
+  if (!currentNode) return <BlockFrame title={title}><p className="text-sm text-muted-foreground">This scenario has no start node.</p><CompleteButton onComplete={onComplete} isCompleting={isCompleting} /></BlockFrame>;
+  return <BlockFrame title={title}>
+    {feedback ? <p className="rounded-md bg-muted px-3 py-2 text-sm" role="status">{feedback}</p> : null}
+    <p className="text-sm">{stringValue(currentNode.content.text)}</p>
+    {!currentNode.isTerminal ? <div className="grid gap-2">{currentNode.choices.map((choice) => <Button key={choice.id} type="button" onClick={() => void choose(choice)} disabled={recordVisit.isPending}>{choice.label}</Button>)}</div> : null}
+    {recordVisit.isError ? <p className="text-sm text-rose-600" role="alert">Unable to record this scenario step.</p> : null}
+  </BlockFrame>;
+}
+
+function AiConversation({ blockId, blockProgressId, onComplete, isCompleting, title }: { blockId: string; blockProgressId: string; onComplete: Props['onComplete']; isCompleting: boolean; title: string }) {
+  const graph = useMhdTrainingScenarioGraph(blockId);
+  const node = graph.data?.find((item) => item.nodeType === 'AI_CONVERSATION') ?? graph.data?.[0] ?? null;
+  const transcript = useMhdTrainingAiTranscript(blockProgressId);
+  const respond = useMhdRespondToTrainingScenarioAi();
+  const [message, setMessage] = useState('');
+  const [localTurns, setLocalTurns] = useState<MhdTrainingScenarioAiTurn[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
+  const turns = localTurns.length > 0 ? localTurns : (transcript.data ?? []);
+
+  const send = async () => {
+    const learnerMessage = message.trim();
+    if (!learnerMessage || !node || respond.isPending) return;
+    setMessage('');
+    setLocalTurns((current) => {
+      const existing = current.length > 0 ? current : (transcript.data ?? []);
+      return [...existing, { turnNumber: existing.length + 1, role: 'LEARNER', message: learnerMessage, createdAt: new Date().toISOString() }];
+    });
+    const result = await respond.mutateAsync({ blockProgressId, nodeId: node.id, learnerMessage });
+    setNotice(result.message);
+  };
+
+  if (graph.isLoading || transcript.isLoading) return <BlockFrame title={title}><p className="text-sm text-muted-foreground">Loading conversation…</p></BlockFrame>;
+  if (graph.isError || transcript.isError || !node) return <BlockFrame title={title}><p className="text-sm text-rose-600" role="alert">Unable to load this conversation.</p><CompleteButton onComplete={onComplete} isCompleting={isCompleting} /></BlockFrame>;
+  const contract = node.scenarioContract ?? {};
+  return <BlockFrame title={title}>
+    <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm"><p className="font-medium">Conversation context</p>{(['persona', 'boundaries', 'redirect'] as const).map((key) => stringValue(contract[key]) ? <p key={key}><span className="font-medium capitalize">{key}:</span> {stringValue(contract[key])}</p> : null)}</div>
+    <div className="space-y-2" aria-live="polite">{turns.map((turn, index) => <p key={`${turn.turnNumber}-${index}`} className="rounded-md border border-border p-3 text-sm"><span className="font-semibold">{turn.role === 'LEARNER' ? 'You' : 'AI partner'}:</span> {turn.message}</p>)}</div>
+    <div className="flex gap-2"><input className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Write a response" onKeyDown={(event) => { if (event.key === 'Enter') void send(); }} /><Button type="button" onClick={() => void send()} disabled={!message.trim() || respond.isPending}>{respond.isPending ? 'Sending…' : 'Send'}</Button></div>
+    {notice ? <p className="text-sm text-muted-foreground" role="status">{notice}</p> : null}
+    <p className="text-xs text-muted-foreground">The AI conversation partner is not available yet. You can still mark this block complete.</p>
+    <CompleteButton onComplete={onComplete} isCompleting={isCompleting} />
+  </BlockFrame>;
 }

@@ -54,6 +54,10 @@ import type {
   MhdCancelTrainingIltEnrollmentInput,
   MhdTrainingIltAttendanceInput,
   MhdTrainingIltAttendanceOverrideInput,
+  MhdCreateTrainingScenarioNodeInput,
+  MhdCreateTrainingScenarioChoiceInput,
+  MhdRecordTrainingScenarioVisitInput,
+  MhdRespondToTrainingScenarioAiInput,
 } from './Types';
 import { mhdTrainingService } from './Service';
 
@@ -96,7 +100,59 @@ export const mhdTrainingQueryKeys = {
   managerTeamStatus: (input: MhdTrainingManagerTeamStatusInput) =>
     ['mhd-training', 'manager-team-status', input] as const,
   iltSessions: (courseId: string) => ['mhd-training', 'ilt-sessions', courseId] as const,
+  scenarioGraph: (blockId: string) => ['mhd-training', 'scenario-graph', blockId] as const,
+  aiTranscript: (blockProgressId: string) => ['mhd-training', 'ai-transcript', blockProgressId] as const,
 };
+
+export function useMhdTrainingScenarioGraph(blockId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.scenarioGraph(blockId ?? ''),
+    queryFn: () => mhdTrainingService.getScenarioGraph(blockId!),
+    enabled: Boolean(blockId),
+  });
+}
+
+export function useMhdRecordTrainingScenarioVisit() {
+  return useMutation({
+    mutationFn: (input: MhdRecordTrainingScenarioVisitInput) =>
+      mhdTrainingService.recordScenarioVisit(input),
+  });
+}
+
+export function useMhdTrainingAiTranscript(blockProgressId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.aiTranscript(blockProgressId ?? ''),
+    queryFn: () => mhdTrainingService.getAiTranscript(blockProgressId!),
+    enabled: Boolean(blockProgressId),
+  });
+}
+
+export function useMhdRespondToTrainingScenarioAi() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdRespondToTrainingScenarioAiInput) =>
+      mhdTrainingService.respondToAiConversation(input),
+    onSuccess: (_data, input) => {
+      void queryClient.invalidateQueries({
+        queryKey: mhdTrainingQueryKeys.aiTranscript(input.blockProgressId),
+      });
+    },
+  });
+}
+
+export function useMhdCreateTrainingScenarioNode() {
+  return useMutation({
+    mutationFn: (input: MhdCreateTrainingScenarioNodeInput) =>
+      mhdTrainingService.createScenarioNode(input),
+  });
+}
+
+export function useMhdCreateTrainingScenarioChoice() {
+  return useMutation({
+    mutationFn: (input: MhdCreateTrainingScenarioChoiceInput) =>
+      mhdTrainingService.createScenarioChoice(input),
+  });
+}
 
 export function useMhdTrainingIltSessions(courseId: string | null) {
   return useQuery({

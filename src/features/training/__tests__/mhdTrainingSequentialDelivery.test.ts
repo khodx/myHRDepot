@@ -26,8 +26,8 @@ describe('LMS v2 sequential delivery service', () => {
   });
 
   it('maps progress rows and sends learner responses to the completion RPC', async () => {
-    rpcMock.mockResolvedValueOnce({ data: [{ block_id: 'b', status: 'COMPLETE', response: { selectedIndex: 1 }, started_at: null, completed_at: 'now' }], error: null });
-    await expect(mhdTrainingService.getBlockProgress('assignment-1')).resolves.toEqual([{ blockId: 'b', status: 'COMPLETE', response: { selectedIndex: 1 }, startedAt: null, completedAt: 'now' }]);
+    rpcMock.mockResolvedValueOnce({ data: [{ id: 'bp-1', block_id: 'b', status: 'COMPLETE', response: { selectedIndex: 1 }, started_at: null, completed_at: 'now' }], error: null });
+    await expect(mhdTrainingService.getBlockProgress('assignment-1')).resolves.toEqual([{ id: 'bp-1', blockId: 'b', status: 'COMPLETE', response: { selectedIndex: 1 }, startedAt: null, completedAt: 'now' }]);
     rpcMock.mockResolvedValueOnce({ data: [{ course_completed: true }], error: null });
     await expect(mhdTrainingService.completeBlock('assignment-1', 'b', { selectedIndex: 1 })).resolves.toEqual({ courseCompleted: true });
     expect(rpcMock).toHaveBeenLastCalledWith('mhd_training_block_complete', { p_assignment_id: 'assignment-1', p_block_id: 'b', p_response: { selectedIndex: 1 } });

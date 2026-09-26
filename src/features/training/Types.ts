@@ -1402,11 +1402,81 @@ export type MhdTrainingContentTree = MhdTrainingContentTreeModule[];
 export type MhdTrainingBlockProgressStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETE';
 
 export interface MhdTrainingBlockProgress {
+  id: string;
   blockId: MhdTrainingBlockId;
   status: MhdTrainingBlockProgressStatus;
   response: Record<string, unknown> | null;
   startedAt: string | null;
   completedAt: string | null;
+}
+
+export interface MhdTrainingScenarioChoice {
+  id: string;
+  label: string;
+  nextNodeId: string | null;
+  feedbackText: string | null;
+  scoreDelta: number | null;
+}
+
+export interface MhdTrainingScenarioNode {
+  id: string;
+  nodeKey: string;
+  nodeType: string;
+  content: Record<string, unknown>;
+  scenarioContract: Record<string, unknown> | null;
+  isStart: boolean;
+  isTerminal: boolean;
+  choices: MhdTrainingScenarioChoice[];
+}
+
+export type MhdTrainingScenarioGraph = MhdTrainingScenarioNode[];
+
+export interface MhdTrainingScenarioAiResponse {
+  learnerTurnRecorded: boolean;
+  aiAvailable: boolean;
+  message: string;
+}
+
+export interface MhdTrainingScenarioAiTurn {
+  turnNumber: number;
+  role: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface MhdCreateTrainingScenarioNodeInput {
+  blockId: MhdTrainingBlockId;
+  nodeKey: string;
+  content?: Record<string, unknown>;
+  isStart?: boolean;
+  isTerminal?: boolean;
+  nodeType?: string;
+  scenarioContract?: Record<string, unknown> | null;
+}
+
+export interface MhdCreateTrainingScenarioChoiceInput {
+  nodeId: string;
+  label: string;
+  nextNodeId?: string | null;
+  feedbackText?: string | null;
+  scoreDelta?: number | null;
+  sortOrder?: number;
+}
+
+export interface MhdRecordTrainingScenarioVisitInput {
+  blockProgressId: string;
+  nodeId: string;
+  choiceId?: string | null;
+}
+
+export interface MhdRespondToTrainingScenarioAiInput {
+  blockProgressId: string;
+  nodeId: string;
+  learnerMessage: string;
+}
+
+export interface MhdGetTrainingScenarioGraphInput {
+  blockId: string;
 }
 
 export interface MhdTrainingBlockCompletionResult {
