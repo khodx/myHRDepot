@@ -23765,6 +23765,192 @@ export type Database = {
           },
         ]
       }
+      training_ilt_attendance: {
+        Row: {
+          check_in_at: string | null
+          check_out_at: string | null
+          id: string
+          override_reason: string | null
+          person_id: string
+          recorded_at: string
+          recorded_by: string
+          session_id: string
+          source: string
+        }
+        Insert: {
+          check_in_at?: string | null
+          check_out_at?: string | null
+          id?: string
+          override_reason?: string | null
+          person_id: string
+          recorded_at?: string
+          recorded_by: string
+          session_id: string
+          source?: string
+        }
+        Update: {
+          check_in_at?: string | null
+          check_out_at?: string | null
+          id?: string
+          override_reason?: string | null
+          person_id?: string
+          recorded_at?: string
+          recorded_by?: string
+          session_id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_ilt_attendance_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_ilt_attendance_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_ilt_attendance_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "training_ilt_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_ilt_enrollments: {
+        Row: {
+          calendar_event_id: string | null
+          enrolled_at: string
+          id: string
+          person_id: string
+          session_id: string
+          status: string
+        }
+        Insert: {
+          calendar_event_id?: string | null
+          enrolled_at?: string
+          id?: string
+          person_id: string
+          session_id: string
+          status?: string
+        }
+        Update: {
+          calendar_event_id?: string | null
+          enrolled_at?: string
+          id?: string
+          person_id?: string
+          session_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_ilt_enrollments_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_ilt_enrollments_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "training_ilt_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_ilt_sessions: {
+        Row: {
+          capacity: number | null
+          company_id: string
+          course_id: string
+          created_at: string | null
+          created_by: string
+          end_time: string
+          id: string
+          instructor_name: string
+          instructor_person_id: string | null
+          is_cancelled: boolean
+          meeting_join_url: string | null
+          meeting_provider: string
+          reference_id: string
+          room_or_resource_label: string | null
+          session_date: string
+          start_time: string
+        }
+        Insert: {
+          capacity?: number | null
+          company_id: string
+          course_id: string
+          created_at?: string | null
+          created_by: string
+          end_time: string
+          id?: string
+          instructor_name: string
+          instructor_person_id?: string | null
+          is_cancelled?: boolean
+          meeting_join_url?: string | null
+          meeting_provider?: string
+          reference_id: string
+          room_or_resource_label?: string | null
+          session_date: string
+          start_time: string
+        }
+        Update: {
+          capacity?: number | null
+          company_id?: string
+          course_id?: string
+          created_at?: string | null
+          created_by?: string
+          end_time?: string
+          id?: string
+          instructor_name?: string
+          instructor_person_id?: string | null
+          is_cancelled?: boolean
+          meeting_join_url?: string | null
+          meeting_provider?: string
+          reference_id?: string
+          room_or_resource_label?: string | null
+          session_date?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_ilt_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_ilt_sessions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_ilt_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_ilt_sessions_instructor_person_id_fkey"
+            columns: ["instructor_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_leaderboard_opt_ins: {
         Row: {
           company_id: string
@@ -33134,6 +33320,71 @@ export type Database = {
           person_display_name: string
           person_id: string
           status: string
+        }[]
+      }
+      mhd_training_ilt_attendance_override: {
+        Args: {
+          p_check_in_at: string
+          p_check_out_at: string
+          p_person_id: string
+          p_reason: string
+          p_session_id: string
+        }
+        Returns: undefined
+      }
+      mhd_training_ilt_cancel_enrollment: {
+        Args: { p_enrollment_id: string }
+        Returns: undefined
+      }
+      mhd_training_ilt_check_in: {
+        Args: { p_person_id: string; p_session_id: string }
+        Returns: undefined
+      }
+      mhd_training_ilt_check_out: {
+        Args: { p_person_id: string; p_session_id: string }
+        Returns: undefined
+      }
+      mhd_training_ilt_enroll: {
+        Args: { p_person_id: string; p_session_id: string }
+        Returns: {
+          id: string
+          status: string
+        }[]
+      }
+      mhd_training_ilt_session_create: {
+        Args: {
+          p_capacity?: number
+          p_company_id: string
+          p_course_id: string
+          p_end_time: string
+          p_instructor_name: string
+          p_instructor_person_id?: string
+          p_meeting_join_url?: string
+          p_meeting_provider?: string
+          p_room_or_resource_label?: string
+          p_session_date: string
+          p_start_time: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_ilt_session_list: {
+        Args: { p_course_id: string }
+        Returns: {
+          capacity: number
+          end_time: string
+          enrolled_count: number
+          id: string
+          instructor_name: string
+          is_cancelled: boolean
+          meeting_provider: string
+          reference_id: string
+          room_or_resource_label: string
+          session_date: string
+          start_time: string
+          waitlisted_count: number
         }[]
       }
       mhd_training_is_privileged: { Args: never; Returns: boolean }

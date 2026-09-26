@@ -49,6 +49,11 @@ import type {
   MhdListTrainingPeerReviewsInput,
   MhdSubmitTrainingCourseFeedbackInput,
   MhdTrainingVideoUploadRequest,
+  MhdCreateTrainingIltSessionInput,
+  MhdEnrollTrainingIltInput,
+  MhdCancelTrainingIltEnrollmentInput,
+  MhdTrainingIltAttendanceInput,
+  MhdTrainingIltAttendanceOverrideInput,
 } from './Types';
 import { mhdTrainingService } from './Service';
 
@@ -90,7 +95,69 @@ export const mhdTrainingQueryKeys = {
   activeSuccessor: (courseId: string) => ['mhd-training', 'active-successor', courseId] as const,
   managerTeamStatus: (input: MhdTrainingManagerTeamStatusInput) =>
     ['mhd-training', 'manager-team-status', input] as const,
+  iltSessions: (courseId: string) => ['mhd-training', 'ilt-sessions', courseId] as const,
 };
+
+export function useMhdTrainingIltSessions(courseId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.iltSessions(courseId ?? ''),
+    queryFn: () => mhdTrainingService.listIltSessions(courseId!),
+    enabled: Boolean(courseId),
+  });
+}
+
+export function useMhdCreateTrainingIltSession() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateTrainingIltSessionInput) =>
+      mhdTrainingService.createIltSession(input),
+    onSuccess: (_data, input) => {
+      void queryClient.invalidateQueries({
+        queryKey: mhdTrainingQueryKeys.iltSessions(input.courseId),
+      });
+    },
+  });
+}
+
+export function useMhdEnrollTrainingIlt() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdEnrollTrainingIltInput) => mhdTrainingService.enrollIlt(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'ilt-sessions'] });
+    },
+  });
+}
+
+export function useMhdCancelTrainingIltEnrollment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCancelTrainingIltEnrollmentInput) =>
+      mhdTrainingService.cancelIltEnrollment(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'ilt-sessions'] });
+    },
+  });
+}
+
+export function useMhdCheckInTrainingIlt() {
+  return useMutation({
+    mutationFn: (input: MhdTrainingIltAttendanceInput) => mhdTrainingService.checkInIlt(input),
+  });
+}
+
+export function useMhdCheckOutTrainingIlt() {
+  return useMutation({
+    mutationFn: (input: MhdTrainingIltAttendanceInput) => mhdTrainingService.checkOutIlt(input),
+  });
+}
+
+export function useMhdOverrideTrainingIltAttendance() {
+  return useMutation({
+    mutationFn: (input: MhdTrainingIltAttendanceOverrideInput) =>
+      mhdTrainingService.overrideIltAttendance(input),
+  });
+}
 
 export function useMhdTrainingCourseContentTree(courseId: string | null) {
   return useQuery({

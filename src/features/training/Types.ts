@@ -221,6 +221,31 @@ export interface MhdTrainingExternalAuditorReportRpcRow {
   completed_at: string | null;
 }
 
+export interface MhdTrainingIltSessionCreateRpcRow {
+  id: string;
+  reference_id: string;
+}
+
+export interface MhdTrainingIltSessionRpcRow {
+  id: string;
+  reference_id: string;
+  session_date: string;
+  start_time: string;
+  end_time: string;
+  instructor_name: string;
+  room_or_resource_label: string | null;
+  capacity: number | string | null;
+  meeting_provider: string;
+  is_cancelled: boolean;
+  enrolled_count: number | string;
+  waitlisted_count: number | string;
+}
+
+export interface MhdTrainingIltEnrollmentRpcRow {
+  id: string;
+  status: string;
+}
+
 export type MhdTrainingAssignmentExportRow =
   Database['public']['Tables']['training_assignments']['Row'];
 export type MhdTrainingCompletionExportRow =
@@ -255,6 +280,8 @@ export type MhdTrainingBlockId = string;
 export type MhdTrainingComplianceRuleId = string;
 export type MhdTrainingSelfEnrollmentRequestId = string;
 export type MhdTrainingExternalAuditorGrantId = string;
+export type MhdTrainingIltSessionId = string;
+export type MhdTrainingIltEnrollmentId = string;
 export const MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES = 480;
 
 export type MhdTrainingCourseReferenceId = `TRN-${string}`;
@@ -269,6 +296,7 @@ export type MhdTrainingBlockReferenceId = `BLK-${string}`;
 export type MhdTrainingComplianceRuleReferenceId = `TCR-${string}`;
 export type MhdTrainingSelfEnrollmentRequestReferenceId = `TSR-${string}`;
 export type MhdTrainingExternalAuditorGrantReferenceId = `EAG-${string}`;
+export type MhdTrainingIltSessionReferenceId = `ILT-${string}`;
 
 export type MhdTrainingCategory =
   'HARASSMENT' | 'SAFETY' | 'COMPLIANCE' | 'SKILLS' | 'ONBOARDING' | 'OTHER';
@@ -285,6 +313,9 @@ export type MhdTrainingAssignmentSourceType =
   | 'CORRECTIVE_ACTION';
 export type MhdTrainingComplianceRuleTargetType = 'ORG_UNIT' | 'JOB_TITLE' | 'JURISDICTION';
 export type MhdTrainingSelfEnrollmentStatus = 'PENDING' | 'APPROVED' | 'DENIED';
+export type MhdTrainingMeetingProvider = 'NONE' | 'TEAMS' | 'MEET';
+export type MhdTrainingEnrollmentStatus = 'ENROLLED' | 'WAITLISTED' | 'CANCELLED';
+export type MhdTrainingAttendanceSource = 'MANUAL' | 'PROVIDER_SYNC' | 'OVERRIDE';
 
 export type MhdTrainingCompletionMethod = 'ATTESTED' | 'CERTIFICATE' | 'ADMIN_RECORDED';
 export type MhdTrainingContentMode = 'EVIDENCE_ONLY' | 'AUTHORED';
@@ -633,6 +664,29 @@ export interface MhdTrainingExternalAuditorReportRow {
   personDisplayName: string;
   status: string;
   completedAt: string | null;
+}
+
+/** An instructor may be an internal person or an external/vendor named only by text. */
+export interface MhdTrainingIltSession {
+  id: MhdTrainingIltSessionId;
+  referenceId: MhdTrainingIltSessionReferenceId;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  instructorName: string;
+  // Informational text only: there is no room/resource entity or conflict checker.
+  roomOrResourceLabel: string | null;
+  capacity: number | null;
+  // A provider label only; no Teams/Meet integration or attendance sync exists yet.
+  meetingProvider: MhdTrainingMeetingProvider;
+  isCancelled: boolean;
+  enrolledCount: number;
+  waitlistedCount: number;
+}
+
+export interface MhdTrainingIltEnrollmentResult {
+  id: MhdTrainingIltEnrollmentId;
+  status: Exclude<MhdTrainingEnrollmentStatus, 'CANCELLED'>;
 }
 
 // ---------------------------------------------------------------------------
@@ -1036,6 +1090,44 @@ export interface MhdCreateTrainingExternalAuditorGrantInput {
   courseId: MhdTrainingCourseId;
   auditorLabel: string;
   validUntil: string;
+}
+
+export interface MhdCreateTrainingIltSessionInput {
+  companyId: string;
+  courseId: MhdTrainingCourseId;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  instructorName: string;
+  instructorPersonId?: string | null;
+  roomOrResourceLabel?: string | null;
+  capacity?: number | null;
+  meetingProvider?: MhdTrainingMeetingProvider;
+  meetingJoinUrl?: string | null;
+}
+
+export interface MhdListTrainingIltSessionsInput {
+  courseId: MhdTrainingCourseId;
+}
+
+export interface MhdEnrollTrainingIltInput {
+  sessionId: MhdTrainingIltSessionId;
+  personId: string;
+}
+
+export interface MhdCancelTrainingIltEnrollmentInput {
+  enrollmentId: MhdTrainingIltEnrollmentId;
+}
+
+export interface MhdTrainingIltAttendanceInput {
+  sessionId: MhdTrainingIltSessionId;
+  personId: string;
+}
+
+export interface MhdTrainingIltAttendanceOverrideInput extends MhdTrainingIltAttendanceInput {
+  checkInAt: string;
+  checkOutAt: string;
+  reason: string;
 }
 
 export interface MhdTrainingExternalAuditorGrantRevokeInput {

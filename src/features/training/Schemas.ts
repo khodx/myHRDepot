@@ -301,6 +301,48 @@ export const mhdTrainingExternalAuditorGrantRevokeSchema = z.object({
   grantId: z.string().trim().min(1),
 });
 
+export const mhdTrainingMeetingProviderSchema = z.enum(['NONE', 'TEAMS', 'MEET']);
+
+export const mhdCreateTrainingIltSessionSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  courseId: z.string().trim().min(1, 'Choose a course.'),
+  sessionDate: z.string().date('Enter a valid session date.'),
+  startTime: z.string().trim().min(1, 'A start time is required.'),
+  endTime: z.string().trim().min(1, 'An end time is required.'),
+  instructorName: z.string().trim().min(1, 'An instructor name is required.').max(300),
+  instructorPersonId: z.string().trim().min(1).optional().nullable(),
+  roomOrResourceLabel: z.string().trim().max(300).optional().nullable(),
+  capacity: z.coerce.number().int().positive().optional().nullable(),
+  meetingProvider: mhdTrainingMeetingProviderSchema.default('NONE'),
+  meetingJoinUrl: z.string().trim().url().optional().nullable(),
+});
+
+export const mhdListTrainingIltSessionsSchema = z.object({
+  courseId: z.string().trim().min(1, 'Choose a course.'),
+});
+
+export const mhdEnrollTrainingIltSchema = z.object({
+  sessionId: z.string().trim().min(1),
+  personId: z.string().trim().min(1),
+});
+
+export const mhdCancelTrainingIltEnrollmentSchema = z.object({
+  enrollmentId: z.string().trim().min(1),
+});
+
+export const mhdTrainingIltAttendanceSchema = z.object({
+  sessionId: z.string().trim().min(1),
+  personId: z.string().trim().min(1),
+});
+
+export const mhdTrainingIltAttendanceOverrideSchema = z.object({
+  sessionId: z.string().trim().min(1),
+  personId: z.string().trim().min(1),
+  checkInAt: z.string().datetime({ offset: true }),
+  checkOutAt: z.string().datetime({ offset: true }),
+  reason: z.string().trim().min(1, 'A reason is required for an attendance override.').max(4000),
+});
+
 // ---------------------------------------------------------------------------
 // LMS v2 content authoring
 // ---------------------------------------------------------------------------
@@ -411,6 +453,20 @@ export type MhdCreateTrainingExternalAuditorGrantFormValues = z.infer<
 >;
 export type MhdTrainingExternalAuditorGrantRevokeFormValues = z.infer<
   typeof mhdTrainingExternalAuditorGrantRevokeSchema
+>;
+export type MhdCreateTrainingIltSessionFormValues = z.infer<
+  typeof mhdCreateTrainingIltSessionSchema
+>;
+export type MhdListTrainingIltSessionsFormValues = z.infer<
+  typeof mhdListTrainingIltSessionsSchema
+>;
+export type MhdEnrollTrainingIltFormValues = z.infer<typeof mhdEnrollTrainingIltSchema>;
+export type MhdCancelTrainingIltEnrollmentFormValues = z.infer<
+  typeof mhdCancelTrainingIltEnrollmentSchema
+>;
+export type MhdTrainingIltAttendanceFormValues = z.infer<typeof mhdTrainingIltAttendanceSchema>;
+export type MhdTrainingIltAttendanceOverrideFormValues = z.infer<
+  typeof mhdTrainingIltAttendanceOverrideSchema
 >;
 export type MhdCreateCurriculumFormValues = z.infer<typeof mhdCreateCurriculumSchema>;
 export type MhdCreateProgramFormValues = z.infer<typeof mhdCreateProgramSchema>;

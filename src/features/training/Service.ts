@@ -127,6 +127,16 @@ import type {
   MhdSubmitTrainingCourseFeedbackInput,
   MhdTrainingCourseFeedbackSummary,
   MhdTrainingCourseFeedbackSummaryRpcRow,
+  MhdCreateTrainingIltSessionInput,
+  MhdTrainingIltSession,
+  MhdTrainingIltSessionCreateRpcRow,
+  MhdTrainingIltSessionRpcRow,
+  MhdEnrollTrainingIltInput,
+  MhdTrainingIltEnrollmentResult,
+  MhdTrainingIltEnrollmentRpcRow,
+  MhdCancelTrainingIltEnrollmentInput,
+  MhdTrainingIltAttendanceInput,
+  MhdTrainingIltAttendanceOverrideInput,
 } from './Types';
 
 // Contract-only access. Every method below calls `.rpc()` and nothing else —
@@ -390,6 +400,23 @@ function mapExternalAuditorReport(
   };
 }
 
+function mapIltSession(row: MhdTrainingIltSessionRpcRow): MhdTrainingIltSession {
+  return {
+    id: row.id,
+    referenceId: row.reference_id as MhdTrainingIltSession['referenceId'],
+    sessionDate: row.session_date,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    instructorName: row.instructor_name,
+    roomOrResourceLabel: row.room_or_resource_label,
+    capacity: row.capacity == null ? null : mhdToNumber(row.capacity),
+    meetingProvider: row.meeting_provider as MhdTrainingIltSession['meetingProvider'],
+    isCancelled: row.is_cancelled,
+    enrolledCount: mhdToNumber(row.enrolled_count),
+    waitlistedCount: mhdToNumber(row.waitlisted_count),
+  };
+}
+
 function mapBadge(row: MhdTrainingBadgeRpcRow): MhdTrainingBadge {
   return {
     id: row.id,
@@ -437,6 +464,84 @@ function mapLeaderboardRow(row: MhdTrainingLeaderboardRpcRow): MhdTrainingLeader
 
 export const mhdTrainingService = {
   // ----- LMS v2 content layer -----
+
+  async createIltSession(input: MhdCreateTrainingIltSessionInput): Promise<MhdMutationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_ilt_session_create', {
+      p_company_id: input.companyId,
+      p_course_id: input.courseId,
+      p_session_date: input.sessionDate,
+      p_start_time: input.startTime,
+      p_end_time: input.endTime,
+      p_instructor_name: input.instructorName.trim(),
+      p_instructor_person_id: input.instructorPersonId ?? undefined,
+      p_room_or_resource_label: trimmedOrUndefined(input.roomOrResourceLabel),
+      p_capacity: input.capacity ?? undefined,
+      p_meeting_provider: input.meetingProvider ?? 'NONE',
+      p_meeting_join_url: trimmedOrUndefined(input.meetingJoinUrl),
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingIltSessionCreateRpcRow[])[0];
+    if (!row) throw new Error('ILT session creation returned no row.');
+    return mapMutationResult(row);
+  },
+
+  async listIltSessions(courseId: string): Promise<MhdTrainingIltSession[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_ilt_session_list', {
+      p_course_id: courseId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingIltSessionRpcRow[]).map(mapIltSession);
+  },
+
+  // The enroll RPC chooses ENROLLED vs WAITLISTED server-side and also creates
+  // the learner's existing calendar_events entry; this layer does not invent a
+  // separate training calendar concept.
+  async enrollIlt(input: MhdEnrollTrainingIltInput): Promise<MhdTrainingIltEnrollmentResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_ilt_enroll', {
+      p_session_id: input.sessionId,
+      p_person_id: input.personId,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingIltEnrollmentRpcRow[])[0];
+    if (!row) throw new Error('ILT enrollment returned no row.');
+    return { id: row.id, status: row.status as MhdTrainingIltEnrollmentResult['status'] };
+  },
+
+  async cancelIltEnrollment(input: MhdCancelTrainingIltEnrollmentInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_ilt_cancel_enrollment', {
+      p_enrollment_id: input.enrollmentId,
+    });
+    if (error) throw error;
+  },
+
+  async checkInIlt(input: MhdTrainingIltAttendanceInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_ilt_check_in', {
+      p_session_id: input.sessionId,
+      p_person_id: input.personId,
+    });
+    if (error) throw error;
+  },
+
+  async checkOutIlt(input: MhdTrainingIltAttendanceInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_ilt_check_out', {
+      p_session_id: input.sessionId,
+      p_person_id: input.personId,
+    });
+    if (error) throw error;
+  },
+
+  // Attendance overrides are intentionally separate from ordinary check-in/out
+  // and always carry a required reason. No provider attendance sync exists yet.
+  async overrideIltAttendance(input: MhdTrainingIltAttendanceOverrideInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_ilt_attendance_override', {
+      p_session_id: input.sessionId,
+      p_person_id: input.personId,
+      p_check_in_at: input.checkInAt,
+      p_check_out_at: input.checkOutAt,
+      p_reason: input.reason.trim(),
+    });
+    if (error) throw error;
+  },
 
   async getCourseContentTree(courseId: string): Promise<MhdTrainingContentTree> {
     const { data, error } = await supabaseClient.rpc('mhd_training_course_content_tree', {
