@@ -10,6 +10,8 @@ import {
   MHD_TRAINING_COMPLIANCE_RULE_TARGET_TYPES,
   MHD_TRAINING_SELF_ENROLLMENT_STATUSES,
   MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES,
+  MHD_TRAINING_VIDEO_MAX_FILE_SIZE_BYTES,
+  MHD_TRAINING_VIDEO_MIME_TYPES,
 } from './Types';
 
 export const mhdContentFlagEntityTypeSchema = z.enum([
@@ -381,9 +383,7 @@ export const mhdTrainingForkStateSchema = z.enum(MHD_TRAINING_FORK_STATES);
 export type MhdTrainingCourseFormValues = z.infer<typeof mhdTrainingCourseFormSchema>;
 export type MhdAssignTrainingFormValues = z.infer<typeof mhdAssignTrainingSchema>;
 export type MhdRetireTrainingCourseFormValues = z.infer<typeof mhdRetireTrainingCourseSchema>;
-export type MhdResolveActiveSuccessorFormValues = z.infer<
-  typeof mhdResolveActiveSuccessorSchema
->;
+export type MhdResolveActiveSuccessorFormValues = z.infer<typeof mhdResolveActiveSuccessorSchema>;
 export type MhdSetTrainingContentLicenseFormValues = z.infer<
   typeof mhdSetTrainingContentLicenseSchema
 >;
@@ -457,6 +457,40 @@ export const mhdTrainingContentTreeSchema = z.array(
     ),
   }),
 );
+
+export const mhdTrainingVideoUploadSchema = z
+  .object({
+    blockId: z.string().trim().min(1, 'A video block is required.'),
+    file: z.custom<File>(
+      (value) =>
+        typeof value === 'object' &&
+        value !== null &&
+        typeof (value as File).name === 'string' &&
+        typeof (value as File).type === 'string' &&
+        typeof (value as File).size === 'number',
+      'A video file is required.',
+    ),
+  })
+  .superRefine(({ file }, ctx) => {
+    if (
+      !MHD_TRAINING_VIDEO_MIME_TYPES.includes(
+        file.type as (typeof MHD_TRAINING_VIDEO_MIME_TYPES)[number],
+      )
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['file'],
+        message: 'Unsupported video type. Use MP4, WebM, QuickTime, or Matroska.',
+      });
+    }
+    if (file.size > MHD_TRAINING_VIDEO_MAX_FILE_SIZE_BYTES) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['file'],
+        message: 'Video files must be 5GB or smaller.',
+      });
+    }
+  });
 
 export const mhdTrainingBlockProgressSchema = z.object({
   block_id: z.string(),

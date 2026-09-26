@@ -842,6 +842,35 @@ export interface MhdCreateBlockInput {
   altText?: string | null;
   transcript?: string | null;
 }
+
+export const MHD_TRAINING_VIDEO_UPLOAD_FUNCTION_NAME = 'mhd-video-upload';
+export const MHD_TRAINING_VIDEO_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 * 1024;
+export const MHD_TRAINING_VIDEO_MIME_TYPES = [
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
+  'video/x-matroska',
+] as const;
+export type MhdTrainingVideoMimeType = (typeof MHD_TRAINING_VIDEO_MIME_TYPES)[number];
+
+export interface MhdTrainingVideoUploadRequest {
+  blockId: MhdTrainingBlockId;
+  file: File;
+}
+
+export interface MhdTrainingVideoUploadFunctionResponse {
+  uploadUrl: string;
+  objectKey: string;
+  publicUrl: string;
+  expiresInSeconds: number;
+}
+
+export interface MhdTrainingVideoUploadResult {
+  id: string;
+  objectKey: string;
+  publicUrl: string;
+}
+
 export interface MhdSetCourseContentModeInput {
   courseId: MhdTrainingCourseId;
   contentMode: MhdTrainingContentMode;

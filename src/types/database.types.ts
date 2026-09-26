@@ -24196,6 +24196,60 @@ export type Database = {
           },
         ]
       }
+      training_video_assets: {
+        Row: {
+          block_id: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          object_key: string
+          original_file_name: string
+          status: string
+          storage_provider: string
+          uploaded_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          block_id: string
+          file_size_bytes: number
+          id?: string
+          mime_type: string
+          object_key: string
+          original_file_name: string
+          status?: string
+          storage_provider?: string
+          uploaded_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          block_id?: string
+          file_size_bytes?: number
+          id?: string
+          mime_type?: string
+          object_key?: string
+          original_file_name?: string
+          status?: string
+          storage_provider?: string
+          uploaded_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_video_assets_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "training_blocks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_video_assets_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_mfa_recovery_codes: {
         Row: {
           code_hash: string
@@ -32126,6 +32180,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      mhd_resolve_training_block_company_id: {
+        Args: { p_block_id: string }
+        Returns: string
+      }
       mhd_restore_kb_article: {
         Args: { p_article_id: string }
         Returns: undefined
@@ -33305,6 +33363,19 @@ export type Database = {
       mhd_training_touch_streak_internal: {
         Args: { p_company_id: string; p_person_id: string }
         Returns: undefined
+      }
+      mhd_training_video_asset_record: {
+        Args: {
+          p_block_id: string
+          p_file_size_bytes: number
+          p_mime_type: string
+          p_object_key: string
+          p_original_file_name: string
+          p_public_url: string
+        }
+        Returns: {
+          id: string
+        }[]
       }
       mhd_training_waive_assignment: {
         Args: { p_assignment_id: string; p_reason: string }

@@ -1,8 +1,15 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { Json } from '@/types/database.types';
-import { MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES } from './Types';
+import {
+  MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES,
+  MHD_TRAINING_VIDEO_UPLOAD_FUNCTION_NAME,
+} from './Types';
 import { mhdToNumber } from './Types';
-import { mhdTrainingContentTreeSchema, mhdTrainingBlockProgressSchema } from './Schemas';
+import {
+  mhdTrainingContentTreeSchema,
+  mhdTrainingBlockProgressSchema,
+  mhdTrainingVideoUploadSchema,
+} from './Schemas';
 import {
   mhdPollDocumentGenerationUntilGenerated,
   mhdRenderDocumentGeneration,
@@ -82,6 +89,9 @@ import type {
   MhdTrainingContentTree,
   MhdTrainingBlockProgress,
   MhdTrainingBlockCompletionResult,
+  MhdTrainingVideoUploadFunctionResponse,
+  MhdTrainingVideoUploadResult,
+  MhdTrainingVideoUploadRequest,
   MhdCreateTrainingExternalAuditorGrantInput,
   MhdSetTrainingTimeOnTaskInput,
   MhdTrainingTimeOnTaskFilters,
@@ -434,6 +444,49 @@ export const mhdTrainingService = {
     });
     if (error) throw error;
     return mhdTrainingContentTreeSchema.parse(data ?? []);
+  },
+
+  async uploadVideo(request: MhdTrainingVideoUploadRequest): Promise<MhdTrainingVideoUploadResult> {
+    const { blockId, file } = mhdTrainingVideoUploadSchema.parse(request);
+
+    // 1. Ask the edge function for a short-lived presigned PUT URL.
+    const { data: upload, error: uploadError } =
+      await supabaseClient.functions.invoke<MhdTrainingVideoUploadFunctionResponse>(
+        MHD_TRAINING_VIDEO_UPLOAD_FUNCTION_NAME,
+        {
+          body: {
+            block_id: blockId,
+            original_file_name: file.name,
+            mime_type: file.type,
+            file_size_bytes: file.size,
+          },
+        },
+      );
+    if (uploadError) throw new Error(uploadError.message || 'Video upload failed.');
+    if (!upload?.uploadUrl || !upload.objectKey || !upload.publicUrl) {
+      throw new Error('Video upload function returned an incomplete payload.');
+    }
+
+    // 2. Upload the raw bytes directly to R2 using the signed URL.
+    const response = await fetch(upload.uploadUrl, { method: 'PUT', body: file });
+    if (!response.ok) {
+      throw new Error(`Video upload failed with HTTP ${response.status}.`);
+    }
+
+    // 3. Persist the uploaded object metadata and update the block server-side.
+    const { data, error } = await supabaseClient.rpc('mhd_training_video_asset_record', {
+      p_block_id: blockId,
+      p_object_key: upload.objectKey,
+      p_original_file_name: file.name,
+      p_mime_type: file.type,
+      p_file_size_bytes: file.size,
+      p_public_url: upload.publicUrl,
+    });
+    if (error) throw error;
+    const row = (Array.isArray(data) ? data[0] : data) as { id?: string } | null;
+    if (!row?.id) throw new Error('Video asset record returned no id.');
+
+    return { id: row.id, objectKey: upload.objectKey, publicUrl: upload.publicUrl };
   },
 
   async getBlockProgress(assignmentId: string): Promise<MhdTrainingBlockProgress[]> {

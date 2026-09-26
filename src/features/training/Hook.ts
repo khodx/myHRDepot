@@ -48,6 +48,7 @@ import type {
   MhdSubmitTrainingPeerReviewInput,
   MhdListTrainingPeerReviewsInput,
   MhdSubmitTrainingCourseFeedbackInput,
+  MhdTrainingVideoUploadRequest,
 } from './Types';
 import { mhdTrainingService } from './Service';
 
@@ -96,6 +97,16 @@ export function useMhdTrainingCourseContentTree(courseId: string | null) {
     queryKey: mhdTrainingQueryKeys.courseContentTree(courseId ?? ''),
     queryFn: () => mhdTrainingService.getCourseContentTree(courseId!),
     enabled: Boolean(courseId),
+  });
+}
+
+export function useMhdUploadTrainingVideo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: MhdTrainingVideoUploadRequest) => mhdTrainingService.uploadVideo(request),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'content-tree'] });
+    },
   });
 }
 
