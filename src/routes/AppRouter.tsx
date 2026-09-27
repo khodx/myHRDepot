@@ -480,6 +480,18 @@ const MhdInvestigationCaseDetailPage = lazyPage(
   () => import('@/features/investigations/components/MhdInvestigationCaseDetailPage'),
   'MhdInvestigationCaseDetailPage',
 );
+const MhdGrievancesPage = lazyPage(
+  () => import('@/features/grievances/components/MhdGrievancesPage'),
+  'MhdGrievancesPage',
+);
+const MhdGrievanceDetailPage = lazyPage(
+  () => import('@/features/grievances/components/MhdGrievanceDetailPage'),
+  'MhdGrievanceDetailPage',
+);
+const MhdMyGrievancesPage = lazyPage(
+  () => import('@/features/grievances/components/MhdMyGrievancesPage'),
+  'MhdMyGrievancesPage',
+);
 const MhdTrainingPage = lazyPage(
   () => import('@/features/training/components/MhdTrainingPage'),
   'MhdTrainingPage',
@@ -925,6 +937,17 @@ function MhdAppRoutes() {
                   path="/investigations/:caseId"
                   element={<MhdInvestigationCaseDetailPage />}
                 />
+                {/* Grievances. Two SEPARATE routes, same one-route-per-audience
+                  discipline as Training/My Training: /grievances is the HR review
+                  board (Platform Admin / HR Partner, see mhdRouteAccess.ts and
+                  mhd_grievance_list's server-side 42501 check); /my-grievances is
+                  the filer's own filing + status surface. /my-grievances is listed
+                  first and is a distinct prefix from /grievances (does not start
+                  with "/grievances/"), so the first-match prefix scan never lets
+                  the /grievances rule capture /my-grievances. */}
+                <Route path="/my-grievances" element={<MhdMyGrievancesPage />} />
+                <Route path="/grievances" element={<MhdGrievancesPage />} />
+                <Route path="/grievances/:grievanceId" element={<MhdGrievanceDetailPage />} />
                 {/* Audit Reports — company-wide counterpart to
                   /tasks/:taskId/audit. Platform Admin / HR Partner only, same
                   gate as the per-task timeline (see mhdRouteAccess.ts and

@@ -28486,6 +28486,108 @@ export type Database = {
         }
         Returns: undefined
       }
+      mhd_grievance_acknowledge: {
+        Args: { p_grievance_id: string }
+        Returns: undefined
+      }
+      mhd_grievance_add_step: {
+        Args: {
+          p_grievance_id: string
+          p_handled_at?: string
+          p_step_name: string
+          p_step_notes?: string
+          p_step_ordinal: number
+          p_step_outcome?: string
+        }
+        Returns: string
+      }
+      mhd_grievance_get: {
+        Args: { p_grievance_id: string }
+        Returns: {
+          acknowledged_at: string
+          closed_at: string
+          company_id: string
+          concerns_unrecorded_oral_reprimand: boolean
+          disagreement_explanation: string
+          employee_signature_at: string
+          employee_signature_name: string
+          grievance_what: string
+          grievance_when: string
+          grievance_where: string
+          grievance_who: string
+          grievance_why: string
+          id: string
+          is_harassment_related: boolean
+          person_id: string
+          reference_id: string
+          referred_at: string
+          referred_to_process: string
+          remedy_requested: string
+          resolution: string
+          resolution_at: string
+          status: string
+          submitted_at: string
+        }[]
+      }
+      mhd_grievance_list: {
+        Args: { p_company_id: string; p_status?: string }
+        Returns: {
+          acknowledged_at: string
+          closed_at: string
+          id: string
+          is_harassment_related: boolean
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          referred_at: string
+          referred_to_process: string
+          resolution_at: string
+          status: string
+          submitted_at: string
+        }[]
+      }
+      mhd_grievance_list_mine: {
+        Args: { p_person_id: string }
+        Returns: {
+          acknowledged_at: string
+          closed_at: string
+          id: string
+          reference_id: string
+          referred_to_process: string
+          resolution_at: string
+          status: string
+          submitted_at: string
+        }[]
+      }
+      mhd_grievance_list_steps: {
+        Args: { p_grievance_id: string }
+        Returns: {
+          handled_at: string
+          handled_by: string
+          handled_by_name: string
+          id: string
+          step_name: string
+          step_notes: string
+          step_ordinal: number
+          step_outcome: string
+        }[]
+      }
+      mhd_grievance_refer: {
+        Args: { p_grievance_id: string; p_referred_to_process: string }
+        Returns: undefined
+      }
+      mhd_grievance_reject_not_grievable: {
+        Args: { p_grievance_id: string; p_reason: string }
+        Returns: undefined
+      }
+      mhd_grievance_resolve: {
+        Args: { p_grievance_id: string; p_resolution: string }
+        Returns: undefined
+      }
+      mhd_grievance_withdraw: {
+        Args: { p_grievance_id: string }
+        Returns: undefined
+      }
       mhd_handbook_ack_status: {
         Args: { p_version_id: string }
         Returns: {

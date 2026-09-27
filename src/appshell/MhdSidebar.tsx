@@ -37,6 +37,7 @@ import {
   Mail,
   MessageCircle,
   MessageSquare,
+  MessageSquareWarning,
   Package2,
   PanelLeftClose,
   PanelLeftOpen,
@@ -427,6 +428,24 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/conduct',
         icon: Gavel,
         roles: mhdRouteRoles('/conduct'),
+      },
+      // NOT nested under Grievances — same fully-disjoint-roles reasoning as
+      // Training / My Training and Jobs / My Job above: the RPCs gate
+      // /grievances to Platform Admin / HR Partner and /my-grievances to the
+      // filer, so no single user ever qualifies for both.
+      {
+        label: 'Grievances',
+        description: 'Review and resolve employee-filed grievances.',
+        route: '/grievances',
+        icon: MessageSquareWarning,
+        roles: mhdRouteRoles('/grievances'),
+      },
+      {
+        label: 'My Grievance',
+        description: 'File a grievance or check the status of one you filed.',
+        route: '/my-grievances',
+        icon: MessageSquare,
+        roles: mhdRouteRoles('/my-grievances'),
       },
       // Role-gated for the privileged set. Showing the link is NOT access control:
       // case visibility stays grant-based server-side, so an ungranted admin who

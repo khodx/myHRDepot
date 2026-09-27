@@ -187,6 +187,15 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     path: '/conduct',
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
   },
+  // Employee grievances. Two routes, same one-route-per-audience discipline as
+  // /training vs /my-training: /my-grievances is the employee's own filing and
+  // status surface (Employee / Manager / Supervisor / Lead; Viewer excluded),
+  // /grievances is the HR review board (server RPCs gate to Platform Admin / HR
+  // Partner only — this entry mirrors that, narrower than Conduct/Investigations
+  // above since the grievance access checks never included HR Admin or Client
+  // Admin).
+  { path: '/my-grievances', roles: ['Employee', 'Manager', 'Supervisor', 'Lead'] },
+  { path: '/grievances', roles: ['Platform Admin', 'HR Partner'] },
   // Time & Attendance. /schedule and /attendance are the platform's first
   // employee-facing surfaces — Client User reaches them for their own record;
   // Viewer is excluded. /attendance/policy is privileged-only, so it must
