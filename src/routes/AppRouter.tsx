@@ -154,6 +154,10 @@ const MhdAuditReportsPage = lazyPage(
   () => import('@/features/audit/components/MhdAuditReportsPage'),
   'MhdAuditReportsPage',
 );
+const MhdDocumentRetentionSchedulesPage = lazyPage(
+  () => import('@/features/audit/components/MhdDocumentRetentionSchedulesPage'),
+  'MhdDocumentRetentionSchedulesPage',
+);
 const MhdDocumentsPage = lazyPage(
   () => import('@/features/documents/components/MhdDocumentsPage'),
   'MhdDocumentsPage',
@@ -954,6 +958,7 @@ function MhdAppRoutes() {
                   mhd_list_audit_events's server-side 42501 check). No
                   subject-facing route, same as Investigations/Conduct. */}
                 <Route path="/audit-reports" element={<MhdAuditReportsPage />} />
+                <Route path="/document-retention" element={<MhdDocumentRetentionSchedulesPage />} />
                 {/* Training & Development. Two SEPARATE routes, never one filtered
                   surface: /training is the admin catalog + compliance board
                   (Platform Admin / HR Partner / Client Admin), /my-training is the

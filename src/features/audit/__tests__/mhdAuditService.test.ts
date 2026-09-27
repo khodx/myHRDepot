@@ -239,3 +239,54 @@ describe('mhdAuditService.requestTaskAuditReport', () => {
     );
   });
 });
+
+describe('mhdAuditService.listDocumentRetentionSchedules', () => {
+  it('maps a listed retention schedule and passes the entity type filter through', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'schedule-1',
+          entity_type: 'I9_RECORD',
+          entity_id: 'i9-1',
+          retention_basis: 'IRCA: 3 years from hire or 1 year from termination, whichever is later',
+          retention_expires_at: '2029-01-15',
+          computed_at: '2026-01-15T00:00:00Z',
+        },
+      ],
+      error: null,
+    });
+
+    const schedules = await mhdAuditService.listDocumentRetentionSchedules('company-1', 'I9_RECORD');
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_document_retention_schedule_list', {
+      p_company_id: 'company-1',
+      p_entity_type: 'I9_RECORD',
+    });
+    expect(schedules).toEqual([
+      {
+        id: 'schedule-1',
+        entityType: 'I9_RECORD',
+        entityId: 'i9-1',
+        retentionBasis: 'IRCA: 3 years from hire or 1 year from termination, whichever is later',
+        retentionExpiresAt: '2029-01-15',
+        computedAt: '2026-01-15T00:00:00Z',
+      },
+    ]);
+  });
+
+  it('omits the entity type filter (undefined, not null) when none is given', async () => {
+    rpcMock.mockResolvedValueOnce({ data: [], error: null });
+    await mhdAuditService.listDocumentRetentionSchedules('company-1');
+    expect(rpcMock).toHaveBeenCalledWith('mhd_document_retention_schedule_list', {
+      p_company_id: 'company-1',
+      p_entity_type: undefined,
+    });
+  });
+
+  it('propagates an access-denied error verbatim', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: { message: 'Access denied for company company-1' } });
+    await expect(mhdAuditService.listDocumentRetentionSchedules('company-1')).rejects.toMatchObject({
+      message: 'Access denied for company company-1',
+    });
+  });
+});

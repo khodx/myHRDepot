@@ -7,6 +7,8 @@ import type {
   MhdAuditEvent,
   MhdAuditEventFilters,
   MhdAuditEventsRpcRow,
+  MhdDocumentRetentionSchedule,
+  MhdDocumentRetentionScheduleRpcRow,
   MhdListAuditEventsParams,
   MhdTaskAuditEntry,
   MhdTaskAuditReportTimelineRow,
@@ -88,6 +90,29 @@ function mapAuditEventRow(row: MhdAuditEventsRpcRow): MhdAuditEvent {
 }
 
 export const mhdAuditService = {
+  /**
+   * 0313. Raises 42501 (via mhd_can_access_company) for anyone outside the
+   * company — this call is the actual enforcement; the route guard is UX only.
+   */
+  async listDocumentRetentionSchedules(
+    companyId: string,
+    entityType?: string | null,
+  ): Promise<MhdDocumentRetentionSchedule[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_document_retention_schedule_list', {
+      p_company_id: companyId,
+      p_entity_type: entityType ?? undefined,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdDocumentRetentionScheduleRpcRow[]).map((row) => ({
+      id: row.id,
+      entityType: row.entity_type,
+      entityId: row.entity_id,
+      retentionBasis: row.retention_basis,
+      retentionExpiresAt: row.retention_expires_at,
+      computedAt: row.computed_at,
+    }));
+  },
+
   /**
    * Ordered `performed_at desc` by the RPC. Raises 42501 (via
    * mhd_assert_task_audit_timeline_access) for anyone who is not Platform

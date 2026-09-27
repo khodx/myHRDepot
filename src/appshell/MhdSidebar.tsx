@@ -488,6 +488,13 @@ export const NAV_SECTIONS: NavSection[] = [
         roles: mhdRouteRoles('/audit-reports'),
       },
       {
+        label: 'Document Retention',
+        description: 'Legally required retention windows for company records.',
+        route: '/document-retention',
+        icon: FileSearch,
+        roles: mhdRouteRoles('/document-retention'),
+      },
+      {
         label: 'Contractor Classification',
         description: 'Evaluate worker-classification compliance recommendations.',
         route: '/contractor-classification',

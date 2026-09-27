@@ -386,6 +386,11 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // server-side (42501 for anyone else); this route rule and the sidebar
   // entry are UX only, mirroring the Task Audit rule's own comment above.
   { path: '/audit-reports', roles: ['Platform Admin', 'HR Partner', 'HR Admin'] },
+  // Document Retention (0313). mhd_document_retention_schedule_list gates to
+  // Platform Admin / HR Partner / Client Admin server-side, matching
+  // onboarding_i9_records' own RLS tier for this data (I-9 records are the
+  // only populated entity_type today) — this entry mirrors that.
+  { path: '/document-retention', roles: ['Platform Admin', 'HR Partner', 'Client Admin'] },
   // Training & Development. Two separate routes, never one filtered surface.
   // /training is the admin catalog + company compliance board — Platform Admin /
   // HR Partner / Client Admin. /my-training is the employee's OWN assignments and

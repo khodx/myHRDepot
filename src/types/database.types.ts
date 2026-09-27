@@ -27581,6 +27581,17 @@ export type Database = {
       }
       mhd_dispatch_form_workflow_webhooks: { Args: never; Returns: number }
       mhd_dispatch_notification_emails: { Args: never; Returns: number }
+      mhd_document_retention_schedule_list: {
+        Args: { p_company_id: string; p_entity_type?: string }
+        Returns: {
+          computed_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          retention_basis: string
+          retention_expires_at: string
+        }[]
+      }
       mhd_edit_message: {
         Args: { p_body: string; p_message_id: string }
         Returns: undefined

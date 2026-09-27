@@ -13,7 +13,20 @@ export const mhdAuditQueryKeys = {
     companyId: string | null,
     serverFilters: Pick<MhdAuditEventFilters, 'entityType' | 'actionType' | 'from' | 'to'>,
   ) => ['mhd-audit', 'events', companyId ?? '', serverFilters] as const,
+  retentionSchedules: (companyId: string | null, entityType?: string | null) =>
+    ['mhd-audit', 'retention-schedules', companyId ?? '', entityType ?? 'ALL'] as const,
 };
+
+export function useMhdDocumentRetentionSchedules(
+  companyId: string | null,
+  entityType?: string | null,
+) {
+  return useQuery({
+    queryKey: mhdAuditQueryKeys.retentionSchedules(companyId, entityType),
+    queryFn: () => mhdAuditService.listDocumentRetentionSchedules(companyId!, entityType),
+    enabled: Boolean(companyId),
+  });
+}
 
 export function useMhdTaskAuditTimeline(taskId: string | null) {
   return useQuery({

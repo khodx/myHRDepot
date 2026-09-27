@@ -39,6 +39,25 @@ export interface MhdTaskAuditTimelineRpcRow {
   metadata: unknown;
 }
 
+/** Row shape returned by `mhd_document_retention_schedule_list` (0313). */
+export interface MhdDocumentRetentionScheduleRpcRow {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  retention_basis: string;
+  retention_expires_at: string;
+  computed_at: string;
+}
+
+export interface MhdDocumentRetentionSchedule {
+  id: string;
+  entityType: string;
+  entityId: string;
+  retentionBasis: string;
+  retentionExpiresAt: string;
+  computedAt: string;
+}
+
 export interface MhdTaskAuditEntry {
   id: string;
   entityType: MhdTaskAuditEntityType;
