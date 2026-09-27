@@ -33237,6 +33237,10 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_training_block_delete: {
+        Args: { p_block_id: string }
+        Returns: undefined
+      }
       mhd_training_block_progress_get: {
         Args: { p_assignment_id: string }
         Returns: {
@@ -33250,6 +33254,29 @@ export type Database = {
       }
       mhd_training_block_start: {
         Args: { p_assignment_id: string; p_block_id: string }
+        Returns: undefined
+      }
+      mhd_training_block_translation_upsert: {
+        Args: {
+          p_alt_text?: string
+          p_block_id: string
+          p_content?: Json
+          p_locale: string
+          p_transcript?: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
+      mhd_training_block_update: {
+        Args: {
+          p_alt_text?: string
+          p_block_id: string
+          p_content?: Json
+          p_sort_order?: number
+          p_title?: string
+          p_transcript?: string
+        }
         Returns: undefined
       }
       mhd_training_bulk_assign: {
@@ -33476,6 +33503,10 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_training_curriculum_delete: {
+        Args: { p_curriculum_id: string }
+        Returns: undefined
+      }
       mhd_training_curriculum_list: {
         Args: { p_company_id: string }
         Returns: {
@@ -33487,6 +33518,15 @@ export type Database = {
           reference_id: string
           title: string
         }[]
+      }
+      mhd_training_curriculum_update: {
+        Args: {
+          p_curriculum_id: string
+          p_description?: string
+          p_is_active?: boolean
+          p_title?: string
+        }
+        Returns: undefined
       }
       mhd_training_external_auditor_grant_create: {
         Args: {
@@ -33608,6 +33648,19 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_training_lesson_delete: {
+        Args: { p_lesson_id: string }
+        Returns: undefined
+      }
+      mhd_training_lesson_update: {
+        Args: {
+          p_description?: string
+          p_lesson_id: string
+          p_sort_order?: number
+          p_title?: string
+        }
+        Returns: undefined
+      }
       mhd_training_list_assignments: {
         Args: { p_company_id: string; p_person_id?: string; p_status?: string }
         Returns: {
@@ -33666,6 +33719,19 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_training_module_delete: {
+        Args: { p_module_id: string }
+        Returns: undefined
+      }
+      mhd_training_module_update: {
+        Args: {
+          p_description?: string
+          p_module_id: string
+          p_sort_order?: number
+          p_title?: string
+        }
+        Returns: undefined
+      }
       mhd_training_peer_review_assign: {
         Args: { p_block_progress_id: string; p_reviewer_person_id: string }
         Returns: {
@@ -33718,6 +33784,10 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_training_program_delete: {
+        Args: { p_program_id: string }
+        Returns: undefined
+      }
       mhd_training_program_list: {
         Args: { p_company_id: string; p_curriculum_id?: string }
         Returns: {
@@ -33730,6 +33800,17 @@ export type Database = {
           sort_order: number
           title: string
         }[]
+      }
+      mhd_training_program_update: {
+        Args: {
+          p_curriculum_id?: string
+          p_description?: string
+          p_is_active?: boolean
+          p_program_id: string
+          p_sort_order?: number
+          p_title?: string
+        }
+        Returns: undefined
       }
       mhd_training_record_admin_completion: {
         Args: {
@@ -33783,6 +33864,21 @@ export type Database = {
           id: string
         }[]
       }
+      mhd_training_scenario_choice_delete: {
+        Args: { p_choice_id: string }
+        Returns: undefined
+      }
+      mhd_training_scenario_choice_update: {
+        Args: {
+          p_choice_id: string
+          p_feedback_text?: string
+          p_label?: string
+          p_next_node_id?: string
+          p_score_delta?: number
+          p_sort_order?: number
+        }
+        Returns: undefined
+      }
       mhd_training_scenario_graph: {
         Args: { p_block_id: string }
         Returns: Json
@@ -33800,6 +33896,21 @@ export type Database = {
         Returns: {
           id: string
         }[]
+      }
+      mhd_training_scenario_node_delete: {
+        Args: { p_node_id: string }
+        Returns: undefined
+      }
+      mhd_training_scenario_node_update: {
+        Args: {
+          p_content?: Json
+          p_is_start?: boolean
+          p_is_terminal?: boolean
+          p_node_id: string
+          p_node_key?: string
+          p_scenario_contract?: Json
+        }
+        Returns: undefined
       }
       mhd_training_scenario_record_visit: {
         Args: {

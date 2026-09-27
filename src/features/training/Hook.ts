@@ -11,10 +11,17 @@ import type {
   MhdCompleteTrainingInput,
   MhdCreateCourseInput,
   MhdCreateCurriculumInput,
+  MhdUpdateCurriculumInput,
   MhdCreateProgramInput,
+  MhdUpdateProgramInput,
   MhdCreateCourseModuleInput,
+  MhdUpdateCourseModuleInput,
   MhdCreateLessonInput,
+  MhdUpdateLessonInput,
   MhdCreateBlockInput,
+  MhdUpdateBlockInput,
+  MhdUpdateScenarioNodeInput,
+  MhdUpdateScenarioChoiceInput,
   MhdSetCourseContentModeInput,
   MhdForkCourseInput,
   MhdApproveContentInput,
@@ -140,18 +147,29 @@ export function useMhdRespondToTrainingScenarioAi() {
   });
 }
 
-export function useMhdCreateTrainingScenarioNode() {
+// The scenario graph is queried under its own key
+// (['mhd-training', 'scenario-graph', blockId]) — every authoring mutation on a node
+// or choice must invalidate it, or the graph editor never sees its own edits.
+function useMhdTrainingScenarioMutation<T>(mutationFn: (input: T) => Promise<unknown>) {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: MhdCreateTrainingScenarioNodeInput) =>
-      mhdTrainingService.createScenarioNode(input),
+    mutationFn,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'scenario-graph'] });
+    },
   });
 }
 
+export function useMhdCreateTrainingScenarioNode() {
+  return useMhdTrainingScenarioMutation<MhdCreateTrainingScenarioNodeInput>((input) =>
+    mhdTrainingService.createScenarioNode(input),
+  );
+}
+
 export function useMhdCreateTrainingScenarioChoice() {
-  return useMutation({
-    mutationFn: (input: MhdCreateTrainingScenarioChoiceInput) =>
-      mhdTrainingService.createScenarioChoice(input),
-  });
+  return useMhdTrainingScenarioMutation<MhdCreateTrainingScenarioChoiceInput>((input) =>
+    mhdTrainingService.createScenarioChoice(input),
+  );
 }
 
 export function useMhdTrainingIltSessions(courseId: string | null) {
@@ -292,6 +310,26 @@ export function useMhdCreateTrainingCurriculum() {
   });
 }
 
+export function useMhdUpdateTrainingCurriculum() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpdateCurriculumInput) => mhdTrainingService.updateCurriculum(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'curriculums'] });
+    },
+  });
+}
+
+export function useMhdDeleteTrainingCurriculum() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (curriculumId: string) => mhdTrainingService.deleteCurriculum(curriculumId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'curriculums'] });
+    },
+  });
+}
+
 export function useMhdTrainingPrograms(filters: MhdTrainingProgramFilters) {
   return useQuery({
     queryKey: mhdTrainingQueryKeys.programs(filters),
@@ -310,12 +348,37 @@ export function useMhdCreateTrainingProgram() {
   });
 }
 
+export function useMhdUpdateTrainingProgram() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpdateProgramInput) => mhdTrainingService.updateProgram(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'programs'] });
+    },
+  });
+}
+
+export function useMhdDeleteTrainingProgram() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (programId: string) => mhdTrainingService.deleteProgram(programId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'programs'] });
+    },
+  });
+}
+
 function useMhdTrainingContentMutation<T>(mutationFn: (input: T) => Promise<unknown>) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn,
     onSuccess: () => {
+      // 'content-tree' is queried under its own top-level key segment
+      // (['mhd-training', 'content-tree', courseId]), not nested under 'courses' —
+      // both must be invalidated explicitly, or editing a module/lesson/block never
+      // refreshes the tree a builder UI is actually looking at.
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'courses'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'content-tree'] });
     },
   });
 }
@@ -330,14 +393,64 @@ export function useMhdCreateTrainingCourseModule() {
     mhdTrainingService.createCourseModule(input),
   );
 }
+export function useMhdUpdateTrainingCourseModule() {
+  return useMhdTrainingContentMutation<MhdUpdateCourseModuleInput>((input) =>
+    mhdTrainingService.updateCourseModule(input),
+  );
+}
+export function useMhdDeleteTrainingCourseModule() {
+  return useMhdTrainingContentMutation<string>((moduleId) =>
+    mhdTrainingService.deleteCourseModule(moduleId),
+  );
+}
 export function useMhdCreateTrainingLesson() {
   return useMhdTrainingContentMutation<MhdCreateLessonInput>((input) =>
     mhdTrainingService.createLesson(input),
   );
 }
+export function useMhdUpdateTrainingLesson() {
+  return useMhdTrainingContentMutation<MhdUpdateLessonInput>((input) =>
+    mhdTrainingService.updateLesson(input),
+  );
+}
+export function useMhdDeleteTrainingLesson() {
+  return useMhdTrainingContentMutation<string>((lessonId) =>
+    mhdTrainingService.deleteLesson(lessonId),
+  );
+}
 export function useMhdCreateTrainingBlock() {
   return useMhdTrainingContentMutation<MhdCreateBlockInput>((input) =>
     mhdTrainingService.createBlock(input),
+  );
+}
+export function useMhdUpdateTrainingBlock() {
+  return useMhdTrainingContentMutation<MhdUpdateBlockInput>((input) =>
+    mhdTrainingService.updateBlock(input),
+  );
+}
+export function useMhdDeleteTrainingBlock() {
+  return useMhdTrainingContentMutation<string>((blockId) =>
+    mhdTrainingService.deleteBlock(blockId),
+  );
+}
+export function useMhdUpdateTrainingScenarioNode() {
+  return useMhdTrainingScenarioMutation<MhdUpdateScenarioNodeInput>((input) =>
+    mhdTrainingService.updateScenarioNode(input),
+  );
+}
+export function useMhdDeleteTrainingScenarioNode() {
+  return useMhdTrainingScenarioMutation<string>((nodeId) =>
+    mhdTrainingService.deleteScenarioNode(nodeId),
+  );
+}
+export function useMhdUpdateTrainingScenarioChoice() {
+  return useMhdTrainingScenarioMutation<MhdUpdateScenarioChoiceInput>((input) =>
+    mhdTrainingService.updateScenarioChoice(input),
+  );
+}
+export function useMhdDeleteTrainingScenarioChoice() {
+  return useMhdTrainingScenarioMutation<string>((choiceId) =>
+    mhdTrainingService.deleteScenarioChoice(choiceId),
   );
 }
 export function useMhdForkTrainingCourse() {

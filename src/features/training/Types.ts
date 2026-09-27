@@ -864,6 +864,12 @@ export interface MhdCreateCurriculumInput {
   title: string;
   description?: string | null;
 }
+export interface MhdUpdateCurriculumInput {
+  curriculumId: MhdTrainingCurriculumId;
+  title?: string;
+  description?: string | null;
+  isActive?: boolean;
+}
 export interface MhdTrainingProgramFilters {
   companyId: string | null;
   curriculumId?: MhdTrainingCurriculumId | null;
@@ -875,15 +881,35 @@ export interface MhdCreateProgramInput {
   description?: string | null;
   sortOrder?: number;
 }
+export interface MhdUpdateProgramInput {
+  programId: MhdTrainingProgramId;
+  title?: string;
+  description?: string | null;
+  curriculumId?: MhdTrainingCurriculumId | null;
+  sortOrder?: number;
+  isActive?: boolean;
+}
 export interface MhdCreateCourseModuleInput {
   courseId: MhdTrainingCourseId;
   title: string;
   description?: string | null;
   sortOrder?: number;
 }
+export interface MhdUpdateCourseModuleInput {
+  moduleId: string;
+  title?: string;
+  description?: string | null;
+  sortOrder?: number;
+}
 export interface MhdCreateLessonInput {
   moduleId: MhdTrainingCourseModuleId;
   title: string;
+  description?: string | null;
+  sortOrder?: number;
+}
+export interface MhdUpdateLessonInput {
+  lessonId: MhdTrainingLessonId;
+  title?: string;
   description?: string | null;
   sortOrder?: number;
 }
@@ -895,6 +921,30 @@ export interface MhdCreateBlockInput {
   sortOrder?: number;
   altText?: string | null;
   transcript?: string | null;
+}
+export interface MhdUpdateBlockInput {
+  blockId: string;
+  title?: string | null;
+  content?: Record<string, unknown>;
+  altText?: string | null;
+  transcript?: string | null;
+  sortOrder?: number;
+}
+export interface MhdUpdateScenarioNodeInput {
+  nodeId: string;
+  nodeKey?: string;
+  content?: Record<string, unknown> | null;
+  isStart?: boolean;
+  isTerminal?: boolean;
+  scenarioContract?: Record<string, unknown> | null;
+}
+export interface MhdUpdateScenarioChoiceInput {
+  choiceId: string;
+  label?: string;
+  nextNodeId?: string | null;
+  feedbackText?: string | null;
+  scoreDelta?: number | null;
+  sortOrder?: number;
 }
 
 export const MHD_TRAINING_VIDEO_UPLOAD_FUNCTION_NAME = 'mhd-video-upload';

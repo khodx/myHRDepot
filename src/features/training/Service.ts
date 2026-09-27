@@ -24,10 +24,17 @@ import type {
   MhdCompleteTrainingInput,
   MhdCreateCourseInput,
   MhdCreateCurriculumInput,
+  MhdUpdateCurriculumInput,
   MhdCreateProgramInput,
+  MhdUpdateProgramInput,
   MhdCreateCourseModuleInput,
+  MhdUpdateCourseModuleInput,
   MhdCreateLessonInput,
+  MhdUpdateLessonInput,
   MhdCreateBlockInput,
+  MhdUpdateBlockInput,
+  MhdUpdateScenarioNodeInput,
+  MhdUpdateScenarioChoiceInput,
   MhdSetCourseContentModeInput,
   MhdForkCourseInput,
   MhdApproveContentInput,
@@ -635,6 +642,44 @@ export const mhdTrainingService = {
     return row.id;
   },
 
+  async updateScenarioNode(input: MhdUpdateScenarioNodeInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_scenario_node_update', {
+      p_node_id: input.nodeId,
+      p_node_key: input.nodeKey ?? undefined,
+      p_content: (input.content ?? undefined) as Json | undefined,
+      p_is_start: input.isStart ?? undefined,
+      p_is_terminal: input.isTerminal ?? undefined,
+      p_scenario_contract: (input.scenarioContract ?? undefined) as Json | undefined,
+    });
+    if (error) throw error;
+  },
+
+  async deleteScenarioNode(nodeId: string): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_scenario_node_delete', {
+      p_node_id: nodeId,
+    });
+    if (error) throw error;
+  },
+
+  async updateScenarioChoice(input: MhdUpdateScenarioChoiceInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_scenario_choice_update', {
+      p_choice_id: input.choiceId,
+      p_label: input.label ?? undefined,
+      p_next_node_id: input.nextNodeId ?? undefined,
+      p_feedback_text: input.feedbackText ?? undefined,
+      p_score_delta: input.scoreDelta ?? undefined,
+      p_sort_order: input.sortOrder ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async deleteScenarioChoice(choiceId: string): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_scenario_choice_delete', {
+      p_choice_id: choiceId,
+    });
+    if (error) throw error;
+  },
+
   async uploadVideo(request: MhdTrainingVideoUploadRequest): Promise<MhdTrainingVideoUploadResult> {
     const { blockId, file } = mhdTrainingVideoUploadSchema.parse(request);
 
@@ -739,6 +784,23 @@ export const mhdTrainingService = {
     return mapMutationResult(row);
   },
 
+  async updateCurriculum(input: MhdUpdateCurriculumInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_curriculum_update', {
+      p_curriculum_id: input.curriculumId,
+      p_title: trimmedOrUndefined(input.title),
+      p_description: input.description ?? undefined,
+      p_is_active: input.isActive ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async deleteCurriculum(curriculumId: string): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_curriculum_delete', {
+      p_curriculum_id: curriculumId,
+    });
+    if (error) throw error;
+  },
+
   async listPrograms(filters: MhdTrainingProgramFilters): Promise<MhdTrainingProgram[]> {
     if (!filters.companyId) return [];
     const { data, error } = await supabaseClient.rpc('mhd_training_program_list', {
@@ -763,6 +825,25 @@ export const mhdTrainingService = {
     return mapMutationResult(row);
   },
 
+  async updateProgram(input: MhdUpdateProgramInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_program_update', {
+      p_program_id: input.programId,
+      p_title: trimmedOrUndefined(input.title),
+      p_description: input.description ?? undefined,
+      p_curriculum_id: input.curriculumId ?? undefined,
+      p_sort_order: input.sortOrder ?? undefined,
+      p_is_active: input.isActive ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async deleteProgram(programId: string): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_program_delete', {
+      p_program_id: programId,
+    });
+    if (error) throw error;
+  },
+
   async setCourseContentMode(input: MhdSetCourseContentModeInput): Promise<void> {
     const { error } = await supabaseClient.rpc('mhd_training_course_set_content_mode', {
       p_course_id: input.courseId,
@@ -784,6 +865,23 @@ export const mhdTrainingService = {
     return mapCourseModule(row);
   },
 
+  async updateCourseModule(input: MhdUpdateCourseModuleInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_module_update', {
+      p_module_id: input.moduleId,
+      p_title: trimmedOrUndefined(input.title),
+      p_description: input.description ?? undefined,
+      p_sort_order: input.sortOrder ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async deleteCourseModule(moduleId: string): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_module_delete', {
+      p_module_id: moduleId,
+    });
+    if (error) throw error;
+  },
+
   async createLesson(input: MhdCreateLessonInput): Promise<MhdTrainingLesson> {
     const { data, error } = await supabaseClient.rpc('mhd_training_lesson_create', {
       p_module_id: input.moduleId,
@@ -795,6 +893,23 @@ export const mhdTrainingService = {
     const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
     if (!row) throw new Error('Lesson creation returned no row.');
     return mapLesson(row);
+  },
+
+  async updateLesson(input: MhdUpdateLessonInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_lesson_update', {
+      p_lesson_id: input.lessonId,
+      p_title: trimmedOrUndefined(input.title),
+      p_description: input.description ?? undefined,
+      p_sort_order: input.sortOrder ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async deleteLesson(lessonId: string): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_lesson_delete', {
+      p_lesson_id: lessonId,
+    });
+    if (error) throw error;
   },
 
   async createBlock(input: MhdCreateBlockInput): Promise<MhdTrainingBlock> {
@@ -811,6 +926,25 @@ export const mhdTrainingService = {
     const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
     if (!row) throw new Error('Block creation returned no row.');
     return mapBlock(row);
+  },
+
+  async updateBlock(input: MhdUpdateBlockInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_block_update', {
+      p_block_id: input.blockId,
+      p_title: input.title ?? undefined,
+      p_content: (input.content ?? undefined) as Json | undefined,
+      p_alt_text: input.altText ?? undefined,
+      p_transcript: input.transcript ?? undefined,
+      p_sort_order: input.sortOrder ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async deleteBlock(blockId: string): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_block_delete', {
+      p_block_id: blockId,
+    });
+    if (error) throw error;
   },
 
   async forkCourse(input: MhdForkCourseInput): Promise<MhdMutationResult> {
