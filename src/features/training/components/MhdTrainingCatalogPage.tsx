@@ -176,6 +176,12 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
                 Engagement
               </Link>
               <Link
+                to="/training/lifecycle"
+                className="inline-flex h-9 items-center rounded-md border border-border px-3 text-[16.8px] font-medium text-foreground hover:bg-muted"
+              >
+                Lifecycle &amp; Access
+              </Link>
+              <Link
                 to="/training/leaderboard"
                 className="inline-flex h-9 items-center rounded-md border border-border px-3 text-[16.8px] font-medium text-foreground hover:bg-muted"
               >
