@@ -884,7 +884,12 @@ export interface MhdCreateContentFlagInput {
 }
 export interface MhdListContentFlagsInput {
   companyId: string;
-  status?: MhdContentFlagStatus;
+  // undefined = not specified, defaults to PENDING (the review-queue default).
+  // Explicit null = show every status — distinct from "not specified", since the
+  // RPC's own default is PENDING, not "all" (mhd_content_flag_list, 0294). Widen
+  // this to include null deliberately; do not silently collapse it back to
+  // PENDING.
+  status?: MhdContentFlagStatus | null;
 }
 export interface MhdResolveContentFlagInput {
   flagId: MhdContentFlagId;

@@ -1582,7 +1582,16 @@ export const mhdTrainingService = {
   async listContentFlags(input: MhdListContentFlagsInput): Promise<MhdContentFlag[]> {
     const { data, error } = await supabaseClient.rpc('mhd_content_flag_list', {
       p_company_id: input.companyId,
-      p_status: input.status ?? 'PENDING',
+      // undefined ("not specified") defaults to the RPC's own PENDING default;
+      // explicit null must pass through unchanged to actually mean "every status" --
+      // coalescing null to 'PENDING' here would make "show all" impossible to
+      // request at all, which is exactly the bug this comment exists to prevent.
+      // The generated RPC arg type omits `null` even though the SQL parameter is
+      // genuinely nullable (default 'PENDING', but `p_status is null` is checked
+      // in the WHERE clause) -- same documented `as never` compatibility cast used
+      // elsewhere in this codebase for a generated type that's stricter than the
+      // real, supported SQL contract.
+      p_status: (input.status === undefined ? 'PENDING' : input.status) as never,
     });
     if (error) throw error;
     return ((data ?? []) as MhdContentFlagRpcRow[]).map(mapContentFlag);

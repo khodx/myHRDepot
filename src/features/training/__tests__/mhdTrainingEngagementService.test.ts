@@ -77,6 +77,20 @@ describe('mhdTrainingService — LMS v2 engagement and social RPCs', () => {
     expect(await mhdTrainingService.listContentFlags({ companyId: 'company-1' })).toMatchObject([
       { entityType: 'TRAINING_LESSON', status: 'PENDING' },
     ]);
+    // Not specifying a status defaults to the RPC's own PENDING default.
+    expect(rpcMock).toHaveBeenLastCalledWith('mhd_content_flag_list', {
+      p_company_id: 'company-1', p_status: 'PENDING',
+    });
+
+    // An explicit null must reach the RPC unchanged -- it means "every status",
+    // not "not specified". Coalescing it back to 'PENDING' would make it
+    // impossible to ever request all flags (a real bug found and fixed while
+    // building the moderation queue's "All" filter option).
+    rpcMock.mockResolvedValueOnce({ data: [], error: null });
+    await mhdTrainingService.listContentFlags({ companyId: 'company-1', status: null });
+    expect(rpcMock).toHaveBeenLastCalledWith('mhd_content_flag_list', {
+      p_company_id: 'company-1', p_status: null,
+    });
 
     rpcMock.mockResolvedValueOnce({ data: null, error: null });
     await mhdTrainingService.resolveContentFlag({ flagId: 'f1', action: 'HIDDEN' });
