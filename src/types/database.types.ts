@@ -33642,6 +33642,20 @@ export type Database = {
           status: string
         }[]
       }
+      mhd_training_ilt_roster_list: {
+        Args: { p_session_id: string }
+        Returns: {
+          attendance_source: string
+          check_in_at: string
+          check_out_at: string
+          enrolled_at: string
+          enrollment_id: string
+          override_reason: string
+          person_display_name: string
+          person_id: string
+          status: string
+        }[]
+      }
       mhd_training_ilt_session_create: {
         Args: {
           p_capacity?: number
@@ -33665,6 +33679,25 @@ export type Database = {
         Args: { p_course_id: string }
         Returns: {
           capacity: number
+          end_time: string
+          enrolled_count: number
+          id: string
+          instructor_name: string
+          is_cancelled: boolean
+          meeting_provider: string
+          reference_id: string
+          room_or_resource_label: string
+          session_date: string
+          start_time: string
+          waitlisted_count: number
+        }[]
+      }
+      mhd_training_ilt_session_list_by_company: {
+        Args: { p_company_id: string; p_include_cancelled?: boolean }
+        Returns: {
+          capacity: number
+          course_id: string
+          course_title: string
           end_time: string
           enrolled_count: number
           id: string

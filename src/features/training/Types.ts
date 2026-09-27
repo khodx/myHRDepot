@@ -258,6 +258,21 @@ export interface MhdTrainingIltSessionRpcRow {
   enrolled_count: number | string;
   waitlisted_count: number | string;
 }
+export interface MhdTrainingIltSessionByCompanyRpcRow extends MhdTrainingIltSessionRpcRow {
+  course_id: string;
+  course_title: string;
+}
+export interface MhdTrainingIltRosterRpcRow {
+  enrollment_id: string;
+  person_id: string;
+  person_display_name: string;
+  status: MhdTrainingEnrollmentStatus;
+  enrolled_at: string;
+  check_in_at: string | null;
+  check_out_at: string | null;
+  attendance_source: string | null;
+  override_reason: string | null;
+}
 
 export interface MhdTrainingIltEnrollmentRpcRow {
   id: string;
@@ -706,6 +721,22 @@ export interface MhdTrainingIltSession {
 export interface MhdTrainingIltEnrollmentResult {
   id: MhdTrainingIltEnrollmentId;
   status: Exclude<MhdTrainingEnrollmentStatus, 'CANCELLED'>;
+}
+
+export interface MhdTrainingIltSessionSummary extends MhdTrainingIltSession {
+  courseId: string;
+  courseTitle: string;
+}
+export interface MhdTrainingIltRosterEntry {
+  enrollmentId: MhdTrainingIltEnrollmentId;
+  personId: string;
+  personDisplayName: string;
+  status: MhdTrainingEnrollmentStatus;
+  enrolledAt: string;
+  checkInAt: string | null;
+  checkOutAt: string | null;
+  attendanceSource: MhdTrainingAttendanceSource | null;
+  overrideReason: string | null;
 }
 
 // ---------------------------------------------------------------------------

@@ -109,6 +109,9 @@ export const mhdTrainingQueryKeys = {
   managerTeamStatus: (input: MhdTrainingManagerTeamStatusInput) =>
     ['mhd-training', 'manager-team-status', input] as const,
   iltSessions: (courseId: string) => ['mhd-training', 'ilt-sessions', courseId] as const,
+  iltSessionsByCompany: (companyId: string, includeCancelled?: boolean) =>
+    ['mhd-training', 'ilt-sessions-by-company', companyId, Boolean(includeCancelled)] as const,
+  iltRoster: (sessionId: string) => ['mhd-training', 'ilt-roster', sessionId] as const,
   scenarioGraph: (blockId: string) => ['mhd-training', 'scenario-graph', blockId] as const,
   aiTranscript: (blockProgressId: string) => ['mhd-training', 'ai-transcript', blockProgressId] as const,
 };
@@ -195,14 +198,33 @@ export function useMhdCreateTrainingIltSession() {
   });
 }
 
-export function useMhdEnrollTrainingIlt() {
+// ILT sessions and rosters are queried under three separate key segments
+// ('ilt-sessions' per-course, 'ilt-sessions-by-company', and 'ilt-roster' per-session)
+// — every mutation that changes enrollment or attendance must invalidate all the
+// ones its change actually affects, or an admin UI showing the roster/counts never
+// refreshes after an action.
+function useMhdTrainingIltMutation<T>(
+  mutationFn: (input: T) => Promise<unknown>,
+  getSessionId: (input: T) => string,
+) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: MhdEnrollTrainingIltInput) => mhdTrainingService.enrollIlt(input),
-    onSuccess: () => {
+    mutationFn,
+    onSuccess: (_data, input) => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'ilt-sessions'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'ilt-sessions-by-company'] });
+      void queryClient.invalidateQueries({
+        queryKey: mhdTrainingQueryKeys.iltRoster(getSessionId(input)),
+      });
     },
   });
+}
+
+export function useMhdEnrollTrainingIlt() {
+  return useMhdTrainingIltMutation<MhdEnrollTrainingIltInput>(
+    (input) => mhdTrainingService.enrollIlt(input),
+    (input) => input.sessionId,
+  );
 }
 
 export function useMhdCancelTrainingIltEnrollment() {
@@ -211,27 +233,49 @@ export function useMhdCancelTrainingIltEnrollment() {
     mutationFn: (input: MhdCancelTrainingIltEnrollmentInput) =>
       mhdTrainingService.cancelIltEnrollment(input),
     onSuccess: () => {
+      // The input carries only an enrollmentId, not the session it belongs to, so
+      // every session's roster is invalidated rather than one targeted key.
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'ilt-sessions'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'ilt-sessions-by-company'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'ilt-roster'] });
     },
   });
 }
 
 export function useMhdCheckInTrainingIlt() {
-  return useMutation({
-    mutationFn: (input: MhdTrainingIltAttendanceInput) => mhdTrainingService.checkInIlt(input),
-  });
+  return useMhdTrainingIltMutation<MhdTrainingIltAttendanceInput>(
+    (input) => mhdTrainingService.checkInIlt(input),
+    (input) => input.sessionId,
+  );
 }
 
 export function useMhdCheckOutTrainingIlt() {
-  return useMutation({
-    mutationFn: (input: MhdTrainingIltAttendanceInput) => mhdTrainingService.checkOutIlt(input),
-  });
+  return useMhdTrainingIltMutation<MhdTrainingIltAttendanceInput>(
+    (input) => mhdTrainingService.checkOutIlt(input),
+    (input) => input.sessionId,
+  );
 }
 
 export function useMhdOverrideTrainingIltAttendance() {
-  return useMutation({
-    mutationFn: (input: MhdTrainingIltAttendanceOverrideInput) =>
-      mhdTrainingService.overrideIltAttendance(input),
+  return useMhdTrainingIltMutation<MhdTrainingIltAttendanceOverrideInput>(
+    (input) => mhdTrainingService.overrideIltAttendance(input),
+    (input) => input.sessionId,
+  );
+}
+
+export function useMhdTrainingIltSessionsByCompany(companyId: string, includeCancelled = false) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.iltSessionsByCompany(companyId, includeCancelled),
+    queryFn: () => mhdTrainingService.listIltSessionsByCompany(companyId, includeCancelled),
+    enabled: Boolean(companyId),
+  });
+}
+
+export function useMhdTrainingIltRoster(sessionId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.iltRoster(sessionId ?? ''),
+    queryFn: () => mhdTrainingService.listIltRoster(sessionId!),
+    enabled: Boolean(sessionId),
   });
 }
 

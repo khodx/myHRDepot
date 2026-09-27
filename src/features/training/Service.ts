@@ -152,6 +152,10 @@ import type {
   MhdTrainingIltSession,
   MhdTrainingIltSessionCreateRpcRow,
   MhdTrainingIltSessionRpcRow,
+  MhdTrainingIltSessionByCompanyRpcRow,
+  MhdTrainingIltSessionSummary,
+  MhdTrainingIltRosterRpcRow,
+  MhdTrainingIltRosterEntry,
   MhdEnrollTrainingIltInput,
   MhdTrainingIltEnrollmentResult,
   MhdTrainingIltEnrollmentRpcRow,
@@ -513,6 +517,40 @@ export const mhdTrainingService = {
     });
     if (error) throw error;
     return ((data ?? []) as MhdTrainingIltSessionRpcRow[]).map(mapIltSession);
+  },
+
+  async listIltSessionsByCompany(
+    companyId: string,
+    includeCancelled = false,
+  ): Promise<MhdTrainingIltSessionSummary[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_ilt_session_list_by_company', {
+      p_company_id: companyId,
+      p_include_cancelled: includeCancelled,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingIltSessionByCompanyRpcRow[]).map((row) => ({
+      ...mapIltSession(row),
+      courseId: row.course_id,
+      courseTitle: row.course_title,
+    }));
+  },
+
+  async listIltRoster(sessionId: string): Promise<MhdTrainingIltRosterEntry[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_ilt_roster_list', {
+      p_session_id: sessionId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingIltRosterRpcRow[]).map((row) => ({
+      enrollmentId: row.enrollment_id as MhdTrainingIltRosterEntry['enrollmentId'],
+      personId: row.person_id,
+      personDisplayName: row.person_display_name,
+      status: row.status,
+      enrolledAt: row.enrolled_at,
+      checkInAt: row.check_in_at,
+      checkOutAt: row.check_out_at,
+      attendanceSource: row.attendance_source as MhdTrainingIltRosterEntry['attendanceSource'],
+      overrideReason: row.override_reason,
+    }));
   },
 
   // The enroll RPC chooses ENROLLED vs WAITLISTED server-side and also creates
