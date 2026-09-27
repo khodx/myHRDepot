@@ -75,4 +75,53 @@ describe('mhdAssessmentService', () => {
     const [item] = await mhdAssessmentService.listItems('c');
     expect(item.requiresManualGrading).toBe(true);
   });
+
+  it('lists assessments for a company with real item counts, not just detail-only lookups', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'a1', reference_id: 'ASM-0001', course_id: 'course-1', course_title: 'Ethics', title: 'Ethics Check',
+          assembly_mode: 'FIXED', integrity_profile: 'LIGHT', time_limit_minutes: 20, item_count: '4', is_active: true,
+          created_at: 'now',
+        },
+      ],
+      error: null,
+    });
+    const [assessment] = await mhdAssessmentService.listAssessments('c');
+    expect(rpcMock).toHaveBeenCalledWith('mhd_training_assessment_list', { p_company_id: 'c', p_include_inactive: false });
+    expect(assessment.itemCount).toBe(4);
+    expect(assessment.courseTitle).toBe('Ethics');
+  });
+
+  it('lists accommodation requests with resolved person and assessment names', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'r1', reference_id: 'TAR-0001', assessment_id: 'a1', assessment_title: 'Ethics Check',
+          person_id: 'p1', person_display_name: 'Jordan Martinez', extended_time_percent: 50,
+          attempt_count_override: null, integrity_profile_override: null, status: 'PENDING',
+          decided_by_name: null, decided_at: null, decision_notes: null, created_at: 'now',
+        },
+      ],
+      error: null,
+    });
+    const [request] = await mhdAssessmentService.listAccommodationRequests('c', 'PENDING');
+    expect(rpcMock).toHaveBeenCalledWith('mhd_training_accommodation_request_list', { p_company_id: 'c', p_status: 'PENDING' });
+    expect(request.personDisplayName).toBe('Jordan Martinez');
+  });
+
+  it('lists attempts pending review across every assessment for the company', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'att1', reference_id: 'ATT-0001', assessment_id: 'a1', assessment_title: 'Ethics Check',
+          person_id: 'p1', person_display_name: 'Jordan Martinez', attempt_number: 1, submitted_at: 'now',
+        },
+      ],
+      error: null,
+    });
+    const [pending] = await mhdAssessmentService.listPendingReview('c');
+    expect(rpcMock).toHaveBeenCalledWith('mhd_training_assessment_pending_review_list', { p_company_id: 'c' });
+    expect(pending.assessmentTitle).toBe('Ethics Check');
+  });
 });

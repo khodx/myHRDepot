@@ -88,6 +88,45 @@ export interface MhdAccommodationRequestRpcRow {
   id: string;
   reference_id: string;
 }
+export interface MhdAssessmentListRpcRow {
+  id: string;
+  reference_id: string;
+  course_id: string | null;
+  course_title: string | null;
+  title: string;
+  assembly_mode: MhdAssessmentAssemblyMode;
+  integrity_profile: MhdAssessmentIntegrityProfile;
+  time_limit_minutes: number | null;
+  item_count: number | string;
+  is_active: boolean;
+  created_at: string;
+}
+export interface MhdAccommodationRequestListRpcRow {
+  id: string;
+  reference_id: string;
+  assessment_id: string;
+  assessment_title: string;
+  person_id: string;
+  person_display_name: string;
+  extended_time_percent: number | null;
+  attempt_count_override: number | null;
+  integrity_profile_override: MhdAssessmentIntegrityProfile | null;
+  status: MhdAccommodationRequestStatus;
+  decided_by_name: string | null;
+  decided_at: string | null;
+  decision_notes: string | null;
+  created_at: string;
+}
+export interface MhdAssessmentPendingReviewRpcRow {
+  id: string;
+  reference_id: string;
+  assessment_id: string;
+  assessment_title: string;
+  person_id: string;
+  person_display_name: string;
+  attempt_number: number;
+  submitted_at: string;
+}
 export interface MhdAssessmentAttemptStartRpcRow {
   id: string;
   reference_id: string;
@@ -191,6 +230,46 @@ export interface MhdAssessmentAttemptSubmitResult {
 export interface MhdMutationResult {
   id: string;
   referenceId: string;
+}
+
+export interface MhdAssessmentSummary {
+  id: string;
+  referenceId: MhdAssessmentReferenceId;
+  courseId: string | null;
+  courseTitle: string | null;
+  title: string;
+  assemblyMode: MhdAssessmentAssemblyMode;
+  integrityProfile: MhdAssessmentIntegrityProfile;
+  timeLimitMinutes: number | null;
+  itemCount: number;
+  isActive: boolean;
+  createdAt: string;
+}
+export interface MhdAccommodationRequestSummary {
+  id: string;
+  referenceId: MhdAccommodationRequestReferenceId;
+  assessmentId: string;
+  assessmentTitle: string;
+  personId: string;
+  personDisplayName: string;
+  extendedTimePercent: number | null;
+  attemptCountOverride: number | null;
+  integrityProfileOverride: MhdAssessmentIntegrityProfile | null;
+  status: MhdAccommodationRequestStatus;
+  decidedByName: string | null;
+  decidedAt: string | null;
+  decisionNotes: string | null;
+  createdAt: string;
+}
+export interface MhdAssessmentPendingReview {
+  id: string;
+  referenceId: MhdAssessmentAttemptReferenceId;
+  assessmentId: string;
+  assessmentTitle: string;
+  personId: string;
+  personDisplayName: string;
+  attemptNumber: number;
+  submittedAt: string;
 }
 
 export const mhdFormatAssessmentQuestionType = (v: MhdAssessmentQuestionType) =>

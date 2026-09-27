@@ -33032,6 +33032,25 @@ export type Database = {
         Args: { p_approve: boolean; p_notes?: string; p_request_id: string }
         Returns: undefined
       }
+      mhd_training_accommodation_request_list: {
+        Args: { p_company_id: string; p_status?: string }
+        Returns: {
+          assessment_id: string
+          assessment_title: string
+          attempt_count_override: number
+          created_at: string
+          decided_at: string
+          decided_by_name: string
+          decision_notes: string
+          extended_time_percent: number
+          id: string
+          integrity_profile_override: string
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          status: string
+        }[]
+      }
       mhd_training_assessment_attempt_grade: {
         Args: {
           p_attempt_id: string
@@ -33132,6 +33151,35 @@ export type Database = {
           reference_id: string
           requires_manual_grading: boolean
           tags: string[]
+        }[]
+      }
+      mhd_training_assessment_list: {
+        Args: { p_company_id: string; p_include_inactive?: boolean }
+        Returns: {
+          assembly_mode: string
+          course_id: string
+          course_title: string
+          created_at: string
+          id: string
+          integrity_profile: string
+          is_active: boolean
+          item_count: number
+          reference_id: string
+          time_limit_minutes: number
+          title: string
+        }[]
+      }
+      mhd_training_assessment_pending_review_list: {
+        Args: { p_company_id: string }
+        Returns: {
+          assessment_id: string
+          assessment_title: string
+          attempt_number: number
+          id: string
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          submitted_at: string
         }[]
       }
       mhd_training_assign: {

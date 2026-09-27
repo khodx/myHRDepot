@@ -14,6 +14,12 @@ import type {
   MhdAssessmentItem,
   MhdAssessmentItemCreateInput,
   MhdAssessmentItemRpcRow,
+  MhdAssessmentListRpcRow,
+  MhdAssessmentSummary,
+  MhdAccommodationRequestListRpcRow,
+  MhdAccommodationRequestSummary,
+  MhdAssessmentPendingReviewRpcRow,
+  MhdAssessmentPendingReview,
   MhdMutationResult,
 } from './Types';
 
@@ -204,5 +210,70 @@ export const mhdAssessmentService = {
     });
     if (error) throw error;
     return ((data ?? []) as MhdAssessmentAttemptRpcRow[]).map(mapAttempt);
+  },
+
+  async listAssessments(companyId: string, includeInactive = false): Promise<MhdAssessmentSummary[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_assessment_list', {
+      p_company_id: companyId,
+      p_include_inactive: includeInactive,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdAssessmentListRpcRow[]).map((row) => ({
+      id: row.id,
+      referenceId: row.reference_id as MhdAssessmentSummary['referenceId'],
+      courseId: row.course_id,
+      courseTitle: row.course_title,
+      title: row.title,
+      assemblyMode: row.assembly_mode,
+      integrityProfile: row.integrity_profile,
+      timeLimitMinutes: row.time_limit_minutes,
+      itemCount: Number(row.item_count),
+      isActive: row.is_active,
+      createdAt: row.created_at,
+    }));
+  },
+
+  async listAccommodationRequests(
+    companyId: string,
+    status: string | null = null,
+  ): Promise<MhdAccommodationRequestSummary[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_accommodation_request_list', {
+      p_company_id: companyId,
+      p_status: status ?? undefined,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdAccommodationRequestListRpcRow[]).map((row) => ({
+      id: row.id,
+      referenceId: row.reference_id as MhdAccommodationRequestSummary['referenceId'],
+      assessmentId: row.assessment_id,
+      assessmentTitle: row.assessment_title,
+      personId: row.person_id,
+      personDisplayName: row.person_display_name,
+      extendedTimePercent: row.extended_time_percent,
+      attemptCountOverride: row.attempt_count_override,
+      integrityProfileOverride: row.integrity_profile_override,
+      status: row.status,
+      decidedByName: row.decided_by_name,
+      decidedAt: row.decided_at,
+      decisionNotes: row.decision_notes,
+      createdAt: row.created_at,
+    }));
+  },
+
+  async listPendingReview(companyId: string): Promise<MhdAssessmentPendingReview[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_assessment_pending_review_list', {
+      p_company_id: companyId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdAssessmentPendingReviewRpcRow[]).map((row) => ({
+      id: row.id,
+      referenceId: row.reference_id as MhdAssessmentPendingReview['referenceId'],
+      assessmentId: row.assessment_id,
+      assessmentTitle: row.assessment_title,
+      personId: row.person_id,
+      personDisplayName: row.person_display_name,
+      attemptNumber: row.attempt_number,
+      submittedAt: row.submitted_at,
+    }));
   },
 };

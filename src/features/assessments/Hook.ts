@@ -12,6 +12,11 @@ export const mhdAssessmentQueryKeys = {
   detail: (assessmentId: string) => ['mhd-assessments', 'detail', assessmentId] as const,
   attempts: (assessmentId: string, personId?: string | null) =>
     ['mhd-assessments', 'attempts', assessmentId, personId ?? null] as const,
+  list: (companyId: string, includeInactive?: boolean) =>
+    ['mhd-assessments', 'list', companyId, Boolean(includeInactive)] as const,
+  accommodationRequests: (companyId: string, status?: string | null) =>
+    ['mhd-assessments', 'accommodation-requests', companyId, status ?? null] as const,
+  pendingReview: (companyId: string) => ['mhd-assessments', 'pending-review', companyId] as const,
 };
 
 export function useMhdAssessmentItems(companyId: string, tag: string | null = null) {
@@ -108,6 +113,7 @@ export function useMhdGradeAssessmentAttempt() {
       void queryClient.invalidateQueries({
         queryKey: mhdAssessmentQueryKeys.attempts(assessmentId),
       });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-assessments', 'pending-review'] });
     },
   });
 }
@@ -121,6 +127,7 @@ export function useMhdCreateAccommodationRequest() {
       void queryClient.invalidateQueries({
         queryKey: mhdAssessmentQueryKeys.detail(input.assessmentId),
       });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-assessments', 'accommodation-requests'] });
     },
   });
 }
@@ -132,6 +139,31 @@ export function useMhdDecideAccommodationRequest() {
       mhdAssessmentService.decideAccommodationRequest(input.requestId, input.approve, input.notes ?? null),
     onSuccess: (_data, { assessmentId }) => {
       void queryClient.invalidateQueries({ queryKey: mhdAssessmentQueryKeys.detail(assessmentId) });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-assessments', 'accommodation-requests'] });
     },
+  });
+}
+
+export function useMhdAssessmentList(companyId: string, includeInactive = false) {
+  return useQuery({
+    queryKey: mhdAssessmentQueryKeys.list(companyId, includeInactive),
+    queryFn: () => mhdAssessmentService.listAssessments(companyId, includeInactive),
+    enabled: Boolean(companyId),
+  });
+}
+
+export function useMhdAccommodationRequestList(companyId: string, status: string | null = null) {
+  return useQuery({
+    queryKey: mhdAssessmentQueryKeys.accommodationRequests(companyId, status),
+    queryFn: () => mhdAssessmentService.listAccommodationRequests(companyId, status),
+    enabled: Boolean(companyId),
+  });
+}
+
+export function useMhdAssessmentPendingReview(companyId: string) {
+  return useQuery({
+    queryKey: mhdAssessmentQueryKeys.pendingReview(companyId),
+    queryFn: () => mhdAssessmentService.listPendingReview(companyId),
+    enabled: Boolean(companyId),
   });
 }
