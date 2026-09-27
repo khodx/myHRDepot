@@ -21,6 +21,13 @@ vi.mock('../Hook', () => ({
   useMhdUpdateTrainingBlock: () => noopMutation,
   useMhdDeleteTrainingBlock: () => noopMutation,
   useMhdUploadTrainingVideo: () => noopMutation,
+  useMhdTrainingScenarioGraph: () => ({ data: [], isLoading: false, isError: false }),
+  useMhdCreateTrainingScenarioNode: () => noopMutation,
+  useMhdUpdateTrainingScenarioNode: () => noopMutation,
+  useMhdDeleteTrainingScenarioNode: () => noopMutation,
+  useMhdCreateTrainingScenarioChoice: () => noopMutation,
+  useMhdUpdateTrainingScenarioChoice: () => noopMutation,
+  useMhdDeleteTrainingScenarioChoice: () => noopMutation,
 }));
 
 const { MhdTrainingContentTreeEditor } = await import('../components/MhdTrainingContentTreeEditor');
@@ -54,13 +61,14 @@ function tree(): MhdTrainingContentTree {
 }
 
 describe('MhdTrainingContentTreeEditor', () => {
-  it('shows an existing SCENARIO_BRANCHING block read-only with a Stage 2b note, and hides its Edit action', () => {
+  it('shows an existing SCENARIO_BRANCHING block with an Edit Graph action, not the plain block-content Edit action', () => {
     treeMock.mockReturnValue({ data: tree(), isLoading: false });
     render(<MhdTrainingContentTreeEditor courseId="course-1" />);
 
-    expect(screen.getByText(/Stage 2b/)).toBeInTheDocument();
     const blockRow = screen.getByText('An Upset Employee').closest('div') as HTMLElement;
-    expect(within(blockRow.parentElement as HTMLElement).queryByRole('button', { name: 'Edit' })).toBeNull();
+    const actions = blockRow.parentElement as HTMLElement;
+    expect(within(actions).getByRole('button', { name: 'Edit Graph' })).toBeInTheDocument();
+    expect(within(actions).queryByRole('button', { name: 'Edit' })).toBeNull();
   });
 
   it("the add-block type picker excludes SCENARIO_BRANCHING and AI_CONVERSATION", async () => {

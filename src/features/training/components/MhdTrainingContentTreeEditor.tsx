@@ -4,6 +4,7 @@ import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
+import { MhdTrainingScenarioGraphEditor } from './MhdTrainingScenarioGraphEditor';
 import {
   useMhdCreateTrainingBlock,
   useMhdCreateTrainingCourseModule,
@@ -41,7 +42,8 @@ function rowsValue(value: unknown) { return Array.isArray(value) ? value.filter(
 type ModalState =
   | { kind: 'module'; item?: MhdTrainingContentTreeModule }
   | { kind: 'lesson'; moduleId: string; item?: MhdTrainingContentTreeLesson }
-  | { kind: 'block'; lessonId: string; item?: MhdTrainingContentTreeBlock };
+  | { kind: 'block'; lessonId: string; item?: MhdTrainingContentTreeBlock }
+  | { kind: 'scenario'; blockId: string; blockType: 'SCENARIO_BRANCHING' | 'AI_CONVERSATION' };
 
 export function MhdTrainingContentTreeEditor({ courseId }: { courseId: string }) {
   const tree = useMhdTrainingCourseContentTree(courseId);
@@ -129,7 +131,7 @@ export function MhdTrainingContentTreeEditor({ courseId }: { courseId: string })
           {ordered(module.lessons).length === 0 ? <p className="pl-6 text-sm text-muted-foreground">No lessons yet.</p> : ordered(module.lessons).map((lesson, lessonIndex) => (
             <div key={lesson.id} className="ml-4 space-y-3 border-l-2 border-accent-border pl-5">
               <div className="flex flex-wrap items-center justify-between gap-2"><div className="flex items-center gap-2"><MhdBadge variant="info">Lesson {lessonIndex + 1}</MhdBadge><h4 className="font-medium text-foreground">{lesson.title}</h4></div><div className="flex flex-wrap gap-1"><Button variant="ghost" disabled={lessonIndex === 0} onClick={() => void moveLesson(module, lessonIndex, -1)} aria-label="Move lesson up">↑</Button><Button variant="ghost" disabled={lessonIndex === ordered(module.lessons).length - 1} onClick={() => void moveLesson(module, lessonIndex, 1)} aria-label="Move lesson down">↓</Button><Button variant="secondary" onClick={() => setModal({ kind: 'block', lessonId: lesson.id })}>Add Block</Button><Button variant="ghost" onClick={() => setModal({ kind: 'lesson', moduleId: module.id, item: lesson })}>Edit</Button><Button variant="ghost" className="text-red-700" onClick={() => void remove('lesson', lesson.id)}>Delete</Button></div></div>
-              {ordered(lesson.blocks).length === 0 ? <p className="pl-5 text-sm text-muted-foreground">No blocks yet.</p> : ordered(lesson.blocks).map((block, blockIndex) => <div key={block.id} className="ml-4 flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted/40 px-3 py-2"><div className="flex min-w-0 items-center gap-2"><MhdBadge variant="neutral" hideIcon>{BLOCK_LABELS[block.blockType] ?? block.blockType}</MhdBadge><span className="truncate text-sm text-foreground">{block.title || 'Untitled block'}</span>{block.blockType === 'SCENARIO_BRANCHING' || block.blockType === 'AI_CONVERSATION' ? <span className="text-xs text-muted-foreground">Scenario/AI editor coming in Stage 2b</span> : null}</div><div className="flex gap-1"><Button variant="ghost" disabled={blockIndex === 0} onClick={() => void moveBlock(lesson, blockIndex, -1)} aria-label="Move block up">↑</Button><Button variant="ghost" disabled={blockIndex === ordered(lesson.blocks).length - 1} onClick={() => void moveBlock(lesson, blockIndex, 1)} aria-label="Move block down">↓</Button>{BLOCK_TYPES.includes(block.blockType as typeof BLOCK_TYPES[number]) ? <Button variant="ghost" onClick={() => setModal({ kind: 'block', lessonId: lesson.id, item: block })}>Edit</Button> : null}<Button variant="ghost" className="text-red-700" onClick={() => void remove('block', block.id)}>Delete</Button></div></div>)}
+              {ordered(lesson.blocks).length === 0 ? <p className="pl-5 text-sm text-muted-foreground">No blocks yet.</p> : ordered(lesson.blocks).map((block, blockIndex) => <div key={block.id} className="ml-4 flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted/40 px-3 py-2"><div className="flex min-w-0 items-center gap-2"><MhdBadge variant="neutral" hideIcon>{BLOCK_LABELS[block.blockType] ?? block.blockType}</MhdBadge><span className="truncate text-sm text-foreground">{block.title || 'Untitled block'}</span></div><div className="flex gap-1"><Button variant="ghost" disabled={blockIndex === 0} onClick={() => void moveBlock(lesson, blockIndex, -1)} aria-label="Move block up">↑</Button><Button variant="ghost" disabled={blockIndex === ordered(lesson.blocks).length - 1} onClick={() => void moveBlock(lesson, blockIndex, 1)} aria-label="Move block down">↓</Button>{(block.blockType === 'SCENARIO_BRANCHING' || block.blockType === 'AI_CONVERSATION') ? <Button variant="ghost" onClick={() => setModal({ kind: 'scenario', blockId: block.id, blockType: block.blockType as 'SCENARIO_BRANCHING' | 'AI_CONVERSATION' })}>Edit Graph</Button> : BLOCK_TYPES.includes(block.blockType as typeof BLOCK_TYPES[number]) ? <Button variant="ghost" onClick={() => setModal({ kind: 'block', lessonId: lesson.id, item: block })}>Edit</Button> : null}<Button variant="ghost" className="text-red-700" onClick={() => void remove('block', block.id)}>Delete</Button></div></div>)}
             </div>
           ))}
         </MhdCard>
@@ -137,6 +139,7 @@ export function MhdTrainingContentTreeEditor({ courseId }: { courseId: string })
       {modal?.kind === 'module' ? <ModuleModal courseId={courseId} item={modal.item} nextSortOrder={modules.length} onClose={() => setModal(null)} onError={setError} create={createModule.mutateAsync} update={updateModule.mutateAsync} /> : null}
       {modal?.kind === 'lesson' ? <LessonModal item={modal.item} moduleId={modal.moduleId} nextSortOrder={modules.find((item) => item.id === modal.moduleId)?.lessons.length ?? 0} onClose={() => setModal(null)} onError={setError} create={createLesson.mutateAsync} update={updateLesson.mutateAsync} /> : null}
       {modal?.kind === 'block' ? <BlockModal item={modal.item} lessonId={modal.lessonId} nextSortOrder={modules.flatMap((item) => item.lessons).find((item) => item.id === modal.lessonId)?.blocks.length ?? 0} onClose={() => setModal(null)} onError={setError} create={createBlock.mutateAsync} update={updateBlock.mutateAsync} upload={uploadVideo.mutateAsync} /> : null}
+      {modal?.kind === 'scenario' ? <MhdTrainingScenarioGraphEditor blockId={modal.blockId} blockType={modal.blockType} onClose={() => setModal(null)} /> : null}
     </div>
   );
 }
