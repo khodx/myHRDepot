@@ -28,6 +28,7 @@ import {
   type MhdTrainingContentMode,
 } from '../Types';
 import { MhdCourseCategoryBadge } from './MhdCourseCategoryBadge';
+import { MhdTrainingContentTreeEditor } from './MhdTrainingContentTreeEditor';
 
 type Tab = 'overview' | 'prerequisites' | 'content';
 
@@ -286,9 +287,7 @@ export function MhdTrainingCourseDetailPage() {
       ) : null}
 
       {tab === 'content' ? (
-        <MhdCard>
-          <p className="text-sm text-muted-foreground">Content editor coming in Stage 2.</p>
-        </MhdCard>
+        <MhdTrainingContentTreeEditor courseId={courseId_} />
       ) : null}
     </div>
   );
