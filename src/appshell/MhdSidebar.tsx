@@ -349,8 +349,8 @@ export const NAV_SECTIONS: NavSection[] = [
         status: mhdRouteStatus('/recruiting/eeo'),
       },
       {
-        label: 'Training',
-        description: 'Assign and monitor company training programs.',
+        label: 'Learning Management (LMS)',
+        description: 'Author courses, assign compliance training, and manage certifications, assessments, and live sessions.',
         route: '/training',
         icon: GraduationCap,
         roles: mhdRouteRoles('/training'),

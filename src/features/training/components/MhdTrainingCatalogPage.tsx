@@ -121,7 +121,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
   return (
     <div className="space-y-6">
       <MhdPageHeader
-        title="Training"
+        title="Learning Management (LMS)"
         description="The course catalog and company compliance. Global courses are platform-seeded and read-only."
         actions={
           canManage ? (

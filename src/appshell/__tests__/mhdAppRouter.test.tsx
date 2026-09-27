@@ -863,7 +863,7 @@ describe('MhdSidebar role-based visibility', () => {
     expect(screen.getByText('Employee Relations')).toBeInTheDocument();
     expect(screen.getByText('Investigations')).toBeInTheDocument();
     // Training lives in the Talent group; both groups render for a privileged admin.
-    expect(screen.getByText('Training')).toBeInTheDocument();
+    expect(screen.getByText('Learning Management (LMS)')).toBeInTheDocument();
   });
 
   it('hides "Investigations" from a Client User (route-excluded, not a privileged role)', async () => {
