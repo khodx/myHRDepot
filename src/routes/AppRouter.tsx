@@ -500,6 +500,10 @@ const MhdTrainingProgramsPage = lazyPage(
   () => import('@/features/training/components/MhdTrainingProgramsPage'),
   'MhdTrainingProgramsPage',
 );
+const MhdTrainingLeaderboardPage = lazyPage(
+  () => import('@/features/training/components/MhdTrainingLeaderboardPage'),
+  'MhdTrainingLeaderboardPage',
+);
 const MhdAssessmentAdminPage = lazyPage(
   () => import('@/features/assessments/components/MhdAssessmentAdminPage'),
   'MhdAssessmentAdminPage',
@@ -934,6 +938,7 @@ function MhdAppRoutes() {
                 <Route path="/training" element={<MhdTrainingPage />} />
                 <Route path="/training/curricula" element={<MhdTrainingCurriculaPage />} />
                 <Route path="/training/programs" element={<MhdTrainingProgramsPage />} />
+                <Route path="/training/leaderboard" element={<MhdTrainingLeaderboardPage />} />
                 <Route path="/training/assessments" element={<MhdAssessmentAdminPage />} />
                 <Route path="/training/ilt" element={<MhdIltSessionAdminPage />} />
                 <Route path="/training/compliance" element={<MhdComplianceAdminPage />} />

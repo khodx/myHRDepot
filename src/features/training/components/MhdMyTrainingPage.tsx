@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   useMhdCompleteTraining,
+  useMhdSetTrainingLeaderboardOptIn,
   useMhdTrainingAssignments,
   useMhdTrainingCompletions,
   useMhdTrainingCourses,
@@ -45,6 +46,8 @@ interface Props {
  * enforce the rule itself — it surfaces the server's error if it fires.
  */
 export function MhdMyTrainingPage({ companyId, personId, onAttachCertificate }: Props) {
+  const leaderboardOptIn = useMhdSetTrainingLeaderboardOptIn();
+  const [leaderboardConfirmation, setLeaderboardConfirmation] = useState<string | null>(null);
   const assignments = useMhdTrainingAssignments({ companyId, personId, status: 'ALL' });
   const completions = useMhdTrainingCompletions(personId);
   // The catalog carries `requiresEvidence` / `externalUrl`, which the assignment
@@ -66,6 +69,16 @@ export function MhdMyTrainingPage({ companyId, personId, onAttachCertificate }: 
     () => (assignments.data ?? []).filter((a) => a.status !== 'ASSIGNED'),
     [assignments.data],
   );
+
+  async function handleLeaderboardOptIn(optedIn: boolean) {
+    setLeaderboardConfirmation(null);
+    try {
+      await leaderboardOptIn.mutateAsync({ optedIn });
+      setLeaderboardConfirmation(optedIn ? "You're now opted in." : "You're now opted out.");
+    } catch {
+      // The mutation's server error is rendered below from its error state.
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -122,6 +135,44 @@ export function MhdMyTrainingPage({ companyId, personId, onAttachCertificate }: 
         isLoading={completions.isLoading}
         title="My completion history"
       />
+
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">Leaderboard opt-in</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Choose whether your training points and streak can appear on the company leaderboard.
+            Your current opt-in status cannot be shown here yet.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="secondary"
+            disabled={leaderboardOptIn.isPending}
+            onClick={() => void handleLeaderboardOptIn(true)}
+          >
+            Join the leaderboard
+          </Button>
+          <Button
+            variant="secondary"
+            disabled={leaderboardOptIn.isPending}
+            onClick={() => void handleLeaderboardOptIn(false)}
+          >
+            Leave the leaderboard
+          </Button>
+        </div>
+        {leaderboardOptIn.isError ? (
+          <p className="text-xs text-rose-600">
+            {leaderboardOptIn.error instanceof Error
+              ? leaderboardOptIn.error.message
+              : 'Could not update leaderboard opt-in.'}
+          </p>
+        ) : null}
+        {leaderboardConfirmation ? (
+          <p className="text-xs text-emerald-700" role="status">
+            {leaderboardConfirmation}
+          </p>
+        ) : null}
+      </section>
     </div>
   );
 }
