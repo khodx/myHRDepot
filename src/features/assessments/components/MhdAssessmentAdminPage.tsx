@@ -14,17 +14,26 @@ import {
   useMhdAssessment,
   useMhdAssessmentItems,
   useMhdAssessmentList,
+  useMhdAssessmentPendingReview,
   useMhdCreateAssessment,
   useMhdCreateAssessmentItem,
+  useMhdDecideAccommodationRequest,
+  useMhdGradeAssessmentAttempt,
+  useMhdAccommodationRequestList,
 } from '../Hook';
 import {
   MHD_ASSESSMENT_DIFFICULTIES,
   MHD_ASSESSMENT_INTEGRITY_PROFILES,
   MHD_ASSESSMENT_QUESTION_TYPES,
+  MHD_ACCOMMODATION_REQUEST_STATUSES,
   mhdFormatAssessmentAssemblyMode,
   mhdFormatAssessmentDifficulty,
   mhdFormatAssessmentIntegrityProfile,
   mhdFormatAssessmentQuestionType,
+  mhdFormatAccommodationRequestStatus,
+  type MhdAccommodationRequestSummary,
+  type MhdAccommodationRequestStatus,
+  type MhdAssessmentPendingReview,
   type MhdAssessmentQuestionType,
 } from '../Types';
 
@@ -40,6 +49,10 @@ function truncate(value: string, length = 90) {
 
 function fieldClass() {
   return 'mt-1 w-full rounded-md border border-border bg-background px-3 py-2';
+}
+
+function formatDate(value: string | null) {
+  return value ? new Date(value).toLocaleString() : '—';
 }
 
 function ServerError({ error }: { error: string | null }) {
@@ -237,12 +250,140 @@ function AssessmentsTab({ companyId, onError }: { companyId: string; onError: (m
   return <section className="space-y-3"><div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">Assessments</h2><Button onClick={() => { onError(''); setOpen(true); }}>New Assessment</Button></div>{assessments.error ? <div role="alert" className="text-sm text-red-700">{assessments.error instanceof Error ? assessments.error.message : 'Unable to load assessments.'}</div> : null}{assessments.isLoading ? <p className="text-sm text-muted-foreground">Loading assessments…</p> : <MhdCard className="overflow-hidden p-0"><MhdTable><thead><tr><MhdTh>Title</MhdTh><MhdTh>Course</MhdTh><MhdTh>Assembly</MhdTh><MhdTh>Integrity</MhdTh><MhdTh>Items</MhdTh><MhdTh>Time limit</MhdTh><MhdTh>Status</MhdTh><MhdTh /></tr></thead><tbody>{(assessments.data ?? []).map((assessment) => <Fragment key={assessment.id}><MhdTr onClick={() => setExpanded((current) => current === assessment.id ? null : assessment.id)}><MhdTd className="font-medium">{assessment.title}</MhdTd><MhdTd>{assessment.courseTitle ?? 'No course'}</MhdTd><MhdTd>{mhdFormatAssessmentAssemblyMode(assessment.assemblyMode)}</MhdTd><MhdTd>{mhdFormatAssessmentIntegrityProfile(assessment.integrityProfile)}</MhdTd><MhdTd>{assessment.itemCount}</MhdTd><MhdTd>{assessment.timeLimitMinutes ? `${assessment.timeLimitMinutes} min` : 'None'}</MhdTd><MhdTd><MhdBadge variant={assessment.isActive ? 'success' : 'neutral'}>{assessment.isActive ? 'Active' : 'Inactive'}</MhdBadge></MhdTd><MhdTd><button type="button" className="text-sm font-medium text-accent" onClick={() => setExpanded((current) => current === assessment.id ? null : assessment.id)}>{expanded === assessment.id ? 'Hide items' : 'View items'}</button></MhdTd></MhdTr>{expanded === assessment.id ? <tr><td colSpan={8} className="px-4 py-3"><AssessmentDetail assessmentId={assessment.id} /></td></tr> : null}</Fragment>)}</tbody></MhdTable></MhdCard>}{open ? <MhdModal title="New Assessment" onClose={() => setOpen(false)}><AssessmentForm companyId={companyId} courses={courses.data ?? []} items={items.data} onSaved={() => setOpen(false)} onError={onError} /></MhdModal> : null}</section>;
 }
 
+function GradeForm({
+  attempt,
+  onSaved,
+  onError,
+}: {
+  attempt: MhdAssessmentPendingReview;
+  onSaved: () => void;
+  onError: (message: string) => void;
+}) {
+  const grade = useMhdGradeAssessmentAttempt();
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const scorePercent = Number(data.get('scorePercent'));
+    if (!Number.isFinite(scorePercent) || scorePercent < 0 || scorePercent > 100) {
+      onError('Score must be a number from 0 to 100.');
+      return;
+    }
+    onError('');
+    try {
+      await grade.mutateAsync({
+        assessmentId: attempt.assessmentId,
+        attemptId: attempt.id,
+        scorePercent,
+        passed: data.get('passed') === 'true',
+      });
+      onSaved();
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'Unable to grade this attempt.');
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        {attempt.personDisplayName} · {attempt.assessmentTitle} · Attempt {attempt.attemptNumber}
+      </p>
+      <MhdFormFieldStack>
+        <div>
+          <label htmlFor="score-percent">Score percent</label>
+          <input id="score-percent" name="scorePercent" type="number" min="0" max="100" step="any" required className={fieldClass()} />
+        </div>
+        <div>
+          <label htmlFor="passed">Passed</label>
+          <select id="passed" name="passed" defaultValue="false" className={fieldClass()}>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+          <p className="mt-1 text-xs text-muted-foreground">Make the final pass decision independently of the score.</p>
+        </div>
+      </MhdFormFieldStack>
+      <div className="flex justify-end">
+        <Button type="submit" disabled={grade.isPending}>{grade.isPending ? 'Saving…' : 'Save grade'}</Button>
+      </div>
+    </form>
+  );
+}
+
+function GradingQueueTab({ companyId, onError }: { companyId: string; onError: (message: string) => void }) {
+  const pending = useMhdAssessmentPendingReview(companyId);
+  const [selectedAttempt, setSelectedAttempt] = useState<string | null>(null);
+  const attempt = (pending.data ?? []).find((row) => row.id === selectedAttempt);
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-base font-semibold">Grading queue</h2>
+      {pending.error ? <div role="alert" className="text-sm text-red-700">{pending.error instanceof Error ? pending.error.message : 'Unable to load the grading queue.'}</div> : null}
+      {pending.isLoading ? <p className="text-sm text-muted-foreground">Loading grading queue…</p> : null}
+      {!pending.isLoading && (pending.data ?? []).length === 0 ? <p className="text-sm text-muted-foreground">Nothing is waiting for review right now.</p> : null}
+      {!pending.isLoading && (pending.data ?? []).length > 0 ? (
+        <MhdCard className="overflow-hidden p-0">
+          <MhdTable>
+            <thead><tr><MhdTh>Assessment</MhdTh><MhdTh>Learner</MhdTh><MhdTh>Attempt</MhdTh><MhdTh>Submitted at</MhdTh><MhdTh /></tr></thead>
+            <tbody>{(pending.data ?? []).map((row) => <MhdTr key={row.id}><MhdTd className="font-medium">{row.assessmentTitle}</MhdTd><MhdTd>{row.personDisplayName}</MhdTd><MhdTd>{row.attemptNumber}</MhdTd><MhdTd>{formatDate(row.submittedAt)}</MhdTd><MhdTd><Button variant="secondary" onClick={() => { onError(''); setSelectedAttempt(row.id); }}>Grade</Button></MhdTd></MhdTr>)}</tbody>
+          </MhdTable>
+        </MhdCard>
+      ) : null}
+      {attempt ? <MhdModal title="Grade assessment attempt" onClose={() => setSelectedAttempt(null)}><GradeForm attempt={attempt} onSaved={() => setSelectedAttempt(null)} onError={onError} /></MhdModal> : null}
+    </section>
+  );
+}
+
+function accommodationSummary(request: MhdAccommodationRequestSummary) {
+  const values = [
+    request.extendedTimePercent !== null ? `${request.extendedTimePercent}% extended time` : null,
+    request.attemptCountOverride !== null ? `${request.attemptCountOverride} attempts` : null,
+    request.integrityProfileOverride ? `Integrity: ${mhdFormatAssessmentIntegrityProfile(request.integrityProfileOverride)}` : null,
+  ].filter(Boolean);
+  return values.length ? values.join(', ') : 'None specified';
+}
+
+function accommodationBadgeVariant(status: MhdAccommodationRequestStatus) {
+  return status === 'APPROVED' ? 'success' : status === 'DENIED' ? 'error' : 'warning';
+}
+
+function AccommodationsTab({ companyId, onError }: { companyId: string; onError: (message: string) => void }) {
+  const [status, setStatus] = useState<MhdAccommodationRequestStatus | null>('PENDING');
+  const requests = useMhdAccommodationRequestList(companyId, status);
+  const decide = useMhdDecideAccommodationRequest();
+
+  async function review(request: MhdAccommodationRequestSummary, approve: boolean) {
+    const prompt = approve ? 'Optional review notes:' : 'Reason for denying this accommodation request:';
+    const notes = window.prompt(prompt);
+    if (!approve && !notes?.trim()) {
+      onError('A reason is required to deny an accommodation request.');
+      return;
+    }
+    onError('');
+    try {
+      await decide.mutateAsync({ assessmentId: request.assessmentId, requestId: request.id, approve, notes: notes?.trim() || null });
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'Unable to decide this accommodation request.');
+    }
+  }
+
+  const emptyLabel = status === 'PENDING' ? 'No pending accommodation requests.' : status === 'APPROVED' ? 'No approved accommodation requests.' : status === 'DENIED' ? 'No denied accommodation requests.' : 'No accommodation requests.';
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">Accommodation requests</h2><div><label htmlFor="accommodation-status" className="mr-2 text-sm">Status</label><select id="accommodation-status" value={status ?? ''} onChange={(event) => setStatus((event.target.value || null) as MhdAccommodationRequestStatus | null)} className="rounded-md border border-border bg-background px-3 py-2 text-sm"><option value="">All</option>{MHD_ACCOMMODATION_REQUEST_STATUSES.map((value) => <option key={value} value={value}>{mhdFormatAccommodationRequestStatus(value)}</option>)}</select></div></div>
+      {requests.error ? <div role="alert" className="text-sm text-red-700">{requests.error instanceof Error ? requests.error.message : 'Unable to load accommodation requests.'}</div> : null}
+      {requests.isLoading ? <p className="text-sm text-muted-foreground">Loading accommodation requests…</p> : null}
+      {!requests.isLoading && (requests.data ?? []).length === 0 ? <p className="text-sm text-muted-foreground">{emptyLabel}</p> : null}
+      {!requests.isLoading && (requests.data ?? []).length > 0 ? <MhdCard className="overflow-hidden p-0"><MhdTable><thead><tr><MhdTh>Learner</MhdTh><MhdTh>Assessment</MhdTh><MhdTh>Requested accommodation</MhdTh><MhdTh>Status</MhdTh><MhdTh>Decided by</MhdTh><MhdTh>Decided at</MhdTh><MhdTh /></tr></thead><tbody>{(requests.data ?? []).map((request) => <MhdTr key={request.id}><MhdTd className="font-medium">{request.personDisplayName}</MhdTd><MhdTd>{request.assessmentTitle}</MhdTd><MhdTd>{accommodationSummary(request)}</MhdTd><MhdTd><MhdBadge variant={accommodationBadgeVariant(request.status)}>{mhdFormatAccommodationRequestStatus(request.status)}</MhdBadge></MhdTd><MhdTd>{request.decidedByName ?? '—'}</MhdTd><MhdTd>{formatDate(request.decidedAt)}</MhdTd><MhdTd>{request.status === 'PENDING' ? <div className="flex gap-2"><Button variant="secondary" onClick={() => void review(request, true)} disabled={decide.isPending}>Approve</Button><Button variant="secondary" onClick={() => void review(request, false)} disabled={decide.isPending}>Deny</Button></div> : '—'}</MhdTd></MhdTr>)}</tbody></MhdTable></MhdCard> : null}
+    </section>
+  );
+}
+
 export function MhdAssessmentAdminPage() {
   const { profile } = useMhdAuth();
   const companyId = profile?.companyId ?? '';
-  const [tab, setTab] = useState<'items' | 'assessments'>('items');
+  const [tab, setTab] = useState<'items' | 'assessments' | 'grading' | 'accommodations'>('items');
   const [error, setError] = useState<string | null>(null);
-  return <div className="space-y-6"><MhdPageHeader title="Assessments" description="Build reusable assessment items and fixed assessments for your training catalog." /><ServerError error={error} /><MhdTabs tabs={[{ value: 'items', label: 'Item Bank' }, { value: 'assessments', label: 'Assessments' }]} value={tab} onChange={setTab} />{tab === 'items' ? <ItemBankTab companyId={companyId} onError={(message) => setError(message || null)} /> : <AssessmentsTab companyId={companyId} onError={(message) => setError(message || null)} />}</div>;
+  return <div className="space-y-6"><MhdPageHeader title="Assessments" description="Build reusable assessment items and fixed assessments for your training catalog." /><ServerError error={error} /><MhdTabs tabs={[{ value: 'items', label: 'Item Bank' }, { value: 'assessments', label: 'Assessments' }, { value: 'grading', label: 'Grading Queue' }, { value: 'accommodations', label: 'Accommodations' }]} value={tab} onChange={setTab} />{tab === 'items' ? <ItemBankTab companyId={companyId} onError={(message) => setError(message || null)} /> : tab === 'assessments' ? <AssessmentsTab companyId={companyId} onError={(message) => setError(message || null)} /> : tab === 'grading' ? <GradingQueueTab companyId={companyId} onError={(message) => setError(message || null)} /> : <AccommodationsTab companyId={companyId} onError={(message) => setError(message || null)} />}</div>;
 }
 
 export default MhdAssessmentAdminPage;
