@@ -151,6 +151,12 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
               >
                 Programs
               </Link>
+              <Link
+                to="/training/assessments"
+                className="inline-flex h-9 items-center rounded-md border border-border px-3 text-[16.8px] font-medium text-foreground hover:bg-muted"
+              >
+                Assessments
+              </Link>
               <Button
                 className="h-9 gap-1.5 px-3 text-[16.8px]"
                 onClick={() => setIsCreating(true)}
