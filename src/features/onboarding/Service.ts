@@ -74,9 +74,17 @@ type MhdOnboardingConsolidatedAckKey =
   | 'onboarding_surveillance_policy_acks'
   | 'onboarding_at_will_acknowledgments';
 
+type MhdOnboardingMedicalProviderDesignationKey =
+  | 'onboarding_physician_predesignations'
+  | 'onboarding_chiropractor_designations';
+
 type MhdOnboardingTableName =
-  | Exclude<MhdOnboardingDocumentKey, MhdOnboardingConsolidatedAckKey>
-  | 'onboarding_document_acknowledgments';
+  | Exclude<
+      MhdOnboardingDocumentKey,
+      MhdOnboardingConsolidatedAckKey | MhdOnboardingMedicalProviderDesignationKey
+    >
+  | 'onboarding_document_acknowledgments'
+  | 'people_medical_provider_designations';
 
 const MHD_ONBOARDING_CONSOLIDATED_ACK_KEYS: ReadonlySet<MhdOnboardingDocumentKey> = new Set<
   MhdOnboardingConsolidatedAckKey
@@ -92,6 +100,12 @@ const MHD_ONBOARDING_CONSOLIDATED_ACK_KEYS: ReadonlySet<MhdOnboardingDocumentKey
   'onboarding_surveillance_policy_acks',
   'onboarding_at_will_acknowledgments',
 ]);
+
+const MHD_ONBOARDING_MEDICAL_PROVIDER_DESIGNATION_KEYS: ReadonlySet<MhdOnboardingDocumentKey> =
+  new Set<MhdOnboardingMedicalProviderDesignationKey>([
+    'onboarding_physician_predesignations',
+    'onboarding_chiropractor_designations',
+  ]);
 
 function mapProgressRow(row: MhdOnboardingProgressRow): MhdOnboardingProgressSummary {
   return {
@@ -153,9 +167,18 @@ function isConsolidatedAckKey(
   return MHD_ONBOARDING_CONSOLIDATED_ACK_KEYS.has(documentKey);
 }
 
+function isMedicalProviderDesignationKey(
+  documentKey: MhdOnboardingDocumentKey,
+): documentKey is MhdOnboardingMedicalProviderDesignationKey {
+  return MHD_ONBOARDING_MEDICAL_PROVIDER_DESIGNATION_KEYS.has(documentKey);
+}
+
 function getOnboardingTableName(documentKey: MhdOnboardingDocumentKey): MhdOnboardingTableName {
   if (isConsolidatedAckKey(documentKey)) {
     return 'onboarding_document_acknowledgments';
+  }
+  if (isMedicalProviderDesignationKey(documentKey)) {
+    return 'people_medical_provider_designations';
   }
   return documentKey;
 }
@@ -179,11 +202,27 @@ async function createDestinationRecordPlaceholder(
         .insert({ ...baseInsert, document_key: input.documentKey })
         .select('id')
         .single()
-    : await supabaseClient
-        .from(getOnboardingTableName(input.documentKey))
-        .insert(baseInsert)
-        .select('id')
-        .single();
+    : isMedicalProviderDesignationKey(input.documentKey)
+      ? await supabaseClient
+          .from('people_medical_provider_designations')
+          .insert({
+            ...baseInsert,
+            designation_type:
+              input.documentKey === 'onboarding_physician_predesignations'
+                ? 'PERSONAL_PHYSICIAN'
+                : 'PERSONAL_CHIROPRACTOR',
+            form_number:
+              input.documentKey === 'onboarding_physician_predesignations'
+                ? 'DWC 9783'
+                : 'DWC 9783.1',
+          })
+          .select('id')
+          .single()
+      : await supabaseClient
+          .from(getOnboardingTableName(input.documentKey))
+          .insert(baseInsert)
+          .select('id')
+          .single();
 
   if (error) {
     throw new Error(

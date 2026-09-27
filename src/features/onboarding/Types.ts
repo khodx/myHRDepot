@@ -26,7 +26,9 @@ export type MhdOnboardingDocumentKey =
   | 'onboarding_handbook_acknowledgments'
   | 'onboarding_required_notices_acks'
   | 'onboarding_surveillance_policy_acks'
-  | 'onboarding_at_will_acknowledgments';
+  | 'onboarding_at_will_acknowledgments'
+  | 'onboarding_physician_predesignations'
+  | 'onboarding_chiropractor_designations';
 
 export interface MhdOnboardingChecklistItem {
   id: string;
@@ -355,6 +357,28 @@ export const MHD_ONBOARDING_PACKET_DEFINITIONS: MhdOnboardingPacketDefinition[] 
     description: 'At-will employment acknowledgment.',
     isRequiredByDefault: true,
   },
+  {
+    documentKey: 'onboarding_physician_predesignations',
+    label: 'Personal Physician Predesignation',
+    formName: 'New Hire - Personal Physician Predesignation',
+    accessTier: 'Restricted',
+    requiresSignature: true,
+    generatedDocumentRequired: false,
+    description:
+      'Predesignation of a personal physician for a work-related injury or illness (DWC 9783). Voluntary.',
+    isRequiredByDefault: false,
+  },
+  {
+    documentKey: 'onboarding_chiropractor_designations',
+    label: 'Personal Chiropractor or Acupuncturist Designation',
+    formName: 'New Hire - Personal Chiropractor or Acupuncturist Designation',
+    accessTier: 'Restricted',
+    requiresSignature: true,
+    generatedDocumentRequired: false,
+    description:
+      'Designation of a personal chiropractor or acupuncturist for a work-related injury or illness (DWC 9783.1). Voluntary.',
+    isRequiredByDefault: false,
+  },
 ];
 
 export const MHD_ONBOARDING_PACKET_BY_KEY: Record<
@@ -364,7 +388,7 @@ export const MHD_ONBOARDING_PACKET_BY_KEY: Record<
   MHD_ONBOARDING_PACKET_DEFINITIONS.map((item) => [item.documentKey, item]),
 ) as Record<MhdOnboardingDocumentKey, MhdOnboardingPacketDefinition>;
 
-const MHD_ONBOARDING_DOCUMENT_KEY_SET: Record<MhdOnboardingDocumentKey, true> = {
+export const MHD_ONBOARDING_DOCUMENT_KEY_SET: Record<MhdOnboardingDocumentKey, true> = {
   onboarding_direct_deposits: true,
   onboarding_employment_applications: true,
   onboarding_w4_elections: true,
@@ -387,4 +411,6 @@ const MHD_ONBOARDING_DOCUMENT_KEY_SET: Record<MhdOnboardingDocumentKey, true> = 
   onboarding_required_notices_acks: true,
   onboarding_surveillance_policy_acks: true,
   onboarding_at_will_acknowledgments: true,
+  onboarding_physician_predesignations: true,
+  onboarding_chiropractor_designations: true,
 };

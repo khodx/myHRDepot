@@ -79,8 +79,8 @@ describe('onboarding route access', () => {
 });
 
 describe('onboarding packet manifest', () => {
-  it('carries the full twenty-two document packet', () => {
-    expect(MHD_ONBOARDING_PACKET_DEFINITIONS).toHaveLength(22);
+  it('carries the full twenty-four document packet', () => {
+    expect(MHD_ONBOARDING_PACKET_DEFINITIONS).toHaveLength(24);
   });
 
   it('has a unique document key per item', () => {

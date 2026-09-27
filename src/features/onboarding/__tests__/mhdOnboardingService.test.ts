@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mhdOnboardingService } from '../Service';
+import {
+  MHD_ONBOARDING_DOCUMENT_KEY_SET,
+  MHD_ONBOARDING_PACKET_DEFINITIONS,
+} from '../Types';
 
 const {
   rpcReturnsMock,
@@ -188,6 +192,78 @@ describe('mhdOnboardingService', () => {
       updated_by: '01USER',
     });
     expect(result.documentRecordId).toBe('01DIRECTDEPOSIT');
+  });
+
+  it.each([
+    {
+      documentKey: 'onboarding_physician_predesignations' as const,
+      designationType: 'PERSONAL_PHYSICIAN',
+      formNumber: 'DWC 9783',
+      recordId: '01PHYSICIAN',
+    },
+    {
+      documentKey: 'onboarding_chiropractor_designations' as const,
+      designationType: 'PERSONAL_CHIROPRACTOR',
+      formNumber: 'DWC 9783.1',
+      recordId: '01CHIROPRACTOR',
+    },
+  ])(
+    'dispatches $documentKey to the shared medical designation table with required placeholder columns',
+    async ({ documentKey, designationType, formNumber, recordId }) => {
+      fromLookupReturnsMock.mockResolvedValueOnce({ data: [], error: null });
+      fromInsertSingleMock.mockResolvedValueOnce({ data: { id: recordId }, error: null });
+      rpcReturnsMock.mockResolvedValueOnce({ data: [{ destination_record_id: recordId }], error: null });
+      rpcReturnsMock.mockResolvedValueOnce({
+        data: [
+          {
+            id: '01CHECKLIST',
+            reference_id: 'ONCL-000003',
+            company_id: '01COMPANY',
+            person_id: '01PERSON',
+            document_key: documentKey,
+            document_record_id: recordId,
+            status: 'SUBMITTED',
+            is_required: false,
+            due_date: null,
+            completed_at: null,
+          },
+        ],
+        error: null,
+      });
+
+      await mhdOnboardingService.upsertChecklistItemFromSubmittedForm({
+        companyId: '01COMPANY',
+        personId: '01PERSON',
+        documentKey,
+        submissionId: '01SUBMISSION',
+        actorUserId: '01USER',
+      });
+
+      expect(fromMock).toHaveBeenCalledWith('people_medical_provider_designations');
+      expect(fromInsertMock).toHaveBeenCalledWith({
+        reference_id: '',
+        company_id: '01COMPANY',
+        person_id: '01PERSON',
+        form_submission_id: '01SUBMISSION',
+        status: 'SUBMITTED',
+        created_by: '01USER',
+        updated_by: '01USER',
+        designation_type: designationType,
+        form_number: formNumber,
+      });
+    },
+  );
+
+  it('registers each medical designation key exactly once in the manifest and key set', () => {
+    for (const documentKey of [
+      'onboarding_physician_predesignations',
+      'onboarding_chiropractor_designations',
+    ] as const) {
+      expect(MHD_ONBOARDING_DOCUMENT_KEY_SET[documentKey]).toBe(true);
+      expect(
+        MHD_ONBOARDING_PACKET_DEFINITIONS.filter((packet) => packet.documentKey === documentKey),
+      ).toHaveLength(1);
+    }
   });
 
   it('filters the company forms down to the onboarding packet corpus', async () => {
