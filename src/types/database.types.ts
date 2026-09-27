@@ -33537,6 +33537,9 @@ export type Database = {
           recurrence_months: number
           reference_id: string
           requires_evidence: boolean
+          retired_at: string
+          successor_course_id: string
+          successor_course_title: string
           title: string
         }[]
       }

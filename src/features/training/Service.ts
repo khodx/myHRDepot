@@ -229,6 +229,9 @@ function mapCourse(row: MhdTrainingCourseRpcRow): MhdTrainingCourse {
     forkState: row.fork_state as MhdTrainingCourse['forkState'],
     contentVersion: mhdToNumber(row.content_version),
     approvalStatus: row.approval_status as MhdTrainingCourse['approvalStatus'],
+    retiredAt: row.retired_at,
+    successorCourseId: row.successor_course_id,
+    successorCourseTitle: row.successor_course_title,
   };
 }
 

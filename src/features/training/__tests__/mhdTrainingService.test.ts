@@ -40,6 +40,9 @@ describe('mhdTrainingService — catalog mapping', () => {
           external_url: null,
           is_active: true,
           is_global: true,
+          retired_at: null,
+          successor_course_id: null,
+          successor_course_title: null,
         },
         {
           id: 'course-2',
@@ -54,8 +57,11 @@ describe('mhdTrainingService — catalog mapping', () => {
           recurrence_months: null, // one-time — must stay null, never 0
           requires_evidence: false,
           external_url: null,
-          is_active: true,
+          is_active: false,
           is_global: false,
+          retired_at: '2026-08-01T00:00:00Z',
+          successor_course_id: 'course-1',
+          successor_course_title: 'CA harassment',
         },
       ],
       error: null,
@@ -76,6 +82,14 @@ describe('mhdTrainingService — catalog mapping', () => {
     expect(courses[1].recurrenceMonths).toBeNull();
     expect(courses[1].durationMinutes).toBeNull();
     expect(courses[1].isGlobal).toBe(false);
+
+    // A course with no retirement carries nulls through, never invented placeholders.
+    expect(courses[0].retiredAt).toBeNull();
+    expect(courses[0].successorCourseId).toBeNull();
+    // A retired course carries its successor's id and title through for display.
+    expect(courses[1].retiredAt).toBe('2026-08-01T00:00:00Z');
+    expect(courses[1].successorCourseId).toBe('course-1');
+    expect(courses[1].successorCourseTitle).toBe('CA harassment');
   });
 
   it('never queries without a company — returns an empty catalog', async () => {

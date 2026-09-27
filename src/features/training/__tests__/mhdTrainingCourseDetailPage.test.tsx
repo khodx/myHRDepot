@@ -54,6 +54,9 @@ function course(overrides: Partial<MhdTrainingCourse>): MhdTrainingCourse {
     forkState: 'FORKED',
     contentVersion: 1,
     approvalStatus: 'DRAFT',
+    retiredAt: null,
+    successorCourseId: null,
+    successorCourseTitle: null,
     ...overrides,
   };
 }

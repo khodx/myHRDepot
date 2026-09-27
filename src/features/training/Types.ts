@@ -40,6 +40,9 @@ export interface MhdTrainingCourseRpcRow {
   fork_state: string;
   content_version: number | string;
   approval_status: string;
+  retired_at: string | null;
+  successor_course_id: string | null;
+  successor_course_title: string | null;
 }
 
 export interface MhdTrainingManagerTeamStatusRpcRow {
@@ -539,6 +542,10 @@ export interface MhdTrainingCourse {
   forkState: MhdTrainingForkState;
   contentVersion: number;
   approvalStatus: MhdTrainingApprovalStatus;
+  /** Set once by mhd_training_course_retire; null for a course still in use. */
+  retiredAt: string | null;
+  successorCourseId: MhdTrainingCourseId | null;
+  successorCourseTitle: string | null;
 }
 
 export interface MhdTrainingManagerTeamStatusRow {
