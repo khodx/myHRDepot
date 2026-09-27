@@ -124,6 +124,17 @@ import type {
   MhdTrainingExternalAuditorGrantRevokeInput,
   MhdTrainingExternalAuditorReportRpcRow,
   MhdTrainingExternalAuditorReportRow,
+  MhdListTrainingExternalAuditorGrantsInput,
+  MhdTrainingExternalAuditorGrantListRpcRow,
+  MhdTrainingExternalAuditorGrantListRow,
+  MhdTrainingExternalAuditorGrantId,
+  MhdTrainingExternalAuditorGrantReferenceId,
+  MhdListTrainingContentLicensesInput,
+  MhdTrainingContentLicenseRpcRow,
+  MhdTrainingContentLicenseRow,
+  MhdGetTrainingTimeOnTaskInput,
+  MhdTrainingTimeOnTaskSettingsRpcRow,
+  MhdTrainingTimeOnTaskSettings,
   MhdTrainingBadge,
   MhdTrainingBadgeCreateResult,
   MhdTrainingBadgeRpcRow,
@@ -1159,6 +1170,22 @@ export const mhdTrainingService = {
     if (error) throw error;
   },
 
+  async listContentLicenses(
+    input: MhdListTrainingContentLicensesInput,
+  ): Promise<MhdTrainingContentLicenseRow[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_content_license_list', {
+      p_company_id: input.companyId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingContentLicenseRpcRow[]).map((row) => ({
+      courseId: row.course_id,
+      courseTitle: row.course_title,
+      isActive: row.is_active,
+      expiresAt: row.expires_at,
+      updatedAt: row.updated_at,
+    }));
+  },
+
   // ----- Assignments -----
 
   /**
@@ -1452,6 +1479,20 @@ export const mhdTrainingService = {
     if (error) throw error;
   },
 
+  async getTimeOnTask(
+    input: MhdGetTrainingTimeOnTaskInput,
+  ): Promise<MhdTrainingTimeOnTaskSettings> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_time_on_task_get', {
+      p_company_id: input.companyId,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingTimeOnTaskSettingsRpcRow[])[0];
+    return {
+      maxSessionMinutes: row?.max_session_minutes ?? MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES,
+      updatedAt: row?.updated_at ?? null,
+    };
+  },
+
   async timeOnTaskReport(
     filters: MhdTrainingTimeOnTaskFilters,
   ): Promise<MhdTrainingTimeOnTaskRow[]> {
@@ -1502,6 +1543,26 @@ export const mhdTrainingService = {
       p_grant_id: input.grantId,
     });
     if (error) throw error;
+  },
+
+  async listExternalAuditorGrants(
+    input: MhdListTrainingExternalAuditorGrantsInput,
+  ): Promise<MhdTrainingExternalAuditorGrantListRow[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_external_auditor_grant_list', {
+      p_company_id: input.companyId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingExternalAuditorGrantListRpcRow[]).map((row) => ({
+      id: row.id as MhdTrainingExternalAuditorGrantId,
+      referenceId: row.reference_id as MhdTrainingExternalAuditorGrantReferenceId,
+      courseId: row.course_id,
+      courseTitle: row.course_title,
+      auditorLabel: row.auditor_label,
+      validFrom: row.valid_from,
+      validUntil: row.valid_until,
+      revokedAt: row.revoked_at,
+      createdAt: row.created_at,
+    }));
   },
 
   async externalAuditorReport(grantId: string): Promise<MhdTrainingExternalAuditorReportRow[]> {

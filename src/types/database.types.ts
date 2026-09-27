@@ -33447,6 +33447,16 @@ export type Database = {
         Args: { p_course_id: string; p_review_notes?: string }
         Returns: undefined
       }
+      mhd_training_content_license_list: {
+        Args: { p_company_id: string }
+        Returns: {
+          course_id: string
+          course_title: string
+          expires_at: string
+          is_active: boolean
+          updated_at: string
+        }[]
+      }
       mhd_training_content_license_set: {
         Args: {
           p_company_id: string
@@ -33598,6 +33608,20 @@ export type Database = {
         Returns: {
           id: string
           reference_id: string
+        }[]
+      }
+      mhd_training_external_auditor_grant_list: {
+        Args: { p_company_id: string }
+        Returns: {
+          auditor_label: string
+          course_id: string
+          course_title: string
+          created_at: string
+          id: string
+          reference_id: string
+          revoked_at: string
+          valid_from: string
+          valid_until: string
         }[]
       }
       mhd_training_external_auditor_grant_revoke: {
@@ -34076,6 +34100,13 @@ export type Database = {
       mhd_training_status_category: {
         Args: { p_status: string }
         Returns: string
+      }
+      mhd_training_time_on_task_get: {
+        Args: { p_company_id: string }
+        Returns: {
+          max_session_minutes: number
+          updated_at: string
+        }[]
       }
       mhd_training_time_on_task_report: {
         Args: {

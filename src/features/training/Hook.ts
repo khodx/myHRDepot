@@ -42,8 +42,11 @@ import type {
   MhdWaiveAssignmentInput,
   MhdSetTrainingTimeOnTaskInput,
   MhdTrainingTimeOnTaskFilters,
+  MhdGetTrainingTimeOnTaskInput,
   MhdCreateTrainingExternalAuditorGrantInput,
   MhdTrainingExternalAuditorGrantRevokeInput,
+  MhdListTrainingExternalAuditorGrantsInput,
+  MhdListTrainingContentLicensesInput,
   MhdCreateTrainingBadgeInput,
   MhdAwardTrainingBadgeInput,
   MhdSetTrainingLeaderboardOptInInput,
@@ -93,9 +96,15 @@ export const mhdTrainingQueryKeys = {
     ['mhd-training', 'block-progress', assignmentId] as const,
   timeOnTask: (filters: MhdTrainingTimeOnTaskFilters) =>
     ['mhd-training', 'time-on-task', filters] as const,
+  timeOnTaskSettings: (companyId: string) =>
+    ['mhd-training', 'time-on-task-settings', companyId] as const,
   learnerExport: (personId: string) => ['mhd-training', 'learner-export', personId] as const,
   externalAuditorReport: (grantId: string) =>
     ['mhd-training', 'external-auditor-report', grantId] as const,
+  externalAuditorGrants: (companyId: string) =>
+    ['mhd-training', 'external-auditor-grants', companyId] as const,
+  contentLicenses: (companyId: string) =>
+    ['mhd-training', 'content-licenses', companyId] as const,
   pointsBalance: (personId: string) => ['mhd-training', 'points-balance', personId] as const,
   badges: (companyId: string | null) => ['mhd-training', 'badges', companyId ?? 'ALL'] as const,
   leaderboard: (input: MhdTrainingLeaderboardInput) =>
@@ -634,9 +643,21 @@ export function useMhdResolveActiveTrainingSuccessor(courseId: string | null) {
 }
 
 export function useMhdSetTrainingContentLicense() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: MhdSetTrainingContentLicenseInput) =>
       mhdTrainingService.setContentLicense(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'content-licenses'] });
+    },
+  });
+}
+
+export function useMhdTrainingContentLicenses(input: MhdListTrainingContentLicensesInput) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.contentLicenses(input.companyId),
+    queryFn: () => mhdTrainingService.listContentLicenses(input),
+    enabled: Boolean(input.companyId),
   });
 }
 
@@ -874,7 +895,16 @@ export function useMhdSetTrainingTimeOnTask() {
     mutationFn: (input: MhdSetTrainingTimeOnTaskInput) => mhdTrainingService.setTimeOnTask(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'time-on-task'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'time-on-task-settings'] });
     },
+  });
+}
+
+export function useMhdTrainingTimeOnTaskSettings(input: MhdGetTrainingTimeOnTaskInput) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.timeOnTaskSettings(input.companyId),
+    queryFn: () => mhdTrainingService.getTimeOnTask(input),
+    enabled: Boolean(input.companyId),
   });
 }
 
@@ -887,16 +917,34 @@ export function useMhdTrainingLearnerExport(personId: string | null) {
 }
 
 export function useMhdCreateTrainingExternalAuditorGrant() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: MhdCreateTrainingExternalAuditorGrantInput) =>
       mhdTrainingService.createExternalAuditorGrant(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'external-auditor-grants'] });
+    },
   });
 }
 
 export function useMhdRevokeTrainingExternalAuditorGrant() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: MhdTrainingExternalAuditorGrantRevokeInput) =>
       mhdTrainingService.revokeExternalAuditorGrant(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'external-auditor-grants'] });
+    },
+  });
+}
+
+export function useMhdTrainingExternalAuditorGrants(
+  input: MhdListTrainingExternalAuditorGrantsInput,
+) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.externalAuditorGrants(input.companyId),
+    queryFn: () => mhdTrainingService.listExternalAuditorGrants(input),
+    enabled: Boolean(input.companyId),
   });
 }
 

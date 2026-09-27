@@ -105,4 +105,104 @@ describe('mhdTrainingService — audit engine', () => {
       message: 'Grant is revoked or outside its valid window',
     });
   });
+
+  it('lists external auditor grants for a company', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'grant-1',
+          reference_id: 'EAG-0001',
+          course_id: 'course-1',
+          course_title: 'Forklift Safety Fundamentals',
+          auditor_label: 'OSHA auditor',
+          valid_from: '2026-09-01T00:00:00Z',
+          valid_until: '2026-10-01T00:00:00Z',
+          revoked_at: null,
+          created_at: '2026-09-01T00:00:00Z',
+        },
+      ],
+      error: null,
+    });
+    await expect(
+      mhdTrainingService.listExternalAuditorGrants({ companyId: 'company-1' }),
+    ).resolves.toEqual([
+      {
+        id: 'grant-1',
+        referenceId: 'EAG-0001',
+        courseId: 'course-1',
+        courseTitle: 'Forklift Safety Fundamentals',
+        auditorLabel: 'OSHA auditor',
+        validFrom: '2026-09-01T00:00:00Z',
+        validUntil: '2026-10-01T00:00:00Z',
+        revokedAt: null,
+        createdAt: '2026-09-01T00:00:00Z',
+      },
+    ]);
+    expect(rpcMock).toHaveBeenCalledWith('mhd_training_external_auditor_grant_list', {
+      p_company_id: 'company-1',
+    });
+  });
+
+  it('lists content licenses for global courses, including an unrestricted course with no expiry', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          course_id: 'course-1',
+          course_title: 'Global Compliance Basics',
+          is_active: true,
+          expires_at: '2026-12-31T00:00:00Z',
+          updated_at: '2026-09-01T00:00:00Z',
+        },
+        {
+          course_id: 'course-2',
+          course_title: 'Global Orientation',
+          is_active: true,
+          expires_at: null,
+          updated_at: null,
+        },
+      ],
+      error: null,
+    });
+    await expect(
+      mhdTrainingService.listContentLicenses({ companyId: 'company-1' }),
+    ).resolves.toEqual([
+      {
+        courseId: 'course-1',
+        courseTitle: 'Global Compliance Basics',
+        isActive: true,
+        expiresAt: '2026-12-31T00:00:00Z',
+        updatedAt: '2026-09-01T00:00:00Z',
+      },
+      {
+        courseId: 'course-2',
+        courseTitle: 'Global Orientation',
+        isActive: true,
+        expiresAt: null,
+        updatedAt: null,
+      },
+    ]);
+    expect(rpcMock).toHaveBeenCalledWith('mhd_training_content_license_list', {
+      p_company_id: 'company-1',
+    });
+  });
+
+  it('reads back the current time-on-task setting, defaulting when no row exists', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [{ max_session_minutes: 240, updated_at: '2026-09-01T00:00:00Z' }],
+      error: null,
+    });
+    await expect(mhdTrainingService.getTimeOnTask({ companyId: 'company-1' })).resolves.toEqual({
+      maxSessionMinutes: 240,
+      updatedAt: '2026-09-01T00:00:00Z',
+    });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_training_time_on_task_get', {
+      p_company_id: 'company-1',
+    });
+
+    rpcMock.mockResolvedValueOnce({ data: [], error: null });
+    await expect(mhdTrainingService.getTimeOnTask({ companyId: 'company-2' })).resolves.toEqual({
+      maxSessionMinutes: 480,
+      updatedAt: null,
+    });
+  });
 });

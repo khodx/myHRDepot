@@ -232,6 +232,31 @@ export interface MhdTrainingExternalAuditorGrantRpcRow {
   reference_id: string;
 }
 
+export interface MhdTrainingExternalAuditorGrantListRpcRow {
+  id: string;
+  reference_id: string;
+  course_id: string;
+  course_title: string;
+  auditor_label: string;
+  valid_from: string;
+  valid_until: string;
+  revoked_at: string | null;
+  created_at: string;
+}
+
+export interface MhdTrainingContentLicenseRpcRow {
+  course_id: string;
+  course_title: string;
+  is_active: boolean;
+  expires_at: string | null;
+  updated_at: string | null;
+}
+
+export interface MhdTrainingTimeOnTaskSettingsRpcRow {
+  max_session_minutes: number;
+  updated_at: string | null;
+}
+
 export interface MhdTrainingExternalAuditorReportRpcRow {
   person_id: string;
   person_display_name: string;
@@ -700,6 +725,32 @@ export interface MhdTrainingExternalAuditorReportRow {
   completedAt: string | null;
 }
 
+export interface MhdTrainingExternalAuditorGrantListRow {
+  id: MhdTrainingExternalAuditorGrantId;
+  referenceId: MhdTrainingExternalAuditorGrantReferenceId;
+  courseId: string;
+  courseTitle: string;
+  auditorLabel: string;
+  validFrom: string;
+  validUntil: string;
+  revokedAt: string | null;
+  createdAt: string;
+}
+
+/** A global course with this company's license expiry, or null when unrestricted. */
+export interface MhdTrainingContentLicenseRow {
+  courseId: string;
+  courseTitle: string;
+  isActive: boolean;
+  expiresAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface MhdTrainingTimeOnTaskSettings {
+  maxSessionMinutes: number;
+  updatedAt: string | null;
+}
+
 /** An instructor may be an internal person or an external/vendor named only by text. */
 export interface MhdTrainingIltSession {
   id: MhdTrainingIltSessionId;
@@ -1121,6 +1172,18 @@ export interface MhdSetTrainingContentLicenseInput {
   companyId: string;
   courseId: MhdTrainingCourseId;
   expiresAt: string;
+}
+
+export interface MhdListTrainingContentLicensesInput {
+  companyId: string;
+}
+
+export interface MhdListTrainingExternalAuditorGrantsInput {
+  companyId: string;
+}
+
+export interface MhdGetTrainingTimeOnTaskInput {
+  companyId: string;
 }
 
 export interface MhdTrainingManagerTeamStatusInput {
