@@ -22800,6 +22800,45 @@ export type Database = {
         }
         Relationships: []
       }
+      training_audit_statements_2026_11: {
+        Row: {
+          actor_person_id: string
+          client_timestamp: string
+          company_id: string
+          context: Json | null
+          id: string
+          object_id: string
+          object_type: string
+          result: Json | null
+          server_timestamp: string
+          verb: string
+        }
+        Insert: {
+          actor_person_id: string
+          client_timestamp?: string
+          company_id: string
+          context?: Json | null
+          id?: string
+          object_id: string
+          object_type: string
+          result?: Json | null
+          server_timestamp?: string
+          verb: string
+        }
+        Update: {
+          actor_person_id?: string
+          client_timestamp?: string
+          company_id?: string
+          context?: Json | null
+          id?: string
+          object_id?: string
+          object_type?: string
+          result?: Json | null
+          server_timestamp?: string
+          verb?: string
+        }
+        Relationships: []
+      }
       training_badge_awards: {
         Row: {
           awarded_at: string
@@ -33303,6 +33342,21 @@ export type Database = {
       mhd_training_block_start: {
         Args: { p_assignment_id: string; p_block_id: string }
         Returns: undefined
+      }
+      mhd_training_block_translation_delete: {
+        Args: { p_translation_id: string }
+        Returns: undefined
+      }
+      mhd_training_block_translation_list: {
+        Args: { p_block_id: string }
+        Returns: {
+          alt_text: string
+          content: Json
+          id: string
+          locale: string
+          transcript: string
+          updated_at: string
+        }[]
       }
       mhd_training_block_translation_upsert: {
         Args: {

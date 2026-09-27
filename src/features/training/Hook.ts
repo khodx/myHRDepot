@@ -47,6 +47,8 @@ import type {
   MhdTrainingExternalAuditorGrantRevokeInput,
   MhdListTrainingExternalAuditorGrantsInput,
   MhdListTrainingContentLicensesInput,
+  MhdUpsertBlockTranslationInput,
+  MhdDeleteBlockTranslationInput,
   MhdCreateTrainingBadgeInput,
   MhdAwardTrainingBadgeInput,
   MhdSetTrainingLeaderboardOptInInput,
@@ -90,6 +92,7 @@ export const mhdTrainingQueryKeys = {
   selfEnrollments: (input: MhdListTrainingSelfEnrollmentsInput) =>
     ['mhd-training', 'self-enrollments', input] as const,
   courseContentTree: (courseId: string) => ['mhd-training', 'content-tree', courseId] as const,
+  blockTranslations: (blockId: string) => ['mhd-training', 'block-translations', blockId] as const,
   prerequisites: (courseId: string) => ['mhd-training', 'prerequisites', courseId] as const,
   contentApprovals: (courseId: string) => ['mhd-training', 'content-approvals', courseId] as const,
   blockProgress: (assignmentId: string) =>
@@ -489,6 +492,37 @@ export function useMhdDeleteTrainingBlock() {
   return useMhdTrainingContentMutation<string>((blockId) =>
     mhdTrainingService.deleteBlock(blockId),
   );
+}
+export function useMhdTrainingBlockTranslations(blockId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.blockTranslations(blockId ?? ''),
+    queryFn: () => mhdTrainingService.listBlockTranslations(blockId!),
+    enabled: Boolean(blockId),
+  });
+}
+export function useMhdUpsertTrainingBlockTranslation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpsertBlockTranslationInput) =>
+      mhdTrainingService.upsertBlockTranslation(input),
+    onSuccess: (_data, input) => {
+      void queryClient.invalidateQueries({
+        queryKey: mhdTrainingQueryKeys.blockTranslations(input.blockId),
+      });
+    },
+  });
+}
+export function useMhdDeleteTrainingBlockTranslation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdDeleteBlockTranslationInput & { blockId: string }) =>
+      mhdTrainingService.deleteBlockTranslation(input),
+    onSuccess: (_data, input) => {
+      void queryClient.invalidateQueries({
+        queryKey: mhdTrainingQueryKeys.blockTranslations(input.blockId),
+      });
+    },
+  });
 }
 export function useMhdUpdateTrainingScenarioNode() {
   return useMhdTrainingScenarioMutation<MhdUpdateScenarioNodeInput>((input) =>

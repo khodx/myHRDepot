@@ -10,15 +10,18 @@ import {
   useMhdCreateTrainingCourseModule,
   useMhdCreateTrainingLesson,
   useMhdDeleteTrainingBlock,
+  useMhdDeleteTrainingBlockTranslation,
   useMhdDeleteTrainingCourseModule,
   useMhdDeleteTrainingLesson,
+  useMhdTrainingBlockTranslations,
   useMhdTrainingCourseContentTree,
   useMhdUpdateTrainingBlock,
   useMhdUpdateTrainingCourseModule,
   useMhdUpdateTrainingLesson,
   useMhdUploadTrainingVideo,
+  useMhdUpsertTrainingBlockTranslation,
 } from '../Hook';
-import type { MhdCreateBlockInput, MhdUpdateBlockInput, MhdTrainingBlockType, MhdTrainingContentTreeBlock, MhdTrainingContentTreeLesson, MhdTrainingContentTreeModule } from '../Types';
+import type { MhdCreateBlockInput, MhdUpdateBlockInput, MhdTrainingBlockTranslation, MhdTrainingBlockType, MhdTrainingContentTreeBlock, MhdTrainingContentTreeLesson, MhdTrainingContentTreeModule, MhdUpsertBlockTranslationInput } from '../Types';
 
 const BLOCK_TYPES = [
   'RICH_TEXT', 'IMAGE', 'VIDEO', 'FILE_DOWNLOAD', 'CALLOUT', 'CHECKLIST',
@@ -43,7 +46,8 @@ type ModalState =
   | { kind: 'module'; item?: MhdTrainingContentTreeModule }
   | { kind: 'lesson'; moduleId: string; item?: MhdTrainingContentTreeLesson }
   | { kind: 'block'; lessonId: string; item?: MhdTrainingContentTreeBlock }
-  | { kind: 'scenario'; blockId: string; blockType: 'SCENARIO_BRANCHING' | 'AI_CONVERSATION' };
+  | { kind: 'scenario'; blockId: string; blockType: 'SCENARIO_BRANCHING' | 'AI_CONVERSATION' }
+  | { kind: 'translations'; blockId: string; blockTitle: string };
 
 export function MhdTrainingContentTreeEditor({ courseId }: { courseId: string }) {
   const tree = useMhdTrainingCourseContentTree(courseId);
@@ -131,7 +135,7 @@ export function MhdTrainingContentTreeEditor({ courseId }: { courseId: string })
           {ordered(module.lessons).length === 0 ? <p className="pl-6 text-sm text-muted-foreground">No lessons yet.</p> : ordered(module.lessons).map((lesson, lessonIndex) => (
             <div key={lesson.id} className="ml-4 space-y-3 border-l-2 border-accent-border pl-5">
               <div className="flex flex-wrap items-center justify-between gap-2"><div className="flex items-center gap-2"><MhdBadge variant="info">Lesson {lessonIndex + 1}</MhdBadge><h4 className="font-medium text-foreground">{lesson.title}</h4></div><div className="flex flex-wrap gap-1"><Button variant="ghost" disabled={lessonIndex === 0} onClick={() => void moveLesson(module, lessonIndex, -1)} aria-label="Move lesson up">↑</Button><Button variant="ghost" disabled={lessonIndex === ordered(module.lessons).length - 1} onClick={() => void moveLesson(module, lessonIndex, 1)} aria-label="Move lesson down">↓</Button><Button variant="secondary" onClick={() => setModal({ kind: 'block', lessonId: lesson.id })}>Add Block</Button><Button variant="ghost" onClick={() => setModal({ kind: 'lesson', moduleId: module.id, item: lesson })}>Edit</Button><Button variant="ghost" className="text-red-700" onClick={() => void remove('lesson', lesson.id)}>Delete</Button></div></div>
-              {ordered(lesson.blocks).length === 0 ? <p className="pl-5 text-sm text-muted-foreground">No blocks yet.</p> : ordered(lesson.blocks).map((block, blockIndex) => <div key={block.id} className="ml-4 flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted/40 px-3 py-2"><div className="flex min-w-0 items-center gap-2"><MhdBadge variant="neutral" hideIcon>{BLOCK_LABELS[block.blockType] ?? block.blockType}</MhdBadge><span className="truncate text-sm text-foreground">{block.title || 'Untitled block'}</span></div><div className="flex gap-1"><Button variant="ghost" disabled={blockIndex === 0} onClick={() => void moveBlock(lesson, blockIndex, -1)} aria-label="Move block up">↑</Button><Button variant="ghost" disabled={blockIndex === ordered(lesson.blocks).length - 1} onClick={() => void moveBlock(lesson, blockIndex, 1)} aria-label="Move block down">↓</Button>{(block.blockType === 'SCENARIO_BRANCHING' || block.blockType === 'AI_CONVERSATION') ? <Button variant="ghost" onClick={() => setModal({ kind: 'scenario', blockId: block.id, blockType: block.blockType as 'SCENARIO_BRANCHING' | 'AI_CONVERSATION' })}>Edit Graph</Button> : BLOCK_TYPES.includes(block.blockType as typeof BLOCK_TYPES[number]) ? <Button variant="ghost" onClick={() => setModal({ kind: 'block', lessonId: lesson.id, item: block })}>Edit</Button> : null}<Button variant="ghost" className="text-red-700" onClick={() => void remove('block', block.id)}>Delete</Button></div></div>)}
+              {ordered(lesson.blocks).length === 0 ? <p className="pl-5 text-sm text-muted-foreground">No blocks yet.</p> : ordered(lesson.blocks).map((block, blockIndex) => <div key={block.id} className="ml-4 flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted/40 px-3 py-2"><div className="flex min-w-0 items-center gap-2"><MhdBadge variant="neutral" hideIcon>{BLOCK_LABELS[block.blockType] ?? block.blockType}</MhdBadge><span className="truncate text-sm text-foreground">{block.title || 'Untitled block'}</span></div><div className="flex gap-1"><Button variant="ghost" disabled={blockIndex === 0} onClick={() => void moveBlock(lesson, blockIndex, -1)} aria-label="Move block up">↑</Button><Button variant="ghost" disabled={blockIndex === ordered(lesson.blocks).length - 1} onClick={() => void moveBlock(lesson, blockIndex, 1)} aria-label="Move block down">↓</Button>{(block.blockType === 'SCENARIO_BRANCHING' || block.blockType === 'AI_CONVERSATION') ? <Button variant="ghost" onClick={() => setModal({ kind: 'scenario', blockId: block.id, blockType: block.blockType as 'SCENARIO_BRANCHING' | 'AI_CONVERSATION' })}>Edit Graph</Button> : BLOCK_TYPES.includes(block.blockType as typeof BLOCK_TYPES[number]) ? <Button variant="ghost" onClick={() => setModal({ kind: 'block', lessonId: lesson.id, item: block })}>Edit</Button> : null}<Button variant="ghost" onClick={() => setModal({ kind: 'translations', blockId: block.id, blockTitle: block.title || 'Untitled block' })}>Translations</Button><Button variant="ghost" className="text-red-700" onClick={() => void remove('block', block.id)}>Delete</Button></div></div>)}
             </div>
           ))}
         </MhdCard>
@@ -140,6 +144,7 @@ export function MhdTrainingContentTreeEditor({ courseId }: { courseId: string })
       {modal?.kind === 'lesson' ? <LessonModal item={modal.item} moduleId={modal.moduleId} nextSortOrder={modules.find((item) => item.id === modal.moduleId)?.lessons.length ?? 0} onClose={() => setModal(null)} onError={setError} create={createLesson.mutateAsync} update={updateLesson.mutateAsync} /> : null}
       {modal?.kind === 'block' ? <BlockModal item={modal.item} lessonId={modal.lessonId} nextSortOrder={modules.flatMap((item) => item.lessons).find((item) => item.id === modal.lessonId)?.blocks.length ?? 0} onClose={() => setModal(null)} onError={setError} create={createBlock.mutateAsync} update={updateBlock.mutateAsync} upload={uploadVideo.mutateAsync} /> : null}
       {modal?.kind === 'scenario' ? <MhdTrainingScenarioGraphEditor blockId={modal.blockId} blockType={modal.blockType} onClose={() => setModal(null)} /> : null}
+      {modal?.kind === 'translations' ? <TranslationsModal blockId={modal.blockId} blockTitle={modal.blockTitle} onClose={() => setModal(null)} /> : null}
     </div>
   );
 }
@@ -196,3 +201,86 @@ function TableFields({ onClose, content, set, setList }: Pick<BlockFieldProps, '
 }
 
 function FormActions({ onClose }: { onClose?: () => void }) { return <div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit">Save</Button></div>; }
+
+function TranslationsModal({ blockId, blockTitle, onClose }: { blockId: string; blockTitle: string; onClose: () => void }) {
+  const translations = useMhdTrainingBlockTranslations(blockId);
+  const upsert = useMhdUpsertTrainingBlockTranslation();
+  const remove = useMhdDeleteTrainingBlockTranslation();
+  const [editing, setEditing] = useState<MhdTrainingBlockTranslation | 'new' | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function removeTranslation(translationId: string) {
+    if (!window.confirm('Delete this translation? This cannot be undone.')) return;
+    setError(null);
+    try { await remove.mutateAsync({ translationId, blockId }); } catch (caught) { setError(caught instanceof Error ? caught.message : 'The translation could not be deleted.'); }
+  }
+
+  return (
+    <MhdModal title={`Translations — ${blockTitle}`} onClose={onClose}>
+      <div className="space-y-4">
+        {error ? <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div> : null}
+        {translations.isLoading ? <p className="text-sm text-muted-foreground">Loading translations…</p> : (translations.data ?? []).length === 0 ? <p className="text-sm text-muted-foreground">No translations have been added for this block yet.</p> : (
+          <ul className="space-y-2">
+            {(translations.data ?? []).map((translation) => (
+              <li key={translation.id} className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+                <div>
+                  <p className="font-medium text-foreground">{translation.locale}</p>
+                  <p className="text-xs text-muted-foreground">{translation.updatedAt ? new Date(translation.updatedAt).toLocaleString() : 'Never saved'}</p>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="ghost" onClick={() => setEditing(translation)}>Edit</Button>
+                  <Button variant="ghost" className="text-red-700" onClick={() => void removeTranslation(translation.id)}>Delete</Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {editing ? (
+          <TranslationForm
+            blockId={blockId}
+            item={editing === 'new' ? undefined : editing}
+            onClose={() => setEditing(null)}
+            onError={setError}
+            upsert={upsert.mutateAsync}
+          />
+        ) : (
+          <div className="flex justify-end"><Button onClick={() => { setError(null); setEditing('new'); }}>Add translation</Button></div>
+        )}
+      </div>
+    </MhdModal>
+  );
+}
+
+function TranslationForm({ blockId, item, onClose, onError, upsert }: {
+  blockId: string;
+  item?: MhdTrainingBlockTranslation;
+  onClose: () => void;
+  onError: (message: string) => void;
+  upsert: (input: MhdUpsertBlockTranslationInput) => Promise<unknown>;
+}) {
+  const [locale, setLocale] = useState(item?.locale ?? '');
+  const [altText, setAltText] = useState(item?.altText ?? '');
+  const [transcript, setTranscript] = useState(item?.transcript ?? '');
+  const [contentJson, setContentJson] = useState(item ? JSON.stringify(item.content, null, 2) : '{}');
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!locale.trim()) { onError('A locale (e.g. es, fr-CA) is required.'); return; }
+    let content: Record<string, unknown>;
+    try { content = JSON.parse(contentJson || '{}'); } catch { onError('Translated content must be valid JSON.'); return; }
+    try {
+      await upsert({ blockId, locale: locale.trim(), content, altText: altText.trim() || null, transcript: transcript.trim() || null });
+      onClose();
+    } catch (caught) { onError(caught instanceof Error ? caught.message : 'The translation could not be saved.'); }
+  }
+
+  return (
+    <form className="space-y-3 border-t border-border pt-4" onSubmit={submit}>
+      <Field label="Locale" required><input className={inputClass} value={locale} onChange={(e) => setLocale(e.target.value)} placeholder="es, fr-CA, …" disabled={Boolean(item)} /></Field>
+      <Field label="Translated content (JSON)"><textarea className={`${textAreaClass} font-mono text-xs`} value={contentJson} onChange={(e) => setContentJson(e.target.value)} /></Field>
+      <Field label="Alt text (images)"><input className={inputClass} value={altText} onChange={(e) => setAltText(e.target.value)} /></Field>
+      <Field label="Transcript (video)"><textarea className={textAreaClass} value={transcript} onChange={(e) => setTranscript(e.target.value)} /></Field>
+      <FormActions onClose={onClose} />
+    </form>
+  );
+}

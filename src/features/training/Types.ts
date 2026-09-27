@@ -14,6 +14,15 @@ import type { Database } from '@/types/database.types';
 // runs them through `mhdToNumber()`; never compare or arithmetic a raw row value.
 // ---------------------------------------------------------------------------
 
+export interface MhdTrainingBlockTranslationRpcRow {
+  id: string;
+  locale: string;
+  content: Record<string, unknown>;
+  alt_text: string | null;
+  transcript: string | null;
+  updated_at: string | null;
+}
+
 /** Row shape returned by `mhd_training_course_list`. */
 export interface MhdTrainingCourseRpcRow {
   id: string;
@@ -1065,6 +1074,27 @@ export interface MhdUpdateBlockInput {
   altText?: string | null;
   transcript?: string | null;
   sortOrder?: number;
+}
+
+export interface MhdTrainingBlockTranslation {
+  id: string;
+  locale: string;
+  content: Record<string, unknown>;
+  altText: string | null;
+  transcript: string | null;
+  updatedAt: string | null;
+}
+
+export interface MhdUpsertBlockTranslationInput {
+  blockId: string;
+  locale: string;
+  content?: Record<string, unknown>;
+  altText?: string | null;
+  transcript?: string | null;
+}
+
+export interface MhdDeleteBlockTranslationInput {
+  translationId: string;
 }
 export interface MhdUpdateScenarioNodeInput {
   nodeId: string;

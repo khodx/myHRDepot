@@ -33,6 +33,10 @@ import type {
   MhdUpdateLessonInput,
   MhdCreateBlockInput,
   MhdUpdateBlockInput,
+  MhdTrainingBlockTranslationRpcRow,
+  MhdTrainingBlockTranslation,
+  MhdUpsertBlockTranslationInput,
+  MhdDeleteBlockTranslationInput,
   MhdUpdateScenarioNodeInput,
   MhdUpdateScenarioChoiceInput,
   MhdSetCourseContentModeInput,
@@ -1004,6 +1008,43 @@ export const mhdTrainingService = {
   async deleteBlock(blockId: string): Promise<void> {
     const { error } = await supabaseClient.rpc('mhd_training_block_delete', {
       p_block_id: blockId,
+    });
+    if (error) throw error;
+  },
+
+  async listBlockTranslations(blockId: string): Promise<MhdTrainingBlockTranslation[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_block_translation_list', {
+      p_block_id: blockId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingBlockTranslationRpcRow[]).map((row) => ({
+      id: row.id,
+      locale: row.locale,
+      content: row.content,
+      altText: row.alt_text,
+      transcript: row.transcript,
+      updatedAt: row.updated_at,
+    }));
+  },
+
+  async upsertBlockTranslation(input: MhdUpsertBlockTranslationInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_block_translation_upsert', {
+      p_block_id: input.blockId,
+      p_locale: input.locale.trim(),
+      p_content: (input.content ?? {}) as Json,
+      // The generated RPC arg type omits `null` even though both SQL parameters are
+      // genuinely nullable (default null) -- same documented `as never` compatibility
+      // cast used elsewhere in this file for a generated type stricter than the real
+      // SQL contract.
+      p_alt_text: (input.altText ?? null) as never,
+      p_transcript: (input.transcript ?? null) as never,
+    });
+    if (error) throw error;
+  },
+
+  async deleteBlockTranslation(input: MhdDeleteBlockTranslationInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_block_translation_delete', {
+      p_translation_id: input.translationId,
     });
     if (error) throw error;
   },
