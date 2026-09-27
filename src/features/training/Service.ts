@@ -136,6 +136,8 @@ import type {
   MhdListContentFlagsInput,
   MhdResolveContentFlagInput,
   MhdTrainingPeerReview,
+  MhdTrainingPeerReviewCandidateRpcRow,
+  MhdTrainingPeerReviewCandidate,
   MhdTrainingPeerReviewAssignmentResult,
   MhdTrainingPeerReviewRpcRow,
   MhdAssignTrainingPeerReviewInput,
@@ -1622,6 +1624,23 @@ export const mhdTrainingService = {
     });
     if (error) throw error;
     return ((data ?? []) as MhdTrainingPeerReviewRpcRow[]).map(mapPeerReview);
+  },
+  async listPeerReviewCandidates(companyId: string): Promise<MhdTrainingPeerReviewCandidate[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_peer_review_candidates_list', {
+      p_company_id: companyId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingPeerReviewCandidateRpcRow[]).map((row) => ({
+      blockProgressId: row.block_progress_id,
+      personId: row.person_id,
+      personDisplayName: row.person_display_name,
+      courseTitle: row.course_title,
+      blockTitle: row.block_title,
+      blockType: row.block_type,
+      response: row.response,
+      completedAt: row.completed_at,
+      existingReviewCount: mhdToNumber(row.existing_review_count),
+    }));
   },
   async submitCourseFeedback(input: MhdSubmitTrainingCourseFeedbackInput): Promise<void> {
     const { error } = await supabaseClient.rpc('mhd_training_course_feedback_submit', {

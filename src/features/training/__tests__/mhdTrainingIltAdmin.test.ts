@@ -47,4 +47,21 @@ describe('LMS v2 ILT admin service (company-wide session list + roster)', () => 
     expect(roster[0].personDisplayName).toBe('Harper Garcia');
     expect(roster[1].status).toBe('WAITLISTED');
   });
+
+  it('lists peer review candidates (completed reflection/discussion responses awaiting review)', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          block_progress_id: 'bp1', person_id: 'p1', person_display_name: 'Jordan Martinez',
+          course_title: 'De-escalation & Difficult Conversations', block_title: 'Reflect', block_type: 'REFLECTION_PROMPT',
+          response: { text: 'I would listen first.' }, completed_at: 'now', existing_review_count: '5',
+        },
+      ],
+      error: null,
+    });
+    const [candidate] = await mhdTrainingService.listPeerReviewCandidates('c');
+    expect(rpcMock).toHaveBeenCalledWith('mhd_training_peer_review_candidates_list', { p_company_id: 'c' });
+    expect(candidate.personDisplayName).toBe('Jordan Martinez');
+    expect(candidate.existingReviewCount).toBe(5);
+  });
 });

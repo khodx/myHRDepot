@@ -104,6 +104,8 @@ export const mhdTrainingQueryKeys = {
     ['mhd-training', 'content-flags', input] as const,
   peerReviews: (input: MhdListTrainingPeerReviewsInput) =>
     ['mhd-training', 'peer-reviews', input] as const,
+  peerReviewCandidates: (companyId: string) =>
+    ['mhd-training', 'peer-review-candidates', companyId] as const,
   feedbackSummary: (courseId: string) => ['mhd-training', 'feedback-summary', courseId] as const,
   activeSuccessor: (courseId: string) => ['mhd-training', 'active-successor', courseId] as const,
   managerTeamStatus: (input: MhdTrainingManagerTeamStatusInput) =>
@@ -1001,7 +1003,16 @@ export function useMhdAssignTrainingPeerReview() {
       void queryClient.invalidateQueries({
         queryKey: mhdTrainingQueryKeys.peerReviews({ blockProgressId: input.blockProgressId }),
       });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'peer-review-candidates'] });
     },
+  });
+}
+
+export function useMhdTrainingPeerReviewCandidates(companyId: string) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.peerReviewCandidates(companyId),
+    queryFn: () => mhdTrainingService.listPeerReviewCandidates(companyId),
+    enabled: Boolean(companyId),
   });
 }
 export function useMhdSubmitTrainingPeerReview() {

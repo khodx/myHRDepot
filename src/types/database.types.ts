@@ -33832,6 +33832,20 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_training_peer_review_candidates_list: {
+        Args: { p_company_id: string }
+        Returns: {
+          block_progress_id: string
+          block_title: string
+          block_type: string
+          completed_at: string
+          course_title: string
+          existing_review_count: number
+          person_display_name: string
+          person_id: string
+          response: Json
+        }[]
+      }
       mhd_training_peer_review_list: {
         Args: { p_block_progress_id: string }
         Returns: {

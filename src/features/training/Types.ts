@@ -783,6 +783,17 @@ export interface MhdTrainingPeerReviewRpcRow {
   status: string;
   submitted_at: string | null;
 }
+export interface MhdTrainingPeerReviewCandidateRpcRow {
+  block_progress_id: string;
+  person_id: string;
+  person_display_name: string;
+  course_title: string;
+  block_title: string | null;
+  block_type: string;
+  response: Record<string, unknown> | null;
+  completed_at: string;
+  existing_review_count: number | string;
+}
 export interface MhdTrainingLeaderboardRpcRow {
   person_id: string;
   person_display_name: string;
@@ -825,6 +836,17 @@ export interface MhdTrainingPeerReview extends MhdMutationResult {
 }
 export interface MhdTrainingPeerReviewAssignmentResult extends MhdMutationResult {
   referenceId: MhdTrainingPeerReviewReferenceId;
+}
+export interface MhdTrainingPeerReviewCandidate {
+  blockProgressId: string;
+  personId: string;
+  personDisplayName: string;
+  courseTitle: string;
+  blockTitle: string | null;
+  blockType: string;
+  response: Record<string, unknown> | null;
+  completedAt: string;
+  existingReviewCount: number;
 }
 export interface MhdTrainingLeaderboardRow {
   personId: string;
