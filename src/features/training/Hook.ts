@@ -87,6 +87,8 @@ export const mhdTrainingQueryKeys = {
   selfEnrollments: (input: MhdListTrainingSelfEnrollmentsInput) =>
     ['mhd-training', 'self-enrollments', input] as const,
   courseContentTree: (courseId: string) => ['mhd-training', 'content-tree', courseId] as const,
+  prerequisites: (courseId: string) => ['mhd-training', 'prerequisites', courseId] as const,
+  contentApprovals: (courseId: string) => ['mhd-training', 'content-approvals', courseId] as const,
   blockProgress: (assignmentId: string) =>
     ['mhd-training', 'block-progress', assignmentId] as const,
   timeOnTask: (filters: MhdTrainingTimeOnTaskFilters) =>
@@ -292,10 +294,10 @@ export function useMhdCompleteTrainingBlock() {
   });
 }
 
-export function useMhdTrainingCurriculums(companyId: string | null) {
+export function useMhdTrainingCurriculums(companyId: string | null, includeInactive = false) {
   return useQuery({
-    queryKey: mhdTrainingQueryKeys.curriculums(companyId),
-    queryFn: () => mhdTrainingService.listCurriculums(companyId!),
+    queryKey: [...mhdTrainingQueryKeys.curriculums(companyId), includeInactive] as const,
+    queryFn: () => mhdTrainingService.listCurriculums(companyId!, includeInactive),
     enabled: Boolean(companyId),
   });
 }
@@ -458,30 +460,69 @@ export function useMhdForkTrainingCourse() {
     mhdTrainingService.forkCourse(input),
   );
 }
+// The content approval pipeline additionally invalidates its own history list
+// (['mhd-training', 'content-approvals', courseId]) — a separate key from
+// useMhdTrainingContentMutation's 'courses'/'content-tree' invalidation.
+function useMhdTrainingApprovalMutation<T extends { courseId: string }>(
+  mutationFn: (input: T) => Promise<unknown>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: (_data, input) => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'courses'] });
+      void queryClient.invalidateQueries({ queryKey: mhdTrainingQueryKeys.contentApprovals(input.courseId) });
+    },
+  });
+}
 export function useMhdSubmitTrainingContentForReview() {
-  return useMhdTrainingContentMutation<MhdSubmitContentForReviewInput>((input) =>
+  return useMhdTrainingApprovalMutation<MhdSubmitContentForReviewInput>((input) =>
     mhdTrainingService.submitContentForReview(input),
   );
 }
 export function useMhdApproveTrainingContent() {
-  return useMhdTrainingContentMutation<MhdApproveContentInput>((input) =>
+  return useMhdTrainingApprovalMutation<MhdApproveContentInput>((input) =>
     mhdTrainingService.approveContent(input),
   );
 }
 export function useMhdPublishTrainingContent() {
-  return useMhdTrainingContentMutation<MhdPublishContentInput>((input) =>
+  return useMhdTrainingApprovalMutation<MhdPublishContentInput>((input) =>
     mhdTrainingService.publishContent(input),
   );
 }
 export function useMhdAddTrainingPrerequisite() {
-  return useMhdTrainingContentMutation<MhdPrerequisiteInput>((input) =>
-    mhdTrainingService.addPrerequisite(input),
-  );
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdPrerequisiteInput) => mhdTrainingService.addPrerequisite(input),
+    onSuccess: (_data, input) => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'courses'] });
+      void queryClient.invalidateQueries({ queryKey: mhdTrainingQueryKeys.prerequisites(input.courseId) });
+    },
+  });
 }
 export function useMhdRemoveTrainingPrerequisite() {
-  return useMhdTrainingContentMutation<MhdPrerequisiteInput>((input) =>
-    mhdTrainingService.removePrerequisite(input),
-  );
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdPrerequisiteInput) => mhdTrainingService.removePrerequisite(input),
+    onSuccess: (_data, input) => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'courses'] });
+      void queryClient.invalidateQueries({ queryKey: mhdTrainingQueryKeys.prerequisites(input.courseId) });
+    },
+  });
+}
+export function useMhdTrainingPrerequisites(courseId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.prerequisites(courseId ?? ''),
+    queryFn: () => mhdTrainingService.listPrerequisites(courseId!),
+    enabled: Boolean(courseId),
+  });
+}
+export function useMhdTrainingContentApprovals(courseId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.contentApprovals(courseId ?? ''),
+    queryFn: () => mhdTrainingService.listContentApprovals(courseId!),
+    enabled: Boolean(courseId),
+  });
 }
 
 // ---------------------------------------------------------------------------

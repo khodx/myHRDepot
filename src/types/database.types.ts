@@ -33383,6 +33383,18 @@ export type Database = {
         Args: { p_course_id: string; p_person_id: string }
         Returns: string
       }
+      mhd_training_content_approval_list: {
+        Args: { p_course_id: string }
+        Returns: {
+          content_version: number
+          created_at: string
+          from_status: string
+          id: string
+          review_notes: string
+          reviewed_by_name: string
+          to_status: string
+        }[]
+      }
       mhd_training_content_approve: {
         Args: { p_course_id: string; p_review_notes?: string }
         Returns: undefined
@@ -33508,7 +33520,7 @@ export type Database = {
         Returns: undefined
       }
       mhd_training_curriculum_list: {
-        Args: { p_company_id: string }
+        Args: { p_company_id: string; p_include_inactive?: boolean }
         Returns: {
           company_id: string
           description: string
@@ -33767,6 +33779,15 @@ export type Database = {
         Args: { p_course_id: string; p_prerequisite_course_id: string }
         Returns: undefined
       }
+      mhd_training_prerequisite_list: {
+        Args: { p_course_id: string }
+        Returns: {
+          created_at: string
+          prerequisite_course_id: string
+          prerequisite_course_key: string
+          prerequisite_title: string
+        }[]
+      }
       mhd_training_prerequisite_remove: {
         Args: { p_course_id: string; p_prerequisite_course_id: string }
         Returns: undefined
@@ -33789,12 +33810,17 @@ export type Database = {
         Returns: undefined
       }
       mhd_training_program_list: {
-        Args: { p_company_id: string; p_curriculum_id?: string }
+        Args: {
+          p_company_id: string
+          p_curriculum_id?: string
+          p_include_inactive?: boolean
+        }
         Returns: {
           company_id: string
           curriculum_id: string
           description: string
           id: string
+          is_active: boolean
           is_global: boolean
           reference_id: string
           sort_order: number

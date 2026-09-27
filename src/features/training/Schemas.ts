@@ -133,6 +133,7 @@ export const mhdTrainingCourseFormSchema = z.object({
     .optional()
     .nullable()
     .or(z.literal('')),
+  programId: z.string().trim().min(1).optional().nullable(),
 });
 
 // ---------------------------------------------------------------------------

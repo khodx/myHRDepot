@@ -75,7 +75,25 @@ export interface MhdTrainingProgramRpcRow {
   title: string;
   description: string | null;
   sort_order: number | string;
+  is_active: boolean;
   is_global: boolean;
+}
+
+export interface MhdTrainingPrerequisiteRpcRow {
+  prerequisite_course_id: string;
+  prerequisite_title: string;
+  prerequisite_course_key: string;
+  created_at: string;
+}
+
+export interface MhdTrainingContentApprovalRpcRow {
+  id: string;
+  from_status: string;
+  to_status: string;
+  content_version: number;
+  review_notes: string | null;
+  reviewed_by_name: string;
+  created_at: string;
 }
 
 /** Row shape returned by `mhd_training_list_assignments`. */
@@ -516,6 +534,7 @@ export interface MhdTrainingProgram {
   title: string;
   description: string | null;
   sortOrder: number;
+  isActive: boolean;
   isGlobal: boolean;
 }
 
@@ -873,6 +892,7 @@ export interface MhdUpdateCurriculumInput {
 export interface MhdTrainingProgramFilters {
   companyId: string | null;
   curriculumId?: MhdTrainingCurriculumId | null;
+  includeInactive?: boolean;
 }
 export interface MhdCreateProgramInput {
   companyId: string;
@@ -996,6 +1016,21 @@ export interface MhdPublishContentInput {
 export interface MhdPrerequisiteInput {
   courseId: MhdTrainingCourseId;
   prerequisiteCourseId: MhdTrainingCourseId;
+}
+export interface MhdTrainingPrerequisite {
+  prerequisiteCourseId: MhdTrainingCourseId;
+  prerequisiteTitle: string;
+  prerequisiteCourseKey: string;
+  createdAt: string;
+}
+export interface MhdTrainingContentApproval {
+  id: string;
+  fromStatus: string;
+  toStatus: string;
+  contentVersion: number;
+  reviewNotes: string | null;
+  reviewedByName: string;
+  createdAt: string;
 }
 
 export interface MhdUpdateCourseInput {

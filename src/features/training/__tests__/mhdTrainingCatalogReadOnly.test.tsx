@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import type { MhdTrainingCourse } from '../Types';
 
@@ -77,7 +78,11 @@ describe('MhdTrainingCatalogPage — global courses are read-only to a tenant ad
   it('hides Edit / Retire on a global course and shows "Read-only", even with canManage', () => {
     coursesMock.mockReturnValue({ data: [GLOBAL, COMPANY], isLoading: false });
 
-    render(<MhdTrainingCatalogPage companyId="company-1" canManage />);
+    render(
+      <MemoryRouter>
+        <MhdTrainingCatalogPage companyId="company-1" canManage />
+      </MemoryRouter>,
+    );
 
     const globalRow = screen.getByText('CA harassment (global)').closest('tr') as HTMLElement;
     expect(within(globalRow).queryByRole('button', { name: 'Edit' })).toBeNull();
@@ -88,7 +93,11 @@ describe('MhdTrainingCatalogPage — global courses are read-only to a tenant ad
   it('exposes Edit / Retire on a company course for a privileged admin', () => {
     coursesMock.mockReturnValue({ data: [GLOBAL, COMPANY], isLoading: false });
 
-    render(<MhdTrainingCatalogPage companyId="company-1" canManage />);
+    render(
+      <MemoryRouter>
+        <MhdTrainingCatalogPage companyId="company-1" canManage />
+      </MemoryRouter>,
+    );
 
     const companyRow = screen.getByText('Orientation (company)').closest('tr') as HTMLElement;
     expect(within(companyRow).getByRole('button', { name: 'Edit' })).toBeInTheDocument();

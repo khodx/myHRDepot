@@ -492,6 +492,18 @@ const MhdTrainingCourseShellPage = lazyPage(
   () => import('@/features/training/components/MhdTrainingCourseShellPage'),
   'MhdTrainingCourseShellPage',
 );
+const MhdTrainingCurriculaPage = lazyPage(
+  () => import('@/features/training/components/MhdTrainingCurriculaPage'),
+  'MhdTrainingCurriculaPage',
+);
+const MhdTrainingProgramsPage = lazyPage(
+  () => import('@/features/training/components/MhdTrainingProgramsPage'),
+  'MhdTrainingProgramsPage',
+);
+const MhdTrainingCourseDetailPage = lazyPage(
+  () => import('@/features/training/components/MhdTrainingCourseDetailPage'),
+  'MhdTrainingCourseDetailPage',
+);
 const MhdHandbooksPage = lazyPage(
   () => import('@/features/handbook/components/MhdHandbooksPage'),
   'MhdHandbooksPage',
@@ -904,6 +916,9 @@ function MhdAppRoutes() {
                   compliance_status; nothing recomputes expiry client-side. Global
                   courses are read-only to every tenant admin. */}
                 <Route path="/training" element={<MhdTrainingPage />} />
+                <Route path="/training/curricula" element={<MhdTrainingCurriculaPage />} />
+                <Route path="/training/programs" element={<MhdTrainingProgramsPage />} />
+                <Route path="/training/courses/:courseId" element={<MhdTrainingCourseDetailPage />} />
                 <Route path="/my-training" element={<MhdMyTrainingRoutePage />} />
                 <Route path="/my-training/course/:assignmentId" element={<MhdTrainingCourseShellPage />} />
                 {/* Handbook Engine. Two SEPARATE routes, never one filtered surface:

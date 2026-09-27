@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
@@ -88,6 +89,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
       recurrenceMonths: values.recurrenceMonths ?? null,
       requiresEvidence: values.requiresEvidence,
       externalUrl: values.externalUrl || null,
+      programId: values.programId ?? null,
     });
     setIsCreating(false);
   }
@@ -137,6 +139,18 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
                 <UserPlus className="h-4 w-4" aria-hidden />
                 Assign Training
               </Button>
+              <Link
+                to="/training/curricula"
+                className="inline-flex h-9 items-center rounded-md border border-border px-3 text-[16.8px] font-medium text-foreground hover:bg-muted"
+              >
+                Curricula
+              </Link>
+              <Link
+                to="/training/programs"
+                className="inline-flex h-9 items-center rounded-md border border-border px-3 text-[16.8px] font-medium text-foreground hover:bg-muted"
+              >
+                Programs
+              </Link>
               <Button
                 className="h-9 gap-1.5 px-3 text-[16.8px]"
                 onClick={() => setIsCreating(true)}
@@ -218,6 +232,12 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
                           The RPC refuses those on a global course regardless. */}
                       {canManage && !course.isGlobal ? (
                         <div className="flex justify-end gap-3">
+                          <Link
+                            to={`/training/courses/${course.id}`}
+                            className="text-sm font-medium text-accent hover:text-accent-hover"
+                          >
+                            View
+                          </Link>
                           <button
                             type="button"
                             onClick={() => setEditing(course)}

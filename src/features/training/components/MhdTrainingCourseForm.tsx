@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
+import { useMhdTrainingPrograms } from '../Hook';
 import { mhdTrainingCourseFormSchema, type MhdTrainingCourseFormValues } from '../Schemas';
 import {
   MHD_TRAINING_CATEGORIES,
@@ -40,6 +41,7 @@ export function MhdTrainingCourseForm({
   isSubmitting,
 }: Props) {
   const isEdit = Boolean(course);
+  const programs = useMhdTrainingPrograms({ companyId });
 
   const {
     register,
@@ -58,6 +60,7 @@ export function MhdTrainingCourseForm({
       recurrenceMonths: course?.recurrenceMonths ?? null,
       requiresEvidence: course?.requiresEvidence ?? false,
       externalUrl: course?.externalUrl ?? '',
+      programId: course?.programId ?? null,
     },
   });
 
@@ -123,6 +126,30 @@ export function MhdTrainingCourseForm({
           className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
         {errors.title ? <p className="mt-1 text-xs text-rose-600">{errors.title.message}</p> : null}
+      </div>
+
+      <div>
+        <label htmlFor="programId" className="block text-sm font-medium text-foreground">
+          Program <span className="font-normal text-muted-foreground">(optional)</span>
+        </label>
+        {isEdit ? (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Program assignment is set at creation and cannot be changed here.
+          </p>
+        ) : (
+          <select
+            id="programId"
+            {...register('programId')}
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
+          >
+            <option value="">No program</option>
+            {(programs.data ?? []).map((program) => (
+              <option key={program.id} value={program.id}>
+                {program.title}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div>

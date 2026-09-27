@@ -41,6 +41,10 @@ import type {
   MhdSubmitContentForReviewInput,
   MhdPublishContentInput,
   MhdPrerequisiteInput,
+  MhdTrainingPrerequisite,
+  MhdTrainingPrerequisiteRpcRow,
+  MhdTrainingContentApproval,
+  MhdTrainingContentApprovalRpcRow,
   MhdMutationResult,
   MhdTrainingMutationRpcRow,
   MhdRecordAdminCompletionInput,
@@ -250,6 +254,7 @@ function mapProgram(row: MhdTrainingProgramRpcRow): MhdTrainingProgram {
     title: row.title,
     description: row.description,
     sortOrder: mhdToNumber(row.sort_order),
+    isActive: row.is_active,
     isGlobal: row.is_global,
   };
 }
@@ -764,9 +769,10 @@ export const mhdTrainingService = {
     return { courseCompleted: row?.course_completed === true };
   },
 
-  async listCurriculums(companyId: string): Promise<MhdTrainingCurriculum[]> {
+  async listCurriculums(companyId: string, includeInactive = false): Promise<MhdTrainingCurriculum[]> {
     const { data, error } = await supabaseClient.rpc('mhd_training_curriculum_list', {
       p_company_id: companyId,
+      p_include_inactive: includeInactive,
     });
     if (error) throw error;
     return ((data ?? []) as MhdTrainingCurriculumRpcRow[]).map(mapCurriculum);
@@ -806,6 +812,7 @@ export const mhdTrainingService = {
     const { data, error } = await supabaseClient.rpc('mhd_training_program_list', {
       p_company_id: filters.companyId,
       p_curriculum_id: trimmedOrUndefined(filters.curriculumId),
+      p_include_inactive: filters.includeInactive ?? false,
     });
     if (error) throw error;
     return ((data ?? []) as MhdTrainingProgramRpcRow[]).map(mapProgram);
@@ -990,6 +997,35 @@ export const mhdTrainingService = {
       p_prerequisite_course_id: input.prerequisiteCourseId,
     });
     if (error) throw error;
+  },
+
+  async listPrerequisites(courseId: string): Promise<MhdTrainingPrerequisite[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_prerequisite_list', {
+      p_course_id: courseId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingPrerequisiteRpcRow[]).map((row) => ({
+      prerequisiteCourseId: row.prerequisite_course_id,
+      prerequisiteTitle: row.prerequisite_title,
+      prerequisiteCourseKey: row.prerequisite_course_key,
+      createdAt: row.created_at,
+    }));
+  },
+
+  async listContentApprovals(courseId: string): Promise<MhdTrainingContentApproval[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_content_approval_list', {
+      p_course_id: courseId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingContentApprovalRpcRow[]).map((row) => ({
+      id: row.id,
+      fromStatus: row.from_status,
+      toStatus: row.to_status,
+      contentVersion: row.content_version,
+      reviewNotes: row.review_notes,
+      reviewedByName: row.reviewed_by_name,
+      createdAt: row.created_at,
+    }));
   },
 
   // ----- Catalog -----
