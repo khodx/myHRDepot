@@ -77,6 +77,16 @@ describe('MhdTrainingProgramsPage', () => {
     expect(within(inactiveRow).getByText('Inactive')).toBeInTheDocument();
   });
 
+  it('marks a program with no attached courses as Empty', () => {
+    coursesMock.mockReturnValue({ data: [] });
+    curriculaMock.mockReturnValue({ data: [] });
+    listMock.mockReturnValue({ data: [program({ title: 'Unstarted Program' })] });
+    render(<MhdTrainingProgramsPage />);
+
+    const row = screen.getByText('Unstarted Program').closest('tr') as HTMLElement;
+    expect(within(row).getByText('Empty')).toBeInTheDocument();
+  });
+
   it("edit form's Active checkbox defaults to the program's real state, not always checked", async () => {
     curriculaMock.mockReturnValue({ data: [] });
     listMock.mockReturnValue({ data: [program({ title: 'Retired Program', isActive: false })] });

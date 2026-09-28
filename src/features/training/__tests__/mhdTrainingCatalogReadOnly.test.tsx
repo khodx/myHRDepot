@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import type { MhdTrainingCourse } from '../Types';
@@ -17,6 +18,14 @@ vi.mock('../Hook', () => ({
   useMhdSetTrainingCourseActive: () => emptyMutation,
   useMhdAssignTraining: () => emptyMutation,
   useMhdTrainingComplianceMatrix: () => ({ data: [], isLoading: false }),
+}));
+
+vi.mock('../components/MhdTrainingContentWizard', () => ({
+  MhdTrainingContentWizard: ({ entityId }: { entityId: string | null }) => (
+    <div data-testid="training-content-wizard">
+      {entityId ? `Editing ${entityId}` : 'Creating course'}
+    </div>
+  ),
 }));
 
 const { MhdTrainingCatalogPage } = await import('../components/MhdTrainingCatalogPage');
@@ -105,5 +114,21 @@ describe('MhdTrainingCatalogPage — global courses are read-only to a tenant ad
     const companyRow = screen.getByText('Orientation (company)').closest('tr') as HTMLElement;
     expect(within(companyRow).getByRole('button', { name: 'Edit' })).toBeInTheDocument();
     expect(within(companyRow).getByRole('button', { name: 'Retire' })).toBeInTheDocument();
+  });
+
+  it('opens the content wizard for a new course and an existing course', async () => {
+    coursesMock.mockReturnValue({ data: [COMPANY], isLoading: false });
+
+    render(
+      <MemoryRouter>
+        <MhdTrainingCatalogPage companyId="company-1" canManage />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'New Course' }));
+    expect(screen.getByTestId('training-content-wizard')).toHaveTextContent('Creating course');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    expect(screen.getByTestId('training-content-wizard')).toHaveTextContent('Editing c1');
   });
 });

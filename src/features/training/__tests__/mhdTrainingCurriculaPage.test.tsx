@@ -82,6 +82,15 @@ describe('MhdTrainingCurriculaPage', () => {
     expect(within(inactiveRow).getByText('Inactive')).toBeInTheDocument();
   });
 
+  it('marks a curriculum with no attached programs as Empty', () => {
+    programsMock.mockReturnValue({ data: [] });
+    listMock.mockReturnValue({ data: [curriculum({ title: 'Unstarted Curriculum' })] });
+    render(<MhdTrainingCurriculaPage />);
+
+    const row = screen.getByText('Unstarted Curriculum').closest('tr') as HTMLElement;
+    expect(within(row).getByText('Empty')).toBeInTheDocument();
+  });
+
   it('creates a curriculum from the New Curriculum modal', async () => {
     listMock.mockReturnValue({ data: [] });
     render(<MhdTrainingCurriculaPage />);

@@ -2,29 +2,36 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { MhdBadge } from '@/components/ui/MhdBadge';
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { cn } from '@/utils/cn';
 import {
   useMhdAssignTraining,
-  useMhdCreateTrainingCourse,
   useMhdSetTrainingCourseActive,
   useMhdTrainingCourses,
   useMhdTrainingPeople,
-  useMhdUpdateTrainingCourse,
 } from '../Hook';
-import type { MhdAssignTrainingFormValues, MhdTrainingCourseFormValues } from '../Schemas';
+import type { MhdAssignTrainingFormValues } from '../Schemas';
 import {
+  mhdFormatTrainingApprovalStatus,
   mhdFormatTrainingDeliveryMode,
   mhdFormatTrainingRecurrence,
+  type MhdTrainingApprovalStatus,
   type MhdTrainingCourse,
 } from '../Types';
 import { MhdAssignTrainingPanel } from './MhdAssignTrainingPanel';
 import { MhdCourseCategoryBadge } from './MhdCourseCategoryBadge';
 import { MhdTrainingComplianceBoard } from './MhdTrainingComplianceBoard';
-import { MhdTrainingCourseForm } from './MhdTrainingCourseForm';
+import { MhdTrainingContentWizard } from './MhdTrainingContentWizard';
+
+const APPROVAL_VARIANTS: Record<MhdTrainingApprovalStatus, MhdBadgeVariant> = {
+  DRAFT: 'neutral',
+  IN_REVIEW: 'warning',
+  APPROVED: 'info',
+  PUBLISHED: 'success',
+};
 
 interface Props {
   companyId: string;
@@ -48,14 +55,12 @@ interface Props {
 export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
   const [includeInactive, setIncludeInactive] = useState(false);
   const [editing, setEditing] = useState<MhdTrainingCourse | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const [open, setOpen] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
 
   const courses = useMhdTrainingCourses({ companyId, includeInactive });
   const people = useMhdTrainingPeople(canManage ? companyId : null);
 
-  const createCourse = useMhdCreateTrainingCourse();
-  const updateCourse = useMhdUpdateTrainingCourse();
   const setActive = useMhdSetTrainingCourseActive();
   const assign = useMhdAssignTraining();
 
@@ -76,39 +81,6 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
       })),
     [people.data],
   );
-
-  async function handleCreate(values: MhdTrainingCourseFormValues) {
-    await createCourse.mutateAsync({
-      companyId: values.companyId,
-      courseKey: values.courseKey,
-      title: values.title,
-      description: values.description ?? null,
-      category: values.category,
-      deliveryMode: values.deliveryMode,
-      durationMinutes: values.durationMinutes ?? null,
-      recurrenceMonths: values.recurrenceMonths ?? null,
-      requiresEvidence: values.requiresEvidence,
-      externalUrl: values.externalUrl || null,
-      programId: values.programId ?? null,
-    });
-    setIsCreating(false);
-  }
-
-  async function handleUpdate(values: MhdTrainingCourseFormValues) {
-    if (!editing) return;
-    await updateCourse.mutateAsync({
-      courseId: editing.id,
-      title: values.title,
-      description: values.description ?? null,
-      category: values.category,
-      deliveryMode: values.deliveryMode,
-      durationMinutes: values.durationMinutes ?? null,
-      recurrenceMonths: values.recurrenceMonths ?? null,
-      requiresEvidence: values.requiresEvidence,
-      externalUrl: values.externalUrl || null,
-    });
-    setEditing(null);
-  }
 
   async function handleAssign(values: MhdAssignTrainingFormValues) {
     await assign.mutateAsync({
@@ -195,7 +167,10 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
               </Link>
               <Button
                 className="h-9 gap-1.5 px-3 text-[16.8px]"
-                onClick={() => setIsCreating(true)}
+                onClick={() => {
+                  setEditing(null);
+                  setOpen(true);
+                }}
               >
                 <Plus className="h-4 w-4" aria-hidden />
                 New Course
@@ -233,6 +208,7 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
                   <MhdTh>Delivery</MhdTh>
                   <MhdTh>Recurrence</MhdTh>
                   <MhdTh>Evidence</MhdTh>
+                  <MhdTh>Status</MhdTh>
                   <MhdTh />
                 </tr>
               </thead>
@@ -269,6 +245,11 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
                     <MhdTd className="text-muted-foreground">
                       {course.requiresEvidence ? 'Required' : '—'}
                     </MhdTd>
+                    <MhdTd>
+                      <MhdBadge variant={APPROVAL_VARIANTS[course.approvalStatus]}>
+                        {mhdFormatTrainingApprovalStatus(course.approvalStatus)}
+                      </MhdBadge>
+                    </MhdTd>
                     <MhdTd className="whitespace-nowrap text-right">
                       {/* A global course is platform-owned: no edit / retire here.
                           The RPC refuses those on a global course regardless. */}
@@ -282,7 +263,10 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
                           </Link>
                           <button
                             type="button"
-                            onClick={() => setEditing(course)}
+                            onClick={() => {
+                              setEditing(course);
+                              setOpen(true);
+                            }}
                             className="text-sm font-medium text-accent hover:text-accent-hover"
                           >
                             Edit
@@ -317,33 +301,16 @@ export function MhdTrainingCatalogPage({ companyId, canManage }: Props) {
 
       <MhdTrainingComplianceBoard companyId={companyId} />
 
-      {isCreating && canManage ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-foreground">New Course</h2>
-            <MhdTrainingCourseForm
-              companyId={companyId}
-              onSubmit={handleCreate}
-              onCancel={() => setIsCreating(false)}
-              isSubmitting={createCourse.isPending}
-            />
-          </div>
-        </div>
-      ) : null}
-
-      {editing && canManage ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-foreground">Edit Course</h2>
-            <MhdTrainingCourseForm
-              companyId={companyId}
-              course={editing}
-              onSubmit={handleUpdate}
-              onCancel={() => setEditing(null)}
-              isSubmitting={updateCourse.isPending}
-            />
-          </div>
-        </div>
+      {open && canManage ? (
+        <MhdTrainingContentWizard
+          entityType="COURSE"
+          companyId={companyId}
+          entityId={editing?.id ?? null}
+          onClose={() => {
+            setOpen(false);
+            setEditing(null);
+          }}
+        />
       ) : null}
 
       {isAssigning && canManage ? (

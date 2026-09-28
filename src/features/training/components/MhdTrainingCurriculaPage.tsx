@@ -7,6 +7,7 @@ import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import {
   useMhdDeleteTrainingCurriculum,
   useMhdTrainingCurriculums,
+  useMhdTrainingPrograms,
 } from '../Hook';
 import type { MhdTrainingCurriculum } from '../Types';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -16,6 +17,7 @@ export function MhdTrainingCurriculaPage() {
   const { profile } = useMhdAuth();
   const companyId = profile?.companyId ?? '';
   const list = useMhdTrainingCurriculums(companyId, true);
+  const programs = useMhdTrainingPrograms({ companyId, includeInactive: true });
   const remove = useMhdDeleteTrainingCurriculum();
   const [editing, setEditing] = useState<MhdTrainingCurriculum | null>(null);
   const [open, setOpen] = useState(false);
@@ -66,7 +68,14 @@ export function MhdTrainingCurriculaPage() {
           <tbody>
             {(list.data ?? []).map((item) => (
               <MhdTr key={item.id}>
-                <MhdTd className="font-medium">{item.title}</MhdTd>
+                <MhdTd className="font-medium">
+                  {item.title}
+                  {programs.data?.every((program) => program.curriculumId !== item.id) ? (
+                    <MhdBadge variant="neutral" className="ml-2">
+                      Empty
+                    </MhdBadge>
+                  ) : null}
+                </MhdTd>
                 <MhdTd>{item.description || '—'}</MhdTd>
                 <MhdTd>
                   <MhdBadge variant={item.isActive ? 'success' : 'neutral'}>
@@ -92,7 +101,17 @@ export function MhdTrainingCurriculaPage() {
           </tbody>
         </MhdTable>
       </MhdCard>
-      {open ? <MhdTrainingContentWizard entityType="CURRICULUM" companyId={companyId} entityId={editing?.id ?? null} onClose={() => { setOpen(false); setEditing(null); }} /> : null}
+      {open ? (
+        <MhdTrainingContentWizard
+          entityType="CURRICULUM"
+          companyId={companyId}
+          entityId={editing?.id ?? null}
+          onClose={() => {
+            setOpen(false);
+            setEditing(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

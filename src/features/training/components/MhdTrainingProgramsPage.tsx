@@ -8,6 +8,7 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import {
   useMhdDeleteTrainingProgram,
   useMhdTrainingCurriculums,
+  useMhdTrainingCourses,
   useMhdTrainingPrograms,
 } from '../Hook';
 import type { MhdTrainingProgram } from '../Types';
@@ -17,6 +18,7 @@ export function MhdTrainingProgramsPage() {
   const companyId = profile?.companyId ?? '';
   const list = useMhdTrainingPrograms({ companyId, includeInactive: true });
   const curricula = useMhdTrainingCurriculums(companyId, true);
+  const courses = useMhdTrainingCourses({ companyId, includeInactive: true });
   const remove = useMhdDeleteTrainingProgram();
   const [editing, setEditing] = useState<MhdTrainingProgram | null>(null);
   const [open, setOpen] = useState(false);
@@ -67,7 +69,14 @@ export function MhdTrainingProgramsPage() {
           <tbody>
             {(list.data ?? []).map((item) => (
               <MhdTr key={item.id}>
-                <MhdTd className="font-medium">{item.title}</MhdTd>
+                <MhdTd className="font-medium">
+                  {item.title}
+                  {courses.data?.every((course) => course.programId !== item.id) ? (
+                    <MhdBadge variant="neutral" className="ml-2">
+                      Empty
+                    </MhdBadge>
+                  ) : null}
+                </MhdTd>
                 <MhdTd>
                   {curricula.data?.find((c) => c.id === item.curriculumId)?.title ?? '—'}
                 </MhdTd>
@@ -96,7 +105,17 @@ export function MhdTrainingProgramsPage() {
           </tbody>
         </MhdTable>
       </MhdCard>
-      {open ? <MhdTrainingContentWizard entityType="PROGRAM" companyId={companyId} entityId={editing?.id ?? null} onClose={() => { setOpen(false); setEditing(null); }} /> : null}
+      {open ? (
+        <MhdTrainingContentWizard
+          entityType="PROGRAM"
+          companyId={companyId}
+          entityId={editing?.id ?? null}
+          onClose={() => {
+            setOpen(false);
+            setEditing(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
