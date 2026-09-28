@@ -88,20 +88,21 @@
   --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
 
-  /* The AI navigation assistant (04.20) gets its own true-complementary
-     amber identity — the same fill already used for the sidebar's active-item
-     highlight (see the comment above) — so it visually stands out from the
-     brand-blue primary/accent used for every ordinary action, consistently on
-     every module (this lives only in :root, never per data-mhd-theme, since
-     it must never follow the category-theme rotation). Ink foreground for
-     the same contrast reason as --mhd-rail-selected-text. Defined once for
-     both light and dark app mode: the button is a filled, self-contained
-     circle, so its internal fill/icon contrast never depends on the
-     surrounding page background. */
-  --mhd-assistant: #fba200;
-  --mhd-assistant-hover: #e89400;
-  --mhd-assistant-pressed: #d08200;
-  --mhd-assistant-on: #111827;
+  /* The AI navigation assistant (04.20) gets its own complementary-orange
+     identity so it visually stands out from the brand-blue primary/accent
+     used for every ordinary action, consistently on every module (this
+     lives only in :root, never per data-mhd-theme, since it must never
+     follow the category-theme rotation). A deeper burnt orange with white
+     text (rather than the sidebar's lighter amber + ink text) so it reads
+     as an intentional accent color rather than a caution/warning fill.
+     Defined once for both light and dark app mode: the button is a filled,
+     self-contained circle, so its internal fill/icon contrast never depends
+     on the surrounding page background. Darkens on hover/press, mirroring
+     --mhd-accent-hover/-pressed's own darken-on-interact direction. */
+  --mhd-assistant: #c2410c;
+  --mhd-assistant-hover: #9a3412;
+  --mhd-assistant-pressed: #7c2d12;
+  --mhd-assistant-on: #ffffff;
 }
 
 /* Category blocks intentionally share the exact global brand values. Keeping
