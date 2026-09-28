@@ -1,19 +1,43 @@
-import { useRef, useState } from 'react';
+import { createContext, useContext, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdSearchNavigation } from '../Service';
+import { mhdSearchNavigation } from './Service';
 
-export function MhdAssistantLauncher() {
+export interface MhdAssistantContextValue {
+  openAssistant: (initialQuery?: string) => void;
+}
+
+const MhdAssistantContext = createContext<MhdAssistantContextValue | null>(null);
+
+export function useMhdAssistant(): MhdAssistantContextValue {
+  const context = useContext(MhdAssistantContext);
+
+  if (!context) {
+    throw new Error('useMhdAssistant must be used within a MhdAssistantProvider');
+  }
+
+  return context;
+}
+
+/**
+ * Owns the assistant's open/query state and renders the floating launcher
+ * button + search panel once, alongside `children` — so any descendant
+ * (the floating button itself, or a dashboard callout) can open the exact
+ * same panel instance via `useMhdAssistant().openAssistant()`. Moved here
+ * from the original `MhdAssistantLauncher` component (Stage 2) unchanged in
+ * behavior/styling.
+ */
+export function MhdAssistantProvider({ children }: { children: ReactNode }) {
   const { roles } = useMhdAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const matches = mhdSearchNavigation(query, roles);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function openAssistant() {
-    setQuery('');
+  function openAssistant(initialQuery?: string) {
+    setQuery(initialQuery ?? '');
     setIsOpen(true);
   }
 
@@ -22,10 +46,12 @@ export function MhdAssistantLauncher() {
   }
 
   return (
-    <>
+    <MhdAssistantContext.Provider value={{ openAssistant }}>
+      {children}
+
       <button
         type="button"
-        onClick={openAssistant}
+        onClick={() => openAssistant()}
         aria-label="Open navigation assistant"
         className="fixed bottom-5 right-5 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
       >
@@ -76,6 +102,6 @@ export function MhdAssistantLauncher() {
           </div>
         </MhdModal>
       ) : null}
-    </>
+    </MhdAssistantContext.Provider>
   );
 }

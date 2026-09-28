@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/Button';
 import { useMhdDashboard } from '../Hook';
 import { MhdDashboardGreetingBanner } from './MhdDashboardGreetingBanner';
 import { MhdDashboardModuleLinks } from './MhdDashboardModuleLinks';
+import { MhdDashboardAssistantCallout } from './MhdDashboardAssistantCallout';
 
 export function MhdDashboardPage() {
   const { isLoading, error, lastRefreshed, refetch } = useMhdDashboard();
@@ -29,6 +30,7 @@ export function MhdDashboardPage() {
     <div className="space-y-6">
       <MhdDashboardGreetingBanner lastRefreshed={lastRefreshed} onRefresh={refetch} />
 
+      <MhdDashboardAssistantCallout />
       <MhdDashboardModuleLinks />
     </div>
   );
