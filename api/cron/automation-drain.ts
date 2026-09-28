@@ -1,4 +1,4 @@
-import { runCronProxy } from './_cronProxy';
+import { runCronProxy } from './cronProxy';
 
 // Schedule: vercel.json crons -> */5 * * * * (every 5 minutes).
 export default async function handler(req: any, res: any) {
