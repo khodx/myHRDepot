@@ -33670,6 +33670,26 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_training_course_create_from_template: {
+        Args: {
+          p_category?: string
+          p_company_id: string
+          p_course_key: string
+          p_delivery_mode?: string
+          p_description?: string
+          p_duration_minutes?: number
+          p_external_url?: string
+          p_program_id?: string
+          p_recurrence_months?: number
+          p_requires_evidence?: boolean
+          p_template_id: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
       mhd_training_course_feedback_submit: {
         Args: { p_comments?: string; p_course_id: string; p_rating: number }
         Returns: undefined
@@ -34273,6 +34293,81 @@ export type Database = {
       mhd_training_status_category: {
         Args: { p_status: string }
         Returns: string
+      }
+      mhd_training_template_create: {
+        Args: {
+          p_company_id: string
+          p_description?: string
+          p_rigidity?: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_training_template_delete: {
+        Args: { p_template_id: string }
+        Returns: undefined
+      }
+      mhd_training_template_list: {
+        Args: { p_company_id: string; p_include_inactive?: boolean }
+        Returns: {
+          company_id: string
+          description: string
+          id: string
+          is_active: boolean
+          is_global: boolean
+          reference_id: string
+          rigidity: string
+          title: string
+        }[]
+      }
+      mhd_training_template_slot_create: {
+        Args: {
+          p_expected_block_type?: string
+          p_is_required?: boolean
+          p_slot_label: string
+          p_sort_order?: number
+          p_template_id: string
+        }
+        Returns: string
+      }
+      mhd_training_template_slot_delete: {
+        Args: { p_slot_id: string }
+        Returns: undefined
+      }
+      mhd_training_template_slot_list: {
+        Args: { p_template_id: string }
+        Returns: {
+          expected_block_type: string
+          id: string
+          is_required: boolean
+          slot_label: string
+          sort_order: number
+          template_id: string
+        }[]
+      }
+      mhd_training_template_slot_update: {
+        Args: {
+          p_clear_expected_block_type?: boolean
+          p_expected_block_type?: string
+          p_is_required?: boolean
+          p_slot_id: string
+          p_slot_label?: string
+          p_sort_order?: number
+        }
+        Returns: undefined
+      }
+      mhd_training_template_update: {
+        Args: {
+          p_description?: string
+          p_is_active?: boolean
+          p_rigidity?: string
+          p_template_id: string
+          p_title?: string
+        }
+        Returns: undefined
       }
       mhd_training_time_on_task_get: {
         Args: { p_company_id: string }
