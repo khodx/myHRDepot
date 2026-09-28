@@ -1,5 +1,13 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "crons": [
+    { "path": "/api/cron/automation-drain", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/dispatch-notification-emails", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/certificate-expiry-sweep", "schedule": "0 6 * * *" }
+  ],
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",
