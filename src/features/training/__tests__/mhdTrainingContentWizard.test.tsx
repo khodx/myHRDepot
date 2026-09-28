@@ -35,6 +35,12 @@ vi.mock('../Hook', () => ({
   useMhdTrainingTemplateSlots: () => mocks.templateSlots(),
 }));
 
+vi.mock('../components/MhdTrainingContentTreeEditor', () => ({
+  MhdTrainingContentTreeEditor: ({ courseId }: { courseId: string }) => (
+    <div data-testid="content-tree-editor">Content tree for {courseId}</div>
+  ),
+}));
+
 describe('MhdTrainingContentWizard', () => {
   it('requires a non-blank title only on the Details step', () => {
     expect(validateWizardStep(0, '   ')).toBe('Enter a title to continue.');
@@ -260,10 +266,91 @@ describe('MhdTrainingContentWizard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() => expect(screen.getByTestId('content-tree-editor')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await vi.waitFor(() =>
       expect(screen.getByRole('heading', { name: 'Review' })).toBeInTheDocument(),
     );
     expect(mocks.createCourse).not.toHaveBeenCalled();
     expect(mocks.createCourseFromTemplate).not.toHaveBeenCalled();
+  });
+
+  it('renders the inline Content step with the saved course id', async () => {
+    vi.mocked(mocks.createCourse).mockClear();
+    vi.mocked(mocks.createCourse).mockResolvedValueOnce({
+      id: 'course-content',
+      referenceId: 'TRN-CONTENT',
+    });
+    render(
+      <MhdTrainingContentWizard
+        entityType="COURSE"
+        companyId="company-1"
+        entityId={null}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    fireEvent.change(screen.getByLabelText('Course key'), { target: { value: 'content-course' } });
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Content course' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() =>
+      expect(screen.getByTestId('content-tree-editor')).toHaveTextContent('course-content'),
+    );
+  });
+
+  it('guards the Content step when the course id is still missing', async () => {
+    vi.mocked(mocks.createCourse).mockResolvedValueOnce({ id: '', referenceId: 'TRN-MISSING' });
+    render(
+      <MhdTrainingContentWizard
+        entityType="COURSE"
+        companyId="company-1"
+        entityId={null}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    fireEvent.change(screen.getByLabelText('Course key'), { target: { value: 'missing-course' } });
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Missing course' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(
+      await screen.findByText('Complete the Details and Template steps before authoring course content.'),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps Curriculum and Program composition and Review rendering by step id', async () => {
+    const { unmount } = render(
+      <MhdTrainingContentWizard
+        entityType="CURRICULUM"
+        companyId="company-1"
+        entityId="cur-1"
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Curriculum' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(await screen.findByText('Attached programs')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(await screen.findByRole('heading', { name: 'Review' })).toBeInTheDocument();
+    unmount();
+
+    render(
+      <MhdTrainingContentWizard
+        entityType="PROGRAM"
+        companyId="company-1"
+        entityId="program-1"
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Program' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(await screen.findByText('Attached courses')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(await screen.findByRole('heading', { name: 'Review' })).toBeInTheDocument();
   });
 });

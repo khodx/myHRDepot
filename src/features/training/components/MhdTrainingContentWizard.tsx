@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
 import { MhdModal } from '@/components/ui/MhdModal';
+import { MhdTrainingContentTreeEditor } from './MhdTrainingContentTreeEditor';
 import {
   useMhdCreateTrainingCurriculum,
   useMhdCreateTrainingCourse,
@@ -51,6 +52,11 @@ export const WIZARD_STEPS: Record<MhdTrainingContentEntityType, MhdStep[]> = {
   COURSE: [
     { id: 'details', title: 'Details', description: 'Define the course metadata.' },
     { id: 'template', title: 'Template', description: 'Start blank or choose a template.' },
+    {
+      id: 'content',
+      title: 'Content',
+      description: 'Build the module, lesson, and block sequence.',
+    },
     { id: 'review', title: 'Review', description: 'Confirm and finish.' },
   ],
 };
@@ -555,6 +561,7 @@ export function MhdTrainingContentWizard({
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showOverview, setShowOverview] = useState(true);
   const [savedEntityId, setSavedEntityId] = useState(entityId);
+  const currentStep = steps[currentStepIndex];
   const [title, setTitle] = useState('');
   const [courseKey, setCourseKey] = useState('');
   const [description, setDescription] = useState('');
@@ -632,6 +639,7 @@ export function MhdTrainingContentWizard({
       entityType === 'COURSE'
         ? [
             Boolean(title.trim() && courseKey.trim()),
+            Boolean(savedEntityId),
             Boolean(savedEntityId),
             Boolean(savedEntityId),
           ]
@@ -815,7 +823,7 @@ export function MhdTrainingContentWizard({
                 Overview
               </Button>
             </div>
-            {currentStepIndex === 0 ? (
+            {currentStep?.id === 'details' ? (
               <DetailsStep
                 entityType={entityType}
                 title={title}
@@ -852,7 +860,9 @@ export function MhdTrainingContentWizard({
                 }}
               />
             ) : null}
-            {currentStepIndex === 1 ? (
+            {currentStep?.id === 'template' ||
+            currentStep?.id === 'programs' ||
+            currentStep?.id === 'courses' ? (
               entityType === 'COURSE' ? (
                 <TemplateStep
                   templates={templates.data ?? []}
@@ -873,7 +883,16 @@ export function MhdTrainingContentWizard({
                 />
               )
             ) : null}
-            {currentStepIndex === 2 ? (
+            {currentStep?.id === 'content' ? (
+              savedEntityId ? (
+                <MhdTrainingContentTreeEditor courseId={savedEntityId} />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Complete the Details and Template steps before authoring course content.
+                </p>
+              )
+            ) : null}
+            {currentStep?.id === 'review' ? (
               <div className="space-y-3">
                 <h2 className="text-lg font-semibold">Review</h2>
                 <p>
