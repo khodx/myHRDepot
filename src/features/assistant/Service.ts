@@ -27,9 +27,14 @@ function scoreCandidate(candidate: MhdAssistantCandidate, query: string): number
   const queryTokens = queryText.split(/\s+/).filter(Boolean);
 
   let score = searchableText.includes(queryText) ? 3 : 0;
+  const searchableWords = searchableText.split(' ');
   for (const token of queryTokens) {
-    if (searchableText.split(' ').includes(token)) score += 2;
-    else if (searchableText.includes(token)) score += 1;
+    if (searchableWords.includes(token)) score += 2;
+    // A short token (e.g. "no", "at") as a bare substring produces false
+    // positives inside unrelated words ("no" inside "notice",
+    // "announcements") — only fall back to substring matching once the
+    // token is long enough that an accidental containment is unlikely.
+    else if (token.length >= 4 && searchableText.includes(token)) score += 1;
   }
   return score;
 }

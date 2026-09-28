@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useRef, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useMhdFocusTrap } from '@/utils/useMhdFocusTrap';
@@ -10,6 +10,10 @@ interface MhdModalProps {
   title?: string;
   children: ReactNode;
   className?: string;
+  /** Focus this element on open instead of the close button (the default
+   *  first-in-DOM focusable) — e.g. a search input a caller wants focused
+   *  immediately. See useMhdFocusTrap's initialFocusRef. */
+  initialFocusRef?: RefObject<HTMLElement | null>;
 }
 
 /**
@@ -20,9 +24,9 @@ interface MhdModalProps {
  * (`src/appshell/MhdSidebar.tsx`) via `useMhdFocusTrap` — before 2026-08-06
  * (audit finding M16) each component hand-rolled its own identical copy.
  */
-export function MhdModal({ onClose, title, children, className }: MhdModalProps) {
+export function MhdModal({ onClose, title, children, className, initialFocusRef }: MhdModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  useMhdFocusTrap(dialogRef, onClose);
+  useMhdFocusTrap(dialogRef, onClose, { initialFocusRef });
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-10 md:pt-16">

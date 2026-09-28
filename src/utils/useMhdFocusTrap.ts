@@ -14,7 +14,13 @@ const MHD_DEFAULT_FOCUSABLE_SELECTOR =
 export function useMhdFocusTrap(
   containerRef: RefObject<HTMLElement | null>,
   onClose: () => void,
-  options?: { focusableSelector?: string },
+  options?: {
+    focusableSelector?: string;
+    /** Focus this element on activation instead of the first focusable
+     *  element in tab order (e.g. a search input rather than the modal's
+     *  own close button, which is otherwise always first in the DOM). */
+    initialFocusRef?: RefObject<HTMLElement | null>;
+  },
 ) {
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
@@ -24,7 +30,7 @@ export function useMhdFocusTrap(
     const focusables = () =>
       container ? Array.from(container.querySelectorAll<HTMLElement>(selector)) : [];
 
-    focusables()[0]?.focus();
+    (options?.initialFocusRef?.current ?? focusables()[0])?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
