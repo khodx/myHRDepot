@@ -12,6 +12,8 @@ import {
   MHD_TRAINING_DEFAULT_MAX_SESSION_MINUTES,
   MHD_TRAINING_VIDEO_MAX_FILE_SIZE_BYTES,
   MHD_TRAINING_VIDEO_MIME_TYPES,
+  MHD_TRAINING_TEMPLATE_RIGIDITIES,
+  MHD_TRAINING_TEMPLATE_BLOCK_TYPES,
 } from './Types';
 
 export const mhdContentFlagEntityTypeSchema = z.enum([
@@ -371,6 +373,35 @@ export const mhdCreateProgramSchema = z.object({
   sortOrder,
 });
 
+export const mhdCreateTrainingTemplateSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  title: requiredTitle,
+  description: optionalDescription,
+  rigidity: z.enum(MHD_TRAINING_TEMPLATE_RIGIDITIES).default('COMPOSABLE'),
+});
+export const mhdUpdateTrainingTemplateSchema = z.object({
+  templateId: z.string().trim().min(1),
+  title: requiredTitle.optional(),
+  description: optionalDescription,
+  rigidity: z.enum(MHD_TRAINING_TEMPLATE_RIGIDITIES).optional(),
+  isActive: z.boolean().optional(),
+});
+export const mhdCreateTrainingTemplateSlotSchema = z.object({
+  templateId: z.string().trim().min(1),
+  slotLabel: requiredTitle,
+  sortOrder,
+  expectedBlockType: z.enum(MHD_TRAINING_TEMPLATE_BLOCK_TYPES).optional().nullable(),
+  isRequired: z.boolean().default(true),
+});
+export const mhdUpdateTrainingTemplateSlotSchema = z.object({
+  slotId: z.string().trim().min(1),
+  slotLabel: requiredTitle.optional(),
+  sortOrder: sortOrder.optional(),
+  expectedBlockType: z.enum(MHD_TRAINING_TEMPLATE_BLOCK_TYPES).optional().nullable(),
+  clearExpectedBlockType: z.boolean().default(false),
+  isRequired: z.boolean().optional(),
+});
+
 export const mhdCreateCourseModuleSchema = z.object({
   courseId: z.string().trim().min(1, 'Choose a course.'),
   title: requiredTitle,
@@ -471,6 +502,14 @@ export type MhdTrainingIltAttendanceOverrideFormValues = z.infer<
 >;
 export type MhdCreateCurriculumFormValues = z.infer<typeof mhdCreateCurriculumSchema>;
 export type MhdCreateProgramFormValues = z.infer<typeof mhdCreateProgramSchema>;
+export type MhdCreateTrainingTemplateFormValues = z.infer<typeof mhdCreateTrainingTemplateSchema>;
+export type MhdUpdateTrainingTemplateFormValues = z.infer<typeof mhdUpdateTrainingTemplateSchema>;
+export type MhdCreateTrainingTemplateSlotFormValues = z.infer<
+  typeof mhdCreateTrainingTemplateSlotSchema
+>;
+export type MhdUpdateTrainingTemplateSlotFormValues = z.infer<
+  typeof mhdUpdateTrainingTemplateSlotSchema
+>;
 export type MhdCreateCourseModuleFormValues = z.infer<typeof mhdCreateCourseModuleSchema>;
 export type MhdCreateLessonFormValues = z.infer<typeof mhdCreateLessonSchema>;
 export type MhdCreateBlockFormValues = z.infer<typeof mhdCreateBlockSchema>;

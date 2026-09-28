@@ -391,6 +391,7 @@ export type MhdTrainingAttendanceSource = 'MANUAL' | 'PROVIDER_SYNC' | 'OVERRIDE
 
 export type MhdTrainingCompletionMethod = 'ATTESTED' | 'CERTIFICATE' | 'ADMIN_RECORDED';
 export type MhdTrainingContentMode = 'EVIDENCE_ONLY' | 'AUTHORED';
+export type MhdTrainingTemplateRigidity = 'LOCKED' | 'COMPOSABLE';
 export type MhdTrainingForkState = 'LINKED' | 'FORKED';
 export type MhdTrainingApprovalStatus = 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'PUBLISHED';
 export type MhdTrainingBlockType =
@@ -486,6 +487,24 @@ export const MHD_TRAINING_CONTENT_MODES = [
   'EVIDENCE_ONLY',
   'AUTHORED',
 ] as const satisfies readonly MhdTrainingContentMode[];
+export const MHD_TRAINING_TEMPLATE_RIGIDITIES = [
+  'LOCKED',
+  'COMPOSABLE',
+] as const satisfies readonly MhdTrainingTemplateRigidity[];
+/** The block types currently rendered by the authoring UI and learner renderer. */
+export const MHD_TRAINING_TEMPLATE_BLOCK_TYPES = [
+  'RICH_TEXT',
+  'IMAGE',
+  'VIDEO',
+  'FILE_DOWNLOAD',
+  'CALLOUT',
+  'CHECKLIST',
+  'TABLE',
+  'KNOWLEDGE_CHECK',
+  'REFLECTION_PROMPT',
+  'SCENARIO_BRANCHING',
+  'AI_CONVERSATION',
+] as const satisfies readonly MhdTrainingBlockType[];
 export const MHD_TRAINING_FORK_STATES = [
   'LINKED',
   'FORKED',
@@ -594,6 +613,43 @@ export interface MhdTrainingProgram {
   sortOrder: number;
   isActive: boolean;
   isGlobal: boolean;
+}
+
+export interface MhdTrainingTemplateRpcRow {
+  id: string;
+  reference_id: string;
+  company_id: string | null;
+  title: string;
+  description: string | null;
+  rigidity: string;
+  is_active: boolean;
+  is_global: boolean;
+}
+export interface MhdTrainingTemplateSlotRpcRow {
+  id: string;
+  template_id: string;
+  sort_order: number | string;
+  slot_label: string;
+  expected_block_type: string | null;
+  is_required: boolean;
+}
+export interface MhdTrainingTemplate {
+  id: string;
+  referenceId: MhdTrainingTemplateReferenceId;
+  companyId: string | null;
+  title: string;
+  description: string | null;
+  rigidity: MhdTrainingTemplateRigidity;
+  isActive: boolean;
+  isGlobal: boolean;
+}
+export interface MhdTrainingTemplateSlot {
+  id: string;
+  templateId: string;
+  sortOrder: number;
+  slotLabel: string;
+  expectedBlockType: MhdTrainingBlockType | string | null;
+  isRequired: boolean;
 }
 
 export interface MhdTrainingCourseModule extends MhdMutationResult {
@@ -1035,6 +1091,48 @@ export interface MhdCreateProgramInput {
   curriculumId?: MhdTrainingCurriculumId | null;
   description?: string | null;
   sortOrder?: number;
+}
+export interface MhdCreateTrainingTemplateInput {
+  companyId: string;
+  title: string;
+  description?: string | null;
+  rigidity?: MhdTrainingTemplateRigidity;
+}
+export interface MhdUpdateTrainingTemplateInput {
+  templateId: string;
+  title?: string;
+  description?: string | null;
+  rigidity?: MhdTrainingTemplateRigidity;
+  isActive?: boolean;
+}
+export interface MhdCreateTrainingTemplateSlotInput {
+  templateId: string;
+  slotLabel: string;
+  sortOrder?: number;
+  expectedBlockType?: MhdTrainingBlockType | null;
+  isRequired?: boolean;
+}
+export interface MhdUpdateTrainingTemplateSlotInput {
+  slotId: string;
+  slotLabel?: string;
+  sortOrder?: number;
+  expectedBlockType?: MhdTrainingBlockType | null;
+  clearExpectedBlockType?: boolean;
+  isRequired?: boolean;
+}
+export interface MhdCreateTrainingCourseFromTemplateInput {
+  companyId: string;
+  templateId: string;
+  courseKey: string;
+  title: string;
+  description?: string | null;
+  category?: MhdTrainingCategory;
+  deliveryMode?: MhdTrainingDeliveryMode;
+  durationMinutes?: number | null;
+  recurrenceMonths?: number | null;
+  requiresEvidence?: boolean;
+  externalUrl?: string | null;
+  programId?: string | null;
 }
 export interface MhdUpdateProgramInput {
   programId: MhdTrainingProgramId;
@@ -1480,6 +1578,10 @@ const CONTENT_MODE_LABELS: Record<MhdTrainingContentMode, string> = {
   EVIDENCE_ONLY: 'Evidence only',
   AUTHORED: 'Authored',
 };
+const TEMPLATE_RIGIDITY_LABELS: Record<MhdTrainingTemplateRigidity, string> = {
+  LOCKED: 'Locked',
+  COMPOSABLE: 'Composable',
+};
 const FORK_STATE_LABELS: Record<MhdTrainingForkState, string> = {
   LINKED: 'Linked',
   FORKED: 'Forked',
@@ -1546,6 +1648,11 @@ export function mhdFormatTrainingComplianceStatus(
 
 export function mhdFormatTrainingContentMode(value: MhdTrainingContentMode | string): string {
   return CONTENT_MODE_LABELS[value as MhdTrainingContentMode] ?? value;
+}
+export function mhdFormatTrainingTemplateRigidity(
+  value: MhdTrainingTemplateRigidity | string,
+): string {
+  return TEMPLATE_RIGIDITY_LABELS[value as MhdTrainingTemplateRigidity] ?? value;
 }
 export function mhdFormatTrainingForkState(value: MhdTrainingForkState | string): string {
   return FORK_STATE_LABELS[value as MhdTrainingForkState] ?? value;

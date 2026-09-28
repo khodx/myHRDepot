@@ -14,6 +14,11 @@ import type {
   MhdUpdateCurriculumInput,
   MhdCreateProgramInput,
   MhdUpdateProgramInput,
+  MhdCreateTrainingTemplateInput,
+  MhdUpdateTrainingTemplateInput,
+  MhdCreateTrainingTemplateSlotInput,
+  MhdUpdateTrainingTemplateSlotInput,
+  MhdCreateTrainingCourseFromTemplateInput,
   MhdCreateCourseModuleInput,
   MhdUpdateCourseModuleInput,
   MhdCreateLessonInput,
@@ -77,6 +82,9 @@ export const mhdTrainingQueryKeys = {
   curriculums: (companyId: string | null) =>
     ['mhd-training', 'curriculums', companyId ?? 'ALL'] as const,
   programs: (filters: MhdTrainingProgramFilters) => ['mhd-training', 'programs', filters] as const,
+  templates: (companyId: string | null, includeInactive = false) =>
+    ['mhd-training', 'templates', companyId ?? 'ALL', includeInactive] as const,
+  templateSlots: (templateId: string) => ['mhd-training', 'template-slots', templateId] as const,
   courses: (filters: MhdTrainingCourseFilters) => ['mhd-training', 'courses', filters] as const,
   assignments: (filters: MhdTrainingAssignmentFilters) =>
     ['mhd-training', 'assignments', filters] as const,
@@ -425,6 +433,71 @@ export function useMhdDeleteTrainingProgram() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'programs'] });
     },
+  });
+}
+
+export function useMhdTrainingTemplates(companyId: string | null, includeInactive = false) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.templates(companyId, includeInactive),
+    queryFn: () => mhdTrainingService.listTemplates(companyId!, includeInactive),
+    enabled: Boolean(companyId),
+  });
+}
+export function useMhdCreateTrainingTemplate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateTrainingTemplateInput) => mhdTrainingService.createTemplate(input),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'templates'] }),
+  });
+}
+export function useMhdUpdateTrainingTemplate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpdateTrainingTemplateInput) => mhdTrainingService.updateTemplate(input),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'templates'] }),
+  });
+}
+export function useMhdDeleteTrainingTemplate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (templateId: string) => mhdTrainingService.deleteTemplate(templateId),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'templates'] }),
+  });
+}
+export function useMhdTrainingTemplateSlots(templateId: string | null) {
+  return useQuery({
+    queryKey: mhdTrainingQueryKeys.templateSlots(templateId ?? ''),
+    queryFn: () => mhdTrainingService.listTemplateSlots(templateId!),
+    enabled: Boolean(templateId),
+  });
+}
+export function useMhdCreateTrainingTemplateSlot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateTrainingTemplateSlotInput) => mhdTrainingService.createTemplateSlot(input),
+    onSuccess: (_data, input) => void queryClient.invalidateQueries({ queryKey: mhdTrainingQueryKeys.templateSlots(input.templateId) }),
+  });
+}
+export function useMhdUpdateTrainingTemplateSlot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpdateTrainingTemplateSlotInput) => mhdTrainingService.updateTemplateSlot(input),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'template-slots'] }),
+  });
+}
+export function useMhdDeleteTrainingTemplateSlot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (slotId: string) => mhdTrainingService.deleteTemplateSlot(slotId),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'template-slots'] }),
+  });
+}
+export function useMhdCreateTrainingCourseFromTemplate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdCreateTrainingCourseFromTemplateInput) =>
+      mhdTrainingService.createCourseFromTemplate(input),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['mhd-training', 'courses'] }),
   });
 }
 

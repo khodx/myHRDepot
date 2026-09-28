@@ -27,6 +27,11 @@ import type {
   MhdUpdateCurriculumInput,
   MhdCreateProgramInput,
   MhdUpdateProgramInput,
+  MhdCreateTrainingTemplateInput,
+  MhdUpdateTrainingTemplateInput,
+  MhdCreateTrainingTemplateSlotInput,
+  MhdUpdateTrainingTemplateSlotInput,
+  MhdCreateTrainingCourseFromTemplateInput,
   MhdCreateCourseModuleInput,
   MhdUpdateCourseModuleInput,
   MhdCreateLessonInput,
@@ -90,6 +95,10 @@ import type {
   MhdTrainingCurriculumRpcRow,
   MhdTrainingProgram,
   MhdTrainingProgramRpcRow,
+  MhdTrainingTemplate,
+  MhdTrainingTemplateRpcRow,
+  MhdTrainingTemplateSlot,
+  MhdTrainingTemplateSlotRpcRow,
   MhdTrainingProgramFilters,
   MhdTrainingSelfEnrollmentRequest,
   MhdTrainingSelfEnrollmentRequestRpcRow,
@@ -280,6 +289,30 @@ function mapProgram(row: MhdTrainingProgramRpcRow): MhdTrainingProgram {
     sortOrder: mhdToNumber(row.sort_order),
     isActive: row.is_active,
     isGlobal: row.is_global,
+  };
+}
+
+function mapTemplate(row: MhdTrainingTemplateRpcRow): MhdTrainingTemplate {
+  return {
+    id: row.id,
+    referenceId: row.reference_id as MhdTrainingTemplate['referenceId'],
+    companyId: row.company_id,
+    title: row.title,
+    description: row.description,
+    rigidity: row.rigidity as MhdTrainingTemplate['rigidity'],
+    isActive: row.is_active,
+    isGlobal: row.is_global,
+  };
+}
+
+function mapTemplateSlot(row: MhdTrainingTemplateSlotRpcRow): MhdTrainingTemplateSlot {
+  return {
+    id: row.id,
+    templateId: row.template_id,
+    sortOrder: mhdToNumber(row.sort_order),
+    slotLabel: row.slot_label,
+    expectedBlockType: row.expected_block_type,
+    isRequired: row.is_required,
   };
 }
 
@@ -915,6 +948,109 @@ export const mhdTrainingService = {
       p_program_id: programId,
     });
     if (error) throw error;
+  },
+
+  async listTemplates(companyId: string, includeInactive = false): Promise<MhdTrainingTemplate[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_template_list', {
+      p_company_id: companyId,
+      p_include_inactive: includeInactive,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingTemplateRpcRow[]).map(mapTemplate);
+  },
+
+  async createTemplate(input: MhdCreateTrainingTemplateInput): Promise<MhdMutationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_template_create', {
+      p_company_id: input.companyId,
+      p_title: input.title.trim(),
+      p_description: trimmedOrUndefined(input.description),
+      p_rigidity: input.rigidity ?? 'COMPOSABLE',
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
+    if (!row) throw new Error('Template creation returned no row.');
+    return mapMutationResult(row);
+  },
+
+  async updateTemplate(input: MhdUpdateTrainingTemplateInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_template_update', {
+      p_template_id: input.templateId,
+      p_title: trimmedOrUndefined(input.title),
+      p_description: input.description ?? undefined,
+      p_rigidity: input.rigidity ?? undefined,
+      p_is_active: input.isActive ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async deleteTemplate(templateId: string): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_template_delete', {
+      p_template_id: templateId,
+    });
+    if (error) throw error;
+  },
+
+  async listTemplateSlots(templateId: string): Promise<MhdTrainingTemplateSlot[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_template_slot_list', {
+      p_template_id: templateId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdTrainingTemplateSlotRpcRow[]).map(mapTemplateSlot);
+  },
+
+  async createTemplateSlot(input: MhdCreateTrainingTemplateSlotInput): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_template_slot_create', {
+      p_template_id: input.templateId,
+      p_slot_label: input.slotLabel.trim(),
+      p_sort_order: input.sortOrder ?? 0,
+      p_expected_block_type: input.expectedBlockType ?? undefined,
+      p_is_required: input.isRequired ?? true,
+    });
+    if (error) throw error;
+    if (typeof data !== 'string') throw new Error('Template slot creation returned no id.');
+    return data;
+  },
+
+  async updateTemplateSlot(input: MhdUpdateTrainingTemplateSlotInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_template_slot_update', {
+      p_slot_id: input.slotId,
+      p_slot_label: trimmedOrUndefined(input.slotLabel),
+      p_sort_order: input.sortOrder ?? undefined,
+      p_expected_block_type: input.expectedBlockType ?? undefined,
+      p_clear_expected_block_type: input.clearExpectedBlockType ?? false,
+      p_is_required: input.isRequired ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async deleteTemplateSlot(slotId: string): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_training_template_slot_delete', {
+      p_slot_id: slotId,
+    });
+    if (error) throw error;
+  },
+
+  async createCourseFromTemplate(
+    input: MhdCreateTrainingCourseFromTemplateInput,
+  ): Promise<MhdMutationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_training_course_create_from_template', {
+      p_company_id: input.companyId,
+      p_template_id: input.templateId,
+      p_course_key: input.courseKey,
+      p_title: input.title,
+      p_description: input.description ?? undefined,
+      p_category: input.category ?? 'OTHER',
+      p_delivery_mode: input.deliveryMode ?? 'DOCUMENT',
+      p_duration_minutes: input.durationMinutes ?? undefined,
+      p_recurrence_months: input.recurrenceMonths ?? undefined,
+      p_requires_evidence: input.requiresEvidence ?? false,
+      p_external_url: input.externalUrl ?? undefined,
+      p_program_id: input.programId ?? undefined,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as MhdTrainingMutationRpcRow[])[0];
+    if (!row) throw new Error('Course creation from template returned no row.');
+    return mapMutationResult(row);
   },
 
   async setCourseContentMode(input: MhdSetCourseContentModeInput): Promise<void> {
