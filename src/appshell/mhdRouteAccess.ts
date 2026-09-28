@@ -572,6 +572,25 @@ export function mhdRouteStatus(path: string): 'live' | 'comingSoon' {
 }
 
 /**
+ * Roles for a route resolved exactly the way the router guard resolves it
+ * (`mhdCanAccessRoute`: first matching rule, including the literal prefix
+ * match). `mhdRouteRoles` only matches a rule's path exactly, which is right
+ * for a module's own entry route but wrong for a sub-page that inherits its
+ * parent's rule — that would read as 'ALL' and advertise a link the guard then
+ * refuses. Nav entries for sub-pages must use this resolver.
+ */
+export function mhdResolvedRouteRoles(path: string): MhdAuthRoleName[] | 'ALL' {
+  const rule = MHD_ROUTE_ACCESS.find((r) => mhdRoutePathMatchesRule(r.path, path));
+  return rule ? rule.roles : 'ALL';
+}
+
+/** Resolved counterpart of `mhdRouteStatus`, for sub-pages inheriting a parent rule. */
+export function mhdResolvedRouteStatus(path: string): 'live' | 'comingSoon' {
+  const rule = MHD_ROUTE_ACCESS.find((r) => mhdRoutePathMatchesRule(r.path, path));
+  return rule?.status ?? 'live';
+}
+
+/**
  * Before 2026-08-06 (audit finding L8), `roles.includes('Platform Admin')`
  * was repeated ad hoc across several pages instead of going through this
  * file's existing `mhdCanMutateX` helper convention.

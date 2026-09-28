@@ -96,26 +96,94 @@ describe('MhdDashboardModuleLinks', () => {
     );
   });
 
-  it('hides comingSoon modules for Platform Admin while showing live modules', async () => {
+  it('shows comingSoon modules with a badge alongside live modules', async () => {
     mockAuth(['Platform Admin']);
 
     await renderModuleLinks();
 
     expect(screen.getByRole('link', { name: 'Tasks' })).toHaveAttribute('href', '/tasks');
-    expect(screen.queryByRole('link', { name: 'Onboarding' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Tasks' })).not.toHaveTextContent('Coming Soon');
+    const onboardingLink = screen.getByRole('link', { name: 'Onboarding' });
+    expect(onboardingLink).toHaveAttribute('href', '/onboarding');
+    expect(onboardingLink).toHaveTextContent('Coming Soon');
   });
 
-  it('hides inaccessible and comingSoon modules for a Client User', async () => {
+  it('badges a comingSoon child chip inside its parent card', async () => {
+    mockAuth(['Platform Admin']);
+
+    await renderModuleLinks();
+
+    const feedbackLink = screen.getByRole('link', { name: 'Feedback Requests' });
+    expect(feedbackLink).toHaveTextContent('Coming Soon');
+    expect(feedbackLink.closest('.mhd-module-card')).toBe(
+      screen.getByRole('link', { name: 'Performance' }).closest('.mhd-module-card'),
+    );
+  });
+
+  it('shows a role-appropriate mix of live and comingSoon modules for a Client User, never an inaccessible one', async () => {
     mockAuth(['Employee']);
 
     await renderModuleLinks();
 
     expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Property' })).toHaveTextContent('Coming Soon');
     expect(screen.queryByRole('link', { name: 'Users' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Onboarding' })).not.toBeInTheDocument();
   });
 
-  it('renders nothing when no live modules are visible', async () => {
+  it('represents every nav item the role can open, top-level or nested', async () => {
+    mockAuth(['Platform Admin']);
+    const { NAV_SECTIONS } = await import('@/appshell/MhdSidebar');
+
+    await renderModuleLinks();
+
+    const rendered = new Set(screen.getAllByRole('link').map((link) => link.getAttribute('href')));
+    const expected = NAV_SECTIONS.flatMap((section) =>
+      section.items.flatMap((item) => [item, ...(item.children ?? [])]),
+    )
+      .filter((item) => item.roles === 'ALL' || item.roles.includes('Platform Admin'))
+      .map((item) => item.route);
+
+    expect(expected.length).toBeGreaterThan(48);
+    expect(expected.filter((route) => !rendered.has(route))).toEqual([]);
+  });
+
+  it('lists sub-pages as chips inside the module card', async () => {
+    mockAuth(['Platform Admin']);
+
+    await renderModuleLinks();
+
+    const card = screen.getByRole('link', { name: 'Learning Management (LMS)' }).closest('.mhd-module-card');
+    expect(card).not.toBeNull();
+    expect(within(card as HTMLElement).getByRole('link', { name: 'Curricula' })).toHaveAttribute(
+      'href',
+      '/training/curricula',
+    );
+    expect(within(card as HTMLElement).getByRole('link', { name: 'Leaderboard' })).toHaveAttribute(
+      'href',
+      '/training/leaderboard',
+    );
+  });
+
+  it('gives Compensation its own tile for a role the route admits', async () => {
+    mockAuth(['HR Admin']);
+
+    await renderModuleLinks();
+
+    expect(screen.getByRole('link', { name: 'Compensation' })).toHaveAttribute('href', '/compensation');
+  });
+
+  it('does not advertise a sub-page whose inherited route rule excludes the role', async () => {
+    mockAuth(['HR Specialist']);
+
+    await renderModuleLinks();
+
+    // /communications/routing is Platform Admin only; /communications itself is open.
+    expect(screen.getByRole('link', { name: 'Communications' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Correspondence Routing' })).not.toBeInTheDocument();
+  });
+
+  it('renders nothing when no modules are visible to the role', async () => {
     vi.doMock('@/appshell/MhdSidebar', async () => {
       const { Circle } = await import('lucide-react');
       return {
@@ -133,7 +201,7 @@ describe('MhdDashboardModuleLinks', () => {
                 label: 'Hidden Future',
                 route: '/hidden-future',
                 icon: Circle,
-                roles: 'ALL',
+                roles: ['Platform Admin'],
                 status: 'comingSoon',
               },
             ],
@@ -169,13 +237,11 @@ describe('MhdDashboardModuleLinks', () => {
     expect(screen.queryByRole('link', { name: 'People' })).not.toBeInTheDocument();
   });
 
-  it('search reaches comingSoon modules the default view hides, without bypassing role', async () => {
+  it('search finds comingSoon modules, still badged', async () => {
     mockAuth(['Platform Admin']);
     const user = userEvent.setup();
 
     await renderModuleLinks();
-
-    expect(screen.queryByRole('link', { name: 'Onboarding' })).not.toBeInTheDocument();
 
     await user.type(screen.getByRole('textbox', { name: 'Search modules' }), 'onboarding');
 
@@ -198,17 +264,18 @@ describe('MhdDashboardModuleLinks', () => {
     expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
   });
 
-  it('clearing the search restores the default live-only view', async () => {
+  it('clearing the search restores the full default view', async () => {
     mockAuth(['Platform Admin']);
     const user = userEvent.setup();
 
     await renderModuleLinks();
     await user.type(screen.getByRole('textbox', { name: 'Search modules' }), 'onboarding');
     expect(screen.getByRole('link', { name: 'Onboarding' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Clear search' }));
 
-    expect(screen.queryByRole('link', { name: 'Onboarding' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Onboarding' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
   });
 

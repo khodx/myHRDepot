@@ -50,20 +50,21 @@ export function MhdDashboardModuleLinks() {
 
   const hasRole = (item: NavItem) =>
     item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role));
-  const isLive = (item: NavItem) => item.status !== 'comingSoon';
 
   const allItems = NAV_SECTIONS.flatMap((section) =>
     section.items.flatMap((item) => [item, ...(item.children ?? [])]),
   );
-  // The default (non-search) view must never show a child both nested under
-  // its visible parent card AND as its own separate top-level card — promote
-  // a child to a standalone top-level entry only when its parent isn't
-  // visible to this role (mirrors the identical promotion logic in
-  // MhdSidebar.tsx's own nesting).
+  // Every module the role can open gets a tile — Coming Soon ones included,
+  // carrying the same badge the sidebar shows — so the dashboard never
+  // disagrees with the nav about what exists. The default view must never
+  // show a child both nested under its visible parent card AND as its own
+  // separate top-level card — promote a child to a standalone top-level entry
+  // only when its parent isn't visible to this role (mirrors the identical
+  // promotion logic in MhdSidebar.tsx's own nesting).
   const topLevelItems = NAV_SECTIONS.flatMap((section) =>
     section.items.flatMap((item) => {
-      if (hasRole(item) && isLive(item)) return [item];
-      return (item.children ?? []).filter((child) => hasRole(child) && isLive(child));
+      if (hasRole(item)) return [item];
+      return (item.children ?? []).filter(hasRole);
     }),
   );
 
@@ -72,11 +73,9 @@ export function MhdDashboardModuleLinks() {
   const trimmedQuery = query.trim().toLowerCase();
   const isSearching = trimmedQuery.length > 0;
 
-  // Search reaches every module the role can see — including comingSoon
-  // ones the default grid hides — so looking up a not-yet-live module
-  // surfaces it instead of coming back empty. It never reaches past the
-  // role boundary: an item a role can't open is never searchable by that
-  // role either.
+  // Search additionally reaches every nested child as its own result. It never
+  // reaches past the role boundary: an item a role can't open is never
+  // searchable by that role either.
   const searchableItems = isSearching
     ? allItems.filter(hasRole)
     : topLevelItems;
@@ -106,7 +105,7 @@ export function MhdDashboardModuleLinks() {
         ? `${item.label}, ${alertCount} need${alertCount === 1 ? 's' : ''} attention`
         : item.label;
     const visibleChildren = includeChildren
-      ? (item.children ?? []).filter((child) => hasRole(child) && isLive(child))
+      ? (item.children ?? []).filter(hasRole)
       : [];
     // Border color/width and box-shadow come from the .mhd-module-card CSS
     // rule (global.css), driven by the --tone custom property set below —
@@ -184,6 +183,11 @@ export function MhdDashboardModuleLinks() {
               >
                 <ChildIcon className="h-3.5 w-3.5" aria-hidden />
                 <span>{child.label}</span>
+                {child.status === 'comingSoon' ? (
+                  <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-[10px] font-medium text-neutral-600">
+                    Coming Soon
+                  </span>
+                ) : null}
                 <MhdCountBadge count={childAlertCount} className="h-4 min-w-4 text-[10px]" />
                 <span id={childDescriptionId} className="sr-only">
                   {child.description}

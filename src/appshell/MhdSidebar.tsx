@@ -3,7 +3,13 @@ import { NavLink } from 'react-router-dom';
 import {
   BarChart3,
   Accessibility,
+  Activity,
   Award,
+  BadgeDollarSign,
+  BellRing,
+  BookCopy,
+  BookOpenCheck,
+  ClipboardPen,
   BookMarked,
   BookOpen,
   Briefcase,
@@ -23,35 +29,52 @@ import {
   Cog,
   DoorOpen,
   FileSearch,
+  FileQuestion,
   FileSignature,
   FileText,
+  FileWarning,
   FlaskConical,
   FolderOpen,
+  Gauge,
   Gavel,
   GraduationCap,
   HardHat,
   HelpCircle,
   IdCard,
+  Inbox,
+  Layers,
   LayoutDashboard,
   Library,
+  LibraryBig,
+  ListChecks,
   Mail,
+  Megaphone,
   MessageCircle,
   MessageSquare,
   MessageSquareWarning,
+  Network,
   Package2,
   PanelLeftClose,
   PanelLeftOpen,
+  Presentation,
+  RefreshCw,
+  Route,
   Scale,
+  ScrollText,
   Search,
   Settings,
   ShieldAlert,
+  ShieldCheck,
+  SlidersHorizontal,
   Stamp,
+  Trophy,
   UserSearch,
   UserPlus,
   UserCog,
   Users,
   UsersRound,
   TrendingUp,
+  Workflow,
   Wrench,
   X,
   Zap,
@@ -59,7 +82,12 @@ import {
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import { useMhdFocusTrap } from '@/utils/useMhdFocusTrap';
-import { mhdRouteRoles, mhdRouteStatus } from './mhdRouteAccess';
+import {
+  mhdResolvedRouteRoles,
+  mhdResolvedRouteStatus,
+  mhdRouteRoles,
+  mhdRouteStatus,
+} from './mhdRouteAccess';
 
 export interface NavItem {
   label: string;
@@ -96,6 +124,30 @@ const DASHBOARD_ITEM: NavItem = {
   roles: mhdRouteRoles('/dashboard'),
 };
 
+/**
+ * A sub-page of a module (a library, a tab, an admin surface) that is its own
+ * routed destination. Roles and status are resolved through the same rule
+ * lookup the router guard uses, so a sub-page inheriting its parent's rule is
+ * never advertised to a role the guard would refuse.
+ */
+function subPage(
+  label: string,
+  description: string,
+  route: string,
+  icon: React.ElementType,
+  keywords: string[],
+): NavItem {
+  return {
+    label,
+    description,
+    keywords,
+    route,
+    icon,
+    roles: mhdResolvedRouteRoles(route),
+    status: mhdResolvedRouteStatus(route),
+  };
+}
+
 // Grouped by HR domain rather than one long flat list. Roles come from
 // mhdRouteAccess.ts (the same source MhdRoleGuardedRoute enforces against) so the
 // sidebar can never drift from what the router actually allows — see
@@ -115,6 +167,15 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/tasks',
         icon: CheckSquare,
         roles: mhdRouteRoles('/tasks'),
+        children: [
+          subPage(
+            'Tasks Dashboard Report',
+            'Summary report of task volume, status, and overdue work.',
+            '/tasks/dashboard-report',
+            Gauge,
+            ['task report', 'overdue tasks'],
+          ),
+        ],
       },
       {
         label: 'Activities',
@@ -147,6 +208,15 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/forms',
         icon: ClipboardList,
         roles: mhdRouteRoles('/forms'),
+        children: [
+          subPage(
+            'Form Library',
+            'Browse and reuse published form templates.',
+            '/forms/library',
+            LibraryBig,
+            ['form templates', 'shared forms'],
+          ),
+        ],
       },
       {
         label: 'Approvals',
@@ -207,6 +277,22 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/knowledge-center',
         icon: HelpCircle,
         roles: mhdRouteRoles('/knowledge-center'),
+        children: [
+          subPage(
+            'Knowledge Center Functions',
+            'Browse guidance organized by HR function.',
+            '/knowledge-center/functions',
+            Workflow,
+            ['HR functions', 'guidance by function'],
+          ),
+          subPage(
+            'Knowledge Center Admin',
+            'Author and publish knowledge center articles.',
+            '/knowledge-center/admin',
+            Settings,
+            ['manage articles', 'publish guidance'],
+          ),
+        ],
       },
     ],
   },
@@ -221,6 +307,15 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/people',
         icon: Users,
         roles: mhdRouteRoles('/people'),
+        children: [
+          subPage(
+            'Org Chart',
+            'See reporting lines across the organization.',
+            '/people/org-chart',
+            Network,
+            ['organization chart', 'reporting structure', 'who reports to whom'],
+          ),
+        ],
       },
       {
         label: 'Users',
@@ -266,6 +361,31 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/jobs',
         icon: Briefcase,
         roles: mhdRouteRoles('/jobs'),
+        children: [
+          subPage(
+            'Competency Library',
+            'Maintain the competencies referenced by job descriptions.',
+            '/jobs/competencies',
+            ListChecks,
+            ['skills library', 'job competencies'],
+          ),
+          subPage(
+            'Job Description Disclaimers',
+            'Manage the disclaimer text appended to job descriptions.',
+            '/jobs/disclaimers',
+            FileWarning,
+            ['job disclaimer', 'legal wording'],
+          ),
+        ],
+      },
+      {
+        label: 'Compensation',
+        description: 'Classify roles for pay and overtime compliance.',
+        keywords: ['exempt classification', 'salary classification', 'overtime exemption', 'pay classification'],
+        route: '/compensation',
+        icon: BadgeDollarSign,
+        roles: mhdRouteRoles('/compensation'),
+        status: mhdRouteStatus('/compensation'),
       },
       // The employee's own published job description — a SEPARATE route from the
       // privileged /jobs list (Client User only), so the list never has to be
@@ -302,6 +422,15 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/attendance',
         icon: ClipboardCheck,
         roles: mhdRouteRoles('/attendance'),
+        children: [
+          subPage(
+            'Attendance Policy',
+            'Configure attendance rules and thresholds.',
+            '/attendance/policy',
+            ScrollText,
+            ['tardy policy', 'attendance rules'],
+          ),
+        ],
       },
       // Renders for Client Users (their own cases) and privileged roles (the full
       // company board) behind the same link; Viewer is excluded. The medical
@@ -313,6 +442,15 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/leaves',
         icon: CalendarOff,
         roles: mhdRouteRoles('/leaves'),
+        children: [
+          subPage(
+            'Leave Policy Library',
+            'Maintain leave policies and their eligibility rules.',
+            '/leaves/policy-library',
+            BookCopy,
+            ['leave policies', 'fmla policy'],
+          ),
+        ],
       },
       {
         label: 'Accommodations',
@@ -321,6 +459,15 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/accommodations',
         icon: Accessibility,
         roles: mhdRouteRoles('/accommodations'),
+        children: [
+          subPage(
+            'Accommodation Option Library',
+            'Reusable accommodation options evaluated in the interactive process.',
+            '/accommodations/option-library',
+            ClipboardPen,
+            ['accommodation options', 'job aids'],
+          ),
+        ],
       },
       {
         label: 'Mileage',
@@ -357,6 +504,20 @@ export const NAV_SECTIONS: NavSection[] = [
             roles: mhdRouteRoles('/performance/invitations'),
             status: mhdRouteStatus('/performance/invitations'),
           },
+          subPage(
+            'Review Templates',
+            'Build the templates used for performance reviews.',
+            '/performance/templates',
+            SlidersHorizontal,
+            ['review forms', 'evaluation templates'],
+          ),
+          subPage(
+            'Performance Settings',
+            'Configure review cycles and rating scales.',
+            '/performance/settings',
+            Cog,
+            ['review cycles', 'rating scale'],
+          ),
         ],
       },
       {
@@ -367,6 +528,15 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: UserSearch,
         roles: mhdRouteRoles('/recruiting'),
         status: mhdRouteStatus('/recruiting'),
+        children: [
+          subPage(
+            'Interview Question Bank',
+            'Maintain reusable interview questions.',
+            '/recruiting/questions',
+            FileQuestion,
+            ['interview questions', 'question library'],
+          ),
+        ],
       },
       // Platform-Admin ONLY — the sole read path into the hard-restricted EEO
       // partition, aggregate counts only.
@@ -386,6 +556,71 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/training',
         icon: GraduationCap,
         roles: mhdRouteRoles('/training'),
+        children: [
+          subPage(
+            'Curricula',
+            'Group courses into ordered curricula.',
+            '/training/curricula',
+            Layers,
+            ['curriculum', 'course sequence'],
+          ),
+          subPage(
+            'Programs',
+            'Bundle curricula into learning programs.',
+            '/training/programs',
+            Workflow,
+            ['learning program', 'training program'],
+          ),
+          subPage(
+            'Course Templates',
+            'Start new courses from reusable templates.',
+            '/training/templates',
+            BookCopy,
+            ['course template'],
+          ),
+          subPage(
+            'Assessments',
+            'Author and manage quizzes and assessments.',
+            '/training/assessments',
+            ClipboardPen,
+            ['quiz', 'test', 'exam'],
+          ),
+          subPage(
+            'ILT Sessions',
+            'Schedule and track instructor-led training sessions.',
+            '/training/ilt',
+            Presentation,
+            ['live session', 'classroom training', 'instructor led'],
+          ),
+          subPage(
+            'Training Compliance',
+            'Monitor training compliance status and expirations.',
+            '/training/compliance',
+            ShieldCheck,
+            ['training expiry', 'overdue training'],
+          ),
+          subPage(
+            'Training Engagement',
+            'Measure learner engagement and completion.',
+            '/training/engagement',
+            Activity,
+            ['learner engagement', 'completion rates'],
+          ),
+          subPage(
+            'Lifecycle & Access',
+            'Control course access across the learner lifecycle.',
+            '/training/lifecycle',
+            RefreshCw,
+            ['course access', 'enrollment lifecycle'],
+          ),
+          subPage(
+            'Leaderboard',
+            'See the company training leaderboard.',
+            '/training/leaderboard',
+            Trophy,
+            ['top learners', 'training ranking'],
+          ),
+        ],
       },
       // NOT nested under Training: the two routes' role sets are fully
       // disjoint by design ("Two separate routes, never one filtered
@@ -406,6 +641,15 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/handbooks',
         icon: Library,
         roles: mhdRouteRoles('/handbooks'),
+        children: [
+          subPage(
+            'Handbook Section Library',
+            'Reusable handbook sections for assembling handbooks.',
+            '/handbooks/library',
+            BookOpenCheck,
+            ['handbook sections', 'handbook templates'],
+          ),
+        ],
       },
       // NOT nested under Handbooks — same fully-disjoint-roles reasoning as
       // Training / My Training above.
@@ -569,6 +813,43 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/communications',
         icon: MessageSquare,
         roles: mhdRouteRoles('/communications'),
+        children: [
+          subPage(
+            'Announcements',
+            'Publish company-wide announcements.',
+            '/communications/announcements',
+            Megaphone,
+            ['company news', 'broadcast'],
+          ),
+          subPage(
+            'Messaging',
+            'Send and read internal messages.',
+            '/communications/messaging',
+            MessageSquare,
+            ['direct message', 'conversations'],
+          ),
+          subPage(
+            'Correspondence Inbox',
+            'Triage inbound email correspondence.',
+            '/communications/inbox',
+            Inbox,
+            ['inbound email', 'shared inbox'],
+          ),
+          subPage(
+            'Correspondence Routing',
+            'Configure how inbound email is routed to records.',
+            '/communications/routing',
+            Route,
+            ['email aliases', 'routing rules'],
+          ),
+          subPage(
+            'System Alerts',
+            'Review platform notifications and system alerts.',
+            '/communications/system-alerts',
+            BellRing,
+            ['notifications', 'platform alerts'],
+          ),
+        ],
       },
       {
         label: 'Memorandums',
