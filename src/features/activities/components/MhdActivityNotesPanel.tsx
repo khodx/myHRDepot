@@ -11,7 +11,11 @@ import {
 } from '@/components/ui/MhdRichTextUtils';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdNotes } from '@/features/notes/Hook';
-import { type MhdNote, type MhdNoteVisibility } from '@/features/notes/Types';
+import {
+  MHD_NOTE_VISIBILITY_COPY,
+  type MhdNote,
+  type MhdNoteVisibility,
+} from '@/features/notes/Types';
 import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
 
 interface Props {
@@ -97,9 +101,11 @@ function MhdActivityNoteEditor({
             onChange={(event) => setVisibility(event.target.value as MhdNoteVisibility)}
             className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            <option value="PUBLIC">Public</option>
-            <option value="ADMIN">Admin</option>
-            <option value="PRIVATE">Private</option>
+            {(Object.keys(MHD_NOTE_VISIBILITY_COPY) as MhdNoteVisibility[]).map((tier) => (
+              <option key={tier} value={tier}>
+                {MHD_NOTE_VISIBILITY_COPY[tier].label}
+              </option>
+            ))}
           </select>
         </label>
 
