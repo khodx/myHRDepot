@@ -3,15 +3,19 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { MhdTrainingProgram } from '../Types';
 
-const { createMock, updateMock, deleteMock, coursesMock, createCurriculumMock, updateCourseMock } = vi.hoisted(() => ({
-  createMock: vi.fn().mockResolvedValue(undefined),
-  updateMock: vi.fn().mockResolvedValue(undefined),
-  deleteMock: vi.fn().mockResolvedValue(undefined),
-  coursesMock: vi.fn(() => ({ data: [] })),
-  createCurriculumMock: vi.fn().mockResolvedValue({ id: 'curriculum-1' }),
-  updateCourseMock: vi.fn().mockResolvedValue(undefined),
+const { createMock, updateMock, deleteMock, coursesMock, createCurriculumMock, updateCourseMock } =
+  vi.hoisted(() => ({
+    createMock: vi.fn().mockResolvedValue(undefined),
+    updateMock: vi.fn().mockResolvedValue(undefined),
+    deleteMock: vi.fn().mockResolvedValue(undefined),
+    coursesMock: vi.fn(() => ({ data: [] })),
+    createCurriculumMock: vi.fn().mockResolvedValue({ id: 'curriculum-1' }),
+    updateCourseMock: vi.fn().mockResolvedValue(undefined),
+  }));
+const { listMock, curriculaMock } = vi.hoisted(() => ({
+  listMock: vi.fn(),
+  curriculaMock: vi.fn(),
 }));
-const { listMock, curriculaMock } = vi.hoisted(() => ({ listMock: vi.fn(), curriculaMock: vi.fn() }));
 
 vi.mock('../Hook', () => ({
   useMhdTrainingPrograms: listMock,
@@ -23,6 +27,10 @@ vi.mock('../Hook', () => ({
   useMhdCreateTrainingCurriculum: () => ({ mutateAsync: createCurriculumMock }),
   useMhdUpdateTrainingCurriculum: () => ({ mutateAsync: updateMock }),
   useMhdUpdateTrainingCourse: () => ({ mutateAsync: updateCourseMock }),
+  useMhdCreateTrainingCourse: () => ({ mutateAsync: vi.fn() }),
+  useMhdCreateTrainingCourseFromTemplate: () => ({ mutateAsync: vi.fn() }),
+  useMhdTrainingTemplates: () => ({ data: [] }),
+  useMhdTrainingTemplateSlots: () => ({ data: [] }),
 }));
 
 vi.mock('@/features/authentication/Hook', () => ({
@@ -50,7 +58,10 @@ describe('MhdTrainingProgramsPage', () => {
   it('renders the Active/Inactive badge from the real isActive value, not hardcoded', () => {
     curriculaMock.mockReturnValue({ data: [] });
     listMock.mockReturnValue({
-      data: [program({ id: 'a', title: 'Active Program', isActive: true }), program({ id: 'b', title: 'Retired Program', isActive: false })],
+      data: [
+        program({ id: 'a', title: 'Active Program', isActive: true }),
+        program({ id: 'b', title: 'Retired Program', isActive: false }),
+      ],
     });
     render(<MhdTrainingProgramsPage />);
 

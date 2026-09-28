@@ -3,7 +3,16 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { MhdTrainingCurriculum } from '../Types';
 
-const { createMock, updateMock, deleteMock, programsMock, coursesMock, createProgramMock, updateProgramMock, updateCourseMock } = vi.hoisted(() => ({
+const {
+  createMock,
+  updateMock,
+  deleteMock,
+  programsMock,
+  coursesMock,
+  createProgramMock,
+  updateProgramMock,
+  updateCourseMock,
+} = vi.hoisted(() => ({
   createMock: vi.fn().mockResolvedValue({ id: 'cur-new', referenceId: 'CUR-NEW' }),
   updateMock: vi.fn().mockResolvedValue(undefined),
   deleteMock: vi.fn().mockResolvedValue(undefined),
@@ -26,6 +35,10 @@ vi.mock('../Hook', () => ({
   useMhdCreateTrainingProgram: () => ({ mutateAsync: createProgramMock }),
   useMhdUpdateTrainingProgram: () => ({ mutateAsync: updateProgramMock }),
   useMhdUpdateTrainingCourse: () => ({ mutateAsync: updateCourseMock }),
+  useMhdCreateTrainingCourse: () => ({ mutateAsync: vi.fn() }),
+  useMhdCreateTrainingCourseFromTemplate: () => ({ mutateAsync: vi.fn() }),
+  useMhdTrainingTemplates: () => ({ data: [] }),
+  useMhdTrainingTemplateSlots: () => ({ data: [] }),
 }));
 
 vi.mock('@/features/authentication/Hook', () => ({
@@ -50,7 +63,10 @@ function curriculum(overrides: Partial<MhdTrainingCurriculum>): MhdTrainingCurri
 describe('MhdTrainingCurriculaPage', () => {
   it('renders the Active/Inactive badge from the real isActive value, not hardcoded', () => {
     listMock.mockReturnValue({
-      data: [curriculum({ id: 'a', title: 'Active One', isActive: true }), curriculum({ id: 'b', title: 'Inactive One', isActive: false })],
+      data: [
+        curriculum({ id: 'a', title: 'Active One', isActive: true }),
+        curriculum({ id: 'b', title: 'Inactive One', isActive: false }),
+      ],
     });
     render(<MhdTrainingCurriculaPage />);
 
@@ -77,7 +93,9 @@ describe('MhdTrainingCurriculaPage', () => {
   });
 
   it('surfaces the real delete-guard error from the server instead of swallowing it', async () => {
-    deleteMock.mockRejectedValueOnce(new Error("Remove this curriculum's programs before deleting it"));
+    deleteMock.mockRejectedValueOnce(
+      new Error("Remove this curriculum's programs before deleting it"),
+    );
     listMock.mockReturnValue({ data: [curriculum({})] });
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     render(<MhdTrainingCurriculaPage />);
