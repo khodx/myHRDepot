@@ -517,6 +517,8 @@ export const mhdEsignatureService = {
         status: string | null;
         generated_at: string | null;
         digitally_signed: boolean | null;
+        expires_at: string | null;
+        person_display_name: string | null;
       }>();
 
     if (error) {
@@ -529,6 +531,8 @@ export const mhdEsignatureService = {
       status: data?.status ?? null,
       generatedAt: data?.generated_at ?? null,
       digitallySigned: data?.digitally_signed ?? false,
+      expiresAt: data?.expires_at ?? null,
+      personDisplayName: data?.person_display_name ?? null,
     };
   },
 

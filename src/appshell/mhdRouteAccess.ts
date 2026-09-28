@@ -325,6 +325,14 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
       'Manager', 'Supervisor', 'Lead', 'Employee',
     ],
   },
+  // Certificates Engine. Admin ledger + manual issuance — matches
+  // mhd_certificate_issue / mhd_list_certificates_for_company's own
+  // server-side role check exactly (0315/0321), so nothing here can show UI
+  // the backend would then refuse.
+  {
+    path: '/certificates',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+  },
   // Legal & Regulatory Search. Stage 1 of the Legal & Regulatory Search
   // Engine build (migration 0245) deliberately gated
   // mhd_can_view_legal_search() to every current application role,

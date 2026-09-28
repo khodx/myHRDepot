@@ -460,6 +460,10 @@ const MhdAccommodationCaseDetailPage = lazyPage(
   () => import('@/features/accommodations/components/MhdAccommodationCaseDetailPage'),
   'MhdAccommodationCaseDetailPage',
 );
+const MhdCertificatesPage = lazyPage(
+  () => import('@/features/certificates/components/MhdCertificatesPage'),
+  'MhdCertificatesPage',
+);
 const MhdAccommodationCaseMessagesPage = lazyPage(
   () => import('@/features/messaging/components/MhdAccommodationCaseMessagesPage'),
   'MhdAccommodationCaseMessagesPage',
@@ -905,6 +909,7 @@ function MhdAppRoutes() {
                   element={<MhdAccommodationOptionCatalogPage />}
                 />
                 <Route path="/accommodations" element={<MhdAccommodationsPage />} />
+                <Route path="/certificates" element={<MhdCertificatesPage />} />
                 <Route path="/legal-search" element={<MhdLegalSearchPage />} />
                 <Route path="/knowledge-center" element={<MhdKnowledgeCenterPage />} />
                 <Route path="/knowledge-center/articles/:slug" element={<MhdKnowledgeCenterArticlePage />} />

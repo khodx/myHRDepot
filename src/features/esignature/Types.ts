@@ -197,12 +197,35 @@ export interface MhdAuditCertificate {
   certificateDriveFileId: string | null;
 }
 
+/**
+ * This RPC backs the one public `/verify/:code` page for every certificate
+ * category the platform issues — audit/e-signature certificates as well as
+ * the Certificates Engine's training/award/promotion certificates
+ * (`audit_certificates` is a shared, generic ledger; see migration 0315/0319).
+ * `entityType` is what the verify page uses to pick friendly labels.
+ */
 export interface MhdAuditCertificateVerification {
   isValid: boolean;
   entityType: string | null;
   status: string | null;
   generatedAt: string | null;
   digitallySigned: boolean;
+  expiresAt: string | null;
+  personDisplayName: string | null;
+}
+
+const CERTIFICATE_ENTITY_TYPE_LABELS: Record<string, string> = {
+  TRAINING_COMPLETION: 'Training Completion Certificate',
+  AWARD: 'Award Certificate',
+  PROMOTION: 'Promotion Certificate',
+  GENERAL_CERTIFICATE: 'Certificate',
+  PEOPLE: 'Certificate',
+};
+
+/** Friendly label for a certificate's entity_type; audit/e-signature certificates keep their existing generic label. */
+export function mhdCertificateEntityTypeLabel(entityType: string | null): string {
+  if (!entityType) return 'Certificate';
+  return CERTIFICATE_ENTITY_TYPE_LABELS[entityType] ?? 'Audit Certificate';
 }
 
 export function mhdBuildGoogleDriveViewUrl(fileId: string | null | undefined): string | null {

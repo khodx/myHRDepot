@@ -1870,11 +1870,18 @@ export type Database = {
           digitally_signed: boolean
           entity_id: string
           entity_type: string
+          expires_at: string | null
+          expiring_reminder_sent_at: string | null
           generated_at: string | null
           id: string
           merged_document_hash: string | null
           merged_drive_file_id: string | null
+          person_id: string | null
           reference_id: string
+          reminder_days_before_expiry: number
+          revoked_at: string | null
+          revoked_by: string | null
+          revoked_reason: string | null
           signing_certificate_fingerprint: string | null
           source_document_generation_id: string | null
           source_document_hash: string | null
@@ -1892,11 +1899,18 @@ export type Database = {
           digitally_signed?: boolean
           entity_id: string
           entity_type: string
+          expires_at?: string | null
+          expiring_reminder_sent_at?: string | null
           generated_at?: string | null
           id?: string
           merged_document_hash?: string | null
           merged_drive_file_id?: string | null
+          person_id?: string | null
           reference_id: string
+          reminder_days_before_expiry?: number
+          revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
           signing_certificate_fingerprint?: string | null
           source_document_generation_id?: string | null
           source_document_hash?: string | null
@@ -1914,11 +1928,18 @@ export type Database = {
           digitally_signed?: boolean
           entity_id?: string
           entity_type?: string
+          expires_at?: string | null
+          expiring_reminder_sent_at?: string | null
           generated_at?: string | null
           id?: string
           merged_document_hash?: string | null
           merged_drive_file_id?: string | null
+          person_id?: string | null
           reference_id?: string
+          reminder_days_before_expiry?: number
+          revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
           signing_certificate_fingerprint?: string | null
           source_document_generation_id?: string | null
           source_document_hash?: string | null
@@ -1946,6 +1967,20 @@ export type Database = {
           {
             foreignKeyName: "audit_certificates_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_certificates_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_certificates_revoked_by_fkey"
+            columns: ["revoked_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -25905,6 +25940,10 @@ export type Database = {
         Args: { p_config: Json; p_event_id: string; p_run_id: string }
         Returns: Json
       }
+      mhd_automation_action_issue_certificate: {
+        Args: { p_config: Json; p_event_id: string; p_run_id: string }
+        Returns: Json
+      }
       mhd_automation_action_notify: {
         Args: { p_config: Json; p_event_id: string; p_run_id: string }
         Returns: Json
@@ -26390,6 +26429,41 @@ export type Database = {
           p_subject_table: string
         }
         Returns: string
+      }
+      mhd_certificate_expiry_sweep: {
+        Args: never
+        Returns: {
+          action: string
+          certificate_id: string
+        }[]
+      }
+      mhd_certificate_issue: {
+        Args: {
+          p_actor_user_id?: string
+          p_company_id: string
+          p_entity_id: string
+          p_entity_type: string
+          p_expires_at?: string
+          p_merge_data: Json
+          p_person_id: string
+          p_reminder_days_before_expiry?: number
+          p_template_id: string
+        }
+        Returns: {
+          certificate_id: string
+          certificate_reference_id: string
+          generation_id: string
+          generation_reference_id: string
+          generation_status: string
+          verification_code: string
+        }[]
+      }
+      mhd_certificate_revoke: {
+        Args: { p_certificate_id: string; p_reason: string }
+        Returns: {
+          id: string
+          status: string
+        }[]
       }
       mhd_check_trusted_device: {
         Args: { p_device_token: string }
@@ -26880,6 +26954,9 @@ export type Database = {
           p_company_id: string
           p_entity_id: string
           p_entity_type: string
+          p_expires_at?: string
+          p_person_id?: string
+          p_reminder_days_before_expiry?: number
           p_source_document_generation_id?: string
           p_source_document_hash?: string
           p_source_drive_file_id?: string
@@ -27791,11 +27868,18 @@ export type Database = {
           digitally_signed: boolean
           entity_id: string
           entity_type: string
+          expires_at: string | null
+          expiring_reminder_sent_at: string | null
           generated_at: string | null
           id: string
           merged_document_hash: string | null
           merged_drive_file_id: string | null
+          person_id: string | null
           reference_id: string
+          reminder_days_before_expiry: number
+          revoked_at: string | null
+          revoked_by: string | null
+          revoked_reason: string | null
           signing_certificate_fingerprint: string | null
           source_document_generation_id: string | null
           source_document_hash: string | null
@@ -29944,11 +30028,18 @@ export type Database = {
           digitally_signed: boolean
           entity_id: string
           entity_type: string
+          expires_at: string | null
+          expiring_reminder_sent_at: string | null
           generated_at: string | null
           id: string
           merged_document_hash: string | null
           merged_drive_file_id: string | null
+          person_id: string | null
           reference_id: string
+          reminder_days_before_expiry: number
+          revoked_at: string | null
+          revoked_by: string | null
+          revoked_reason: string | null
           signing_certificate_fingerprint: string | null
           source_document_generation_id: string | null
           source_document_hash: string | null
@@ -30026,6 +30117,23 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+        }[]
+      }
+      mhd_list_certificates_for_company: {
+        Args: { p_company_id: string; p_person_id?: string; p_status?: string }
+        Returns: {
+          created_at: string
+          entity_type: string
+          expires_at: string
+          generated_at: string
+          id: string
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          status: string
+          template_key: string
+          template_name: string
+          verification_code: string
         }[]
       }
       mhd_list_checklist_library: {
@@ -30571,6 +30679,23 @@ export type Database = {
           reply_count: number
           sender_user_id: string
           thread_id: string
+        }[]
+      }
+      mhd_list_my_certificates: {
+        Args: never
+        Returns: {
+          created_at: string
+          entity_type: string
+          expires_at: string
+          generated_at: string
+          id: string
+          person_display_name: string
+          person_id: string
+          reference_id: string
+          status: string
+          template_key: string
+          template_name: string
+          verification_code: string
         }[]
       }
       mhd_list_my_checklist_instances: {
@@ -31577,6 +31702,12 @@ export type Database = {
       }
       mhd_next_business_day: { Args: { p_from: string }; Returns: string }
       mhd_next_reference_id: { Args: { p_prefix: string }; Returns: string }
+      mhd_note_subject_persons: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: {
+          person_id: string
+        }[]
+      }
       mhd_notification_channel_message: {
         Args: { p_delivery_id: string }
         Returns: Json
@@ -33513,9 +33644,11 @@ export type Database = {
       mhd_training_certificate_generate: {
         Args: { p_completion_id: string }
         Returns: {
+          certificate_id: string
           id: string
           reference_id: string
           status: string
+          verification_code: string
         }[]
       }
       mhd_training_complete: {
@@ -34925,8 +35058,10 @@ export type Database = {
         Returns: {
           digitally_signed: boolean
           entity_type: string
+          expires_at: string
           generated_at: string
           is_valid: boolean
+          person_display_name: string
           status: string
         }[]
       }

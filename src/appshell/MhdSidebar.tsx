@@ -418,6 +418,14 @@ export const NAV_SECTIONS: NavSection[] = [
         roles: mhdRouteRoles('/my-handbooks'),
       },
       {
+        label: 'Certificates',
+        description: 'Issue and verify award, promotion, training, and general certificates.',
+        keywords: ['award certificate', 'promotion certificate', 'certificate of completion', 'verify certificate'],
+        route: '/certificates',
+        icon: Award,
+        roles: mhdRouteRoles('/certificates'),
+      },
+      {
         label: 'Checklists',
         description: 'Create and fork reusable checklist templates.',
         keywords: ['task checklist', 'checklist templates', 'to-do lists'],

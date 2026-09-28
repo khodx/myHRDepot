@@ -47,6 +47,7 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/my-checklists', 'talent'],
   ['/handbooks', 'talent'],
   ['/my-handbooks', 'talent'],
+  ['/certificates', 'talent'],
   ['/policies', 'talent'],
   ['/my-policies', 'talent'],
   ['/memorandums', 'work-tools'],

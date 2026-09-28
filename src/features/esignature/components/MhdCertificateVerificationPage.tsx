@@ -8,7 +8,7 @@ import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { cn } from '@/utils/cn';
 import { mhdEsignatureService } from '../Service';
-import type { MhdAuditCertificateVerification } from '../Types';
+import { mhdCertificateEntityTypeLabel, type MhdAuditCertificateVerification } from '../Types';
 
 export function MhdCertificateVerificationPage() {
   const { code } = useParams<{ code: string }>();
@@ -27,6 +27,8 @@ export function MhdCertificateVerificationPage() {
           status: null,
           generatedAt: null,
           digitallySigned: false,
+          expiresAt: null,
+          personDisplayName: null,
         });
         setIsLoading(false);
         return;
@@ -68,6 +70,13 @@ export function MhdCertificateVerificationPage() {
   }
 
   const isValid = result?.isValid ?? false;
+  const entityLabel = mhdCertificateEntityTypeLabel(result?.entityType ?? null);
+  // Digital signing is an e-signature/audit-certificate concept only — the
+  // Certificates Engine's training/award/promotion certificates never set it,
+  // so showing "Hash-verified only" there would read as a false caveat.
+  const showsAuthenticity = !['TRAINING_COMPLETION', 'AWARD', 'PROMOTION', 'GENERAL_CERTIFICATE', 'PEOPLE'].includes(
+    result?.entityType ?? '',
+  );
 
   return (
     <main className="min-h-screen bg-muted px-6 py-10">
@@ -85,7 +94,7 @@ export function MhdCertificateVerificationPage() {
                 isValid ? 'text-emerald-700' : 'text-rose-700',
               )}
             >
-              Certificate Verification
+              {entityLabel} Verification
             </p>
             <h1 className="mt-2 text-3xl font-bold text-foreground">
               {isValid ? 'Certificate is valid' : 'Certificate is not valid'}
@@ -105,17 +114,25 @@ export function MhdCertificateVerificationPage() {
         {!loadError && isValid && result ? (
           <dl className="mt-6 rounded-2xl border border-border bg-muted p-4">
             <MhdFormFieldStack>
-              <MhdDetailField label="Entity type" value={result.entityType} />
+              {result.personDisplayName ? (
+                <MhdDetailField label="Issued to" value={result.personDisplayName} />
+              ) : null}
+              <MhdDetailField label="Certificate type" value={entityLabel} />
               <MhdDetailField label="Status" value={result.status} />
               <MhdDetailField label="Generated" value={result.generatedAt ? new Date(result.generatedAt).toLocaleString() : undefined} />
-              <MhdDetailField label="Authenticity" value={<span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-accent" /><MhdBadge variant={result.digitallySigned ? 'success' : 'warning'}>{result.digitallySigned ? 'Digitally signed' : 'Hash-verified only'}</MhdBadge></span>} />
+              {result.expiresAt ? (
+                <MhdDetailField label="Expires" value={new Date(result.expiresAt).toLocaleDateString()} />
+              ) : null}
+              {showsAuthenticity ? (
+                <MhdDetailField label="Authenticity" value={<span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-accent" /><MhdBadge variant={result.digitallySigned ? 'success' : 'warning'}>{result.digitallySigned ? 'Digitally signed' : 'Hash-verified only'}</MhdBadge></span>} />
+              ) : null}
             </MhdFormFieldStack>
           </dl>
         ) : null}
 
         {!loadError && !isValid ? (
           <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-700">
-            This code does not match a valid audit certificate. Check the code and try again.
+            This code does not match a valid certificate. Check the code and try again.
           </div>
         ) : null}
 
