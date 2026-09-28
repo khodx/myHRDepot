@@ -14,7 +14,12 @@ export function MhdDashboardAssistantCallout() {
           Need help finding something or filling out a form? Ask the assistant.
         </p>
       </div>
-      <Button onClick={() => openAssistant()}>Ask the assistant</Button>
+      <Button
+        onClick={() => openAssistant()}
+        className="bg-assistant text-assistant-on focus-visible:ring-assistant"
+      >
+        Ask the assistant
+      </Button>
     </MhdCard>
   );
 }
