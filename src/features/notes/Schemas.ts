@@ -5,7 +5,7 @@ import { z } from 'zod';
 // the same time, so both are required inputs here rather than derived server-side.
 
 export const mhdNoteEntityTypeSchema = z.enum(['TASK', 'SUBTASK', 'ACTIVITY', 'TRAINING_LESSON']);
-export const mhdNoteVisibilitySchema = z.enum(['PUBLIC', 'ADMIN', 'PRIVATE']);
+export const mhdNoteVisibilitySchema = z.enum(['PUBLIC', 'SUPERVISOR', 'ADMIN', 'PRIVATE']);
 
 const notePlainTextSchema = z
   .string()

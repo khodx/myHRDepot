@@ -10,7 +10,7 @@ import {
   mhdRichTextToDocument,
 } from '@/components/ui/MhdRichTextUtils';
 import { MhdNoteVisibilityBadge } from './MhdNoteVisibilityBadge';
-import type { MhdNote, MhdNoteVisibility } from '../Types';
+import { MHD_NOTE_VISIBILITY_COPY, type MhdNote, type MhdNoteVisibility } from '../Types';
 
 interface MhdNoteListProps {
   notes: MhdNote[];
@@ -82,9 +82,11 @@ function MhdReplyComposer({ isSaving, onSave, onCancel }: MhdReplyComposerProps)
           value={visibility}
           onChange={(event) => setVisibility(event.target.value as MhdNoteVisibility)}
         >
-          <option value="PUBLIC">Public</option>
-          <option value="ADMIN">Admin</option>
-          <option value="PRIVATE">Private</option>
+          {(Object.keys(MHD_NOTE_VISIBILITY_COPY) as MhdNoteVisibility[]).map((tier) => (
+            <option key={tier} value={tier}>
+              {MHD_NOTE_VISIBILITY_COPY[tier].label}
+            </option>
+          ))}
         </select>
         <div className="ml-auto flex gap-2">
           <button
@@ -227,9 +229,11 @@ export function MhdNoteList({
               value={draftVisibility}
               onChange={(event) => setDraftVisibility(event.target.value as MhdNoteVisibility)}
             >
-              <option value="PUBLIC">Public</option>
-              <option value="ADMIN">Admin</option>
-              <option value="PRIVATE">Private</option>
+              {(Object.keys(MHD_NOTE_VISIBILITY_COPY) as MhdNoteVisibility[]).map((tier) => (
+                <option key={tier} value={tier}>
+                  {MHD_NOTE_VISIBILITY_COPY[tier].label}
+                </option>
+              ))}
             </select>
             <MhdRichTextEditor
               label="Note"

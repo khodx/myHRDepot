@@ -15,7 +15,7 @@ describe('MhdNoteComposer', () => {
 
     expect(onCreate).not.toHaveBeenCalled();
     const dialog = within(screen.getByRole('dialog'));
-    expect(dialog.getByText(/Private Internal SHR/)).toBeInTheDocument();
+    expect(dialog.getByText(/Private \(Internal SHR\)/)).toBeInTheDocument();
     expect(dialog.getByText('Visible to Platform Admin only.')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'I understand and proceed' }));

@@ -3,6 +3,7 @@ import { MHD_NOTE_VISIBILITY_COPY, type MhdNoteVisibility } from '../Types';
 
 const VISIBILITY_VARIANTS: Record<MhdNoteVisibility, MhdBadgeVariant> = {
   PUBLIC: 'success',
+  SUPERVISOR: 'info',
   ADMIN: 'accent',
   PRIVATE: 'neutral',
 };

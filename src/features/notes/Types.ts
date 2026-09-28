@@ -3,16 +3,29 @@
 // rich-text (jsonb) / plain-text (generated companion) columns.
 
 export type MhdNoteEntityType = 'TASK' | 'SUBTASK' | 'ACTIVITY' | 'TRAINING_LESSON';
-export type MhdNoteVisibility = 'PUBLIC' | 'ADMIN' | 'PRIVATE';
+export type MhdNoteVisibility = 'PUBLIC' | 'SUPERVISOR' | 'ADMIN' | 'PRIVATE';
 
 /**
  * Single source of truth for how each visibility tier is labeled and who can
  * read it, shared by the composer, the pre-submit confirmation dialog, and
- * the badge shown on existing notes — so the three never drift out of sync.
+ * the badge shown on existing notes — so the four never drift out of sync.
  * The `PRIVATE` stored value keeps its display label "Private (Internal SHR)"
  * to make clear it is scoped to the platform operator, not the client's own
- * HR staff. Role list must match the RLS policy on `public.notes`
- * (`notes_select_visibility_scoped`, most recently 0242_notes_visibility_tier_rescope.sql).
+ * HR staff. Tiers are independent role/relationship checks, not a nested
+ * hierarchy — e.g. Platform Admin cannot read ADMIN-tier notes unless it also
+ * holds one of the ADMIN roles. Role/relationship list must match the RLS
+ * policy on `public.notes` (`notes_select_visibility_scoped`, most recently
+ * 0318_notes_supervisor_visibility_tier.sql).
+ *
+ * `SUPERVISOR` is resolved via the note's entity's "subject person" management
+ * chain (`mhd_is_manager_of_person`, see `mhd_note_subject_persons` in
+ * 0318_notes_supervisor_visibility_tier.sql) rather than a role name — a note
+ * on a TASK/SUBTASK is visible to anyone upline of at least one PRIMARY
+ * assignee, and a note on an ACTIVITY is visible to anyone upline of the
+ * activity's `person_id`. TRAINING_LESSON notes have no resolvable subject
+ * person (they are shared course-content discussion threads), so this tier
+ * can never be satisfied there; a composer built for TRAINING_LESSON notes
+ * should omit this option from its picker rather than let it hang unusably.
  */
 export const MHD_NOTE_VISIBILITY_COPY: Record<
   MhdNoteVisibility,
@@ -21,6 +34,10 @@ export const MHD_NOTE_VISIBILITY_COPY: Record<
   PUBLIC: {
     label: 'Public',
     description: 'Visible to everyone in the company.',
+  },
+  SUPERVISOR: {
+    label: 'Supervisor / Lead',
+    description: "Visible to anyone in the subject's management chain.",
   },
   ADMIN: {
     label: 'Admin',
