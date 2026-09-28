@@ -231,6 +231,8 @@ export interface MhdTrainingCertificateGenerationRpcRow {
   id: string;
   reference_id: string;
   status: string;
+  certificate_id: string;
+  verification_code: string;
 }
 
 export interface MhdTrainingTimeOnTaskRpcRow {
@@ -716,11 +718,19 @@ export interface MhdTrainingCompletionResult {
   expiresAt: string | null;
 }
 
-/** Mapped document generation requested for a training completion certificate. */
+/**
+ * Mapped document generation requested for a training completion certificate.
+ * `certificateId`/`verificationCode` identify the audit_certificates row that
+ * backs public verification; `outputDriveFileId` is populated once rendering
+ * finishes (null while `status` is still PENDING/GENERATING).
+ */
 export interface MhdTrainingCertificateGenerationResult {
   id: string;
   referenceId: string;
   status: string;
+  certificateId: string;
+  verificationCode: string;
+  outputDriveFileId: string | null;
 }
 
 export interface MhdTrainingTimeOnTaskRow {

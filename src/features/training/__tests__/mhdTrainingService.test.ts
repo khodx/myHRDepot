@@ -202,7 +202,15 @@ describe('mhdTrainingService — server-derived compliance passthrough', () => {
 
   it('generates a certificate through the shared document render and poll helpers', async () => {
     rpcMock.mockResolvedValueOnce({
-      data: [{ id: 'generation-1', reference_id: 'DOC-0001', status: 'PENDING' }],
+      data: [
+        {
+          id: 'generation-1',
+          reference_id: 'DOC-0001',
+          status: 'PENDING',
+          certificate_id: 'certificate-1',
+          verification_code: 'verify-code-1',
+        },
+      ],
       error: null,
     });
     renderMock.mockResolvedValueOnce(undefined);
@@ -222,7 +230,14 @@ describe('mhdTrainingService — server-derived compliance passthrough', () => {
     expect(pollMock).toHaveBeenCalledWith('generation-1', {
       timeoutHint: 'Retry the certificate generation once rendering finishes.',
     });
-    expect(result).toEqual({ id: 'generation-1', referenceId: 'DOC-0001', status: 'GENERATED' });
+    expect(result).toEqual({
+      id: 'generation-1',
+      referenceId: 'DOC-0001',
+      status: 'GENERATED',
+      certificateId: 'certificate-1',
+      verificationCode: 'verify-code-1',
+      outputDriveFileId: 'drive-1',
+    });
   });
 
   it('copies the RPC compliance_status VERBATIM onto the assignment — no client recompute', async () => {

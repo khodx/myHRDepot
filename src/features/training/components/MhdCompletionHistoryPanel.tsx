@@ -1,4 +1,7 @@
+import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
+import { useMhdGenerateTrainingCertificate } from '../Hook';
 import { mhdFormatTrainingCompletionMethod, type MhdTrainingCompletion } from '../Types';
 
 interface Props {
@@ -54,7 +57,7 @@ export function MhdCompletionHistoryPanel({
                 </p>
               </div>
 
-              <div className="text-right">
+              <div className="flex flex-col items-end gap-2 text-right">
                 {/* Render the server's derived is_expired, never a local recompute. */}
                 {completion.expiresAt == null ? (
                   <MhdBadge variant="neutral">No expiry</MhdBadge>
@@ -63,11 +66,63 @@ export function MhdCompletionHistoryPanel({
                 ) : (
                   <MhdBadge variant="success">Valid to {formatDate(completion.expiresAt)}</MhdBadge>
                 )}
+                <MhdCompletionCertificateAction completionId={completion.id} />
               </div>
             </li>
           ))}
         </ul>
       )}
     </section>
+  );
+}
+
+interface CertificateActionProps {
+  completionId: string;
+}
+
+/**
+ * Generates (or re-opens) a completion certificate on demand — the training
+ * completion certificate PDF/verification code (mhd_certificate_issue via
+ * mhd_training_certificate_generate) is not pre-generated at completion time,
+ * so this is the "natural follow-up" Stage 6 deferred: a UI trigger for the
+ * data layer that already existed.
+ */
+function MhdCompletionCertificateAction({ completionId }: CertificateActionProps) {
+  const generate = useMhdGenerateTrainingCertificate();
+  const [driveFileId, setDriveFileId] = useState<string | null>(null);
+
+  async function handleGenerate() {
+    const result = await generate.mutateAsync(completionId);
+    setDriveFileId(result.outputDriveFileId);
+  }
+
+  if (driveFileId) {
+    return (
+      <a
+        href={`https://drive.google.com/file/d/${encodeURIComponent(driveFileId)}/view`}
+        target="_blank"
+        rel="noreferrer"
+        className="text-xs font-medium text-accent hover:text-accent-hover"
+      >
+        Download Certificate
+      </a>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Button
+        variant="secondary"
+        onClick={() => void handleGenerate()}
+        disabled={generate.isPending}
+      >
+        {generate.isPending ? 'Generating…' : 'Generate Certificate'}
+      </Button>
+      {generate.isError ? (
+        <p className="text-xs text-rose-600">
+          {generate.error instanceof Error ? generate.error.message : 'Could not generate the certificate.'}
+        </p>
+      ) : null}
+    </div>
   );
 }

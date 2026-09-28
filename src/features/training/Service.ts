@@ -419,7 +419,14 @@ function mapCompletionResult(row: MhdTrainingCompletionResultRpcRow): MhdTrainin
 function mapCertificateGenerationResult(
   row: MhdTrainingCertificateGenerationRpcRow,
 ): MhdTrainingCertificateGenerationResult {
-  return { id: row.id, referenceId: row.reference_id, status: row.status };
+  return {
+    id: row.id,
+    referenceId: row.reference_id,
+    status: row.status,
+    certificateId: row.certificate_id,
+    verificationCode: row.verification_code,
+    outputDriveFileId: null,
+  };
 }
 
 function mapTimeOnTask(row: MhdTrainingTimeOnTaskRpcRow): MhdTrainingTimeOnTaskRow {
@@ -1481,7 +1488,11 @@ export const mhdTrainingService = {
       timeoutHint: 'Retry the certificate generation once rendering finishes.',
     });
 
-    return { ...requested, status: generated.status };
+    return {
+      ...requested,
+      status: generated.status,
+      outputDriveFileId: generated.output_drive_file_id,
+    };
   },
 
   // ----- Compliance (derived, never stored) -----
