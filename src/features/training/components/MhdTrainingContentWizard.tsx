@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { MhdTrainingContentTreeEditor } from './MhdTrainingContentTreeEditor';
@@ -8,8 +9,14 @@ import {
   useMhdCreateTrainingCourse,
   useMhdCreateTrainingCourseFromTemplate,
   useMhdCreateTrainingProgram,
+  useMhdAddTrainingPrerequisite,
+  useMhdApproveTrainingContent,
+  useMhdPublishTrainingContent,
+  useMhdRemoveTrainingPrerequisite,
+  useMhdSubmitTrainingContentForReview,
   useMhdTrainingCourses,
   useMhdTrainingCurriculums,
+  useMhdTrainingPrerequisites,
   useMhdTrainingPrograms,
   useMhdTrainingTemplateSlots,
   useMhdTrainingTemplates,
@@ -20,11 +27,14 @@ import {
 import {
   MHD_TRAINING_CATEGORIES,
   MHD_TRAINING_DELIVERY_MODES,
+  mhdFormatTrainingApprovalStatus,
   mhdFormatTrainingCategory,
   mhdFormatTrainingDeliveryMode,
+  mhdFormatTrainingRecurrence,
   type MhdTrainingCategory,
   type MhdTrainingCurriculum,
   type MhdTrainingDeliveryMode,
+  type MhdTrainingApprovalStatus,
   type MhdTrainingProgram,
   type MhdTrainingTemplate,
 } from '../Types';
@@ -57,8 +67,20 @@ export const WIZARD_STEPS: Record<MhdTrainingContentEntityType, MhdStep[]> = {
       title: 'Content',
       description: 'Build the module, lesson, and block sequence.',
     },
+    {
+      id: 'prerequisites',
+      title: 'Prerequisites',
+      description: 'Choose courses that must be completed first.',
+    },
     { id: 'review', title: 'Review', description: 'Confirm and finish.' },
   ],
+};
+
+const APPROVAL_VARIANTS: Record<MhdTrainingApprovalStatus, MhdBadgeVariant> = {
+  DRAFT: 'neutral',
+  IN_REVIEW: 'warning',
+  APPROVED: 'info',
+  PUBLISHED: 'success',
 };
 
 export function validateWizardStep(
@@ -575,6 +597,7 @@ export function MhdTrainingContentWizard({
   const [requiresEvidence, setRequiresEvidence] = useState(false);
   const [externalUrl, setExternalUrl] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [selectedPrerequisite, setSelectedPrerequisite] = useState('');
   const [error, setError] = useState<string | null>(null);
   const curricula = useMhdTrainingCurriculums(companyId, true);
   const programs = useMhdTrainingPrograms({ companyId, includeInactive: true });
@@ -586,6 +609,12 @@ export function MhdTrainingContentWizard({
   const updateCourse = useMhdUpdateTrainingCourse();
   const createCourse = useMhdCreateTrainingCourse();
   const createCourseFromTemplate = useMhdCreateTrainingCourseFromTemplate();
+  const submit = useMhdSubmitTrainingContentForReview();
+  const approve = useMhdApproveTrainingContent();
+  const publish = useMhdPublishTrainingContent();
+  const prerequisites = useMhdTrainingPrerequisites(entityType === 'COURSE' ? savedEntityId : null);
+  const addPrerequisite = useMhdAddTrainingPrerequisite();
+  const removePrerequisite = useMhdRemoveTrainingPrerequisite();
   const templates = useMhdTrainingTemplates(entityType === 'COURSE' ? companyId : null);
   const templateSlots = useMhdTrainingTemplateSlots(
     entityType === 'COURSE' ? selectedTemplateId || null : null,
@@ -639,6 +668,7 @@ export function MhdTrainingContentWizard({
       entityType === 'COURSE'
         ? [
             Boolean(title.trim() && courseKey.trim()),
+            Boolean(savedEntityId),
             Boolean(savedEntityId),
             Boolean(savedEntityId),
             Boolean(savedEntityId),
@@ -742,6 +772,39 @@ export function MhdTrainingContentWizard({
     return true;
   }
 
+  async function advanceApproval() {
+    if (!currentCourse) return;
+    if (currentCourse.approvalStatus === 'DRAFT') {
+      await submit.mutateAsync({ courseId: currentCourse.id });
+      return;
+    }
+    if (currentCourse.approvalStatus === 'IN_REVIEW') {
+      const notes = window.prompt('Optional review notes:');
+      await approve.mutateAsync({ courseId: currentCourse.id, reviewNotes: notes || null });
+      return;
+    }
+    if (currentCourse.approvalStatus === 'APPROVED') {
+      await publish.mutateAsync({ courseId: currentCourse.id });
+    }
+  }
+
+  async function handleAddPrerequisite() {
+    if (!savedEntityId || !selectedPrerequisite || selectedPrerequisite === savedEntityId) return;
+    await addPrerequisite.mutateAsync({
+      courseId: savedEntityId,
+      prerequisiteCourseId: selectedPrerequisite,
+    });
+    setSelectedPrerequisite('');
+  }
+
+  async function handleRemovePrerequisite(prerequisiteCourseId: string) {
+    if (!savedEntityId) return;
+    await removePrerequisite.mutateAsync({
+      courseId: savedEntityId,
+      prerequisiteCourseId,
+    });
+  }
+
   // Shared by both the stepper's Next/Previous and the overview checklist's
   // direct jumps: leaving step 0 for any other step — including jumping
   // straight to Review from a brand-new, never-saved wizard — must persist
@@ -794,6 +857,20 @@ export function MhdTrainingContentWizard({
     entityType === 'CURRICULUM'
       ? (programs.data ?? []).filter((item) => item.curriculumId === savedEntityId)
       : (courses.data ?? []).filter((item) => item.programId === savedEntityId);
+  const existingPrerequisiteIds = new Set(
+    (prerequisites.data ?? []).map((item) => item.prerequisiteCourseId),
+  );
+  const availablePrerequisiteCourses = (courses.data ?? []).filter(
+    (item) => item.id !== savedEntityId && !existingPrerequisiteIds.has(item.id),
+  );
+  const approvalActionLabel =
+    currentCourse?.approvalStatus === 'DRAFT'
+      ? 'Submit for Review'
+      : currentCourse?.approvalStatus === 'IN_REVIEW'
+        ? 'Approve Content'
+        : currentCourse?.approvalStatus === 'APPROVED'
+          ? 'Publish Content'
+          : null;
   return (
     <MhdModal
       title={
@@ -892,6 +969,61 @@ export function MhdTrainingContentWizard({
                 </p>
               )
             ) : null}
+            {currentStep?.id === 'prerequisites' ? (
+              savedEntityId ? (
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <select
+                      aria-label="Prerequisite course"
+                      value={selectedPrerequisite}
+                      onChange={(event) => setSelectedPrerequisite(event.target.value)}
+                      className="min-w-0 flex-1 rounded-md border border-border px-3 py-2 text-sm"
+                    >
+                      <option value="">Choose a prerequisite course</option>
+                      {availablePrerequisiteCourses.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.title}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      type="button"
+                      onClick={() => void handleAddPrerequisite()}
+                      disabled={!selectedPrerequisite}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  {prerequisites.isLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading prerequisites…</p>
+                  ) : (prerequisites.data ?? []).length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      This course has no prerequisites.
+                    </p>
+                  ) : (
+                    (prerequisites.data ?? []).map((item) => (
+                      <div
+                        key={item.prerequisiteCourseId}
+                        className="flex items-center justify-between border-b border-border py-2 text-sm last:border-0"
+                      >
+                        <span>{item.prerequisiteTitle}</span>
+                        <button
+                          type="button"
+                          className="text-red-700"
+                          onClick={() => void handleRemovePrerequisite(item.prerequisiteCourseId)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Complete the Details and Template steps before choosing prerequisites.
+                </p>
+              )
+            ) : null}
             {currentStep?.id === 'review' ? (
               <div className="space-y-3">
                 <h2 className="text-lg font-semibold">Review</h2>
@@ -904,12 +1036,57 @@ export function MhdTrainingContentWizard({
                       <strong>Course key:</strong> {courseKey}
                     </p>
                     <p>
+                      <strong>Category:</strong> {mhdFormatTrainingCategory(category)}
+                    </p>
+                    <p>
+                      <strong>Delivery mode:</strong> {mhdFormatTrainingDeliveryMode(deliveryMode)}
+                    </p>
+                    <p>
+                      <strong>Duration:</strong>{' '}
+                      {durationMinutes ? `${durationMinutes} minutes` : '—'}
+                    </p>
+                    <p>
+                      <strong>Recurrence:</strong> {mhdFormatTrainingRecurrence(recurrenceMonths)}
+                    </p>
+                    <p>
+                      <strong>Requires evidence:</strong> {requiresEvidence ? 'Yes' : 'No'}
+                    </p>
+                    <p>
                       <strong>Template:</strong>{' '}
                       {selectedTemplateId
                         ? (templates.data?.find((template) => template.id === selectedTemplateId)
                             ?.title ?? 'Selected template')
                         : 'Start blank'}
                     </p>
+                    <p>
+                      <strong>Program:</strong>{' '}
+                      {programs.data?.find((program) => program.id === curriculumId)?.title ??
+                        'No program'}
+                    </p>
+                    <div>
+                      <strong>Prerequisites ({(prerequisites.data ?? []).length}):</strong>
+                      {(prerequisites.data ?? []).length ? (
+                        <ul className="ml-5 list-disc">
+                          {(prerequisites.data ?? []).map((item) => (
+                            <li key={item.prerequisiteCourseId}>{item.prerequisiteTitle}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span> None</span>
+                      )}
+                    </div>
+                    {currentCourse ? (
+                      <div className="flex flex-wrap items-center gap-2 pt-2">
+                        <MhdBadge variant={APPROVAL_VARIANTS[currentCourse.approvalStatus]}>
+                          {mhdFormatTrainingApprovalStatus(currentCourse.approvalStatus)}
+                        </MhdBadge>
+                        {approvalActionLabel ? (
+                          <Button type="button" onClick={() => void advanceApproval()}>
+                            {approvalActionLabel}
+                          </Button>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </>
                 ) : (
                   <>

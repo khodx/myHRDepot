@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   validateWizardStep,
   MhdTrainingContentWizard,
+  WIZARD_STEPS,
 } from '../components/MhdTrainingContentWizard';
 
 const mocks = vi.hoisted(() => ({
@@ -15,7 +16,13 @@ const mocks = vi.hoisted(() => ({
   createCourseFromTemplate: vi
     .fn()
     .mockResolvedValue({ id: 'course-template', referenceId: 'TRN-TEMPLATE' }),
+  submitForReview: vi.fn().mockResolvedValue(undefined),
+  approveContent: vi.fn().mockResolvedValue(undefined),
+  publishContent: vi.fn().mockResolvedValue(undefined),
+  addPrerequisite: vi.fn().mockResolvedValue(undefined),
+  removePrerequisite: vi.fn().mockResolvedValue(undefined),
   trainingCourses: vi.fn(() => ({ data: [] })),
+  prerequisites: vi.fn(() => ({ data: [] })),
   trainingTemplates: vi.fn(() => ({ data: [] })),
   templateSlots: vi.fn(() => ({ data: [] })),
 }));
@@ -28,6 +35,12 @@ vi.mock('../Hook', () => ({
   useMhdUpdateTrainingCourse: () => ({ mutateAsync: mocks.updateCourse }),
   useMhdCreateTrainingCourse: () => ({ mutateAsync: mocks.createCourse }),
   useMhdCreateTrainingCourseFromTemplate: () => ({ mutateAsync: mocks.createCourseFromTemplate }),
+  useMhdSubmitTrainingContentForReview: () => ({ mutateAsync: mocks.submitForReview }),
+  useMhdApproveTrainingContent: () => ({ mutateAsync: mocks.approveContent }),
+  useMhdPublishTrainingContent: () => ({ mutateAsync: mocks.publishContent }),
+  useMhdAddTrainingPrerequisite: () => ({ mutateAsync: mocks.addPrerequisite }),
+  useMhdRemoveTrainingPrerequisite: () => ({ mutateAsync: mocks.removePrerequisite }),
+  useMhdTrainingPrerequisites: () => mocks.prerequisites(),
   useMhdTrainingCurriculums: () => ({ data: [] }),
   useMhdTrainingPrograms: () => ({ data: [] }),
   useMhdTrainingCourses: () => mocks.trainingCourses(),
@@ -55,9 +68,7 @@ describe('MhdTrainingContentWizard', () => {
     // A genuinely blank ('') courseKey, not just whitespace -- the exact case
     // that used to slip through when isCourseStep was inferred from the
     // courseKey string being non-empty instead of passed explicitly.
-    expect(validateWizardStep(0, 'Course title', '', true)).toBe(
-      'Enter a course key to continue.',
-    );
+    expect(validateWizardStep(0, 'Course title', '', true)).toBe('Enter a course key to continue.');
     expect(validateWizardStep(0, '   ', 'course-key', true)).toBe('Enter a title to continue.');
     expect(validateWizardStep(0, 'Course title', 'course-key', true)).toBeNull();
     // Non-course steps never require a course key, regardless of the value
@@ -269,6 +280,10 @@ describe('MhdTrainingContentWizard', () => {
     await vi.waitFor(() => expect(screen.getByTestId('content-tree-editor')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await vi.waitFor(() =>
+      expect(screen.getByLabelText('Prerequisite course')).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() =>
       expect(screen.getByRole('heading', { name: 'Review' })).toBeInTheDocument(),
     );
     expect(mocks.createCourse).not.toHaveBeenCalled();
@@ -300,6 +315,115 @@ describe('MhdTrainingContentWizard', () => {
     );
   });
 
+  it('places Prerequisites after Content and persists add/remove choices', async () => {
+    vi.mocked(mocks.trainingCourses).mockReturnValue({
+      data: [
+        {
+          id: 'course-existing',
+          courseKey: 'existing-key',
+          title: 'Current course',
+          description: null,
+          category: 'OTHER',
+          deliveryMode: 'DOCUMENT',
+          durationMinutes: null,
+          recurrenceMonths: null,
+          requiresEvidence: false,
+          externalUrl: null,
+          programId: null,
+          isActive: true,
+          templateId: null,
+          approvalStatus: 'DRAFT',
+        },
+        { id: 'course-prereq', title: 'Already required' },
+        { id: 'course-available', title: 'Available course' },
+      ],
+    } as never);
+    vi.mocked(mocks.prerequisites).mockReturnValue({
+      data: [{ prerequisiteCourseId: 'course-prereq', prerequisiteTitle: 'Already required' }],
+    } as never);
+    const courseSteps = WIZARD_STEPS.COURSE.map((step) => step.id);
+    expect(courseSteps).toEqual(['details', 'template', 'content', 'prerequisites', 'review']);
+
+    render(
+      <MhdTrainingContentWizard
+        entityType="COURSE"
+        companyId="company-1"
+        entityId="course-existing"
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await vi.waitFor(() => expect(screen.getByLabelText('Course key')).toHaveValue('existing-key'));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() => expect(screen.getByTestId('content-tree-editor')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    const select = await screen.findByLabelText('Prerequisite course');
+    expect(screen.queryByRole('option', { name: 'Current course' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Already required' })).not.toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Available course' })).toBeInTheDocument();
+    fireEvent.change(select, { target: { value: 'course-available' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    await vi.waitFor(() =>
+      expect(mocks.addPrerequisite).toHaveBeenCalledWith({
+        courseId: 'course-existing',
+        prerequisiteCourseId: 'course-available',
+      }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    expect(mocks.removePrerequisite).toHaveBeenCalledWith({
+      courseId: 'course-existing',
+      prerequisiteCourseId: 'course-prereq',
+    });
+  });
+
+  it('shows the course approval status and submits a draft for review from Review', async () => {
+    vi.mocked(mocks.trainingCourses).mockReturnValue({
+      data: [
+        {
+          id: 'course-approval',
+          courseKey: 'approval-key',
+          title: 'Approval course',
+          description: 'Description',
+          category: 'SAFETY',
+          deliveryMode: 'ONLINE',
+          durationMinutes: 30,
+          recurrenceMonths: 12,
+          requiresEvidence: true,
+          externalUrl: null,
+          programId: null,
+          isActive: true,
+          templateId: null,
+          approvalStatus: 'DRAFT',
+        },
+      ],
+    } as never);
+    vi.mocked(mocks.prerequisites).mockReturnValue({ data: [] });
+    vi.mocked(mocks.submitForReview).mockClear();
+    render(
+      <MhdTrainingContentWizard
+        entityType="COURSE"
+        companyId="company-1"
+        entityId="course-approval"
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await vi.waitFor(() => expect(screen.getByLabelText('Course key')).toHaveValue('approval-key'));
+    fireEvent.click(screen.getByRole('button', { name: 'Overview' }));
+    fireEvent.click(
+      screen.getAllByRole('button').find((el) => el.textContent?.includes('Review'))!,
+    );
+    await vi.waitFor(() => expect(screen.getByText('Draft')).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Submit for Review' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Submit for Review' }));
+    await vi.waitFor(() =>
+      expect(mocks.submitForReview).toHaveBeenCalledWith({ courseId: 'course-approval' }),
+    );
+  });
+
   it('guards the Content step when the course id is still missing', async () => {
     vi.mocked(mocks.createCourse).mockResolvedValueOnce({ id: '', referenceId: 'TRN-MISSING' });
     render(
@@ -317,7 +441,9 @@ describe('MhdTrainingContentWizard', () => {
     await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(
-      await screen.findByText('Complete the Details and Template steps before authoring course content.'),
+      await screen.findByText(
+        'Complete the Details and Template steps before authoring course content.',
+      ),
     ).toBeInTheDocument();
   });
 
