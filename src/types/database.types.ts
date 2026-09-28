@@ -33725,11 +33725,13 @@ export type Database = {
       mhd_training_course_update: {
         Args: {
           p_category?: string
+          p_clear_program_id?: boolean
           p_course_id: string
           p_delivery_mode?: string
           p_description?: string
           p_duration_minutes?: number
           p_external_url?: string
+          p_program_id?: string
           p_recurrence_months?: number
           p_requires_evidence?: boolean
           p_title?: string
@@ -34118,6 +34120,7 @@ export type Database = {
       }
       mhd_training_program_update: {
         Args: {
+          p_clear_curriculum_id?: boolean
           p_curriculum_id?: string
           p_description?: string
           p_is_active?: boolean

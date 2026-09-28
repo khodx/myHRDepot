@@ -898,6 +898,7 @@ export const mhdTrainingService = {
       p_curriculum_id: input.curriculumId ?? undefined,
       p_sort_order: input.sortOrder ?? undefined,
       p_is_active: input.isActive ?? undefined,
+      p_clear_curriculum_id: input.clearCurriculumId ?? false,
     });
     if (error) throw error;
   },
@@ -1176,6 +1177,8 @@ export const mhdTrainingService = {
       p_recurrence_months: input.recurrenceMonths ?? undefined,
       p_requires_evidence: input.requiresEvidence ?? undefined,
       p_external_url: input.externalUrl ?? undefined,
+      p_program_id: input.programId ?? undefined,
+      p_clear_program_id: input.clearProgramId ?? false,
     });
     if (error) throw error;
   },

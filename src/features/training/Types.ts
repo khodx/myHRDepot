@@ -1033,6 +1033,13 @@ export interface MhdUpdateProgramInput {
   curriculumId?: MhdTrainingCurriculumId | null;
   sortOrder?: number;
   isActive?: boolean;
+  /**
+   * Explicitly detach this program from any curriculum (sets curriculum_id
+   * to NULL). `curriculumId` alone can only attach/change it — the RPC
+   * coalesces a plain `null`/omitted value, so clearing requires this
+   * distinct, deliberate flag (mirrors Jobs' p_clear_onet_soc_code pattern).
+   */
+  clearCurriculumId?: boolean;
 }
 export interface MhdCreateCourseModuleInput {
   courseId: MhdTrainingCourseId;
@@ -1189,6 +1196,14 @@ export interface MhdUpdateCourseInput {
   recurrenceMonths?: number | null;
   requiresEvidence?: boolean | null;
   externalUrl?: string | null;
+  programId?: MhdTrainingProgramId | null;
+  /**
+   * Explicitly detach this course from any program (sets program_id to
+   * NULL). `programId` alone can only attach/change it — the RPC coalesces
+   * a plain `null`/omitted value, so clearing requires this distinct,
+   * deliberate flag (mirrors Jobs' p_clear_onet_soc_code pattern).
+   */
+  clearProgramId?: boolean;
 }
 
 export interface MhdSetCourseActiveInput {
