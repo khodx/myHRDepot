@@ -53,7 +53,7 @@ export function MhdAssistantProvider({ children }: { children: ReactNode }) {
         type="button"
         onClick={() => openAssistant()}
         aria-label="Open navigation assistant"
-        className="fixed bottom-5 right-5 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
+        className="fixed bottom-5 right-5 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full bg-assistant text-assistant-on shadow-lg transition hover:bg-assistant-hover active:bg-assistant-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
       >
         <Sparkles className="h-5 w-5" aria-hidden />
       </button>

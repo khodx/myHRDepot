@@ -35,6 +35,10 @@
   --color-accent-soft: var(--mhd-accent-soft);
   --color-accent-border: var(--mhd-accent-border);
   --color-accent-on: var(--mhd-accent-on);
+  --color-assistant: var(--mhd-assistant);
+  --color-assistant-hover: var(--mhd-assistant-hover);
+  --color-assistant-pressed: var(--mhd-assistant-pressed);
+  --color-assistant-on: var(--mhd-assistant-on);
   --color-focus-ring: var(--mhd-focus-ring);
   --color-rail: var(--mhd-rail);
   --color-rail-surface: var(--mhd-rail-surface);
@@ -83,6 +87,21 @@
   --mhd-accent-border: #c6c7f1;
   --mhd-accent-on: #ffffff;
   --mhd-focus-ring: rgb(from var(--mhd-accent) r g b / 0.25);
+
+  /* The AI navigation assistant (04.20) gets its own true-complementary
+     amber identity — the same fill already used for the sidebar's active-item
+     highlight (see the comment above) — so it visually stands out from the
+     brand-blue primary/accent used for every ordinary action, consistently on
+     every module (this lives only in :root, never per data-mhd-theme, since
+     it must never follow the category-theme rotation). Ink foreground for
+     the same contrast reason as --mhd-rail-selected-text. Defined once for
+     both light and dark app mode: the button is a filled, self-contained
+     circle, so its internal fill/icon contrast never depends on the
+     surrounding page background. */
+  --mhd-assistant: #fba200;
+  --mhd-assistant-hover: #e89400;
+  --mhd-assistant-pressed: #d08200;
+  --mhd-assistant-on: #111827;
 }
 
 /* Category blocks intentionally share the exact global brand values. Keeping
