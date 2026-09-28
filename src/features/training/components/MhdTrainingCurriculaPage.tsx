@@ -2,53 +2,24 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
-import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
-import { MhdModal } from '@/components/ui/MhdModal';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import {
-  useMhdCreateTrainingCurriculum,
   useMhdDeleteTrainingCurriculum,
   useMhdTrainingCurriculums,
-  useMhdUpdateTrainingCurriculum,
 } from '../Hook';
 import type { MhdTrainingCurriculum } from '../Types';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { MhdTrainingContentWizard } from './MhdTrainingContentWizard';
 
 export function MhdTrainingCurriculaPage() {
   const { profile } = useMhdAuth();
   const companyId = profile?.companyId ?? '';
   const list = useMhdTrainingCurriculums(companyId, true);
-  const create = useMhdCreateTrainingCurriculum();
-  const update = useMhdUpdateTrainingCurriculum();
   const remove = useMhdDeleteTrainingCurriculum();
   const [editing, setEditing] = useState<MhdTrainingCurriculum | null>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  async function save(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    setError(null);
-    try {
-      if (editing)
-        await update.mutateAsync({
-          curriculumId: editing.id,
-          title: String(data.get('title')),
-          description: String(data.get('description') || ''),
-          isActive: data.get('isActive') === 'on',
-        });
-      else
-        await create.mutateAsync({
-          companyId,
-          title: String(data.get('title')),
-          description: String(data.get('description') || ''),
-        });
-      setOpen(false);
-      setEditing(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unable to save curriculum.');
-    }
-  }
   async function deleteOne(item: MhdTrainingCurriculum) {
     if (!window.confirm(`Delete curriculum “${item.title}”?`)) return;
     setError(null);
@@ -121,50 +92,7 @@ export function MhdTrainingCurriculaPage() {
           </tbody>
         </MhdTable>
       </MhdCard>
-      {open ? (
-        <MhdModal
-          title={editing ? 'Edit Curriculum' : 'New Curriculum'}
-          onClose={() => {
-            setOpen(false);
-            setEditing(null);
-          }}
-        >
-          <form onSubmit={save} className="space-y-4">
-            <MhdFormFieldStack>
-              <div>
-                <label htmlFor="title">Title</label>
-                <input
-                  id="title"
-                  name="title"
-                  required
-                  defaultValue={editing?.title ?? ''}
-                  className="mt-1 w-full rounded-md border border-border px-3 py-2"
-                />
-              </div>
-              <div>
-                <label htmlFor="description">Description</label>
-                <textarea
-                  id="description"
-                  name="description"
-                  defaultValue={editing?.description ?? ''}
-                  className="mt-1 w-full rounded-md border border-border px-3 py-2"
-                />
-              </div>
-              {editing ? (
-                <label className="flex gap-2">
-                  <input type="checkbox" name="isActive" defaultChecked={editing.isActive} /> Active
-                </label>
-              ) : null}
-            </MhdFormFieldStack>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Save</Button>
-            </div>
-          </form>
-        </MhdModal>
-      ) : null}
+      {open ? <MhdTrainingContentWizard entityType="CURRICULUM" companyId={companyId} entityId={editing?.id ?? null} onClose={() => { setOpen(false); setEditing(null); }} /> : null}
     </div>
   );
 }

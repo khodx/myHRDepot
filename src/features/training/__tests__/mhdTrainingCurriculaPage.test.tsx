@@ -3,10 +3,15 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { MhdTrainingCurriculum } from '../Types';
 
-const { createMock, updateMock, deleteMock } = vi.hoisted(() => ({
-  createMock: vi.fn().mockResolvedValue(undefined),
+const { createMock, updateMock, deleteMock, programsMock, coursesMock, createProgramMock, updateProgramMock, updateCourseMock } = vi.hoisted(() => ({
+  createMock: vi.fn().mockResolvedValue({ id: 'cur-new', referenceId: 'CUR-NEW' }),
   updateMock: vi.fn().mockResolvedValue(undefined),
   deleteMock: vi.fn().mockResolvedValue(undefined),
+  programsMock: vi.fn(() => ({ data: [] })),
+  coursesMock: vi.fn(() => ({ data: [] })),
+  createProgramMock: vi.fn().mockResolvedValue({ id: 'program-1' }),
+  updateProgramMock: vi.fn().mockResolvedValue(undefined),
+  updateCourseMock: vi.fn().mockResolvedValue(undefined),
 }));
 
 const { listMock } = vi.hoisted(() => ({ listMock: vi.fn() }));
@@ -16,6 +21,11 @@ vi.mock('../Hook', () => ({
   useMhdCreateTrainingCurriculum: () => ({ mutateAsync: createMock }),
   useMhdUpdateTrainingCurriculum: () => ({ mutateAsync: updateMock }),
   useMhdDeleteTrainingCurriculum: () => ({ mutateAsync: deleteMock }),
+  useMhdTrainingPrograms: programsMock,
+  useMhdTrainingCourses: coursesMock,
+  useMhdCreateTrainingProgram: () => ({ mutateAsync: createProgramMock }),
+  useMhdUpdateTrainingProgram: () => ({ mutateAsync: updateProgramMock }),
+  useMhdUpdateTrainingCourse: () => ({ mutateAsync: updateCourseMock }),
 }));
 
 vi.mock('@/features/authentication/Hook', () => ({
@@ -55,8 +65,9 @@ describe('MhdTrainingCurriculaPage', () => {
     render(<MhdTrainingCurriculaPage />);
 
     await userEvent.click(screen.getByRole('button', { name: 'New Curriculum' }));
+    await userEvent.click(screen.getByRole('button', { name: /Details/ }));
     await userEvent.type(screen.getByLabelText('Title'), 'Sales Enablement');
-    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     expect(createMock).toHaveBeenCalledWith({
       companyId: 'company-1',

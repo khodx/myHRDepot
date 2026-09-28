@@ -3,10 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { MhdTrainingProgram } from '../Types';
 
-const { createMock, updateMock, deleteMock } = vi.hoisted(() => ({
+const { createMock, updateMock, deleteMock, coursesMock, createCurriculumMock, updateCourseMock } = vi.hoisted(() => ({
   createMock: vi.fn().mockResolvedValue(undefined),
   updateMock: vi.fn().mockResolvedValue(undefined),
   deleteMock: vi.fn().mockResolvedValue(undefined),
+  coursesMock: vi.fn(() => ({ data: [] })),
+  createCurriculumMock: vi.fn().mockResolvedValue({ id: 'curriculum-1' }),
+  updateCourseMock: vi.fn().mockResolvedValue(undefined),
 }));
 const { listMock, curriculaMock } = vi.hoisted(() => ({ listMock: vi.fn(), curriculaMock: vi.fn() }));
 
@@ -16,6 +19,10 @@ vi.mock('../Hook', () => ({
   useMhdCreateTrainingProgram: () => ({ mutateAsync: createMock }),
   useMhdUpdateTrainingProgram: () => ({ mutateAsync: updateMock }),
   useMhdDeleteTrainingProgram: () => ({ mutateAsync: deleteMock }),
+  useMhdTrainingCourses: coursesMock,
+  useMhdCreateTrainingCurriculum: () => ({ mutateAsync: createCurriculumMock }),
+  useMhdUpdateTrainingCurriculum: () => ({ mutateAsync: updateMock }),
+  useMhdUpdateTrainingCourse: () => ({ mutateAsync: updateCourseMock }),
 }));
 
 vi.mock('@/features/authentication/Hook', () => ({
@@ -59,6 +66,7 @@ describe('MhdTrainingProgramsPage', () => {
     render(<MhdTrainingProgramsPage />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    await userEvent.click(screen.getByRole('button', { name: /Details/ }));
 
     expect(screen.getByRole('checkbox', { name: 'Active' })).not.toBeChecked();
   });

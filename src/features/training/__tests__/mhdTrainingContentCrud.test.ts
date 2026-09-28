@@ -27,7 +27,7 @@ describe('LMS v2 content-tree CRUD completeness (curricula/programs/modules/less
     rpcMock.mockResolvedValueOnce({ data: null, error: null });
     await mhdTrainingService.updateProgram({ programId: 'prog-1', sortOrder: 2 });
     expect(rpcMock).toHaveBeenCalledWith('mhd_training_program_update', {
-      p_program_id: 'prog-1', p_title: undefined, p_description: undefined, p_curriculum_id: undefined, p_sort_order: 2, p_is_active: undefined,
+      p_program_id: 'prog-1', p_title: undefined, p_description: undefined, p_curriculum_id: undefined, p_sort_order: 2, p_is_active: undefined, p_clear_curriculum_id: false,
     });
     rpcMock.mockResolvedValueOnce({ data: null, error: null });
     await mhdTrainingService.deleteProgram('prog-1');
