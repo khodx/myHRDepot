@@ -65,6 +65,8 @@ export interface NavItem {
   label: string;
   /** One-line summary shown on the dashboard's Modules card. */
   description: string;
+  /** Search terms that feed the AI navigation assistant's matcher (Stage 1 of Platform Engine 04.20). */
+  keywords?: string[];
   route: string;
   icon: React.ElementType;
   roles: MhdAuthRoleName[] | 'ALL';
@@ -109,6 +111,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Tasks',
         description: 'Track and complete your assigned tasks.',
+        keywords: ['to do', 'work items', 'assigned work'],
         route: '/tasks',
         icon: CheckSquare,
         roles: mhdRouteRoles('/tasks'),
@@ -116,6 +119,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Activities',
         description: 'Log calls, meetings, and notes tied to any record.',
+        keywords: ['log activity', 'call notes', 'meeting notes'],
         route: '/activities',
         icon: CalendarClock,
         roles: mhdRouteRoles('/activities'),
@@ -123,6 +127,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Calendar',
         description: 'View scheduled events, deadlines, and time off.',
+        keywords: ['events', 'appointments', 'schedule', 'time off'],
         route: '/calendar',
         icon: Calendar,
         roles: mhdRouteRoles('/calendar'),
@@ -130,6 +135,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Command Center',
         description: 'See your most important HR priorities in one place.',
+        keywords: ['priorities', 'action items', 'HR dashboard'],
         route: '/command-center',
         icon: Zap,
         roles: mhdRouteRoles('/command-center'),
@@ -137,6 +143,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Forms',
         description: 'Build and submit HR forms and requests.',
+        keywords: ['request form', 'paperwork', 'submit a form'],
         route: '/forms',
         icon: ClipboardList,
         roles: mhdRouteRoles('/forms'),
@@ -144,6 +151,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Approvals',
         description: 'Review and act on pending approval requests.',
+        keywords: ['approve', 'pending approvals', 'manager approvals'],
         route: '/approvals',
         icon: Stamp,
         roles: mhdRouteRoles('/approvals'),
@@ -151,6 +159,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Reports',
         description: 'Run and export operational HR reports.',
+        keywords: ['analytics', 'reporting', 'download reports'],
         route: '/reports',
         icon: FileText,
         roles: mhdRouteRoles('/reports'),
@@ -158,6 +167,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Property',
         description: 'Track company property assigned to employees.',
+        keywords: ['equipment', 'company assets', 'assigned property'],
         route: '/property',
         icon: Package2,
         roles: mhdRouteRoles('/property'),
@@ -166,6 +176,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'E-Signature',
         description: 'Send documents out for electronic signature.',
+        keywords: ['e-sign', 'digital signature', 'sign documents'],
         route: '/esignature',
         icon: FileSignature,
         roles: mhdRouteRoles('/esignature'),
@@ -173,6 +184,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Calculator',
         description: 'Standard and guided calculators for common HR math.',
+        keywords: ['HR calculator', 'pay calculation', 'benefits math'],
         route: '/calculator',
         icon: Calculator,
         roles: mhdRouteRoles('/calculator'),
@@ -183,6 +195,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Legal & Regulatory Search',
         description: 'Search attorney-reviewed guidance, regulatory text, and pending legislation.',
+        keywords: ['legal research', 'compliance search', 'laws and regulations'],
         route: '/legal-search',
         icon: Search,
         roles: mhdRouteRoles('/legal-search'),
@@ -190,6 +203,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Knowledge Center',
         description: 'Browse published HR guidance and reference content.',
+        keywords: ['HR resources', 'help articles', 'reference library'],
         route: '/knowledge-center',
         icon: HelpCircle,
         roles: mhdRouteRoles('/knowledge-center'),
@@ -203,6 +217,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'People',
         description: 'Search and manage the company people directory.',
+        keywords: ['employee directory', 'staff list', 'find a person'],
         route: '/people',
         icon: Users,
         roles: mhdRouteRoles('/people'),
@@ -210,6 +225,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Users',
         description: 'Manage platform user accounts and access.',
+        keywords: ['user management', 'account access', 'permissions'],
         route: '/users',
         icon: UserCog,
         roles: mhdRouteRoles('/users'),
@@ -220,6 +236,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Onboarding',
         description: 'Guide new hires through their onboarding packet.',
+        keywords: ['new hire', 'orientation', 'onboard employee'],
         route: '/onboarding',
         icon: UserPlus,
         roles: mhdRouteRoles('/onboarding'),
@@ -228,6 +245,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Employee Files',
         description: "Browse each employee's document cabinet.",
+        keywords: ['employee files', 'personnel records', 'employee documents'],
         route: '/employees',
         icon: FolderOpen,
         roles: mhdRouteRoles('/employees'),
@@ -235,6 +253,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Companies',
         description: 'Manage company profiles and organizational entities.',
+        keywords: ['organizations', 'company records', 'business units'],
         route: '/companies',
         icon: Building2,
         roles: mhdRouteRoles('/companies'),
@@ -243,6 +262,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Job Descriptions',
         description: 'Maintain job descriptions across the company.',
+        keywords: ['job roles', 'position descriptions', 'job profiles'],
         route: '/jobs',
         icon: Briefcase,
         roles: mhdRouteRoles('/jobs'),
@@ -256,6 +276,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'My Job',
         description: 'View your own published job description.',
+        keywords: ['my position', 'my role', 'my job profile'],
         route: '/my-job',
         icon: IdCard,
         roles: mhdRouteRoles('/my-job'),
@@ -269,6 +290,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Schedule',
         description: 'View and manage employee work schedules.',
+        keywords: ['work hours', 'shift schedule', 'staff scheduling'],
         route: '/schedule',
         icon: CalendarDays,
         roles: mhdRouteRoles('/schedule'),
@@ -276,6 +298,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Attendance',
         description: 'Record and monitor daily time and attendance.',
+        keywords: ['clock in', 'timesheets', 'hours worked'],
         route: '/attendance',
         icon: ClipboardCheck,
         roles: mhdRouteRoles('/attendance'),
@@ -286,6 +309,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Leaves',
         description: 'Manage leave of absence cases and balances.',
+        keywords: ['time off', 'leave request', 'fmla', 'cfra', 'maternity leave', 'medical leave'],
         route: '/leaves',
         icon: CalendarOff,
         roles: mhdRouteRoles('/leaves'),
@@ -293,6 +317,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Accommodations',
         description: 'Track reasonable accommodation requests and the interactive process.',
+        keywords: ['work accommodation', 'ada request', 'disability accommodation'],
         route: '/accommodations',
         icon: Accessibility,
         roles: mhdRouteRoles('/accommodations'),
@@ -300,6 +325,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Mileage',
         description: 'Submit and review mileage reimbursement claims.',
+        keywords: ['expense report', 'gas mileage', 'reimbursement', 'travel expenses'],
         route: '/mileage',
         icon: Car,
         roles: mhdRouteRoles('/mileage'),
@@ -313,6 +339,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Performance',
         description: 'Run performance reviews and track goals.',
+        keywords: ['employee reviews', 'goals', 'performance evaluation'],
         route: '/performance',
         icon: TrendingUp,
         roles: mhdRouteRoles('/performance'),
@@ -324,6 +351,7 @@ export const NAV_SECTIONS: NavSection[] = [
           {
             label: 'Feedback Requests',
             description: 'Respond to 360 feedback requests addressed to you.',
+            keywords: ['peer feedback', '360 review', 'feedback invitation'],
             route: '/performance/invitations',
             icon: MessageSquare,
             roles: mhdRouteRoles('/performance/invitations'),
@@ -334,6 +362,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Recruiting',
         description: 'Manage job requisitions and candidate pipelines.',
+        keywords: ['hiring', 'applicants', 'open positions', 'candidates'],
         route: '/recruiting',
         icon: UserSearch,
         roles: mhdRouteRoles('/recruiting'),
@@ -344,6 +373,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'EEO Report',
         description: 'View aggregate EEO compliance counts.',
+        keywords: ['equal employment', 'diversity metrics', 'EEO compliance'],
         route: '/recruiting/eeo',
         icon: BarChart3,
         roles: mhdRouteRoles('/recruiting/eeo'),
@@ -352,6 +382,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Learning Management (LMS)',
         description: 'Author courses, assign compliance training, and manage certifications, assessments, and live sessions.',
+        keywords: ['training courses', 'compliance training', 'certifications', 'LMS'],
         route: '/training',
         icon: GraduationCap,
         roles: mhdRouteRoles('/training'),
@@ -363,6 +394,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'My Training',
         description: 'Complete your assigned training courses.',
+        keywords: ['my courses', 'assigned learning', 'required training'],
         route: '/my-training',
         icon: BookOpen,
         roles: mhdRouteRoles('/my-training'),
@@ -370,6 +402,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Handbooks',
         description: 'Publish and manage employee handbooks.',
+        keywords: ['handbook publishing', 'employee manual', 'company handbook'],
         route: '/handbooks',
         icon: Library,
         roles: mhdRouteRoles('/handbooks'),
@@ -379,6 +412,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'My Handbooks',
         description: 'Read the handbooks assigned to you.',
+        keywords: ['my employee handbook', 'read handbook', 'assigned handbook'],
         route: '/my-handbooks',
         icon: BookMarked,
         roles: mhdRouteRoles('/my-handbooks'),
@@ -386,6 +420,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Checklists',
         description: 'Create and fork reusable checklist templates.',
+        keywords: ['task checklist', 'checklist templates', 'to-do lists'],
         route: '/checklists',
         icon: ClipboardList,
         roles: mhdRouteRoles('/checklists'),
@@ -393,6 +428,7 @@ export const NAV_SECTIONS: NavSection[] = [
           {
             label: 'My Checklists',
             description: 'Complete checklists assigned to you.',
+            keywords: ['my tasks', 'assigned checklist', 'complete checklist'],
             route: '/my-checklists',
             icon: ClipboardCheck,
             roles: mhdRouteRoles('/my-checklists'),
@@ -402,6 +438,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Policies',
         description: 'Author and publish company policies.',
+        keywords: ['policy management', 'HR policies', 'policy documents'],
         route: '/policies',
         icon: FileText,
         roles: mhdRouteRoles('/policies'),
@@ -409,6 +446,7 @@ export const NAV_SECTIONS: NavSection[] = [
           {
             label: 'My Policies',
             description: 'Review and acknowledge policies assigned to you.',
+            keywords: ['acknowledge policy', 'my policies', 'policy sign-off'],
             route: '/my-policies',
             icon: FileSignature,
             roles: mhdRouteRoles('/my-policies'),
@@ -425,6 +463,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Conduct',
         description: 'Track workplace conduct cases and outcomes.',
+        keywords: ['employee conduct', 'disciplinary cases', 'workplace behavior'],
         route: '/conduct',
         icon: Gavel,
         roles: mhdRouteRoles('/conduct'),
@@ -436,6 +475,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Grievances',
         description: 'Review and resolve employee-filed grievances.',
+        keywords: ['complaints', 'employee concerns', 'resolve grievance'],
         route: '/grievances',
         icon: MessageSquareWarning,
         roles: mhdRouteRoles('/grievances'),
@@ -443,6 +483,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'My Grievance',
         description: 'File a grievance or check the status of one you filed.',
+        keywords: ['file complaint', 'my complaint', 'grievance status'],
         route: '/my-grievances',
         icon: MessageSquare,
         roles: mhdRouteRoles('/my-grievances'),
@@ -453,6 +494,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Investigations',
         description: 'Manage formal workplace investigations.',
+        keywords: ['HR investigation', 'fact finding', 'investigation cases'],
         route: '/investigations',
         icon: ShieldAlert,
         roles: mhdRouteRoles('/investigations'),
@@ -460,6 +502,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Offboarding',
         description: 'Manage employee exit and offboarding cases.',
+        keywords: ['termination', 'employee departure', 'exit process'],
         route: '/offboarding',
         icon: DoorOpen,
         roles: mhdRouteRoles('/offboarding'),
@@ -471,6 +514,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Workplace Safety',
         description: 'OSHA/Cal-OSHA recordkeeping: incidents and the annual 300A summary.',
+        keywords: ['work injury', 'OSHA log', 'safety incident', '300A'],
         route: '/safety',
         icon: HardHat,
         roles: mhdRouteRoles('/safety'),
@@ -483,6 +527,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Audit Reports',
         description: 'Review the company-wide activity and access audit trail.',
+        keywords: ['audit log', 'access history', 'activity history'],
         route: '/audit-reports',
         icon: FileSearch,
         roles: mhdRouteRoles('/audit-reports'),
@@ -490,6 +535,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Document Retention',
         description: 'Legally required retention windows for company records.',
+        keywords: ['records retention', 'retention schedule', 'document lifecycle'],
         route: '/document-retention',
         icon: FileSearch,
         roles: mhdRouteRoles('/document-retention'),
@@ -497,6 +543,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Contractor Classification',
         description: 'Evaluate worker-classification compliance recommendations.',
+        keywords: ['independent contractor', 'employee classification', '1099 compliance'],
         route: '/contractor-classification',
         icon: Scale,
         roles: mhdRouteRoles('/contractor-classification'),
@@ -510,6 +557,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Communications',
         description: 'Send messages and manage system alerts.',
+        keywords: ['internal messaging', 'notifications', 'alerts'],
         route: '/communications',
         icon: MessageSquare,
         roles: mhdRouteRoles('/communications'),
@@ -517,6 +565,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Memorandums',
         description: 'Author and distribute formal company memorandums.',
+        keywords: ['company memo', 'formal notice', 'internal memorandum'],
         route: '/memorandums',
         icon: Mail,
         roles: mhdRouteRoles('/memorandums'),
@@ -524,6 +573,7 @@ export const NAV_SECTIONS: NavSection[] = [
           {
             label: 'My Memorandums',
             description: 'Memorandums sent to you.',
+            keywords: ['received memos', 'my notices', 'assigned memorandums'],
             route: '/my-memorandums',
             icon: Mail,
             roles: mhdRouteRoles('/my-memorandums'),
@@ -539,6 +589,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Automations',
         description: 'Build and manage automated workflow rules.',
+        keywords: ['workflow automation', 'automated rules', 'triggers'],
         route: '/automations',
         icon: Bot,
         roles: mhdRouteRoles('/automations'),
@@ -555,6 +606,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Admin Settings',
         description: 'Configure company-wide settings and platform options.',
+        keywords: ['configuration', 'company settings', 'platform administration'],
         route: '/admin',
         icon: Settings,
         roles: mhdRouteRoles('/admin'),
@@ -562,6 +614,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Lab & Sandbox',
         description: 'Experimental tools for platform testing.',
+        keywords: ['experimental features', 'developer tools', 'test environment'],
         route: '/lab',
         icon: FlaskConical,
         roles: mhdRouteRoles('/lab'),
