@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   createCourseFromTemplate: vi
     .fn()
     .mockResolvedValue({ id: 'course-template', referenceId: 'TRN-TEMPLATE' }),
+  setContentMode: vi.fn().mockResolvedValue(undefined),
   submitForReview: vi.fn().mockResolvedValue(undefined),
   approveContent: vi.fn().mockResolvedValue(undefined),
   publishContent: vi.fn().mockResolvedValue(undefined),
@@ -37,6 +38,7 @@ vi.mock('../Hook', () => ({
   useMhdUpdateTrainingCourse: () => ({ mutateAsync: mocks.updateCourse }),
   useMhdCreateTrainingCourse: () => ({ mutateAsync: mocks.createCourse }),
   useMhdCreateTrainingCourseFromTemplate: () => ({ mutateAsync: mocks.createCourseFromTemplate }),
+  useMhdSetTrainingCourseContentMode: () => ({ mutateAsync: mocks.setContentMode }),
   useMhdSubmitTrainingContentForReview: () => ({ mutateAsync: mocks.submitForReview }),
   useMhdApproveTrainingContent: () => ({ mutateAsync: mocks.approveContent }),
   useMhdPublishTrainingContent: () => ({ mutateAsync: mocks.publishContent }),
@@ -316,6 +318,7 @@ describe('MhdTrainingContentWizard', () => {
 
   it('creates a blank course only after the Template step is left', async () => {
     vi.mocked(mocks.createCourse).mockClear();
+    vi.mocked(mocks.setContentMode).mockClear();
     render(
       <MhdTrainingContentWizard
         entityType="COURSE"
@@ -335,6 +338,15 @@ describe('MhdTrainingContentWizard', () => {
       expect(mocks.createCourse).toHaveBeenCalledWith(
         expect.objectContaining({ courseKey: 'course-blank', title: 'Blank course' }),
       ),
+    );
+    // A blank-started course must be flipped to AUTHORED, or
+    // mhd_training_module_create refuses every module on it (verified
+    // against the real local Supabase RPC, not just this mock).
+    await vi.waitFor(() =>
+      expect(mocks.setContentMode).toHaveBeenCalledWith({
+        courseId: 'course-new',
+        contentMode: 'AUTHORED',
+      }),
     );
   });
 

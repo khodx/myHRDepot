@@ -37,6 +37,7 @@ vi.mock('../Hook', () => ({
   useMhdUpdateTrainingCourse: () => ({ mutateAsync: updateCourseMock }),
   useMhdCreateTrainingCourse: () => ({ mutateAsync: vi.fn() }),
   useMhdCreateTrainingCourseFromTemplate: () => ({ mutateAsync: vi.fn() }),
+  useMhdSetTrainingCourseContentMode: () => ({ mutateAsync: vi.fn() }),
   useMhdSubmitTrainingContentForReview: () => ({ mutateAsync: vi.fn() }),
   useMhdApproveTrainingContent: () => ({ mutateAsync: vi.fn() }),
   useMhdPublishTrainingContent: () => ({ mutateAsync: vi.fn() }),

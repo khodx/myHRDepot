@@ -13,6 +13,7 @@ import {
   useMhdApproveTrainingContent,
   useMhdPublishTrainingContent,
   useMhdRemoveTrainingPrerequisite,
+  useMhdSetTrainingCourseContentMode,
   useMhdSubmitTrainingContentForReview,
   useMhdTrainingCourses,
   useMhdTrainingCurriculums,
@@ -609,6 +610,7 @@ export function MhdTrainingContentWizard({
   const updateCourse = useMhdUpdateTrainingCourse();
   const createCourse = useMhdCreateTrainingCourse();
   const createCourseFromTemplate = useMhdCreateTrainingCourseFromTemplate();
+  const setContentMode = useMhdSetTrainingCourseContentMode();
   const submit = useMhdSubmitTrainingContentForReview();
   const approve = useMhdApproveTrainingContent();
   const publish = useMhdPublishTrainingContent();
@@ -765,9 +767,23 @@ export function MhdTrainingContentWizard({
       externalUrl: externalUrl || null,
       programId: curriculumId || null,
     };
-    const result = selectedTemplateId
-      ? await createCourseFromTemplate.mutateAsync({ ...input, templateId: selectedTemplateId })
-      : await createCourse.mutateAsync(input);
+    if (selectedTemplateId) {
+      const result = await createCourseFromTemplate.mutateAsync({
+        ...input,
+        templateId: selectedTemplateId,
+      });
+      setSavedEntityId(result.id);
+      return true;
+    }
+    // mhd_training_course_create leaves content_mode at its schema default
+    // (EVIDENCE_ONLY) -- only mhd_training_course_create_from_template sets
+    // AUTHORED. A blank-started wizard course is always meant to be authored
+    // here (that's the entire point of the wizard's Content step), so flip
+    // it explicitly -- without this, mhd_training_module_create refuses
+    // every module with "Course is not an authored course" and the Content
+    // step's Add Module action silently fails for every blank course.
+    const result = await createCourse.mutateAsync(input);
+    await setContentMode.mutateAsync({ courseId: result.id, contentMode: 'AUTHORED' });
     setSavedEntityId(result.id);
     return true;
   }
