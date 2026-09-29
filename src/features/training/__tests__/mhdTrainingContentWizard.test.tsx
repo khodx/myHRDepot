@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import {
   validateWizardStep,
@@ -21,6 +21,8 @@ const mocks = vi.hoisted(() => ({
   publishContent: vi.fn().mockResolvedValue(undefined),
   addPrerequisite: vi.fn().mockResolvedValue(undefined),
   removePrerequisite: vi.fn().mockResolvedValue(undefined),
+  trainingCurriculums: vi.fn(() => ({ data: [] })),
+  trainingPrograms: vi.fn(() => ({ data: [] })),
   trainingCourses: vi.fn(() => ({ data: [] })),
   prerequisites: vi.fn(() => ({ data: [] })),
   trainingTemplates: vi.fn(() => ({ data: [] })),
@@ -41,8 +43,8 @@ vi.mock('../Hook', () => ({
   useMhdAddTrainingPrerequisite: () => ({ mutateAsync: mocks.addPrerequisite }),
   useMhdRemoveTrainingPrerequisite: () => ({ mutateAsync: mocks.removePrerequisite }),
   useMhdTrainingPrerequisites: () => mocks.prerequisites(),
-  useMhdTrainingCurriculums: () => ({ data: [] }),
-  useMhdTrainingPrograms: () => ({ data: [] }),
+  useMhdTrainingCurriculums: () => mocks.trainingCurriculums(),
+  useMhdTrainingPrograms: () => mocks.trainingPrograms(),
   useMhdTrainingCourses: () => mocks.trainingCourses(),
   useMhdTrainingTemplates: () => mocks.trainingTemplates(),
   useMhdTrainingTemplateSlots: () => mocks.templateSlots(),
@@ -168,6 +170,148 @@ describe('MhdTrainingContentWizard', () => {
       ),
     );
     expect(mocks.createProgram).not.toHaveBeenCalled();
+  });
+
+  it('hydrates a resumed curriculum and updates it without recreating it', async () => {
+    vi.mocked(mocks.trainingCurriculums).mockReturnValue({
+      data: [
+        {
+          id: 'cur-existing',
+          title: 'Existing curriculum',
+          description: 'Saved curriculum description',
+          isActive: true,
+        },
+      ],
+    } as never);
+    vi.mocked(mocks.updateCurriculum).mockClear();
+    vi.mocked(mocks.createCurriculum).mockClear();
+    render(
+      <MhdTrainingContentWizard
+        entityType="CURRICULUM"
+        companyId="company-1"
+        entityId="cur-existing"
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await vi.waitFor(() =>
+      expect(screen.getByLabelText('Title')).toHaveValue('Existing curriculum'),
+    );
+    expect(screen.getByLabelText('Description')).toHaveValue('Saved curriculum description');
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() =>
+      expect(mocks.updateCurriculum).toHaveBeenCalledWith({
+        curriculumId: 'cur-existing',
+        title: 'Existing curriculum',
+        description: 'Saved curriculum description',
+        isActive: true,
+      }),
+    );
+    expect(mocks.createCurriculum).not.toHaveBeenCalled();
+  });
+
+  it('hydrates a resumed program placement fields and updates it without recreating it', async () => {
+    vi.mocked(mocks.trainingCurriculums).mockReturnValue({
+      data: [
+        {
+          id: 'cur-parent',
+          title: 'Parent curriculum',
+          description: null,
+          isActive: true,
+        },
+      ],
+    } as never);
+    vi.mocked(mocks.trainingPrograms).mockReturnValue({
+      data: [
+        {
+          id: 'prog-existing',
+          title: 'Existing program',
+          description: 'Saved program description',
+          curriculumId: 'cur-parent',
+          sortOrder: 4,
+          isActive: true,
+        },
+      ],
+    } as never);
+    vi.mocked(mocks.updateProgram).mockClear();
+    vi.mocked(mocks.createProgram).mockClear();
+    render(
+      <MhdTrainingContentWizard
+        entityType="PROGRAM"
+        companyId="company-1"
+        entityId="prog-existing"
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await vi.waitFor(() => expect(screen.getByLabelText('Title')).toHaveValue('Existing program'));
+    expect(screen.getByLabelText('Description')).toHaveValue('Saved program description');
+    expect(screen.getByLabelText('Curriculum')).toHaveValue('cur-parent');
+    expect(screen.getByLabelText('Sort order')).toHaveValue(4);
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() =>
+      expect(mocks.updateProgram).toHaveBeenCalledWith({
+        programId: 'prog-existing',
+        title: 'Existing program',
+        description: 'Saved program description',
+        curriculumId: 'cur-parent',
+        clearCurriculumId: false,
+        sortOrder: 4,
+        isActive: true,
+      }),
+    );
+    expect(mocks.createProgram).not.toHaveBeenCalled();
+  });
+
+  it('renders Complete and Incomplete checklist indicators from the entity state', async () => {
+    vi.mocked(mocks.trainingCurriculums).mockReturnValue({
+      data: [
+        {
+          id: 'cur-checklist',
+          title: 'Checklist curriculum',
+          description: 'Has details',
+          isActive: true,
+        },
+      ],
+    } as never);
+    vi.mocked(mocks.trainingPrograms).mockReturnValue({
+      data: [
+        {
+          id: 'prog-attached',
+          title: 'Attached program',
+          description: null,
+          curriculumId: 'cur-checklist',
+          sortOrder: 0,
+          isActive: true,
+        },
+      ],
+    } as never);
+    render(
+      <MhdTrainingContentWizard
+        entityType="CURRICULUM"
+        companyId="company-1"
+        entityId="cur-checklist"
+        onClose={vi.fn()}
+      />,
+    );
+    const checklist = screen.getByRole('list', { name: 'Wizard overview' });
+    expect(within(checklist).getByRole('button', { name: /Details[\s\S]*Complete/ })).toBeInTheDocument();
+    expect(within(checklist).getByRole('button', { name: /Programs[\s\S]*Complete/ })).toBeInTheDocument();
+    expect(within(checklist).getByRole('button', { name: /Review[\s\S]*Complete/ })).toBeInTheDocument();
+
+    vi.mocked(mocks.trainingPrograms).mockReturnValue({ data: [] });
+    render(
+      <MhdTrainingContentWizard
+        entityType="CURRICULUM"
+        companyId="company-1"
+        entityId="cur-checklist"
+        onClose={vi.fn()}
+      />,
+    );
+    const incompleteChecklist = screen.getAllByRole('list', { name: 'Wizard overview' }).at(-1)!;
+    expect(
+      within(incompleteChecklist).getByRole('button', { name: /Programs[\s\S]*Incomplete/ }),
+    ).toBeInTheDocument();
   });
 
   it('creates a blank course only after the Template step is left', async () => {
@@ -422,6 +566,50 @@ describe('MhdTrainingContentWizard', () => {
     await vi.waitFor(() =>
       expect(mocks.submitForReview).toHaveBeenCalledWith({ courseId: 'course-approval' }),
     );
+  });
+
+  it.each([
+    ['IN_REVIEW', 'Approve Content', 'approveContent', { courseId: 'course-approval', reviewNotes: 'Looks good' }],
+    ['APPROVED', 'Publish Content', 'publishContent', { courseId: 'course-approval' }],
+  ] as const)('advances %s courses through the Review action', async (approvalStatus, action, hook, expected) => {
+    vi.mocked(mocks.trainingCourses).mockReturnValue({
+      data: [
+        {
+          id: 'course-approval',
+          courseKey: 'approval-key',
+          title: 'Approval course',
+          description: 'Description',
+          category: 'SAFETY',
+          deliveryMode: 'ONLINE',
+          durationMinutes: 30,
+          recurrenceMonths: 12,
+          requiresEvidence: true,
+          externalUrl: null,
+          programId: null,
+          isActive: true,
+          templateId: null,
+          approvalStatus,
+        },
+      ],
+    } as never);
+    vi.mocked(mocks[hook]).mockClear();
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('Looks good');
+    render(
+      <MhdTrainingContentWizard
+        entityType="COURSE"
+        companyId="company-1"
+        entityId="course-approval"
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await vi.waitFor(() => expect(screen.getByLabelText('Course key')).toHaveValue('approval-key'));
+    fireEvent.click(screen.getByRole('button', { name: 'Overview' }));
+    fireEvent.click(screen.getAllByRole('button').find((el) => el.textContent?.includes('Review'))!);
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: action })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: action }));
+    await vi.waitFor(() => expect(mocks[hook]).toHaveBeenCalledWith(expected));
+    promptSpy.mockRestore();
   });
 
   it('guards the Content step when the course id is still missing', async () => {
