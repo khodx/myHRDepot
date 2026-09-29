@@ -1285,7 +1285,7 @@ function MhdNavCategory({
       className={`space-y-1 rounded-2xl transition-colors duration-150 motion-reduce:transition-none ${
         isCollapsed
           ? ''
-          : 'bg-rail-panel p-1 pb-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),0_4px_12px_rgba(0,0,0,0.35)]'
+          : 'bg-rail-panel p-1 pb-2 shadow-[0_4px_12px_rgba(0,0,0,0.35)]'
       }`}
     >
       <div className="flex items-center gap-0.5">
@@ -1305,7 +1305,11 @@ function MhdNavCategory({
           aria-expanded={!isCollapsed}
           aria-controls={panelId}
           aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${section.label}`}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-rail-text transition-colors duration-150 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${
+            isCollapsed
+              ? 'text-rail-text hover:bg-rail-hover'
+              : 'text-rail-panel-text hover:bg-rail-panel-tint-hover'
+          }`}
         >
           <ChevronDown
             className={`h-3.5 w-3.5 transition-transform motion-reduce:transition-none ${isCollapsed ? '-rotate-90' : ''}`}
@@ -1316,7 +1320,7 @@ function MhdNavCategory({
       {isCollapsed ? null : (
         <div
           id={panelId}
-          className="relative ml-[22px] space-y-1 pl-2.5 before:absolute before:bottom-0.5 before:left-0 before:top-0.5 before:w-0.5 before:rounded-full before:bg-white/40"
+          className="relative ml-[22px] space-y-1 pl-2.5 before:absolute before:bottom-0.5 before:left-0 before:top-0.5 before:w-0.5 before:rounded-full before:bg-rail-panel-line"
         >
           {section.items.flatMap((item) => [
             <MhdNavItem key={item.route} item={item} collapsed={false} tone="panel" />,
@@ -1401,8 +1405,8 @@ function MhdRailFlyoutCategory({ section }: { section: NavSection }) {
             style={{ top: position.top - 6, left: position.left }}
             className="mhd-rail-scroll fixed z-50 max-h-[80vh] w-[268px] overflow-y-auto pl-3"
           >
-            <div className="space-y-1 rounded-2xl bg-rail-panel p-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),0_14px_30px_rgba(0,0,0,0.45)]">
-              <p className="px-3 pb-1 pt-1 text-[12px] font-semibold uppercase tracking-wider text-white/70">
+            <div className="space-y-1 rounded-2xl bg-rail-panel p-2 shadow-[0_14px_30px_rgba(0,0,0,0.45)]">
+              <p className="px-3 pb-1 pt-1 text-[12px] font-semibold uppercase tracking-wider text-rail-panel-text/70">
                 {section.label}
               </p>
               <MhdNavItem
@@ -1487,11 +1491,17 @@ function MhdNavItem({
         ? 'gap-3 pl-8 text-[15px]'
         : 'gap-3 px-3 text-[17px]';
 
+  // Rows on the open category's white panel (module rows, and the category
+  // row itself while its panel is open) use the panel token set: dark ink,
+  // dark-alpha tints, and a navy active pill. Everything else sits directly
+  // on the navy rail.
+  const onPanel = tone === 'panel' || (tone === 'category' && panelOpen);
+
   const inactive =
     tone === 'panel'
-      ? 'font-medium text-rail-text hover:bg-white/15 hover:text-rail-hover-text'
+      ? 'font-medium text-rail-panel-text hover:bg-rail-panel-tint-hover'
       : tone === 'category' && panelOpen
-        ? 'bg-white/15 font-semibold text-rail-text hover:bg-white/25 hover:text-rail-hover-text'
+        ? 'bg-rail-panel-tint font-semibold text-rail-panel-text hover:bg-rail-panel-tint-hover'
         : tone === 'category'
           ? 'font-semibold text-rail-text hover:bg-rail-hover hover:text-rail-hover-text'
           : 'font-medium text-rail-text hover:bg-rail-hover hover:text-rail-hover-text';
@@ -1501,8 +1511,11 @@ function MhdNavItem({
   // bright top edge / dark bottom edge (inset shadows) read as a
   // pushed-out, embossed button rather than a flat color block. This carries
   // the whole "active" signal now that there's no separate indicator dot.
-  const activeClasses =
-    'bg-rail-selected font-semibold text-rail-selected-text shadow-[0_6px_14px_rgba(0,0,0,0.55),0_2px_4px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-2px_0_rgba(0,0,0,0.4)]';
+  const activeClasses = onPanel
+    ? // The white rail pill would vanish on the white panel, so the active row
+      // flips to a navy pill with the same raised feel.
+      'bg-rail-panel-pill font-semibold text-rail-panel-pill-text shadow-[0_4px_10px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.35),inset_0_-2px_0_rgba(0,0,0,0.3)]'
+    : 'bg-rail-selected font-semibold text-rail-selected-text shadow-[0_6px_14px_rgba(0,0,0,0.55),0_2px_4px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-2px_0_rgba(0,0,0,0.4)]';
 
   return (
     <NavLink

@@ -189,7 +189,7 @@ describe('global.css category token contract', () => {
   it('gives the rail a dark navy surface with white text and a white selected fill', () => {
     expect(globalCss).toContain('--mhd-rail: #00157a;');
     expect(globalCss).toContain('--mhd-rail-surface: #0a2499;');
-    expect(globalCss).toContain('--mhd-rail-panel: #0003aa;');
+    expect(globalCss).toContain('--mhd-rail-panel: #ffffff;');
     expect(globalCss).toContain('--mhd-rail-hover: #12299e;');
     expect(globalCss).toContain('--mhd-rail-hover-text: #ffffff;');
     expect(globalCss).toContain('--mhd-rail-selected: #ffffff;');

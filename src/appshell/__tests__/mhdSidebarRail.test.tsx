@@ -93,12 +93,13 @@ describe('MhdSidebar rail', () => {
     await user.click(screen.getByRole('button', { name: /Work Tools/i }));
 
     const active = screen.getByRole('link', { name: 'Tasks' });
-    expect(active.className).toContain('bg-rail-selected');
+    // Inside the open white panel the active row is the navy pill.
+    expect(active.className).toContain('bg-rail-panel-pill');
     const inactive = screen.getByRole('link', { name: 'Forms' });
-    expect(inactive.className).toContain('text-rail-text');
-    // Module rows inside the open accent panel use white-alpha hover tints,
-    // which read against the accent rather than the navy rail.
-    expect(inactive.className).toContain('hover:bg-white/15');
+    // Module rows inside the open white panel use the panel token set: dark
+    // ink text and dark-alpha hover tints.
+    expect(inactive.className).toContain('text-rail-panel-text');
+    expect(inactive.className).toContain('hover:bg-rail-panel-tint-hover');
   });
 
   it('collapses to icon-only and persists under mhd:nav:rail', async () => {
@@ -243,13 +244,14 @@ describe('MhdSidebar category landing behavior', () => {
     await user.click(name);
     expect(screen.getByTestId('pathname')).toHaveTextContent('/categories/work-tools');
     expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
-    // The landing page itself is the active row.
+    // The landing page itself is the active row; on the open white panel that
+    // is the navy pill, not the rail's white one.
     expect(screen.getByRole('link', { name: 'Work Tools' }).className).toContain(
-      'bg-rail-selected',
+      'bg-rail-panel-pill',
     );
   });
 
-  it('expands with the accent inset panel and a guide line', async () => {
+  it('expands with the white inset panel and a guide line', async () => {
     const user = userEvent.setup();
     const { MhdSidebar } = await import('../MhdSidebar');
     render(
@@ -263,7 +265,7 @@ describe('MhdSidebar category landing behavior', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     const panel = document.getElementById(toggle.getAttribute('aria-controls')!);
     expect(panel).not.toBeNull();
-    expect(panel!.className).toContain('before:bg-white/40');
+    expect(panel!.className).toContain('before:bg-rail-panel-line');
     expect(panel!.parentElement!.className).toContain('bg-rail-panel');
   });
 
