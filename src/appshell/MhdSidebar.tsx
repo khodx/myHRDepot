@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useRef, useState, type MouseEvent } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   BarChart3,
   Accessibility,
@@ -112,7 +112,34 @@ export interface NavItem {
 export interface NavSection {
   label: string;
   icon: React.ElementType;
+  /**
+   * The category's own landing page (`/categories/<slug>`). Clicking the
+   * category in the rail navigates here and expands its panel. A section
+   * without one (a single-module category such as Automation) has nothing to
+   * land on, so its rail entry links straight to its only module instead.
+   */
+  route?: string;
+  /** One-line summary shown at the top of the category landing page. */
+  description?: string;
   items: NavItem[];
+}
+
+/** The nav items a role can open, with the parent-hidden child promotion rule applied. */
+export function mhdVisibleNavItems(items: NavItem[], roles: MhdAuthRoleName[]): NavItem[] {
+  const hasRole = (item: NavItem) =>
+    item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role));
+  // A child (e.g. "My Training") can be visible to a role that cannot see its
+  // parent (e.g. "Training" is Platform Admin/HR Partner/Client Admin only,
+  // while My Training is Employee/Manager/Supervisor/Lead) — nesting must
+  // never hide a role from a route it's independently entitled to. When the
+  // parent passes the role check, keep only its role-visible children nested
+  // under it; when the parent fails, promote any role-visible children to
+  // their own un-nested top-level entries instead of losing them.
+  return items.flatMap((item) => {
+    const visibleChildren = (item.children ?? []).filter(hasRole);
+    if (hasRole(item)) return [{ ...item, children: visibleChildren }];
+    return visibleChildren;
+  });
 }
 
 // Dashboard sits above the collapsible groups as the app's home — it belongs to
@@ -159,6 +186,8 @@ function subPage(
 export const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Work Tools',
+    route: '/categories/work-tools',
+    description: 'Everyday tools for getting work done.',
     icon: Wrench,
     items: [
       {
@@ -299,6 +328,8 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'People & Org',
+    route: '/categories/people-org',
+    description: 'Employees, users, companies, jobs and their files.',
     icon: UsersRound,
     items: [
       {
@@ -382,7 +413,12 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Compensation',
         description: 'Classify roles for pay and overtime compliance.',
-        keywords: ['exempt classification', 'salary classification', 'overtime exemption', 'pay classification'],
+        keywords: [
+          'exempt classification',
+          'salary classification',
+          'overtime exemption',
+          'pay classification',
+        ],
         route: '/compensation',
         icon: BadgeDollarSign,
         roles: mhdRouteRoles('/compensation'),
@@ -406,6 +442,8 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Time & Leave',
+    route: '/categories/time-leave',
+    description: 'Schedules, attendance, leave and accommodations.',
     icon: Clock,
     items: [
       {
@@ -482,6 +520,8 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Talent',
+    route: '/categories/talent',
+    description: 'Performance, recruiting, learning and policies.',
     icon: Award,
     items: [
       {
@@ -552,7 +592,8 @@ export const NAV_SECTIONS: NavSection[] = [
       },
       {
         label: 'Learning Management (LMS)',
-        description: 'Author courses, assign compliance training, and manage certifications, assessments, and live sessions.',
+        description:
+          'Author courses, assign compliance training, and manage certifications, assessments, and live sessions.',
         keywords: ['training courses', 'compliance training', 'certifications', 'LMS'],
         route: '/training',
         icon: GraduationCap,
@@ -665,7 +706,12 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Certificates',
         description: 'Issue and verify award, promotion, training, and general certificates.',
-        keywords: ['award certificate', 'promotion certificate', 'certificate of completion', 'verify certificate'],
+        keywords: [
+          'award certificate',
+          'promotion certificate',
+          'certificate of completion',
+          'verify certificate',
+        ],
         route: '/certificates',
         icon: Award,
         roles: mhdRouteRoles('/certificates'),
@@ -710,6 +756,8 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Employee Relations',
+    route: '/categories/employee-relations',
+    description: 'Conduct, investigations, safety and compliance.',
     icon: Scale,
     items: [
       // Admin-only (Platform Admin / HR Partner / Client Admin); no subject route.
@@ -805,6 +853,8 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Communications',
+    route: '/categories/communications',
+    description: 'Announcements, messaging and memorandums.',
     icon: MessageCircle,
     items: [
       {
@@ -910,6 +960,8 @@ export const NAV_SECTIONS: NavSection[] = [
   // platform operator tooling, not an HR module.
   {
     label: 'Administration',
+    route: '/categories/administration',
+    description: 'Platform settings and experimental tools.',
     icon: Cog,
     items: [
       {
@@ -1050,51 +1102,47 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
   const hasRole = (item: NavItem) =>
     item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role));
 
+  const persistCollapsed = (next: string[]) => {
+    try {
+      window.localStorage.setItem(MHD_NAV_COLLAPSE_KEY, JSON.stringify(next));
+    } catch {
+      // localStorage unavailable — collapse state stays in-memory only.
+    }
+    return next;
+  };
+
   // Accordion behavior: expanding one section collapses every other one.
-  // Clicking the already-expanded section collapses it too, leaving none
+  // Toggling the already-expanded section collapses it too, leaving none
   // expanded — there is no "expand all" state.
   const toggleGroup = (label: string) => {
     setCollapsedGroups((prev) => {
       const allLabels = NAV_SECTIONS.map((section) => section.label);
       // Currently collapsed -> expand just this one (collapsing every other
       // group). Currently expanded -> collapse it too, leaving none open.
-      const next = prev.includes(label) ? allLabels.filter((l) => l !== label) : allLabels;
-      try {
-        window.localStorage.setItem(MHD_NAV_COLLAPSE_KEY, JSON.stringify(next));
-      } catch {
-        // localStorage unavailable — collapse state stays in-memory only.
-      }
-      return next;
+      return persistCollapsed(
+        prev.includes(label) ? allLabels.filter((l) => l !== label) : allLabels,
+      );
     });
+  };
+
+  // Navigating to a category's landing page always leaves it expanded (never
+  // toggles it closed), so the panel and the page agree.
+  const openGroup = (label: string) => {
+    setCollapsedGroups(
+      persistCollapsed(NAV_SECTIONS.map((section) => section.label).filter((l) => l !== label)),
+    );
   };
 
   // Dashboard is the app's home — returning to it resets the rail to a known,
   // uncluttered state rather than leaving whatever group the user last opened
   // expanded.
   const collapseAllGroups = () => {
-    const allLabels = NAV_SECTIONS.map((section) => section.label);
-    setCollapsedGroups(allLabels);
-    try {
-      window.localStorage.setItem(MHD_NAV_COLLAPSE_KEY, JSON.stringify(allLabels));
-    } catch {
-      // localStorage unavailable — collapse state stays in-memory only.
-    }
+    setCollapsedGroups(persistCollapsed(NAV_SECTIONS.map((section) => section.label)));
   };
 
-  // A child (e.g. "My Training") can be visible to a role that cannot see its
-  // parent (e.g. "Training" is Platform Admin/HR Partner/Client Admin only,
-  // while My Training is Employee/Manager/Supervisor/Lead) — nesting must
-  // never hide a role from a route it's independently entitled to. When the
-  // parent passes the role check, keep only its role-visible children nested
-  // under it; when the parent fails, promote any role-visible children to
-  // their own un-nested top-level entries instead of losing them.
   const visibleSections = NAV_SECTIONS.map((section) => ({
     ...section,
-    items: section.items.flatMap((item) => {
-      const visibleChildren = (item.children ?? []).filter(hasRole);
-      if (hasRole(item)) return [{ ...item, children: visibleChildren }];
-      return visibleChildren;
-    }),
+    items: mhdVisibleNavItems(section.items, roles),
   })).filter((section) => section.items.length > 0);
 
   return (
@@ -1151,64 +1199,275 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
         {hasRole(DASHBOARD_ITEM) ? (
           <MhdNavItem item={DASHBOARD_ITEM} collapsed={collapsed} onClick={collapseAllGroups} />
         ) : null}
-        {visibleSections.map((section) => {
-          const isCollapsed = collapsedGroups.includes(section.label);
-          if (collapsed) {
-            // Icon-only rail: group headers become separators; items keep their
-            // role filtering and active state, with tooltips for labels.
-            return (
-              <div key={section.label} className="space-y-1">
-                <div className="mx-2 border-t border-rail-border" aria-hidden />
-                {section.items.flatMap((item) => [item, ...(item.children ?? [])]).map((item) => (
-                  <MhdNavItem key={item.route} item={item} collapsed />
-                ))}
-              </div>
-            );
-          }
-          const SectionIcon = section.icon;
-          return (
-            <div key={section.label} className="space-y-1">
-              <button
-                type="button"
-                onClick={() => toggleGroup(section.label)}
-                aria-expanded={!isCollapsed}
-                className="flex min-h-10 w-full items-center justify-between rounded-md px-3 text-[17px] font-semibold text-rail-text transition-colors duration-150 hover:bg-rail-hover hover:text-rail-hover-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
-              >
-                <span className="flex items-center gap-3">
-                  <SectionIcon className="h-[18px] w-[18px] shrink-0" aria-hidden />
-                  <span>{section.label}</span>
-                </span>
-                <ChevronDown
-                  className={`h-3.5 w-3.5 shrink-0 transition-transform motion-reduce:transition-none ${isCollapsed ? '-rotate-90' : ''}`}
-                  aria-hidden
-                />
-              </button>
-              {isCollapsed
-                ? null
-                : section.items.flatMap((item) => [
-                    <MhdNavItem key={item.route} item={item} collapsed={false} />,
-                    ...(item.children ?? []).map((child) => (
-                      <MhdNavItem key={child.route} item={child} collapsed={false} nested />
-                    )),
-                  ])}
-            </div>
-          );
-        })}
+        {visibleSections.map((section) =>
+          collapsed ? (
+            <MhdRailFlyoutCategory key={section.label} section={section} />
+          ) : (
+            <MhdNavCategory
+              key={section.label}
+              section={section}
+              isCollapsed={collapsedGroups.includes(section.label)}
+              onToggle={() => toggleGroup(section.label)}
+              onOpen={() => openGroup(section.label)}
+            />
+          ),
+        )}
       </nav>
     </>
   );
 }
 
+/** True when the pathname is the route itself or any descendant of it. */
+function pathIsWithin(pathname: string, route: string): boolean {
+  return pathname === route || pathname.startsWith(`${route}/`);
+}
+
+/** True when the pathname is the category's landing page or inside any of its modules. */
+function sectionContainsPath(section: NavSection, pathname: string): boolean {
+  if (section.route && pathIsWithin(pathname, section.route)) return true;
+  return section.items.some(
+    (item) =>
+      pathIsWithin(pathname, item.route) ||
+      (item.children ?? []).some((child) => pathIsWithin(pathname, child.route)),
+  );
+}
+
+/**
+ * One category in the expanded rail. The name is a link to the category's
+ * landing page (navigating also expands it); the chevron is a separate
+ * button that only toggles, so the panel can be peeked at or closed without
+ * leaving the current page. The open category sits in an inset accent panel
+ * with a guide line beside its modules.
+ */
+function MhdNavCategory({
+  section,
+  isCollapsed,
+  onToggle,
+  onOpen,
+}: {
+  section: NavSection;
+  isCollapsed: boolean;
+  onToggle: () => void;
+  onOpen: () => void;
+}) {
+  const { pathname } = useLocation();
+  const SectionIcon = section.icon;
+
+  // A category without a landing page (a single-module category) has nothing
+  // to expand: its rail entry is just a link to that module.
+  if (!section.route) {
+    const only = section.items[0];
+    return (
+      <MhdNavItem
+        item={{ label: section.label, route: only.route, icon: section.icon, status: only.status }}
+        collapsed={false}
+      />
+    );
+  }
+
+  const landing = section.route;
+  const panelId = `mhd-nav-panel-${landing.split('/').pop()}`;
+
+  const handleNameClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    // Already on the landing page: navigating again is a no-op, so the click
+    // becomes the collapse gesture instead — otherwise the panel could never
+    // be closed from here.
+    if (pathname === landing) {
+      event.preventDefault();
+      onToggle();
+      return;
+    }
+    onOpen();
+  };
+
+  return (
+    <div
+      className={`space-y-1 rounded-2xl transition-colors duration-150 motion-reduce:transition-none ${
+        isCollapsed
+          ? ''
+          : 'bg-rail-panel p-1 pb-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),0_4px_12px_rgba(0,0,0,0.35)]'
+      }`}
+    >
+      <div className="flex items-center gap-0.5">
+        <div className="min-w-0 flex-1">
+          <MhdNavItem
+            item={{ label: section.label, route: landing, icon: SectionIcon }}
+            collapsed={false}
+            end
+            tone="category"
+            panelOpen={!isCollapsed}
+            onClick={handleNameClick}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={!isCollapsed}
+          aria-controls={panelId}
+          aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${section.label}`}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-rail-text transition-colors duration-150 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
+        >
+          <ChevronDown
+            className={`h-3.5 w-3.5 transition-transform motion-reduce:transition-none ${isCollapsed ? '-rotate-90' : ''}`}
+            aria-hidden
+          />
+        </button>
+      </div>
+      {isCollapsed ? null : (
+        <div
+          id={panelId}
+          className="relative ml-[22px] space-y-1 pl-2.5 before:absolute before:bottom-0.5 before:left-0 before:top-0.5 before:w-0.5 before:rounded-full before:bg-white/40"
+        >
+          {section.items.flatMap((item) => [
+            <MhdNavItem key={item.route} item={item} collapsed={false} tone="panel" />,
+            ...(item.children ?? []).map((child) => (
+              <MhdNavItem key={child.route} item={child} collapsed={false} tone="panel" nested />
+            )),
+          ])}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * One category in the icon-only rail. The icon links to the landing page and
+ * hovering or focusing it opens a flyout listing the category's modules —
+ * the collapsed rail has no room to show them inline. The flyout is
+ * `position: fixed` (measured from the trigger) because the nav scroller's
+ * `overflow-y-auto` would clip an absolutely positioned child.
+ */
+function MhdRailFlyoutCategory({ section }: { section: NavSection }) {
+  const { pathname } = useLocation();
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const SectionIcon = section.icon;
+
+  const show = () => {
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    if (rect) setPosition({ top: rect.top, left: rect.right });
+  };
+  const hide = () => setPosition(null);
+
+  // A single-module category has no landing page and nothing to fly out.
+  if (!section.route) {
+    const only = section.items[0];
+    return (
+      <div className="space-y-1">
+        <div className="mx-2 border-t border-rail-border" aria-hidden />
+        <MhdNavItem
+          item={{
+            label: section.label,
+            route: only.route,
+            icon: section.icon,
+            status: only.status,
+          }}
+          collapsed
+        />
+      </div>
+    );
+  }
+
+  const landing = section.route;
+
+  return (
+    <div className="space-y-1">
+      <div className="mx-2 border-t border-rail-border" aria-hidden />
+      <div
+        ref={wrapperRef}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) hide();
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') hide();
+        }}
+      >
+        <MhdNavItem
+          item={{ label: section.label, route: landing, icon: SectionIcon }}
+          collapsed
+          end
+          active={sectionContainsPath(section, pathname)}
+          onClick={hide}
+        />
+        {position ? (
+          // The outer box carries left padding as a transparent hover bridge
+          // across the gap between the rail and the panel.
+          <div
+            role="group"
+            aria-label={`${section.label} modules`}
+            style={{ top: position.top - 6, left: position.left }}
+            className="mhd-rail-scroll fixed z-50 max-h-[80vh] w-[268px] overflow-y-auto pl-3"
+          >
+            <div className="space-y-1 rounded-2xl bg-rail-panel p-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),0_14px_30px_rgba(0,0,0,0.45)]">
+              <p className="px-3 pb-1 pt-1 text-[12px] font-semibold uppercase tracking-wider text-white/70">
+                {section.label}
+              </p>
+              <MhdNavItem
+                item={{ label: `${section.label} Home`, route: landing, icon: SectionIcon }}
+                collapsed={false}
+                end
+                tone="category"
+                panelOpen
+                onClick={hide}
+              />
+              {section.items.flatMap((item) => [
+                <MhdNavItem
+                  key={item.route}
+                  item={item}
+                  collapsed={false}
+                  tone="panel"
+                  onClick={hide}
+                />,
+                ...(item.children ?? []).map((child) => (
+                  <MhdNavItem
+                    key={child.route}
+                    item={child}
+                    collapsed={false}
+                    tone="panel"
+                    nested
+                    onClick={hide}
+                  />
+                )),
+              ])}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+type MhdNavItemTone = 'default' | 'category' | 'panel';
+
 function MhdNavItem({
   item,
   collapsed,
   nested,
+  end,
+  tone = 'default',
+  panelOpen,
+  active,
   onClick,
 }: {
-  item: NavItem;
+  item: Pick<NavItem, 'label' | 'route' | 'icon' | 'status'>;
   collapsed: boolean;
   nested?: boolean;
-  onClick?: () => void;
+  /** Match the route exactly (a category landing page, not its descendants). */
+  end?: boolean;
+  /**
+   * `category` is a category name row; `panel` is a module row inside an open
+   * category's accent panel, where the inactive state uses white-alpha tints
+   * that read against the accent rather than the navy rail.
+   */
+  tone?: MhdNavItemTone;
+  /** Category row whose panel is open: tinted so it stands apart from closed ones. */
+  panelOpen?: boolean;
+  /** Overrides the route match, e.g. a collapsed category icon lit for any module inside it. */
+  active?: boolean;
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
 }) {
   const Icon = item.icon;
   const title =
@@ -1218,30 +1477,53 @@ function MhdNavItem({
         ? item.label
         : undefined;
 
+  const size = collapsed
+    ? 'justify-center px-0 text-[17px]'
+    : tone === 'panel'
+      ? nested
+        ? 'gap-3 pl-8 text-[14px]'
+        : 'gap-3 px-3 text-[15px]'
+      : nested
+        ? 'gap-3 pl-8 text-[15px]'
+        : 'gap-3 px-3 text-[17px]';
+
+  const inactive =
+    tone === 'panel'
+      ? 'font-medium text-rail-text hover:bg-white/15 hover:text-rail-hover-text'
+      : tone === 'category' && panelOpen
+        ? 'bg-white/15 font-semibold text-rail-text hover:bg-white/25 hover:text-rail-hover-text'
+        : tone === 'category'
+          ? 'font-semibold text-rail-text hover:bg-rail-hover hover:text-rail-hover-text'
+          : 'font-medium text-rail-text hover:bg-rail-hover hover:text-rail-hover-text';
+
+  // Raised-bevel emphasis, deliberately heavier than a flat fill: a wide soft
+  // drop shadow plus a tight contact shadow lift the row off the rail, and a
+  // bright top edge / dark bottom edge (inset shadows) read as a
+  // pushed-out, embossed button rather than a flat color block. This carries
+  // the whole "active" signal now that there's no separate indicator dot.
+  const activeClasses =
+    'bg-rail-selected font-semibold text-rail-selected-text shadow-[0_6px_14px_rgba(0,0,0,0.55),0_2px_4px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-2px_0_rgba(0,0,0,0.4)]';
+
   return (
     <NavLink
       to={item.route}
+      end={end}
       title={title}
       onClick={onClick}
       className={({ isActive }) =>
-        `relative flex min-h-10 items-center rounded-full transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${
-          collapsed ? 'justify-center px-0 text-[17px]' : nested ? 'gap-3 pl-8 text-[15px]' : 'gap-3 px-3 text-[17px]'
-        } ${
-          isActive
-            ? // Raised-bevel emphasis, deliberately heavier than a flat fill: a
-              // wide soft drop shadow plus a tight contact shadow lift the row
-              // off the rail, and a bright top edge / dark bottom edge (inset
-              // shadows) read as a pushed-out, embossed button rather than a
-              // flat color block. This carries the whole "active" signal now
-              // that there's no separate indicator dot.
-              'bg-rail-selected font-semibold text-rail-selected-text shadow-[0_6px_14px_rgba(0,0,0,0.55),0_2px_4px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-2px_0_rgba(0,0,0,0.4)]'
-            : 'font-medium text-rail-text hover:bg-rail-hover hover:text-rail-hover-text'
+        `relative flex min-h-10 items-center rounded-full transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none ${size} ${
+          (active ?? isActive) ? activeClasses : inactive
         }`
       }
     >
       {() => (
         <>
-          <Icon className={nested ? 'h-4 w-4 shrink-0' : 'h-[18px] w-[18px] shrink-0'} aria-hidden />
+          <Icon
+            className={
+              nested || tone === 'panel' ? 'h-4 w-4 shrink-0' : 'h-[18px] w-[18px] shrink-0'
+            }
+            aria-hidden
+          />
           {collapsed ? null : <span className="truncate">{item.label}</span>}
           {item.status === 'comingSoon' && !collapsed ? (
             <span className="ml-auto shrink-0 rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium text-neutral-600">

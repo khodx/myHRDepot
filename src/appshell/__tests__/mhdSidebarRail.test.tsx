@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 
 /**
  * Rail presentation contract (myHRDepot Category Theme Specification):
@@ -51,6 +51,11 @@ function installLocalStorageStub() {
   Object.defineProperty(window, 'localStorage', { value: stub, configurable: true });
 }
 
+/** Surfaces the router's current pathname so navigation can be asserted. */
+function LocationProbe() {
+  return <span data-testid="pathname">{useLocation().pathname}</span>;
+}
+
 beforeEach(() => {
   vi.resetModules();
   installLocalStorageStub();
@@ -91,7 +96,9 @@ describe('MhdSidebar rail', () => {
     expect(active.className).toContain('bg-rail-selected');
     const inactive = screen.getByRole('link', { name: 'Forms' });
     expect(inactive.className).toContain('text-rail-text');
-    expect(inactive.className).toContain('hover:bg-rail-hover');
+    // Module rows inside the open accent panel use white-alpha hover tints,
+    // which read against the accent rather than the navy rail.
+    expect(inactive.className).toContain('hover:bg-white/15');
   });
 
   it('collapses to icon-only and persists under mhd:nav:rail', async () => {
@@ -115,9 +122,16 @@ describe('MhdSidebar rail', () => {
     expect(window.localStorage.getItem('mhd:nav:rail')).toBe('collapsed');
     const aside = container.querySelector('aside');
     expect(aside!.className).toContain('w-[72px]');
-    // Labels disappear; links stay reachable with tooltips.
+    // Labels disappear. Each category is a single icon (with a tooltip) that
+    // links to its landing page; its modules live in a hover flyout.
     expect(screen.queryByText('Tasks')).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Tasks' })).toHaveAttribute('title', 'Tasks');
+    const category = screen.getByRole('link', { name: 'Work Tools' });
+    expect(category).toHaveAttribute('title', 'Work Tools');
+    expect(category).toHaveAttribute('href', '/categories/work-tools');
+    await user.hover(category);
+    expect(screen.getByRole('link', { name: 'Tasks' })).toHaveAttribute('href', '/tasks');
+    await user.unhover(category);
+    expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Expand navigation' }));
     expect(window.localStorage.getItem('mhd:nav:rail')).toBe('expanded');
@@ -202,8 +216,130 @@ describe('MhdSidebar rail', () => {
     expect(myChecklists.className).toContain('pl-8');
 
     await user.click(screen.getByRole('button', { name: 'Collapse navigation' }));
-    expect(screen.getByRole('link', { name: 'My Checklists' })).toHaveAttribute('href', '/my-checklists');
-    expect(screen.getByRole('link', { name: 'My Checklists' })).toHaveAttribute('title', 'My Checklists');
+    // Collapsed: the companion link is reachable from the category's flyout.
+    await user.hover(screen.getByRole('link', { name: 'Talent' }));
+    expect(screen.getByRole('link', { name: 'My Checklists' })).toHaveAttribute(
+      'href',
+      '/my-checklists',
+    );
+  });
+});
+
+describe('MhdSidebar category landing behavior', () => {
+  it('links each category name to its landing page and expands it on click', async () => {
+    const user = userEvent.setup();
+    const { MhdSidebar } = await import('../MhdSidebar');
+    render(
+      <MemoryRouter initialEntries={['/tasks']}>
+        <MhdSidebar />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    const name = screen.getByRole('link', { name: 'Work Tools' });
+    expect(name).toHaveAttribute('href', '/categories/work-tools');
+    expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
+
+    await user.click(name);
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/categories/work-tools');
+    expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
+    // The landing page itself is the active row.
+    expect(screen.getByRole('link', { name: 'Work Tools' }).className).toContain(
+      'bg-rail-selected',
+    );
+  });
+
+  it('expands with the accent inset panel and a guide line', async () => {
+    const user = userEvent.setup();
+    const { MhdSidebar } = await import('../MhdSidebar');
+    render(
+      <MemoryRouter initialEntries={['/tasks']}>
+        <MhdSidebar />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Expand Work Tools' }));
+    const toggle = screen.getByRole('button', { name: 'Collapse Work Tools' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    const panel = document.getElementById(toggle.getAttribute('aria-controls')!);
+    expect(panel).not.toBeNull();
+    expect(panel!.className).toContain('before:bg-white/40');
+    expect(panel!.parentElement!.className).toContain('bg-rail-panel');
+  });
+
+  it('toggles from the chevron without navigating', async () => {
+    const user = userEvent.setup();
+    const { MhdSidebar } = await import('../MhdSidebar');
+    render(
+      <MemoryRouter initialEntries={['/tasks']}>
+        <MhdSidebar />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Expand Work Tools' }));
+    expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/tasks');
+
+    await user.click(screen.getByRole('button', { name: 'Collapse Work Tools' }));
+    expect(screen.queryByRole('link', { name: 'Forms' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/tasks');
+  });
+
+  it('collapses instead of re-navigating when the name is clicked on its own landing page', async () => {
+    const user = userEvent.setup();
+    const { MhdSidebar } = await import('../MhdSidebar');
+    render(
+      <MemoryRouter initialEntries={['/categories/work-tools']}>
+        <MhdSidebar />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    // Already on the landing page, so a name click toggles rather than
+    // navigating. Groups start collapsed, so the first click opens it...
+    await user.click(screen.getByRole('link', { name: 'Work Tools' }));
+    expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
+    // ...and the second closes it.
+    await user.click(screen.getByRole('link', { name: 'Work Tools' }));
+    expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/categories/work-tools');
+  });
+
+  it('links a single-module category straight to its module with no chevron', async () => {
+    const { MhdSidebar } = await import('../MhdSidebar');
+    render(
+      <MemoryRouter initialEntries={['/tasks']}>
+        <MhdSidebar />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('link', { name: 'Automation' })).toHaveAttribute(
+      'href',
+      '/automations',
+    );
+    expect(screen.queryByRole('button', { name: /Automation/ })).not.toBeInTheDocument();
+  });
+
+  it('collapsed rail flyout opens on keyboard focus and closes on Escape', async () => {
+    const user = userEvent.setup();
+    const { MhdSidebar } = await import('../MhdSidebar');
+    render(
+      <MemoryRouter initialEntries={['/tasks']}>
+        <MhdSidebar />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Collapse navigation' }));
+    act(() => screen.getByRole('link', { name: 'Work Tools' }).focus());
+    expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Work Tools Home' })).toHaveAttribute(
+      'href',
+      '/categories/work-tools',
+    );
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
   });
 });
 

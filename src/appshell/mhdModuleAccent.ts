@@ -24,6 +24,16 @@ export const MHD_CATEGORY_THEMES: readonly MhdCategoryTheme[] = [
 
 const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/dashboard', 'dashboard'],
+  // Category landing pages (/categories/<slug>) inherit the theme of the
+  // category they front. Communications and Administration share work-tools
+  // for the same cross-cutting reason their modules do (see below).
+  ['/categories/work-tools', 'work-tools'],
+  ['/categories/people-org', 'people-org'],
+  ['/categories/time-leave', 'time-leave'],
+  ['/categories/talent', 'talent'],
+  ['/categories/employee-relations', 'employee-relations'],
+  ['/categories/communications', 'work-tools'],
+  ['/categories/administration', 'work-tools'],
   ['/people', 'people-org'],
   ['/employees', 'people-org'],
   ['/companies', 'people-org'],

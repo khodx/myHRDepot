@@ -250,6 +250,10 @@ const MhdAutomationsPage = lazyPage(
   () => import('@/features/automations/components/MhdAutomationsPage'),
   'MhdAutomationsPage',
 );
+const MhdCategoryLandingPage = lazyPage(
+  () => import('@/features/categories/components/MhdCategoryLandingPage'),
+  'MhdCategoryLandingPage',
+);
 const MhdWizardsPage = lazyPage(
   () => import('@/features/wizards/components/MhdWizardsPage'),
   'MhdWizardsPage',
@@ -795,6 +799,10 @@ function MhdAppRoutes() {
                 <Route path="/communications/system-alerts" element={<MhdSystemAlertsPage />} />
                 <Route path="/automations" element={<MhdAutomationsPage />} />
                 <Route path="/wizards" element={<MhdWizardsPage />} />
+                {/* Left-nav category landing pages. Each page lists only the
+                    modules the viewer's role can open, so the route itself
+                    needs no separate access rule. */}
+                <Route path="/categories/:categorySlug" element={<MhdCategoryLandingPage />} />
                 {/* Both inherit the /automations rule via mhdCanAccessRoute's
                   prefix match. Arming inside the rule page is gated separately
                   on mhdCanArmAutomations (Platform Admin only). */}

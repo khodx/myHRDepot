@@ -42,6 +42,7 @@
   --color-focus-ring: var(--mhd-focus-ring);
   --color-rail: var(--mhd-rail);
   --color-rail-surface: var(--mhd-rail-surface);
+  --color-rail-panel: var(--mhd-rail-panel);
   --color-rail-hover: var(--mhd-rail-hover);
   --color-rail-hover-text: var(--mhd-rail-hover-text);
   --color-rail-selected: var(--mhd-rail-selected);
@@ -70,6 +71,11 @@
    its text tokens must not follow that flip either. */
 :root {
   --mhd-rail-surface: #0a2499;
+  /* Open-category inset panel. The brand accent, but pinned here as a rail
+     token (not var(--mhd-accent)) because --mhd-accent brightens to #7d82fa
+     under .dark, and white rail text on that would fail contrast — the rail
+     never changes with the theme. */
+  --mhd-rail-panel: #0003aa;
   --mhd-rail-hover: #12299e;
   --mhd-rail-hover-text: #ffffff;
   --mhd-rail-selected: #ffffff;
