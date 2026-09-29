@@ -1,3 +1,4 @@
+/// <reference types="node" />
 // Vercel Cron -> Supabase Edge Function proxy for mhd_automation_drain.
 //
 // Inlined rather than importing a shared helper: a prior version imported

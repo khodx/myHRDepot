@@ -1,3 +1,4 @@
+/// <reference types="node" />
 // Vercel Cron -> Supabase Edge Function proxy for dispatch-notification-emails.
 // Inlined rather than importing a shared helper — see automation-drain.ts's
 // header comment for why (Vercel silently failed to bundle a sibling module
