@@ -28,46 +28,45 @@ export function MhdCategoryLandingPage() {
     ...(item.children ?? []).map((child) => ({ item: child, parentLabel: item.label })),
   ]);
 
+  // A role with nothing in this category is refused exactly like any other
+  // route it cannot open (MhdRoleGuardedRoute sends those to /404); the rail
+  // already hides such a category, so this only catches a typed URL.
+  if (cards.length === 0) return <Navigate to="/404" replace />;
+
   return (
     <div className="space-y-6">
       <MhdPageHeader title={section.label} description={section.description} />
 
-      {cards.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No modules in {section.label} are available for your current role.
-        </p>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {cards.map(({ item, parentLabel }) => (
-            <MhdCard
-              key={item.route}
-              className="relative h-full space-y-3 transition-shadow hover:shadow-lg"
-            >
-              <item.icon className="h-6 w-6 text-accent" aria-hidden />
-              <div>
-                <h2 className="flex items-center gap-2 font-semibold text-foreground">
-                  {/* Stretched link: the whole card is the click target. */}
-                  <Link
-                    to={item.route}
-                    className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded-lg focus-visible:after:ring-2 focus-visible:after:ring-focus-ring"
-                  >
-                    {item.label}
-                  </Link>
-                  {item.status === 'comingSoon' ? (
-                    <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
-                      Coming Soon
-                    </span>
-                  ) : null}
-                </h2>
-                {parentLabel ? (
-                  <p className="text-xs font-medium text-accent">Part of {parentLabel}</p>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {cards.map(({ item, parentLabel }) => (
+          <MhdCard
+            key={item.route}
+            className="relative h-full space-y-3 transition-shadow hover:shadow-lg"
+          >
+            <item.icon className="h-6 w-6 text-accent" aria-hidden />
+            <div>
+              <h2 className="flex items-center gap-2 font-semibold text-foreground">
+                {/* Stretched link: the whole card is the click target. */}
+                <Link
+                  to={item.route}
+                  className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded-lg focus-visible:after:ring-2 focus-visible:after:ring-focus-ring"
+                >
+                  {item.label}
+                </Link>
+                {item.status === 'comingSoon' ? (
+                  <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
+                    Coming Soon
+                  </span>
                 ) : null}
-                <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
-              </div>
-            </MhdCard>
-          ))}
-        </div>
-      )}
+              </h2>
+              {parentLabel ? (
+                <p className="text-xs font-medium text-accent">Part of {parentLabel}</p>
+              ) : null}
+              <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
+            </div>
+          </MhdCard>
+        ))}
+      </div>
     </div>
   );
 }

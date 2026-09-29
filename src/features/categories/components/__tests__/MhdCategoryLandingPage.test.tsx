@@ -67,13 +67,20 @@ describe('MhdCategoryLandingPage', () => {
     );
   });
 
-  it('only lists modules the role can open', async () => {
+  it('sends a role with nothing in the category to not-found, like any refused route', async () => {
     mockRoles(['Viewer']);
     await renderAt('/categories/administration');
 
     expect(screen.queryByRole('link', { name: 'Admin Settings' })).not.toBeInTheDocument();
+    expect(screen.getByText('not-found')).toBeInTheDocument();
+  });
+
+  it('only lists the modules the role can open', async () => {
+    mockRoles(['HR Partner']);
+    await renderAt('/categories/administration');
+
+    expect(screen.getByRole('link', { name: 'Admin Settings' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Lab & Sandbox' })).not.toBeInTheDocument();
-    expect(screen.getByText(/No modules in Administration are available/)).toBeInTheDocument();
   });
 
   it('redirects an unknown category to the not-found page', async () => {
