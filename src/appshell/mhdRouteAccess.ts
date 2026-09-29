@@ -122,6 +122,19 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     path: '/automations',
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
   },
+  // Wizards hub (/wizards) — a directory of every guided-creation wizard in the
+  // app (Job Description, Leave Intake, Compensation Classification, Contractor
+  // Classification, Course/Curriculum/Program). The hub itself is gated to the
+  // union of every wizard's own audience so nobody who can reach at least one
+  // wizard is refused the directory; the page itself hides a card for any
+  // wizard the viewer's own roles can't actually open (checked per-card against
+  // that wizard's real route via mhdCanAccessRoute, never widened here). Each
+  // wizard's own destination route keeps its existing, often narrower, gate —
+  // this entry only controls the hub page, not what it links to.
+  {
+    path: '/wizards',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
   // Performance. The specific /performance/* sub-routes precede the general
   // /performance rule because mhdCanAccessRoute returns the FIRST matching rule
   // via prefix match, so /performance would otherwise capture them all (the same

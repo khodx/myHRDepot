@@ -250,6 +250,10 @@ const MhdAutomationsPage = lazyPage(
   () => import('@/features/automations/components/MhdAutomationsPage'),
   'MhdAutomationsPage',
 );
+const MhdWizardsPage = lazyPage(
+  () => import('@/features/wizards/components/MhdWizardsPage'),
+  'MhdWizardsPage',
+);
 const MhdAutomationRuleDetailPage = lazyPage(
   () => import('@/features/automations/components/MhdAutomationRuleDetailPage'),
   'MhdAutomationRuleDetailPage',
@@ -790,6 +794,7 @@ function MhdAppRoutes() {
                 />
                 <Route path="/communications/system-alerts" element={<MhdSystemAlertsPage />} />
                 <Route path="/automations" element={<MhdAutomationsPage />} />
+                <Route path="/wizards" element={<MhdWizardsPage />} />
                 {/* Both inherit the /automations rule via mhdCanAccessRoute's
                   prefix match. Arming inside the rule page is gated separately
                   on mhdCanArmAutomations (Platform Admin only). */}

@@ -68,6 +68,14 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/esignature', 'work-tools'],
   ['/communications', 'work-tools'],
   ['/automations', 'work-tools'],
+  // Wizards hub. Not a seventh theme — "exactly six category themes exist; a
+  // module never owns a seventh color" (see this file's header). Wizards
+  // aggregates guided-creation tools that already belong to other categories
+  // (Jobs/Leaves/Compensation under their own routes below), so the hub page
+  // itself shares work-tools, the same general-utility bucket Communications/
+  // Automation/Administration already use for cross-cutting tooling that
+  // isn't a single HR domain.
+  ['/wizards', 'work-tools'],
   ['/admin', 'work-tools'],
   ['/lab', 'work-tools'],
   ['/payroll', 'work-tools'], // non-nav compatibility route

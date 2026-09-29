@@ -74,6 +74,7 @@ import {
   Users,
   UsersRound,
   TrendingUp,
+  Wand2,
   Workflow,
   Wrench,
   X,
@@ -882,6 +883,25 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/automations',
         icon: Bot,
         roles: mhdRouteRoles('/automations'),
+      },
+    ],
+  },
+  // Every guided-creation wizard in the app, listed once as its own nav
+  // category. This is a directory pointing at each wizard's existing route —
+  // it does not move or duplicate any of them. Deliberately shares the
+  // work-tools theme rather than owning a seventh category color (see
+  // mhdModuleAccent.ts's header: "exactly six category themes exist").
+  {
+    label: 'Wizards',
+    icon: Wand2,
+    items: [
+      {
+        label: 'Wizards',
+        description: 'Every guided, step-by-step creation flow in one place.',
+        keywords: ['guided setup', 'step by step', 'create wizard'],
+        route: '/wizards',
+        icon: Wand2,
+        roles: mhdRouteRoles('/wizards'),
       },
     ],
   },
