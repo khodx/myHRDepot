@@ -19,19 +19,26 @@ export function MhdCategoryLandingPage() {
   const section = NAV_SECTIONS.find((s) => s.route === `/categories/${categorySlug}`);
   if (!section) return <Navigate to="/404" replace />;
 
-  const items = mhdVisibleNavItems(section.items, roles);
+  // Every module the role can open gets its own card, companion sub-pages
+  // (Announcements under Communications, My Memorandums under Memorandums, ...)
+  // included, so this page lists exactly what the rail lists. A sub-page's card
+  // notes which module it belongs to.
+  const cards = mhdVisibleNavItems(section.items, roles).flatMap((item) => [
+    { item, parentLabel: undefined as string | undefined },
+    ...(item.children ?? []).map((child) => ({ item: child, parentLabel: item.label })),
+  ]);
 
   return (
     <div className="space-y-6">
       <MhdPageHeader title={section.label} description={section.description} />
 
-      {items.length === 0 ? (
+      {cards.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           No modules in {section.label} are available for your current role.
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {items.map((item) => (
+          {cards.map(({ item, parentLabel }) => (
             <MhdCard
               key={item.route}
               className="relative h-full space-y-3 transition-shadow hover:shadow-lg"
@@ -39,11 +46,10 @@ export function MhdCategoryLandingPage() {
               <item.icon className="h-6 w-6 text-accent" aria-hidden />
               <div>
                 <h2 className="flex items-center gap-2 font-semibold text-foreground">
-                  {/* Stretched link: the whole card is the click target while
-                      the child links below stay independently clickable. */}
+                  {/* Stretched link: the whole card is the click target. */}
                   <Link
                     to={item.route}
-                    className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-focus-ring focus-visible:after:rounded-lg"
+                    className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded-lg focus-visible:after:ring-2 focus-visible:after:ring-focus-ring"
                   >
                     {item.label}
                   </Link>
@@ -53,19 +59,11 @@ export function MhdCategoryLandingPage() {
                     </span>
                   ) : null}
                 </h2>
+                {parentLabel ? (
+                  <p className="text-xs font-medium text-accent">Part of {parentLabel}</p>
+                ) : null}
                 <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
               </div>
-              {(item.children ?? []).length > 0 ? (
-                <ul className="relative z-10 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                  {(item.children ?? []).map((child) => (
-                    <li key={child.route}>
-                      <Link to={child.route} className="font-medium text-accent hover:underline">
-                        {child.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
             </MhdCard>
           ))}
         </div>

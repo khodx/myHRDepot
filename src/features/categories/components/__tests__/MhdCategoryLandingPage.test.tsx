@@ -38,7 +38,26 @@ describe('MhdCategoryLandingPage', () => {
     expect(screen.getByRole('link', { name: 'Forms' })).toHaveAttribute('href', '/forms');
   });
 
-  it('shows companion links under their parent card', async () => {
+  it('gives every sub-page its own card, noting the module it belongs to', async () => {
+    await renderAt('/categories/communications');
+
+    for (const [name, href] of [
+      ['Communications', '/communications'],
+      ['Announcements', '/communications/announcements'],
+      ['Messaging', '/communications/messaging'],
+      ['Correspondence Inbox', '/communications/inbox'],
+      ['Correspondence Routing', '/communications/routing'],
+      ['System Alerts', '/communications/system-alerts'],
+      ['Memorandums', '/memorandums'],
+      ['My Memorandums', '/my-memorandums'],
+    ]) {
+      expect(screen.getByRole('link', { name })).toHaveAttribute('href', href);
+    }
+    expect(screen.getAllByText('Part of Communications')).toHaveLength(5);
+    expect(screen.getByText('Part of Memorandums')).toBeInTheDocument();
+  });
+
+  it('lists companion pages in other categories too', async () => {
     await renderAt('/categories/talent');
 
     expect(screen.getByRole('link', { name: 'Checklists' })).toHaveAttribute('href', '/checklists');
