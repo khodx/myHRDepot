@@ -1,4 +1,4 @@
-import { useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   BarChart3,
@@ -1001,6 +1001,25 @@ function readCollapsedGroups(): string[] {
   }
 }
 
+/** The category whose landing page is `pathname`, if any. */
+function landingSectionFor(pathname: string): NavSection | undefined {
+  return NAV_SECTIONS.find((section) => section.route === pathname);
+}
+
+/** The accordion state with exactly one category open. */
+function allGroupsExcept(label: string): string[] {
+  return NAV_SECTIONS.map((section) => section.label).filter((l) => l !== label);
+}
+
+/** Writes the collapsed-group list to localStorage. */
+function persistCollapsed(next: string[]): void {
+  try {
+    window.localStorage.setItem(MHD_NAV_COLLAPSE_KEY, JSON.stringify(next));
+  } catch {
+    // localStorage unavailable — collapse state stays in-memory only.
+  }
+}
+
 function readRailCollapsed(): boolean {
   try {
     return window.localStorage.getItem(MHD_RAIL_STATE_KEY) === 'collapsed';
@@ -1096,20 +1115,37 @@ export function MhdMobileNavDrawer({ onClose }: { onClose: () => void }) {
 /** Shared rail content: logo band, company card, and the grouped navigation. */
 function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
   const { roles, profile } = useMhdAuth();
+  const { pathname } = useLocation();
   // Collapsed group labels, remembered per user. Missing storage = all collapsed.
-  const [collapsedGroups, setCollapsedGroups] = useState<string[]>(() => readCollapsedGroups());
+  const [collapsedGroups, setCollapsedGroups] = useState<string[]>(() => {
+    const stored = readCollapsedGroups();
+    const landed = landingSectionFor(pathname);
+    return landed && stored.includes(landed.label) ? allGroupsExcept(landed.label) : stored;
+  });
+
+  // Arriving at a category's landing page — by URL, a card, or the rail —
+  // opens that category in the rail, so the panel always agrees with the page
+  // (a stored choice from an earlier visit must not leave a different
+  // category open under it). Adjusted during render, keyed on the pathname
+  // only, so collapsing the panel while staying on the page is not
+  // immediately undone.
+  const [syncedPath, setSyncedPath] = useState(pathname);
+  if (syncedPath !== pathname) {
+    setSyncedPath(pathname);
+    const landed = landingSectionFor(pathname);
+    if (landed && collapsedGroups.includes(landed.label)) {
+      setCollapsedGroups(allGroupsExcept(landed.label));
+    }
+  }
+
+  // The collapse state is remembered per user; persisting is a side effect of
+  // the state, not part of any one updater.
+  useEffect(() => {
+    persistCollapsed(collapsedGroups);
+  }, [collapsedGroups]);
 
   const hasRole = (item: NavItem) =>
     item.roles === 'ALL' ? true : item.roles.some((role) => roles.includes(role));
-
-  const persistCollapsed = (next: string[]) => {
-    try {
-      window.localStorage.setItem(MHD_NAV_COLLAPSE_KEY, JSON.stringify(next));
-    } catch {
-      // localStorage unavailable — collapse state stays in-memory only.
-    }
-    return next;
-  };
 
   // Accordion behavior: expanding one section collapses every other one.
   // Toggling the already-expanded section collapses it too, leaving none
@@ -1119,25 +1155,21 @@ function MhdSidebarContent({ collapsed }: { collapsed: boolean }) {
       const allLabels = NAV_SECTIONS.map((section) => section.label);
       // Currently collapsed -> expand just this one (collapsing every other
       // group). Currently expanded -> collapse it too, leaving none open.
-      return persistCollapsed(
-        prev.includes(label) ? allLabels.filter((l) => l !== label) : allLabels,
-      );
+      return prev.includes(label) ? allLabels.filter((l) => l !== label) : allLabels;
     });
   };
 
   // Navigating to a category's landing page always leaves it expanded (never
   // toggles it closed), so the panel and the page agree.
   const openGroup = (label: string) => {
-    setCollapsedGroups(
-      persistCollapsed(NAV_SECTIONS.map((section) => section.label).filter((l) => l !== label)),
-    );
+    setCollapsedGroups(allGroupsExcept(label));
   };
 
   // Dashboard is the app's home — returning to it resets the rail to a known,
   // uncluttered state rather than leaving whatever group the user last opened
   // expanded.
   const collapseAllGroups = () => {
-    setCollapsedGroups(persistCollapsed(NAV_SECTIONS.map((section) => section.label)));
+    setCollapsedGroups(NAV_SECTIONS.map((section) => section.label));
   };
 
   const visibleSections = NAV_SECTIONS.map((section) => ({
@@ -1283,9 +1315,7 @@ function MhdNavCategory({
   return (
     <div
       className={`space-y-1 rounded-2xl transition-colors duration-150 motion-reduce:transition-none ${
-        isCollapsed
-          ? ''
-          : 'bg-rail-panel p-1 pb-2 shadow-[0_4px_12px_rgba(0,0,0,0.35)]'
+        isCollapsed ? '' : 'bg-rail-panel p-1 pb-2 shadow-[0_4px_12px_rgba(0,0,0,0.35)]'
       }`}
     >
       <div className="flex items-center gap-0.5">

@@ -298,14 +298,45 @@ describe('MhdSidebar category landing behavior', () => {
       </MemoryRouter>,
     );
 
+    // Arriving on the landing page opens its category in the rail.
+    expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
     // Already on the landing page, so a name click toggles rather than
-    // navigating. Groups start collapsed, so the first click opens it...
+    // navigating: it closes the panel, and the next click reopens it.
+    await user.click(screen.getByRole('link', { name: 'Work Tools' }));
+    expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: 'Work Tools' }));
     expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
-    // ...and the second closes it.
     await user.click(screen.getByRole('link', { name: 'Work Tools' }));
     expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
     expect(screen.getByTestId('pathname')).toHaveTextContent('/categories/work-tools');
+  });
+
+  it('opens the arrived-at category and closes a stale one from an earlier visit', async () => {
+    // The accordion keeps exactly one category open: here, Work Tools.
+    window.localStorage.setItem(
+      'mhd:nav:collapsed',
+      JSON.stringify([
+        'People & Org',
+        'Time & Leave',
+        'Talent',
+        'Employee Relations',
+        'Communications',
+        'Automation',
+        'Wizards',
+        'Administration',
+      ]),
+    );
+    const { MhdSidebar } = await import('../MhdSidebar');
+    render(
+      <MemoryRouter initialEntries={['/categories/talent']}>
+        <MhdSidebar />
+      </MemoryRouter>,
+    );
+
+    // Work Tools was left open by the stored choice; arriving at Talent's
+    // landing page swaps it.
+    expect(screen.getByRole('link', { name: 'Certificates' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
   });
 
   it('links a single-module category straight to its module with no chevron', async () => {
