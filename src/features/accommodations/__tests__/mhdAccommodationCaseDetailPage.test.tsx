@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
@@ -17,6 +17,8 @@ const {
   revealMock,
   recordMedicalMock,
   addOptionMock,
+  reviewMock,
+  interactionMock,
 } = vi.hoisted(() => ({
     rolesRef: { current: [] as MhdAuthRoleName[] },
     detailRef: { current: null as unknown },
@@ -25,6 +27,8 @@ const {
     revealMock: vi.fn(),
     recordMedicalMock: vi.fn(),
     addOptionMock: vi.fn(),
+    reviewMock: vi.fn(),
+    interactionMock: vi.fn(),
   }));
 
 vi.mock('@/features/authentication/Hook', () => ({
@@ -39,11 +43,11 @@ vi.mock('../Hook', () => ({
   useMhdAccommodationCase: () => ({ data: detailRef.current, isLoading: false }),
   useMhdAccommodationReadiness: () => ({ data: readinessRef.current }),
   useMhdAccommodationTransition: () => mutation(vi.fn()),
-  useMhdAccommodationInteraction: () => mutation(vi.fn()),
+  useMhdAccommodationInteraction: () => mutation(interactionMock),
   useMhdAccommodationOption: () => mutation(addOptionMock),
   useMhdAccommodationDecision: () => mutation(vi.fn()),
   useMhdAccommodationImplementation: () => mutation(implementMock),
-  useMhdAccommodationReview: () => mutation(vi.fn()),
+  useMhdAccommodationReview: () => mutation(reviewMock),
   useMhdAccommodationMedicalRecord: () => mutation(recordMedicalMock),
   useMhdAccommodationMedicalReveal: () => mutation(revealMock),
   // Added 2026-08-19 (option-catalog picker on this page's "Evaluate an
@@ -486,5 +490,185 @@ describe('the pre-live compliance gate banner', () => {
     readinessRef.current = null;
     renderPage();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Effectiveness review completion                                      */
+/* ------------------------------------------------------------------ */
+
+describe('effectiveness review completion', () => {
+  const openReview = {
+    id: 'review-1',
+    implementation_id: 'impl-1',
+    due_date: '2026-09-01',
+    completed_at: null,
+    effectiveness: null,
+    summary: null,
+    reengage_required: null,
+  };
+
+  function openReviewForm() {
+    detailRef.current = detail({ reviews: [openReview] });
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
+  }
+
+  function typeSummary(text: string) {
+    fireEvent.change(screen.getByPlaceholderText(/how is the accommodation working/i), {
+      target: { value: text },
+    });
+  }
+
+  it('offers every outcome the database CHECK allows', () => {
+    openReviewForm();
+    const options = within(screen.getByLabelText('Review Outcome'))
+      .getAllByRole('option')
+      .map((option) => (option as HTMLOptionElement).value);
+    expect(options).toEqual([
+      'EFFECTIVE',
+      'PARTIALLY_EFFECTIVE',
+      'INEFFECTIVE',
+      'NO_LONGER_NEEDED',
+    ]);
+  });
+
+  it('sends the chosen outcome and typed summary, without re-engagement for EFFECTIVE', async () => {
+    reviewMock.mockResolvedValue(undefined);
+    openReviewForm();
+    typeSummary('Works well; the seated station is in use daily.');
+    fireEvent.click(screen.getByRole('button', { name: 'Complete Review' }));
+
+    await waitFor(() =>
+      expect(reviewMock).toHaveBeenCalledWith({
+        reviewId: 'review-1',
+        effectiveness: 'EFFECTIVE',
+        summary: 'Works well; the seated station is in use daily.',
+        reengageRequired: false,
+      }),
+    );
+  });
+
+  it.each(['PARTIALLY_EFFECTIVE', 'INEFFECTIVE'])(
+    'forces re-engagement on for %s and locks the checkbox',
+    async (outcome) => {
+      reviewMock.mockResolvedValue(undefined);
+      openReviewForm();
+      fireEvent.change(screen.getByLabelText('Review Outcome'), { target: { value: outcome } });
+
+      const checkbox = screen.getByLabelText('Re-Engage The Interactive Process');
+      expect(checkbox).toBeChecked();
+      expect(checkbox).toBeDisabled();
+
+      typeSummary('The station does not reduce the strain.');
+      fireEvent.click(screen.getByRole('button', { name: 'Complete Review' }));
+      await waitFor(() =>
+        expect(reviewMock).toHaveBeenCalledWith(
+          expect.objectContaining({ effectiveness: outcome, reengageRequired: true }),
+        ),
+      );
+    },
+  );
+
+  it('lets the administrator opt in to re-engagement for NO_LONGER_NEEDED', async () => {
+    reviewMock.mockResolvedValue(undefined);
+    openReviewForm();
+    fireEvent.change(screen.getByLabelText('Review Outcome'), {
+      target: { value: 'NO_LONGER_NEEDED' },
+    });
+    const checkbox = screen.getByLabelText('Re-Engage The Interactive Process');
+    expect(checkbox).not.toBeChecked();
+    expect(checkbox).toBeEnabled();
+    fireEvent.click(checkbox);
+    typeSummary('Role changed; revisit whether any support is still wanted.');
+    fireEvent.click(screen.getByRole('button', { name: 'Complete Review' }));
+    await waitFor(() =>
+      expect(reviewMock).toHaveBeenCalledWith(
+        expect.objectContaining({ effectiveness: 'NO_LONGER_NEEDED', reengageRequired: true }),
+      ),
+    );
+  });
+
+  it('requires a summary before the review can be completed', () => {
+    openReviewForm();
+    expect(screen.getByRole('button', { name: 'Complete Review' })).toBeDisabled();
+    typeSummary('   ');
+    expect(screen.getByRole('button', { name: 'Complete Review' })).toBeDisabled();
+  });
+
+  it('rejects a summary containing medical detail without calling the RPC', () => {
+    openReviewForm();
+    typeSummary('Back pain caused by the old chair, per the diagnosis.');
+    fireEvent.click(screen.getByRole('button', { name: 'Complete Review' }));
+    expect(reviewMock).not.toHaveBeenCalled();
+    expect(screen.getByText(/not medical details/i)).toBeInTheDocument();
+  });
+
+  it('shows the server error text when the RPC refuses and keeps the draft', async () => {
+    reviewMock.mockRejectedValue(new Error('Review not found'));
+    openReviewForm();
+    typeSummary('Working as intended.');
+    fireEvent.click(screen.getByRole('button', { name: 'Complete Review' }));
+    expect(await screen.findByText('Review not found')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/how is the accommodation working/i)).toHaveValue(
+      'Working as intended.',
+    );
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Interaction visibility                                               */
+/* ------------------------------------------------------------------ */
+
+describe('interaction employee visibility', () => {
+  function fillInteraction() {
+    fireEvent.change(screen.getByPlaceholderText('What was discussed and understood?'), {
+      target: { value: 'Reviewed scheduling alternatives.' },
+    });
+  }
+
+  it('defaults to visible and passes employeeVisible true', async () => {
+    interactionMock.mockResolvedValue('int-2');
+    renderPage();
+    expect(screen.getByLabelText('Visible To The Employee')).toBeChecked();
+    fillInteraction();
+    fireEvent.click(screen.getByRole('button', { name: 'Add Interaction' }));
+    await waitFor(() =>
+      expect(interactionMock).toHaveBeenCalledWith(
+        expect.objectContaining({ employeeVisible: true }),
+      ),
+    );
+  });
+
+  it('passes employeeVisible false when the box is cleared', async () => {
+    interactionMock.mockResolvedValue('int-2');
+    renderPage();
+    fireEvent.click(screen.getByLabelText('Visible To The Employee'));
+    fillInteraction();
+    fireEvent.click(screen.getByRole('button', { name: 'Add Interaction' }));
+    await waitFor(() =>
+      expect(interactionMock).toHaveBeenCalledWith(
+        expect.objectContaining({ employeeVisible: false }),
+      ),
+    );
+  });
+
+  it('labels a not-visible interaction as staff only in the list', () => {
+    detailRef.current = detail({
+      interactions: [
+        {
+          id: 'int-private',
+          occurred_at: '2026-07-21T17:00:00.000Z',
+          channel: 'MEETING',
+          participants: [],
+          summary: 'Internal note on option feasibility.',
+          next_step: null,
+          next_step_due: null,
+          employee_visible: false,
+        },
+      ],
+    });
+    renderPage();
+    expect(screen.getByText('Staff only')).toBeInTheDocument();
   });
 });

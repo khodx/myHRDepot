@@ -267,6 +267,26 @@ export const MHD_ACCOMMODATION_REQUEST_CHANNELS: readonly MhdAccommodationReques
 export const MHD_ACCOMMODATION_REVIEW_EFFECTIVENESS: readonly MhdAccommodationReviewEffectiveness[] =
   ['EFFECTIVE', 'PARTIALLY_EFFECTIVE', 'INEFFECTIVE', 'NO_LONGER_NEEDED'];
 
+/**
+ * Review outcomes that mean the accommodation is not working as decided, so the
+ * interactive process must resume. The database does not force this
+ * (mhd_accommodation_complete_review only reopens the case when
+ * p_reengage_required is true), so the form enforces it: a partially or wholly
+ * ineffective accommodation left ACTIVE would end the process early.
+ */
+export const MHD_ACCOMMODATION_REVIEW_OUTCOMES_REQUIRING_REENGAGEMENT: readonly MhdAccommodationReviewEffectiveness[] =
+  ['PARTIALLY_EFFECTIVE', 'INEFFECTIVE'];
+
+export const MHD_ACCOMMODATION_REVIEW_EFFECTIVENESS_LABELS: Record<
+  MhdAccommodationReviewEffectiveness,
+  string
+> = {
+  EFFECTIVE: 'Effective',
+  PARTIALLY_EFFECTIVE: 'Partially Effective',
+  INEFFECTIVE: 'Ineffective',
+  NO_LONGER_NEEDED: 'No Longer Needed',
+};
+
 export const MHD_ACCOMMODATION_DOCUMENTATION_TYPES: readonly MhdAccommodationDocumentationType[] = [
   'SIMPLE_CERTIFICATION',
   'DETAILED_CERTIFICATION',

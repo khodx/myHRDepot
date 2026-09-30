@@ -45,6 +45,7 @@ import {
 } from '../Types';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import { MhdAccommodationNoticesPanel } from './MhdAccommodationNoticesPanel';
+import { MhdAccommodationReviewCompletion } from './MhdAccommodationReviewCompletion';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -112,6 +113,8 @@ export function MhdAccommodationCaseDetailPage() {
     useState<MhdAccommodationRequestChannel>('VERBAL');
   const [summary, setSummary] = useState('');
   const [nextStep, setNextStep] = useState('');
+  // Matches p_employee_visible's DEFAULT true in mhd_accommodation_add_interaction.
+  const [employeeVisible, setEmployeeVisible] = useState(true);
   const [optionType, setOptionType] = useState<string>('JOB_RESTRUCTURING');
   const [optionEssentialFunctionIds, setOptionEssentialFunctionIds] = useState<string[]>([]);
   const [optionRemovesEssentialFunction, setOptionRemovesEssentialFunction] = useState(false);
@@ -379,6 +382,11 @@ export function MhdAccommodationCaseDetailPage() {
               <MhdDetailField label="Occurred" value={new Date(item.occurred_at).toLocaleString()} className="mt-2" />
               <MhdDetailField label="Summary" value={item.summary} className="mt-2" />
               <MhdDetailField
+                label="Visibility"
+                value={item.employee_visible ? 'Visible to the employee' : 'Staff only'}
+                className="mt-2"
+              />
+              <MhdDetailField
                 label="Next step"
                 value={item.next_step ? `${item.next_step}${item.next_step_due ? ` · ${item.next_step_due}` : ''}` : null}
                 className="mt-2"
@@ -420,6 +428,14 @@ export function MhdAccommodationCaseDetailPage() {
                 onChange={(event) => setNextStep(event.target.value)}
                 placeholder="Next step"
               />
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={employeeVisible}
+                  onChange={(event) => setEmployeeVisible(event.target.checked)}
+                />
+                Visible To The Employee
+              </label>
               <Button
                 disabled={addInteraction.isPending || !summary.trim()}
                 onClick={() =>
@@ -430,14 +446,15 @@ export function MhdAccommodationCaseDetailPage() {
                       channel: interactionChannel,
                       summary,
                       nextStep,
-                      employeeVisible: true,
+                      employeeVisible,
                     });
                     setSummary('');
                     setNextStep('');
+                    setEmployeeVisible(true);
                   })
                 }
               >
-                Add interaction
+                Add Interaction
               </Button>
             </MhdCard>
           ) : null}
@@ -801,44 +818,12 @@ export function MhdAccommodationCaseDetailPage() {
               <MhdDetailField label="Effectiveness review due" value={review.due_date} />
               <MhdDetailField label="Review summary" value={review.completed_at ? review.summary : null} className="mt-2" />
               {!review.completed_at && privileged ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button
-                    variant="secondary"
-                    disabled={completeReview.isPending}
-                    onClick={() =>
-                      void run(() =>
-                        completeReview.mutateAsync({
-                          reviewId: review.id,
-                          effectiveness: 'EFFECTIVE',
-                          summary: 'Accommodation remains effective.',
-                          reengageRequired: false,
-                        }),
-                      )
-                    }
-                  >
-                    Mark effective
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    disabled={completeReview.isPending}
-                    onClick={() =>
-                      void run(() =>
-                        completeReview.mutateAsync({
-                          reviewId: review.id,
-                          // INEFFECTIVE, not a free-form label: the
-                          // accommodation_review_effectiveness_allowed CHECK
-                          // admits only EFFECTIVE / PARTIALLY_EFFECTIVE /
-                          // INEFFECTIVE / NO_LONGER_NEEDED.
-                          effectiveness: 'INEFFECTIVE',
-                          summary: 'Re-engage in the interactive process.',
-                          reengageRequired: true,
-                        }),
-                      )
-                    }
-                  >
-                    Re-engage
-                  </Button>
-                </div>
+                <MhdAccommodationReviewCompletion
+                  isPending={completeReview.isPending}
+                  onComplete={(input) =>
+                    run(() => completeReview.mutateAsync({ reviewId: review.id, ...input }))
+                  }
+                />
               ) : null}
             </MhdCard>
           ))}

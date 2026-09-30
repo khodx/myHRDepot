@@ -4,7 +4,51 @@ import {
   mhdAccommodationInteractionSchema,
   mhdAccommodationMedicalSchema,
   mhdAccommodationRequestSchema,
+  mhdAccommodationReviewCompletionSchema,
 } from '../Schemas';
+
+describe('mhdAccommodationReviewCompletionSchema', () => {
+  it.each(['PARTIALLY_EFFECTIVE', 'INEFFECTIVE'])(
+    'requires re-engagement for %s',
+    (effectiveness) => {
+      const result = mhdAccommodationReviewCompletionSchema.safeParse({
+        effectiveness,
+        summary: 'Not working.',
+        reengageRequired: false,
+      });
+      expect(result.success).toBe(false);
+    },
+  );
+
+  it('accepts EFFECTIVE without re-engagement and rejects an unknown outcome', () => {
+    expect(
+      mhdAccommodationReviewCompletionSchema.safeParse({
+        effectiveness: 'EFFECTIVE',
+        summary: 'Fine.',
+        reengageRequired: false,
+      }).success,
+    ).toBe(true);
+    expect(
+      mhdAccommodationReviewCompletionSchema.safeParse({
+        effectiveness: 'GREAT',
+        summary: 'Fine.',
+        reengageRequired: false,
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects a blank or medical-detail summary', () => {
+    for (const summary of ['  ', 'Caused by a prior diagnosis.']) {
+      expect(
+        mhdAccommodationReviewCompletionSchema.safeParse({
+          effectiveness: 'EFFECTIVE',
+          summary,
+          reengageRequired: false,
+        }).success,
+      ).toBe(false);
+    }
+  });
+});
 
 const PERSON = '11111111-1111-4111-8111-111111111111';
 

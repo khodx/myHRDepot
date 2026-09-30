@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import {
+  MHD_ACCOMMODATION_REVIEW_EFFECTIVENESS,
+  MHD_ACCOMMODATION_REVIEW_OUTCOMES_REQUIRING_REENGAGEMENT,
+} from './Types';
 
 const prohibitedMedicalDetail =
   /\b(diagnos(?:is|ed|es)|medical records?|caused by|genetic information)\b/i;
@@ -36,6 +40,31 @@ export const mhdAccommodationInteractionSchema = z.object({
       'Record the interactive process, functional needs, and next steps—not medical details.',
     ),
 });
+
+/**
+ * Completing an effectiveness review. The summary reuses the interaction
+ * summary rule (no medical detail; the DB also requires it non-blank when a
+ * review is completed), and re-engagement is mandatory for outcomes showing the
+ * accommodation is not working.
+ */
+export const mhdAccommodationReviewCompletionSchema = z
+  .object({
+    effectiveness: z.enum(MHD_ACCOMMODATION_REVIEW_EFFECTIVENESS as [string, ...string[]]),
+    summary: mhdAccommodationInteractionSchema.shape.summary,
+    reengageRequired: z.boolean(),
+  })
+  .refine(
+    (value) =>
+      value.reengageRequired ||
+      !(MHD_ACCOMMODATION_REVIEW_OUTCOMES_REQUIRING_REENGAGEMENT as readonly string[]).includes(
+        value.effectiveness,
+      ),
+    {
+      path: ['reengageRequired'],
+      message:
+        'A partially effective or ineffective accommodation must re-engage the interactive process.',
+    },
+  );
 
 export const mhdAccommodationOptionSchema = z.object({
   description: z.string().trim().min(1),
