@@ -29456,6 +29456,10 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_leave_assert_designation_allowed: {
+        Args: { p_case_id: string; p_effective_date: string; p_hours: number }
+        Returns: number
+      }
       mhd_leave_balance: {
         Args: { p_as_of?: string; p_leave_type_id: string; p_person_id: string }
         Returns: number
@@ -29471,6 +29475,10 @@ export type Database = {
           p_frequency: string
         }
         Returns: string
+      }
+      mhd_leave_benefit_obligation_update_status: {
+        Args: { p_obligation_id: string; p_reason?: string; p_status: string }
+        Returns: undefined
       }
       mhd_leave_benefit_transaction_record: {
         Args: {
@@ -29701,6 +29709,14 @@ export type Database = {
           p_status?: string
         }
         Returns: string
+      }
+      mhd_leave_schedule_update_status: {
+        Args: {
+          p_actual_hours?: number
+          p_segment_id: string
+          p_status: string
+        }
+        Returns: undefined
       }
       mhd_leave_type_list: {
         Args: { p_company_id: string }
@@ -33204,6 +33220,14 @@ export type Database = {
       }
       mhd_send_signature_reminder: {
         Args: { p_actor_user_id?: string; p_signer_id: string }
+        Returns: undefined
+      }
+      mhd_set_document_template_compliance: {
+        Args: {
+          p_content_key: string
+          p_module_key: string
+          p_template_id: string
+        }
         Returns: undefined
       }
       mhd_set_employee_file_category_default: {
