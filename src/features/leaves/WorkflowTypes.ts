@@ -117,6 +117,36 @@ export type MhdLeaveSegmentMode = (typeof MHD_LEAVE_SEGMENT_MODES)[number];
 export const MHD_LEAVE_SEGMENT_STATUSES = ['REQUESTED', 'APPROVED', 'TAKEN', 'DENIED', 'CANCELLED'] as const;
 export type MhdLeaveSegmentStatus = (typeof MHD_LEAVE_SEGMENT_STATUSES)[number];
 
+/** Lifecycle enforced by migration 0332 and the leave schedule status RPC. */
+export const MHD_LEAVE_SEGMENT_STATUS_TRANSITIONS: Readonly<
+  Record<MhdLeaveSegmentStatus, readonly MhdLeaveSegmentStatus[]>
+> = {
+  REQUESTED: ['APPROVED', 'DENIED', 'CANCELLED', 'TAKEN'],
+  APPROVED: ['TAKEN', 'CANCELLED'],
+  TAKEN: [],
+  DENIED: [],
+  CANCELLED: [],
+};
+
+/** Source: migration 0332 CHECK constraint leave_benefit_status_allowed. */
+export const MHD_LEAVE_BENEFIT_OBLIGATION_STATUSES = [
+  'ACTIVE',
+  'PAST_DUE',
+  'SATISFIED',
+  'WAIVED',
+  'ENDED',
+] as const;
+export type MhdLeaveBenefitObligationStatus = (typeof MHD_LEAVE_BENEFIT_OBLIGATION_STATUSES)[number];
+export const MHD_LEAVE_BENEFIT_OBLIGATION_STATUS_TRANSITIONS: Readonly<
+  Record<MhdLeaveBenefitObligationStatus, readonly MhdLeaveBenefitObligationStatus[]>
+> = {
+  ACTIVE: ['PAST_DUE', 'SATISFIED', 'WAIVED', 'ENDED'],
+  PAST_DUE: ['ACTIVE', 'SATISFIED', 'WAIVED', 'ENDED'],
+  SATISFIED: ['ENDED'],
+  WAIVED: [],
+  ENDED: [],
+};
+
 /**
  * leave_benefit_transaction_type_allowed on leave_benefit_transactions. REVERSAL is
  * valid in the database only with a `reversal_of` transaction id (leave_benefit_reversal_shape),
@@ -154,6 +184,14 @@ export interface MhdLeaveSegmentInput {
   status: MhdLeaveSegmentStatus;
 }
 
+export interface MhdLeaveSegmentStatusInput {
+  segmentId: string;
+  currentStatus: MhdLeaveSegmentStatus;
+  status: MhdLeaveSegmentStatus;
+  actualHours?: number | null;
+  currentActualHours?: number | string | null;
+}
+
 export interface MhdLeaveBenefitObligationInput {
   caseId: string;
   benefitType: string;
@@ -162,6 +200,13 @@ export interface MhdLeaveBenefitObligationInput {
   employerAmount: number;
   employeeAmount: number;
   frequency: string;
+}
+
+export interface MhdLeaveBenefitObligationStatusInput {
+  obligationId: string;
+  currentStatus: MhdLeaveBenefitObligationStatus;
+  status: MhdLeaveBenefitObligationStatus;
+  reason?: string | null;
 }
 
 export interface MhdLeaveBenefitTransactionInput {

@@ -5,9 +5,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const CASE_ID = 'e7a13c94-5d20-4b86-8f31-2c9b06d4a715';
 
-const { segmentAsync, obligationAsync, transactionAsync, workflowData } = vi.hoisted(() => ({
+const { segmentAsync, segmentStatusAsync, obligationAsync, obligationStatusAsync, transactionAsync, workflowData } = vi.hoisted(() => ({
   segmentAsync: vi.fn(),
+  segmentStatusAsync: vi.fn(),
   obligationAsync: vi.fn(),
+  obligationStatusAsync: vi.fn(),
   transactionAsync: vi.fn(),
   workflowData: {
     current: null as unknown,
@@ -35,7 +37,9 @@ vi.mock('../WorkflowHook', () => ({
   useMhdLeaveNotice: () => idle(),
   useMhdLeaveNoticeDelivery: () => idle(),
   useMhdLeaveSegment: () => ({ mutateAsync: segmentAsync, isPending: false }),
+  useMhdLeaveSegmentStatus: () => ({ mutateAsync: segmentStatusAsync, isPending: false }),
   useMhdLeaveBenefitObligation: () => ({ mutateAsync: obligationAsync, isPending: false }),
+  useMhdLeaveBenefitObligationStatus: () => ({ mutateAsync: obligationStatusAsync, isPending: false }),
   useMhdLeaveBenefitTransaction: () => ({ mutateAsync: transactionAsync, isPending: false }),
 }));
 
@@ -53,6 +57,17 @@ function workflow(benefits: unknown[] = []) {
     return_to_work: null,
   };
 }
+
+const segmentRow = {
+  id: 'seg-1',
+  segment_mode: 'CONTINUOUS',
+  start_at: '2026-08-03T08:00:00Z',
+  end_at: '2026-08-03T16:00:00Z',
+  planned_hours: 8,
+  actual_hours: null,
+  status: 'REQUESTED',
+  designated_at: null,
+};
 
 const obligationRow = {
   id: 'obl-1',
@@ -85,15 +100,19 @@ beforeEach(() => {
   vi.clearAllMocks();
   workflowData.current = workflow();
   segmentAsync.mockResolvedValue('seg-1');
+  segmentStatusAsync.mockResolvedValue(undefined);
   obligationAsync.mockResolvedValue('obl-2');
+  obligationStatusAsync.mockResolvedValue(undefined);
   transactionAsync.mockResolvedValue('txn-1');
 });
 
 describe('Schedule tab', () => {
   it('shows no recording form to a non-privileged viewer', () => {
+    workflowData.current = { ...workflow(), segments: [segmentRow] };
     renderPanel(false);
     openTab(/Schedule/);
     expect(screen.queryByRole('button', { name: 'Record Segment' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Update Status' })).not.toBeInTheDocument();
   });
 
   it('records a requested segment and clears the form', async () => {
@@ -137,6 +156,18 @@ describe('Schedule tab', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Record Segment' }));
     expect(await screen.findByText('Hours exceed the remaining balance of 12')).toBeInTheDocument();
     expect(screen.getByLabelText('Segment start')).toHaveValue('2026-08-03T08:00');
+  });
+
+  it('shows a status server refusal and keeps the typed actual hours', async () => {
+    workflowData.current = { ...workflow(), segments: [segmentRow] };
+    segmentStatusAsync.mockRejectedValueOnce(new Error('The eligibility basis is not confirmed'));
+    renderPanel();
+    openTab(/Schedule/);
+    fireEvent.change(screen.getByLabelText('New status'), { target: { value: 'TAKEN' } });
+    fireEvent.change(screen.getByLabelText('Actual Hours'), { target: { value: '40' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Update Status' }));
+    expect(await screen.findByText('The eligibility basis is not confirmed')).toBeInTheDocument();
+    expect(screen.getByLabelText('Actual Hours')).toHaveValue(40);
   });
 });
 

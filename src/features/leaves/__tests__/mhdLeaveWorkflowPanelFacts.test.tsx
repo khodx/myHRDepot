@@ -33,7 +33,9 @@ vi.mock('../WorkflowHook', () => ({
   useMhdLeaveNotice: () => mutation(),
   useMhdLeaveNoticeDelivery: () => mutation(),
   useMhdLeaveSegment: () => mutation(),
+  useMhdLeaveSegmentStatus: () => mutation(),
   useMhdLeaveBenefitObligation: () => mutation(),
+  useMhdLeaveBenefitObligationStatus: () => mutation(),
   useMhdLeaveBenefitTransaction: () => mutation(),
 }));
 

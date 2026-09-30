@@ -1,7 +1,13 @@
+import {
+  MHD_LEAVE_BENEFIT_OBLIGATION_STATUS_TRANSITIONS,
+  MHD_LEAVE_SEGMENT_STATUS_TRANSITIONS,
+} from './WorkflowTypes';
 import type {
   MhdLeaveBenefitObligationInput,
+  MhdLeaveBenefitObligationStatusInput,
   MhdLeaveBenefitTransactionInput,
   MhdLeaveSegmentInput,
+  MhdLeaveSegmentStatusInput,
 } from './WorkflowTypes';
 
 // Client-side mirrors of the database CHECKs, so the common mistakes are caught before a
@@ -28,6 +34,21 @@ export function mhdValidateLeaveSegment(input: MhdLeaveSegmentInput): string | n
   return null;
 }
 
+export function mhdValidateLeaveSegmentStatus(input: MhdLeaveSegmentStatusInput): void {
+  if (!MHD_LEAVE_SEGMENT_STATUS_TRANSITIONS[input.currentStatus].includes(input.status)) {
+    throw new Error(`Segment status cannot change from ${input.currentStatus} to ${input.status}.`);
+  }
+  if (input.actualHours != null && input.status !== 'TAKEN') {
+    throw new Error('Actual hours may only be supplied when taking a segment.');
+  }
+  if (input.status === 'TAKEN') {
+    const hours = input.actualHours ?? (input.currentActualHours == null ? null : Number(input.currentActualHours));
+    if (hours == null || !Number.isFinite(hours) || hours <= 0) {
+      throw new Error('A taken segment requires actual hours greater than zero.');
+    }
+  }
+}
+
 export function mhdValidateLeaveBenefitObligation(
   input: MhdLeaveBenefitObligationInput,
 ): string | null {
@@ -40,6 +61,17 @@ export function mhdValidateLeaveBenefitObligation(
     if (!Number.isFinite(amount) || amount < 0) return 'Amounts must be zero or more.';
   }
   return null;
+}
+
+export function mhdValidateLeaveBenefitObligationStatus(
+  input: MhdLeaveBenefitObligationStatusInput,
+): void {
+  if (!MHD_LEAVE_BENEFIT_OBLIGATION_STATUS_TRANSITIONS[input.currentStatus].includes(input.status)) {
+    throw new Error(`Benefit obligation status cannot change from ${input.currentStatus} to ${input.status}.`);
+  }
+  if (input.status === 'WAIVED' && !input.reason?.trim()) {
+    throw new Error('Waiving a benefit obligation requires a reason.');
+  }
 }
 
 export function mhdValidateLeaveBenefitTransaction(

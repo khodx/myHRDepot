@@ -2,15 +2,19 @@ import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { MhdComplianceReadiness } from '@/types/mhdCompliance';
 import type {
   MhdLeaveBenefitObligationInput,
+  MhdLeaveBenefitObligationStatusInput,
   MhdLeaveBenefitTransactionInput,
   MhdLeaveEligibilityInput,
   MhdLeaveSegmentInput,
+  MhdLeaveSegmentStatusInput,
   MhdLeaveWorkflow,
 } from './WorkflowTypes';
 import {
   mhdValidateLeaveBenefitObligation,
+  mhdValidateLeaveBenefitObligationStatus,
   mhdValidateLeaveBenefitTransaction,
   mhdValidateLeaveSegment,
+  mhdValidateLeaveSegmentStatus,
 } from './WorkflowValidation';
 
 // supabaseClient.rpc is called directly rather than bound to a local alias.
@@ -192,6 +196,16 @@ export const mhdLeaveWorkflowService = {
     return data as string;
   },
 
+  async updateSegmentStatus(input: MhdLeaveSegmentStatusInput): Promise<void> {
+    mhdValidateLeaveSegmentStatus(input);
+    const { error } = await supabaseClient.rpc('mhd_leave_schedule_update_status', {
+      p_segment_id: input.segmentId,
+      p_status: input.status,
+      p_actual_hours: input.actualHours ?? undefined,
+    });
+    if (error) throw error;
+  },
+
   async recordBenefitObligation(input: MhdLeaveBenefitObligationInput): Promise<string> {
     const invalid = mhdValidateLeaveBenefitObligation(input);
     if (invalid) throw new Error(invalid);
@@ -208,6 +222,16 @@ export const mhdLeaveWorkflowService = {
     });
     if (error) throw error;
     return data as string;
+  },
+
+  async updateBenefitObligationStatus(input: MhdLeaveBenefitObligationStatusInput): Promise<void> {
+    mhdValidateLeaveBenefitObligationStatus(input);
+    const { error } = await supabaseClient.rpc('mhd_leave_benefit_obligation_update_status', {
+      p_obligation_id: input.obligationId,
+      p_status: input.status,
+      p_reason: input.reason?.trim() || undefined,
+    });
+    if (error) throw error;
   },
 
   async recordBenefitTransaction(input: MhdLeaveBenefitTransactionInput): Promise<string> {

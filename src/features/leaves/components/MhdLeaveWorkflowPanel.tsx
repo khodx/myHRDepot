@@ -13,6 +13,7 @@ import { mhdDocumentService } from '@/features/documents/Service';
 import {
   useMhdConfirmLeaveEligibility,
   useMhdLeaveBenefitObligation,
+  useMhdLeaveBenefitObligationStatus,
   useMhdLeaveBenefitTransaction,
   useMhdLeaveEligibility,
   useMhdLeaveEvent,
@@ -21,6 +22,7 @@ import {
   useMhdLeaveReadiness,
   useMhdLeaveReturnToWork,
   useMhdLeaveSegment,
+  useMhdLeaveSegmentStatus,
   useMhdLeaveWorkflow,
   useMhdOverrideLeaveEligibility,
 } from '../WorkflowHook';
@@ -31,6 +33,10 @@ import {
 
   MhdLeaveSegmentForm,
 } from './MhdLeaveWorkflowForms';
+import {
+  MhdLeaveBenefitObligationStatusControl,
+  MhdLeaveSegmentStatusControl,
+} from './MhdLeaveWorkflowStatusControls';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -59,7 +65,9 @@ export function MhdLeaveWorkflowPanel({
   const recordNotice = useMhdLeaveNotice(caseId);
   const markNoticeDelivery = useMhdLeaveNoticeDelivery(caseId);
   const recordSegment = useMhdLeaveSegment(caseId);
+  const updateSegmentStatus = useMhdLeaveSegmentStatus(caseId);
   const recordObligation = useMhdLeaveBenefitObligation(caseId);
+  const updateObligationStatus = useMhdLeaveBenefitObligationStatus(caseId);
   const recordTransaction = useMhdLeaveBenefitTransaction(caseId);
   const [tab, setTab] = useState<Tab>('eligibility');
   const [reasonCode, setReasonCode] = useState('OWN_SERIOUS_HEALTH_CONDITION');
@@ -449,6 +457,13 @@ export function MhdLeaveWorkflowPanel({
                 <MhdDetailField label="End" value={new Date(item.end_at).toLocaleString()} />
                 <MhdDetailField label="Hours" value={item.actual_hours ?? item.planned_hours} />
                 <MhdDetailField label="Status" value={item.status} />
+                {privileged ? (
+                  <MhdLeaveSegmentStatusControl
+                    segment={item}
+                    isPending={updateSegmentStatus.isPending}
+                    onSubmit={(input) => run(() => updateSegmentStatus.mutateAsync(input))}
+                  />
+                ) : null}
               </MhdCard>
             ))
           ) : (
@@ -514,6 +529,13 @@ export function MhdLeaveWorkflowPanel({
                 <MhdDetailField label="Employee amount" value={item.employee_amount} className="mt-2" />
                 <MhdDetailField label="Employer amount" value={item.employer_amount} className="mt-2" />
                 <MhdDetailField label="Status" value={item.status} className="mt-2" />
+                {privileged ? (
+                  <MhdLeaveBenefitObligationStatusControl
+                    obligation={item}
+                    isPending={updateObligationStatus.isPending}
+                    onSubmit={(input) => run(() => updateObligationStatus.mutateAsync(input))}
+                  />
+                ) : null}
                 <MhdLeaveBenefitTransactionList transactions={item.transactions} />
               </MhdCard>
             ))
