@@ -7,8 +7,10 @@ import {
   MHD_LEAVE_BENEFIT_RECORDABLE_TRANSACTION_TYPES,
   MHD_LEAVE_SEGMENT_MODES,
   MHD_LEAVE_SEGMENT_STATUSES,
+  mhdReversibleBenefitTransactions,
   type MhdLeaveBenefitObligationInput,
   type MhdLeaveBenefitTransactionInput,
+  type MhdLeaveBenefitTransactionType,
   type MhdLeaveSegmentInput,
   type MhdLeaveSegmentMode,
   type MhdLeaveSegmentStatus,
@@ -269,7 +271,11 @@ export function MhdLeaveBenefitObligationForm({
   );
 }
 
-/** Privileged-only. Reversals are not offered: they need a transaction id the workflow read does not list. */
+/**
+ * Privileged-only. A reversal reverses one whole earlier transaction, so REVERSAL is
+ * offered only while the chosen obligation has one that is still reversible, and its
+ * amount is locked to that transaction's amount.
+ */
 export function MhdLeaveBenefitTransactionForm({
   obligations,
   isPending,
@@ -280,10 +286,25 @@ export function MhdLeaveBenefitTransactionForm({
   onSubmit: (input: MhdLeaveBenefitTransactionInput) => Promise<boolean>;
 }) {
   const [obligationId, setObligationId] = useState('');
-  const [type, setType] = useState<MhdLeaveBenefitTransactionInput['transactionType']>('CHARGE');
-  const [amount, setAmount] = useState('');
+  const [chosenType, setChosenType] = useState<MhdLeaveBenefitTransactionType>('CHARGE');
+  const [chosenTarget, setChosenTarget] = useState('');
+  const [chosenAmount, setChosenAmount] = useState('');
   const [effectiveDate, setEffectiveDate] = useState('');
   const [note, setNote] = useState('');
+
+  // Everything below derives from the obligation and the typed choices, so switching the
+  // obligation can never leave a stale reversal type or target selected.
+  const reversible = mhdReversibleBenefitTransactions(
+    obligations.find((item) => item.id === obligationId)?.transactions ?? [],
+  );
+  const offeredTypes: MhdLeaveBenefitTransactionType[] = [
+    ...MHD_LEAVE_BENEFIT_RECORDABLE_TRANSACTION_TYPES,
+    ...(reversible.length ? (['REVERSAL'] as const) : []),
+  ];
+  const type = offeredTypes.includes(chosenType) ? chosenType : 'CHARGE';
+  const isReversal = type === 'REVERSAL';
+  const target = isReversal ? reversible.find((item) => item.id === chosenTarget) : undefined;
+  const amount = isReversal ? (target ? String(Number(target.amount)) : '') : chosenAmount;
 
   async function submit() {
     const saved = await onSubmit({
@@ -292,9 +313,11 @@ export function MhdLeaveBenefitTransactionForm({
       amount: Number(amount),
       effectiveDate,
       referenceNote: note || null,
+      ...(isReversal ? { reversalOf: chosenTarget } : {}),
     });
     if (!saved) return;
-    setAmount('');
+    setChosenAmount('');
+    setChosenTarget('');
     setEffectiveDate('');
     setNote('');
   }
@@ -323,23 +346,41 @@ export function MhdLeaveBenefitTransactionForm({
           <select
             className={`mt-1 ${inputClass}`}
             value={type}
-            onChange={(e) => setType(e.target.value as typeof type)}
+            onChange={(e) => setChosenType(e.target.value as MhdLeaveBenefitTransactionType)}
           >
-            {MHD_LEAVE_BENEFIT_RECORDABLE_TRANSACTION_TYPES.map((value) => (
+            {offeredTypes.map((value) => (
               <option key={value} value={value}>
                 {label(value)}
               </option>
             ))}
           </select>
         </label>
+        {isReversal ? (
+          <label className="text-xs">
+            Transaction being reversed
+            <select
+              className={`mt-1 ${inputClass}`}
+              value={chosenTarget}
+              onChange={(e) => setChosenTarget(e.target.value)}
+            >
+              <option value="">Select a transaction</option>
+              {reversible.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {label(item.transaction_type)} {item.amount} on {item.effective_date}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <label className="text-xs">
-          Amount
+          {isReversal ? 'Amount (set by the reversed transaction)' : 'Amount'}
           <input
             className={`mt-1 ${inputClass}`}
             type="number"
             step="0.01"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            readOnly={isReversal}
+            onChange={(e) => setChosenAmount(e.target.value)}
           />
         </label>
         <label className="text-xs">
@@ -360,7 +401,9 @@ export function MhdLeaveBenefitTransactionForm({
         </label>
       </MhdFormFieldStack>
       <Button
-        disabled={isPending || !obligationId || amount.trim() === '' || !effectiveDate}
+        disabled={
+          isPending || !obligationId || amount.trim() === '' || !effectiveDate || (isReversal && !target)
+        }
         onClick={() => void submit()}
       >
         {isPending ? 'Recording…' : 'Record Transaction'}

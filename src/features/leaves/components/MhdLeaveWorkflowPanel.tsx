@@ -24,9 +24,11 @@ import {
   useMhdLeaveWorkflow,
   useMhdOverrideLeaveEligibility,
 } from '../WorkflowHook';
+import { MhdLeaveBenefitTransactionList } from './MhdLeaveBenefitTransactionList';
 import {
   MhdLeaveBenefitObligationForm,
   MhdLeaveBenefitTransactionForm,
+
   MhdLeaveSegmentForm,
 } from './MhdLeaveWorkflowForms';
 
@@ -512,6 +514,7 @@ export function MhdLeaveWorkflowPanel({
                 <MhdDetailField label="Employee amount" value={item.employee_amount} className="mt-2" />
                 <MhdDetailField label="Employer amount" value={item.employer_amount} className="mt-2" />
                 <MhdDetailField label="Status" value={item.status} className="mt-2" />
+                <MhdLeaveBenefitTransactionList transactions={item.transactions} />
               </MhdCard>
             ))
           ) : (

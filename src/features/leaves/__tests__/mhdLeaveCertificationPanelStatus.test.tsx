@@ -112,3 +112,68 @@ describe('MhdLeaveCertificationPanel status update', () => {
     expect(screen.getByLabelText('Certification status')).toHaveValue('RECEIVED');
   });
 });
+
+describe('MhdLeaveCertificationPanel operational status display', () => {
+  const operational = {
+    id: 'cert-1',
+    certification_type: 'INITIAL',
+    status: 'INCOMPLETE',
+    requested_at: '2026-07-20',
+    due_date: '2026-08-01',
+    received_at: null,
+    deficiency_notified_at: '2026-08-07',
+    cure_due_date: '2026-08-14',
+  };
+
+  function renderWith(
+    workflowCertifications: (typeof operational)[] | undefined,
+    canSeeMedical = true,
+  ) {
+    return render(
+      <MhdLeaveCertificationPanel
+        caseId="case-1"
+        certifications={[cert]}
+        workflowCertifications={workflowCertifications}
+        canSeeMedical={canSeeMedical}
+        onRecord={vi.fn()}
+        onMarkSufficient={vi.fn()}
+        onUpdateStatus={vi.fn().mockResolvedValue(undefined)}
+      />,
+    );
+  }
+
+  it('shows status, requested, deficiency-notified and cure-due dates', () => {
+    renderWith([operational]);
+    expect(screen.getByText('INCOMPLETE')).toBeInTheDocument();
+    expect(screen.getByText('2026-07-20')).toBeInTheDocument();
+    expect(screen.getByText('2026-08-07')).toBeInTheDocument();
+    expect(screen.getByText('2026-08-14')).toBeInTheDocument();
+  });
+
+  it('shows the operational facts without medical access and still hides the provider note', () => {
+    renderWith([operational], false);
+    expect(screen.getByText('INCOMPLETE')).toBeInTheDocument();
+    expect(screen.getByText('Cure due')).toBeInTheDocument();
+    expect(screen.getByText(/Restricted/)).toBeInTheDocument();
+  });
+
+  it('opens the status form on the current status', () => {
+    renderWith([operational]);
+    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    expect(screen.getByLabelText('Certification status')).toHaveValue('INCOMPLETE');
+  });
+
+  it('works without a workflow record', () => {
+    renderWith(undefined);
+    expect(screen.queryByText('Cure due')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    expect(screen.getByLabelText('Certification status')).toHaveValue('');
+  });
+
+  it('ignores a workflow certification that matches no row', () => {
+    renderWith([{ ...operational, id: 'other-cert' }]);
+    expect(screen.queryByText('Cure due')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    expect(screen.getByLabelText('Certification status')).toHaveValue('');
+  });
+});

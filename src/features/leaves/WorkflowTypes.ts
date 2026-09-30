@@ -1,3 +1,13 @@
+/** One row of `transactions` in a benefit obligation, as mhd_leave_workflow_get returns it. */
+export interface MhdLeaveBenefitTransaction {
+  id: string;
+  transaction_type: string;
+  amount: number | string;
+  effective_date: string;
+  reference_note: string | null;
+  reversal_of: string | null;
+}
+
 export interface MhdLeaveWorkflow {
   case: {
     id: string;
@@ -68,6 +78,7 @@ export interface MhdLeaveWorkflow {
     employee_amount: number | string;
     frequency: string;
     status: string;
+    transactions: MhdLeaveBenefitTransaction[];
   }>;
   return_to_work: {
     id: string;
@@ -109,14 +120,29 @@ export type MhdLeaveSegmentStatus = (typeof MHD_LEAVE_SEGMENT_STATUSES)[number];
 /**
  * leave_benefit_transaction_type_allowed on leave_benefit_transactions. REVERSAL is
  * valid in the database only with a `reversal_of` transaction id (leave_benefit_reversal_shape),
- * and the workflow read does not return transactions to pick from, so the recording
- * form offers only the types that need no reversal target.
+ * so the base list omits it; the form adds it only when the chosen obligation has a
+ * reversible transaction (see mhdReversibleBenefitTransactions).
  */
 export const MHD_LEAVE_BENEFIT_TRANSACTION_TYPES = ['CHARGE', 'PAYMENT', 'ADJUSTMENT', 'REVERSAL'] as const;
 export type MhdLeaveBenefitTransactionType = (typeof MHD_LEAVE_BENEFIT_TRANSACTION_TYPES)[number];
 export const MHD_LEAVE_BENEFIT_RECORDABLE_TRANSACTION_TYPES = MHD_LEAVE_BENEFIT_TRANSACTION_TYPES.filter(
   (type): type is Exclude<MhdLeaveBenefitTransactionType, 'REVERSAL'> => type !== 'REVERSAL',
 );
+
+/**
+ * Transactions a REVERSAL may target, mirroring the RPC: not itself a REVERSAL and not
+ * already reversed by another transaction on the same obligation.
+ */
+export function mhdReversibleBenefitTransactions(
+  transactions: MhdLeaveBenefitTransaction[],
+): MhdLeaveBenefitTransaction[] {
+  const reversedIds = new Set(
+    transactions.flatMap((item) => (item.reversal_of ? [item.reversal_of] : [])),
+  );
+  return transactions.filter(
+    (item) => item.transaction_type !== 'REVERSAL' && !reversedIds.has(item.id),
+  );
+}
 
 export interface MhdLeaveSegmentInput {
   caseId: string;
@@ -140,8 +166,10 @@ export interface MhdLeaveBenefitObligationInput {
 
 export interface MhdLeaveBenefitTransactionInput {
   obligationId: string;
-  transactionType: Exclude<MhdLeaveBenefitTransactionType, 'REVERSAL'>;
+  transactionType: MhdLeaveBenefitTransactionType;
   amount: number;
   effectiveDate: string;
   referenceNote?: string | null;
+  /** Required for, and only allowed with, a REVERSAL: the transaction being reversed. */
+  reversalOf?: string | null;
 }

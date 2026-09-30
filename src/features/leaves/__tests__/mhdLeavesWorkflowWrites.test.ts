@@ -247,3 +247,48 @@ describe('mhdLeavesService.updateCertificationStatus', () => {
     ).rejects.toBe(denial);
   });
 });
+
+describe('benefit transaction reversals', () => {
+  const base = {
+    obligationId: 'obl-1',
+    amount: 96,
+    effectiveDate: '2026-08-20',
+  };
+
+  it('requires a target for a reversal and refuses one on any other type', () => {
+    expect(mhdValidateLeaveBenefitTransaction({ ...base, transactionType: 'REVERSAL' })).toBe(
+      'Select the transaction being reversed.',
+    );
+    expect(
+      mhdValidateLeaveBenefitTransaction({
+        ...base,
+        transactionType: 'REVERSAL',
+        reversalOf: 'txn-1',
+      }),
+    ).toBeNull();
+    expect(
+      mhdValidateLeaveBenefitTransaction({
+        ...base,
+        transactionType: 'PAYMENT',
+        reversalOf: 'txn-1',
+      }),
+    ).toBe('Only a reversal can reference another transaction.');
+  });
+
+  it('sends the reversed transaction id under the RPC argument name', async () => {
+    rpcMock.mockResolvedValueOnce({ data: 'txn-2', error: null });
+    await mhdLeaveWorkflowService.recordBenefitTransaction({
+      ...base,
+      transactionType: 'REVERSAL',
+      reversalOf: 'txn-1',
+    });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_leave_benefit_transaction_record', {
+      p_obligation_id: 'obl-1',
+      p_transaction_type: 'REVERSAL',
+      p_amount: 96,
+      p_effective_date: '2026-08-20',
+      p_reference_note: undefined,
+      p_reversal_of: 'txn-1',
+    });
+  });
+});

@@ -16,6 +16,7 @@ import type {
   MhdUpdateLeaveTypeInput,
 } from './Types';
 import { mhdLeavesService } from './Service';
+import { mhdLeaveWorkflowQueryKey } from './WorkflowHook';
 
 export const mhdLeavesQueryKeys = {
   leaveTypes: (companyId: string | null) => ['mhd-leaves', 'leave-types', companyId ?? ''] as const,
@@ -251,6 +252,8 @@ export function useMhdRecordCertification() {
       void queryClient.invalidateQueries({
         queryKey: mhdLeavesQueryKeys.certifications(input.caseId),
       });
+      // The workflow record carries each certification's status and deficiency dates.
+      void queryClient.invalidateQueries({ queryKey: mhdLeaveWorkflowQueryKey(input.caseId) });
     },
   });
 }
@@ -264,6 +267,7 @@ export function useMhdMarkCertificationSufficient(caseId: string | null) {
       void queryClient.invalidateQueries({
         queryKey: mhdLeavesQueryKeys.certifications(caseId),
       });
+      void queryClient.invalidateQueries({ queryKey: mhdLeaveWorkflowQueryKey(caseId) });
     },
   });
 }
@@ -277,6 +281,7 @@ export function useMhdUpdateCertificationStatus(caseId: string | null) {
       void queryClient.invalidateQueries({
         queryKey: mhdLeavesQueryKeys.certifications(caseId),
       });
+      void queryClient.invalidateQueries({ queryKey: mhdLeaveWorkflowQueryKey(caseId) });
     },
   });
 }

@@ -13,10 +13,17 @@ import {
   type MhdRecordCertificationInput,
   type MhdUpdateCertificationStatusInput,
 } from '../Types';
+import type { MhdLeaveWorkflow } from '../WorkflowTypes';
 
 interface Props {
   caseId: string;
   certifications: MhdLeaveCertification[];
+  /**
+   * The workflow record's certifications, matched to the rows above by id. They carry the
+   * operational fields `mhd_leave_cert_list` omits (status, deficiency and cure dates).
+   * Optional: without a match the panel still works, it just cannot show them.
+   */
+  workflowCertifications?: MhdLeaveWorkflow['certifications'];
   /**
    * Whether this viewer is Platform Admin or HR Partner. Passed from the ROUTE,
    * not inferred from the rows — the rows cannot answer it, see below.
@@ -57,6 +64,7 @@ const INPUT_CLASSES =
 export function MhdLeaveCertificationPanel({
   caseId,
   certifications,
+  workflowCertifications = [],
   canSeeMedical,
   isLoading = false,
   isSubmitting = false,
@@ -64,6 +72,7 @@ export function MhdLeaveCertificationPanel({
   onMarkSufficient,
   onUpdateStatus,
 }: Props) {
+  const operationalById = new Map(workflowCertifications.map((item) => [item.id, item]));
   const [isRecording, setIsRecording] = useState(false);
   const [certType, setCertType] =
     useState<(typeof MHD_LEAVE_CERTIFICATION_TYPES)[number]>('INITIAL');
@@ -74,8 +83,8 @@ export function MhdLeaveCertificationPanel({
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [note, setNote] = useState('');
 
-  // Status update state. The status list has no default: nothing tells this panel the
-  // current status, so the reviewer states the new one deliberately.
+  // Status update state. The select opens on the case's current status when the workflow
+  // record supplies it, and stays blank (a deliberate choice) when it does not.
   const [statusId, setStatusId] = useState<string | null>(null);
   const [newStatus, setNewStatus] = useState<MhdLeaveCertificationStatus | ''>('');
   const [receivedAt, setReceivedAt] = useState('');
@@ -92,6 +101,13 @@ export function MhdLeaveCertificationPanel({
     setCureDueDate('');
     setReviewNote('');
     setStatusError(null);
+  }
+
+  function openStatusForm(certId: string, currentStatus: string | undefined) {
+    closeStatusForm();
+    setStatusId(certId);
+    const known = MHD_LEAVE_CERTIFICATION_STATUSES.find((status) => status === currentStatus);
+    if (known) setNewStatus(known);
   }
 
   async function submitStatus(certId: string) {
@@ -228,6 +244,11 @@ export function MhdLeaveCertificationPanel({
                     {cert.dueDate ? `Due ${cert.dueDate}` : 'No due date'}
                     {cert.receivedAt ? ` · received ${cert.receivedAt}` : ' · not yet received'}
                   </p>
+                  {operationalById.get(cert.id) ? (
+                    <MhdCertificationOperationalFacts
+                      facts={operationalById.get(cert.id)!}
+                    />
+                  ) : null}
                 </div>
                 <MhdBadge
                   variant={
@@ -415,10 +436,7 @@ export function MhdLeaveCertificationPanel({
                 ) : (
                   <button
                     type="button"
-                    onClick={() => {
-                      closeStatusForm();
-                      setStatusId(cert.id);
-                    }}
+                    onClick={() => openStatusForm(cert.id, operationalById.get(cert.id)?.status)}
                     className="mt-3 ml-4 text-sm font-medium text-accent hover:text-accent-hover"
                   >
                     Update status
@@ -430,5 +448,40 @@ export function MhdLeaveCertificationPanel({
         </ul>
       )}
     </section>
+  );
+}
+
+/**
+ * Status and deficiency dates are operational tracking, not medical content, so they are
+ * shown to everyone who can read the workflow, unlike the provider note above.
+ */
+function MhdCertificationOperationalFacts({
+  facts,
+}: {
+  facts: MhdLeaveWorkflow['certifications'][number];
+}) {
+  return (
+    <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 text-xs text-muted-foreground">
+      <dt>Status</dt>
+      <dd className="text-foreground">{facts.status.replaceAll('_', ' ')}</dd>
+      {facts.requested_at ? (
+        <>
+          <dt>Requested</dt>
+          <dd className="text-foreground">{facts.requested_at}</dd>
+        </>
+      ) : null}
+      {facts.deficiency_notified_at ? (
+        <>
+          <dt>Deficiency notified</dt>
+          <dd className="text-foreground">{facts.deficiency_notified_at}</dd>
+        </>
+      ) : null}
+      {facts.cure_due_date ? (
+        <>
+          <dt>Cure due</dt>
+          <dd className="text-foreground">{facts.cure_due_date}</dd>
+        </>
+      ) : null}
+    </dl>
   );
 }

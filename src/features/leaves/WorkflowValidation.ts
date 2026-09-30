@@ -49,5 +49,9 @@ export function mhdValidateLeaveBenefitTransaction(
   if (!Number.isFinite(input.amount) || input.amount === 0)
     return 'The amount must be a non-zero number.';
   if (!input.effectiveDate) return 'Enter the effective date.';
+  if (input.transactionType === 'REVERSAL' && !input.reversalOf)
+    return 'Select the transaction being reversed.';
+  if (input.transactionType !== 'REVERSAL' && input.reversalOf)
+    return 'Only a reversal can reference another transaction.';
   return null;
 }

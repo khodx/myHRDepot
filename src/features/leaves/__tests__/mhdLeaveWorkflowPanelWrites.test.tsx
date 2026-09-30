@@ -63,6 +63,7 @@ const obligationRow = {
   employee_amount: 96,
   frequency: 'MONTHLY',
   status: 'ACTIVE',
+  transactions: [],
 };
 
 function renderPanel(privileged = true) {
@@ -220,5 +221,134 @@ describe('Benefits tab', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Record Transaction' }));
     expect(await screen.findByText('Benefit obligation not found')).toBeInTheDocument();
+  });
+});
+
+describe('Benefit transaction reversals', () => {
+  const charge = {
+    id: 'txn-charge',
+    transaction_type: 'CHARGE',
+    amount: 96,
+    effective_date: '2026-08-10',
+    reference_note: 'August premium',
+    reversal_of: null,
+  };
+  const payment = {
+    id: 'txn-payment',
+    transaction_type: 'PAYMENT',
+    amount: 40,
+    effective_date: '2026-08-12',
+    reference_note: null,
+    reversal_of: null,
+  };
+  const reversalOfCharge = {
+    id: 'txn-reversal',
+    transaction_type: 'REVERSAL',
+    amount: 96,
+    effective_date: '2026-08-14',
+    reference_note: null,
+    reversal_of: 'txn-charge',
+  };
+
+  function withTransactions(transactions: unknown[]) {
+    workflowData.current = workflow([{ ...obligationRow, transactions }]);
+  }
+
+  function reversalTypeOffered() {
+    return Array.from(screen.getByLabelText('Transaction type').querySelectorAll('option')).some(
+      (option) => option.value === 'REVERSAL',
+    );
+  }
+
+  it('lists transactions and marks the reversed one and the reversal row', () => {
+    withTransactions([charge, payment, reversalOfCharge]);
+    renderPanel();
+    openTab(/Benefits/);
+    expect(screen.getByText(/CHARGE 96 on 2026-08-10/)).toBeInTheDocument();
+    expect(screen.getByText('August premium')).toBeInTheDocument();
+    expect(screen.getAllByText('Reversed')).toHaveLength(1);
+    expect(screen.getByText('Reverses 2026-08-10 CHARGE')).toBeInTheDocument();
+  });
+
+  it('does not offer Reversal until the obligation has something reversible', () => {
+    withTransactions([]);
+    renderPanel();
+    openTab(/Benefits/);
+    fireEvent.change(screen.getByLabelText('Obligation'), { target: { value: 'obl-1' } });
+    expect(reversalTypeOffered()).toBe(false);
+  });
+
+  it('does not offer Reversal when every transaction is a reversal or already reversed', () => {
+    withTransactions([charge, reversalOfCharge]);
+    renderPanel();
+    openTab(/Benefits/);
+    fireEvent.change(screen.getByLabelText('Obligation'), { target: { value: 'obl-1' } });
+    expect(reversalTypeOffered()).toBe(false);
+  });
+
+  it('offers only unreversed non-reversal transactions and locks the amount to the target', async () => {
+    withTransactions([charge, payment, reversalOfCharge]);
+    renderPanel();
+    openTab(/Benefits/);
+    fireEvent.change(screen.getByLabelText('Obligation'), { target: { value: 'obl-1' } });
+    expect(reversalTypeOffered()).toBe(true);
+    fireEvent.change(screen.getByLabelText('Transaction type'), { target: { value: 'REVERSAL' } });
+    const target = screen.getByLabelText('Transaction being reversed');
+    expect(Array.from(target.querySelectorAll('option')).map((option) => option.value)).toEqual([
+      '',
+      'txn-payment',
+    ]);
+    fireEvent.change(target, { target: { value: 'txn-payment' } });
+    const amount = screen.getByLabelText(/^Amount/);
+    expect(amount).toHaveValue(40);
+    expect(amount).toHaveAttribute('readonly');
+    fireEvent.change(screen.getByLabelText('Effective date'), { target: { value: '08/20/2026' } });
+    fireEvent.blur(screen.getByLabelText('Effective date'));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Record Transaction' })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Record Transaction' }));
+    await waitFor(() => expect(transactionAsync).toHaveBeenCalledTimes(1));
+    expect(transactionAsync).toHaveBeenCalledWith({
+      obligationId: 'obl-1',
+      transactionType: 'REVERSAL',
+      amount: 40,
+      effectiveDate: '2026-08-20',
+      referenceNote: null,
+      reversalOf: 'txn-payment',
+    });
+  });
+
+  it('will not submit a reversal without a target', () => {
+    withTransactions([charge]);
+    renderPanel();
+    openTab(/Benefits/);
+    fireEvent.change(screen.getByLabelText('Obligation'), { target: { value: 'obl-1' } });
+    fireEvent.change(screen.getByLabelText('Transaction type'), { target: { value: 'REVERSAL' } });
+    fireEvent.change(screen.getByLabelText('Effective date'), { target: { value: '08/20/2026' } });
+    fireEvent.blur(screen.getByLabelText('Effective date'));
+    expect(screen.getByRole('button', { name: 'Record Transaction' })).toBeDisabled();
+  });
+
+  it('shows the server refusal and keeps the typed values', async () => {
+    withTransactions([charge]);
+    transactionAsync.mockRejectedValueOnce(new Error('That transaction has already been reversed'));
+    renderPanel();
+    openTab(/Benefits/);
+    fireEvent.change(screen.getByLabelText('Obligation'), { target: { value: 'obl-1' } });
+    fireEvent.change(screen.getByLabelText('Transaction type'), { target: { value: 'REVERSAL' } });
+    fireEvent.change(screen.getByLabelText('Transaction being reversed'), {
+      target: { value: 'txn-charge' },
+    });
+    fireEvent.change(screen.getByLabelText('Effective date'), { target: { value: '08/20/2026' } });
+    fireEvent.blur(screen.getByLabelText('Effective date'));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Record Transaction' })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Record Transaction' }));
+    expect(await screen.findByText('That transaction has already been reversed')).toBeInTheDocument();
+    expect(screen.getByLabelText('Transaction type')).toHaveValue('REVERSAL');
+    expect(screen.getByLabelText('Transaction being reversed')).toHaveValue('txn-charge');
+    expect(screen.getByLabelText('Effective date')).toHaveValue('08/20/2026');
   });
 });

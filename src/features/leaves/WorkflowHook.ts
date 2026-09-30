@@ -2,7 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdLeaveWorkflowService } from './WorkflowService';
 import type { MhdLeaveEligibilityInput } from './WorkflowTypes';
 
-const key = (caseId: string | null) => ['mhd-leaves', 'workflow', caseId ?? ''] as const;
+export const mhdLeaveWorkflowQueryKey = (caseId: string | null) =>
+  ['mhd-leaves', 'workflow', caseId ?? ''] as const;
+const key = mhdLeaveWorkflowQueryKey;
 
 export function useMhdLeaveWorkflow(caseId: string | null) {
   return useQuery({

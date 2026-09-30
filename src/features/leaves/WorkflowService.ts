@@ -219,6 +219,7 @@ export const mhdLeaveWorkflowService = {
       p_amount: input.amount,
       p_effective_date: input.effectiveDate,
       p_reference_note: input.referenceNote?.trim() || undefined,
+      p_reversal_of: input.reversalOf || undefined,
     });
     if (error) throw error;
     return data as string;

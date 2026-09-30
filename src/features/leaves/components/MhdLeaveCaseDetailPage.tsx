@@ -36,6 +36,7 @@ import {
 import { MhdLeaveBalancePanel } from './MhdLeaveBalancePanel';
 import { MhdLeaveCertificationPanel } from './MhdLeaveCertificationPanel';
 import { MhdLeaveStatusBadge } from './MhdLeaveStatusBadge';
+import { useMhdLeaveWorkflow } from '../WorkflowHook';
 import { MhdLeaveWorkflowPanel } from './MhdLeaveWorkflowPanel';
 
 const REQUIRE_REASON: readonly MhdLeaveCaseStatus[] = ['DENIED', 'CANCELLED'];
@@ -80,6 +81,8 @@ export function MhdLeaveCaseDetailPage() {
   const caseBases = useMhdLeaveCaseBases(caseId);
   const ledger = useMhdLeaveLedger(personId);
   const certifications = useMhdLeaveCertifications(caseId);
+  // Same query key as the workflow panel, so this shares its cache entry rather than fetching twice.
+  const workflow = useMhdLeaveWorkflow(caseId);
 
   const designatedIds = useMemo(() => caseBases.data ?? [], [caseBases.data]);
   const balanceQueries = useMhdLeaveBalances(personId, designatedIds);
@@ -520,6 +523,7 @@ export function MhdLeaveCaseDetailPage() {
       <MhdLeaveCertificationPanel
         caseId={caseId}
         certifications={certifications.data ?? []}
+        workflowCertifications={workflow.data?.certifications}
         canSeeMedical={canSeeMedical}
         isLoading={certifications.isLoading}
         isSubmitting={recordCert.isPending || markCert.isPending || updateCertStatus.isPending}
