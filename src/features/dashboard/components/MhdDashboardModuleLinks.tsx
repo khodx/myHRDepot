@@ -6,8 +6,8 @@ import { MhdCountBadge } from '@/components/ui/MhdCountBadge';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdDashboard } from '../Hook';
 import type { MhdDashboardModuleAlerts } from '../Types';
-import { NAV_SECTIONS } from '@/appshell/MhdSidebar';
-import type { NavItem } from '@/appshell/MhdSidebar';
+import { NAV_SECTIONS } from '@/appshell/mhdNavSections';
+import type { NavItem } from '@/appshell/mhdNavSections';
 
 // Covers the 14 live modules with a genuine "needs attention" concept — not
 // every module has one (see mhd_dashboard_module_alerts()'s migrations,
@@ -60,7 +60,7 @@ export function MhdDashboardModuleLinks() {
   // show a child both nested under its visible parent card AND as its own
   // separate top-level card — promote a child to a standalone top-level entry
   // only when its parent isn't visible to this role (mirrors the identical
-  // promotion logic in MhdSidebar.tsx's own nesting).
+  // promotion logic in mhdNavSections.ts's own nesting).
   const topLevelItems = NAV_SECTIONS.flatMap((section) =>
     section.items.flatMap((item) => {
       if (hasRole(item)) return [item];

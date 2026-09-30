@@ -133,7 +133,7 @@ describe('MhdDashboardModuleLinks', () => {
 
   it('represents every nav item the role can open, top-level or nested', async () => {
     mockAuth(['Platform Admin']);
-    const { NAV_SECTIONS } = await import('@/appshell/MhdSidebar');
+    const { NAV_SECTIONS } = await import('@/appshell/mhdNavSections');
 
     await renderModuleLinks();
 
@@ -184,7 +184,7 @@ describe('MhdDashboardModuleLinks', () => {
   });
 
   it('renders nothing when no modules are visible to the role', async () => {
-    vi.doMock('@/appshell/MhdSidebar', async () => {
+    vi.doMock('@/appshell/mhdNavSections', async () => {
       const { Circle } = await import('lucide-react');
       return {
         NAV_SECTIONS: [
@@ -219,7 +219,7 @@ describe('MhdDashboardModuleLinks', () => {
     // resetModules() nor clearAllMocks() in beforeEach undoes it — so without
     // this, every test after this one in file order would silently import
     // this fake, description-less NAV_SECTIONS instead of the real module.
-    vi.doUnmock('@/appshell/MhdSidebar');
+    vi.doUnmock('@/appshell/mhdNavSections');
   });
 
   it('filters the grid to modules matching the search query', async () => {

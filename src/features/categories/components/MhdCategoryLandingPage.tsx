@@ -2,7 +2,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { NAV_SECTIONS, mhdVisibleNavItems } from '@/appshell/MhdSidebar';
+import { NAV_SECTIONS, mhdVisibleNavItems } from '@/appshell/mhdNavSections';
 
 /**
  * Landing page for a left-nav category (Work Tools, People & Org, ...). It is

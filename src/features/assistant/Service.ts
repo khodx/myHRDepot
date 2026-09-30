@@ -1,4 +1,4 @@
-import { NAV_SECTIONS } from '@/appshell/MhdSidebar';
+import { NAV_SECTIONS } from '@/appshell/mhdNavSections';
 import { mhdCanAccessRoute } from '@/appshell/mhdRouteAccess';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import type { MhdAssistantCandidate, MhdAssistantMatch } from './Types';

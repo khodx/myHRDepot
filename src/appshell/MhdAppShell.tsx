@@ -4,7 +4,9 @@ import { MhdImpersonationBanner } from '@/features/authentication/components/Mhd
 import { MhdAssistantProvider } from '@/features/assistant/AssistantContext';
 import { MhdMobileNavDrawer, MhdSidebar } from './MhdSidebar';
 import { MhdTopBar } from './MhdTopBar';
+import { MhdBreadcrumb } from './components/MhdBreadcrumb';
 import { mhdCategoryThemeForPath } from './mhdModuleAccent';
+import { mhdNavTrailForRoute } from './mhdNavTrail';
 
 /* Unmapped authenticated routes render with the neutral fallback tokens; warn
    once per prefix in dev so a new route can't ship without a category. */
@@ -21,6 +23,9 @@ const warnedPaths = new Set<string>();
 export function MhdAppShell() {
   const { pathname } = useLocation();
   const theme = mhdCategoryThemeForPath(pathname);
+  // Module and sub-page routes get the category trail here; record pages
+  // (deeper paths) render their own MhdBreadcrumb, which adds the category itself.
+  const navTrail = mhdNavTrailForRoute(pathname);
 
   // The drawer records the pathname it was opened on; navigating anywhere else
   // closes it by derivation — no effect, no cascading render.
@@ -45,6 +50,11 @@ export function MhdAppShell() {
           <MhdImpersonationBanner />
           <MhdTopBar onOpenNav={() => setNavOpenedAt(pathname)} />
           <main className="flex-1 overflow-y-auto p-4 md:p-5 lg:p-7">
+            {navTrail ? (
+              <div className="mb-4">
+                <MhdBreadcrumb items={navTrail} />
+              </div>
+            ) : null}
             <Outlet />
           </main>
         </div>

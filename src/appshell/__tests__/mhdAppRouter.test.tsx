@@ -728,7 +728,13 @@ describe('MhdAppRouter', () => {
       expect(await screen.findByText('Tasks Page')).toBeInTheDocument();
     });
 
-    it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Employee', 'Viewer'])(
+    it.each<MhdAuthRoleName>([
+      'Platform Admin',
+      'HR Partner',
+      'Client Admin',
+      'Employee',
+      'Viewer',
+    ])(
       'renders "/knowledge-center" and "/knowledge-center/functions" for an authenticated %s',
       async (role) => {
         mockAuth({ isAuthenticated: true, roles: [role] });
@@ -765,188 +771,145 @@ describe('MhdAppRouter', () => {
 });
 
 // ---------------------------------------------------------------------------
-// MhdSidebar — the actual enforcement point for role-based menu visibility
+// Category landing pages — the enforcement point for role-based module
+// visibility. The rail lists categories only; each landing page lists the
+// modules a role can open, through the same mhdVisibleNavItems rule.
 // ---------------------------------------------------------------------------
 
-describe('MhdSidebar role-based visibility', () => {
+/** The module/sub-page labels a category landing page lists for the mocked role. */
+async function landingLabels(slug: string): Promise<string[]> {
+  const { MhdCategoryLandingPage } =
+    await import('@/features/categories/components/MhdCategoryLandingPage');
+  const { MemoryRouter, Route, Routes } = await import('react-router-dom');
+  const { container, unmount } = render(
+    <MemoryRouter initialEntries={[`/categories/${slug}`]}>
+      <Routes>
+        <Route path="/categories/:categorySlug" element={<MhdCategoryLandingPage />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+  const labels = Array.from(container.querySelectorAll('h2 a')).map((a) => a.textContent ?? '');
+  unmount();
+  return labels;
+}
+
+describe('Category landing role-based visibility', () => {
   it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Employee', 'Viewer'])(
-    'shows Knowledge Center for %s', async (role) => {
+    'shows Knowledge Center for %s',
+    async (role) => {
       mockAuth({ isAuthenticated: true, roles: [role] });
-      const { MhdSidebar } = await import('../MhdSidebar');
-      const { MemoryRouter } = await import('react-router-dom');
-      render(<MemoryRouter><MhdSidebar /></MemoryRouter>);
-      expect(screen.getByRole('link', { name: 'Knowledge Center' })).toHaveAttribute('href', '/knowledge-center');
+      expect(await landingLabels('work-tools')).toContain('Knowledge Center');
     },
   );
 
   it('hides "Companies" for a Client User', async () => {
     mockAuth({ isAuthenticated: true, roles: ['Employee'] });
-    const { MhdSidebar } = await import('../MhdSidebar');
-    const { MemoryRouter } = await import('react-router-dom');
 
-    render(
-      <MemoryRouter>
-        <MhdSidebar />
-      </MemoryRouter>,
+    expect(await landingLabels('work-tools')).toEqual(
+      expect.arrayContaining(['Tasks', 'Forms', 'Property']),
     );
-
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Tasks')).toBeInTheDocument();
-    expect(screen.getByText('Forms')).toBeInTheDocument();
-    expect(screen.getByText('Property')).toBeInTheDocument();
-    expect(screen.getByText('People')).toBeInTheDocument();
-    expect(screen.getByText('Performance')).toBeInTheDocument();
-    expect(screen.queryByText('Offboarding')).not.toBeInTheDocument();
-    expect(screen.queryByText('Companies')).not.toBeInTheDocument();
+    const peopleOrg = await landingLabels('people-org');
+    expect(peopleOrg).toContain('People');
+    expect(peopleOrg).not.toContain('Companies');
+    expect(await landingLabels('talent')).toContain('Performance');
+    expect(await landingLabels('employee-relations')).not.toContain('Offboarding');
   });
 
   it('shows "Companies" for a Platform Admin', async () => {
     mockAuth({ isAuthenticated: true, roles: ['Platform Admin'] });
-    const { MhdSidebar } = await import('../MhdSidebar');
-    const { MemoryRouter } = await import('react-router-dom');
 
-    render(
-      <MemoryRouter>
-        <MhdSidebar />
-      </MemoryRouter>,
+    expect(await landingLabels('work-tools')).toEqual(
+      expect.arrayContaining(['Forms', 'Property', 'Approvals']),
     );
-
-    expect(screen.getByText('Forms')).toBeInTheDocument();
-    expect(screen.getByText('Property')).toBeInTheDocument();
-    expect(screen.getByText('Companies')).toBeInTheDocument();
-    expect(screen.getByText('Approvals')).toBeInTheDocument();
-    expect(screen.getByText('Offboarding')).toBeInTheDocument();
+    expect(await landingLabels('people-org')).toContain('Companies');
+    expect(await landingLabels('employee-relations')).toContain('Offboarding');
   });
 
   it('shows "Forms" but hides "People" and "Companies" for a Viewer', async () => {
     mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
-    const { MhdSidebar } = await import('../MhdSidebar');
-    const { MemoryRouter } = await import('react-router-dom');
 
-    render(
-      <MemoryRouter>
-        <MhdSidebar />
-      </MemoryRouter>,
+    // A Viewer's only full category is Work Tools; the others are empty or
+    // hold just the self-service surfaces open to every role.
+    const workTools = await landingLabels('work-tools');
+    expect(workTools).toEqual(
+      expect.arrayContaining(['Activities', 'Calendar', 'Forms', 'Property']),
     );
-
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    // A Viewer's only visible group is Work Tools (Tasks / Activities / Forms /
-    // Property / E-Signature); every other domain group is empty for them.
-    expect(screen.getByText('Work Tools')).toBeInTheDocument();
-    expect(screen.getByText('Activities')).toBeInTheDocument();
-    expect(screen.getByText('Calendar')).toBeInTheDocument();
-    expect(screen.getByText('Forms')).toBeInTheDocument();
-    expect(screen.getByText('Property')).toBeInTheDocument();
-    expect(screen.queryByText('People')).not.toBeInTheDocument();
-    expect(screen.queryByText('Companies')).not.toBeInTheDocument();
-    expect(screen.queryByText('Approvals')).not.toBeInTheDocument();
-    expect(screen.queryByText('Performance')).not.toBeInTheDocument();
-    expect(screen.queryByText('Offboarding')).not.toBeInTheDocument();
+    expect(workTools).not.toContain('Approvals');
+    expect(await landingLabels('people-org')).toEqual([]);
+    // Talent lists only the open-to-every-role self-service surfaces.
+    expect(await landingLabels('talent')).toEqual(['My Checklists', 'My Policies']);
+    expect(await landingLabels('employee-relations')).toEqual([]);
   });
 
   it('shows "Investigations" for a privileged admin regardless of case grants', async () => {
-    // Investigations is role-gated like every other admin entry: the link renders
-    // for the privileged set (Platform Admin / HR Partner / Client Admin) whether
-    // or not the user currently holds a case grant. Showing the link is NOT access
-    // control — case visibility stays grant-based server-side, so an ungranted
-    // admin who opens the board simply sees an empty, non-disclosing list.
+    // Investigations is role-gated like every other admin entry: the module is
+    // listed for the privileged set (Platform Admin / HR Partner / Client Admin)
+    // whether or not the user currently holds a case grant. Listing it is NOT
+    // access control — case visibility stays grant-based server-side, so an
+    // ungranted admin who opens the board simply sees an empty, non-disclosing list.
     mockAuth({ isAuthenticated: true, roles: ['Platform Admin'] });
-    const { MhdSidebar } = await import('../MhdSidebar');
-    const { MemoryRouter } = await import('react-router-dom');
 
-    render(
-      <MemoryRouter>
-        <MhdSidebar />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByText('Employee Relations')).toBeInTheDocument();
-    expect(screen.getByText('Investigations')).toBeInTheDocument();
-    // Training lives in the Talent group; both groups render for a privileged admin.
-    expect(screen.getByText('Learning Management (LMS)')).toBeInTheDocument();
+    expect(await landingLabels('employee-relations')).toContain('Investigations');
+    // Training lives in the Talent category; both render for a privileged admin.
+    expect(await landingLabels('talent')).toContain('Learning Management (LMS)');
   });
 
   it('hides "Investigations" from a Client User (route-excluded, not a privileged role)', async () => {
-    // Client User and Viewer are excluded from /investigations, so the entry never
-    // renders for them — but a Client User still sees their own self-service
-    // surfaces in the Talent group (My Training / My Handbooks).
+    // Client User and Viewer are excluded from /investigations, so the module is
+    // never listed for them — but a Client User still sees their own
+    // self-service surfaces in the Talent category (My Training / My Handbooks).
     mockAuth({ isAuthenticated: true, roles: ['Employee'] });
-    const { MhdSidebar } = await import('../MhdSidebar');
-    const { MemoryRouter } = await import('react-router-dom');
 
-    render(
-      <MemoryRouter>
-        <MhdSidebar />
-      </MemoryRouter>,
-    );
-
-    expect(screen.queryByText('Investigations')).not.toBeInTheDocument();
-    expect(screen.getByText('My Training')).toBeInTheDocument();
+    expect(await landingLabels('employee-relations')).not.toContain('Investigations');
+    expect(await landingLabels('talent')).toContain('My Training');
   });
 
   it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Employee'])(
     'shows "Leaves" and "Accommodations" in Time & Leave for %s',
     async (role) => {
       // Both entries derive their audience from mhdRouteRoles, so the nav and the
-      // router guard can never drift apart. A Client User sees both links because
-      // they reach their OWN cases — an accommodation request may be verbal and
-      // must never depend on an admin opening it for them.
+      // router guard can never drift apart. A Client User sees both because they
+      // reach their OWN cases — an accommodation request may be verbal and must
+      // never depend on an admin opening it for them.
       mockAuth({ isAuthenticated: true, roles: [role] });
-      const { MhdSidebar } = await import('../MhdSidebar');
-      const { MemoryRouter } = await import('react-router-dom');
 
-      render(
-        <MemoryRouter>
-          <MhdSidebar />
-        </MemoryRouter>,
+      expect(await landingLabels('time-leave')).toEqual(
+        expect.arrayContaining(['Leaves', 'Accommodations']),
       );
-
-      expect(screen.getByText('Leaves')).toBeInTheDocument();
-      expect(screen.getByText('Accommodations')).toBeInTheDocument();
     },
   );
 
   it('hides "Leaves" and "Accommodations" from a Viewer', async () => {
     mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
-    const { MhdSidebar } = await import('../MhdSidebar');
-    const { MemoryRouter } = await import('react-router-dom');
 
-    render(
-      <MemoryRouter>
-        <MhdSidebar />
-      </MemoryRouter>,
+    const timeLeave = await landingLabels('time-leave');
+    expect(timeLeave).not.toContain('Leaves');
+    expect(timeLeave).not.toContain('Accommodations');
+    // The Viewer's read-only surfaces still list — the exclusion is targeted.
+    expect(await landingLabels('work-tools')).toEqual(
+      expect.arrayContaining(['Calendar', 'Forms']),
     );
-
-    expect(screen.queryByText('Leaves')).not.toBeInTheDocument();
-    expect(screen.queryByText('Accommodations')).not.toBeInTheDocument();
-    // The Viewer's read-only surfaces still render — the exclusion is targeted.
-    expect(screen.getByText('Calendar')).toBeInTheDocument();
-    expect(screen.getByText('Forms')).toBeInTheDocument();
   });
 
-  it.each<MhdAuthRoleName>([
-    'Platform Admin',
-    'HR Partner',
-    'Client Admin',
-    'Employee',
-    'Viewer',
-  ])('shows "Calendar" in Work Tools for %s', async (role) => {
-    mockAuth({ isAuthenticated: true, roles: [role] });
-    const { MhdSidebar } = await import('../MhdSidebar');
-    const { MemoryRouter } = await import('react-router-dom');
+  it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin', 'Employee', 'Viewer'])(
+    'links "Calendar" to /calendar in Work Tools for %s',
+    async (role) => {
+      mockAuth({ isAuthenticated: true, roles: [role] });
+      const { MhdCategoryLandingPage } =
+        await import('@/features/categories/components/MhdCategoryLandingPage');
+      const { MemoryRouter, Route, Routes } = await import('react-router-dom');
 
-    render(
-      <MemoryRouter>
-        <MhdSidebar />
-      </MemoryRouter>,
-    );
+      render(
+        <MemoryRouter initialEntries={['/categories/work-tools']}>
+          <Routes>
+            <Route path="/categories/:categorySlug" element={<MhdCategoryLandingPage />} />
+          </Routes>
+        </MemoryRouter>,
+      );
 
-    // No click needed: nav groups render expanded by default in this test
-    // environment (see the un-clicked getByText('Calendar') assertions
-    // above) — clicking the toggle here would collapse an already-open
-    // group and remove its items from the DOM instead of revealing them.
-    expect(screen.getByRole('link', { name: 'Calendar' })).toHaveAttribute('href', '/calendar');
-  });
+      expect(screen.getByRole('link', { name: 'Calendar' })).toHaveAttribute('href', '/calendar');
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------

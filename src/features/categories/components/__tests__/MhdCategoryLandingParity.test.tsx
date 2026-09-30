@@ -43,7 +43,7 @@ beforeEach(() => {
 
 describe('category landing pages', () => {
   it('every category with a landing route has a unique slug, label and description', async () => {
-    const { NAV_SECTIONS } = await import('@/appshell/MhdSidebar');
+    const { NAV_SECTIONS } = await import('@/appshell/mhdNavSections');
     const landed = NAV_SECTIONS.filter((section) => section.route);
 
     expect(landed.length).toBeGreaterThan(0);
@@ -55,7 +55,7 @@ describe('category landing pages', () => {
   });
 
   it('every landing route and every card route is defined by the router', async () => {
-    const { NAV_SECTIONS } = await import('@/appshell/MhdSidebar');
+    const { NAV_SECTIONS } = await import('@/appshell/mhdNavSections');
     expect(routerSource).toContain('path="/categories/:categorySlug"');
 
     for (const section of NAV_SECTIONS) {
@@ -71,7 +71,7 @@ describe('category landing pages', () => {
 
   it.each(ALL_ROLES)('lists exactly what the rail lists, all reachable, for %s', async (role) => {
     mockUseMhdAuth.mockReturnValue({ isAuthenticated: true, roles: [role], profile: null });
-    const { NAV_SECTIONS, mhdVisibleNavItems } = await import('@/appshell/MhdSidebar');
+    const { NAV_SECTIONS, mhdVisibleNavItems } = await import('@/appshell/mhdNavSections');
     const { MhdCategoryLandingPage } = await import('../MhdCategoryLandingPage');
 
     for (const section of NAV_SECTIONS.filter((s) => s.route)) {

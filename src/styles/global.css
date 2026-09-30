@@ -42,13 +42,6 @@
   --color-focus-ring: var(--mhd-focus-ring);
   --color-rail: var(--mhd-rail);
   --color-rail-surface: var(--mhd-rail-surface);
-  --color-rail-panel: var(--mhd-rail-panel);
-  --color-rail-panel-text: var(--mhd-rail-panel-text);
-  --color-rail-panel-tint: var(--mhd-rail-panel-tint);
-  --color-rail-panel-tint-hover: var(--mhd-rail-panel-tint-hover);
-  --color-rail-panel-line: var(--mhd-rail-panel-line);
-  --color-rail-panel-pill: var(--mhd-rail-panel-pill);
-  --color-rail-panel-pill-text: var(--mhd-rail-panel-pill-text);
   --color-rail-hover: var(--mhd-rail-hover);
   --color-rail-hover-text: var(--mhd-rail-hover-text);
   --color-rail-selected: var(--mhd-rail-selected);
@@ -77,18 +70,6 @@
    its text tokens must not follow that flip either. */
 :root {
   --mhd-rail-surface: #0a2499;
-  /* Open-category panel: a white surface against the navy rail with dark ink
-     text (17.7:1). The active row inside it flips to a navy pill with white
-     text, since the rail's white selected pill would vanish on white. Pinned
-     as rail tokens, never derived from --mhd-accent or the .dark theme —
-     the rail never changes with the theme. */
-  --mhd-rail-panel: #ffffff;
-  --mhd-rail-panel-text: #111827;
-  --mhd-rail-panel-tint: rgb(0 0 0 / 0.08);
-  --mhd-rail-panel-tint-hover: rgb(0 0 0 / 0.14);
-  --mhd-rail-panel-line: rgb(0 0 0 / 0.35);
-  --mhd-rail-panel-pill: #00157a;
-  --mhd-rail-panel-pill-text: #ffffff;
   --mhd-rail-hover: #12299e;
   --mhd-rail-hover-text: #ffffff;
   --mhd-rail-selected: #ffffff;
@@ -451,12 +432,7 @@
 }
 
 :root {
-  font-family:
-    Arial,
-    Helvetica,
-    'Helvetica Neue',
-    ui-sans-serif,
-    sans-serif;
+  font-family: Arial, Helvetica, 'Helvetica Neue', ui-sans-serif, sans-serif;
   color: var(--color-foreground);
   background: var(--color-background);
   font-synthesis: none;
