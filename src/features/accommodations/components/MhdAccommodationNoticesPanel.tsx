@@ -12,7 +12,15 @@ import {
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
-const NOTICE_TYPES = ['REQUEST_ACKNOWLEDGMENT', 'DECISION', 'DENIAL', 'IMPLEMENTATION', 'FOLLOW_UP'];
+const NOTICE_TYPES = [
+  'REQUEST_ACKNOWLEDGMENT',
+  'INFORMATION_REQUEST',
+  'INTERACTIVE_PROCESS_MEETING',
+  'DECISION',
+  'DENIAL',
+  'IMPLEMENTATION',
+  'FOLLOW_UP',
+];
 
 export function MhdAccommodationNoticesPanel({ caseId }: { caseId: string }) {
   const { authUserId, profile } = useMhdAuth();
