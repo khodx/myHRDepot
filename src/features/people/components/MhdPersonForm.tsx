@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
-import { mhdNextPreferredName } from '@/components/ui/MhdPersonIdentityFields';
+import { mhdNextPreferredName } from '@/components/ui/MhdPersonIdentityFieldsUtils';
 import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
 import type { MhdCompany } from '@/features/companies/Types';
 import { useMhdPeoplePicker } from '../Hook';

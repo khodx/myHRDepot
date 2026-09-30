@@ -1,12 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  mhdComputeTenureParts,
-  mhdFormatDigitalClock,
-  mhdFormatGreetingMonthDay,
-  mhdFormatGreetingWeekday,
-  mhdFormatTenure,
-  mhdTimeOfDayGreeting,
-} from '../MhdDashboardGreetingBanner';
+import { mhdComputeTenureParts, mhdFormatDigitalClock, mhdFormatGreetingMonthDay, mhdFormatGreetingWeekday, mhdFormatTenure, mhdTimeOfDayGreeting } from '../MhdDashboardGreetingBannerUtils';
 
 describe('mhdTimeOfDayGreeting', () => {
   it('greets morning before noon', () => {

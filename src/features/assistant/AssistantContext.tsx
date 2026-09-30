@@ -1,25 +1,10 @@
-import { createContext, useContext, useRef, useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdSearchNavigation } from './Service';
-
-export interface MhdAssistantContextValue {
-  openAssistant: (initialQuery?: string) => void;
-}
-
-const MhdAssistantContext = createContext<MhdAssistantContextValue | null>(null);
-
-export function useMhdAssistant(): MhdAssistantContextValue {
-  const context = useContext(MhdAssistantContext);
-
-  if (!context) {
-    throw new Error('useMhdAssistant must be used within a MhdAssistantProvider');
-  }
-
-  return context;
-}
+import { MhdAssistantContext } from './assistantContextValue';
 
 /**
  * Owns the assistant's open/query state and renders the floating launcher

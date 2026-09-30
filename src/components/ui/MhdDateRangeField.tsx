@@ -1,8 +1,4 @@
-import {
-  computeMhdDateRangePreset,
-  MHD_DATE_RANGE_PRESETS,
-  type MhdDateRangePresetId,
-} from '@/components/ui/MhdDateRangePresets';
+import { computeMhdDateRangePreset, MHD_DATE_RANGE_PRESETS, type MhdDateRangePresetId } from '@/components/ui/MhdDateRangePresetsUtils';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { cn } from '@/utils/cn';
 

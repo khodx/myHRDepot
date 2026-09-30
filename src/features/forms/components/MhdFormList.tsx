@@ -3,7 +3,8 @@ import { FileText } from 'lucide-react';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
+import { MhdPaginationControls } from '@/components/ui/MhdPagination';
+import { mhdPaginationSummary, useMhdPagination } from '@/components/ui/MhdPaginationUtils';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import {
   MhdActionsTh,

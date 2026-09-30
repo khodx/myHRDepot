@@ -1,13 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
-import {
-  MhdPersonIdentityFields,
-  mhdFormatPersonPhoneInput,
-  mhdNextPreferredName,
-  mhdValidatePersonIdentityFields,
-  type MhdPersonIdentityFieldsValues,
-} from '@/components/ui/MhdPersonIdentityFields';
+import { MhdPersonIdentityFields } from '@/components/ui/MhdPersonIdentityFields';
+import { mhdFormatPersonPhoneInput, mhdNextPreferredName, mhdValidatePersonIdentityFields, type MhdPersonIdentityFieldsValues } from '@/components/ui/MhdPersonIdentityFieldsUtils';
 import { cn } from '@/utils/cn';
 import { mhdCompleteOwnProfile } from '../Service';
 import { useMhdAuth } from '../Hook';

@@ -1,7 +1,8 @@
 import { AlarmClock, CalendarClock, ListChecks, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
-import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
+import { MhdPaginationControls } from '@/components/ui/MhdPagination';
+import { mhdPaginationSummary, useMhdPagination } from '@/components/ui/MhdPaginationUtils';
 import {
   MhdActionsTh,
   MhdTable,

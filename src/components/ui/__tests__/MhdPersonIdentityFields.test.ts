@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mhdNextPreferredName } from '../MhdPersonIdentityFields';
+import { mhdNextPreferredName } from '../MhdPersonIdentityFieldsUtils';
 
 describe('mhdNextPreferredName', () => {
   it('mirrors first name into preferred name while both are empty', () => {

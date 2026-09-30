@@ -6,11 +6,8 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MHD_PILL_BUTTON_CLASS } from '@/components/ui/mhdPillButton';
-import {
-  mhdPaginationSummary,
-  MhdPaginationControls,
-  useMhdPagination,
-} from '@/components/ui/MhdPagination';
+import { MhdPaginationControls } from '@/components/ui/MhdPagination';
+import { mhdPaginationSummary, useMhdPagination } from '@/components/ui/MhdPaginationUtils';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   MhdActionsTh,

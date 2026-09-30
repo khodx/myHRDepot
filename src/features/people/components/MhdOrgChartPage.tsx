@@ -7,7 +7,8 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdOrgChart } from '@/features/people/Hook';
 import { MhdPersonCompanySelect } from './MhdPersonCompanySelect';
-import { MhdOrgChartTree, mhdBuildOrgChartTree } from './MhdOrgChartTree';
+import { MhdOrgChartTree } from './MhdOrgChartTree';
+import { mhdBuildOrgChartTree } from './MhdOrgChartTreeUtils';
 
 export function MhdOrgChartPage() {
   const { profile, roles } = useMhdAuth();

@@ -1,6 +1,7 @@
 import { Trash2 } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
-import { MhdRecordTabNav, useMhdRecordTabAction } from '@/components/ui/MhdRecordTabNav';
+import { MhdRecordTabNav } from '@/components/ui/MhdRecordTabNav';
+import { useMhdRecordTabAction } from '@/components/ui/MhdRecordTabNavUtils';
 import { cn } from '@/utils/cn';
 
 export type MhdInvestigationCaseRecordTab = 'detail';

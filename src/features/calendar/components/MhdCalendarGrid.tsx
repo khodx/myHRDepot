@@ -1,20 +1,9 @@
-import {
-  addDays,
-  eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  isWithinInterval,
-  parseISO,
-  startOfMonth,
-  startOfWeek,
-} from 'date-fns';
+import { eachDayOfInterval, format, isSameDay, isSameMonth, isWithinInterval, parseISO } from 'date-fns';
 import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { MhdCalendarEvent, MhdCalendarSourceType, MhdCalendarView } from '../Types';
 import { mhdFormatCalendarSourceType } from '../Types';
+import { mhdCalendarRangeForView } from './MhdCalendarGridUtils';
 
 interface Props {
   anchorDate: Date;
@@ -33,27 +22,6 @@ const SOURCE_ACCENT_CLASSES: Record<MhdCalendarSourceType, string> = {
   FORM: 'border-l-rose-500',
   EVENT: 'border-l-fuchsia-500',
 };
-
-export function mhdCalendarRangeForView(anchorDate: Date, view: MhdCalendarView) {
-  if (view === 'AGENDA') {
-    return {
-      start: anchorDate,
-      end: addDays(anchorDate, 30),
-    };
-  }
-
-  if (view === 'WEEK') {
-    return {
-      start: startOfWeek(anchorDate),
-      end: endOfWeek(anchorDate),
-    };
-  }
-
-  return {
-    start: startOfWeek(startOfMonth(anchorDate)),
-    end: endOfWeek(endOfMonth(anchorDate)),
-  };
-}
 
 export function MhdCalendarGrid({ anchorDate, view, events, onAddEvent, onOpenEvent }: Props) {
   if (view === 'AGENDA') {

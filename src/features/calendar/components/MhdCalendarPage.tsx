@@ -11,7 +11,8 @@ import { useMhdCalendarEvents } from '../Hook';
 import type { MhdCalendarEvent, MhdCalendarFilters, MhdCalendarView } from '../Types';
 import { MhdCalendarEventForm } from './MhdCalendarEventForm';
 import { MhdCalendarFilterBar } from './MhdCalendarFilterBar';
-import { MhdCalendarGrid, mhdCalendarRangeForView } from './MhdCalendarGrid';
+import { MhdCalendarGrid } from './MhdCalendarGrid';
+import { mhdCalendarRangeForView } from './MhdCalendarGridUtils';
 
 // Scheduling an event "for" someone else, rather than only yourself, is
 // reserved to the same privileged set used for HR-facing calendar

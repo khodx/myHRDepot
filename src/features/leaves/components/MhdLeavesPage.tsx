@@ -8,11 +8,8 @@ import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { cn } from '@/utils/cn';
-import {
-  mhdPaginationSummary,
-  MhdPaginationControls,
-  useMhdPagination,
-} from '@/components/ui/MhdPagination';
+import { MhdPaginationControls } from '@/components/ui/MhdPagination';
+import { mhdPaginationSummary, useMhdPagination } from '@/components/ui/MhdPaginationUtils';
 import {
   MhdActionsTh,
   MhdTable,

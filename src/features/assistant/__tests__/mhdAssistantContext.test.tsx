@@ -4,7 +4,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
-import { MhdAssistantProvider, useMhdAssistant } from '../AssistantContext';
+import { MhdAssistantProvider } from '../AssistantContext';
+import { useMhdAssistant } from '../assistantContextValue';
 
 const { mockUseMhdAuth } = vi.hoisted(() => ({ mockUseMhdAuth: vi.fn() }));
 

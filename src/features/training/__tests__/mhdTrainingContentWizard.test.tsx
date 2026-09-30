@@ -1,10 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import {
-  validateWizardStep,
-  MhdTrainingContentWizard,
-  WIZARD_STEPS,
-} from '../components/MhdTrainingContentWizard';
+import { MhdTrainingContentWizard } from '../components/MhdTrainingContentWizard';
+import { validateWizardStep, WIZARD_STEPS } from '../components/MhdTrainingContentWizardSteps';
 
 const mocks = vi.hoisted(() => ({
   createCurriculum: vi.fn().mockResolvedValue({ id: 'cur-new', referenceId: 'CUR-NEW' }),

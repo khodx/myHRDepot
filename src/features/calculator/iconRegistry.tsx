@@ -10,7 +10,7 @@ import * as LucideIcons from 'lucide-react';
  * component at render time, with `Calculator` as a safe fallback for a name
  * that doesn't exist in the library (e.g. stale/mistyped admin input).
  */
-export function mhdResolveCalculatorIcon(iconName: string): ComponentType<LucideProps> {
+function mhdResolveCalculatorIcon(iconName: string): ComponentType<LucideProps> {
   const candidate = (LucideIcons as Record<string, unknown>)[iconName];
   return typeof candidate === 'function' ? (candidate as ComponentType<LucideProps>) : Calculator;
 }

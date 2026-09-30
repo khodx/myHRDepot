@@ -6,11 +6,8 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFilterBar, MhdFilterInput, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdModal } from '@/components/ui/MhdModal';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import {
-  mhdPaginationSummary,
-  MhdPaginationControls,
-  useMhdPagination,
-} from '@/components/ui/MhdPagination';
+import { MhdPaginationControls } from '@/components/ui/MhdPagination';
+import { mhdPaginationSummary, useMhdPagination } from '@/components/ui/MhdPaginationUtils';
 import { MhdTable, MhdTableFooter, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import {

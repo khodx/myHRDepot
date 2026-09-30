@@ -1,1 +1,2 @@
-export { MhdAssistantProvider, useMhdAssistant } from './AssistantContext';
+export { MhdAssistantProvider } from './AssistantContext';
+export { useMhdAssistant } from './assistantContextValue';

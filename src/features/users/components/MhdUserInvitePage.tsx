@@ -8,13 +8,8 @@ import {
   MHD_FIELD_INPUT_CLASS,
 } from '@/components/ui/MhdFieldLabel';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import {
-  MhdPersonIdentityFields,
-  mhdFormatPersonPhoneInput,
-  mhdNextPreferredName,
-  mhdValidatePersonIdentityFields,
-  type MhdPersonIdentityFieldsValues,
-} from '@/components/ui/MhdPersonIdentityFields';
+import { MhdPersonIdentityFields } from '@/components/ui/MhdPersonIdentityFields';
+import { mhdFormatPersonPhoneInput, mhdNextPreferredName, mhdValidatePersonIdentityFields, type MhdPersonIdentityFieldsValues } from '@/components/ui/MhdPersonIdentityFieldsUtils';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdPeople } from '@/features/people/Hook';

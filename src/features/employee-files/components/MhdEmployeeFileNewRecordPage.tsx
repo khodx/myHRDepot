@@ -6,7 +6,8 @@ import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonS
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { mhdPaginationSummary, MhdPaginationControls, useMhdPagination } from '@/components/ui/MhdPagination';
+import { MhdPaginationControls } from '@/components/ui/MhdPagination';
+import { mhdPaginationSummary, useMhdPagination } from '@/components/ui/MhdPaginationUtils';
 import {
   MhdActionsTh,
   MhdTable,

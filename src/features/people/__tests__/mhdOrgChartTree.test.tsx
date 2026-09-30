@@ -2,7 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import type { MhdOrgChartNode } from '../Types';
-import { MhdOrgChartTree, mhdBuildOrgChartTree } from '../components/MhdOrgChartTree';
+import { MhdOrgChartTree } from '../components/MhdOrgChartTree';
+import { mhdBuildOrgChartTree } from '../components/MhdOrgChartTreeUtils';
 
 function node(
   personId: string,
