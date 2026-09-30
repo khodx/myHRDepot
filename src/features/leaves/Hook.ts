@@ -12,6 +12,7 @@ import type {
   MhdRecordCertificationInput,
   MhdSetLeaveCaseBasesInput,
   MhdTransitionLeaveCaseInput,
+  MhdUpdateCertificationStatusInput,
   MhdUpdateLeaveTypeInput,
 } from './Types';
 import { mhdLeavesService } from './Service';
@@ -259,6 +260,19 @@ export function useMhdMarkCertificationSufficient(caseId: string | null) {
   return useMutation({
     mutationFn: (input: MhdMarkCertificationInput) =>
       mhdLeavesService.markCertificationSufficient(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: mhdLeavesQueryKeys.certifications(caseId),
+      });
+    },
+  });
+}
+
+export function useMhdUpdateCertificationStatus(caseId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpdateCertificationStatusInput) =>
+      mhdLeavesService.updateCertificationStatus(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: mhdLeavesQueryKeys.certifications(caseId),

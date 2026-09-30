@@ -94,3 +94,54 @@ export interface MhdLeaveEligibilityInput {
   designatedPersonSelected: boolean;
   coveredEmployerOverride: boolean;
 }
+
+// Vocabularies below mirror the database CHECK constraints named beside each list, so a
+// picker can never offer a value the RPC would refuse.
+
+/** leave_segment_mode_allowed on leave_schedule_segments. */
+export const MHD_LEAVE_SEGMENT_MODES = ['CONTINUOUS', 'INTERMITTENT', 'REDUCED_SCHEDULE'] as const;
+export type MhdLeaveSegmentMode = (typeof MHD_LEAVE_SEGMENT_MODES)[number];
+
+/** leave_segment_status_allowed on leave_schedule_segments. */
+export const MHD_LEAVE_SEGMENT_STATUSES = ['REQUESTED', 'APPROVED', 'TAKEN', 'DENIED', 'CANCELLED'] as const;
+export type MhdLeaveSegmentStatus = (typeof MHD_LEAVE_SEGMENT_STATUSES)[number];
+
+/**
+ * leave_benefit_transaction_type_allowed on leave_benefit_transactions. REVERSAL is
+ * valid in the database only with a `reversal_of` transaction id (leave_benefit_reversal_shape),
+ * and the workflow read does not return transactions to pick from, so the recording
+ * form offers only the types that need no reversal target.
+ */
+export const MHD_LEAVE_BENEFIT_TRANSACTION_TYPES = ['CHARGE', 'PAYMENT', 'ADJUSTMENT', 'REVERSAL'] as const;
+export type MhdLeaveBenefitTransactionType = (typeof MHD_LEAVE_BENEFIT_TRANSACTION_TYPES)[number];
+export const MHD_LEAVE_BENEFIT_RECORDABLE_TRANSACTION_TYPES = MHD_LEAVE_BENEFIT_TRANSACTION_TYPES.filter(
+  (type): type is Exclude<MhdLeaveBenefitTransactionType, 'REVERSAL'> => type !== 'REVERSAL',
+);
+
+export interface MhdLeaveSegmentInput {
+  caseId: string;
+  segmentMode: MhdLeaveSegmentMode;
+  startAt: string;
+  endAt?: string | null;
+  plannedHours?: number | null;
+  actualHours?: number | null;
+  status: MhdLeaveSegmentStatus;
+}
+
+export interface MhdLeaveBenefitObligationInput {
+  caseId: string;
+  benefitType: string;
+  coverageStart: string;
+  coverageEnd?: string | null;
+  employerAmount: number;
+  employeeAmount: number;
+  frequency: string;
+}
+
+export interface MhdLeaveBenefitTransactionInput {
+  obligationId: string;
+  transactionType: Exclude<MhdLeaveBenefitTransactionType, 'REVERSAL'>;
+  amount: number;
+  effectiveDate: string;
+  referenceNote?: string | null;
+}

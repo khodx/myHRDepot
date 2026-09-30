@@ -196,6 +196,18 @@ export const MHD_LEAVE_CERTIFICATION_TYPES = [
   'THIRD_OPINION',
 ] as const satisfies readonly MhdLeaveCertificationType[];
 
+/** leave_certifications_status_allowed on leave_certifications. */
+export const MHD_LEAVE_CERTIFICATION_STATUSES = [
+  'REQUESTED',
+  'RECEIVED',
+  'INCOMPLETE',
+  'INSUFFICIENT',
+  'SUFFICIENT',
+  'EXPIRED',
+  'WAIVED',
+] as const;
+export type MhdLeaveCertificationStatus = (typeof MHD_LEAVE_CERTIFICATION_STATUSES)[number];
+
 export const MHD_LEAVE_LEDGER_ENTRY_TYPES = [
   'DESIGNATION',
   'ADJUSTMENT',
@@ -432,6 +444,20 @@ export interface MhdRecordCertificationInput {
   caseId: MhdLeaveCaseId;
   certificationType: MhdLeaveCertificationType;
   dueDate?: string | null;
+}
+
+/**
+ * Status transition for a certification. `reviewNote` is an operational note only
+ * (what was requested or cured, never diagnosis or medical detail). The RPC keeps an
+ * existing date when one is omitted, so a recorded date can be replaced but not cleared.
+ */
+export interface MhdUpdateCertificationStatusInput {
+  certId: MhdLeaveCertificationId;
+  status: MhdLeaveCertificationStatus;
+  receivedAt?: string | null;
+  deficiencyNotifiedAt?: string | null;
+  cureDueDate?: string | null;
+  reviewNote?: string | null;
 }
 
 export interface MhdMarkCertificationInput {

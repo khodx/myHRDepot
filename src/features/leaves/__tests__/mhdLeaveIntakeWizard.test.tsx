@@ -112,6 +112,34 @@ describe('MhdLeaveIntakeWizard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(screen.getAllByText('Designation Summary').length).toBeGreaterThan(0);
   });
+  it('marks the confirmation stale after an override and requires confirming again', async () => {
+    renderWizard('/leaves/case-1/intake');
+    enterFacts();
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(evaluateAsync).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm all as evaluated' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Snapshot confirmed' })).toBeDisabled());
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Reason for override'), { target: { value: 'Verified service dates with payroll' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Override this one' }));
+    await waitFor(() => expect(overrideAsync).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('confirmation is out of date'));
+    expect(screen.getByRole('button', { name: 'Confirm all as evaluated' })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Confirm all as evaluated again');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm all as evaluated' }));
+    await waitFor(() => expect(confirmAsync).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getAllByText('Designation Summary').length).toBeGreaterThan(0);
+  });
+
   it('assumes no employer or service fact: the facts step is blank and cannot advance until they are entered', () => {
     renderWizard('/leaves/case-1/intake');
     for (const label of [

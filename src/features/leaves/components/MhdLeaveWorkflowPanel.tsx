@@ -12,15 +12,23 @@ import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdDocumentService } from '@/features/documents/Service';
 import {
   useMhdConfirmLeaveEligibility,
+  useMhdLeaveBenefitObligation,
+  useMhdLeaveBenefitTransaction,
   useMhdLeaveEligibility,
   useMhdLeaveEvent,
   useMhdLeaveNotice,
   useMhdLeaveNoticeDelivery,
   useMhdLeaveReadiness,
   useMhdLeaveReturnToWork,
+  useMhdLeaveSegment,
   useMhdLeaveWorkflow,
   useMhdOverrideLeaveEligibility,
 } from '../WorkflowHook';
+import {
+  MhdLeaveBenefitObligationForm,
+  MhdLeaveBenefitTransactionForm,
+  MhdLeaveSegmentForm,
+} from './MhdLeaveWorkflowForms';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -48,6 +56,9 @@ export function MhdLeaveWorkflowPanel({
   const returnToWork = useMhdLeaveReturnToWork(caseId);
   const recordNotice = useMhdLeaveNotice(caseId);
   const markNoticeDelivery = useMhdLeaveNoticeDelivery(caseId);
+  const recordSegment = useMhdLeaveSegment(caseId);
+  const recordObligation = useMhdLeaveBenefitObligation(caseId);
+  const recordTransaction = useMhdLeaveBenefitTransaction(caseId);
   const [tab, setTab] = useState<Tab>('eligibility');
   const [reasonCode, setReasonCode] = useState('OWN_SERIOUS_HEALTH_CONDITION');
   const [relationship, setRelationship] = useState('');
@@ -81,12 +92,15 @@ export function MhdLeaveWorkflowPanel({
   if (workflow.isLoading) return <p className="text-sm text-muted-foreground">Loading workflow…</p>;
   if (!record) return null;
 
-  async function run(action: () => Promise<unknown>) {
+  // Resolves true only when the action succeeded, so a form can keep its input on refusal.
+  async function run(action: () => Promise<unknown>): Promise<boolean> {
     setError(null);
     try {
       await action();
+      return true;
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'The workflow action failed.');
+      return false;
     }
   }
 
@@ -438,6 +452,13 @@ export function MhdLeaveWorkflowPanel({
           ) : (
             <p className="text-sm text-muted-foreground">No leave segments recorded.</p>
           )}
+          {privileged ? (
+            <MhdLeaveSegmentForm
+              caseId={caseId}
+              isPending={recordSegment.isPending}
+              onSubmit={(input) => run(() => recordSegment.mutateAsync(input))}
+            />
+          ) : null}
         </div>
       ) : null}
 
@@ -498,6 +519,22 @@ export function MhdLeaveWorkflowPanel({
               No benefit-maintenance obligation recorded.
             </p>
           )}
+          {privileged ? (
+            <>
+              <MhdLeaveBenefitObligationForm
+                caseId={caseId}
+                isPending={recordObligation.isPending}
+                onSubmit={(input) => run(() => recordObligation.mutateAsync(input))}
+              />
+              {record.benefits.length ? (
+                <MhdLeaveBenefitTransactionForm
+                  obligations={record.benefits}
+                  isPending={recordTransaction.isPending}
+                  onSubmit={(input) => run(() => recordTransaction.mutateAsync(input))}
+                />
+              ) : null}
+            </>
+          ) : null}
         </div>
       ) : null}
 

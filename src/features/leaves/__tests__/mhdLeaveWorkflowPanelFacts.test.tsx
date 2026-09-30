@@ -32,6 +32,9 @@ vi.mock('../WorkflowHook', () => ({
   useMhdLeaveReturnToWork: () => mutation(),
   useMhdLeaveNotice: () => mutation(),
   useMhdLeaveNoticeDelivery: () => mutation(),
+  useMhdLeaveSegment: () => mutation(),
+  useMhdLeaveBenefitObligation: () => mutation(),
+  useMhdLeaveBenefitTransaction: () => mutation(),
 }));
 
 const { MhdLeaveWorkflowPanel } = await import('../components/MhdLeaveWorkflowPanel');

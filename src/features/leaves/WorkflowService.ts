@@ -1,6 +1,17 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { MhdComplianceReadiness } from '@/types/mhdCompliance';
-import type { MhdLeaveEligibilityInput, MhdLeaveWorkflow } from './WorkflowTypes';
+import type {
+  MhdLeaveBenefitObligationInput,
+  MhdLeaveBenefitTransactionInput,
+  MhdLeaveEligibilityInput,
+  MhdLeaveSegmentInput,
+  MhdLeaveWorkflow,
+} from './WorkflowTypes';
+import {
+  mhdValidateLeaveBenefitObligation,
+  mhdValidateLeaveBenefitTransaction,
+  mhdValidateLeaveSegment,
+} from './WorkflowValidation';
 
 // supabaseClient.rpc is called directly rather than bound to a local alias.
 // Binding instantiates the whole generated rpc overload set at once, which now
@@ -160,7 +171,60 @@ export const mhdLeaveWorkflowService = {
     if (error) throw error;
   },
 
-  async readiness(): Promise<MhdComplianceReadiness | null> {
+  /**
+   * A TAKEN segment debits the ledger, so the database also runs the designation
+   * guard (confirmed eligibility, balance ceiling). Its refusal is thrown as-is so the
+   * caller shows the exact reason.
+   */
+  async recordSegment(input: MhdLeaveSegmentInput): Promise<string> {
+    const invalid = mhdValidateLeaveSegment(input);
+    if (invalid) throw new Error(invalid);
+    const { data, error } = await supabaseClient.rpc('mhd_leave_schedule_record', {
+      p_case_id: input.caseId,
+      p_segment_mode: input.segmentMode,
+      p_start_at: input.startAt,
+      p_end_at: input.endAt || undefined,
+      p_planned_hours: input.plannedHours ?? undefined,
+      p_actual_hours: input.actualHours ?? undefined,
+      p_status: input.status,
+    });
+    if (error) throw error;
+    return data as string;
+  },
+
+  async recordBenefitObligation(input: MhdLeaveBenefitObligationInput): Promise<string> {
+    const invalid = mhdValidateLeaveBenefitObligation(input);
+    if (invalid) throw new Error(invalid);
+    const { data, error } = await supabaseClient.rpc('mhd_leave_benefit_obligation_record', {
+      p_case_id: input.caseId,
+      p_benefit_type: input.benefitType.trim(),
+      p_coverage_start: input.coverageStart,
+      // The generated argument type is non-nullable, but the column and the RPC accept
+      // NULL for an open-ended coverage period.
+      p_coverage_end: (input.coverageEnd || null) as string,
+      p_employer_amount: input.employerAmount,
+      p_employee_amount: input.employeeAmount,
+      p_frequency: input.frequency.trim(),
+    });
+    if (error) throw error;
+    return data as string;
+  },
+
+  async recordBenefitTransaction(input: MhdLeaveBenefitTransactionInput): Promise<string> {
+    const invalid = mhdValidateLeaveBenefitTransaction(input);
+    if (invalid) throw new Error(invalid);
+    const { data, error } = await supabaseClient.rpc('mhd_leave_benefit_transaction_record', {
+      p_obligation_id: input.obligationId,
+      p_transaction_type: input.transactionType,
+      p_amount: input.amount,
+      p_effective_date: input.effectiveDate,
+      p_reference_note: input.referenceNote?.trim() || undefined,
+    });
+    if (error) throw error;
+    return data as string;
+  },
+
+  async readiness():Promise<MhdComplianceReadiness | null> {
     const { data, error } = await supabaseClient.rpc('mhd_compliance_module_readiness', {
       p_module_key: 'LEAVES',
     });

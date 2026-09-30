@@ -20,6 +20,7 @@ import {
   useMhdLeaveTypes,
   useMhdRecordCertification,
   useMhdMarkCertificationSufficient,
+  useMhdUpdateCertificationStatus,
   useMhdSetLeaveCaseBases,
   useMhdTransitionLeaveCase,
 } from '../Hook';
@@ -89,6 +90,7 @@ export function MhdLeaveCaseDetailPage() {
   const transition = useMhdTransitionLeaveCase();
   const recordCert = useMhdRecordCertification();
   const markCert = useMhdMarkCertificationSufficient(caseId);
+  const updateCertStatus = useMhdUpdateCertificationStatus(caseId);
 
   // ----- Designation-set editor state -----
   // The editor seeds from the persisted set at the moment the user opens it (in
@@ -520,12 +522,15 @@ export function MhdLeaveCaseDetailPage() {
         certifications={certifications.data ?? []}
         canSeeMedical={canSeeMedical}
         isLoading={certifications.isLoading}
-        isSubmitting={recordCert.isPending || markCert.isPending}
+        isSubmitting={recordCert.isPending || markCert.isPending || updateCertStatus.isPending}
         onRecord={async (input) => {
           await recordCert.mutateAsync(input);
         }}
         onMarkSufficient={async (input) => {
           await markCert.mutateAsync(input);
+        }}
+        onUpdateStatus={async (input) => {
+          await updateCertStatus.mutateAsync(input);
         }}
       />
 

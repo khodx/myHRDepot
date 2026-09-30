@@ -24,6 +24,7 @@ import type {
   MhdMarkCertificationInput,
   MhdMutationResult,
   MhdRecordCertificationInput,
+  MhdUpdateCertificationStatusInput,
   MhdSetLeaveCaseBasesInput,
   MhdTransitionLeaveCaseInput,
   MhdUpdateLeaveTypeInput,
@@ -405,6 +406,26 @@ export const mhdLeavesService = {
       p_received_at: input.receivedAt ?? undefined,
       // Restricted medical detail — only a PA/HRP caller ever reaches this path.
       p_provider_note: trimmedOrUndefined(input.providerNote),
+    });
+    if (error) throw error;
+  },
+
+  async updateCertificationStatus(input: MhdUpdateCertificationStatusInput): Promise<void> {
+    if (
+      input.deficiencyNotifiedAt &&
+      input.cureDueDate &&
+      input.cureDueDate < input.deficiencyNotifiedAt
+    ) {
+      throw new Error('The cure due date cannot be before the deficiency notice date.');
+    }
+    const { error } = await supabaseClient.rpc('mhd_leave_certification_update_status', {
+      p_certification_id: input.certId,
+      p_status: input.status,
+      p_received_at: input.receivedAt || undefined,
+      p_deficiency_notified_at: input.deficiencyNotifiedAt || undefined,
+      p_cure_due_date: input.cureDueDate || undefined,
+      // Operational note only; the RPC stores it in the restricted certification row.
+      p_review_note: trimmedOrUndefined(input.reviewNote),
     });
     if (error) throw error;
   },

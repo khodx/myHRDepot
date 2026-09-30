@@ -4,11 +4,14 @@ import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import {
+  MHD_LEAVE_CERTIFICATION_STATUSES,
   MHD_LEAVE_CERTIFICATION_TYPES,
   mhdFormatLeaveCertificationType,
   type MhdLeaveCertification,
   type MhdMarkCertificationInput,
+  type MhdLeaveCertificationStatus,
   type MhdRecordCertificationInput,
+  type MhdUpdateCertificationStatusInput,
 } from '../Types';
 
 interface Props {
@@ -23,6 +26,7 @@ interface Props {
   isSubmitting?: boolean;
   onRecord: (input: MhdRecordCertificationInput) => Promise<void>;
   onMarkSufficient: (input: MhdMarkCertificationInput) => Promise<void>;
+  onUpdateStatus: (input: MhdUpdateCertificationStatusInput) => Promise<void>;
 }
 
 const INPUT_CLASSES =
@@ -58,6 +62,7 @@ export function MhdLeaveCertificationPanel({
   isSubmitting = false,
   onRecord,
   onMarkSufficient,
+  onUpdateStatus,
 }: Props) {
   const [isRecording, setIsRecording] = useState(false);
   const [certType, setCertType] =
@@ -68,6 +73,48 @@ export function MhdLeaveCertificationPanel({
   // ever shown to a PA/HRP viewer.
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [note, setNote] = useState('');
+
+  // Status update state. The status list has no default: nothing tells this panel the
+  // current status, so the reviewer states the new one deliberately.
+  const [statusId, setStatusId] = useState<string | null>(null);
+  const [newStatus, setNewStatus] = useState<MhdLeaveCertificationStatus | ''>('');
+  const [receivedAt, setReceivedAt] = useState('');
+  const [deficiencyNotifiedAt, setDeficiencyNotifiedAt] = useState('');
+  const [cureDueDate, setCureDueDate] = useState('');
+  const [reviewNote, setReviewNote] = useState('');
+  const [statusError, setStatusError] = useState<string | null>(null);
+
+  function closeStatusForm() {
+    setStatusId(null);
+    setNewStatus('');
+    setReceivedAt('');
+    setDeficiencyNotifiedAt('');
+    setCureDueDate('');
+    setReviewNote('');
+    setStatusError(null);
+  }
+
+  async function submitStatus(certId: string) {
+    if (!newStatus) {
+      setStatusError('Select the new certification status.');
+      return;
+    }
+    setStatusError(null);
+    try {
+      await onUpdateStatus({
+        certId,
+        status: newStatus,
+        receivedAt: receivedAt || null,
+        deficiencyNotifiedAt: deficiencyNotifiedAt || null,
+        cureDueDate: cureDueDate || null,
+        reviewNote: reviewNote.trim() || null,
+      });
+      closeStatusForm();
+    } catch (caught) {
+      // The server's own refusal (for example the cure-date rule) is shown verbatim.
+      setStatusError(caught instanceof Error ? caught.message : 'Unable to update the status.');
+    }
+  }
 
   async function submitRecord() {
     await onRecord({
@@ -271,6 +318,110 @@ export function MhdLeaveCertificationPanel({
                     className="mt-3 text-sm font-medium text-accent hover:text-accent-hover"
                   >
                     Review sufficiency
+                  </button>
+                )
+              ) : null}
+
+              {canSeeMedical ? (
+                statusId === cert.id ? (
+                  <div className="mt-3 space-y-2 border-t border-border pt-3">
+                    <div className="flex flex-wrap items-end gap-3">
+                      <div>
+                        <label htmlFor={`status-${cert.id}`} className="block text-sm font-medium text-foreground">
+                          Certification status
+                        </label>
+                        <select
+                          id={`status-${cert.id}`}
+                          value={newStatus}
+                          onChange={(event) =>
+                            setNewStatus(event.target.value as MhdLeaveCertificationStatus | '')
+                          }
+                          className={`mt-1 ${INPUT_CLASSES}`}
+                        >
+                          <option value="">Select a status</option>
+                          {MHD_LEAVE_CERTIFICATION_STATUSES.map((status) => (
+                            <option key={status} value={status}>
+                              {status.replaceAll('_', ' ')}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label htmlFor={`received-${cert.id}`} className="block text-sm font-medium text-foreground">
+                          Received date
+                        </label>
+                        <MhdDateField
+                          id={`received-${cert.id}`}
+                          value={receivedAt}
+                          onChange={setReceivedAt}
+                          className={`mt-1 ${INPUT_CLASSES}`}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor={`deficiency-${cert.id}`} className="block text-sm font-medium text-foreground">
+                          Deficiency notified date
+                        </label>
+                        <MhdDateField
+                          id={`deficiency-${cert.id}`}
+                          value={deficiencyNotifiedAt}
+                          onChange={setDeficiencyNotifiedAt}
+                          className={`mt-1 ${INPUT_CLASSES}`}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor={`cure-${cert.id}`} className="block text-sm font-medium text-foreground">
+                          Cure due date
+                        </label>
+                        <MhdDateField
+                          id={`cure-${cert.id}`}
+                          value={cureDueDate}
+                          onChange={setCureDueDate}
+                          className={`mt-1 ${INPUT_CLASSES}`}
+                        />
+                      </div>
+                    </div>
+                    <label htmlFor={`review-note-${cert.id}`} className="block text-sm font-medium text-foreground">
+                      Operational note{' '}
+                      <span className="font-normal text-muted-foreground">
+                        (optional; no diagnosis or medical detail)
+                      </span>
+                    </label>
+                    <textarea
+                      id={`review-note-${cert.id}`}
+                      rows={2}
+                      maxLength={2000}
+                      value={reviewNote}
+                      onChange={(event) => setReviewNote(event.target.value)}
+                      className={`w-full ${INPUT_CLASSES}`}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      A date left blank keeps the date already on record. A cure due date needs a
+                      deficiency notice date.
+                    </p>
+                    {statusError ? (
+                      <p role="alert" className="text-sm text-rose-700">
+                        {statusError}
+                      </p>
+                    ) : null}
+                    <div className="flex justify-end gap-2">
+                      <Button variant="secondary" onClick={closeStatusForm}>
+                        Cancel
+                      </Button>
+                      <Button disabled={isSubmitting} onClick={() => void submitStatus(cert.id)}>
+                        {isSubmitting ? 'Saving…' : 'Save Status'}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeStatusForm();
+                      setStatusId(cert.id);
+                    }}
+                    className="mt-3 ml-4 text-sm font-medium text-accent hover:text-accent-hover"
+                  >
+                    Update status
                   </button>
                 )
               ) : null}

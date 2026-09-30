@@ -161,6 +161,10 @@ export function MhdLeaveIntakeWizard({ caseId: caseIdProp }: MhdLeaveIntakeWizar
   const [results, setResults] = useState<EligibilityResult[]>([]);
   const [snapshotId, setSnapshotId] = useState('');
   const [confirmed, setConfirmed] = useState(false);
+  // An override made after confirmation is not covered by it: the confirm RPC stamps only
+  // determinations that are effectively ELIGIBLE at that moment, so the designation gate
+  // would still refuse. The user must confirm again.
+  const [confirmationStale, setConfirmationStale] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [overrideReasons, setOverrideReasons] = useState<Record<string, string>>({});
   const [overrideOutcomes, setOverrideOutcomes] = useState<Record<string, EligibilityResult['evaluated_outcome']>>({});
@@ -226,27 +230,27 @@ export function MhdLeaveIntakeWizard({ caseId: caseIdProp }: MhdLeaveIntakeWizar
       if (counted.some((value) => value.trim() === '' || !Number.isFinite(Number(value)) || Number(value) < 0)) { setError('Enter every employer and service fact as a number (zero or more); none are assumed.'); return false; }
       if (facts.scheduledWeeklyHours.trim() === '' || !(Number(facts.scheduledWeeklyHours) > 0)) { setError('Scheduled weekly hours must be greater than zero.'); return false; }
     }
-    if (currentStep.id === 'confirm' && !confirmed) { setError('Confirm the snapshot before advancing.'); return false; }
+    if (currentStep.id === 'confirm' && !confirmed) { setError(confirmationStale ? 'An override changed the evaluation. Confirm all as evaluated again before advancing.' : 'Confirm the snapshot before advancing.'); return false; }
     setError(null);
     return true;
   }
 
   async function confirmAll() {
     if (!snapshotId) { setError('Run an evaluation before confirming.'); return; }
-    try { await confirmEligibility.mutateAsync(snapshotId); setConfirmed(true); setError(null); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to confirm the snapshot.'); }
+    try { await confirmEligibility.mutateAsync(snapshotId); setConfirmed(true); setConfirmationStale(false); setError(null); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to confirm the snapshot.'); }
   }
 
   async function overrideOne(result: EligibilityResult) {
     const reason = (overrideReasons[result.determination_id] ?? '').trim();
     if (!reason) { setError('An eligibility override requires a recorded reason.'); return; }
-    try { await overrideEligibility.mutateAsync({ determinationId: result.determination_id, effectiveOutcome: (overrideOutcomes[result.determination_id] ?? result.evaluated_outcome) as 'ELIGIBLE' | 'INELIGIBLE' | 'UNDETERMINED', overrideReason: reason }); setError(null); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to override the determination.'); }
+    try { await overrideEligibility.mutateAsync({ determinationId: result.determination_id, effectiveOutcome: (overrideOutcomes[result.determination_id] ?? result.evaluated_outcome) as 'ELIGIBLE' | 'INELIGIBLE' | 'UNDETERMINED', overrideReason: reason }); setConfirmed(false); setConfirmationStale(true); setError(null); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to override the determination.'); }
   }
 
   function renderStep() {
     if (currentStep.id === 'basics') return <CaseBasicsStep value={basics} people={people.data ?? []} onChange={setBasics} />;
     if (currentStep.id === 'facts') return <FactsStep value={facts} onChange={setFacts} />;
     if (currentStep.id === 'evaluation' || currentStep.id === 'review') return <ResultsList results={results} />;
-    if (currentStep.id === 'confirm') return <div className="space-y-4"><MhdCard><p className="font-semibold">Confirm the evaluated snapshot</p><p className="mt-1 text-sm text-muted-foreground">Confirmation applies to the whole snapshot ({snapshotId || 'not yet available'}).</p><Button onClick={() => void confirmAll()} disabled={confirmed || confirmEligibility.isPending}>{confirmed ? 'Snapshot confirmed' : 'Confirm all as evaluated'}</Button></MhdCard>{results.map((result) => <MhdCard key={result.determination_id}><p className="font-semibold">Override {result.type_key}</p><div className="mt-2 grid gap-2 md:grid-cols-2"><select className={inputClassName} value={overrideOutcomes[result.determination_id] ?? result.evaluated_outcome} onChange={(e) => setOverrideOutcomes({ ...overrideOutcomes, [result.determination_id]: e.target.value })}><option value="ELIGIBLE">ELIGIBLE</option><option value="INELIGIBLE">INELIGIBLE</option><option value="UNDETERMINED">UNDETERMINED</option></select><textarea className={inputClassName} placeholder="Reason for override" value={overrideReasons[result.determination_id] ?? ''} onChange={(e) => setOverrideReasons({ ...overrideReasons, [result.determination_id]: e.target.value })} /></div><Button variant="secondary" onClick={() => void overrideOne(result)}>Override this one</Button></MhdCard>)}</div>;
+    if (currentStep.id === 'confirm') return <div className="space-y-4"><MhdCard><p className="font-semibold">Confirm the evaluated snapshot</p><p className="mt-1 text-sm text-muted-foreground">Confirmation applies to the whole snapshot ({snapshotId || 'not yet available'}).</p>{confirmationStale ? <p role="status" className="mt-2 text-sm text-amber-700">An override was recorded after confirmation, so the confirmation is out of date. Confirm all as evaluated again to continue.</p> : null}<Button onClick={() => void confirmAll()} disabled={confirmed || confirmEligibility.isPending}>{confirmed ? 'Snapshot confirmed' : 'Confirm all as evaluated'}</Button></MhdCard>{results.map((result) => <MhdCard key={result.determination_id}><p className="font-semibold">Override {result.type_key}</p><div className="mt-2 grid gap-2 md:grid-cols-2"><select className={inputClassName} value={overrideOutcomes[result.determination_id] ?? result.evaluated_outcome} onChange={(e) => setOverrideOutcomes({ ...overrideOutcomes, [result.determination_id]: e.target.value })}><option value="ELIGIBLE">ELIGIBLE</option><option value="INELIGIBLE">INELIGIBLE</option><option value="UNDETERMINED">UNDETERMINED</option></select><textarea className={inputClassName} placeholder="Reason for override" value={overrideReasons[result.determination_id] ?? ''} onChange={(e) => setOverrideReasons({ ...overrideReasons, [result.determination_id]: e.target.value })} /></div><Button variant="secondary" onClick={() => void overrideOne(result)}>Override this one</Button></MhdCard>)}</div>;
     return <ResultsList results={results} />;
   }
 

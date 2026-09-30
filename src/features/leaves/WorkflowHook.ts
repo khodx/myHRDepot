@@ -87,3 +87,30 @@ export function useMhdLeaveNoticeDelivery(caseId: string) {
     onSuccess: refresh,
   });
 }
+
+export function useMhdLeaveSegment(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.recordSegment>[0]) =>
+      mhdLeaveWorkflowService.recordSegment(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveBenefitObligation(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.recordBenefitObligation>[0]) =>
+      mhdLeaveWorkflowService.recordBenefitObligation(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveBenefitTransaction(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.recordBenefitTransaction>[0]) =>
+      mhdLeaveWorkflowService.recordBenefitTransaction(input),
+    onSuccess: refresh,
+  });
+}
