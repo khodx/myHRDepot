@@ -76,3 +76,11 @@ describe('accommodations route access', () => {
     expect(mhdAccommodationsCanSeeMedical(['Client Admin'])).toBe(false);
   });
 });
+
+describe('accommodations intake wizard route access', () => {
+  it('lets an Employee open /accommodations/new for their own request, but never a Viewer', () => {
+    expect(mhdCanAccessRoute('/accommodations/new', ['Employee'])).toBe(true);
+    expect(mhdCanAccessRoute('/accommodations/new', ['HR Partner'])).toBe(true);
+    expect(mhdCanAccessRoute('/accommodations/new', ['Viewer'])).toBe(false);
+  });
+});

@@ -68,3 +68,11 @@ describe('handbook route access', () => {
     }
   });
 });
+
+describe('handbook wizard route access', () => {
+  it('keeps /handbooks/new inside the admin audience', () => {
+    expect(mhdCanAccessRoute('/handbooks/new', ['HR Partner'])).toBe(true);
+    expect(mhdCanAccessRoute('/handbooks/new', ['Employee'])).toBe(false);
+    expect(mhdCanAccessRoute('/handbooks/new', ['Viewer'])).toBe(false);
+  });
+});

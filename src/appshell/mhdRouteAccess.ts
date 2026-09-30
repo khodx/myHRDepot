@@ -124,7 +124,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   },
   // Wizards hub (/wizards) — a directory of every guided-creation wizard in the
   // app (Job Description, Leave Intake, Compensation Classification, Contractor
-  // Classification, Course/Curriculum/Program). The hub itself is gated to the
+  // Classification, Course/Curriculum/Program, Handbook, Accommodation Intake). The hub itself is gated to the
   // union of every wizard's own audience so nobody who can reach at least one
   // wizard is refused the directory; the page itself hides a card for any
   // wizard the viewer's own roles can't actually open (checked per-card against

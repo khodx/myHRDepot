@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Accessibility } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
-import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -20,29 +19,19 @@ import {
   useMhdAccommodationCases,
   useMhdAccommodationPeople,
   useMhdAccommodationReadiness,
-  useMhdCreateAccommodation,
 } from '../Hook';
-import { mhdAccommodationRequestSchema } from '../Schemas';
 import {
-  MHD_ACCOMMODATION_REQUEST_CHANNELS,
-  MHD_ACCOMMODATION_REQUEST_SOURCES,
   MHD_ACCOMMODATION_STATUSES,
   mhdFormatAccommodationValue,
-  type MhdAccommodationRequestChannel,
-  type MhdAccommodationRequestSource,
   type MhdAccommodationStatus,
 } from '../Types';
 import { MhdAccommodationBoard } from './MhdAccommodationBoard';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import { useMhdFormIntakeDefault } from '@/features/forms/Hook';
 
-const inputClass =
-  'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
-
 const MHD_ACCOMMODATIONS_VIEW_KEY = 'mhd:accommodations:view';
 
 export function MhdAccommodationsPage() {
-  const navigate = useNavigate();
   const location = useLocation();
   const { profile, roles } = useMhdAuth();
   const companyId = profile?.companyId ?? '';
@@ -51,11 +40,6 @@ export function MhdAccommodationsPage() {
   const accommodationIntake = useMhdFormIntakeDefault(companyId || null, 'accommodationCase');
   const [status, setStatus] = useState<MhdAccommodationStatus | 'ALL'>('ALL');
   const [personId, setPersonId] = useState(isPrivileged ? '' : (selfPersonId ?? ''));
-  const [creating, setCreating] = useState(false);
-  const [requestSource, setRequestSource] = useState<MhdAccommodationRequestSource>('SELF');
-  const [requestChannel, setRequestChannel] = useState<MhdAccommodationRequestChannel>('VERBAL');
-  const [requestSummary, setRequestSummary] = useState('');
-  const [formError, setFormError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<MhdViewMode>(() =>
     mhdReadPersistedViewMode(MHD_ACCOMMODATIONS_VIEW_KEY),
   );
@@ -68,7 +52,6 @@ export function MhdAccommodationsPage() {
   const cases = useMhdAccommodationCases(companyId || null, status, personId || null);
   const people = useMhdAccommodationPeople(isPrivileged ? companyId || null : null);
   const readiness = useMhdAccommodationReadiness();
-  const createCase = useMhdCreateAccommodation();
   const peopleOptions = useMemo(
     () =>
       (people.data ?? []).map((person) => ({
@@ -77,32 +60,6 @@ export function MhdAccommodationsPage() {
       })),
     [people.data],
   );
-
-  async function submitRequest() {
-    const selectedPerson = isPrivileged ? personId : selfPersonId;
-    const requestedAt = new Date().toISOString();
-    const parsed = mhdAccommodationRequestSchema.safeParse({
-      personId: selectedPerson,
-      requestSource,
-      requestChannel,
-      requestedAt,
-      requestSummary,
-    });
-    if (!parsed.success) {
-      setFormError(parsed.error.issues[0]?.message ?? 'Review the request details.');
-      return;
-    }
-    setFormError(null);
-    const result = await createCase.mutateAsync({
-      companyId,
-      personId: parsed.data.personId,
-      requestSource: parsed.data.requestSource,
-      requestChannel: parsed.data.requestChannel,
-      requestedAt,
-      requestSummary: parsed.data.requestSummary,
-    });
-    navigate(`/accommodations/${result.id}`);
-  }
 
   return (
     <div className="space-y-6">
@@ -134,97 +91,16 @@ export function MhdAccommodationsPage() {
             >
               Submit Via Form
             </Link>
-            <Button
-              onClick={() => setCreating((value) => !value)}
-              className="h-9 px-3 text-[16.8px]"
+            <Link
+              to="/accommodations/new"
+              className={`${buttonBaseClasses} ${buttonVariantClasses.primary} h-9 px-3 text-[16.8px]`}
             >
               Open Request
-            </Button>
+            </Link>
           </>
         }
       />
       <MhdComplianceGateBanner readiness={readiness.data} />
-
-      {creating ? (
-        <MhdCard className="space-y-4">
-          <div>
-            <h2 className="font-semibold text-foreground">Open an accommodation process</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              A request may be verbal and does not require this form or any special words. Record
-              the workplace change or assistance requested—never a diagnosis or medical history.
-            </p>
-          </div>
-          <MhdFormFieldStack>
-            {isPrivileged ? (
-              <label className="text-sm font-medium">
-                Person
-                <select
-                  className={`mt-1 ${inputClass}`}
-                  value={personId}
-                  onChange={(event) => setPersonId(event.target.value)}
-                >
-                  <option value="">Choose…</option>
-                  {peopleOptions.map((person) => (
-                    <option key={person.id} value={person.id}>
-                      {person.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
-            <label className="text-sm font-medium">
-              How the need came to us
-              <select
-                className={`mt-1 ${inputClass}`}
-                value={requestSource}
-                onChange={(event) =>
-                  setRequestSource(event.target.value as MhdAccommodationRequestSource)
-                }
-              >
-                {MHD_ACCOMMODATION_REQUEST_SOURCES.map((value) => (
-                  <option key={value} value={value}>
-                    {mhdFormatAccommodationValue(value)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="text-sm font-medium">
-              Channel
-              <select
-                className={`mt-1 ${inputClass}`}
-                value={requestChannel}
-                onChange={(event) =>
-                  setRequestChannel(event.target.value as MhdAccommodationRequestChannel)
-                }
-              >
-                {MHD_ACCOMMODATION_REQUEST_CHANNELS.map((value) => (
-                  <option key={value} value={value}>
-                    {mhdFormatAccommodationValue(value)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </MhdFormFieldStack>
-          <label className="block text-sm font-medium">
-            Requested workplace change or assistance
-            <textarea
-              className={`mt-1 min-h-24 ${inputClass}`}
-              value={requestSummary}
-              onChange={(event) => setRequestSummary(event.target.value)}
-              placeholder="Describe the requested adjustment and work-related need. Do not enter a diagnosis."
-            />
-          </label>
-          {formError ? <p className="text-sm text-rose-700">{formError}</p> : null}
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setCreating(false)}>
-              Cancel
-            </Button>
-            <Button disabled={createCase.isPending} onClick={() => void submitRequest()}>
-              {createCase.isPending ? 'Opening…' : 'Open process'}
-            </Button>
-          </div>
-        </MhdCard>
-      ) : null}
 
       <MhdFilterBar>
         {isPrivileged ? (

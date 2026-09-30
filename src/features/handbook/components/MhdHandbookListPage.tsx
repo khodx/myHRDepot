@@ -1,11 +1,9 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Link } from 'react-router-dom';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
-import { useMhdCreateHandbook, useMhdHandbooks } from '../Hook';
-import type { MhdCreateHandbookFormValues } from '../Schemas';
-import { MhdHandbookCreateForm } from './MhdHandbookCreateForm';
+import { useMhdHandbooks } from '../Hook';
 import { MhdHandbookStatusBadge } from './MhdHandbookStatusBadge';
 import { MhdHandbookTypeBadge } from './MhdHandbookTypeBadge';
 
@@ -21,42 +19,19 @@ interface Props {
   canManage: boolean;
   /** Route to the wizard for a handbook (the create flow lands here on success). */
   onOpenHandbook: (handbookId: string) => void;
-  /**
-   * Pre-fills and auto-opens the create form — used by the Workplace Safety
-   * module's "Create or update Safety Handbook" cross-link
-   * (`/handbooks?handbookType=SAFETY&establishmentId=...`). This page only
-   * launches the existing create flow; it never duplicates any of its steps.
-   */
-  initialHandbookType?: MhdCreateHandbookFormValues['handbookType'];
-  initialEstablishmentId?: string | null;
 }
 
 /**
  * `/handbooks` — the admin list of a company's handbooks, by type and status.
- * "New handbook" launches the wizard (create → assemble → publish). A company
+ * "New Handbook" opens the wizard at /handbooks/new (create → assemble → publish). A company
  * keeps one live handbook per type at a time; archived ones remain for history.
  */
 export function MhdHandbookListPage({
   companyId,
   canManage,
   onOpenHandbook,
-  initialHandbookType,
-  initialEstablishmentId,
 }: Props) {
-  const [isCreating, setIsCreating] = useState(Boolean(initialHandbookType));
   const handbooks = useMhdHandbooks({ companyId });
-  const createHandbook = useMhdCreateHandbook();
-
-  async function handleCreate(values: MhdCreateHandbookFormValues) {
-    const result = await createHandbook.mutateAsync({
-      companyId: values.companyId,
-      handbookType: values.handbookType,
-      title: values.title,
-      jurisdictions: values.jurisdictions,
-    });
-    setIsCreating(false);
-    onOpenHandbook(result.id);
-  }
 
   return (
     <div className="space-y-6">
@@ -64,7 +39,14 @@ export function MhdHandbookListPage({
         title="Handbooks"
         description="Employee and Safety handbooks for this company. Publishing freezes an immutable, hashed version an employee acknowledges."
         actions={
-          canManage ? <Button onClick={() => setIsCreating(true)}>New handbook</Button> : undefined
+          canManage ? (
+            <Link
+              to="/handbooks/new"
+              className={`${buttonBaseClasses} ${buttonVariantClasses.primary}`}
+            >
+              New Handbook
+            </Link>
+          ) : undefined
         }
       />
 
@@ -116,22 +98,6 @@ export function MhdHandbookListPage({
           </MhdTable>
         </MhdCard>
       )}
-
-      {isCreating && canManage ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-foreground">New handbook</h2>
-            <MhdHandbookCreateForm
-              companyId={companyId}
-              onSubmit={handleCreate}
-              onCancel={() => setIsCreating(false)}
-              isSubmitting={createHandbook.isPending}
-              defaultHandbookType={initialHandbookType}
-              establishmentId={initialEstablishmentId}
-            />
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -456,6 +456,10 @@ const MhdLeaveCaseCorrespondencePage = lazyPage(
   () => import('@/features/correspondence/components/MhdLeaveCaseCorrespondencePage'),
   'MhdLeaveCaseCorrespondencePage',
 );
+const MhdAccommodationIntakeWizard = lazyPage(
+  () => import('@/features/accommodations/components/MhdAccommodationIntakeWizard'),
+  'MhdAccommodationIntakeWizard',
+);
 const MhdAccommodationsPage = lazyPage(
   () => import('@/features/accommodations/components/MhdAccommodationsPage'),
   'MhdAccommodationsPage',
@@ -559,6 +563,10 @@ const MhdLifecycleAccessAdminPage = lazyPage(
 const MhdTrainingCourseDetailPage = lazyPage(
   () => import('@/features/training/components/MhdTrainingCourseDetailPage'),
   'MhdTrainingCourseDetailPage',
+);
+const MhdHandbookNewPage = lazyPage(
+  () => import('@/features/handbook/components/MhdHandbookNewPage'),
+  'MhdHandbookNewPage',
 );
 const MhdHandbooksPage = lazyPage(
   () => import('@/features/handbook/components/MhdHandbooksPage'),
@@ -921,6 +929,7 @@ function MhdAppRoutes() {
                   path="/accommodations/option-library"
                   element={<MhdAccommodationOptionCatalogPage />}
                 />
+                <Route path="/accommodations/new" element={<MhdAccommodationIntakeWizard />} />
                 <Route path="/accommodations" element={<MhdAccommodationsPage />} />
                 <Route path="/certificates" element={<MhdCertificatesPage />} />
                 <Route path="/legal-search" element={<MhdLegalSearchPage />} />
@@ -1019,6 +1028,8 @@ function MhdAppRoutes() {
                     violate the shared-architecture standard). */}
                 <Route path="/handbooks/studio" element={<MhdHandbooksPage />} />
                 <Route path="/handbooks/library" element={<MhdHandbookSectionLibraryPage />} />
+                {/* Must precede :handbookId, which would otherwise capture "new". */}
+                <Route path="/handbooks/new" element={<MhdHandbookNewPage />} />
                 <Route path="/handbooks/:handbookId" element={<MhdHandbookDetailPage />} />
                 {/* Acknowledgments is the second record tab
                   (MhdHandbookRecordTabs) — the ack board split out of the

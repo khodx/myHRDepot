@@ -1,6 +1,14 @@
 import { Link } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
-import { Briefcase, CalendarClock, BadgeDollarSign, ClipboardCheck, GraduationCap } from 'lucide-react';
+import {
+  Accessibility,
+  BadgeDollarSign,
+  BookOpen,
+  Briefcase,
+  CalendarClock,
+  ClipboardCheck,
+  GraduationCap,
+} from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -52,6 +60,18 @@ const WIZARD_DEFINITIONS: WizardDefinition[] = [
     description: 'Create a training course, curriculum, or program, including content authoring.',
     route: '/training',
     icon: GraduationCap,
+  },
+  {
+    label: 'Handbook Wizard',
+    description: 'Assemble an Employee or Safety handbook from jurisdiction-required sections, then publish.',
+    route: '/handbooks/new',
+    icon: BookOpen,
+  },
+  {
+    label: 'Accommodation Intake Wizard',
+    description: 'Open a reasonable-accommodation process and start the interactive dialogue.',
+    route: '/accommodations/new',
+    icon: Accessibility,
   },
 ];
 
