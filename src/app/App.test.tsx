@@ -134,7 +134,9 @@ describe('App foundation', () => {
     // run (100+ files across several workers), even though it resolves
     // comfortably fast standalone or under light load — reproduced
     // 2026-08-05. A longer timeout here is the correct fix for a real
-    // Suspense/lazy-chunk boundary, not a timing race to paper over.
+    // Suspense/lazy-chunk boundary, not a timing race to paper over. The test's own
+    // timeout (last argument of it) must exceed this findBy timeout — at the
+    // 5000ms default the test itself expired first under full-suite load.
     // The dashboard's title was replaced by a time-of-day greeting banner
     // (see MhdDashboardGreetingBanner) — assert on its "Good <time>, Admin!"
     // heading instead of a literal "Dashboard" title.
@@ -142,10 +144,10 @@ describe('App foundation', () => {
       await screen.findByRole(
         'heading',
         { name: /^good (morning|afternoon|evening), admin.*!$/i },
-        { timeout: 5000 },
+        { timeout: 15000 },
       ),
     ).toBeInTheDocument();
     expect(screen.getByText('Admin User')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/dashboard');
-  });
+  }, 20000);
 });

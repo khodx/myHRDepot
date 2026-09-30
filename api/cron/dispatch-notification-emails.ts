@@ -6,7 +6,17 @@
 //
 // Schedule: vercel.json crons -> */5 * * * * (every 5 minutes).
 
-export default async function handler(req: any, res: any) {
+// Minimal structural types for the Vercel Node request/response. Declared
+// locally (not imported from @vercel/node) to keep this file dependency-free —
+// see the bundling note above.
+interface CronRequest {
+  method?: string;
+  headers: Record<string, string | string[] | undefined>;
+}
+interface CronResponse {
+  status(code: number): { json(body: unknown): void };
+}
+export default async function handler(req: CronRequest, res: CronResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     res.status(405).json({ success: false, error: 'Method not allowed' });
     return;

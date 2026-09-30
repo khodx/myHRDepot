@@ -172,7 +172,7 @@ export function MhdLeaveIntakeWizard({ caseId: caseIdProp }: MhdLeaveIntakeWizar
   const evaluateStarted = useRef(false);
 
   const steps = useMemo<MhdStep[]>(() => [
-    ...(!caseId ? [{ id: 'basics', title: 'Case Basics' }] : []),
+    ...(isNewEntry ? [{ id: 'basics', title: 'Case Basics' }] : []),
     { id: 'facts', title: 'Employer & Service Facts' },
     { id: 'evaluation', title: 'Run Evaluation' },
     { id: 'review', title: 'Review Recommendations' },
