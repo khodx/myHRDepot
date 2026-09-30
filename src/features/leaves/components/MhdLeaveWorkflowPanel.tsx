@@ -51,11 +51,11 @@ export function MhdLeaveWorkflowPanel({
   const [tab, setTab] = useState<Tab>('eligibility');
   const [reasonCode, setReasonCode] = useState('OWN_SERIOUS_HEALTH_CONDITION');
   const [relationship, setRelationship] = useState('');
-  const [employerCount, setEmployerCount] = useState('50');
-  const [worksiteCount, setWorksiteCount] = useState('50');
-  const [months, setMonths] = useState('12');
-  const [hours, setHours] = useState('1250');
-  const [weeklyHours, setWeeklyHours] = useState('40');
+  const [employerCount, setEmployerCount] = useState('');
+  const [worksiteCount, setWorksiteCount] = useState('');
+  const [months, setMonths] = useState('');
+  const [hours, setHours] = useState('');
+  const [weeklyHours, setWeeklyHours] = useState('');
   const [designatedPerson, setDesignatedPerson] = useState(false);
   const [coveredEmployerOverride, setCoveredEmployerOverride] = useState(false);
   const [eventSummary, setEventSummary] = useState('');
@@ -73,6 +73,11 @@ export function MhdLeaveWorkflowPanel({
   const [noticeDueAt, setNoticeDueAt] = useState('');
 
   const record = workflow.data;
+  const countFactsEntered = [employerCount, worksiteCount, months, hours].every(
+    (value) => value.trim() !== '' && Number.isFinite(Number(value)) && Number(value) >= 0,
+  );
+  const factsComplete =
+    countFactsEntered && weeklyHours.trim() !== '' && Number(weeklyHours) > 0;
   if (workflow.isLoading) return <p className="text-sm text-muted-foreground">Loading workflow…</p>;
   if (!record) return null;
 
@@ -312,8 +317,13 @@ export function MhdLeaveWorkflowPanel({
                 Covered employer override (record only for a verified public agency/school or other
                 covered-employer basis)
               </label>
+              {!factsComplete ? (
+                <p className="text-xs text-muted-foreground">
+                  Enter every employer and service fact (weekly hours above zero); none are assumed.
+                </p>
+              ) : null}
               <Button
-                disabled={evaluate.isPending}
+                disabled={evaluate.isPending || !factsComplete}
                 onClick={() =>
                   void run(() =>
                     evaluate.mutateAsync({
