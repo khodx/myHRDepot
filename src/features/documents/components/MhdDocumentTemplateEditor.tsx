@@ -14,6 +14,7 @@ import {
 } from '../Types';
 import { mhdDocumentTemplateFormSchema } from '../Schemas';
 import { mhdDocumentService } from '../Service';
+import { MhdDocumentTemplateCompliancePanel } from './MhdDocumentTemplateCompliancePanel';
 
 interface MhdDocumentTemplateEditorProps {
   companies: MhdCompany[];
@@ -384,6 +385,13 @@ export function MhdDocumentTemplateEditor({
       <Button type="submit" disabled={isSaving} className="mt-4">
         {isSaving ? 'Saving...' : selectedTemplate ? 'Update Template' : 'Create Template'}
       </Button>
+
+      {selectedTemplate ? (
+        <MhdDocumentTemplateCompliancePanel
+          templateId={selectedTemplate.id}
+          canManage={canAuthorPlatformLevel}
+        />
+      ) : null}
     </form>
   );
 }

@@ -20,6 +20,8 @@ export const mhdDocumentQueryKeys = {
     entityType?: string,
   ) => ['mhd-document-templates', companyId, templateType, includeInactive, entityType] as const,
   template: (templateId: string | null) => ['mhd-document-template', templateId] as const,
+  compliance: (templateId: string | null) => ['mhd-document-template-compliance', templateId] as const,
+  complianceContent: () => ['mhd-compliance-content'] as const,
   templateByKey: (templateKey: string | null, companyId: string | null) =>
     ['mhd-document-template-by-key', templateKey, companyId] as const,
   generations: (entityType: string, entityId: string | null) =>
@@ -44,6 +46,34 @@ export function useMhdDocumentTemplate(templateId: string | null) {
     queryKey: mhdDocumentQueryKeys.template(templateId),
     queryFn: () => mhdDocumentService.getTemplate(templateId!),
     enabled: Boolean(templateId),
+  });
+}
+
+export function useMhdTemplateCompliance(templateId: string | null) {
+  return useQuery({
+    queryKey: mhdDocumentQueryKeys.compliance(templateId),
+    queryFn: () => mhdDocumentService.getTemplateCompliance(templateId!),
+    enabled: Boolean(templateId),
+  });
+}
+
+export function useMhdComplianceContentOptions() {
+  return useQuery({
+    queryKey: mhdDocumentQueryKeys.complianceContent(),
+    queryFn: () => mhdDocumentService.listComplianceContent(),
+  });
+}
+
+export function useMhdSetTemplateCompliance(templateId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (tag: Parameters<typeof mhdDocumentService.setTemplateCompliance>[1]) =>
+      mhdDocumentService.setTemplateCompliance(templateId, tag),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: mhdDocumentQueryKeys.compliance(templateId) });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-document-templates'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-document-template'] });
+    },
   });
 }
 

@@ -117,6 +117,20 @@ export interface MhdDocumentTemplateDetail extends MhdDocumentTemplate {
   content: string;
 }
 
+export interface MhdTemplateComplianceTag {
+  moduleKey: string | null;
+  contentKey: string | null;
+}
+
+export interface MhdComplianceContentOption {
+  moduleKey: string;
+  contentKey: string;
+  version: number;
+  authorityName: string;
+  reviewStatus: string;
+  productionEnabled: boolean;
+}
+
 export interface MhdDocumentGeneration {
   id: MhdDocumentGenerationId;
   referenceId: MhdDocumentGenerationReferenceId;

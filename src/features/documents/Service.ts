@@ -16,7 +16,9 @@ import type {
   MhdDocumentMutationContext,
   MhdDocumentTemplate,
   MhdDocumentTemplateDetail,
+  MhdComplianceContentOption,
   MhdRequestDocumentGenerationInput,
+  MhdTemplateComplianceTag,
   MhdUpdateDocumentTemplateInput,
 } from './Types';
 
@@ -67,6 +69,15 @@ type MhdDocumentTemplateRow = {
 };
 
 type MhdDocumentTemplateDetailRow = MhdDocumentTemplateRow & { content: string };
+
+type MhdComplianceContentRegistryRow = {
+  module_key: string;
+  content_key: string;
+  version: number;
+  authority_name: string;
+  review_status: string;
+  production_enabled: boolean;
+};
 
 type MhdDocumentGenerationRow = {
   id: string;
@@ -202,6 +213,68 @@ export const mhdDocumentService = {
     }
 
     return { ...mapTemplateRow(row), content: row.content };
+  },
+
+  async getTemplateCompliance(templateId: string): Promise<MhdTemplateComplianceTag> {
+    const { data, error } = await supabaseClient
+      .from('document_templates')
+      .select('compliance_module_key, compliance_content_key')
+      .eq('id', templateId)
+      .single();
+
+    if (error) {
+      throw new Error(`Unable to load template compliance: ${error.message}`);
+    }
+
+    return {
+      moduleKey: data.compliance_module_key,
+      contentKey: data.compliance_content_key,
+    };
+  },
+
+  async listComplianceContent(): Promise<MhdComplianceContentOption[]> {
+    const { data, error } = await supabaseClient
+      .from('compliance_content_registry')
+      .select('module_key, content_key, version, authority_name, review_status, production_enabled')
+      .order('module_key')
+      .order('content_key')
+      .order('version', { ascending: false });
+
+    if (error) {
+      throw new Error(`Unable to load compliance content: ${error.message}`);
+    }
+
+    const latest = new Map<string, MhdComplianceContentRegistryRow>();
+    for (const row of (data ?? []) as MhdComplianceContentRegistryRow[]) {
+      const key = `${row.module_key}\u0000${row.content_key}`;
+      if (!latest.has(key)) latest.set(key, row);
+    }
+
+    return [...latest.values()].map((row) => ({
+      moduleKey: row.module_key,
+      contentKey: row.content_key,
+      version: row.version,
+      authorityName: row.authority_name,
+      reviewStatus: row.review_status,
+      productionEnabled: row.production_enabled,
+    }));
+  },
+
+  async setTemplateCompliance(templateId: string, tag: MhdTemplateComplianceTag): Promise<void> {
+    if ((tag.moduleKey === null) !== (tag.contentKey === null)) {
+      throw new Error('Template compliance module and content keys must both be set or both be cleared.');
+    }
+
+    const { error } = await supabaseClient.rpc('mhd_set_document_template_compliance', {
+      p_template_id: templateId,
+      // Generated Args currently omits nullable RPC params even though null clears the tag.
+      p_module_key: tag.moduleKey as never,
+      p_content_key: tag.contentKey as never,
+    });
+
+    if (error) {
+      throw new Error(`Unable to set template compliance: ${error.message}`);
+    }
   },
 
   /**
