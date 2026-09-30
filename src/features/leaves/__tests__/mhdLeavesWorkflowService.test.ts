@@ -408,10 +408,10 @@ describe('workflow evidence stays inside its sensitivity tier', () => {
       eventType: 'CONTACT',
       channel: 'PHONE',
       summary: 'Confirmed the expected return date.',
-      visibility: 'HR_ONLY',
+      visibility: 'ADMIN_ONLY',
     });
     const args = lastArgs();
-    expect(args.p_visibility).toBe('HR_ONLY');
+    expect(args.p_visibility).toBe('ADMIN_ONLY');
     expect(args.p_summary).toBe('Confirmed the expected return date.');
   });
 

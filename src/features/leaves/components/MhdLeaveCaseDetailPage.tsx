@@ -24,7 +24,7 @@ import {
   useMhdTransitionLeaveCase,
 } from '../Hook';
 import {
-  MHD_LEAVE_CASE_STATUSES,
+  MHD_LEAVE_STATUS_TRANSITIONS,
   mhdFormatLeaveCaseStatus,
   mhdFormatLeaveHours,
   mhdFormatLeaveJurisdiction,
@@ -73,6 +73,7 @@ export function MhdLeaveCaseDetailPage() {
   });
   const leaveCase = (cases.data ?? []).find((candidate) => candidate.id === caseId) ?? null;
   const personId = leaveCase?.personId ?? null;
+  const nextStatuses = leaveCase ? MHD_LEAVE_STATUS_TRANSITIONS[leaveCase.status] : [];
 
   const leaveTypes = useMhdLeaveTypes(companyId || null);
   const caseBases = useMhdLeaveCaseBases(caseId);
@@ -110,6 +111,10 @@ export function MhdLeaveCaseDetailPage() {
 
   // ----- Transition form state -----
   const [newStatus, setNewStatus] = useState<MhdLeaveCaseStatus>('APPROVED');
+  // The chosen status only counts while it is still a legal next state for this case.
+  const effectiveNewStatus: MhdLeaveCaseStatus | null = nextStatuses.includes(newStatus)
+    ? newStatus
+    : (nextStatuses[0] ?? null);
   const [decisionReason, setDecisionReason] = useState('');
   const [transitionError, setTransitionError] = useState<string | null>(null);
 
@@ -158,14 +163,15 @@ export function MhdLeaveCaseDetailPage() {
   }
 
   async function submitTransition() {
-    if (REQUIRE_REASON.includes(newStatus) && !decisionReason.trim()) {
+    if (!effectiveNewStatus) return;
+    if (REQUIRE_REASON.includes(effectiveNewStatus) && !decisionReason.trim()) {
       setTransitionError('Denying or cancelling a leave requires a recorded reason.');
       return;
     }
     setTransitionError(null);
     await transition.mutateAsync({
       caseId,
-      newStatus,
+      newStatus: effectiveNewStatus,
       decisionReason: decisionReason.trim() || null,
     });
     setDecisionReason('');
@@ -243,7 +249,7 @@ export function MhdLeaveCaseDetailPage() {
       <MhdLeaveCaseRecordTabs
         caseId={leaveCase.id}
         active="detail"
-        onDelete={isPrivileged ? openCancelFlow : undefined}
+        onDelete={isPrivileged && nextStatuses.includes('CANCELLED') ? openCancelFlow : undefined}
         deleteLabel="Cancel Case"
         skipConfirm
       />
@@ -252,6 +258,12 @@ export function MhdLeaveCaseDetailPage() {
       {isPrivileged ? (
         <MhdCard id={LEAVE_STATUS_TRANSITION_ID} className="space-y-3">
           <MhdCardHeader title="Status" className="mb-0" />
+          {effectiveNewStatus === null ? (
+            <p className="text-sm text-muted-foreground">
+              This case is {mhdFormatLeaveCaseStatus(leaveCase.status).toLowerCase()}; no further status
+              changes are available.
+            </p>
+          ) : (
           <div className="flex flex-wrap items-end gap-3">
             <div>
               <label htmlFor="newStatus" className="block text-sm font-medium text-foreground">
@@ -259,18 +271,18 @@ export function MhdLeaveCaseDetailPage() {
               </label>
               <select
                 id="newStatus"
-                value={newStatus}
+                value={effectiveNewStatus}
                 onChange={(event) => setNewStatus(event.target.value as MhdLeaveCaseStatus)}
                 className={`mt-1 ${INPUT_CLASSES}`}
               >
-                {MHD_LEAVE_CASE_STATUSES.map((status) => (
+                {nextStatuses.map((status) => (
                   <option key={status} value={status}>
                     {mhdFormatLeaveCaseStatus(status)}
                   </option>
                 ))}
               </select>
             </div>
-            {REQUIRE_REASON.includes(newStatus) ? (
+            {REQUIRE_REASON.includes(effectiveNewStatus) ? (
               <div className="flex-1">
                 <label
                   htmlFor="decisionReason"
@@ -291,6 +303,7 @@ export function MhdLeaveCaseDetailPage() {
               {transition.isPending ? 'Saving…' : 'Update status'}
             </Button>
           </div>
+          )}
           {transitionError ? <p className="text-xs text-rose-600">{transitionError}</p> : null}
         </MhdCard>
       ) : null}

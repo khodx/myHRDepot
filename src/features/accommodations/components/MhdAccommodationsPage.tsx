@@ -26,6 +26,7 @@ import {
   type MhdAccommodationStatus,
 } from '../Types';
 import { MhdAccommodationBoard } from './MhdAccommodationBoard';
+import { MhdAccommodationTeamPanel } from './MhdAccommodationTeamPanel';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import { useMhdFormIntakeDefault } from '@/features/forms/Hook';
 
@@ -101,6 +102,7 @@ export function MhdAccommodationsPage() {
         }
       />
       <MhdComplianceGateBanner readiness={readiness.data} />
+      {!isPrivileged ? <MhdAccommodationTeamPanel managerPersonId={selfPersonId} /> : null}
 
       <MhdFilterBar>
         {isPrivileged ? (

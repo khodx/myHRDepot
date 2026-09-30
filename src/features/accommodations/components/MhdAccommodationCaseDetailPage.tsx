@@ -30,8 +30,10 @@ import {
 } from '../Hook';
 import { mhdAccommodationDecisionBlockers, mhdAccommodationMedicalSchema } from '../Schemas';
 import {
+  MHD_ACCOMMODATION_DENIAL_REASONS,
   MHD_ACCOMMODATION_DOCUMENTATION_STATUSES,
   MHD_ACCOMMODATION_DOCUMENTATION_TYPES,
+  MHD_ACCOMMODATION_OPTION_TYPES,
   MHD_ACCOMMODATION_REQUEST_CHANNELS,
   MHD_ACCOMMODATION_STATUSES,
   mhdFormatAccommodationValue,
@@ -110,7 +112,9 @@ export function MhdAccommodationCaseDetailPage() {
     useState<MhdAccommodationRequestChannel>('VERBAL');
   const [summary, setSummary] = useState('');
   const [nextStep, setNextStep] = useState('');
-  const [optionType, setOptionType] = useState('JOB_RESTRUCTURING');
+  const [optionType, setOptionType] = useState<string>('JOB_RESTRUCTURING');
+  const [optionEssentialFunctionIds, setOptionEssentialFunctionIds] = useState<string[]>([]);
+  const [optionRemovesEssentialFunction, setOptionRemovesEssentialFunction] = useState(false);
   const [optionDescription, setOptionDescription] = useState('');
   const [catalogPickId, setCatalogPickId] = useState('');
   const [catalogSearch, setCatalogSearch] = useState('');
@@ -118,7 +122,7 @@ export function MhdAccommodationCaseDetailPage() {
   const [selectedOptionId, setSelectedOptionId] = useState('');
   const [outcome, setOutcome] = useState<'APPROVED' | 'PARTIALLY_APPROVED' | 'DENIED'>('APPROVED');
   const [decisionSummary, setDecisionSummary] = useState('');
-  const [denialReason, setDenialReason] = useState('UNDUE_HARDSHIP');
+  const [denialReason, setDenialReason] = useState<string>('UNDUE_HARDSHIP');
   const [analysis, setAnalysis] = useState('');
   const [managerInstruction, setManagerInstruction] = useState('');
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
@@ -520,16 +524,7 @@ export function MhdAccommodationCaseDetailPage() {
                   setOptionType(event.target.value);
                 }}
               >
-                {[
-                  'JOB_RESTRUCTURING',
-                  'MODIFIED_SCHEDULE',
-                  'LEAVE',
-                  'EQUIPMENT',
-                  'ACCESSIBILITY',
-                  'REASSIGNMENT',
-                  'REMOTE_WORK',
-                  'OTHER',
-                ].map((value) => (
+                {MHD_ACCOMMODATION_OPTION_TYPES.map((value) => (
                   <option key={value} value={value}>
                     {mhdFormatAccommodationValue(value)}
                   </option>
@@ -547,6 +542,40 @@ export function MhdAccommodationCaseDetailPage() {
                 onChange={(event) => setEffectiveness(event.target.value)}
                 placeholder="Expected effectiveness"
               />
+              {record.case.essential_functions.length ? (
+                <fieldset className="space-y-1 text-sm">
+                  <legend className="font-medium">Essential functions this option touches</legend>
+                  {record.case.essential_functions.map((fn) => (
+                    <label key={fn.id} className="flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        checked={optionEssentialFunctionIds.includes(fn.id)}
+                        onChange={(event) =>
+                          setOptionEssentialFunctionIds((current) =>
+                            event.target.checked
+                              ? [...current, fn.id]
+                              : current.filter((id) => id !== fn.id),
+                          )
+                        }
+                        className="mt-1 h-4 w-4 rounded border-border"
+                      />
+                      <span>{fn.text}</span>
+                    </label>
+                  ))}
+                </fieldset>
+              ) : null}
+              <label className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={optionRemovesEssentialFunction}
+                  onChange={(event) => setOptionRemovesEssentialFunction(event.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border"
+                />
+                <span>
+                  This option would remove an essential function of the job. It can be evaluated and
+                  documented, but it cannot be selected as the accommodation.
+                </span>
+              </label>
               <Button
                 disabled={addOption.isPending || !optionDescription.trim() || !effectiveness.trim()}
                 onClick={() =>
@@ -556,11 +585,14 @@ export function MhdAccommodationCaseDetailPage() {
                       optionType,
                       description: optionDescription,
                       expectedEffectiveness: effectiveness,
-                      essentialFunctionIds: [],
+                      essentialFunctionIds: optionEssentialFunctionIds,
+                      removesEssentialFunction: optionRemovesEssentialFunction,
                       employeePreference: false,
                     });
                     setOptionDescription('');
                     setEffectiveness('');
+                    setOptionEssentialFunctionIds([]);
+                    setOptionRemovesEssentialFunction(false);
                   })
                 }
               >
@@ -661,10 +693,11 @@ export function MhdAccommodationCaseDetailPage() {
                     value={denialReason}
                     onChange={(event) => setDenialReason(event.target.value)}
                   >
-                    <option value="UNDUE_HARDSHIP">Undue hardship</option>
-                    <option value="DIRECT_THREAT">Direct threat</option>
-                    <option value="NO_COVERED_DISABILITY">No covered disability</option>
-                    <option value="NO_REASONABLE_OPTION">No reasonable effective option</option>
+                    {MHD_ACCOMMODATION_DENIAL_REASONS.map((value) => (
+                      <option key={value} value={value}>
+                        {mhdFormatAccommodationValue(value)}
+                      </option>
+                    ))}
                   </select>
                   <textarea
                     className={`min-h-24 ${inputClass}`}

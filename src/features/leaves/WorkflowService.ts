@@ -79,7 +79,7 @@ export const mhdLeaveWorkflowService = {
     eventType: string;
     channel: string;
     summary: string;
-    visibility: 'EMPLOYEE' | 'HR_ONLY';
+    visibility: 'EMPLOYEE' | 'ADMIN_ONLY';
   }) {
     const { data, error } = await supabaseClient.rpc('mhd_leave_event_record', {
       p_case_id: input.caseId,

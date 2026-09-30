@@ -52,6 +52,15 @@ function renderWizard(initialEntry = '/leaves/new/intake') {
   );
 }
 
+// Eligibility turns on these facts, so the wizard assumes none of them: each is entered.
+function enterFacts() {
+  fireEvent.change(screen.getByLabelText('Employer employee count'), { target: { value: '60' } });
+  fireEvent.change(screen.getByLabelText('Months of service'), { target: { value: '24' } });
+  fireEvent.change(screen.getByLabelText('Hours worked in last 12 months'), { target: { value: '1500' } });
+  fireEvent.change(screen.getByLabelText('Worksite employees within 75 miles'), { target: { value: '60' } });
+  fireEvent.change(screen.getByLabelText('Scheduled weekly hours'), { target: { value: '40' } });
+}
+
 describe('MhdLeaveIntakeWizard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -81,6 +90,7 @@ describe('MhdLeaveIntakeWizard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(screen.getAllByText('Employer & Service Facts').length).toBeGreaterThan(0));
     expect(createAsync).toHaveBeenCalledTimes(1);
+    enterFacts();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(evaluateAsync).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
@@ -90,6 +100,7 @@ describe('MhdLeaveIntakeWizard', () => {
 
   it('blocks Confirm or Override until the whole snapshot is confirmed', async () => {
     renderWizard('/leaves/case-1/intake');
+    enterFacts();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(evaluateAsync).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
@@ -100,5 +111,26 @@ describe('MhdLeaveIntakeWizard', () => {
     await waitFor(() => expect(confirmAsync).toHaveBeenCalledWith('snapshot-1'));
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(screen.getAllByText('Designation Summary').length).toBeGreaterThan(0);
+  });
+  it('assumes no employer or service fact: the facts step is blank and cannot advance until they are entered', () => {
+    renderWizard('/leaves/case-1/intake');
+    for (const label of [
+      'Employer employee count',
+      'Months of service',
+      'Hours worked in last 12 months',
+      'Worksite employees within 75 miles',
+      'Scheduled weekly hours',
+    ]) {
+      expect(screen.getByLabelText(label)).toHaveValue(null);
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('none are assumed');
+    expect(evaluateAsync).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText('Months of service'), { target: { value: '-3' } });
+    enterFacts();
+    fireEvent.change(screen.getByLabelText('Months of service'), { target: { value: '-3' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('none are assumed');
+    expect(evaluateAsync).not.toHaveBeenCalled();
   });
 });

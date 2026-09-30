@@ -2,16 +2,29 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
-import type { MhdAccommodationDetail, MhdComplianceReadiness } from '../Types';
+import {
+  MHD_ACCOMMODATION_DENIAL_REASONS,
+  MHD_ACCOMMODATION_OPTION_TYPES,
+  type MhdAccommodationDetail,
+  type MhdComplianceReadiness,
+} from '../Types';
 
-const { rolesRef, detailRef, readinessRef, implementMock, revealMock, recordMedicalMock } =
-  vi.hoisted(() => ({
+const {
+  rolesRef,
+  detailRef,
+  readinessRef,
+  implementMock,
+  revealMock,
+  recordMedicalMock,
+  addOptionMock,
+} = vi.hoisted(() => ({
     rolesRef: { current: [] as MhdAuthRoleName[] },
     detailRef: { current: null as unknown },
     readinessRef: { current: null as unknown },
     implementMock: vi.fn(),
     revealMock: vi.fn(),
     recordMedicalMock: vi.fn(),
+    addOptionMock: vi.fn(),
   }));
 
 vi.mock('@/features/authentication/Hook', () => ({
@@ -27,7 +40,7 @@ vi.mock('../Hook', () => ({
   useMhdAccommodationReadiness: () => ({ data: readinessRef.current }),
   useMhdAccommodationTransition: () => mutation(vi.fn()),
   useMhdAccommodationInteraction: () => mutation(vi.fn()),
-  useMhdAccommodationOption: () => mutation(vi.fn()),
+  useMhdAccommodationOption: () => mutation(addOptionMock),
   useMhdAccommodationDecision: () => mutation(vi.fn()),
   useMhdAccommodationImplementation: () => mutation(implementMock),
   useMhdAccommodationReview: () => mutation(vi.fn()),
@@ -136,7 +149,7 @@ describe('implementation resolves the option from the active decision', () => {
     selected_option_id: OPTION_GOOD.id,
     denial_reason_code: null,
     decision_summary: 'Granted the later start.',
-    alternatives_considered: [],
+    alternatives_considered: true,
     interactive_process_continues: false,
     decided_at: '2026-07-24T17:00:00.000Z',
     superseded_at: null,
@@ -231,6 +244,58 @@ describe('the decision gate is visible before it is enforced', () => {
       { target: { value: 'Remote work and reassignment were costed and evaluated.' } },
     );
     expect(screen.getByRole('button', { name: /record decision/i })).not.toBeDisabled();
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Pickers offer only values the database accepts                      */
+/* ------------------------------------------------------------------ */
+
+describe('option and denial pickers match the database vocabulary', () => {
+  it('offers exactly the allowed option types, never a legacy value', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /option/i }));
+
+    const picker = screen.getByDisplayValue('Job Restructuring') as HTMLSelectElement;
+    const values = [...picker.options].map((option) => option.value);
+    expect(values).toEqual([...MHD_ACCOMMODATION_OPTION_TYPES]);
+    for (const rejected of ['MODIFIED_SCHEDULE', 'ACCESSIBILITY', 'REMOTE_WORK']) {
+      expect(values).not.toContain(rejected);
+    }
+  });
+
+  it('offers exactly the allowed denial reasons, never NO_REASONABLE_OPTION', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+    fireEvent.change(screen.getByDisplayValue('Approved'), { target: { value: 'DENIED' } });
+
+    const picker = screen.getByDisplayValue('Undue Hardship') as HTMLSelectElement;
+    const values = [...picker.options].map((option) => option.value);
+    expect(values).toEqual([...MHD_ACCOMMODATION_DENIAL_REASONS]);
+    expect(values).not.toContain('NO_REASONABLE_OPTION');
+  });
+
+  it('sends the essential functions an option touches and whether it removes one', () => {
+    addOptionMock.mockResolvedValue('new-option');
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /option/i }));
+
+    fireEvent.change(screen.getByPlaceholderText('Option description'), {
+      target: { value: 'Reassign the cash-handling duty to a colleague.' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Expected effectiveness'), {
+      target: { value: 'Removes the barrier for the full shift.' },
+    });
+    fireEvent.click(screen.getByLabelText('Handle cash at the register.'));
+    fireEvent.click(screen.getByLabelText(/would remove an essential function/i));
+    fireEvent.click(screen.getByRole('button', { name: /add option/i }));
+
+    expect(addOptionMock).toHaveBeenCalledTimes(1);
+    expect(addOptionMock.mock.calls[0][0]).toMatchObject({
+      caseId: 'case-1',
+      essentialFunctionIds: ['ef-1'],
+      removesEssentialFunction: true,
+    });
   });
 });
 

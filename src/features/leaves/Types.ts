@@ -122,9 +122,10 @@ export interface MhdCreateLeaveTypeResult {
 
 export type MhdLeaveTypeId = string;
 export type MhdLeaveCaseId = string;
-export type MhdLeaveCaseReferenceId = `LVCS-${string}`;
+// Stored reference ids are hex (`XXX-X-XXXX-X-XX`, migration 0127), not prefixed.
+export type MhdLeaveCaseReferenceId = string;
 export type MhdLeaveLedgerEntryId = string;
-export type MhdLeaveLedgerEntryReferenceId = `LVLG-${string}`;
+export type MhdLeaveLedgerEntryReferenceId = string;
 export type MhdLeaveCertificationId = string;
 
 export type MhdLeaveJurisdiction = 'FEDERAL' | 'CA' | 'COMPANY' | 'OTHER';
@@ -170,6 +171,22 @@ export const MHD_LEAVE_CASE_STATUSES = [
   'DENIED',
   'CANCELLED',
 ] as const satisfies readonly MhdLeaveCaseStatus[];
+
+/**
+ * The status graph `mhd_leave_case_transition` enforces (0326). Pickers offer only
+ * the next states listed here, so the UI never offers a move the database refuses.
+ * COMPLETED and CANCELLED are terminal; a DENIED case can only be reconsidered.
+ */
+export const MHD_LEAVE_STATUS_TRANSITIONS: Readonly<
+  Record<MhdLeaveCaseStatus, readonly MhdLeaveCaseStatus[]>
+> = {
+  REQUESTED: ['APPROVED', 'DENIED', 'CANCELLED'],
+  APPROVED: ['ACTIVE', 'CANCELLED'],
+  ACTIVE: ['COMPLETED', 'CANCELLED'],
+  DENIED: ['REQUESTED'],
+  COMPLETED: [],
+  CANCELLED: [],
+};
 
 export const MHD_LEAVE_CERTIFICATION_TYPES = [
   'INITIAL',

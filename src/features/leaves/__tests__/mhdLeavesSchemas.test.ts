@@ -5,6 +5,7 @@ import {
   mhdLeaveCaseFormSchema,
   mhdTransitionLeaveCaseSchema,
 } from '../Schemas';
+import { MHD_LEAVE_CASE_STATUSES, MHD_LEAVE_STATUS_TRANSITIONS } from '../Types';
 
 describe('mhdLeaveCaseFormSchema', () => {
   it('accepts a minimal valid case', () => {
@@ -89,5 +90,23 @@ describe('ledger schemas', () => {
         reason: 'Correct an over-credit.',
       }).success,
     ).toBe(true);
+  });
+});
+
+describe('MHD_LEAVE_STATUS_TRANSITIONS', () => {
+  it('mirrors the database graph: terminal states offer nothing, DENIED only reconsiders', () => {
+    expect(MHD_LEAVE_STATUS_TRANSITIONS.REQUESTED).toEqual(['APPROVED', 'DENIED', 'CANCELLED']);
+    expect(MHD_LEAVE_STATUS_TRANSITIONS.APPROVED).toEqual(['ACTIVE', 'CANCELLED']);
+    expect(MHD_LEAVE_STATUS_TRANSITIONS.ACTIVE).toEqual(['COMPLETED', 'CANCELLED']);
+    expect(MHD_LEAVE_STATUS_TRANSITIONS.DENIED).toEqual(['REQUESTED']);
+    expect(MHD_LEAVE_STATUS_TRANSITIONS.COMPLETED).toEqual([]);
+    expect(MHD_LEAVE_STATUS_TRANSITIONS.CANCELLED).toEqual([]);
+  });
+
+  it('covers every case status and never lists a state as its own successor', () => {
+    for (const status of MHD_LEAVE_CASE_STATUSES) {
+      expect(MHD_LEAVE_STATUS_TRANSITIONS[status]).not.toContain(status);
+    }
+    expect(Object.keys(MHD_LEAVE_STATUS_TRANSITIONS).sort()).toEqual([...MHD_LEAVE_CASE_STATUSES].sort());
   });
 });

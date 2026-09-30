@@ -114,7 +114,7 @@ export interface MhdAccommodationDecision {
   selected_option_id: string | null;
   denial_reason_code: string | null;
   decision_summary: string;
-  alternatives_considered: unknown[];
+  alternatives_considered: boolean;
   interactive_process_continues: boolean;
   decided_at: string;
   superseded_at: string | null;
@@ -276,6 +276,36 @@ export const MHD_ACCOMMODATION_DOCUMENTATION_TYPES: readonly MhdAccommodationDoc
 
 export const MHD_ACCOMMODATION_DOCUMENTATION_STATUSES: readonly MhdAccommodationDocumentationStatus[] =
   ['NOT_NEEDED', 'REQUESTED', 'RECEIVED', 'INCOMPLETE', 'SUFFICIENT', 'EXPIRED', 'WAIVED'];
+
+/**
+ * The option types and denial reasons `accommodation_options` and
+ * `accommodation_decisions` accept (CHECK constraints
+ * accommodation_option_type_allowed and accommodation_denial_reason_allowed in
+ * 0053). Every picker in the module reads these lists so the UI can never offer
+ * a value the database rejects.
+ */
+export const MHD_ACCOMMODATION_OPTION_TYPES = [
+  'EQUIPMENT',
+  'JOB_RESTRUCTURING',
+  'SCHEDULE_CHANGE',
+  'LEAVE',
+  'TELEWORK',
+  'WORKSITE_CHANGE',
+  'REASSIGNMENT',
+  'SERVICE_OR_INTERPRETER',
+  'POLICY_MODIFICATION',
+  'TRAINING',
+  'OTHER',
+] as const;
+export type MhdAccommodationOptionType = (typeof MHD_ACCOMMODATION_OPTION_TYPES)[number];
+
+export const MHD_ACCOMMODATION_DENIAL_REASONS = [
+  'UNDUE_HARDSHIP',
+  'DIRECT_THREAT',
+  'NO_COVERED_DISABILITY',
+  'REMOVES_ESSENTIAL_FUNCTION',
+] as const;
+export type MhdAccommodationDenialReason = (typeof MHD_ACCOMMODATION_DENIAL_REASONS)[number];
 
 export function mhdFormatAccommodationValue(value: string): string {
   return value

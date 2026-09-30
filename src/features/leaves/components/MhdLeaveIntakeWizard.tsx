@@ -60,12 +60,14 @@ const initialBasics: CaseBasicsState = {
   requestedEnd: '',
 };
 
+// Nothing is assumed: eligibility turns on these facts, so every one is entered by the
+// person running the evaluation (a pre-filled guess would silently decide coverage).
 const initialFacts: FactsState = {
-  employerEmployeeCount: '50',
-  monthsOfService: '12',
-  hoursWorked12Months: '1250',
-  worksiteEmployeeCount75: '50',
-  scheduledWeeklyHours: '40',
+  employerEmployeeCount: '',
+  monthsOfService: '',
+  hoursWorked12Months: '',
+  worksiteEmployeeCount75: '',
+  scheduledWeeklyHours: '',
   designatedPersonSelected: false,
   coveredEmployerOverride: false,
 };
@@ -219,7 +221,11 @@ export function MhdLeaveIntakeWizard({ caseId: caseIdProp }: MhdLeaveIntakeWizar
 
   function validateCurrentStep() {
     if (currentStep.id === 'basics' && (!basics.personId || !basics.reasonCategory || !basics.reasonCode)) { setError('Select a person and provide both reason fields.'); return false; }
-    if (currentStep.id === 'facts' && Number(facts.scheduledWeeklyHours) <= 0) { setError('Scheduled weekly hours must be greater than zero.'); return false; }
+    if (currentStep.id === 'facts') {
+      const counted = [facts.employerEmployeeCount, facts.monthsOfService, facts.hoursWorked12Months, facts.worksiteEmployeeCount75];
+      if (counted.some((value) => value.trim() === '' || !Number.isFinite(Number(value)) || Number(value) < 0)) { setError('Enter every employer and service fact as a number (zero or more); none are assumed.'); return false; }
+      if (facts.scheduledWeeklyHours.trim() === '' || !(Number(facts.scheduledWeeklyHours) > 0)) { setError('Scheduled weekly hours must be greater than zero.'); return false; }
+    }
     if (currentStep.id === 'confirm' && !confirmed) { setError('Confirm the snapshot before advancing.'); return false; }
     setError(null);
     return true;

@@ -190,6 +190,7 @@ export const mhdAccommodationsService = {
     description: string;
     expectedEffectiveness: string;
     essentialFunctionIds: string[];
+    removesEssentialFunction?: boolean;
     employeePreference: boolean;
     estimatedCost?: number | null;
   }) {
@@ -200,7 +201,7 @@ export const mhdAccommodationsService = {
       p_expected_effectiveness: input.expectedEffectiveness.trim(),
       p_essential_function_ids: input.essentialFunctionIds,
       p_employee_preference: input.employeePreference,
-      p_removes_essential_function: false,
+      p_removes_essential_function: input.removesEssentialFunction ?? false,
       p_estimated_cost: input.estimatedCost ?? undefined,
       p_operational_factors: {},
     });

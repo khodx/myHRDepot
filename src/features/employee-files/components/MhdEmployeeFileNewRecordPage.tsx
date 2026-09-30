@@ -17,7 +17,6 @@ import {
   MhdTr,
 } from '@/components/ui/MhdTable';
 import { cn } from '@/utils/cn';
-import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdFormService } from '@/features/forms/Service';
 import { mhdPersonService } from '@/features/people/Service';
 import { useMhdEmployeeFileCategoryDefault } from '../Hook';
@@ -32,7 +31,6 @@ export function MhdEmployeeFileNewRecordPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { profile } = useMhdAuth();
   const categoryValue = searchParams.get('category');
   const category = mhdIsEmployeeFileTypeKey(categoryValue) ? categoryValue : null;
 
@@ -45,14 +43,18 @@ export function MhdEmployeeFileNewRecordPage() {
   // designated a canonical form for this category, the picker never needs to
   // render at all, so its own query stays disabled until this one resolves
   // to "no default" (see the `enabled` condition on `formsQuery` below).
-  const defaultFormQuery = useMhdEmployeeFileCategoryDefault(profile?.companyId ?? null, category);
+  // The forms, and the company's designated default, belong to the company of the
+  // PERSON whose file this is, not to the signed-in user's own company: a Platform
+  // Admin or HR Partner can work across companies.
+  const companyId = personQuery.data?.companyId ?? null;
+  const defaultFormQuery = useMhdEmployeeFileCategoryDefault(companyId, category);
   const hasResolvedNoDefault = defaultFormQuery.isSuccess
     ? !defaultFormQuery.data
     : defaultFormQuery.isError;
   const formsQuery = useQuery({
-    queryKey: ['mhd-employee-file-category-forms', profile?.companyId, category],
-    queryFn: () => mhdFormService.listFormsForCompany(profile!.companyId!, 'ACTIVE'),
-    enabled: Boolean(profile?.companyId && category && hasResolvedNoDefault),
+    queryKey: ['mhd-employee-file-category-forms', companyId, category],
+    queryFn: () => mhdFormService.listFormsForCompany(companyId!, 'ACTIVE'),
+    enabled: Boolean(companyId && category && hasResolvedNoDefault),
   });
 
   const matchingForms = useMemo(

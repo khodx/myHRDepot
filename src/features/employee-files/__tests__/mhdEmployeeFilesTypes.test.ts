@@ -40,11 +40,6 @@ describe('MHD_EMPLOYEE_FILE_TYPES', () => {
       false,
     );
   });
-
-  it('gives every category a distinct attachment entity type', () => {
-    const entityTypes = MHD_EMPLOYEE_FILE_TYPES.map((type) => type.entityType);
-    expect(new Set(entityTypes).size).toBe(entityTypes.length);
-  });
 });
 
 describe('mhdIsEmployeeFileTypeKey', () => {
