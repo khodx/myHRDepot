@@ -38,8 +38,30 @@ describe('mhdNavTrailForRoute', () => {
         for (const nav of [item, ...(item.children ?? [])]) {
           const trail = mhdNavTrailForRoute(nav.route);
           expect(trail, `${section.label} > ${nav.label}`).toBeDefined();
-          expect(trail![0]).toEqual({ label: section.label, to: section.route });
           expect(trail!.at(-1)).toEqual({ label: nav.label });
+          // The category crumb leads and links to the landing page, except for
+          // a module that shares its category's name, which is shown once.
+          if (nav === item && item.label === section.label) {
+            expect(trail).toEqual([{ label: nav.label }]);
+          } else {
+            expect(trail![0]).toEqual({ label: section.label, to: section.route });
+          }
+        }
+      }
+    }
+  });
+
+  it('shows a module that shares its category name once, not twice', () => {
+    expect(mhdNavTrailForRoute('/communications')).toEqual([{ label: 'Communications' }]);
+    expect(mhdNavTrailForRoute('/communications/messaging')).toEqual([
+      { label: 'Communications', to: '/categories/communications' },
+      { label: 'Messaging' },
+    ]);
+    for (const section of NAV_SECTIONS.filter((s) => s.route)) {
+      for (const item of section.items) {
+        for (const nav of [item, ...(item.children ?? [])]) {
+          const labels = (mhdNavTrailForRoute(nav.route) ?? []).map((crumb) => crumb.label);
+          expect(new Set(labels).size, `${nav.route}: ${labels.join(' > ')}`).toBe(labels.length);
         }
       }
     }

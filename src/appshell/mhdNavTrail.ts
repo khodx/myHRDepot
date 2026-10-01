@@ -19,14 +19,20 @@ export function mhdNavTrailForRoute(route: string): MhdBreadcrumbItem[] | undefi
   for (const section of NAV_SECTIONS) {
     if (!section.route) continue;
     for (const item of section.items) {
+      // A module that shares its category's name (Communications > Communications)
+      // is shown once: the category crumb already names it and links to the
+      // landing page, which lists the module's overview and every sub-page.
+      const sameName = item.label === section.label;
       if (item.route === route) {
-        return [{ label: section.label, to: section.route }, { label: item.label }];
+        return sameName
+          ? [{ label: item.label }]
+          : [{ label: section.label, to: section.route }, { label: item.label }];
       }
       const child = (item.children ?? []).find((candidate) => candidate.route === route);
       if (child) {
         return [
           { label: section.label, to: section.route },
-          { label: item.label, to: item.route },
+          ...(sameName ? [] : [{ label: item.label, to: item.route }]),
           { label: child.label },
         ];
       }
