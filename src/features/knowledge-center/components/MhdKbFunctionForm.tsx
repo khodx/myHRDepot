@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { mhdKbFunctionFormSchema, type MhdKbFunctionFormValues } from '../Schemas';
 import type { MhdKbFunctionAdmin } from '../Types';
+import { MHD_KB_ACCESS_LEVEL_LABELS, MHD_KB_PLATFORM_ACCESS_LEVELS } from '../Types';
 interface Props {
   func?: MhdKbFunctionAdmin;
   onSubmit: (values: MhdKbFunctionFormValues) => Promise<void>;
@@ -27,7 +28,7 @@ export function MhdKbFunctionForm({ func, onSubmit, onCancel, isSubmitting }: Pr
       exampleOutput: func?.exampleOutput ?? '',
       relatedEngine:
         (func?.relatedEngine as MhdKbFunctionFormValues['relatedEngine']) ?? 'calculator',
-      audience: func?.audience ?? 'both',
+      accessLevel: func?.accessLevel ?? 'PUBLIC',
       isDeprecated: func?.isDeprecated ?? false,
     },
   });
@@ -45,16 +46,16 @@ export function MhdKbFunctionForm({ func, onSubmit, onCancel, isSubmitting }: Pr
       {(['description', 'exampleInput', 'exampleOutput'] as const).map((name) => (
         <label key={name} className="block text-sm font-medium">
           {name === 'exampleInput'
-            ? 'Example input'
+            ? 'Example Input'
             : name === 'exampleOutput'
-              ? 'Example output'
+              ? 'Example Output'
               : 'Description'}
           <textarea rows={name === 'description' ? 4 : 3} {...register(name)} className={input} />
           {fieldError(name)}
         </label>
       ))}
       <label className="block text-sm font-medium">
-        Related engine
+        Related Engine
         <select {...register('relatedEngine')} className={input}>
           <option value="calculator">Calculator</option>
           <option value="automation">Automation</option>
@@ -62,11 +63,13 @@ export function MhdKbFunctionForm({ func, onSubmit, onCancel, isSubmitting }: Pr
         </select>
       </label>
       <label className="block text-sm font-medium">
-        Audience
-        <select {...register('audience')} className={input}>
-          <option value="end_user">End user</option>
-          <option value="internal">Internal</option>
-          <option value="both">Both</option>
+        Access Level
+        <select {...register('accessLevel')} className={input}>
+          {MHD_KB_PLATFORM_ACCESS_LEVELS.map((level) => (
+            <option key={level} value={level}>
+              {MHD_KB_ACCESS_LEVEL_LABELS[level]}
+            </option>
+          ))}
         </select>
       </label>
       {func ? (

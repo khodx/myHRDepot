@@ -1,129 +1,107 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-const { fromMock, rpcMock } = vi.hoisted(() => ({ fromMock: vi.fn(), rpcMock: vi.fn() }));
-vi.mock('@/lib/supabase/supabaseClient', () => ({
-  supabaseClient: { from: fromMock, rpc: rpcMock },
-}));
+const { rpcMock } = vi.hoisted(() => ({ rpcMock: vi.fn() }));
+vi.mock('@/lib/supabase/supabaseClient', () => ({ supabaseClient: { rpc: rpcMock } }));
 const { mhdKnowledgeCenterService } = await import('../Service');
-
-const category = {
-  id: 'cat-1',
-  key: 'policies',
-  label: 'Policies',
-  description: null,
-  icon: null,
-  sort_order: 1,
-  parent_category_id: null,
-};
 const article = {
   id: 'a-1',
-  category_id: 'cat-1',
+  category_id: 'c-1',
   slug: 'pto',
   title: 'PTO',
   summary: null,
-  audience: 'both',
+  article_type: 'ARTICLE',
+  access_level: 'PUBLIC',
+  company_id: null,
   route_context: [],
   published_at: null,
   body: 'Details',
+  body_format: 'plain',
 };
-const func = {
-  id: 'f-1',
-  name: 'SUM',
-  category: 'Math',
-  syntax: 'SUM(a,b)',
-  related_engine: 'calculator',
-  is_deprecated: false,
-  description: 'Adds',
-  example_input: '1',
-  example_output: '2',
-};
-
 beforeEach(() => vi.clearAllMocks());
-
-describe('mhdKnowledgeCenterService RPC contracts', () => {
-  it('listCategories calls mhd_list_kb_categories', async () => {
-    rpcMock.mockResolvedValueOnce({ data: [category], error: null });
-    await mhdKnowledgeCenterService.listCategories();
-    expect(rpcMock).toHaveBeenCalledWith('mhd_list_kb_categories', {});
-  });
-  it('listArticles calls mhd_list_kb_articles', async () => {
+describe('Knowledge Center service RPC contracts', () => {
+  it('maps article type for listArticles', async () => {
     rpcMock.mockResolvedValueOnce({ data: [{ ...article, total_count: 1 }], error: null });
-    await mhdKnowledgeCenterService.listArticles({
-      categoryId: 'cat-1',
-      searchTerm: 'pto',
+    await mhdKnowledgeCenterService.listArticles({ articleType: 'FAQ' });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_list_kb_articles', {
+      p_category_id: null,
+      p_search_term: null,
+      p_limit: 50,
+      p_offset: 0,
+      p_article_type: 'FAQ',
+    });
+  });
+  it('maps searchKnowledge arguments', async () => {
+    rpcMock.mockResolvedValueOnce({ data: [], error: null });
+    await mhdKnowledgeCenterService.searchKnowledge({
+      query: 'pto',
+      articleType: 'FAQ',
+      categoryId: 'c-1',
       limit: 10,
       offset: 2,
     });
-    expect(rpcMock).toHaveBeenCalledWith('mhd_list_kb_articles', {
-      p_category_id: 'cat-1',
-      p_search_term: 'pto',
+    expect(rpcMock).toHaveBeenCalledWith('mhd_search_knowledge', {
+      p_query: 'pto',
+      p_article_type: 'FAQ',
+      p_category_id: 'c-1',
       p_limit: 10,
       p_offset: 2,
     });
   });
-  it('getArticle calls mhd_get_kb_article', async () => {
-    rpcMock.mockResolvedValueOnce({ data: [article], error: null });
-    await mhdKnowledgeCenterService.getArticle('pto');
-    expect(rpcMock).toHaveBeenCalledWith('mhd_get_kb_article', { p_slug: 'pto' });
-  });
-  it('listKbFunctions calls mhd_list_kb_functions', async () => {
-    rpcMock.mockResolvedValueOnce({ data: [{ ...func, total_count: 1 }], error: null });
-    await mhdKnowledgeCenterService.listKbFunctions({
-      searchTerm: 'sum',
-      relatedEngine: 'calculator',
-      limit: 20,
-      offset: 3,
-    });
-    expect(rpcMock).toHaveBeenCalledWith('mhd_list_kb_functions', {
-      p_search_term: 'sum',
-      p_related_engine: 'calculator',
-      p_limit: 20,
-      p_offset: 3,
-    });
-  });
-  it('getKbFunction calls mhd_get_kb_function', async () => {
-    rpcMock.mockResolvedValueOnce({ data: [func], error: null });
-    await mhdKnowledgeCenterService.getKbFunction('f-1');
-    expect(rpcMock).toHaveBeenCalledWith('mhd_get_kb_function', { p_id: 'f-1' });
-  });
-  it('createArticle calls mhd_create_kb_article', async () => {
+  it('maps the new article write arguments', async () => {
     rpcMock.mockResolvedValueOnce({ data: 'a-1', error: null });
     await mhdKnowledgeCenterService.createArticle({
-      categoryId: 'cat-1',
+      categoryId: 'c-1',
       slug: 'pto',
       title: 'PTO',
       summary: 's',
       body: 'b',
-      audience: 'both',
-      routeContext: ['/x'],
-      searchKeywords: 'pto',
+      accessLevel: 'PUBLIC',
+      companyId: null,
+      articleType: 'ARTICLE',
+      bodyFormat: 'plain',
+      routeContext: [],
+      searchKeywords: '',
     });
     expect(rpcMock).toHaveBeenCalledWith('mhd_create_kb_article', {
-      p_category_id: 'cat-1',
-      p_slug: 'pto',
+      p_category_id: 'c-1',
       p_title: 'PTO',
-      p_summary: 's',
       p_body: 'b',
-      p_audience: 'both',
-      p_route_context: ['/x'],
-      p_search_keywords: 'pto',
+      p_access_level: 'PUBLIC',
+      p_company_id: null,
+      p_article_type: 'ARTICLE',
+      p_summary: 's',
+      p_body_format: 'plain',
+      p_route_context: [],
+      p_search_keywords: '',
+      p_slug: 'pto',
+      p_compliance_registry_id: null,
     });
   });
-  it('publishArticle calls mhd_publish_kb_article', async () => {
-    rpcMock.mockResolvedValueOnce({ data: null, error: null });
-    await mhdKnowledgeCenterService.publishArticle('a-1');
-    expect(rpcMock).toHaveBeenCalledWith('mhd_publish_kb_article', { p_article_id: 'a-1' });
+  it('maps access level for function writes', async () => {
+    rpcMock.mockResolvedValueOnce({ data: 'f-1', error: null });
+    await mhdKnowledgeCenterService.createFunction({
+      name: 'SUM',
+      category: 'Math',
+      syntax: 'x',
+      description: 'd',
+      exampleInput: '',
+      exampleOutput: '',
+      relatedEngine: 'calculator',
+      accessLevel: 'ADMIN',
+    });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_create_kb_function', {
+      p_name: 'SUM',
+      p_category: 'Math',
+      p_syntax: 'x',
+      p_description: 'd',
+      p_example_input: '',
+      p_example_output: '',
+      p_related_engine: 'calculator',
+      p_access_level: 'ADMIN',
+    });
   });
-  it('archiveArticle calls mhd_archive_kb_article', async () => {
-    rpcMock.mockResolvedValueOnce({ data: null, error: null });
-    await mhdKnowledgeCenterService.archiveArticle('a-1');
-    expect(rpcMock).toHaveBeenCalledWith('mhd_archive_kb_article', { p_article_id: 'a-1' });
-  });
-  it('returns null for empty article and function results', async () => {
-    rpcMock
-      .mockResolvedValueOnce({ data: [], error: null })
-      .mockResolvedValueOnce({ data: [], error: null });
-    await expect(mhdKnowledgeCenterService.getArticle('missing')).resolves.toBeNull();
-    await expect(mhdKnowledgeCenterService.getKbFunction('missing')).resolves.toBeNull();
+  it('lists compliance entries', async () => {
+    rpcMock.mockResolvedValueOnce({ data: [], error: null });
+    await mhdKnowledgeCenterService.listComplianceEntries();
+    expect(rpcMock).toHaveBeenCalledWith('mhd_list_kb_compliance_entries', {});
   });
 });

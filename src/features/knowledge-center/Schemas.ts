@@ -2,30 +2,33 @@ import { z } from 'zod';
 import type {
   MhdKbArticle,
   MhdKbArticleAdmin,
-  MhdKbArticleAdminListItem,
   MhdKbArticleListItem,
   MhdKbCategory,
+  MhdKbComplianceEntry,
   MhdKbFunction,
   MhdKbFunctionAdmin,
-  MhdKbFunctionAdminListItem,
   MhdKbFunctionListItem,
+  MhdKbSearchResult,
 } from './Types';
 
-const audienceSchema = z.enum(['end_user', 'internal', 'both']);
+const accessLevelSchema = z.enum(['PUBLIC', 'COMPANY', 'LEADERSHIP', 'ADMIN']);
+const articleTypeSchema = z.enum(['ARTICLE', 'FAQ']);
+const bodyFormatSchema = z.enum(['plain', 'rich']);
 const requiredText = z.string().trim().min(1, 'This field is required.');
 
 export const mhdKbArticleFormSchema = z.object({
   categoryId: requiredText,
-  slug: requiredText,
+  slug: z.string().trim(),
+  articleType: articleTypeSchema,
   title: requiredText,
   summary: z.string(),
   body: z.string(),
-  audience: audienceSchema,
+  accessLevel: accessLevelSchema,
+  complianceRegistryId: z.string().nullable(),
   routeContext: z.string(),
   searchKeywords: z.string(),
 });
 export type MhdKbArticleFormValues = z.infer<typeof mhdKbArticleFormSchema>;
-
 export const mhdKbFunctionFormSchema = z.object({
   name: requiredText,
   category: requiredText,
@@ -34,7 +37,7 @@ export const mhdKbFunctionFormSchema = z.object({
   exampleInput: z.string(),
   exampleOutput: z.string(),
   relatedEngine: z.enum(['calculator', 'automation', 'forms']),
-  audience: audienceSchema,
+  accessLevel: z.enum(['PUBLIC', 'LEADERSHIP', 'ADMIN']),
   isDeprecated: z.boolean(),
 });
 export type MhdKbFunctionFormValues = z.infer<typeof mhdKbFunctionFormSchema>;
@@ -48,31 +51,23 @@ export const mhdKbCategorySchema = z.object({
   sort_order: z.number(),
   parent_category_id: z.string().nullable(),
 });
-
-const mhdKbArticleListItemSchema = z.object({
+const mhdKbArticleRowSchema = z.object({
   id: z.string(),
   category_id: z.string(),
   slug: z.string(),
   title: z.string(),
   summary: z.string().nullable(),
-  audience: z.enum(['end_user', 'internal', 'both']),
+  article_type: articleTypeSchema,
+  access_level: accessLevelSchema,
+  company_id: z.string().nullable(),
   route_context: z.array(z.string()),
   published_at: z.string().nullable(),
-  total_count: z.number(),
 });
-
-export const mhdKbArticleSchema = z.object({
-  id: z.string(),
-  category_id: z.string(),
-  slug: z.string(),
-  title: z.string(),
-  summary: z.string().nullable(),
-  audience: z.enum(['end_user', 'internal', 'both']),
-  route_context: z.array(z.string()),
-  published_at: z.string().nullable(),
+const mhdKbArticleListItemSchema = mhdKbArticleRowSchema.extend({ total_count: z.number() });
+export const mhdKbArticleSchema = mhdKbArticleRowSchema.extend({
   body: z.string(),
+  body_format: bodyFormatSchema,
 });
-
 const mhdKbFunctionListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -87,197 +82,215 @@ const mhdKbFunctionSchema = mhdKbFunctionListItemSchema
     description: z.string(),
     example_input: z.string(),
     example_output: z.string(),
+    access_level: z.enum(['PUBLIC', 'LEADERSHIP', 'ADMIN']).optional(),
   })
   .omit({ total_count: true });
 const adminStatus = z.enum(['draft', 'published', 'archived']);
 const mhdKbArticleAdminListSchema = mhdKbArticleListItemSchema.extend({
+  compliance_registry_id: z.string().nullable(),
   status: adminStatus,
   is_deleted: z.boolean(),
   updated_at: z.string(),
 });
 const mhdKbArticleAdminSchema = mhdKbArticleSchema.extend({
+  compliance_registry_id: z.string().nullable(),
   search_keywords: z.string(),
   status: adminStatus,
   is_deleted: z.boolean(),
   updated_at: z.string(),
 });
 const mhdKbFunctionAdminListSchema = mhdKbFunctionListItemSchema.extend({
-  audience: z.enum(['end_user', 'internal', 'both']),
+  access_level: z.enum(['PUBLIC', 'LEADERSHIP', 'ADMIN']),
   is_deleted: z.boolean(),
   updated_at: z.string(),
 });
 const mhdKbFunctionAdminSchema = mhdKbFunctionAdminListSchema
-  .extend({
-    description: z.string(),
-    example_input: z.string(),
-    example_output: z.string(),
-  })
+  .extend({ description: z.string(), example_input: z.string(), example_output: z.string() })
   .omit({ total_count: true });
+const mhdKbSearchResultSchema = z.object({
+  id: z.string(),
+  category_id: z.string(),
+  slug: z.string(),
+  title: z.string(),
+  summary: z.string().nullable(),
+  snippet: z.string(),
+  article_type: articleTypeSchema,
+  access_level: accessLevelSchema,
+  company_id: z.string().nullable(),
+  published_at: z.string().nullable(),
+  rank: z.number(),
+  total_count: z.number(),
+});
+const mhdKbComplianceEntrySchema = z.object({
+  id: z.string(),
+  content_key: z.string(),
+  version: z.number(),
+  review_status: z.string(),
+  production_enabled: z.boolean(),
+  authority_name: z.string().nullable(),
+  source_url: z.string().nullable(),
+});
 
 export function parseMhdKbCategories(value: unknown): MhdKbCategory[] {
   return z
     .array(mhdKbCategorySchema)
     .parse(value)
-    .map((row) => ({
-      id: row.id,
-      key: row.key,
-      label: row.label,
-      description: row.description,
-      icon: row.icon,
-      sortOrder: row.sort_order,
-      parentCategoryId: row.parent_category_id,
+    .map((r) => ({
+      id: r.id,
+      key: r.key,
+      label: r.label,
+      description: r.description,
+      icon: r.icon,
+      sortOrder: r.sort_order,
+      parentCategoryId: r.parent_category_id,
     }));
 }
-
-function mapArticleListItem(row: z.infer<typeof mhdKbArticleListItemSchema>): MhdKbArticleListItem {
+function mapArticle(r: z.infer<typeof mhdKbArticleRowSchema>): MhdKbArticleListItem {
   return {
-    id: row.id,
-    categoryId: row.category_id,
-    slug: row.slug,
-    title: row.title,
-    summary: row.summary,
-    audience: row.audience,
-    routeContext: row.route_context,
-    publishedAt: row.published_at,
+    id: r.id,
+    categoryId: r.category_id,
+    slug: r.slug,
+    title: r.title,
+    summary: r.summary,
+    articleType: r.article_type,
+    accessLevel: r.access_level,
+    companyId: r.company_id,
+    routeContext: r.route_context,
+    publishedAt: r.published_at,
   };
 }
-
-export function parseMhdKbArticles(value: unknown): {
-  items: MhdKbArticleListItem[];
-  totalCount: number;
-} {
+export function parseMhdKbArticles(value: unknown) {
   const rows = z.array(mhdKbArticleListItemSchema).parse(value);
-  return {
-    items: rows.map(mapArticleListItem),
-    totalCount: rows[0]?.total_count ?? 0,
-  };
+  return { items: rows.map(mapArticle), totalCount: rows[0]?.total_count ?? 0 };
 }
-
 export function parseMhdKbArticle(value: unknown): MhdKbArticle {
-  const row = mhdKbArticleSchema.parse(value);
-  return {
-    id: row.id,
-    categoryId: row.category_id,
-    slug: row.slug,
-    title: row.title,
-    summary: row.summary,
-    audience: row.audience,
-    routeContext: row.route_context,
-    publishedAt: row.published_at,
-    body: row.body,
-  };
+  const r = mhdKbArticleSchema.parse(value);
+  return { ...mapArticle(r), body: r.body, bodyFormat: r.body_format };
 }
-
 export function parseMhdKbFunctions(value: unknown): {
   items: MhdKbFunctionListItem[];
   totalCount: number;
 } {
   const rows = z.array(mhdKbFunctionListItemSchema).parse(value);
   return {
-    items: rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      category: row.category,
-      syntax: row.syntax,
-      relatedEngine: row.related_engine,
-      isDeprecated: row.is_deprecated,
+    items: rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      category: r.category,
+      syntax: r.syntax,
+      relatedEngine: r.related_engine,
+      isDeprecated: r.is_deprecated,
     })),
     totalCount: rows[0]?.total_count ?? 0,
   };
 }
-
 export function parseMhdKbFunction(value: unknown): MhdKbFunction {
-  const row = mhdKbFunctionSchema.parse(value);
+  const r = mhdKbFunctionSchema.parse(value);
   return {
-    id: row.id,
-    name: row.name,
-    category: row.category,
-    syntax: row.syntax,
-    relatedEngine: row.related_engine,
-    isDeprecated: row.is_deprecated,
-    description: row.description,
-    exampleInput: row.example_input,
-    exampleOutput: row.example_output,
+    id: r.id,
+    name: r.name,
+    category: r.category,
+    syntax: r.syntax,
+    relatedEngine: r.related_engine,
+    isDeprecated: r.is_deprecated,
+    description: r.description,
+    exampleInput: r.example_input,
+    exampleOutput: r.example_output,
   };
 }
-
-export function parseMhdKbArticlesAdmin(value: unknown): {
-  items: MhdKbArticleAdminListItem[];
-  totalCount: number;
-} {
+export function parseMhdKbArticlesAdmin(value: unknown) {
   const rows = z.array(mhdKbArticleAdminListSchema).parse(value);
   return {
-    items: rows.map((row) => ({
-      id: row.id,
-      categoryId: row.category_id,
-      slug: row.slug,
-      title: row.title,
-      summary: row.summary,
-      audience: row.audience,
-      routeContext: row.route_context,
-      publishedAt: row.published_at,
-      status: row.status,
-      isDeleted: row.is_deleted,
-      updatedAt: row.updated_at,
+    items: rows.map((r) => ({
+      ...mapArticle(r),
+      complianceRegistryId: r.compliance_registry_id,
+      status: r.status,
+      isDeleted: r.is_deleted,
+      updatedAt: r.updated_at,
     })),
     totalCount: rows[0]?.total_count ?? 0,
   };
 }
-
 export function parseMhdKbArticleAdmin(value: unknown): MhdKbArticleAdmin {
-  const row = mhdKbArticleAdminSchema.parse(value);
+  const r = mhdKbArticleAdminSchema.parse(value);
   return {
-    id: row.id,
-    categoryId: row.category_id,
-    slug: row.slug,
-    title: row.title,
-    summary: row.summary,
-    audience: row.audience,
-    routeContext: row.route_context,
-    publishedAt: row.published_at,
-    body: row.body,
-    searchKeywords: row.search_keywords,
-    status: row.status,
-    isDeleted: row.is_deleted,
-    updatedAt: row.updated_at,
+    ...mapArticle(r),
+    body: r.body,
+    bodyFormat: r.body_format,
+    complianceRegistryId: r.compliance_registry_id,
+    searchKeywords: r.search_keywords,
+    status: r.status,
+    isDeleted: r.is_deleted,
+    updatedAt: r.updated_at,
   };
 }
-
-export function parseMhdKbFunctionsAdmin(value: unknown): {
-  items: MhdKbFunctionAdminListItem[];
-  totalCount: number;
-} {
+export function parseMhdKbFunctionsAdmin(value: unknown) {
   const rows = z.array(mhdKbFunctionAdminListSchema).parse(value);
   return {
-    items: rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      category: row.category,
-      syntax: row.syntax,
-      relatedEngine: row.related_engine,
-      isDeprecated: row.is_deprecated,
-      audience: row.audience,
-      isDeleted: row.is_deleted,
-      updatedAt: row.updated_at,
+    items: rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      category: r.category,
+      syntax: r.syntax,
+      relatedEngine: r.related_engine,
+      isDeprecated: r.is_deprecated,
+      accessLevel: r.access_level,
+      isDeleted: r.is_deleted,
+      updatedAt: r.updated_at,
     })),
     totalCount: rows[0]?.total_count ?? 0,
   };
 }
-
 export function parseMhdKbFunctionAdmin(value: unknown): MhdKbFunctionAdmin {
-  const row = mhdKbFunctionAdminSchema.parse(value);
+  const r = mhdKbFunctionAdminSchema.parse(value);
   return {
-    id: row.id,
-    name: row.name,
-    category: row.category,
-    syntax: row.syntax,
-    relatedEngine: row.related_engine,
-    isDeprecated: row.is_deprecated,
-    description: row.description,
-    exampleInput: row.example_input,
-    exampleOutput: row.example_output,
-    audience: row.audience,
-    isDeleted: row.is_deleted,
-    updatedAt: row.updated_at,
+    id: r.id,
+    name: r.name,
+    category: r.category,
+    syntax: r.syntax,
+    relatedEngine: r.related_engine,
+    isDeprecated: r.is_deprecated,
+    description: r.description,
+    exampleInput: r.example_input,
+    exampleOutput: r.example_output,
+    accessLevel: r.access_level,
+    isDeleted: r.is_deleted,
+    updatedAt: r.updated_at,
   };
+}
+export function parseMhdKbSearchResults(value: unknown): {
+  items: MhdKbSearchResult[];
+  totalCount: number;
+} {
+  const rows = z.array(mhdKbSearchResultSchema).parse(value);
+  return {
+    items: rows.map((r) => ({
+      id: r.id,
+      categoryId: r.category_id,
+      slug: r.slug,
+      title: r.title,
+      summary: r.summary,
+      snippet: r.snippet,
+      articleType: r.article_type,
+      accessLevel: r.access_level,
+      companyId: r.company_id,
+      publishedAt: r.published_at,
+      rank: r.rank,
+    })),
+    totalCount: rows[0]?.total_count ?? 0,
+  };
+}
+export function parseMhdKbComplianceEntries(value: unknown): MhdKbComplianceEntry[] {
+  return z
+    .array(mhdKbComplianceEntrySchema)
+    .parse(value)
+    .map((r) => ({
+      id: r.id,
+      contentKey: r.content_key,
+      version: r.version,
+      reviewStatus: r.review_status,
+      productionEnabled: r.production_enabled,
+      authorityName: r.authority_name,
+      sourceUrl: r.source_url,
+    }));
 }

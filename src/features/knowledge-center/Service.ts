@@ -9,6 +9,8 @@ import {
   parseMhdKbFunctionAdmin,
   parseMhdKbFunctions,
   parseMhdKbFunctionsAdmin,
+  parseMhdKbSearchResults,
+  parseMhdKbComplianceEntries,
 } from './Schemas';
 import type {
   MhdKbArticle,
@@ -16,10 +18,15 @@ import type {
   MhdKbArticleAdminListItem,
   MhdKbArticleListItem,
   MhdKbCategory,
+  MhdKbComplianceEntry,
   MhdKbFunction,
   MhdKbFunctionAdmin,
   MhdKbFunctionAdminListItem,
   MhdKbFunctionListItem,
+  MhdKbAccessLevel,
+  MhdKbPlatformAccessLevel,
+  MhdKbArticleType,
+  MhdKbBodyFormat,
 } from './Types';
 
 export const mhdKnowledgeCenterService = {
@@ -28,28 +35,48 @@ export const mhdKnowledgeCenterService = {
     if (error) throw error;
     return parseMhdKbCategories(data ?? []);
   },
-
   async listArticles(params: {
     categoryId?: string;
     searchTerm?: string;
     limit?: number;
     offset?: number;
-  }): Promise<{ items: MhdKbArticleListItem[]; totalCount: number }> {
+    articleType?: MhdKbArticleType;
+  }) {
     const { data, error } = await supabaseClient.rpc('mhd_list_kb_articles', {
       p_category_id: params.categoryId ?? null,
       p_search_term: params.searchTerm ?? null,
       p_limit: params.limit ?? 50,
       p_offset: params.offset ?? 0,
+      p_article_type: params.articleType ?? null,
     } as never);
     if (error) throw error;
     return parseMhdKbArticles(data ?? []);
   },
-
-  async listAllPublishedArticleRoutes(): Promise<MhdKbArticleListItem[]> {
-    const { items } = await mhdKnowledgeCenterService.listArticles({ limit: 200 });
-    return items;
+  async searchKnowledge(params: {
+    query: string;
+    articleType?: MhdKbArticleType;
+    categoryId?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    const { data, error } = await supabaseClient.rpc('mhd_search_knowledge', {
+      p_query: params.query,
+      p_article_type: params.articleType ?? null,
+      p_category_id: params.categoryId ?? null,
+      p_limit: params.limit ?? 20,
+      p_offset: params.offset ?? 0,
+    } as never);
+    if (error) throw error;
+    return parseMhdKbSearchResults(data ?? []);
   },
-
+  async listComplianceEntries(): Promise<MhdKbComplianceEntry[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_list_kb_compliance_entries', {} as never);
+    if (error) throw error;
+    return parseMhdKbComplianceEntries(data ?? []);
+  },
+  async listAllPublishedArticleRoutes(): Promise<MhdKbArticleListItem[]> {
+    return (await this.listArticles({ limit: 200 })).items;
+  },
   async getArticle(slug: string): Promise<MhdKbArticle | null> {
     const { data, error } = await supabaseClient.rpc('mhd_get_kb_article', {
       p_slug: slug,
@@ -58,7 +85,6 @@ export const mhdKnowledgeCenterService = {
     const rows = Array.isArray(data) ? data : data ? [data] : [];
     return rows.length ? parseMhdKbArticle(rows[0]) : null;
   },
-
   async listKbFunctions(params: {
     searchTerm?: string;
     relatedEngine?: string;
@@ -87,13 +113,10 @@ export const mhdKnowledgeCenterService = {
     searchTerm?: string;
     limit?: number;
     offset?: number;
+    scope?: 'PLATFORM' | 'COMPANY';
+    companyId?: string;
+    articleType?: MhdKbArticleType;
   }): Promise<{ items: MhdKbArticleAdminListItem[]; totalCount: number }> {
-    // 'archived' is a client-side pseudo-status layered on top of is_deleted
-    // (kb_articles.status only ever holds 'draft'/'published' in the
-    // database — passing 'archived' through as p_status would filter to a
-    // value no row can ever have, silently returning zero rows). Archived
-    // visibility is controlled solely by p_include_archived; the caller
-    // filters the result to is_deleted rows separately.
     const dbStatus =
       params.status && params.status !== 'all' && params.status !== 'archived'
         ? params.status
@@ -105,6 +128,9 @@ export const mhdKnowledgeCenterService = {
       p_search_term: params.searchTerm ?? null,
       p_limit: params.limit ?? 200,
       p_offset: params.offset ?? 0,
+      p_scope: params.scope ?? 'PLATFORM',
+      p_company_id: params.companyId ?? null,
+      p_article_type: params.articleType ?? null,
     } as never);
     if (error) throw error;
     return parseMhdKbArticlesAdmin(data ?? []);
@@ -144,23 +170,31 @@ export const mhdKnowledgeCenterService = {
   },
   async createArticle(input: {
     categoryId: string;
-    slug: string;
+    slug?: string;
     title: string;
     summary: string;
     body: string;
-    audience: string;
+    accessLevel: MhdKbAccessLevel;
+    companyId: string | null;
+    articleType: MhdKbArticleType;
+    bodyFormat: MhdKbBodyFormat;
     routeContext: string[];
     searchKeywords: string;
+    complianceRegistryId?: string | null;
   }): Promise<string> {
     const { data, error } = await supabaseClient.rpc('mhd_create_kb_article', {
       p_category_id: input.categoryId,
-      p_slug: input.slug,
       p_title: input.title,
-      p_summary: input.summary,
       p_body: input.body,
-      p_audience: input.audience,
+      p_access_level: input.accessLevel,
+      p_company_id: input.companyId,
+      p_article_type: input.articleType,
+      p_summary: input.summary,
+      p_body_format: input.bodyFormat,
       p_route_context: input.routeContext,
       p_search_keywords: input.searchKeywords,
+      p_slug: input.slug || null,
+      p_compliance_registry_id: input.complianceRegistryId ?? null,
     } as never);
     if (error) throw error;
     return data as string;
@@ -168,24 +202,29 @@ export const mhdKnowledgeCenterService = {
   async updateArticle(input: {
     articleId: string;
     categoryId: string;
-    slug: string;
+    slug?: string;
     title: string;
     summary: string;
     body: string;
-    audience: string;
+    accessLevel: MhdKbAccessLevel;
+    articleType: MhdKbArticleType;
+    bodyFormat: MhdKbBodyFormat;
     routeContext: string[];
     searchKeywords: string;
+    complianceRegistryId?: string | null;
   }): Promise<void> {
     const { error } = await supabaseClient.rpc('mhd_update_kb_article', {
       p_article_id: input.articleId,
       p_category_id: input.categoryId,
-      p_slug: input.slug,
       p_title: input.title,
       p_summary: input.summary,
       p_body: input.body,
-      p_audience: input.audience,
+      p_body_format: input.bodyFormat,
+      p_access_level: input.accessLevel,
       p_route_context: input.routeContext,
       p_search_keywords: input.searchKeywords,
+      p_slug: input.slug || null,
+      p_compliance_registry_id: input.complianceRegistryId ?? null,
     } as never);
     if (error) throw error;
   },
@@ -215,7 +254,7 @@ export const mhdKnowledgeCenterService = {
     exampleInput: string;
     exampleOutput: string;
     relatedEngine: string;
-    audience: string;
+    accessLevel: MhdKbPlatformAccessLevel;
   }): Promise<string> {
     const { data, error } = await supabaseClient.rpc('mhd_create_kb_function', {
       p_name: input.name,
@@ -225,7 +264,7 @@ export const mhdKnowledgeCenterService = {
       p_example_input: input.exampleInput,
       p_example_output: input.exampleOutput,
       p_related_engine: input.relatedEngine,
-      p_audience: input.audience,
+      p_access_level: input.accessLevel,
     } as never);
     if (error) throw error;
     return data as string;
@@ -239,7 +278,7 @@ export const mhdKnowledgeCenterService = {
     exampleInput: string;
     exampleOutput: string;
     relatedEngine: string;
-    audience: string;
+    accessLevel: MhdKbPlatformAccessLevel;
     isDeprecated: boolean;
   }): Promise<void> {
     const { error } = await supabaseClient.rpc('mhd_update_kb_function', {
@@ -251,7 +290,7 @@ export const mhdKnowledgeCenterService = {
       p_example_input: input.exampleInput,
       p_example_output: input.exampleOutput,
       p_related_engine: input.relatedEngine,
-      p_audience: input.audience,
+      p_access_level: input.accessLevel,
       p_is_deprecated: input.isDeprecated,
     } as never);
     if (error) throw error;

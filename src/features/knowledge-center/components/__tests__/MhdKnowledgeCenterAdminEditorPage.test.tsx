@@ -46,9 +46,14 @@ const row = {
   slug: 'pto',
   title: 'PTO article',
   summary: null,
-  audience: 'both' as const,
+  articleType: 'ARTICLE' as const,
+  accessLevel: 'PUBLIC' as const,
+  companyId: null,
   routeContext: [],
   publishedAt: null,
+  complianceRegistryId: null,
+  bodyFormat: 'plain' as const,
+  searchKeywords: '',
   status: 'published' as const,
   isDeleted: false,
   updatedAt: '2026-08-02',
@@ -77,8 +82,8 @@ describe('MhdKnowledgeCenterAdminEditorPage', () => {
         <MhdKnowledgeCenterAdminEditorPage />
       </MemoryRouter>,
     );
-    expect(screen.getByText('Articles')).toBeInTheDocument();
-    expect(screen.getByText('Functions')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Articles' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Functions' })).toBeInTheDocument();
     expect(screen.getByText('PTO article')).toBeInTheDocument();
   });
 });

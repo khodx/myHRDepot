@@ -2,6 +2,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdKbArticle } from '../Hook';
+import { MhdKbBadges } from './MhdKbBadges';
+import { MhdKbArticleBody } from './MhdKbArticleBody';
 
 export function MhdKnowledgeCenterArticlePage() {
   const navigate = useNavigate();
@@ -28,12 +30,15 @@ export function MhdKnowledgeCenterArticlePage() {
         backTo="/knowledge-center"
         backLabel="Knowledge Center"
       />
+      <MhdKbBadges
+        articleType={article.data.articleType}
+        companyId={article.data.companyId}
+        accessLevel={article.data.accessLevel}
+      />
       {article.data.summary ? (
         <p className="text-base text-muted-foreground">{article.data.summary}</p>
       ) : null}
-      <div className="whitespace-pre-wrap rounded-lg border border-border bg-card p-6 text-sm leading-7 text-foreground">
-        {article.data.body}
-      </div>
+      <MhdKbArticleBody body={article.data.body} bodyFormat={article.data.bodyFormat} />
     </article>
   );
 }

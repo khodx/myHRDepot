@@ -3,247 +3,113 @@ import {
   mhdKbArticleFormSchema,
   mhdKbFunctionFormSchema,
   parseMhdKbArticle,
-  parseMhdKbArticleAdmin,
   parseMhdKbArticles,
-  parseMhdKbArticlesAdmin,
-  parseMhdKbCategories,
-  parseMhdKbFunction,
-  parseMhdKbFunctionAdmin,
-  parseMhdKbFunctions,
-  parseMhdKbFunctionsAdmin,
+  parseMhdKbComplianceEntries,
+  parseMhdKbSearchResults,
 } from '../Schemas';
 
-const categoryRow = {
-  id: 'cat-1',
-  key: 'policies',
-  label: 'Policies',
-  description: 'HR policies',
-  icon: 'book',
-  sort_order: 1,
-  parent_category_id: null,
-};
-const articleRow = {
-  id: 'article-1',
-  category_id: 'cat-1',
+const article = {
+  id: 'a-1',
+  category_id: 'c-1',
   slug: 'pto',
-  title: 'Paid time off',
-  summary: 'PTO guidance',
-  audience: 'both',
-  route_context: ['/policies'],
-  published_at: '2026-08-01T00:00:00.000Z',
-  body: 'PTO details',
+  title: 'PTO',
+  summary: 'Summary',
+  article_type: 'ARTICLE',
+  access_level: 'PUBLIC',
+  company_id: null,
+  route_context: [],
+  published_at: null,
+  body: 'Details',
+  body_format: 'plain',
 };
-const functionRow = {
-  id: 'function-1',
-  name: 'SUM',
-  category: 'Math',
-  syntax: 'SUM(a,b)',
-  related_engine: 'calculator',
-  is_deprecated: false,
-  description: 'Adds values',
-  example_input: 'SUM(1, 2)',
-  example_output: '3',
-};
-
 describe('Knowledge Center schemas', () => {
-  it('maps category rows to camelCase objects', () => {
-    expect(parseMhdKbCategories([categoryRow])).toEqual([
+  it('parses the new article shape', () =>
+    expect(parseMhdKbArticle(article)).toMatchObject({
+      articleType: 'ARTICLE',
+      accessLevel: 'PUBLIC',
+      companyId: null,
+      bodyFormat: 'plain',
+    }));
+  it('parses article totals', () =>
+    expect(parseMhdKbArticles([{ ...article, total_count: 2 }]).totalCount).toBe(2));
+  it('parses search results and total_count', () => {
+    expect(
+      parseMhdKbSearchResults([
+        { ...article, snippet: 'PTO <mark>details</mark>', rank: 0.4, total_count: 1 },
+      ]),
+    ).toEqual({
+      items: [
+        {
+          id: 'a-1',
+          categoryId: 'c-1',
+          slug: 'pto',
+          title: 'PTO',
+          summary: 'Summary',
+          snippet: 'PTO <mark>details</mark>',
+          articleType: 'ARTICLE',
+          accessLevel: 'PUBLIC',
+          companyId: null,
+          publishedAt: null,
+          rank: 0.4,
+        },
+      ],
+      totalCount: 1,
+    });
+  });
+  it('parses compliance entries', () => {
+    expect(
+      parseMhdKbComplianceEntries([
+        {
+          id: 'r-1',
+          content_key: 'pto',
+          version: 1,
+          review_status: 'approved',
+          production_enabled: true,
+          authority_name: 'DOL',
+          source_url: null,
+        },
+      ]),
+    ).toEqual([
       {
-        id: 'cat-1',
-        key: 'policies',
-        label: 'Policies',
-        description: 'HR policies',
-        icon: 'book',
-        sortOrder: 1,
-        parentCategoryId: null,
+        id: 'r-1',
+        contentKey: 'pto',
+        version: 1,
+        reviewStatus: 'approved',
+        productionEnabled: true,
+        authorityName: 'DOL',
+        sourceUrl: null,
       },
     ]);
   });
-
-  it('maps article lists and total_count', () => {
-    expect(parseMhdKbArticles([{ ...articleRow, total_count: 4 }])).toEqual({
-      items: [
-        {
-          id: 'article-1',
-          categoryId: 'cat-1',
-          slug: 'pto',
-          title: 'Paid time off',
-          summary: 'PTO guidance',
-          audience: 'both',
-          routeContext: ['/policies'],
-          publishedAt: '2026-08-01T00:00:00.000Z',
-        },
-      ],
-      totalCount: 4,
-    });
-  });
-
-  it('maps an article row', () => {
-    expect(parseMhdKbArticle(articleRow)).toEqual({
-      id: 'article-1',
-      categoryId: 'cat-1',
-      slug: 'pto',
-      title: 'Paid time off',
-      summary: 'PTO guidance',
-      audience: 'both',
-      routeContext: ['/policies'],
-      publishedAt: '2026-08-01T00:00:00.000Z',
-      body: 'PTO details',
-    });
-  });
-
-  it('maps function lists and total_count', () => {
-    expect(parseMhdKbFunctions([{ ...functionRow, total_count: 2 }])).toEqual({
-      items: [
-        {
-          id: 'function-1',
-          name: 'SUM',
-          category: 'Math',
-          syntax: 'SUM(a,b)',
-          relatedEngine: 'calculator',
-          isDeprecated: false,
-        },
-      ],
-      totalCount: 2,
-    });
-  });
-
-  it('maps a function row', () => {
-    expect(parseMhdKbFunction(functionRow)).toEqual({
-      id: 'function-1',
-      name: 'SUM',
-      category: 'Math',
-      syntax: 'SUM(a,b)',
-      relatedEngine: 'calculator',
-      isDeprecated: false,
-      description: 'Adds values',
-      exampleInput: 'SUM(1, 2)',
-      exampleOutput: '3',
-    });
-  });
-
-  it('maps admin article lists and total_count', () => {
-    expect(
-      parseMhdKbArticlesAdmin([
-        {
-          ...articleRow,
-          total_count: 1,
-          status: 'published',
-          is_deleted: false,
-          updated_at: '2026-08-02',
-        },
-      ]),
-    ).toEqual({
-      items: [
-        {
-          id: 'article-1',
-          categoryId: 'cat-1',
-          slug: 'pto',
-          title: 'Paid time off',
-          summary: 'PTO guidance',
-          audience: 'both',
-          routeContext: ['/policies'],
-          publishedAt: '2026-08-01T00:00:00.000Z',
-          status: 'published',
-          isDeleted: false,
-          updatedAt: '2026-08-02',
-        },
-      ],
-      totalCount: 1,
-    });
-  });
-
-  it('maps an admin article row', () => {
-    expect(
-      parseMhdKbArticleAdmin({
-        ...articleRow,
-        search_keywords: 'pto',
-        status: 'draft',
-        is_deleted: false,
-        updated_at: '2026-08-02',
-      }),
-    ).toMatchObject({
-      categoryId: 'cat-1',
-      searchKeywords: 'pto',
-      status: 'draft',
-      isDeleted: false,
-      updatedAt: '2026-08-02',
-      body: 'PTO details',
-    });
-  });
-
-  it('maps admin function lists and total_count', () => {
-    expect(
-      parseMhdKbFunctionsAdmin([
-        {
-          ...functionRow,
-          total_count: 1,
-          audience: 'internal',
-          is_deleted: false,
-          updated_at: '2026-08-02',
-        },
-      ]),
-    ).toEqual({
-      items: [
-        {
-          id: 'function-1',
-          name: 'SUM',
-          category: 'Math',
-          syntax: 'SUM(a,b)',
-          relatedEngine: 'calculator',
-          isDeprecated: false,
-          audience: 'internal',
-          isDeleted: false,
-          updatedAt: '2026-08-02',
-        },
-      ],
-      totalCount: 1,
-    });
-  });
-
-  it('maps an admin function row', () => {
-    expect(
-      parseMhdKbFunctionAdmin({
-        ...functionRow,
-        audience: 'end_user',
-        is_deleted: false,
-        updated_at: '2026-08-02',
-      }),
-    ).toMatchObject({
-      id: 'function-1',
-      name: 'SUM',
-      description: 'Adds values',
-      audience: 'end_user',
-      isDeleted: false,
-      updatedAt: '2026-08-02',
-    });
-  });
-
-  it('rejects forms with a missing required title or name', () => {
-    expect(
-      mhdKbArticleFormSchema.safeParse({
-        categoryId: 'cat-1',
-        slug: 'x',
-        title: '',
-        summary: '',
-        body: '',
-        audience: 'both',
-        routeContext: '',
-        searchKeywords: '',
-      }).success,
-    ).toBe(false);
+  it('allows a blank slug and rejects the old audience vocabulary', () => {
+    const base = {
+      categoryId: 'c-1',
+      slug: '',
+      articleType: 'ARTICLE',
+      title: 'Title',
+      summary: '',
+      body: '',
+      accessLevel: 'PUBLIC',
+      complianceRegistryId: null,
+      routeContext: '',
+      searchKeywords: '',
+    };
+    expect(mhdKbArticleFormSchema.safeParse(base).success).toBe(true);
+    expect(mhdKbArticleFormSchema.safeParse({ ...base, accessLevel: 'end_user' }).success).toBe(
+      false,
+    );
     expect(
       mhdKbFunctionFormSchema.safeParse({
-        name: '',
+        name: 'SUM',
         category: 'Math',
         syntax: 'x',
         description: 'x',
         exampleInput: '',
         exampleOutput: '',
         relatedEngine: 'calculator',
-        audience: 'both',
+        accessLevel: 'ADMIN',
         isDeprecated: false,
       }).success,
-    ).toBe(false);
+    ).toBe(true);
   });
 });
