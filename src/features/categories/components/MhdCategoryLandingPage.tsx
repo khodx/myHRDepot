@@ -1,7 +1,9 @@
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdModuleCardGrid } from '@/components/ui/MhdModuleCardGrid';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { useMhdModuleAlerts } from '@/features/module-alerts/Hook';
 import { NAV_SECTIONS, mhdVisibleNavItems } from '@/appshell/mhdNavSections';
 
 /**
@@ -9,64 +11,42 @@ import { NAV_SECTIONS, mhdVisibleNavItems } from '@/appshell/mhdNavSections';
  * generated from the same NAV_SECTIONS data the rail and the dashboard read,
  * filtered through the same role/parent-promotion rule as the rail
  * (mhdVisibleNavItems), so a category page can never list a module the rail
- * would hide from that role. Each card links to the module's own existing
- * route; nothing here duplicates or moves a module.
+ * would hide from that role. The cards are the dashboard's own module cards
+ * (MhdModuleCardGrid) — same tones, animation, badges and sub-page chips; each
+ * links to the module's own existing route and nothing here duplicates or
+ * moves a module.
  */
 export function MhdCategoryLandingPage() {
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const { roles } = useMhdAuth();
+  const { counts } = useMhdModuleAlerts();
 
   const section = NAV_SECTIONS.find((s) => s.route === `/categories/${categorySlug}`);
   if (!section) return <Navigate to="/404" replace />;
 
-  // Every module the role can open gets its own card, companion sub-pages
-  // (Announcements under Communications, My Memorandums under Memorandums, ...)
-  // included, so this page lists exactly what the rail lists. A sub-page's card
-  // notes which module it belongs to.
-  const cards = mhdVisibleNavItems(section.items, roles).flatMap((item) => [
-    { item, parentLabel: undefined as string | undefined },
-    ...(item.children ?? []).map((child) => ({ item: child, parentLabel: item.label })),
-  ]);
+  // Companion sub-pages (Announcements under Communications, My Memorandums
+  // under Memorandums, ...) ride on their parent card as chips, exactly as on
+  // the dashboard, so this page lists everything the rail lists.
+  const items = mhdVisibleNavItems(section.items, roles);
 
   // A role with nothing in this category is refused exactly like any other
   // route it cannot open (MhdRoleGuardedRoute sends those to /404); the rail
   // already hides such a category, so this only catches a typed URL.
-  if (cards.length === 0) return <Navigate to="/404" replace />;
+  if (items.length === 0) return <Navigate to="/404" replace />;
 
   return (
     <div className="space-y-6">
       <MhdPageHeader title={section.label} description={section.description} />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {cards.map(({ item, parentLabel }) => (
-          <MhdCard
-            key={item.route}
-            className="relative h-full space-y-3 transition-shadow hover:shadow-lg"
-          >
-            <item.icon className="h-6 w-6 text-accent" aria-hidden />
-            <div>
-              <h2 className="flex items-center gap-2 font-semibold text-foreground">
-                {/* Stretched link: the whole card is the click target. */}
-                <Link
-                  to={item.route}
-                  className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded-lg focus-visible:after:ring-2 focus-visible:after:ring-focus-ring"
-                >
-                  {item.label}
-                </Link>
-                {item.status === 'comingSoon' ? (
-                  <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
-                    Coming Soon
-                  </span>
-                ) : null}
-              </h2>
-              {parentLabel ? (
-                <p className="text-xs font-medium text-accent">Part of {parentLabel}</p>
-              ) : null}
-              <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
-            </div>
-          </MhdCard>
-        ))}
-      </div>
+      <MhdCard elevated>
+        <MhdModuleCardGrid
+          items={items}
+          alertCounts={counts}
+          order="given"
+          searchLabel={`Search ${section.label}`}
+          searchPlaceholder={`Search ${section.label}…`}
+        />
+      </MhdCard>
     </div>
   );
 }

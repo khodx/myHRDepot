@@ -16,6 +16,10 @@ import type { MhdAuthRoleName } from '@/features/authentication/Types';
 // ---------------------------------------------------------------------------
 
 const mockUseMhdAuth = vi.fn();
+vi.mock('@/features/module-alerts/Hook', () => ({
+  useMhdModuleAlerts: () => ({ counts: {}, isLoading: false }),
+}));
+
 vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => mockUseMhdAuth(),
 }));
@@ -838,7 +842,10 @@ async function landingLabels(slug: string): Promise<string[]> {
       </Routes>
     </MemoryRouter>,
   );
-  const labels = Array.from(container.querySelectorAll('h2 a')).map((a) => a.textContent ?? '');
+  // Module cards and their sub-page chips both carry the label as their accessible name.
+  const labels = Array.from(container.querySelectorAll('a[href]')).map(
+    (a) => a.getAttribute('aria-label') ?? '',
+  );
   unmount();
   return labels;
 }

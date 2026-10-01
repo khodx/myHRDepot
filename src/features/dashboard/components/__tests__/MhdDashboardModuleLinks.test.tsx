@@ -9,15 +9,14 @@ vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => mockUseMhdAuth(),
 }));
 
-const mockUseMhdDashboard = vi.fn();
-vi.mock('../../Hook', () => ({
-  useMhdDashboard: () => mockUseMhdDashboard(),
+const mockUseMhdModuleAlerts = vi.fn();
+vi.mock('@/features/module-alerts/Hook', () => ({
+  useMhdModuleAlerts: () => mockUseMhdModuleAlerts(),
 }));
 
-function mockModuleAlerts(
-  alerts: { tasksNeedsAttention: number; approvalsNeedsAttention: number; leavesNeedsAttention: number } | null,
-) {
-  mockUseMhdDashboard.mockReturnValue({ moduleAlerts: alerts });
+// Counts are keyed by module route — the same string the tile links to.
+function mockModuleAlerts(counts: Record<string, number>) {
+  mockUseMhdModuleAlerts.mockReturnValue({ counts, isLoading: false });
 }
 
 function mockAuth(roles: MhdAuthRoleName[]) {
@@ -54,7 +53,7 @@ async function renderModuleLinks() {
 beforeEach(() => {
   vi.resetModules();
   vi.clearAllMocks();
-  mockModuleAlerts(null);
+  mockModuleAlerts({});
 });
 
 describe('MhdDashboardModuleLinks', () => {
@@ -70,7 +69,9 @@ describe('MhdDashboardModuleLinks', () => {
 
     const card = checklistsLink.closest('.mhd-module-card');
     expect(card).not.toBeNull();
-    expect(within(card as HTMLElement).getByRole('link', { name: 'My Checklists' })).toBe(myChecklistsLink);
+    expect(within(card as HTMLElement).getByRole('link', { name: 'My Checklists' })).toBe(
+      myChecklistsLink,
+    );
     expect(card?.querySelectorAll('a')).toHaveLength(2);
   });
 
@@ -79,7 +80,10 @@ describe('MhdDashboardModuleLinks', () => {
 
     await renderModuleLinks();
 
-    expect(screen.getByRole('link', { name: 'My Checklists' })).toHaveAttribute('href', '/my-checklists');
+    expect(screen.getByRole('link', { name: 'My Checklists' })).toHaveAttribute(
+      'href',
+      '/my-checklists',
+    );
     expect(screen.queryByRole('link', { name: 'Checklists' })).not.toBeInTheDocument();
   });
 
@@ -153,7 +157,9 @@ describe('MhdDashboardModuleLinks', () => {
 
     await renderModuleLinks();
 
-    const card = screen.getByRole('link', { name: 'Learning Management (LMS)' }).closest('.mhd-module-card');
+    const card = screen
+      .getByRole('link', { name: 'Learning Management (LMS)' })
+      .closest('.mhd-module-card');
     expect(card).not.toBeNull();
     expect(within(card as HTMLElement).getByRole('link', { name: 'Curricula' })).toHaveAttribute(
       'href',
@@ -170,7 +176,10 @@ describe('MhdDashboardModuleLinks', () => {
 
     await renderModuleLinks();
 
-    expect(screen.getByRole('link', { name: 'Compensation' })).toHaveAttribute('href', '/compensation');
+    expect(screen.getByRole('link', { name: 'Compensation' })).toHaveAttribute(
+      'href',
+      '/compensation',
+    );
   });
 
   it('does not advertise a sub-page whose inherited route rule excludes the role', async () => {
@@ -291,7 +300,7 @@ describe('MhdDashboardModuleLinks', () => {
 
   it('shows an alert badge on a tile whose module has a nonzero attention count', async () => {
     mockAuth(['Platform Admin']);
-    mockModuleAlerts({ tasksNeedsAttention: 3, approvalsNeedsAttention: 0, leavesNeedsAttention: 0 });
+    mockModuleAlerts({ '/tasks': 3, '/approvals': 0 });
 
     await renderModuleLinks();
 
@@ -300,7 +309,7 @@ describe('MhdDashboardModuleLinks', () => {
 
   it('uses singular phrasing for a count of exactly one', async () => {
     mockAuth(['Platform Admin']);
-    mockModuleAlerts({ tasksNeedsAttention: 0, approvalsNeedsAttention: 1, leavesNeedsAttention: 0 });
+    mockModuleAlerts({ '/tasks': 0, '/approvals': 1 });
 
     await renderModuleLinks();
 
@@ -309,7 +318,7 @@ describe('MhdDashboardModuleLinks', () => {
 
   it('shows no badge and the plain label when every count is zero or alerts have not loaded yet', async () => {
     mockAuth(['Platform Admin']);
-    mockModuleAlerts(null);
+    mockModuleAlerts({});
 
     await renderModuleLinks();
 
@@ -317,14 +326,15 @@ describe('MhdDashboardModuleLinks', () => {
     expect(screen.getByRole('link', { name: 'Approvals' })).toBeInTheDocument();
   });
 
-  it('never badges a module with no attention-count concept, even if it were somehow present in the map', async () => {
+  it('badges any module that has a count — not a fixed subset — and its sub-page chips too', async () => {
     mockAuth(['Platform Admin']);
-    mockModuleAlerts({ tasksNeedsAttention: 5, approvalsNeedsAttention: 5, leavesNeedsAttention: 5 });
+    mockModuleAlerts({ '/people': 4, '/forms/library': 2 });
 
     await renderModuleLinks();
 
-    // People has no entry in ALERT_ROUTE_KEYS, so it must render with its
-    // plain label regardless of what the alerts payload contains.
-    expect(screen.getByRole('link', { name: 'People' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'People, 4 need attention' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Form Library, 2 need attention' }),
+    ).toBeInTheDocument();
   });
 });

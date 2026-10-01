@@ -31886,6 +31886,13 @@ export type Database = {
         Args: { p_reason: string; p_trip_id: string }
         Returns: undefined
       }
+      mhd_module_attention_counts: {
+        Args: { p_company_id?: string }
+        Returns: {
+          module_route: string
+          needs_attention: number
+        }[]
+      }
       mhd_move_handbook_section: {
         Args: {
           p_parent_section_id: string

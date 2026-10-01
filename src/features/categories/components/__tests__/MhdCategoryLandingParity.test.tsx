@@ -37,6 +37,10 @@ const ALL_ROLES: MhdAuthRoleName[] = [
 
 const routerSource = readFileSync(resolve(__dirname, '../../../../routes/AppRouter.tsx'), 'utf8');
 
+vi.mock('@/features/module-alerts/Hook', () => ({
+  useMhdModuleAlerts: () => ({ counts: {}, isLoading: false }),
+}));
+
 beforeEach(() => {
   vi.resetModules();
 });
@@ -87,8 +91,9 @@ describe('category landing pages', () => {
         </MemoryRouter>,
       );
 
-      // Card links are the page's <h2> links; each module appears exactly once.
-      const cardRoutes = Array.from(container.querySelectorAll('h2 a')).map((a) =>
+      // Card links are the module cards and their sub-page chips; each route
+      // appears exactly once, parent before its children.
+      const cardRoutes = Array.from(container.querySelectorAll('a[href]')).map((a) =>
         a.getAttribute('href'),
       );
       expect(cardRoutes, `${role} / ${section.label}`).toEqual(railRoutes);

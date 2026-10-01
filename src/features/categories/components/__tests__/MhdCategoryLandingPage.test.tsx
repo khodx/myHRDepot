@@ -1,11 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 const mockUseMhdAuth = vi.fn();
 vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => mockUseMhdAuth(),
 }));
+
+const mockUseMhdModuleAlerts = vi.fn();
+vi.mock('@/features/module-alerts/Hook', () => ({
+  useMhdModuleAlerts: () => mockUseMhdModuleAlerts(),
+}));
+
+function mockAlerts(counts: Record<string, number>) {
+  mockUseMhdModuleAlerts.mockReturnValue({ counts, isLoading: false });
+}
 
 function mockRoles(roles: string[]) {
   mockUseMhdAuth.mockReturnValue({ isAuthenticated: true, roles, profile: null });
@@ -26,6 +36,7 @@ async function renderAt(path: string) {
 beforeEach(() => {
   vi.resetModules();
   mockRoles(['Platform Admin']);
+  mockAlerts({});
 });
 
 describe('MhdCategoryLandingPage', () => {
@@ -38,7 +49,7 @@ describe('MhdCategoryLandingPage', () => {
     expect(screen.getByRole('link', { name: 'Forms' })).toHaveAttribute('href', '/forms');
   });
 
-  it('gives every sub-page its own card, noting the module it belongs to', async () => {
+  it('nests every sub-page as a chip on its parent module card', async () => {
     await renderAt('/categories/communications');
 
     for (const [name, href] of [
@@ -53,8 +64,38 @@ describe('MhdCategoryLandingPage', () => {
     ]) {
       expect(screen.getByRole('link', { name })).toHaveAttribute('href', href);
     }
-    expect(screen.getAllByText('Part of Communications')).toHaveLength(5);
-    expect(screen.getByText('Part of Memorandums')).toBeInTheDocument();
+  });
+
+  it('shows the dashboard-style attention badge on a module card and on a sub-page chip', async () => {
+    mockAlerts({ '/forms': 2, '/forms/library': 1 });
+    await renderAt('/categories/work-tools');
+
+    expect(screen.getByRole('link', { name: 'Forms, 2 need attention' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Form Library, 1 needs attention' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
+  });
+
+  it('uses the shared module card (row tone, border, animation hooks)', async () => {
+    await renderAt('/categories/work-tools');
+
+    // Tasks carries a sub-page chip, so its link sits inside the card element.
+    const card = screen
+      .getByRole('link', { name: 'Tasks' })
+      .closest('.mhd-module-card') as HTMLElement;
+    expect(card).not.toBeNull();
+    expect(card.style.getPropertyValue('--tone')).toBe('var(--mhd-module-tone-1)');
+  });
+
+  it('searches within the category only', async () => {
+    const user = userEvent.setup();
+    await renderAt('/categories/work-tools');
+
+    await user.type(screen.getByRole('textbox', { name: 'Search Work Tools' }), 'calculator');
+
+    expect(screen.getByRole('link', { name: 'Calculator' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
   });
 
   it('lists companion pages in other categories too', async () => {
