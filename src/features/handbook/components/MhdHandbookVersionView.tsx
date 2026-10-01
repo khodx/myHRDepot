@@ -1,6 +1,10 @@
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { useMhdHandbookVersion } from '../Hook';
-import { MHD_HANDBOOK_ATTORNEY_PLACEHOLDER, mhdFormatHandbookJurisdiction } from '../Types';
+import {
+  MHD_HANDBOOK_ATTORNEY_PLACEHOLDER,
+  mhdFormatHandbookJurisdiction,
+  mhdHandbookIndentStyle,
+} from '../Types';
 import { MhdHandbookAttorneyPendingBanner } from './MhdHandbookAttorneyPendingBanner';
 
 interface Props {
@@ -77,10 +81,19 @@ export function MhdHandbookVersionView({ versionId }: Props) {
             return (
               <li
                 key={`${section.sectionKey}-${index}`}
+                style={mhdHandbookIndentStyle(section.depth)}
                 className="rounded-xl border border-border bg-card p-4 shadow-sm"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-foreground">{section.title}</h3>
+                  <h3 className="text-sm font-semibold text-foreground">
+                    {/* Versions published before 0337 are flat and carry no outline number. */}
+                    {section.outlineNumber ? (
+                      <span className="mr-2 font-mono text-xs text-muted-foreground">
+                        {section.outlineNumber}
+                      </span>
+                    ) : null}
+                    {section.title}
+                  </h3>
                   <MhdBadge variant="neutral">
                     {mhdFormatHandbookJurisdiction(section.jurisdiction)}
                   </MhdBadge>
@@ -89,8 +102,8 @@ export function MhdHandbookVersionView({ versionId }: Props) {
                 <p
                   className={
                     isPlaceholder
-                      ? 'mt-2 text-sm italic text-muted-foreground'
-                      : 'mt-2 text-sm text-foreground'
+                      ? 'mt-2 whitespace-pre-wrap text-sm italic text-muted-foreground'
+                      : 'mt-2 whitespace-pre-wrap text-sm text-foreground'
                   }
                 >
                   {section.body}

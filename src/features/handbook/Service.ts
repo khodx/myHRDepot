@@ -27,6 +27,7 @@ import type {
   MhdHandbookVersion,
   MhdHandbookVersionRpcRow,
   MhdMyAcknowledgment,
+  MhdMoveHandbookSectionInput,
   MhdMyAcknowledgmentRpcRow,
   MhdPublishHandbookInput,
   MhdToggleSectionInput,
@@ -72,6 +73,7 @@ function mapSection(row: MhdHandbookSectionRpcRow): MhdHandbookSection {
     isActive: row.is_active,
     isLibrary: row.is_library,
     sourceSectionId: row.source_section_id,
+    parentSectionId: row.parent_section_id,
   };
 }
 
@@ -99,6 +101,11 @@ function mapPreviewRow(row: MhdHandbookPreviewRowRpcRow): MhdHandbookPreviewRow 
     bodyPlaceholder: row.body_placeholder,
     isRequired: row.is_required,
     sortOrder: mhdToNumber(row.sort_order),
+    parentSectionId: row.parent_section_id,
+    parentSectionKey: row.parent_section_key,
+    depth: mhdToNumber(row.depth),
+    outlineNumber: row.outline_number,
+    position: mhdToNumber(row.position),
   };
 }
 
@@ -109,6 +116,10 @@ function mapAssembledSection(row: MhdHandbookAssembledSectionRpcRow): MhdHandboo
     title: row.title,
     // Attorney-flagged placeholder, frozen at publish time — rendered read-only.
     body: row.body,
+    // Versions published before 0337 are flat and carry none of the outline fields.
+    parentSectionKey: row.parent_section_key ?? null,
+    depth: row.depth == null ? 0 : mhdToNumber(row.depth),
+    outlineNumber: row.outline_number ?? null,
   };
 }
 
@@ -246,6 +257,7 @@ export const mhdHandbookService = {
         p_is_required: input.isRequired,
         p_sort_order: input.sortOrder,
         p_source_section_id: input.sourceSectionId ?? undefined,
+        p_parent_section_id: input.parentSectionId ?? undefined,
         // gen:types requires p_company_id: string even though the RPC accepts
         // NULL to mean "global library section" — the same gen:types limitation
         // already worked around at the Forms / Calendar / Companies call sites.
@@ -276,15 +288,30 @@ export const mhdHandbookService = {
   },
 
   /**
+   * Re-parent and/or reorder a section (`mhd_move_handbook_section`). A null
+   * parent moves it to the top level. The RPC refuses a cycle, a mismatched
+   * handbook type / jurisdiction and nesting deeper than four levels — surface
+   * its message rather than pre-empting it.
+   */
+  async moveSection(input: MhdMoveHandbookSectionInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_move_handbook_section', {
+      p_section_id: input.sectionId,
+      // gen:types renders a nullable uuid argument as plain `string`; null is the
+      // documented way to send a section back to the top level.
+      p_parent_section_id: input.parentSectionId as string,
+      ...(input.sortOrder !== undefined ? { p_sort_order: input.sortOrder } : {}),
+    });
+    if (error) throw error;
+  },
+
+  /**
    * Fork a GLOBAL library section into a company-owned editable copy. Only a
    * section with `company_id is null` (`isLibrary: true`) may be forked — the
    * RPC refuses a company-owned source. The returned id is the new
    * company-owned section; its `sourceSectionId` points back at the library
    * original.
    */
-  async forkSection(
-    input: MhdForkHandbookSectionInput,
-  ): Promise<MhdHandbookSectionMutationResult> {
+  async forkSection(input: MhdForkHandbookSectionInput): Promise<MhdHandbookSectionMutationResult> {
     const { data, error } = await supabaseClient.rpc('mhd_fork_handbook_section', {
       p_source_section_id: input.sourceSectionId,
       p_company_id: input.companyId,

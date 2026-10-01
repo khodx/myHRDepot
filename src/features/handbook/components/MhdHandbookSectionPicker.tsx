@@ -1,6 +1,12 @@
 import { useMemo } from 'react';
 import { MhdBadge } from '@/components/ui/MhdBadge';
-import { mhdFormatHandbookJurisdiction, type MhdHandbookSection } from '../Types';
+import {
+  mhdFormatHandbookJurisdiction,
+  mhdHandbookIndentStyle,
+  mhdOrderSectionsAsOutline,
+  type MhdHandbookOutlineEntry,
+  type MhdHandbookSection,
+} from '../Types';
 
 interface Props {
   /**
@@ -42,9 +48,14 @@ export function MhdHandbookSectionPicker({
       list.push(section);
       groups.set(section.jurisdiction, list);
     }
-    // Keep each group in the library's sort order.
-    for (const list of groups.values()) list.sort((a, b) => a.sortOrder - b.sortOrder);
-    return [...groups.entries()];
+    // Each group renders as an outline: a section followed by its subsections. A
+    // subsection always shares its parent's jurisdiction, so grouping first is safe.
+    return [...groups.entries()].map(
+      ([jurisdiction, list]): [string, MhdHandbookOutlineEntry[]] => [
+        jurisdiction,
+        mhdOrderSectionsAsOutline(list),
+      ],
+    );
   }, [sections]);
 
   if (sections.length === 0) {
@@ -63,11 +74,12 @@ export function MhdHandbookSectionPicker({
             {mhdFormatHandbookJurisdiction(jurisdiction)}
           </h3>
           <ul className="space-y-1">
-            {list.map((section) => {
+            {list.map(({ section, depth }) => {
               const included = section.isRequired || includedSectionIds.has(section.id);
               return (
                 <li
                   key={section.id}
+                  style={mhdHandbookIndentStyle(depth)}
                   className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2"
                 >
                   <label className="flex items-center gap-2 text-sm text-foreground">

@@ -24,12 +24,18 @@ const FROZEN: MhdHandbookVersion = {
       sectionKey: 'at-will',
       title: 'At-Will Employment',
       body: MHD_HANDBOOK_ATTORNEY_PLACEHOLDER,
+      parentSectionKey: null,
+      depth: 0,
+      outlineNumber: '1',
     },
     {
       jurisdiction: 'CA',
       sectionKey: 'ca-meal-periods',
       title: 'Meal and Rest Periods',
       body: MHD_HANDBOOK_ATTORNEY_PLACEHOLDER,
+      parentSectionKey: null,
+      depth: 0,
+      outlineNumber: '2',
     },
   ],
   contentHash: 'a1b2c3d4e5f6frozenhash',
@@ -63,6 +69,61 @@ describe('MhdHandbookVersionView — a frozen version renders read-only', () => 
     expect(screen.queryByRole('textbox')).toBeNull();
     expect(screen.queryByRole('checkbox')).toBeNull();
     expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('numbers and indents subsections by outline depth', () => {
+    versionMock.mockReturnValue({
+      data: {
+        ...FROZEN,
+        assembledContent: [
+          { ...FROZEN.assembledContent[0], outlineNumber: '1', depth: 0 },
+          {
+            ...FROZEN.assembledContent[1],
+            sectionKey: 'sub',
+            title: 'Overtime Rules',
+            parentSectionKey: 'at-will',
+            outlineNumber: '1.1',
+            depth: 1,
+          },
+        ],
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
+
+    render(<MhdHandbookVersionView versionId="ver-1" />);
+
+    expect(screen.getByText('1.1')).toBeInTheDocument();
+    const subsection = screen.getByText('Overtime Rules').closest('li');
+    expect(subsection).toHaveStyle({ marginLeft: '1.25rem' });
+    const topLevel = screen.getByText('At-Will Employment').closest('li');
+    expect(topLevel).toHaveStyle({ marginLeft: '0rem' });
+  });
+
+  it('renders a version published before the hierarchy existed as a flat, unnumbered list', () => {
+    versionMock.mockReturnValue({
+      data: {
+        ...FROZEN,
+        assembledContent: FROZEN.assembledContent.map((section) => ({
+          ...section,
+          parentSectionKey: null,
+          depth: 0,
+          outlineNumber: null,
+        })),
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
+
+    render(<MhdHandbookVersionView versionId="ver-1" />);
+
+    expect(screen.getByText('At-Will Employment')).toBeInTheDocument();
+    expect(screen.queryByText('1.1')).toBeNull();
+    expect(screen.getByText('At-Will Employment').closest('li')).toHaveStyle({
+      marginLeft: '0rem',
+    });
   });
 
   it('leads with the draft-review banner wherever a clause body shows', () => {

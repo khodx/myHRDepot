@@ -10758,6 +10758,7 @@ export type Database = {
           is_active: boolean
           is_required: boolean
           jurisdiction: string
+          parent_section_id: string | null
           section_key: string
           sort_order: number
           source_section_id: string | null
@@ -10773,6 +10774,7 @@ export type Database = {
           is_active?: boolean
           is_required?: boolean
           jurisdiction: string
+          parent_section_id?: string | null
           section_key: string
           sort_order?: number
           source_section_id?: string | null
@@ -10788,6 +10790,7 @@ export type Database = {
           is_active?: boolean
           is_required?: boolean
           jurisdiction?: string
+          parent_section_id?: string | null
           section_key?: string
           sort_order?: number
           source_section_id?: string | null
@@ -10800,6 +10803,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handbook_sections_parent_section_id_fkey"
+            columns: ["parent_section_id"]
+            isOneToOne: false
+            referencedRelation: "handbook_sections"
             referencedColumns: ["id"]
           },
           {
@@ -12370,11 +12380,30 @@ export type Database = {
           },
         ]
       }
+      kb_access_level_roles: {
+        Row: {
+          access_level: string
+          created_at: string
+          role_name: string
+        }
+        Insert: {
+          access_level: string
+          created_at?: string
+          role_name: string
+        }
+        Update: {
+          access_level?: string
+          created_at?: string
+          role_name?: string
+        }
+        Relationships: []
+      }
       kb_article_revisions: {
         Row: {
+          access_level: string
           article_id: string
-          audience: string
           body: string
+          body_format: string
           created_at: string
           edited_at: string
           edited_by: string
@@ -12385,9 +12414,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_level: string
           article_id: string
-          audience: string
           body: string
+          body_format?: string
           created_at?: string
           edited_at?: string
           edited_by: string
@@ -12398,9 +12428,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_level?: string
           article_id?: string
-          audience?: string
           body?: string
+          body_format?: string
           created_at?: string
           edited_at?: string
           edited_by?: string
@@ -12429,9 +12460,13 @@ export type Database = {
       }
       kb_articles: {
         Row: {
-          audience: string
+          access_level: string
+          article_type: string
           body: string
+          body_format: string
           category_id: string
+          company_id: string | null
+          compliance_registry_id: string | null
           created_at: string
           created_by: string
           deleted_at: string | null
@@ -12441,6 +12476,7 @@ export type Database = {
           published_at: string | null
           route_context: string[]
           search_keywords: string | null
+          search_vector: unknown
           slug: string
           status: string
           summary: string | null
@@ -12449,9 +12485,13 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
-          audience?: string
+          access_level: string
+          article_type?: string
           body: string
+          body_format?: string
           category_id: string
+          company_id?: string | null
+          compliance_registry_id?: string | null
           created_at?: string
           created_by: string
           deleted_at?: string | null
@@ -12461,6 +12501,7 @@ export type Database = {
           published_at?: string | null
           route_context?: string[]
           search_keywords?: string | null
+          search_vector?: unknown
           slug: string
           status?: string
           summary?: string | null
@@ -12469,9 +12510,13 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
-          audience?: string
+          access_level?: string
+          article_type?: string
           body?: string
+          body_format?: string
           category_id?: string
+          company_id?: string | null
+          compliance_registry_id?: string | null
           created_at?: string
           created_by?: string
           deleted_at?: string | null
@@ -12481,6 +12526,7 @@ export type Database = {
           published_at?: string | null
           route_context?: string[]
           search_keywords?: string | null
+          search_vector?: unknown
           slug?: string
           status?: string
           summary?: string | null
@@ -12494,6 +12540,20 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "kb_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_articles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_articles_compliance_registry_id_fkey"
+            columns: ["compliance_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
             referencedColumns: ["id"]
           },
           {
@@ -12565,7 +12625,7 @@ export type Database = {
       }
       kb_functions: {
         Row: {
-          audience: string
+          access_level: string
           category: string
           created_at: string
           created_by: string
@@ -12584,7 +12644,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
-          audience?: string
+          access_level: string
           category: string
           created_at?: string
           created_by: string
@@ -12603,7 +12663,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
-          audience?: string
+          access_level?: string
           category?: string
           created_at?: string
           created_by?: string
@@ -25786,6 +25846,11 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: string[]
       }
+      mhd_attendance_is_direct_manager_of: {
+        Args: { p_person_id: string }
+        Returns: boolean
+      }
+      mhd_attendance_is_hr_reader: { Args: never; Returns: boolean }
       mhd_attendance_is_privileged: { Args: never; Returns: boolean }
       mhd_attendance_list_occurrences: {
         Args: {
@@ -25853,6 +25918,8 @@ export type Database = {
           action_level: string
           crossed_at: string
           id: string
+          linked_conduct_case_id: string
+          linked_conduct_case_reference: string
           linked_task_id: string
           person_display_name: string
           person_id: string
@@ -25914,6 +25981,10 @@ export type Database = {
           p_status: string
         }
         Returns: undefined
+      }
+      mhd_attendance_sees_protected_detail: {
+        Args: { p_person_id: string }
+        Returns: boolean
       }
       mhd_attendance_status_category: {
         Args: { p_status: string }
@@ -27164,6 +27235,7 @@ export type Database = {
           p_handbook_type: string
           p_is_required?: boolean
           p_jurisdiction: string
+          p_parent_section_id?: string
           p_section_key: string
           p_sort_order?: number
           p_source_section_id?: string
@@ -27175,12 +27247,16 @@ export type Database = {
       }
       mhd_create_kb_article: {
         Args: {
-          p_audience?: string
-          p_body?: string
+          p_access_level: string
+          p_article_type?: string
+          p_body: string
+          p_body_format?: string
           p_category_id: string
+          p_company_id?: string
+          p_compliance_registry_id?: string
           p_route_context?: string[]
           p_search_keywords?: string
-          p_slug: string
+          p_slug?: string
           p_summary?: string
           p_title: string
         }
@@ -27188,7 +27264,7 @@ export type Database = {
       }
       mhd_create_kb_function: {
         Args: {
-          p_audience?: string
+          p_access_level?: string
           p_category: string
           p_description: string
           p_example_input?: string
@@ -28123,9 +28199,12 @@ export type Database = {
       mhd_get_kb_article: {
         Args: { p_slug: string }
         Returns: {
-          audience: string
+          access_level: string
+          article_type: string
           body: string
+          body_format: string
           category_id: string
+          company_id: string
           id: string
           published_at: string
           route_context: string[]
@@ -28137,9 +28216,13 @@ export type Database = {
       mhd_get_kb_article_admin: {
         Args: { p_article_id: string }
         Returns: {
-          audience: string
+          access_level: string
+          article_type: string
           body: string
+          body_format: string
           category_id: string
+          company_id: string
+          compliance_registry_id: string
           id: string
           is_deleted: boolean
           published_at: string
@@ -28169,7 +28252,7 @@ export type Database = {
       mhd_get_kb_function_admin: {
         Args: { p_function_id: string }
         Returns: {
-          audience: string
+          access_level: string
           category: string
           description: string
           example_input: string
@@ -28701,6 +28784,10 @@ export type Database = {
         Args: { p_handbook_id: string }
         Returns: undefined
       }
+      mhd_handbook_assert_export_allowed: {
+        Args: { p_output_format: string; p_version_id: string }
+        Returns: undefined
+      }
       mhd_handbook_assign_acknowledgment: {
         Args: {
           p_esignature_request_id?: string
@@ -28756,8 +28843,13 @@ export type Database = {
         Args: { p_handbook_id: string }
         Returns: {
           body_placeholder: string
+          depth: number
           is_required: boolean
           jurisdiction: string
+          outline_number: string
+          parent_section_id: string
+          parent_section_key: string
+          position: number
           section_id: string
           section_key: string
           sort_order: number
@@ -28796,6 +28888,7 @@ export type Database = {
           is_library: boolean
           is_required: boolean
           jurisdiction: string
+          parent_section_id: string
           section_key: string
           sort_order: number
           source_section_id: string
@@ -29446,6 +29539,32 @@ export type Database = {
         Args: { p_keys: string[]; p_values: Json }
         Returns: string
       }
+      mhd_kb_assert_access_level: {
+        Args: { p_access_level: string; p_company_id: string }
+        Returns: undefined
+      }
+      mhd_kb_can_manage: { Args: { p_company_id: string }; Returns: boolean }
+      mhd_kb_can_manage_article: {
+        Args: { p_article_id: string }
+        Returns: boolean
+      }
+      mhd_kb_can_view: {
+        Args: { p_access_level: string; p_company_id: string }
+        Returns: boolean
+      }
+      mhd_kb_generate_slug: {
+        Args: { p_force_suffix?: boolean; p_title: string }
+        Returns: string
+      }
+      mhd_kb_plain_text: {
+        Args: { p_body: string; p_body_format: string }
+        Returns: string
+      }
+      mhd_kb_record_revision: {
+        Args: { p_article_id: string }
+        Returns: undefined
+      }
+      mhd_kb_user_company_id: { Args: never; Returns: string }
       mhd_leave_adjust: {
         Args: {
           p_effective_date?: string
@@ -30507,14 +30626,17 @@ export type Database = {
       }
       mhd_list_kb_articles: {
         Args: {
+          p_article_type?: string
           p_category_id?: string
           p_limit?: number
           p_offset?: number
           p_search_term?: string
         }
         Returns: {
-          audience: string
+          access_level: string
+          article_type: string
           category_id: string
+          company_id: string
           id: string
           published_at: string
           route_context: string[]
@@ -30526,16 +30648,22 @@ export type Database = {
       }
       mhd_list_kb_articles_admin: {
         Args: {
+          p_article_type?: string
           p_category_id?: string
+          p_company_id?: string
           p_include_archived?: boolean
           p_limit?: number
           p_offset?: number
+          p_scope?: string
           p_search_term?: string
           p_status?: string
         }
         Returns: {
-          audience: string
+          access_level: string
+          article_type: string
           category_id: string
+          company_id: string
+          compliance_registry_id: string
           id: string
           is_deleted: boolean
           published_at: string
@@ -30557,6 +30685,18 @@ export type Database = {
           label: string
           parent_category_id: string
           sort_order: number
+        }[]
+      }
+      mhd_list_kb_compliance_entries: {
+        Args: never
+        Returns: {
+          authority_name: string
+          content_key: string
+          id: string
+          production_enabled: boolean
+          review_status: string
+          source_url: string
+          version: number
         }[]
       }
       mhd_list_kb_functions: {
@@ -30585,7 +30725,7 @@ export type Database = {
           p_search_term?: string
         }
         Returns: {
-          audience: string
+          access_level: string
           category: string
           id: string
           is_deleted: boolean
@@ -31702,6 +31842,14 @@ export type Database = {
       }
       mhd_mileage_void_trip: {
         Args: { p_reason: string; p_trip_id: string }
+        Returns: undefined
+      }
+      mhd_move_handbook_section: {
+        Args: {
+          p_parent_section_id: string
+          p_section_id: string
+          p_sort_order?: number
+        }
         Returns: undefined
       }
       mhd_my_policy_acknowledgments: {
@@ -33107,6 +33255,29 @@ export type Database = {
           name: string
           rank: number
           syntax: string
+        }[]
+      }
+      mhd_search_knowledge: {
+        Args: {
+          p_article_type?: string
+          p_category_id?: string
+          p_limit?: number
+          p_offset?: number
+          p_query: string
+        }
+        Returns: {
+          access_level: string
+          article_type: string
+          category_id: string
+          company_id: string
+          id: string
+          published_at: string
+          rank: number
+          slug: string
+          snippet: string
+          summary: string
+          title: string
+          total_count: number
         }[]
       }
       mhd_search_legal_content: {
@@ -34819,13 +34990,15 @@ export type Database = {
       }
       mhd_update_kb_article: {
         Args: {
+          p_access_level: string
           p_article_id: string
-          p_audience: string
           p_body: string
+          p_body_format: string
           p_category_id: string
+          p_compliance_registry_id?: string
           p_route_context: string[]
           p_search_keywords: string
-          p_slug: string
+          p_slug?: string
           p_summary: string
           p_title: string
         }
@@ -34833,7 +35006,7 @@ export type Database = {
       }
       mhd_update_kb_function: {
         Args: {
-          p_audience: string
+          p_access_level: string
           p_category: string
           p_description: string
           p_example_input: string

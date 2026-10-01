@@ -44,6 +44,8 @@ export interface MhdHandbookSectionRpcRow {
   is_active: boolean;
   is_library: boolean;
   source_section_id: string | null;
+  // 0337: the section this one nests under; null for a top-level section.
+  parent_section_id: string | null;
 }
 
 /** Row shape returned by `mhd_handbook_list`. */
@@ -69,18 +71,30 @@ export interface MhdHandbookPreviewRowRpcRow {
   body_placeholder: string;
   is_required: boolean;
   sort_order: number | string;
+  // 0337: outline position. Rows arrive in outline (pre-order) order.
+  parent_section_id: string | null;
+  parent_section_key: string | null;
+  depth: number | string;
+  outline_number: string;
+  position: number | string;
 }
 
 /**
  * One element of a frozen version's `assembled_content` jsonb array. Note the
  * key is `body` here (already snapshotted), not `body_placeholder` — but the
  * value is still the attorney-flagged placeholder text frozen at publish time.
+ * The outline fields (0337) are absent on versions published before 0337, which
+ * are flat: treat a missing `depth` as 0 and a missing `outline_number` as unnumbered.
  */
 export interface MhdHandbookAssembledSectionRpcRow {
   jurisdiction: string;
   section_key: string;
   title: string;
   body: string;
+  parent_section_key?: string | null;
+  depth?: number | string | null;
+  outline_number?: string | null;
+  position?: number | string | null;
 }
 
 /** Row shape returned by `mhd_handbook_version_get`. */
@@ -230,6 +244,8 @@ export interface MhdHandbookSection {
   isActive: boolean;
   isLibrary: boolean;
   sourceSectionId: string | null;
+  /** The section this one nests under; null for a top-level section. */
+  parentSectionId: string | null;
 }
 
 /**
@@ -259,12 +275,23 @@ export interface MhdHandbookPreviewRow {
   bodyPlaceholder: string;
   isRequired: boolean;
   sortOrder: number;
+  parentSectionId: string | null;
+  parentSectionKey: string | null;
+  /** Zero-based nesting level (0 = top-level section). */
+  depth: number;
+  /** Dotted outline number, e.g. "2.1.3". */
+  outlineNumber: string;
+  /** One-based position in the outline (pre-order) sequence. */
+  position: number;
 }
 
 /**
  * One section of a FROZEN published version's assembled content. Read-only: the
  * version is immutable, so this is rendered, never edited. `body` is the
  * attorney-flagged placeholder frozen at publish time.
+ *
+ * Versions published before 0337 are flat: `depth` is 0 and `outlineNumber` /
+ * `parentSectionKey` are null for them.
  */
 export interface MhdHandbookAssembledSection {
   jurisdiction: MhdHandbookJurisdiction;
@@ -272,6 +299,9 @@ export interface MhdHandbookAssembledSection {
   title: string;
   // ATTORNEY-FLAGGED PLACEHOLDER, frozen at publish.
   body: string;
+  parentSectionKey: string | null;
+  depth: number;
+  outlineNumber: string | null;
 }
 
 /**
@@ -414,6 +444,19 @@ export interface MhdCreateHandbookSectionInput {
   isRequired: boolean;
   sortOrder: number;
   sourceSectionId?: string | null;
+  /** Nest the new section under this one (same type and jurisdiction, max four levels). */
+  parentSectionId?: string | null;
+}
+
+/**
+ * Re-parenting and/or reordering a section (`mhd_move_handbook_section`).
+ * `parentSectionId: null` moves it to the top level. The server refuses cycles,
+ * a mismatched type/jurisdiction and a nesting depth beyond four levels.
+ */
+export interface MhdMoveHandbookSectionInput {
+  sectionId: string;
+  parentSectionId: string | null;
+  sortOrder?: number;
 }
 
 /**
@@ -508,4 +551,154 @@ export function mhdToNumber(value: number | string | null | undefined): number {
   if (value == null) return 0;
   const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+// ---------------------------------------------------------------------------
+// Export (0337)
+// ---------------------------------------------------------------------------
+
+/** The document-generation target a published handbook version is exported as. */
+export const MHD_HANDBOOK_EXPORT_ENTITY_TYPE = 'HANDBOOK_VERSION';
+
+/**
+ * The system template the full handbook is rendered with (company override by key,
+ * per 0031). The server refuses any other template for a handbook version, and only
+ * handbook administrators may request the Word (DOCX) format — enforced in
+ * `mhd_request_document_generation`, not by this UI.
+ */
+export const MHD_HANDBOOK_EXPORT_TEMPLATE_KEY = 'HANDBOOK_FULL';
+
+// ---------------------------------------------------------------------------
+// Outline helpers (0337) — one definition so the picker, preview, version view
+// and library nest sections identically.
+// ---------------------------------------------------------------------------
+
+/** Left indent applied per outline level. Mirrors the 18px per level the exported document uses. */
+export const MHD_HANDBOOK_INDENT_REM_PER_LEVEL = 1.25;
+
+/** Inline style that indents a row to its outline depth (Tailwind cannot build this class dynamically). */
+export function mhdHandbookIndentStyle(depth: number): { marginLeft: string } {
+  return { marginLeft: `${Math.max(0, depth) * MHD_HANDBOOK_INDENT_REM_PER_LEVEL}rem` };
+}
+
+/**
+ * Deepest zero-based outline level a section may sit at (four levels in all).
+ * Mirrors the cap enforced by the `trg_handbook_sections_hierarchy` trigger (0337) —
+ * the database is the authority; this only stops the form offering a parent that
+ * would be refused.
+ */
+export const MHD_HANDBOOK_MAX_DEPTH_INDEX = 3;
+
+/** A library section together with its nesting level, in outline (pre-order) order. */
+export interface MhdHandbookOutlineEntry {
+  section: MhdHandbookSection;
+  depth: number;
+}
+
+/**
+ * Orders a flat list of library sections as an outline: each section is followed by
+ * its subsections, siblings by `sortOrder` then title. A section whose parent is not
+ * in the supplied list (filtered out, or inactive) is treated as top-level rather than
+ * dropped, so a filtered view never hides content.
+ */
+export function mhdOrderSectionsAsOutline(
+  sections: MhdHandbookSection[],
+): MhdHandbookOutlineEntry[] {
+  const known = new Set(sections.map((section) => section.id));
+  const children = new Map<string | null, MhdHandbookSection[]>();
+  for (const section of sections) {
+    const key =
+      section.parentSectionId && known.has(section.parentSectionId)
+        ? section.parentSectionId
+        : null;
+    const siblings = children.get(key) ?? [];
+    siblings.push(section);
+    children.set(key, siblings);
+  }
+  for (const siblings of children.values()) {
+    siblings.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
+  }
+
+  const ordered: MhdHandbookOutlineEntry[] = [];
+  const visited = new Set<string>();
+  const walk = (parentId: string | null, depth: number) => {
+    for (const section of children.get(parentId) ?? []) {
+      // The database refuses cycles; the guard only protects against malformed input.
+      if (visited.has(section.id)) continue;
+      visited.add(section.id);
+      ordered.push({ section, depth });
+      walk(section.id, depth + 1);
+    }
+  };
+  walk(null, 0);
+  return ordered;
+}
+
+/**
+ * The sections a given section may be nested under, in outline order. Mirrors the
+ * trigger's rules so the form only offers parents the server will accept: same
+ * handbook type and jurisdiction, active, a library section only under a library
+ * section (a company section may sit under a library one or its own company's),
+ * never the section itself or anything beneath it, and only parents that still
+ * leave room for the section (and its own subsections) within the depth cap.
+ *
+ * `scopeCompanyId: null` is the global library scope.
+ */
+export function mhdHandbookParentCandidates(
+  sections: MhdHandbookSection[],
+  target: {
+    handbookType: MhdHandbookType;
+    jurisdiction: MhdHandbookJurisdiction;
+    scopeCompanyId: string | null;
+    /** The section being edited, if any — it and its descendants are never offered. */
+    excludeSectionId?: string | null;
+  },
+): MhdHandbookOutlineEntry[] {
+  const outline = mhdOrderSectionsAsOutline(sections);
+
+  // Height of the subtree beneath the section being moved (0 when it has no subsections).
+  const excluded = new Set<string>();
+  let subtreeHeight = 0;
+  if (target.excludeSectionId) {
+    const own = outline.find((entry) => entry.section.id === target.excludeSectionId);
+    if (own) {
+      excluded.add(own.section.id);
+      for (const entry of outline) {
+        if (entry.depth > own.depth && isDescendantOf(entry.section, own.section.id, sections)) {
+          excluded.add(entry.section.id);
+          subtreeHeight = Math.max(subtreeHeight, entry.depth - own.depth);
+        }
+      }
+    }
+  }
+
+  return outline.filter(({ section, depth }) => {
+    if (excluded.has(section.id)) return false;
+    if (!section.isActive) return false;
+    if (section.handbookType !== target.handbookType) return false;
+    if (section.jurisdiction !== target.jurisdiction) return false;
+    if (target.scopeCompanyId === null) {
+      if (!section.isLibrary) return false;
+    } else if (!section.isLibrary && section.companyId !== target.scopeCompanyId) {
+      return false;
+    }
+    // The section would sit one level below its parent, with its subtree beneath it.
+    return depth + 1 + subtreeHeight <= MHD_HANDBOOK_MAX_DEPTH_INDEX;
+  });
+}
+
+function isDescendantOf(
+  section: MhdHandbookSection,
+  ancestorId: string,
+  sections: MhdHandbookSection[],
+): boolean {
+  const byId = new Map(sections.map((item) => [item.id, item]));
+  let cursor = section.parentSectionId;
+  const seen = new Set<string>();
+  while (cursor && !seen.has(cursor)) {
+    if (cursor === ancestorId) return true;
+    seen.add(cursor);
+    cursor = byId.get(cursor)?.parentSectionId ?? null;
+  }
+  return false;
 }

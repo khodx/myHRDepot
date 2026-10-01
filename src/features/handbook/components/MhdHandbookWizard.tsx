@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
+import { MhdDocumentGenerationPanel } from '@/components/ui/MhdDocumentGenerationPanel';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import {
   MhdHandbookRecordTabs,
@@ -14,7 +15,11 @@ import {
   useMhdPublishHandbook,
   useMhdToggleHandbookSection,
 } from '../Hook';
-import type { MhdHandbook } from '../Types';
+import {
+  MHD_HANDBOOK_EXPORT_ENTITY_TYPE,
+  MHD_HANDBOOK_EXPORT_TEMPLATE_KEY,
+  type MhdHandbook,
+} from '../Types';
 import { MhdHandbookAckBoard } from './MhdHandbookAckBoard';
 import { MhdHandbookPreview } from './MhdHandbookPreview';
 import { MhdHandbookSectionPicker } from './MhdHandbookSectionPicker';
@@ -119,7 +124,12 @@ interface DraftProps {
   onGenerateDocument?: (handbookId: string) => Promise<string | null>;
 }
 
-function MhdHandbookDraftEditor({ handbook, companyId, canManage, onGenerateDocument }: DraftProps) {
+function MhdHandbookDraftEditor({
+  handbook,
+  companyId,
+  canManage,
+  onGenerateDocument,
+}: DraftProps) {
   // The full library for the pack (global + this company's own sections);
   // filtered to this draft's jurisdictions below. `companyId` is REQUIRED as of
   // 0184 — see MhdHandbookSectionFilters.
@@ -281,6 +291,23 @@ function MhdHandbookPublishedView({
       ) : (
         <p className="text-sm text-muted-foreground">This handbook has no published version.</p>
       )}
+
+      {versionId ? (
+        <MhdCard>
+          <h3 className="text-sm font-semibold text-foreground">Export</h3>
+          <p className="mb-4 mt-1 text-xs text-muted-foreground">
+            Generate the complete handbook for this published version as a PDF or Word document.
+            Word is available to administrators only; the document is always built from the frozen
+            version, never from the live library.
+          </p>
+          <MhdDocumentGenerationPanel
+            entityType={MHD_HANDBOOK_EXPORT_ENTITY_TYPE}
+            entityId={versionId}
+            companyId={companyId}
+            masterTemplateKey={MHD_HANDBOOK_EXPORT_TEMPLATE_KEY}
+          />
+        </MhdCard>
+      ) : null}
 
       {handbook.status === 'PUBLISHED' ? (
         <MhdCard>

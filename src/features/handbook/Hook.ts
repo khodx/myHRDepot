@@ -8,6 +8,7 @@ import type {
   MhdForkHandbookSectionInput,
   MhdHandbookListFilters,
   MhdHandbookSectionFilters,
+  MhdMoveHandbookSectionInput,
   MhdPublishHandbookInput,
   MhdToggleSectionInput,
   MhdUpdateHandbookSectionInput,
@@ -91,6 +92,17 @@ export function useMhdUpdateHandbookSection() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: MhdUpdateHandbookSectionInput) => mhdHandbookService.updateSection(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-handbook', 'sections'] });
+    },
+  });
+}
+
+/** Re-parenting or reordering a section changes the library tree; invalidate every `sections` query. */
+export function useMhdMoveHandbookSection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdMoveHandbookSectionInput) => mhdHandbookService.moveSection(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-handbook', 'sections'] });
     },

@@ -53,6 +53,7 @@ describe('mhdHandbookService — contract + mapping', () => {
           is_active: true,
           is_library: true,
           source_section_id: null,
+          parent_section_id: 'sec-0',
         },
       ],
       error: null,
@@ -71,6 +72,121 @@ describe('mhdHandbookService — contract + mapping', () => {
     expect(section.isRequired).toBe(true);
     expect(section.isLibrary).toBe(true);
     expect(section.companyId).toBeNull();
+    expect(section.parentSectionId).toBe('sec-0');
+  });
+
+  it('sends the parent when creating a subsection, and nothing when it is top-level', async () => {
+    for (let call = 0; call < 2; call += 1) {
+      rpcMock.mockImplementationOnce(() => ({
+        returns: () => Promise.resolve({ data: [{ id: 'sec-9' }], error: null }),
+      }));
+    }
+    const base = {
+      companyId: 'company-1',
+      handbookType: 'EMPLOYEE' as const,
+      jurisdiction: 'FEDERAL' as const,
+      sectionKey: 'overtime',
+      title: 'Overtime',
+      bodyPlaceholder: '[ATTORNEY-DRAFTED CONTENT — PLACEHOLDER]',
+      isRequired: false,
+      sortOrder: 10,
+    };
+
+    await mhdHandbookService.createSection({ ...base, parentSectionId: 'sec-1' });
+    expect(rpcMock.mock.calls[0][1]).toMatchObject({ p_parent_section_id: 'sec-1' });
+
+    await mhdHandbookService.createSection(base);
+    expect(rpcMock.mock.calls[1][1].p_parent_section_id).toBeUndefined();
+  });
+
+  it('moves a section under a parent, or to the top level with a null parent', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: null });
+    rpcMock.mockResolvedValueOnce({ data: null, error: null });
+
+    await mhdHandbookService.moveSection({
+      sectionId: 'sec-2',
+      parentSectionId: 'sec-1',
+      sortOrder: 20,
+    });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_move_handbook_section', {
+      p_section_id: 'sec-2',
+      p_parent_section_id: 'sec-1',
+      p_sort_order: 20,
+    });
+
+    await mhdHandbookService.moveSection({ sectionId: 'sec-2', parentSectionId: null });
+    expect(rpcMock).toHaveBeenLastCalledWith('mhd_move_handbook_section', {
+      p_section_id: 'sec-2',
+      p_parent_section_id: null,
+    });
+  });
+
+  it('surfaces a server refusal to move a section (cycle / depth) verbatim', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Moving this section there would create a cycle' },
+    });
+    await expect(
+      mhdHandbookService.moveSection({ sectionId: 'sec-1', parentSectionId: 'sec-4' }),
+    ).rejects.toMatchObject({ message: 'Moving this section there would create a cycle' });
+  });
+
+  it('maps the outline fields on a draft preview, normalising numeric strings', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          section_id: 'sec-2',
+          jurisdiction: 'FEDERAL',
+          section_key: 'overtime',
+          title: 'Overtime',
+          body_placeholder: 'body',
+          is_required: false,
+          sort_order: '20',
+          parent_section_id: 'sec-1',
+          parent_section_key: 'wages',
+          depth: '1',
+          outline_number: '3.1',
+          position: '4',
+        },
+      ],
+      error: null,
+    });
+
+    const [row] = await mhdHandbookService.preview('hbk-1');
+    expect(row).toMatchObject({
+      parentSectionId: 'sec-1',
+      parentSectionKey: 'wages',
+      depth: 1,
+      outlineNumber: '3.1',
+      position: 4,
+      sortOrder: 20,
+    });
+  });
+
+  it('maps a version published before 0337 as flat — depth 0, no outline number', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'ver-0',
+          reference_id: 'HBV-0000',
+          handbook_id: 'hbk-1',
+          version_number: 1,
+          assembled_content: [{ jurisdiction: 'FEDERAL', section_key: 'a', title: 'A', body: 'x' }],
+          content_hash: 'h',
+          effective_date: null,
+          document_generation_id: null,
+          published_at: '2026-07-20T00:00:00Z',
+        },
+      ],
+      error: null,
+    });
+
+    const version = await mhdHandbookService.versionGet('ver-0');
+    expect(version?.assembledContent[0]).toMatchObject({
+      depth: 0,
+      outlineNumber: null,
+      parentSectionKey: null,
+    });
   });
 
   it('creates a GLOBAL section (p_company_id: null) and maps the minted id', async () => {

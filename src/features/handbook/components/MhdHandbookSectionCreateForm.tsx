@@ -2,17 +2,24 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
-import { mhdCreateHandbookSectionSchema, type MhdCreateHandbookSectionFormValues } from '../Schemas';
+import {
+  mhdCreateHandbookSectionSchema,
+  type MhdCreateHandbookSectionFormValues,
+} from '../Schemas';
 import {
   MHD_HANDBOOK_ATTORNEY_PLACEHOLDER,
   MHD_HANDBOOK_JURISDICTIONS_BY_TYPE,
   MHD_HANDBOOK_TYPES,
   mhdFormatHandbookJurisdiction,
   mhdFormatHandbookType,
+  mhdHandbookParentCandidates,
+  type MhdHandbookSection,
 } from '../Types';
 
 interface Props {
   companyId: string;
+  /** The library as currently loaded; the parent selector is built from it. */
+  existingSections: MhdHandbookSection[];
   /**
    * Whether the "Global library" scope choice is offered at all. Server-
    * enforced regardless (`mhd_create_handbook_section` refuses a non-PA/HRP
@@ -34,6 +41,7 @@ interface Props {
  */
 export function MhdHandbookSectionCreateForm({
   companyId,
+  existingSections,
   canCreateGlobal,
   onSubmit,
   onCancel,
@@ -55,11 +63,20 @@ export function MhdHandbookSectionCreateForm({
       bodyPlaceholder: MHD_HANDBOOK_ATTORNEY_PLACEHOLDER,
       isRequired: false,
       sortOrder: 100,
+      parentSectionId: '',
     },
   });
 
   const handbookType = useWatch({ control, name: 'handbookType' });
+  const jurisdiction = useWatch({ control, name: 'jurisdiction' });
+  const scopeCompanyId = useWatch({ control, name: 'companyId' });
   const jurisdictionChoices = MHD_HANDBOOK_JURISDICTIONS_BY_TYPE[handbookType] ?? [];
+  // Only parents the server would accept for this type / jurisdiction / scope.
+  const parentChoices = mhdHandbookParentCandidates(existingSections, {
+    handbookType,
+    jurisdiction,
+    scopeCompanyId,
+  });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -144,6 +161,27 @@ export function MhdHandbookSectionCreateForm({
       </MhdFormFieldStack>
 
       <div>
+        <label htmlFor="parentSectionId" className="block text-sm font-medium text-foreground">
+          Parent section
+        </label>
+        <select
+          id="parentSectionId"
+          {...register('parentSectionId')}
+          className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
+        >
+          <option value="">None (top-level section)</option>
+          {parentChoices.map(({ section, depth }) => (
+            <option key={section.id} value={section.id}>
+              {`${'— '.repeat(depth)}${section.title}`}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Nest this under another section to make it a subsection. Sections nest up to four levels.
+        </p>
+      </div>
+
+      <div>
         <label htmlFor="sectionKey" className="block text-sm font-medium text-foreground">
           Section key
         </label>
@@ -193,7 +231,11 @@ export function MhdHandbookSectionCreateForm({
 
       <MhdFormFieldStack>
         <label className="flex items-center gap-2 text-sm text-foreground">
-          <input type="checkbox" {...register('isRequired')} className="h-4 w-4 rounded border-border" />
+          <input
+            type="checkbox"
+            {...register('isRequired')}
+            className="h-4 w-4 rounded border-border"
+          />
           Required (auto-includes on assembly)
         </label>
 

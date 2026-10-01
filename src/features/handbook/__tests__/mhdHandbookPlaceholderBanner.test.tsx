@@ -13,6 +13,11 @@ const ROWS: MhdHandbookPreviewRow[] = [
     bodyPlaceholder: MHD_HANDBOOK_ATTORNEY_PLACEHOLDER,
     isRequired: true,
     sortOrder: 1,
+    parentSectionId: null,
+    parentSectionKey: null,
+    depth: 0,
+    outlineNumber: '1',
+    position: 1,
   },
 ];
 

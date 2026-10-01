@@ -11,6 +11,7 @@ import {
   useMhdCreateHandbookSection,
   useMhdForkHandbookSection,
   useMhdHandbookSections,
+  useMhdMoveHandbookSection,
   useMhdUpdateHandbookSection,
 } from '../Hook';
 import type {
@@ -21,6 +22,9 @@ import {
   MHD_HANDBOOK_TYPES,
   mhdFormatHandbookJurisdiction,
   mhdFormatHandbookType,
+  mhdHandbookIndentStyle,
+  mhdOrderSectionsAsOutline,
+  type MhdHandbookOutlineEntry,
   type MhdHandbookSection,
   type MhdHandbookType,
 } from '../Types';
@@ -28,9 +32,7 @@ import { MhdHandbookSectionCreateForm } from './MhdHandbookSectionCreateForm';
 import { MhdHandbookSectionEditForm } from './MhdHandbookSectionEditForm';
 
 type MhdSectionDialogState =
-  | { mode: 'create' }
-  | { mode: 'edit'; section: MhdHandbookSection }
-  | null;
+  { mode: 'create' } | { mode: 'edit'; section: MhdHandbookSection } | null;
 
 /**
  * `/handbooks/library` route entry — the clause library management surface.
@@ -69,6 +71,7 @@ export function MhdHandbookSectionLibraryPage() {
   const sections = useMhdHandbookSections({ companyId: companyId || null, handbookType });
   const createSection = useMhdCreateHandbookSection();
   const updateSection = useMhdUpdateHandbookSection();
+  const moveSection = useMhdMoveHandbookSection();
   const forkSection = useMhdForkHandbookSection();
 
   const byJurisdiction = useMemo(() => {
@@ -78,10 +81,13 @@ export function MhdHandbookSectionLibraryPage() {
       list.push(section);
       groups.set(section.jurisdiction, list);
     }
-    for (const list of groups.values()) {
-      list.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
-    }
-    return [...groups.entries()];
+    // Each jurisdiction renders as an outline: a section followed by its subsections.
+    return [...groups.entries()].map(
+      ([jurisdiction, list]): [string, MhdHandbookOutlineEntry[]] => [
+        jurisdiction,
+        mhdOrderSectionsAsOutline(list),
+      ],
+    );
   }, [sections.data]);
 
   function canEditRow(section: MhdHandbookSection): boolean {
@@ -104,12 +110,25 @@ export function MhdHandbookSectionLibraryPage() {
       bodyPlaceholder: values.bodyPlaceholder,
       isRequired: values.isRequired,
       sortOrder: values.sortOrder,
+      parentSectionId: values.parentSectionId || null,
     });
     setDialogState(null);
   }
 
-  async function handleUpdate(values: MhdUpdateHandbookSectionFormValues) {
-    await updateSection.mutateAsync(values);
+  async function handleUpdate(
+    values: MhdUpdateHandbookSectionFormValues,
+    current: MhdHandbookSection,
+  ) {
+    const { parentSectionId, ...fields } = values;
+    await updateSection.mutateAsync(fields);
+    // The place in the tree changes through its own RPC (it carries the cycle / depth
+    // checks); only call it when the parent actually changed.
+    if ((parentSectionId || null) !== current.parentSectionId) {
+      await moveSection.mutateAsync({
+        sectionId: current.id,
+        parentSectionId: parentSectionId || null,
+      });
+    }
     setDialogState(null);
   }
 
@@ -143,9 +162,11 @@ export function MhdHandbookSectionLibraryPage() {
       ? createSection.error.message
       : updateSection.error instanceof Error
         ? updateSection.error.message
-        : forkSection.error instanceof Error
-          ? forkSection.error.message
-          : null;
+        : moveSection.error instanceof Error
+          ? moveSection.error.message
+          : forkSection.error instanceof Error
+            ? forkSection.error.message
+            : null;
 
   return (
     <div className="space-y-6">
@@ -208,10 +229,12 @@ export function MhdHandbookSectionLibraryPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {list.map((section) => (
+                    {list.map(({ section, depth }) => (
                       <MhdTr key={section.id}>
                         <MhdTd className="font-medium">
-                          {section.title}
+                          <span style={mhdHandbookIndentStyle(depth)} className="inline-block">
+                            {section.title}
+                          </span>
                           {!section.isActive ? (
                             <MhdBadge variant="neutral" className="ml-2" hideIcon>
                               Inactive
@@ -274,6 +297,7 @@ export function MhdHandbookSectionLibraryPage() {
           <h2 className="mb-4 text-base font-semibold text-foreground">New Section</h2>
           <MhdHandbookSectionCreateForm
             companyId={companyId}
+            existingSections={sections.data ?? []}
             canCreateGlobal={canManageGlobal}
             onSubmit={handleCreate}
             onCancel={() => setDialogState(null)}
@@ -287,9 +311,10 @@ export function MhdHandbookSectionLibraryPage() {
           <h2 className="mb-4 text-base font-semibold text-foreground">Edit Section</h2>
           <MhdHandbookSectionEditForm
             section={dialogState.section}
-            onSubmit={handleUpdate}
+            existingSections={sections.data ?? []}
+            onSubmit={(values) => handleUpdate(values, dialogState.section)}
             onCancel={() => setDialogState(null)}
-            isSubmitting={updateSection.isPending}
+            isSubmitting={updateSection.isPending || moveSection.isPending}
           />
         </MhdModal>
       ) : null}

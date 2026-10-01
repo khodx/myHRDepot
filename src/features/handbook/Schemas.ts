@@ -62,6 +62,9 @@ export const mhdCreateHandbookSectionSchema = z.object({
   bodyPlaceholder: z.string().trim().min(1, 'Placeholder body text is required.'),
   isRequired: z.boolean(),
   sortOrder: z.coerce.number().int().min(0),
+  // '' = top-level (no parent). The select emits an empty string for "none"; the
+  // page maps it to null. Type/jurisdiction/depth/cycle rules are the server's.
+  parentSectionId: z.string().trim(),
 });
 
 /**
@@ -81,6 +84,8 @@ export const mhdUpdateHandbookSectionSchema = z.object({
   isRequired: z.boolean(),
   sortOrder: z.coerce.number().int().min(0),
   isActive: z.boolean(),
+  // '' = top-level (no parent); a changed value is applied through the move RPC.
+  parentSectionId: z.string().trim(),
 });
 
 // ---------------------------------------------------------------------------
