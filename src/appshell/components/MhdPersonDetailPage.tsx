@@ -33,7 +33,7 @@ import { MhdJobAssignmentPanel } from '@/features/jobs/components/MhdJobAssignme
 import { MhdDirectReportsPanel } from '@/features/people/components/MhdDirectReportsPanel';
 import {
   mhdCanAccessRoute,
-  mhdCanMutateAttendance,
+  mhdCanReadAllAttendance,
   mhdCanMutateJobs,
   mhdLeavesIsPrivileged,
 } from '@/appshell/mhdRouteAccess';
@@ -93,7 +93,7 @@ export function MhdPersonDetailPage() {
   // Attendance on the person profile is a privileged-only view: it exposes the
   // full point ledger, which is administrative context. Client User / Viewer
   // never see it here (an employee reads their own record at /attendance).
-  const canSeeAttendance = mhdCanMutateAttendance(roles);
+  const canSeeAttendance = mhdCanReadAllAttendance(roles);
   // The Job section (assignment history + reassignment) is privileged only —
   // manager and note fields are administrative. An employee reads their own
   // published description at /my-job, not here.

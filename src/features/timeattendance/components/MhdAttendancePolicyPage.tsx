@@ -9,14 +9,14 @@ import { MhdAttendancePolicyEditor } from './MhdAttendancePolicyEditor';
 /**
  * `/attendance/policy` route entry.
  *
- * Privileged only (Platform Admin / HR Partner / Client Admin) — the router
- * guard rejects Client User and Viewer, and this component mirrors that with a
- * defensive read-only fallback should it ever render for a non-privileged
- * caller.
+ * Readable by everyone who can open /attendance: the point values, roll-off window and
+ * escalation ladder are published to employees on purpose - knowing what an absence
+ * costs is the point of a published attendance policy. Only the privileged set may
+ * publish a new version; everyone else gets the editor in read-only mode (and the
+ * server would refuse a write regardless).
  *
- * Publishing does not edit the current policy — it closes that version and opens
- * a new one, so historical ledger rows stay explicable under the rule that
- * produced them.
+ * Publishing does not edit the current policy - it closes that version and opens a
+ * new one, so historical ledger rows stay explicable under the rule that produced them.
  */
 export function MhdAttendancePolicyPage() {
   const { profile, roles } = useMhdAuth();
@@ -58,7 +58,7 @@ export function MhdAttendancePolicyPage() {
       <MhdPageHeader
         backTo="/attendance"
         backLabel="Attendance"
-        title="Attendance policy"
+        title="Attendance Policy"
         description="Point values, roll-off window and the escalation ladder."
       />
 

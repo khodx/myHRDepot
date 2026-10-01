@@ -48,7 +48,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // real URL. This rule MUST precede the general '/tasks' rule below, which
   // otherwise catches every /tasks/* path via prefix match and is open to
   // 'ALL' — the same "specific rule before general rule" ordering discipline
-  // used throughout this file (e.g. /attendance/policy before /attendance).
+  // used throughout this file (e.g. /schedule/templates before /schedule).
   // The Audit tab is hidden client-side for other roles in
   // MhdTaskRecordTabs, mirroring how MhdFormsPage hides its builder link for
   // non-privileged roles.
@@ -162,7 +162,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // Performance. The specific /performance/* sub-routes precede the general
   // /performance rule because mhdCanAccessRoute returns the FIRST matching rule
   // via prefix match, so /performance would otherwise capture them all (the same
-  // ordering discipline as /attendance/policy before /attendance).
+  // ordering discipline as /schedule/templates before /schedule).
   // /performance/templates and /performance/settings are privileged config
   // (no Client User). /performance/invitations is the rater-facing surface — any
   // employee who can be asked for feedback reaches it, so it carries the same
@@ -234,27 +234,34 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   { path: '/my-grievances', roles: ['Employee', 'Manager', 'Supervisor', 'Lead'] },
   { path: '/grievances', roles: ['Platform Admin', 'HR Partner'] },
   // Time & Attendance. /schedule and /attendance are the platform's first
-  // employee-facing surfaces — Client User reaches them for their own record;
-  // Viewer is excluded. /attendance/policy is privileged-only, so it must
-  // precede /attendance here: mhdCanAccessRoute returns the first matching rule
-  // and /attendance/policy would otherwise inherit the broader /attendance rule
-  // via the prefix match.
+  // employee-facing surfaces. Everyone who reaches them is read-scoped by the
+  // database rather than by this list: an employee sees their own record, a
+  // manager their own plus their direct reports', HR Coordinator the whole company
+  // read-only, and the privileged set everything with mutation rights. Viewer is
+  // excluded. mhdCanAccessRoute returns the first matching rule, so the narrower
+  // paths must precede the broader ones they would otherwise inherit from via
+  // prefix match: /schedule/templates (pattern management, privileged only) before
+  // /schedule.
+  // /attendance/policy is readable by everyone who can open /attendance — the
+  // Field Inventory publishes the point rules and thresholds to employees ("knowing
+  // the cost of an absence is the point of a published attendance policy"); the page
+  // renders read-only for anyone without mutation rights.
+  {
+    path: '/schedule/templates',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
+  },
   {
     path: '/schedule',
     roles: [
-      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
       'Client Admin', 'Executive Leadership', 'Director',
       'Manager', 'Supervisor', 'Lead', 'Employee',
     ],
   },
   {
-    path: '/attendance/policy',
-    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
-  },
-  {
     path: '/attendance',
     roles: [
-      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
       'Client Admin', 'Executive Leadership', 'Director',
       'Manager', 'Supervisor', 'Lead', 'Employee',
     ],
@@ -501,7 +508,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // Recruiting / ATS. Four surfaces, gated at three different widths — the more
   // specific rules MUST precede the general /recruiting rule because
   // mhdCanAccessRoute returns the FIRST matching rule via prefix match (the same
-  // ordering discipline as /attendance/policy before /attendance).
+  // ordering discipline as /schedule/templates before /schedule).
   //
   // - /recruiting/eeo is the aggregate EEO report and is Platform Admin ONLY. The
   //   EEO self-identification partition is readable by NO one row-wise (RLS
@@ -867,10 +874,10 @@ export function mhdCanMutateConduct(userRoles: MhdAuthRoleName[]): boolean {
 /**
  * Roles that may mutate Time & Attendance — record/void occurrences, adjust
  * points, edit schedules, publish policy versions, and resolve threshold and
- * reassessment items. This is the same set that renders the privileged surface;
- * a Client User reaches /schedule and /attendance for their OWN record only
- * (read), and threshold/reassessment items are never exposed to them (the RPCs
- * refuse a non-privileged caller with 42501). Viewer is excluded entirely.
+ * reassessment items. This is the same set that renders the privileged surface.
+ * Everyone else with route access is read-only and database-scoped (see
+ * MHD_ATTENDANCE_READ_ALL_ROLES and mhdCanReadAllAttendance). Viewer is excluded
+ * entirely.
  */
 export const MHD_ATTENDANCE_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
@@ -881,6 +888,22 @@ export const MHD_ATTENDANCE_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Executive Leadership',
   'Director',
 ];
+
+/**
+ * Roles that may READ the whole company's attendance: the mutating set plus HR
+ * Coordinator, who is read-only (migration 0335 mirrors this in
+ * mhd_attendance_is_hr_reader). Only these roles are shown the threshold-review and
+ * reassessment queues — pending discipline decisions are never shown to a manager
+ * or to the subject.
+ */
+export const MHD_ATTENDANCE_READ_ALL_ROLES: MhdAuthRoleName[] = [
+  ...MHD_ATTENDANCE_MUTATING_ROLES,
+  'HR Coordinator',
+];
+
+export function mhdCanReadAllAttendance(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_ATTENDANCE_READ_ALL_ROLES.some((role) => userRoles.includes(role));
+}
 
 export function mhdCanMutateAttendance(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_ATTENDANCE_MUTATING_ROLES.some((role) => userRoles.includes(role));

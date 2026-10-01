@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
   mhdAttendancePolicySchema,
+  mhdCompanyHolidaySchema,
+  mhdEndAssignmentSchema,
+  mhdGenerateShiftsSchema,
   mhdOccurrenceFormSchema,
+  mhdOverrideShiftSchema,
+  mhdReclassifyOccurrenceSchema,
   mhdResolveReassessmentSchema,
+  mhdScheduleTemplateFormSchema,
+  mhdUpdateOccurrenceSchema,
   mhdVoidOccurrenceSchema,
   type MhdAttendancePolicyFormValues,
 } from '../Schemas';
@@ -106,5 +113,170 @@ describe('reassessment + void schemas require a reason', () => {
     expect(
       mhdVoidOccurrenceSchema.parse({ occurrenceId: 'occ-1', reason: 'Recorded in error.' }).reason,
     ).toBe('Recorded in error.');
+  });
+});
+
+describe('reclassification schema', () => {
+  const base = {
+    occurrenceId: 'occ-1',
+    classification: 'UNEXCUSED',
+    reason: 'Certification not received.',
+  };
+
+  it('requires a reason - the audit trail is why the classification moved', () => {
+    expect(() => mhdReclassifyOccurrenceSchema.parse({ ...base, reason: '   ' })).toThrow();
+    expect(() => mhdReclassifyOccurrenceSchema.parse({ ...base, reason: undefined })).toThrow();
+    expect(mhdReclassifyOccurrenceSchema.parse(base).reason).toBe('Certification not received.');
+  });
+
+  it('moving to PROTECTED requires a category, and only PROTECTED may carry one', () => {
+    expect(() =>
+      mhdReclassifyOccurrenceSchema.parse({ ...base, classification: 'PROTECTED' }),
+    ).toThrow(/category/i);
+    expect(
+      mhdReclassifyOccurrenceSchema.parse({
+        ...base,
+        classification: 'PROTECTED',
+        protectedLeaveCategory: 'CFRA',
+      }).protectedLeaveCategory,
+    ).toBe('CFRA');
+    expect(() =>
+      mhdReclassifyOccurrenceSchema.parse({ ...base, protectedLeaveCategory: 'FMLA' }),
+    ).toThrow();
+  });
+});
+
+describe('occurrence edit schema', () => {
+  it('has no classification field - classification moves only through reclassify', () => {
+    const parsed = mhdUpdateOccurrenceSchema.parse({
+      occurrenceId: 'occ-1',
+      occurrenceType: 'TARDY',
+      classification: 'PROTECTED',
+    });
+    expect(parsed).not.toHaveProperty('classification');
+  });
+
+  it('bounds minutes of variance to a single day', () => {
+    expect(() =>
+      mhdUpdateOccurrenceSchema.parse({ occurrenceId: 'occ-1', minutesVariance: 1441 }),
+    ).toThrow();
+    expect(() =>
+      mhdUpdateOccurrenceSchema.parse({ occurrenceId: 'occ-1', minutesVariance: -1 }),
+    ).toThrow();
+  });
+});
+
+describe('schedule pattern schema', () => {
+  const workingDay = (dayOfWeek: number) => ({
+    dayOfWeek,
+    isWorkingDay: true,
+    startTime: '09:00',
+    endTime: '17:30',
+    unpaidBreakMinutes: 30,
+  });
+  const restDay = (dayOfWeek: number) => ({
+    dayOfWeek,
+    isWorkingDay: false,
+    startTime: null,
+    endTime: null,
+    unpaidBreakMinutes: 0,
+  });
+  const week = [
+    restDay(0),
+    workingDay(1),
+    workingDay(2),
+    workingDay(3),
+    workingDay(4),
+    workingDay(5),
+    restDay(6),
+  ];
+  const base = { companyId: 'company-1', templateName: 'Front desk', description: '', days: week };
+
+  it('accepts a standard Monday-to-Friday week', () => {
+    expect(mhdScheduleTemplateFormSchema.parse(base).days).toHaveLength(7);
+  });
+
+  it('refuses a pattern with no working days - it would never produce a shift', () => {
+    const allRest = [0, 1, 2, 3, 4, 5, 6].map(restDay);
+    expect(() => mhdScheduleTemplateFormSchema.parse({ ...base, days: allRest })).toThrow(
+      /no working days/i,
+    );
+  });
+
+  it('refuses a working day without times, or with an end before its start', () => {
+    const noTimes = week.map((day) =>
+      day.dayOfWeek === 1 ? { ...day, startTime: null, endTime: null } : day,
+    );
+    expect(() => mhdScheduleTemplateFormSchema.parse({ ...base, days: noTimes })).toThrow();
+    const inverted = week.map((day) =>
+      day.dayOfWeek === 1 ? { ...day, startTime: '18:00', endTime: '09:00' } : day,
+    );
+    expect(() => mhdScheduleTemplateFormSchema.parse({ ...base, days: inverted })).toThrow(
+      /after start/i,
+    );
+  });
+
+  it('refuses a non-working day that still carries times (mirrors the database CHECK)', () => {
+    const stray = week.map((day) =>
+      day.dayOfWeek === 0 ? { ...day, startTime: '09:00', endTime: '10:00' } : day,
+    );
+    expect(() => mhdScheduleTemplateFormSchema.parse({ ...base, days: stray })).toThrow();
+  });
+
+  it('needs exactly seven distinct days', () => {
+    expect(() =>
+      mhdScheduleTemplateFormSchema.parse({ ...base, days: week.slice(0, 6) }),
+    ).toThrow();
+    const duplicated = [...week.slice(0, 6), workingDay(1)];
+    expect(() => mhdScheduleTemplateFormSchema.parse({ ...base, days: duplicated })).toThrow();
+  });
+});
+
+describe('shift override, assignment end, holiday and generation schemas', () => {
+  it('requires a reason to override a shift, and an end after the start', () => {
+    const shift = {
+      shiftId: 's1',
+      startTime: '08:00',
+      endTime: '16:00',
+      reason: 'Covering a colleague.',
+    };
+    expect(mhdOverrideShiftSchema.parse(shift).reason).toBe('Covering a colleague.');
+    expect(() => mhdOverrideShiftSchema.parse({ ...shift, reason: ' ' })).toThrow();
+    expect(() => mhdOverrideShiftSchema.parse({ ...shift, endTime: '07:00' })).toThrow();
+  });
+
+  it('requires a real ISO date to end an assignment', () => {
+    expect(
+      mhdEndAssignmentSchema.parse({ assignmentId: 'a1', effectiveTo: '2026-10-31' }),
+    ).toBeTruthy();
+    expect(() =>
+      mhdEndAssignmentSchema.parse({ assignmentId: 'a1', effectiveTo: '10/31/2026' }),
+    ).toThrow();
+  });
+
+  it('requires a holiday name and date', () => {
+    expect(() =>
+      mhdCompanyHolidaySchema.parse({
+        companyId: 'c1',
+        holidayDate: '2026-12-25',
+        holidayName: '  ',
+      }),
+    ).toThrow();
+    expect(
+      mhdCompanyHolidaySchema.parse({
+        companyId: 'c1',
+        holidayDate: '2026-12-25',
+        holidayName: 'Christmas Day',
+      }).isPaid,
+    ).toBe(true);
+  });
+
+  it('refuses a generation range longer than two years, mirroring the RPC guard', () => {
+    expect(() =>
+      mhdGenerateShiftsSchema.parse({ personId: 'p1', from: '2026-01-01', to: '2028-06-01' }),
+    ).toThrow(/two years/i);
+    expect(
+      mhdGenerateShiftsSchema.parse({ personId: 'p1', from: '2026-01-01', to: '2026-12-31' }),
+    ).toBeTruthy();
   });
 });

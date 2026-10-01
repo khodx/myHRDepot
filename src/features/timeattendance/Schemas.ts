@@ -103,6 +103,11 @@ export const mhdOverrideShiftSchema = z
     path: ['endTime'],
   });
 
+export const mhdEndAssignmentSchema = z.object({
+  assignmentId: z.string().trim().min(1),
+  effectiveTo: isoDate,
+});
+
 export const mhdCompanyHolidaySchema = z.object({
   companyId: z.string().trim().min(1),
   holidayDate: isoDate,
@@ -163,7 +168,10 @@ export const mhdReclassifyOccurrenceSchema = z
     occurrenceId: z.string().trim().min(1),
     classification: z.enum(MHD_ATTENDANCE_CLASSIFICATIONS),
     protectedLeaveCategory: z.enum(MHD_PROTECTED_LEAVE_CATEGORIES).optional().nullable(),
-    reason: z.string().max(2000).optional().nullable(),
+    // Reclassification is the legally significant operation and drives the automatic
+    // reversal path; the reason is what an audit reads to understand why. The RPC
+    // accepts a null reason, but the UI never offers that path.
+    reason: z.string().trim().min(1, 'A reason is required to reclassify an occurrence.').max(2000),
   })
   .refine((form) => form.classification !== 'PROTECTED' || Boolean(form.protectedLeaveCategory), {
     message: 'Protected leave requires a category.',
@@ -318,6 +326,7 @@ export const mhdAttendancePolicySchema = z
 export type MhdScheduleTemplateFormValues = z.infer<typeof mhdScheduleTemplateFormSchema>;
 export type MhdScheduleAssignmentFormValues = z.infer<typeof mhdScheduleAssignmentSchema>;
 export type MhdOverrideShiftFormValues = z.infer<typeof mhdOverrideShiftSchema>;
+export type MhdEndAssignmentFormValues = z.infer<typeof mhdEndAssignmentSchema>;
 export type MhdCompanyHolidayFormValues = z.infer<typeof mhdCompanyHolidaySchema>;
 export type MhdOccurrenceFormValues = z.infer<typeof mhdOccurrenceFormSchema>;
 export type MhdReclassifyOccurrenceFormValues = z.infer<typeof mhdReclassifyOccurrenceSchema>;

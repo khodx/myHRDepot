@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import {
@@ -13,6 +14,14 @@ interface Props {
   events: MhdThresholdEvent[];
   isLoading?: boolean;
   isSubmitting?: boolean;
+  /** HR Coordinator reads the queue but resolves nothing. */
+  readOnly?: boolean;
+  /**
+   * Opens a Conduct case from the crossing. Omitted for callers who cannot open one,
+   * so the action is never offered where the RPC would refuse it.
+   */
+  onOpenConduct?: (eventId: string) => Promise<void>;
+  isOpeningConduct?: boolean;
   onResolve: (input: MhdResolveThresholdEventInput) => Promise<void>;
 }
 
@@ -51,6 +60,9 @@ export function MhdThresholdEventPanel({
   events,
   isLoading = false,
   isSubmitting = false,
+  readOnly = false,
+  onOpenConduct,
+  isOpeningConduct = false,
   onResolve,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -174,24 +186,45 @@ export function MhdThresholdEventPanel({
                       disabled={isSubmitting}
                       onClick={() => void submit(event.id)}
                     >
-                      {isSubmitting ? 'Saving…' : 'Save outcome'}
+                      {isSubmitting ? 'Saving…' : 'Save Outcome'}
                     </Button>
                   </div>
                 </div>
-              ) : (
-                <Button
-                  variant="secondary"
-                  className="mt-3 px-3 py-1.5"
-                  onClick={() => {
-                    setActiveId(event.id);
-                    setStatus('ACKNOWLEDGED');
-                    setNote('');
-                    setError(null);
-                  }}
-                >
-                  Review
-                </Button>
+              ) : readOnly ? null : (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    className="px-3 py-1.5"
+                    onClick={() => {
+                      setActiveId(event.id);
+                      setStatus('ACKNOWLEDGED');
+                      setNote('');
+                      setError(null);
+                    }}
+                  >
+                    Review
+                  </Button>
+                  {onOpenConduct && !event.linkedConductCaseId ? (
+                    <Button
+                      className="px-3 py-1.5"
+                      disabled={isOpeningConduct}
+                      onClick={() => void onOpenConduct(event.id)}
+                    >
+                      {isOpeningConduct ? 'Opening…' : 'Open Conduct Case'}
+                    </Button>
+                  ) : null}
+                </div>
               )}
+              {event.linkedConductCaseId ? (
+                <p className="mt-3 text-sm">
+                  <Link
+                    to={`/conduct/${event.linkedConductCaseId}`}
+                    className="font-medium text-accent hover:text-accent-hover"
+                  >
+                    Conduct case {event.linkedConductCaseReference}
+                  </Link>
+                </p>
+              ) : null}
             </li>
           ))}
         </ul>
@@ -206,6 +239,17 @@ export function MhdThresholdEventPanel({
                 {event.personDisplayName} · {mhdFormatActionLevel(event.actionLevel)} ·{' '}
                 {STATUS_LABELS[event.status]}
                 {event.resolutionNote ? ` — ${event.resolutionNote}` : ''}
+                {event.linkedConductCaseId ? (
+                  <>
+                    {' · '}
+                    <Link
+                      to={`/conduct/${event.linkedConductCaseId}`}
+                      className="font-medium text-accent hover:text-accent-hover"
+                    >
+                      Conduct case {event.linkedConductCaseReference}
+                    </Link>
+                  </>
+                ) : null}
               </li>
             ))}
           </ul>

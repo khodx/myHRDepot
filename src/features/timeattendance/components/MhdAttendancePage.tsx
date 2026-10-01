@@ -1,27 +1,36 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdModal } from '@/components/ui/MhdModal';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdRowActionsMenu } from '@/components/ui/MhdRowActionsMenu';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { MhdTabs } from '@/components/ui/MhdTabs';
-import { mhdCanMutateAttendance } from '@/appshell/mhdRouteAccess';
+import { mhdCanMutateConduct } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { useMhdActionRunner } from '@/utils/useMhdActionRunner';
 import {
   useMhdAdjustPoints,
+  useMhdAttendanceAccess,
   useMhdAttendanceOccurrences,
   useMhdAttendancePeople,
   useMhdAttendancePolicy,
+  useMhdOpenConductCaseFromThreshold,
   useMhdPointBalance,
   useMhdPointLedger,
   useMhdReassessmentEvents,
+  useMhdReclassifyOccurrence,
   useMhdRecordOccurrence,
   useMhdResolveReassessmentEvent,
   useMhdResolveThresholdEvent,
   useMhdThresholdEvents,
+  useMhdUpdateOccurrence,
   useMhdVoidOccurrence,
+  type MhdAttendanceAccess,
 } from '../Hook';
 import type { MhdOccurrenceFormValues } from '../Schemas';
 import {
@@ -34,10 +43,12 @@ import {
 } from '../Types';
 import { MhdAdjustPointsDialog } from './MhdAdjustPointsDialog';
 import { MhdClassificationBadge } from './MhdClassificationBadge';
+import { MhdEditOccurrenceDialog } from './MhdEditOccurrenceDialog';
 import { MhdOccurrenceForm } from './MhdOccurrenceForm';
 import { MhdOccurrenceTypeBadge } from './MhdOccurrenceTypeBadge';
 import { MhdPointLedgerPanel } from './MhdPointLedgerPanel';
 import { MhdReassessmentQueuePanel } from './MhdReassessmentQueuePanel';
+import { MhdReclassifyOccurrenceDialog } from './MhdReclassifyOccurrenceDialog';
 import { MhdThresholdEventPanel } from './MhdThresholdEventPanel';
 import { MhdVoidOccurrenceDialog } from './MhdVoidOccurrenceDialog';
 
@@ -46,25 +57,28 @@ type Tab = 'occurrences' | 'thresholds' | 'reassessments';
 /**
  * `/attendance` route entry.
  *
- * Two very different renderings behind one route, decided by the caller's role:
+ * What renders is decided by the caller's read scope (useMhdAttendanceAccess, which
+ * mirrors the database predicate):
  *
- * - **Privileged** (Platform Admin / HR Partner / Client Admin): the whole
- *   company. Occurrence board, threshold reviews and the reassessment queue.
- * - **Employee** (Client User viewing themselves): their own occurrences and
- *   their own point ledger, and nothing else. The threshold and reassessment
- *   tabs are not merely hidden — the RPCs behind them refuse a non-privileged
- *   caller, because both represent pending decisions about whether to
- *   discipline someone.
+ * - **Privileged** roles: the whole company with every action - record, edit,
+ *   reclassify, void, adjust points, and resolve threshold reviews and reassessments.
+ * - **HR Coordinator**: the whole company including the threshold and reassessment
+ *   queues, read-only.
+ * - **A manager**: their own record and their direct reports', occurrences and point
+ *   ledgers only. Protected-leave category and notes come back redacted from the
+ *   server, and the discipline queues are not shown - the RPCs refuse them anyway.
+ * - **Everyone else**: their own occurrences and ledger, and nothing more.
  *
- * Viewer never reaches here — the router guard (mhdRouteAccess) excludes it.
+ * The threshold and reassessment tabs are not merely hidden for callers outside the
+ * HR set - the RPCs behind them refuse them, because both represent pending decisions
+ * about whether to discipline someone.
+ *
+ * Viewer never reaches here - the router guard (mhdRouteAccess) excludes it.
  */
 export function MhdAttendancePage() {
-  const { profile, roles } = useMhdAuth();
-  const companyId = profile?.companyId ?? null;
-  const isPrivileged = mhdCanMutateAttendance(roles);
-  const selfPersonId = profile?.personId ?? null;
+  const access = useMhdAttendanceAccess();
 
-  if (!companyId) {
+  if (!access.companyId || access.isScopeLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <p className="text-sm text-muted-foreground">Loading attendance…</p>
@@ -72,58 +86,67 @@ export function MhdAttendancePage() {
     );
   }
 
-  return (
-    <MhdAttendanceBoard
-      companyId={companyId}
-      isPrivileged={isPrivileged}
-      selfPersonId={selfPersonId}
-    />
-  );
+  return <MhdAttendanceBoard access={access} companyId={access.companyId} />;
 }
 
 interface BoardProps {
+  access: MhdAttendanceAccess;
   companyId: string;
-  isPrivileged: boolean;
-  selfPersonId: string | null;
 }
 
-function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProps) {
+function MhdAttendanceBoard({ access, companyId }: BoardProps) {
+  const { canMutate, canReadAll, scope, selfPersonId, teamMembers } = access;
+  const { roles } = useMhdAuth();
+  const canOpenConduct = mhdCanMutateConduct(roles);
+  const { error, run, clearError } = useMhdActionRunner();
+
   const [tab, setTab] = useState<Tab>('occurrences');
   const [isRecording, setIsRecording] = useState(false);
   const [voidTarget, setVoidTarget] = useState<MhdAttendanceOccurrence | null>(null);
+  const [editTarget, setEditTarget] = useState<MhdAttendanceOccurrence | null>(null);
+  const [reclassifyTarget, setReclassifyTarget] = useState<MhdAttendanceOccurrence | null>(null);
   const [isAdjusting, setIsAdjusting] = useState(false);
   const [filters, setFilters] = useState<MhdAttendanceOccurrenceFilters>({
     companyId,
-    personId: isPrivileged ? null : selfPersonId,
+    // Only an own-record-only caller is pinned to a person; company and team readers
+    // start on "everyone I can see" and the server returns exactly that set.
+    personId: scope === 'self' ? selfPersonId : null,
     occurrenceType: 'ALL',
     classification: 'ALL',
   });
 
   const occurrences = useMhdAttendanceOccurrences(filters);
   const policy = useMhdAttendancePolicy(companyId);
-  const people = useMhdAttendancePeople(isPrivileged ? companyId : null);
-  const thresholdEvents = useMhdThresholdEvents(isPrivileged ? companyId : null);
-  const reassessments = useMhdReassessmentEvents(isPrivileged ? companyId : null);
+  const people = useMhdAttendancePeople(scope === 'company' ? companyId : null);
+  const thresholdEvents = useMhdThresholdEvents(canReadAll ? companyId : null);
+  const reassessments = useMhdReassessmentEvents(canReadAll ? companyId : null);
 
   const recordOccurrence = useMhdRecordOccurrence(companyId);
+  const updateOccurrence = useMhdUpdateOccurrence(companyId);
+  const reclassifyOccurrence = useMhdReclassifyOccurrence(companyId);
   const voidOccurrence = useMhdVoidOccurrence(companyId);
   const resolveThreshold = useMhdResolveThresholdEvent(companyId);
   const resolveReassessment = useMhdResolveReassessmentEvent(companyId);
   const adjustPoints = useMhdAdjustPoints(companyId);
+  const openConduct = useMhdOpenConductCaseFromThreshold();
 
-  // An employee's own ledger; for a privileged viewer this stays idle until a
-  // person is selected in the filter.
-  const focusPersonId = isPrivileged ? (filters.personId ?? null) : selfPersonId;
+  // A ledger is shown for one person at a time: the caller themself when they can see
+  // only their own record, otherwise whoever the Employee filter has selected.
+  const focusPersonId = scope === 'self' ? selfPersonId : (filters.personId ?? null);
   const balance = useMhdPointBalance(focusPersonId);
   const ledger = useMhdPointLedger(focusPersonId);
 
   const peopleOptions = useMemo(
     () =>
-      (people.data ?? []).map((person: { id: string; firstName?: string; lastName?: string }) => ({
-        id: person.id,
-        displayName: [person.firstName, person.lastName].filter(Boolean).join(' '),
-      })),
-    [people.data],
+      scope === 'company'
+        ? (people.data ?? []).map(
+            (person: { id: string; firstName?: string; lastName?: string }) => ({
+              id: person.id,
+              displayName: [person.firstName, person.lastName].filter(Boolean).join(' '),
+            }),
+          )
+        : teamMembers,
+    [scope, people.data, teamMembers],
   );
 
   const openReassessments = (reassessments.data ?? []).filter((event) => event.status === 'RAISED');
@@ -131,55 +154,96 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
     (event) => event.status === 'RAISED' || event.status === 'ACKNOWLEDGED',
   );
 
+  const showFilters = scope !== 'self';
+  const showEmployeeColumn = scope !== 'self';
+
   async function handleRecord(values: MhdOccurrenceFormValues) {
-    await recordOccurrence.mutateAsync({
-      personId: values.personId,
-      occurrenceDate: values.occurrenceDate,
-      occurrenceType: values.occurrenceType,
-      classification: values.classification,
-      protectedLeaveCategory: values.protectedLeaveCategory ?? null,
-      minutesVariance: values.minutesVariance ?? null,
-      reasonNote: values.reasonNote ?? null,
-      scheduledShiftId: values.scheduledShiftId ?? null,
-    });
-    setIsRecording(false);
+    const ok = await run(
+      () =>
+        recordOccurrence.mutateAsync({
+          personId: values.personId,
+          occurrenceDate: values.occurrenceDate,
+          occurrenceType: values.occurrenceType,
+          classification: values.classification,
+          protectedLeaveCategory: values.protectedLeaveCategory ?? null,
+          minutesVariance: values.minutesVariance ?? null,
+          reasonNote: values.reasonNote ?? null,
+          scheduledShiftId: values.scheduledShiftId ?? null,
+        }),
+      'Unable to record the occurrence.',
+    );
+    if (ok) setIsRecording(false);
   }
 
   async function handleVoid(reason: string) {
     if (!voidTarget) return;
-    await voidOccurrence.mutateAsync({ occurrenceId: voidTarget.id, reason });
-    setVoidTarget(null);
+    const ok = await run(
+      () => voidOccurrence.mutateAsync({ occurrenceId: voidTarget.id, reason }),
+      'Unable to void the occurrence.',
+    );
+    if (ok) setVoidTarget(null);
   }
 
   async function handleAdjust(pointsDelta: number, reason: string) {
     if (!focusPersonId) return;
-    await adjustPoints.mutateAsync({ personId: focusPersonId, pointsDelta, reason });
-    setIsAdjusting(false);
+    const ok = await run(
+      () => adjustPoints.mutateAsync({ personId: focusPersonId, pointsDelta, reason }),
+      'Unable to adjust points.',
+    );
+    if (ok) setIsAdjusting(false);
   }
+
+  const description = canMutate
+    ? 'Occurrences, points and progressive discipline.'
+    : scope === 'company'
+      ? 'Occurrences, points and discipline queues across the company (read-only).'
+      : scope === 'team'
+        ? 'Your attendance record and your direct reports’ records.'
+        : 'Your attendance record and current points.';
 
   return (
     <div className="space-y-6">
       <MhdPageHeader
         title="Attendance"
-        description={
-          isPrivileged
-            ? 'Occurrences, points and progressive discipline.'
-            : 'Your attendance record and current points.'
-        }
+        description={description}
         actions={
-          isPrivileged ? (
-            <Button onClick={() => setIsRecording(true)}>Record occurrence</Button>
-          ) : undefined
+          <div className="flex items-center gap-4">
+            <Link
+              to="/attendance/policy"
+              className="text-sm font-medium text-accent hover:text-accent-hover"
+            >
+              {canMutate ? 'Attendance Policy' : 'View Attendance Policy'}
+            </Link>
+            {canMutate ? (
+              <Button
+                onClick={() => {
+                  clearError();
+                  setIsRecording(true);
+                }}
+              >
+                Record Occurrence
+              </Button>
+            ) : null}
+          </div>
         }
       />
 
-      {isPrivileged ? (
+      {error ? (
+        <div
+          role="alert"
+          className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
+          {error}
+        </div>
+      ) : null}
+
+      {canReadAll ? (
         <MhdTabs
           tabs={[
             { value: 'occurrences' as Tab, label: 'Occurrences' },
             {
               value: 'thresholds' as Tab,
-              label: 'Threshold reviews',
+              label: 'Threshold Reviews',
               count: openThresholds.length || undefined,
             },
             {
@@ -193,9 +257,9 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
         />
       ) : null}
 
-      {tab === 'occurrences' || !isPrivileged ? (
+      {tab === 'occurrences' || !canReadAll ? (
         <div className="space-y-6">
-          {isPrivileged ? (
+          {showFilters ? (
             <MhdCard className="grid gap-3 md:grid-cols-3">
               <MhdFilterSelect
                 label="Employee"
@@ -207,7 +271,7 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                   }))
                 }
               >
-                <option value="">All employees</option>
+                <option value="">{scope === 'team' ? 'My team' : 'All employees'}</option>
                 {peopleOptions.map((person) => (
                   <option key={person.id} value={person.id}>
                     {person.displayName}
@@ -261,16 +325,19 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
               balance={balance.data ?? 0}
               thresholds={policy.data?.thresholds ?? []}
               isLoading={ledger.isLoading || balance.isLoading}
-              selfView={!isPrivileged}
+              selfView={scope === 'self'}
             />
           ) : null}
 
           {/* Adjustment entry point kept deliberately plain; every adjustment
               requires a reason at the RPC, so there is no silent path to points. */}
-          {isPrivileged && focusPersonId ? (
+          {canMutate && focusPersonId ? (
             <button
               type="button"
-              onClick={() => setIsAdjusting(true)}
+              onClick={() => {
+                clearError();
+                setIsAdjusting(true);
+              }}
               className="text-sm font-medium text-accent hover:text-accent-hover"
             >
               Adjust points for the selected employee
@@ -291,11 +358,11 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                   <thead>
                     <tr>
                       <MhdTh>Date</MhdTh>
-                      {isPrivileged ? <MhdTh>Employee</MhdTh> : null}
+                      {showEmployeeColumn ? <MhdTh>Employee</MhdTh> : null}
                       <MhdTh>Type</MhdTh>
                       <MhdTh>Classification</MhdTh>
                       <MhdTh className="text-right">Points</MhdTh>
-                      {isPrivileged ? <MhdTh /> : null}
+                      {canMutate ? <MhdTh /> : null}
                     </tr>
                   </thead>
                   <tbody>
@@ -307,7 +374,7 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                         }
                       >
                         <MhdTd className="whitespace-nowrap">{occurrence.occurrenceDate}</MhdTd>
-                        {isPrivileged ? (
+                        {showEmployeeColumn ? (
                           <MhdTd className="whitespace-nowrap">
                             {occurrence.personDisplayName}
                           </MhdTd>
@@ -327,16 +394,39 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
                         <MhdTd className="text-right tabular-nums">
                           {occurrence.pointsAssessed}
                         </MhdTd>
-                        {isPrivileged ? (
+                        {canMutate ? (
                           <MhdTd className="text-right">
                             {!occurrence.voidedAt ? (
-                              <button
-                                type="button"
-                                onClick={() => setVoidTarget(occurrence)}
-                                className="text-sm font-medium text-accent hover:text-accent-hover"
-                              >
-                                Void
-                              </button>
+                              <MhdRowActionsMenu
+                                triggerLabel={`Actions for ${occurrence.referenceId}`}
+                                actions={[
+                                  {
+                                    key: 'edit',
+                                    label: 'Edit',
+                                    onSelect: () => {
+                                      clearError();
+                                      setEditTarget(occurrence);
+                                    },
+                                  },
+                                  {
+                                    key: 'reclassify',
+                                    label: 'Reclassify',
+                                    onSelect: () => {
+                                      clearError();
+                                      setReclassifyTarget(occurrence);
+                                    },
+                                  },
+                                  {
+                                    key: 'void',
+                                    label: 'Void',
+                                    destructive: true,
+                                    onSelect: () => {
+                                      clearError();
+                                      setVoidTarget(occurrence);
+                                    },
+                                  },
+                                ]}
+                              />
                             ) : null}
                           </MhdTd>
                         ) : null}
@@ -350,43 +440,93 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
         </div>
       ) : null}
 
-      {isPrivileged && tab === 'thresholds' ? (
+      {canReadAll && tab === 'thresholds' ? (
         <MhdThresholdEventPanel
           events={thresholdEvents.data ?? []}
           isLoading={thresholdEvents.isLoading}
           isSubmitting={resolveThreshold.isPending}
-          onResolve={(input) => resolveThreshold.mutateAsync(input)}
-        />
-      ) : null}
-
-      {isPrivileged && tab === 'reassessments' ? (
-        <MhdReassessmentQueuePanel
-          events={reassessments.data ?? []}
-          isLoading={reassessments.isLoading}
-          isSubmitting={resolveReassessment.isPending}
+          readOnly={!canMutate}
+          onOpenConduct={
+            canMutate && canOpenConduct
+              ? async (eventId) => {
+                  await run(
+                    () => openConduct.mutateAsync(eventId),
+                    'Unable to open a conduct case.',
+                  );
+                }
+              : undefined
+          }
+          isOpeningConduct={openConduct.isPending}
           onResolve={async (input) => {
-            await resolveReassessment.mutateAsync(input);
+            await run(() => resolveThreshold.mutateAsync(input), 'Unable to save the outcome.');
           }}
         />
       ) : null}
 
-      {isRecording && isPrivileged ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-foreground">Record occurrence</h2>
-            <MhdOccurrenceForm
-              companyId={companyId}
-              people={peopleOptions}
-              policy={policy.data ?? null}
-              onSubmit={handleRecord}
-              onCancel={() => setIsRecording(false)}
-              isSubmitting={recordOccurrence.isPending}
-            />
-          </div>
-        </div>
+      {canReadAll && tab === 'reassessments' ? (
+        <MhdReassessmentQueuePanel
+          events={reassessments.data ?? []}
+          isLoading={reassessments.isLoading}
+          isSubmitting={resolveReassessment.isPending}
+          readOnly={!canMutate}
+          onResolve={async (input) => {
+            await run(
+              () => resolveReassessment.mutateAsync(input),
+              'Unable to record the decision.',
+            );
+          }}
+        />
       ) : null}
 
-      {isPrivileged && voidTarget ? (
+      {isRecording && canMutate ? (
+        <MhdModal
+          title="Record Occurrence"
+          onClose={() => setIsRecording(false)}
+          className="relative flex w-full max-w-lg flex-col rounded-lg border border-border bg-background shadow-xl"
+        >
+          <h2 className="mb-4 text-base font-semibold text-foreground">Record Occurrence</h2>
+          <MhdOccurrenceForm
+            companyId={companyId}
+            people={peopleOptions}
+            policy={policy.data ?? null}
+            onSubmit={handleRecord}
+            onCancel={() => setIsRecording(false)}
+            isSubmitting={recordOccurrence.isPending}
+          />
+        </MhdModal>
+      ) : null}
+
+      {canMutate && editTarget ? (
+        <MhdEditOccurrenceDialog
+          occurrence={editTarget}
+          isSubmitting={updateOccurrence.isPending}
+          onSubmit={async (input) => {
+            const ok = await run(
+              () => updateOccurrence.mutateAsync(input),
+              'Unable to update the occurrence.',
+            );
+            if (ok) setEditTarget(null);
+          }}
+          onCancel={() => setEditTarget(null)}
+        />
+      ) : null}
+
+      {canMutate && reclassifyTarget ? (
+        <MhdReclassifyOccurrenceDialog
+          occurrence={reclassifyTarget}
+          isSubmitting={reclassifyOccurrence.isPending}
+          onSubmit={async (input) => {
+            const ok = await run(
+              () => reclassifyOccurrence.mutateAsync(input),
+              'Unable to reclassify the occurrence.',
+            );
+            if (ok) setReclassifyTarget(null);
+          }}
+          onCancel={() => setReclassifyTarget(null)}
+        />
+      ) : null}
+
+      {canMutate && voidTarget ? (
         <MhdVoidOccurrenceDialog
           occurrenceLabel={`${mhdFormatOccurrenceType(voidTarget.occurrenceType)} on ${voidTarget.occurrenceDate}`}
           isSubmitting={voidOccurrence.isPending}
@@ -395,7 +535,7 @@ function MhdAttendanceBoard({ companyId, isPrivileged, selfPersonId }: BoardProp
         />
       ) : null}
 
-      {isPrivileged && isAdjusting && focusPersonId ? (
+      {canMutate && isAdjusting && focusPersonId ? (
         <MhdAdjustPointsDialog
           isSubmitting={adjustPoints.isPending}
           onSubmit={handleAdjust}

@@ -14,6 +14,8 @@ interface Props {
   events: MhdReassessmentEvent[];
   isLoading?: boolean;
   isSubmitting?: boolean;
+  /** HR Coordinator reads the queue and the decision record but decides nothing. */
+  readOnly?: boolean;
   onResolve: (input: MhdResolveReassessmentInput) => Promise<void>;
 }
 
@@ -38,6 +40,7 @@ export function MhdReassessmentQueuePanel({
   events,
   isLoading = false,
   isSubmitting = false,
+  readOnly = false,
   onResolve,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -171,24 +174,24 @@ export function MhdReassessmentQueuePanel({
                       disabled={isSubmitting}
                       onClick={() => void submit(event)}
                     >
-                      {isSubmitting ? 'Saving…' : 'Record decision'}
+                      {isSubmitting ? 'Saving…' : 'Record Decision'}
                     </Button>
                   </div>
                 </div>
-              ) : (
+              ) : readOnly ? null : (
                 <div className="mt-3 flex gap-2">
                   <Button
                     className="px-3 py-1.5"
                     onClick={() => beginDecision(event.id, 'ASSESSED')}
                   >
-                    Assess points
+                    Assess Points
                   </Button>
                   <Button
                     variant="secondary"
                     className="px-3 py-1.5"
                     onClick={() => beginDecision(event.id, 'DECLINED')}
                   >
-                    Do not assess
+                    Do Not Assess
                   </Button>
                 </div>
               )}

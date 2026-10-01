@@ -395,6 +395,14 @@ const MhdSchedulePage = lazyPage(
   () => import('@/features/timeattendance/components/MhdSchedulePage'),
   'MhdSchedulePage',
 );
+const MhdScheduleTemplatesPage = lazyPage(
+  () => import('@/features/timeattendance/components/MhdScheduleTemplatesPage'),
+  'MhdScheduleTemplatesPage',
+);
+const MhdScheduleTemplatePage = lazyPage(
+  () => import('@/features/timeattendance/components/MhdScheduleTemplatePage'),
+  'MhdScheduleTemplatePage',
+);
 const MhdAttendancePage = lazyPage(
   () => import('@/features/timeattendance/components/MhdAttendancePage'),
   'MhdAttendancePage',
@@ -893,9 +901,24 @@ function MhdAppRoutes() {
                 <Route path="/conduct" element={<MhdConductPage />} />
                 <Route path="/conduct/:caseId" element={<MhdConductCaseDetailPage />} />
                 <Route path="/schedule" element={<MhdSchedulePage />} />
-                {/* /attendance/policy is privileged-only; its rule precedes
-                  /attendance in mhdRouteAccess so the guard does not let it
-                  inherit the broader /attendance rule. */}
+                {/* Pattern management is privileged-only; its rule precedes /schedule
+                  in mhdRouteAccess so the guard does not let it inherit the broader
+                  /schedule rule. */}
+                <Route path="/schedule/templates" element={<MhdScheduleTemplatesPage />} />
+                <Route
+                  path="/schedule/templates/new"
+                  element={<MhdScheduleTemplatePage mode="create" />}
+                />
+                <Route
+                  path="/schedule/templates/:templateId"
+                  element={<MhdScheduleTemplatePage mode="view" />}
+                />
+                <Route
+                  path="/schedule/templates/:templateId/edit"
+                  element={<MhdScheduleTemplatePage mode="edit" />}
+                />
+                {/* Readable by everyone who can open /attendance; the page renders
+                  read-only for anyone who cannot publish a version. */}
                 <Route path="/attendance/policy" element={<MhdAttendancePolicyPage />} />
                 <Route path="/attendance" element={<MhdAttendancePage />} />
                 {/* Job Descriptions. /jobs/competencies is a static child and is

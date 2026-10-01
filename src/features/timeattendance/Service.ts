@@ -222,6 +222,8 @@ function mapThresholdEvent(row: MhdThresholdEventRpcRow): MhdThresholdEvent {
     status: row.status as MhdThresholdEvent['status'],
     resolutionNote: row.resolution_note,
     linkedTaskId: row.linked_task_id,
+    linkedConductCaseId: row.linked_conduct_case_id,
+    linkedConductCaseReference: row.linked_conduct_case_reference,
   };
 }
 
