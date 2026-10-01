@@ -19,7 +19,8 @@ const MHD_FACE_CROP_PADDING_FACTOR = 1.6;
 // about the uploaded photo itself ever leaves the browser: only this fixed,
 // content-free runtime/model pair is fetched from Google's CDN, and the
 // actual detection runs locally in WASM.
-const MHD_FACE_DETECTOR_WASM_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm';
+const MHD_FACE_DETECTOR_WASM_CDN =
+  'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm';
 const MHD_FACE_DETECTOR_MODEL_CDN =
   'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
 

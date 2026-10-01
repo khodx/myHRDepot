@@ -197,7 +197,7 @@ export const mhdReviewTemplateSchema = z.object({
 export const mhdFeedbackSettingsSchema = z.object({
   companyId: z.string().trim().min(1),
   minResponsesForRelease: z
-    .number()
+    .number({ error: 'Enter the minimum number of responses.' })
     .int()
     .min(
       MHD_FEEDBACK_THRESHOLD_FLOOR,

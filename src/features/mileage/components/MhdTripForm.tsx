@@ -6,6 +6,7 @@ import { Controller, useForm, useWatch } from 'react-hook-form';
 import { mhdTripFormSchema, type MhdTripFormValues } from '../Schemas';
 import type { MhdMileageTrip } from '../Types';
 import type { z } from 'zod';
+import { mhdNumberField, mhdOptionalNumberField } from '@/utils/mhdFormNumbers';
 
 interface PersonOption {
   id: string;
@@ -23,13 +24,6 @@ interface Props {
   onSubmit: (values: MhdTripFormValues) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
-}
-
-/** Empty numeric inputs must reach the schema as null, not as NaN. */
-function optionalNumber(raw: unknown): number | null {
-  if (raw === '' || raw == null) return null;
-  const parsed = Number(raw);
-  return Number.isFinite(parsed) ? parsed : null;
 }
 
 /**
@@ -190,7 +184,7 @@ export function MhdTripForm({
             type="number"
             step="0.1"
             min={0}
-            {...register('miles', { valueAsNumber: true })}
+            {...register('miles', mhdNumberField())}
             disabled={isLocked}
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
@@ -211,7 +205,7 @@ export function MhdTripForm({
             type="number"
             step="0.1"
             min={0}
-            {...register('commuteDeductionMiles', { setValueAs: optionalNumber })}
+            {...register('commuteDeductionMiles', mhdOptionalNumberField())}
             disabled={isLocked}
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
@@ -298,7 +292,7 @@ export function MhdTripForm({
             type="number"
             step="1"
             min={0}
-            {...register('odometerStart', { setValueAs: optionalNumber })}
+            {...register('odometerStart', mhdOptionalNumberField())}
             disabled={isLocked}
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />
@@ -316,7 +310,7 @@ export function MhdTripForm({
             type="number"
             step="1"
             min={0}
-            {...register('odometerEnd', { setValueAs: optionalNumber })}
+            {...register('odometerEnd', mhdOptionalNumberField())}
             disabled={isLocked}
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted"
           />

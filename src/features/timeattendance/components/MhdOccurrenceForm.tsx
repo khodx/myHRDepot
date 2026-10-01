@@ -17,6 +17,7 @@ import {
   type MhdAttendancePolicy,
 } from '../Types';
 import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
+import { mhdOptionalNumberField } from '@/utils/mhdFormNumbers';
 
 interface PersonOption {
   id: string;
@@ -174,13 +175,7 @@ export function MhdOccurrenceForm({
             id="minutesVariance"
             type="number"
             min={0}
-            // An empty field is "no minutes" (null), never NaN: the input is always rendered but
-            // disabled for types that carry no minutes, and `valueAsNumber` would turn its empty
-            // value into NaN, which fails validation and made a plain Absence impossible to record.
-            {...register('minutesVariance', {
-              setValueAs: (value: string | number | null | undefined) =>
-                value === '' || value == null || Number.isNaN(Number(value)) ? null : Number(value),
-            })}
+            {...register('minutesVariance', mhdOptionalNumberField())}
             disabled={!showsMinutes}
             className="mt-1 w-40 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />

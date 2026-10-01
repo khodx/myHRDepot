@@ -49,6 +49,7 @@ import { MhdActivityParticipantChips } from './MhdActivityParticipantChips';
 import { MhdActivityStatusBadge } from './MhdActivityStatusBadge';
 import { MhdActivityTypeBadge } from './MhdActivityTypeBadge';
 import { MhdSubActivityChecklist } from './MhdSubActivityChecklist';
+import { mhdOptionalNumberField } from '@/utils/mhdFormNumbers';
 
 type ParticipantKind = 'USER' | 'PERSON';
 
@@ -96,7 +97,7 @@ function MhdCompleteActivityForm({
             type="number"
             min={1}
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            {...register('durationMinutes', { valueAsNumber: true })}
+            {...register('durationMinutes', mhdOptionalNumberField())}
           />
           {errors.durationMinutes ? (
             <p className="mt-1 text-xs text-red-600">{errors.durationMinutes.message}</p>

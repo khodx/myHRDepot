@@ -272,7 +272,7 @@ export const mhdAttendancePolicySchema = z
     policyName: z.string().trim().min(1, 'Policy name is required.').max(200),
     effectiveFrom: isoDate,
     rollOffMonths: z
-      .number()
+      .number({ error: 'Enter the roll-off window in months.' })
       .int()
       .min(1, 'Roll-off must be at least one month.')
       .max(120, 'Roll-off longer than ten years is almost certainly a mistake.'),
@@ -282,7 +282,10 @@ export const mhdAttendancePolicySchema = z
       .array(
         z.object({
           occurrenceType: z.enum(MHD_OCCURRENCE_TYPES),
-          points: z.number().min(0, 'Points cannot be negative.').max(99),
+          points: z
+            .number({ error: 'Enter a point value.' })
+            .min(0, 'Points cannot be negative.')
+            .max(99),
         }),
       )
       .refine(
@@ -292,7 +295,10 @@ export const mhdAttendancePolicySchema = z
     thresholds: z
       .array(
         z.object({
-          pointsAt: z.number().positive('A threshold must be above zero points.').max(999),
+          pointsAt: z
+            .number({ error: 'Enter a point total.' })
+            .positive('A threshold must be above zero points.')
+            .max(999),
           actionLevel: z.enum(MHD_ATTENDANCE_ACTION_LEVELS),
         }),
       )
