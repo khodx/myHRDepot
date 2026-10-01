@@ -129,6 +129,8 @@ export interface MhdThresholdEventRpcRow {
   status: string;
   resolution_note: string | null;
   linked_task_id: string | null;
+  linked_conduct_case_id: string | null;
+  linked_conduct_case_reference: string | null;
 }
 
 /** Row shape returned by `mhd_attendance_list_reassessment_events`. */
@@ -434,6 +436,9 @@ export interface MhdThresholdEvent {
   status: MhdThresholdEventStatus;
   resolutionNote: string | null;
   linkedTaskId: string | null;
+  /** Conduct case opened from this crossing (Business Rule 11); null until one is opened. */
+  linkedConductCaseId: string | null;
+  linkedConductCaseReference: string | null;
 }
 
 export interface MhdReassessmentEvent {

@@ -17,6 +17,7 @@ import {
   Calendar,
   CalendarClock,
   CalendarDays,
+  CalendarRange,
   CalendarOff,
   Car,
   CheckSquare,
@@ -435,6 +436,15 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/schedule',
         icon: CalendarDays,
         roles: mhdRouteRoles('/schedule'),
+        children: [
+          subPage(
+            'Schedule Patterns',
+            'Create and manage weekly work patterns.',
+            '/schedule/templates',
+            CalendarRange,
+            ['work patterns', 'shift templates', 'weekly schedule'],
+          ),
+        ],
       },
       {
         label: 'Attendance',

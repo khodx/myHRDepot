@@ -1,4 +1,9 @@
+import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { mhdCanMutateAttendance, mhdCanReadAllAttendance } from '@/appshell/mhdRouteAccess';
+import { useMhdAuth } from '@/features/authentication/Hook';
+import { mhdConductService } from '@/features/conduct/Service';
+import { useMhdDirectReports } from '@/features/people/Hook';
 import { mhdPersonService } from '@/features/people/Service';
 import type {
   MhdAdjustPointsInput,
@@ -421,4 +426,93 @@ export function useMhdAttendancePeople(companyId: string | null) {
     queryFn: () => mhdPersonService.listPeople({ companyId: companyId!, searchTerm: '' }),
     enabled: Boolean(companyId),
   });
+}
+
+/**
+ * Opens a Conduct case from a threshold crossing. The RPC links the case back onto
+ * the event and moves it to ACTIONED (Business Rule 11), so both this module's
+ * threshold list and Conduct's own queries are refreshed.
+ */
+export function useMhdOpenConductCaseFromThreshold() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (thresholdEventId: string) => mhdConductService.openFromThreshold(thresholdEventId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-timeattendance', 'threshold-events'] });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-conduct'] });
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Access scope
+// ---------------------------------------------------------------------------
+
+/**
+ * How much of the company the caller may read. Mirrors the database predicate
+ * (`mhd_can_view_attendance_person`, migration 0335) so the pages ask for exactly
+ * what the RPCs will return rather than relying on being refused:
+ *
+ * - `company` - HR roles and HR Coordinator: everyone. Only the privileged set may
+ *   mutate; HR Coordinator is read-only.
+ * - `team` - anyone with direct reports: themselves and those reports.
+ * - `self` - everyone else: their own record only.
+ *
+ * The server stays the authority. This hook decides what to render and which
+ * queries to run, never what is permitted.
+ */
+export type MhdAttendanceScope = 'company' | 'team' | 'self';
+
+export interface MhdAttendancePersonOption {
+  id: string;
+  displayName: string;
+}
+
+export interface MhdAttendanceAccess {
+  companyId: string | null;
+  selfPersonId: string | null;
+  scope: MhdAttendanceScope;
+  /** Record, reclassify, void, adjust, resolve and edit schedules. */
+  canMutate: boolean;
+  /** See the whole company and the discipline queues (read-only unless `canMutate`). */
+  canReadAll: boolean;
+  /** Self first, then direct reports - the picker for `team` scope. Empty for `company`. */
+  teamMembers: MhdAttendancePersonOption[];
+  isScopeLoading: boolean;
+}
+
+export function useMhdAttendanceAccess(): MhdAttendanceAccess {
+  const { profile, roles } = useMhdAuth();
+  const companyId = profile?.companyId ?? null;
+  const selfPersonId = profile?.personId ?? null;
+  const canMutate = mhdCanMutateAttendance(roles);
+  const canReadAll = mhdCanReadAllAttendance(roles);
+
+  // Company-wide readers never need the reports lookup.
+  const reports = useMhdDirectReports(canReadAll ? null : selfPersonId);
+
+  const teamMembers = useMemo<MhdAttendancePersonOption[]>(() => {
+    if (canReadAll || !selfPersonId) return [];
+    const self: MhdAttendancePersonOption = {
+      id: selfPersonId,
+      displayName: profile?.displayName ? `${profile.displayName} (me)` : 'Me',
+    };
+    return [
+      self,
+      ...(reports.data ?? []).map((r) => ({ id: r.personId, displayName: r.displayName })),
+    ];
+  }, [canReadAll, selfPersonId, profile?.displayName, reports.data]);
+
+  const hasReports = (reports.data ?? []).length > 0;
+  const scope: MhdAttendanceScope = canReadAll ? 'company' : hasReports ? 'team' : 'self';
+
+  return {
+    companyId,
+    selfPersonId,
+    scope,
+    canMutate,
+    canReadAll,
+    teamMembers,
+    isScopeLoading: !canReadAll && Boolean(selfPersonId) && reports.isLoading,
+  };
 }

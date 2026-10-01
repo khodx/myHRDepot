@@ -176,6 +176,12 @@ vi.mock('@/features/timeattendance/components/MhdAttendancePage', () => ({
 vi.mock('@/features/timeattendance/components/MhdAttendancePolicyPage', () => ({
   MhdAttendancePolicyPage: () => <div>Attendance Policy Page</div>,
 }));
+vi.mock('@/features/timeattendance/components/MhdScheduleTemplatesPage', () => ({
+  MhdScheduleTemplatesPage: () => <div>Schedule Patterns Page</div>,
+}));
+vi.mock('@/features/timeattendance/components/MhdScheduleTemplatePage', () => ({
+  MhdScheduleTemplatePage: ({ mode }: { mode: string }) => <div>Schedule Pattern Page ({mode})</div>,
+}));
 vi.mock('@/features/leaves/components/MhdLeavesPage', () => ({
   MhdLeavesPage: () => <div>Leaves Page</div>,
 }));
@@ -629,22 +635,62 @@ describe('MhdAppRouter', () => {
       expect(window.location.pathname).toBe('/404');
     });
 
-    it('renders "/attendance/policy" for a Client Admin but not a Client User', async () => {
-      mockAuth({ isAuthenticated: true, roles: ['Client Admin'] });
-      setUrl('/attendance/policy');
-      const { unmount } = render(<MhdAppRouter />);
-      expect(await screen.findByText('Attendance Policy Page')).toBeInTheDocument();
-      unmount();
+    it.each<MhdAuthRoleName>(['Client Admin', 'HR Coordinator', 'Manager', 'Employee'])(
+      'renders "/attendance/policy" for %s - the published policy is readable by everyone who can open /attendance',
+      async (role) => {
+        mockAuth({ isAuthenticated: true, roles: [role] });
+        setUrl('/attendance/policy');
+        render(<MhdAppRouter />);
+        expect(await screen.findByText('Attendance Policy Page')).toBeInTheDocument();
+      },
+    );
 
-      // Client User reaches /attendance but NOT /attendance/policy — the
-      // privileged-only rule must win the prefix match over the broader
-      // /attendance rule.
-      mockAuth({ isAuthenticated: true, roles: ['Employee'] });
+    it('redirects a Viewer away from "/attendance/policy" to "/404"', () => {
+      mockAuth({ isAuthenticated: true, roles: ['Viewer' as MhdAuthRoleName] });
       setUrl('/attendance/policy');
       render(<MhdAppRouter />);
       expect(screen.queryByText('Attendance Policy Page')).not.toBeInTheDocument();
       expect(screen.getByText('Page Not Found')).toBeInTheDocument();
     });
+
+    it.each(['/schedule/templates', '/schedule/templates/new'])(
+      'renders "%s" for a Client Admin',
+      async (path) => {
+        mockAuth({ isAuthenticated: true, roles: ['Client Admin'] });
+        setUrl(path);
+        render(<MhdAppRouter />);
+        expect(
+          await screen.findByText(
+            path.endsWith('/new') ? 'Schedule Pattern Page (create)' : 'Schedule Patterns Page',
+          ),
+        ).toBeInTheDocument();
+      },
+    );
+
+    it.each(['/schedule/templates/tpl-1', '/schedule/templates/tpl-1/edit'])(
+      'renders "%s" for an HR Partner as view and edit respectively',
+      async (path) => {
+        mockAuth({ isAuthenticated: true, roles: ['HR Partner'] });
+        setUrl(path);
+        render(<MhdAppRouter />);
+        expect(
+          await screen.findByText(
+            path.endsWith('/edit') ? 'Schedule Pattern Page (edit)' : 'Schedule Pattern Page (view)',
+          ),
+        ).toBeInTheDocument();
+      },
+    );
+
+    it.each<MhdAuthRoleName>(['Employee', 'Manager', 'HR Coordinator'])(
+      'keeps "/schedule/templates" privileged-only: %s is redirected even though they can open "/schedule"',
+      (role) => {
+        mockAuth({ isAuthenticated: true, roles: [role] });
+        setUrl('/schedule/templates');
+        render(<MhdAppRouter />);
+        expect(screen.queryByText('Schedule Patterns Page')).not.toBeInTheDocument();
+        expect(screen.getByText('Page Not Found')).toBeInTheDocument();
+      },
+    );
 
     it.each<MhdAuthRoleName>(['Employee', 'Viewer'])(
       'redirects an authenticated %s away from "/offboarding" to "/404"',

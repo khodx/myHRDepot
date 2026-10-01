@@ -25853,6 +25853,8 @@ export type Database = {
           action_level: string
           crossed_at: string
           id: string
+          linked_conduct_case_id: string
+          linked_conduct_case_reference: string
           linked_task_id: string
           person_display_name: string
           person_id: string
