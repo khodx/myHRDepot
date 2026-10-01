@@ -12,6 +12,7 @@ import {
 } from '../Types';
 import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 import type { z } from 'zod';
+import { mhdNumberField } from '@/utils/mhdFormNumbers';
 
 interface Props {
   companyId: string;
@@ -164,7 +165,7 @@ export function MhdAttendancePolicyEditor({
           id="rollOffMonths"
           type="number"
           min={1}
-          {...register('rollOffMonths', { valueAsNumber: true })}
+          {...register('rollOffMonths', mhdNumberField())}
           className="mt-1 w-32 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
         {errors.rollOffMonths ? (
@@ -184,9 +185,14 @@ export function MhdAttendancePolicyEditor({
                 type="number"
                 step="0.25"
                 min={0}
-                {...register(`pointRules.${index}.points` as const, { valueAsNumber: true })}
+                {...register(`pointRules.${index}.points` as const, mhdNumberField())}
                 className="w-24 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
+              {errors.pointRules?.[index]?.points ? (
+                <span className="text-xs text-rose-600">
+                  {errors.pointRules[index]?.points?.message}
+                </span>
+              ) : null}
               <input type="hidden" {...register(`pointRules.${index}.occurrenceType` as const)} />
             </div>
           ))}
@@ -228,9 +234,14 @@ export function MhdAttendancePolicyEditor({
                 step="0.25"
                 min={0}
                 placeholder="Points"
-                {...register(`thresholds.${index}.pointsAt` as const, { valueAsNumber: true })}
+                {...register(`thresholds.${index}.pointsAt` as const, mhdNumberField())}
                 className="w-24 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
+              {errors.thresholds?.[index]?.pointsAt ? (
+                <span className="text-xs text-rose-600">
+                  {errors.thresholds[index]?.pointsAt?.message}
+                </span>
+              ) : null}
               <select
                 {...register(`thresholds.${index}.actionLevel` as const)}
                 className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"

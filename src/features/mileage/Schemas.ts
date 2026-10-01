@@ -41,7 +41,7 @@ export const mhdTripFormSchema = z
     personId: z.string().trim().min(1, 'Employee is required.'),
     tripDate: isoDate,
     miles: z
-      .number()
+      .number({ error: 'Enter the miles driven.' })
       .positive('Miles must be above zero.')
       .max(10_000, 'That mileage is not plausible for one trip.'),
     origin: z.string().trim().min(1, 'A starting point is required.').max(500),
@@ -184,7 +184,7 @@ export const mhdMarkClaimExportedSchema = z.object({
 export const mhdRateProposalSchema = z.object({
   category: z.enum(MHD_MILEAGE_RATE_CATEGORIES),
   ratePerMile: z
-    .number()
+    .number({ error: 'Enter the rate per mile.' })
     .positive('A rate must be above zero.')
     // Sanity only, not a statutory bound: a rate per MILE in the tens of
     // dollars is a decimal-point slip, most often cents entered as dollars.

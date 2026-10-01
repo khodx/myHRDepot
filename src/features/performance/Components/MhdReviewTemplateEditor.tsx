@@ -14,6 +14,7 @@ import {
 } from '../Types-v2';
 import { mhdReviewTemplateSchema, type MhdReviewTemplateFormValues } from '../Schemas-v2';
 import type { z } from 'zod';
+import { mhdNumberField } from '@/utils/mhdFormNumbers';
 
 interface Props {
   companyId: string;
@@ -243,7 +244,7 @@ export function MhdReviewTemplateEditor({ companyId, isPlatformAdmin }: Props) {
                 <input
                   type="hidden"
                   value={index}
-                  {...register(`sections.${index}.sortOrder` as const, { valueAsNumber: true })}
+                  {...register(`sections.${index}.sortOrder` as const, mhdNumberField())}
                 />
                 {errors.sections?.[index]?.sectionTitle ? (
                   <p className="text-xs text-rose-600">

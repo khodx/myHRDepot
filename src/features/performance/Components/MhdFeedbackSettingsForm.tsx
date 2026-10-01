@@ -8,6 +8,7 @@ import { useMhdFeedbackSettings, useMhdUpsertFeedbackSettings } from '../Hook-v2
 import { MHD_FEEDBACK_THRESHOLD_FLOOR } from '../Types-v2';
 import { mhdFeedbackSettingsSchema, type MhdFeedbackSettingsFormValues } from '../Schemas-v2';
 import type { z } from 'zod';
+import { mhdNumberField } from '@/utils/mhdFormNumbers';
 
 interface Props {
   companyId: string;
@@ -87,7 +88,7 @@ export function MhdFeedbackSettingsForm({ companyId }: Props) {
           type="number"
           min={MHD_FEEDBACK_THRESHOLD_FLOOR}
           step={1}
-          {...register('minResponsesForRelease', { valueAsNumber: true })}
+          {...register('minResponsesForRelease', mhdNumberField())}
           className="mt-1 w-32 rounded-md border border-border px-3 py-2 text-sm"
         />
         {errors.minResponsesForRelease ? (
