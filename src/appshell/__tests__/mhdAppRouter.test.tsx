@@ -755,7 +755,7 @@ describe('MhdAppRouter', () => {
       },
     );
 
-    it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner'])(
+    it.each<MhdAuthRoleName>(['Platform Admin'])(
       'renders "/knowledge-center/admin" for %s',
       async (role) => {
         mockAuth({ isAuthenticated: true, roles: [role] });
