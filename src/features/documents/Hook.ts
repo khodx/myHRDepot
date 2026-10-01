@@ -20,7 +20,8 @@ export const mhdDocumentQueryKeys = {
     entityType?: string,
   ) => ['mhd-document-templates', companyId, templateType, includeInactive, entityType] as const,
   template: (templateId: string | null) => ['mhd-document-template', templateId] as const,
-  compliance: (templateId: string | null) => ['mhd-document-template-compliance', templateId] as const,
+  compliance: (templateId: string | null) =>
+    ['mhd-document-template-compliance', templateId] as const,
   complianceContent: () => ['mhd-compliance-content'] as const,
   templateByKey: (templateKey: string | null, companyId: string | null) =>
     ['mhd-document-template-by-key', templateKey, companyId] as const,
@@ -80,13 +81,22 @@ export function useMhdSetTemplateCompliance(templateId: string) {
 /** Resolves a module's default/master template by its stable template_key
  *  (e.g. TASK_MASTER_ALL_FIELDS) — the reusable pattern any module uses to
  *  pin a "download, customize, upload back" starting point. */
-export function useMhdDocumentTemplateByKey(
+export function useMhdDocumentTemplateByKey(templateKey: string | null, companyId: string | null) {
+  return useQuery({
+    queryKey: mhdDocumentQueryKeys.templateByKey(templateKey, companyId),
+    queryFn: () => mhdDocumentService.getTemplateByKey(templateKey!, companyId),
+    enabled: Boolean(templateKey),
+  });
+}
+
+/** The id only — see `mhdDocumentService.getTemplateIdByKey`. */
+export function useMhdDocumentTemplateIdByKey(
   templateKey: string | null,
   companyId: string | null,
 ) {
   return useQuery({
-    queryKey: mhdDocumentQueryKeys.templateByKey(templateKey, companyId),
-    queryFn: () => mhdDocumentService.getTemplateByKey(templateKey!, companyId),
+    queryKey: ['mhd-documents', 'template-id-by-key', templateKey ?? '', companyId ?? ''] as const,
+    queryFn: () => mhdDocumentService.getTemplateIdByKey(templateKey!, companyId),
     enabled: Boolean(templateKey),
   });
 }

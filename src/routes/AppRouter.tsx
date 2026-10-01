@@ -1012,12 +1012,12 @@ function MhdAppRoutes() {
                 <Route path="/my-training" element={<MhdMyTrainingRoutePage />} />
                 <Route path="/my-training/course/:assignmentId" element={<MhdTrainingCourseShellPage />} />
                 {/* Handbook Engine. Two SEPARATE routes, never one filtered surface:
-                  /handbooks is the admin wizard + acknowledgment board (Platform
-                  Admin / HR Partner / Client Admin), /handbooks/:handbookId is the
+                  /handbooks is the admin wizard + acknowledgment board (the
+                  privileged handbook set), /handbooks/:handbookId is the
                   per-handbook wizard and inherits that rule via the guard's prefix
-                  match. /my-handbooks is the employee's own acknowledgment surface
-                  (Client User only). Viewer is excluded from all three (see
-                  mhdRouteAccess). Every clause body rendered here carries a visible
+                  match. /my-handbooks is each person's own acknowledgment surface,
+                  open to every internal role. Viewer is excluded from all three
+                  (see mhdRouteAccess). Every clause body rendered here carries a visible
                   attorney-content-pending banner — this is a SHELL wave, content is
                   attorney-flagged placeholder. All pages read useMhdAuth themselves. */}
                 <Route path="/handbooks" element={<MhdHandbooksPage />} />

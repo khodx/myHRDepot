@@ -6,6 +6,7 @@ import {
   mhdHandbookIndentStyle,
 } from '../Types';
 import { MhdHandbookAttorneyPendingBanner } from './MhdHandbookAttorneyPendingBanner';
+import { MhdHandbookBody } from './MhdHandbookBody';
 
 interface Props {
   versionId: string;
@@ -99,15 +100,11 @@ export function MhdHandbookVersionView({ versionId }: Props) {
                   </MhdBadge>
                 </div>
                 {/* Frozen, read-only — rendered exactly as snapshotted. */}
-                <p
-                  className={
-                    isPlaceholder
-                      ? 'mt-2 whitespace-pre-wrap text-sm italic text-muted-foreground'
-                      : 'mt-2 whitespace-pre-wrap text-sm text-foreground'
-                  }
-                >
-                  {section.body}
-                </p>
+                <MhdHandbookBody
+                  body={section.body}
+                  sectionTitle={section.title}
+                  muted={isPlaceholder}
+                />
               </li>
             );
           })}

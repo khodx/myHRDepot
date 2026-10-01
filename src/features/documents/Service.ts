@@ -6,7 +6,7 @@ import {
   MHD_ATTACHMENT_MAX_SIZE_MB,
   type MhdDriveUploadResponse,
 } from '@/features/attachments/Types';
-import { mhdRenderDocumentGeneration } from './generationEngine';
+import { mhdGenerationPollOptionsFor, mhdRenderDocumentGeneration } from './generationEngine';
 import type {
   MhdCreateDocumentTemplateInput,
   MhdDocumentGeneration,
@@ -43,8 +43,6 @@ type MhdDocumentMergeBatchPayload = {
   items: MhdDocumentMergeBatchItemRow[];
 };
 
-const DEFAULT_POLL_ATTEMPTS = 10;
-const DEFAULT_POLL_INTERVAL_MS = 1500;
 const MHD_ALLOWED_UPLOAD_MIME_TYPES = [
   'application/pdf',
   'application/msword',
@@ -262,7 +260,9 @@ export const mhdDocumentService = {
 
   async setTemplateCompliance(templateId: string, tag: MhdTemplateComplianceTag): Promise<void> {
     if ((tag.moduleKey === null) !== (tag.contentKey === null)) {
-      throw new Error('Template compliance module and content keys must both be set or both be cleared.');
+      throw new Error(
+        'Template compliance module and content keys must both be set or both be cleared.',
+      );
     }
 
     const { error } = await supabaseClient.rpc('mhd_set_document_template_compliance', {
@@ -300,6 +300,24 @@ export const mhdDocumentService = {
     }
 
     return mhdDocumentService.getTemplate(templateId);
+  },
+
+  /**
+   * Just the id of the template a key resolves to (company override first, then the
+   * global default). For callers that only need to request a generation — an employee
+   * downloading a document cannot necessarily read the template row itself, but the
+   * by-key resolver is an authorized RPC that returns nothing else.
+   */
+  async getTemplateIdByKey(templateKey: string, companyId: string | null): Promise<string | null> {
+    const { data, error } = await supabaseClient.rpc('mhd_get_document_template_by_key', {
+      p_template_key: templateKey,
+      p_company_id: companyId ?? undefined,
+    });
+
+    if (error) {
+      throw new Error(`Unable to resolve template "${templateKey}": ${error.message}`);
+    }
+    return data ?? null;
   },
 
   async createTemplate(
@@ -563,8 +581,10 @@ export const mhdDocumentService = {
 
     await mhdRenderDocumentGeneration(requested.id, 'Document render');
 
-    const attempts = options?.pollAttempts ?? DEFAULT_POLL_ATTEMPTS;
-    const intervalMs = options?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
+    // An explicit option wins; otherwise the budget follows what is being generated.
+    const budget = mhdGenerationPollOptionsFor(input.entityType);
+    const attempts = options?.pollAttempts ?? budget.pollAttempts;
+    const intervalMs = options?.pollIntervalMs ?? budget.pollIntervalMs;
 
     let generation = await mhdDocumentService.getGeneration(requested.id);
     for (let attempt = 0; attempt < attempts && generation.status === 'PENDING'; attempt += 1) {
@@ -662,4 +682,7 @@ export const mhdDocumentService = {
 // conduct, case-documents, offboarding, and performance each independently
 // reimplemented this render-invoke + poll pair before 2026-08-06 (audit
 // finding M2/M6); they now call these shared primitives instead.
-export { mhdRenderDocumentGeneration, mhdPollDocumentGenerationUntilGenerated } from './generationEngine';
+export {
+  mhdRenderDocumentGeneration,
+  mhdPollDocumentGenerationUntilGenerated,
+} from './generationEngine';

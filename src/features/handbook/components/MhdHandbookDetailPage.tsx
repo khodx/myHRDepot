@@ -17,16 +17,16 @@ interface MhdHandbookDetailPageProps {
  *
  * Route-entry page: reads `useMhdAuth()` and `useParams()` itself, per the app
  * convention. It inherits the `/handbooks` access rule via the guard's prefix
- * match (Platform Admin / HR Partner / Client Admin; Client User and Viewer
- * refused). The handbook is resolved from the company's list — there is no
+ * match (the privileged handbook set; Employee and Viewer refused). The handbook is resolved from the company's list — there is no
  * single-handbook getter RPC — so a bad or foreign id resolves to "not found".
  *
- * The doc-gen (`onGenerateDocument`) and e-sign (`onRequestSignature`) ceremony
- * callbacks are deliberately NOT injected here: that orchestration is the host
- * Attachments / signing surface exercised in the browser walkthrough (Stage 5).
- * Without them, publish freezes with no document link and an acknowledgment is
- * assigned with no signature request (the shell path) — the components handle the
- * absence gracefully.
+ * Document generation is not part of publishing: a published version is exported on
+ * demand from the Export section (PDF, or Word for administrators), rendered from the
+ * frozen version. The `onGenerateDocument` (publish-time render) and
+ * `onRequestSignature` (per-acknowledgment e-sign) ceremony callbacks are therefore
+ * deliberately NOT injected here — publish freezes with no document link, and an
+ * acknowledgment is assigned with no signature request, unless a deployment wires an
+ * e-sign flow in. The components handle the absence gracefully.
  */
 export function MhdHandbookDetailPage({ tab = 'detail' }: MhdHandbookDetailPageProps) {
   const { profile, roles } = useMhdAuth();

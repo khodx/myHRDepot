@@ -7,9 +7,9 @@ import { MhdHandbookListPage } from './MhdHandbookListPage';
  * `/handbooks` route entry — the admin handbook list + create flow.
  *
  * Route-entry page: reads `useMhdAuth()` and `useNavigate()` itself, per the app
- * convention. The route is restricted to Platform Admin / HR Partner / Client
- * Admin by mhdRouteAccess (MhdRoleGuardedRoute enforces it; Client User and Viewer
- * are refused). `canManage` (mhdHandbookIsPrivileged) governs the create / manage
+ * convention. The route is restricted to the privileged handbook set
+ * (MHD_HANDBOOK_PRIVILEGED_ROLES) by mhdRouteAccess (MhdRoleGuardedRoute enforces it;
+ * Employee and Viewer are refused). `canManage` (mhdHandbookIsPrivileged) governs the create / manage
  * affordances — the handbook RPCs re-check `mhd_handbook_is_privileged` server-side
  * regardless. Opening a handbook navigates to the wizard at `/handbooks/:handbookId`.
  */

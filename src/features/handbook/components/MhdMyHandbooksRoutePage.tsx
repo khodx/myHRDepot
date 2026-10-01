@@ -5,7 +5,7 @@ import { MhdMyHandbooksPage } from './MhdMyHandbooksPage';
  * `/my-handbooks` route entry — the employee acknowledgment surface.
  *
  * Route-entry page: reads `useMhdAuth()` itself, per the app convention. The route
- * admits Client User only (mhdRouteAccess); the page shows ONLY the signed-in
+ * admits every internal role (MHD_HANDBOOK_ACKNOWLEDGER_ROLES); the page shows ONLY the signed-in
  * employee's own acknowledgments (`my_acknowledgments`, narrowed by `auth.uid()`
  * server-side).
  *

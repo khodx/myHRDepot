@@ -21,6 +21,7 @@ import {
   type MhdHandbook,
 } from '../Types';
 import { MhdHandbookAckBoard } from './MhdHandbookAckBoard';
+import { MhdHandbookAckPolicyCard } from './MhdHandbookAckPolicyCard';
 import { MhdHandbookPreview } from './MhdHandbookPreview';
 import { MhdHandbookSectionPicker } from './MhdHandbookSectionPicker';
 import { MhdHandbookStatusBadge } from './MhdHandbookStatusBadge';
@@ -105,6 +106,7 @@ export function MhdHandbookWizard({
         <MhdHandbookPublishedView
           handbook={handbook}
           companyId={companyId}
+          canManage={canManage}
           activeTab={activeTab}
           onRequestSignature={onRequestSignature}
         />
@@ -204,6 +206,8 @@ function MhdHandbookDraftEditor({
         <h2 className="text-base font-semibold text-foreground">Preview</h2>
         <MhdHandbookPreview rows={preview.data ?? []} isLoading={preview.isLoading} />
 
+        {canManage ? <MhdHandbookAckPolicyCard handbook={handbook} canManage={canManage} /> : null}
+
         {canManage ? (
           <MhdCard className="space-y-2">
             <label htmlFor="effectiveDate" className="block text-sm font-medium text-foreground">
@@ -250,6 +254,7 @@ function MhdHandbookDraftEditor({
 interface PublishedProps {
   handbook: MhdHandbook;
   companyId: string;
+  canManage: boolean;
   activeTab: MhdHandbookRecordTab;
   onRequestSignature?: (personId: string) => Promise<string | null>;
 }
@@ -257,6 +262,7 @@ interface PublishedProps {
 function MhdHandbookPublishedView({
   handbook,
   companyId,
+  canManage,
   activeTab,
   onRequestSignature,
 }: PublishedProps) {
@@ -291,6 +297,10 @@ function MhdHandbookPublishedView({
       ) : (
         <p className="text-sm text-muted-foreground">This handbook has no published version.</p>
       )}
+
+      {handbook.status === 'PUBLISHED' ? (
+        <MhdHandbookAckPolicyCard handbook={handbook} canManage={canManage} />
+      ) : null}
 
       {versionId ? (
         <MhdCard>

@@ -30,6 +30,7 @@ import type {
   MhdMoveHandbookSectionInput,
   MhdMyAcknowledgmentRpcRow,
   MhdPublishHandbookInput,
+  MhdSetHandbookAckPolicyInput,
   MhdToggleSectionInput,
   MhdUpdateHandbookSectionInput,
 } from './Types';
@@ -88,6 +89,7 @@ function mapHandbook(row: MhdHandbookRpcRow): MhdHandbook {
     currentVersionId: row.current_version_id,
     effectiveDate: row.effective_date,
     createdAt: row.created_at,
+    acknowledgmentDueDays: mhdToNumber(row.acknowledgment_due_days),
   };
 }
 
@@ -146,6 +148,7 @@ function mapAckStatusRow(row: MhdHandbookAckStatusRpcRow): MhdHandbookAckStatusR
     personDisplayName: row.person_display_name,
     status: row.status as MhdHandbookAckStatusRow['status'],
     acknowledgedAt: row.acknowledged_at,
+    dueAt: row.due_at,
   };
 }
 
@@ -159,6 +162,7 @@ function mapMyAcknowledgment(row: MhdMyAcknowledgmentRpcRow): MhdMyAcknowledgmen
     status: row.status as MhdMyAcknowledgment['status'],
     esignatureRequestId: row.esignature_request_id,
     acknowledgedAt: row.acknowledged_at,
+    dueAt: row.due_at,
   };
 }
 
@@ -360,6 +364,19 @@ export const mhdHandbookService = {
       p_handbook_id: input.handbookId,
       p_section_id: input.sectionId,
       p_included: input.included,
+    });
+    if (error) throw error;
+  },
+
+  /**
+   * Change a handbook's acknowledgment deadline policy. The RPC enforces the
+   * administrator role and the 1–365 day bound; the new value applies to future
+   * assignments only. The server's message is surfaced rather than pre-empted.
+   */
+  async setAckPolicy(input: MhdSetHandbookAckPolicyInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_handbook_set_ack_policy', {
+      p_handbook_id: input.handbookId,
+      p_due_days: input.dueDays,
     });
     if (error) throw error;
   },

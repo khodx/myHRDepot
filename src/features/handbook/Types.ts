@@ -59,6 +59,8 @@ export interface MhdHandbookRpcRow {
   current_version_id: string | null;
   effective_date: string | null;
   created_at: string;
+  // 0342: days an employee has to acknowledge a newly assigned version.
+  acknowledgment_due_days: number | string;
 }
 
 /** Row shape returned by `mhd_handbook_preview` — one included section, in order. */
@@ -117,6 +119,7 @@ export interface MhdHandbookAckStatusRpcRow {
   person_display_name: string;
   status: string;
   acknowledged_at: string | null;
+  due_at: string | null;
 }
 
 /** Row shape returned by `mhd_handbook_my_acknowledgments`. */
@@ -129,6 +132,7 @@ export interface MhdMyAcknowledgmentRpcRow {
   status: string;
   esignature_request_id: string | null;
   acknowledged_at: string | null;
+  due_at: string | null;
 }
 
 /** Row shape returned by a create/assign RPC that mints a reference: `(id, reference_id)`. */
@@ -263,6 +267,8 @@ export interface MhdHandbook {
   currentVersionId: string | null;
   effectiveDate: string | null;
   createdAt: string;
+  /** Days an employee has to acknowledge a newly assigned version. */
+  acknowledgmentDueDays: number;
 }
 
 /** One assembled row of a DRAFT preview (`preview`). `body` is a placeholder. */
@@ -328,6 +334,7 @@ export interface MhdHandbookAckStatusRow {
   personDisplayName: string;
   status: MhdHandbookAckStatus;
   acknowledgedAt: string | null;
+  dueAt: string | null;
 }
 
 /** One row of the employee's own acknowledgment surface (`my_acknowledgments`). */
@@ -342,6 +349,7 @@ export interface MhdMyAcknowledgment {
   // server GATES `acknowledge` on that request completing.
   esignatureRequestId: string | null;
   acknowledgedAt: string | null;
+  dueAt: string | null;
 }
 
 /** Mapped result of a create / assign RPC that mints a reference. */
@@ -372,6 +380,31 @@ export interface MhdCreateHandbookInput {
   handbookType: MhdHandbookType;
   title: string;
   jurisdictions: MhdHandbookJurisdiction[];
+}
+
+/**
+ * Changing how long employees have to acknowledge a newly assigned version
+ * (`mhd_handbook_set_ack_policy`). It applies to future assignments only; an
+ * acknowledgment already assigned keeps the deadline it was given.
+ */
+export interface MhdSetHandbookAckPolicyInput {
+  handbookId: MhdHandbookId;
+  dueDays: number;
+}
+
+/** Bounds of the acknowledgment deadline; mirrors the database CHECK (0342). */
+export const MHD_HANDBOOK_ACK_DUE_DAYS_MIN = 1;
+export const MHD_HANDBOOK_ACK_DUE_DAYS_MAX = 365;
+
+/** True when an assignment is still pending and its deadline has passed. */
+export function mhdIsAcknowledgmentOverdue(
+  dueAt: string | null,
+  status: string,
+  now: Date = new Date(),
+): boolean {
+  if (status !== 'PENDING' || !dueAt) return false;
+  const due = new Date(dueAt);
+  return !Number.isNaN(due.getTime()) && due.getTime() <= now.getTime();
 }
 
 export interface MhdToggleSectionInput {

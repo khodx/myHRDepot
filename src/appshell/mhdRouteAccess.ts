@@ -7,6 +7,30 @@ export interface MhdRouteAccessRule {
 }
 
 /**
+ * Every role that can be assigned a handbook to acknowledge, and so may reach
+ * `/my-handbooks`. That is every internal role: acknowledging is something everyone
+ * who works for the company does, including HR, leadership and administrators. The
+ * page is identity-scoped — `mhd_handbook_my_acknowledgments` returns only the signed-in
+ * person's own rows — so widening the audience exposes nothing beyond their own
+ * assignments. Viewer and 3rd Party are external and excluded. Defined above the route
+ * table because the table is built at module load.
+ */
+export const MHD_HANDBOOK_ACKNOWLEDGER_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'Executive Leadership',
+  'Director',
+  'HR Partner',
+  'HR Admin',
+  'HR Specialist',
+  'HR Coordinator',
+  'Client Admin',
+  'Manager',
+  'Supervisor',
+  'Lead',
+  'Employee',
+];
+
+/**
  * Single source of truth for which roles may reach which top-level app routes.
  * MhdSidebar reads this to decide which nav links to render, and
  * MhdRoleGuardedRoute reads it to enforce the same rule at the router level —
@@ -429,16 +453,18 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   },
   // Handbook Engine. Two SEPARATE routes, never one filtered surface — the same
   // one-route-per-audience discipline as /training vs /my-training. /handbooks is
-  // the admin wizard + acknowledgment board (Platform Admin / HR Partner / Client
-  // Admin); /handbooks/:handbookId inherits that rule via the guard's prefix
-  // match. /my-handbooks is the employee's OWN acknowledgment surface (Client User
-  // only). Viewer is excluded from BOTH; Client User is excluded from the admin
-  // /handbooks. /my-handbooks is listed first and is a DISTINCT prefix from
-  // /handbooks (it does not start with "/handbooks/"), so the first-match prefix
-  // scan never lets the /handbooks rule capture /my-handbooks. Both entries are
-  // ROLE-gated in the sidebar's Employee Development group, independent of the
-  // data-gated Investigations entry and the Training entries.
-  { path: '/my-handbooks', roles: ['Employee', 'Manager', 'Supervisor', 'Lead'] },
+  // the admin wizard + acknowledgment board (the privileged handbook set, see
+  // MHD_HANDBOOK_PRIVILEGED_ROLES); /handbooks/:handbookId inherits that rule via
+  // the guard's prefix match. /my-handbooks is the person's OWN acknowledgment
+  // surface, open to every internal role (MHD_HANDBOOK_ACKNOWLEDGER_ROLES) because
+  // anyone can be assigned a handbook — including the HR and leadership staff an
+  // automation assigns it to. Viewer and 3rd Party are excluded from BOTH routes;
+  // an Employee is excluded from the admin /handbooks. /my-handbooks is listed first
+  // and is a DISTINCT prefix from /handbooks (it does not start with "/handbooks/"),
+  // so the first-match prefix scan never lets the /handbooks rule capture
+  // /my-handbooks. Both entries are ROLE-gated in the sidebar's Employee Development
+  // group, independent of the data-gated Investigations entry and the Training entries.
+  { path: '/my-handbooks', roles: MHD_HANDBOOK_ACKNOWLEDGER_ROLES },
   // Handbook Studio/Library split (2026-08-18) — both surfaces stay within
   // the existing admin-only audience; '/my-handbooks' above is the separate
   // employee-facing acknowledgment surface, unaffected by this split.
@@ -1067,11 +1093,14 @@ export function mhdTrainingIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
 }
 
 /**
- * The privileged Handbook set — Platform Admin / HR Partner / Client Admin. These
- * roles reach the admin `/handbooks` surface, where they create draft handbooks,
- * toggle optional sections, publish frozen versions, and run the acknowledgment
- * board. A Client User falls outside this set and reaches only `/my-handbooks`
- * (their OWN acknowledgments); Viewer is excluded from both routes. The handbook
+ * The privileged Handbook set — Platform Admin, HR Partner, HR Admin, HR Specialist,
+ * Client Admin, Executive Leadership and Director (the same set as the database's
+ * `mhd_handbook_is_privileged`). These roles reach the admin `/handbooks` surface,
+ * where they create draft handbooks, toggle optional sections, publish frozen
+ * versions, run the acknowledgment board and — the only people who may — export the
+ * handbook as Word. An Employee falls outside this set and reaches only
+ * `/my-handbooks` (their OWN acknowledgments, plus a PDF copy of an assigned version);
+ * Viewer is excluded from both routes. The handbook
  * RPCs re-check `mhd_handbook_is_privileged` server-side (42501 on a
  * non-privileged write); this helper only decides whether the create / manage
  * affordances render — it maps to the `canManage` prop on the list page and wizard.

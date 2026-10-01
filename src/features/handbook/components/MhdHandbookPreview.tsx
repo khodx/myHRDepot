@@ -6,6 +6,7 @@ import {
   type MhdHandbookPreviewRow,
 } from '../Types';
 import { MhdHandbookAttorneyPendingBanner } from './MhdHandbookAttorneyPendingBanner';
+import { MhdHandbookBody } from './MhdHandbookBody';
 
 interface Props {
   rows: MhdHandbookPreviewRow[];
@@ -56,15 +57,11 @@ export function MhdHandbookPreview({ rows, isLoading = false }: Props) {
                     {mhdFormatHandbookJurisdiction(row.jurisdiction)}
                   </MhdBadge>
                 </div>
-                <p
-                  className={
-                    isPlaceholder
-                      ? 'mt-2 whitespace-pre-wrap text-sm italic text-muted-foreground'
-                      : 'mt-2 whitespace-pre-wrap text-sm text-foreground'
-                  }
-                >
-                  {row.bodyPlaceholder}
-                </p>
+                <MhdHandbookBody
+                  body={row.bodyPlaceholder}
+                  sectionTitle={row.title}
+                  muted={isPlaceholder}
+                />
               </li>
             );
           })}

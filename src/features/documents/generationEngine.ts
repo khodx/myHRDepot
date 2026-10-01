@@ -16,6 +16,32 @@ export const MHD_RENDER_DOCUMENT_FUNCTION_NAME = 'render-document';
 export const MHD_DEFAULT_GENERATION_POLL_ATTEMPTS = 10;
 export const MHD_DEFAULT_GENERATION_POLL_INTERVAL_MS = 1500;
 
+/**
+ * A long, multi-page document (a full handbook) takes materially longer to convert
+ * than a one-page notice, so it gets a larger budget: 60 x 2s = two minutes instead
+ * of the default fifteen seconds. Only entity types that genuinely render long are
+ * listed — a short document should still fail fast.
+ */
+export const MHD_LONG_DOCUMENT_POLL_ATTEMPTS = 60;
+export const MHD_LONG_DOCUMENT_POLL_INTERVAL_MS = 2000;
+export const MHD_LONG_RUNNING_DOCUMENT_ENTITY_TYPES: readonly string[] = ['HANDBOOK_VERSION'];
+
+/** The poll budget for generating a document about the given entity type. */
+export function mhdGenerationPollOptionsFor(entityType: string): {
+  pollAttempts: number;
+  pollIntervalMs: number;
+} {
+  return MHD_LONG_RUNNING_DOCUMENT_ENTITY_TYPES.includes(entityType)
+    ? {
+        pollAttempts: MHD_LONG_DOCUMENT_POLL_ATTEMPTS,
+        pollIntervalMs: MHD_LONG_DOCUMENT_POLL_INTERVAL_MS,
+      }
+    : {
+        pollAttempts: MHD_DEFAULT_GENERATION_POLL_ATTEMPTS,
+        pollIntervalMs: MHD_DEFAULT_GENERATION_POLL_INTERVAL_MS,
+      };
+}
+
 interface MhdRenderDocumentResponse {
   success?: boolean;
   error?: string;

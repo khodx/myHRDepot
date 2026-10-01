@@ -2,7 +2,8 @@
   "crons": [
     { "path": "/api/cron/automation-drain", "schedule": "*/5 * * * *" },
     { "path": "/api/cron/dispatch-notification-emails", "schedule": "*/5 * * * *" },
-    { "path": "/api/cron/certificate-expiry-sweep", "schedule": "0 6 * * *" }
+    { "path": "/api/cron/certificate-expiry-sweep", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/handbook-acknowledgment-sweep", "schedule": "30 6 * * *" }
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },

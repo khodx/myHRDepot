@@ -10,6 +10,7 @@ import type {
   MhdHandbookSectionFilters,
   MhdMoveHandbookSectionInput,
   MhdPublishHandbookInput,
+  MhdSetHandbookAckPolicyInput,
   MhdToggleSectionInput,
   MhdUpdateHandbookSectionInput,
 } from './Types';
@@ -135,6 +136,17 @@ export function useMhdCreateHandbook() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: MhdCreateHandbookInput) => mhdHandbookService.create(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-handbook', 'handbooks'] });
+    },
+  });
+}
+
+/** The deadline policy lives on the handbook row, so the handbook list must refresh. */
+export function useMhdSetHandbookAckPolicy() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdSetHandbookAckPolicyInput) => mhdHandbookService.setAckPolicy(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-handbook', 'handbooks'] });
     },

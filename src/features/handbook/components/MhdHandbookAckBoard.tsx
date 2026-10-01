@@ -4,7 +4,7 @@ import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdAssignAcknowledgment, useMhdHandbookAckStatus, useMhdHandbookPeople } from '../Hook';
-import { mhdFormatHandbookAckStatus } from '../Types';
+import { mhdFormatHandbookAckStatus, mhdIsAcknowledgmentOverdue } from '../Types';
 
 interface Props {
   companyId: string;
@@ -114,6 +114,7 @@ export function MhdHandbookAckBoard({ companyId, versionId, onRequestSignature }
               <tr>
                 <MhdTh>Person</MhdTh>
                 <MhdTh>Status</MhdTh>
+                <MhdTh>Due</MhdTh>
                 <MhdTh>Acknowledged</MhdTh>
               </tr>
             </thead>
@@ -125,6 +126,14 @@ export function MhdHandbookAckBoard({ companyId, versionId, onRequestSignature }
                     <MhdBadge variant={row.status === 'ACKNOWLEDGED' ? 'success' : 'warning'}>
                       {mhdFormatHandbookAckStatus(row.status)}
                     </MhdBadge>
+                  </MhdTd>
+                  <MhdTd className="whitespace-nowrap text-muted-foreground">
+                    {row.dueAt ? new Date(row.dueAt).toLocaleDateString() : '—'}
+                    {mhdIsAcknowledgmentOverdue(row.dueAt, row.status) ? (
+                      <MhdBadge variant="error" className="ml-2" hideIcon>
+                        Overdue
+                      </MhdBadge>
+                    ) : null}
                   </MhdTd>
                   <MhdTd className="whitespace-nowrap text-muted-foreground">
                     {row.acknowledgedAt ? new Date(row.acknowledgedAt).toLocaleString() : '—'}

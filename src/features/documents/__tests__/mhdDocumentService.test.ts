@@ -14,7 +14,10 @@ vi.mock('@/lib/supabase/supabaseClient', () => ({
     functions: { invoke: functionsInvokeMock },
   },
 }));
-vi.mock('../generationEngine', () => ({ mhdRenderDocumentGeneration: renderMock }));
+vi.mock('../generationEngine', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../generationEngine')>()),
+  mhdRenderDocumentGeneration: renderMock,
+}));
 
 const { mhdDocumentService } = await import('../Service');
 

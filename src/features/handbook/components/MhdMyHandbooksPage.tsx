@@ -6,8 +6,10 @@ import { useMhdAcknowledgeHandbook, useMhdMyAcknowledgments } from '../Hook';
 import {
   mhdFormatHandbookAckStatus,
   mhdFormatHandbookType,
+  mhdIsAcknowledgmentOverdue,
   type MhdMyAcknowledgment,
 } from '../Types';
+import { MhdHandbookPdfDownloadButton } from './MhdHandbookPdfDownloadButton';
 import { MhdHandbookVersionView } from './MhdHandbookVersionView';
 
 interface Props {
@@ -82,7 +84,10 @@ export function MhdMyHandbooksPage({ onSign }: Props) {
                       : ''}
                   </p>
                 </div>
-                <MhdBadge variant="success">{mhdFormatHandbookAckStatus(item.status)}</MhdBadge>
+                <div className="flex flex-wrap items-center gap-3">
+                  <MhdHandbookPdfDownloadButton versionId={item.handbookVersionId} />
+                  <MhdBadge variant="success">{mhdFormatHandbookAckStatus(item.status)}</MhdBadge>
+                </div>
               </li>
             ))}
           </ul>
@@ -106,6 +111,7 @@ function MhdMyHandbookRow({ item, onSign }: RowProps) {
   const acknowledge = useMhdAcknowledgeHandbook();
   const [isViewing, setIsViewing] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
+  const overdue = mhdIsAcknowledgmentOverdue(item.dueAt, item.status);
 
   async function handleAcknowledge() {
     // App-layer signature ceremony: if wired, run signing first and forward the
@@ -133,20 +139,29 @@ function MhdMyHandbookRow({ item, onSign }: RowProps) {
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {mhdFormatHandbookType(item.handbookType)}
+            {item.dueAt ? ` · due ${new Date(item.dueAt).toLocaleDateString()}` : ''}
           </p>
+          {overdue ? (
+            <p className="mt-1 text-xs font-medium text-rose-700">
+              This acknowledgment is overdue. Please review and acknowledge it as soon as you can.
+            </p>
+          ) : null}
           {item.esignatureRequestId ? (
             <p className="mt-1 text-xs text-amber-700">
               A signature is required — acknowledgment records only once signing is complete.
             </p>
           ) : null}
         </div>
-        <MhdBadge variant="warning">{mhdFormatHandbookAckStatus(item.status)}</MhdBadge>
+        <MhdBadge variant={overdue ? 'error' : 'warning'}>
+          {overdue ? 'Overdue' : mhdFormatHandbookAckStatus(item.status)}
+        </MhdBadge>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="secondary" onClick={() => setIsViewing((previous) => !previous)}>
           {isViewing ? 'Hide handbook' : 'Review handbook'}
         </Button>
+        <MhdHandbookPdfDownloadButton versionId={item.handbookVersionId} />
         <Button
           onClick={() => void handleAcknowledge()}
           disabled={acknowledge.isPending || isSigning}

@@ -10646,9 +10646,11 @@ export type Database = {
           acknowledged_at: string | null
           assigned_at: string | null
           assigned_by: string | null
+          due_at: string | null
           esignature_request_id: string | null
           handbook_version_id: string
           id: string
+          overdue_notified_at: string | null
           person_id: string
           reference_id: string
           status: string
@@ -10657,9 +10659,11 @@ export type Database = {
           acknowledged_at?: string | null
           assigned_at?: string | null
           assigned_by?: string | null
+          due_at?: string | null
           esignature_request_id?: string | null
           handbook_version_id: string
           id?: string
+          overdue_notified_at?: string | null
           person_id: string
           reference_id: string
           status?: string
@@ -10668,9 +10672,11 @@ export type Database = {
           acknowledged_at?: string | null
           assigned_at?: string | null
           assigned_by?: string | null
+          due_at?: string | null
           esignature_request_id?: string | null
           handbook_version_id?: string
           id?: string
+          overdue_notified_at?: string | null
           person_id?: string
           reference_id?: string
           status?: string
@@ -10884,6 +10890,7 @@ export type Database = {
       }
       handbooks: {
         Row: {
+          acknowledgment_due_days: number
           company_id: string
           created_at: string | null
           created_by: string
@@ -10898,6 +10905,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          acknowledgment_due_days?: number
           company_id: string
           created_at?: string | null
           created_by: string
@@ -10912,6 +10920,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          acknowledgment_due_days?: number
           company_id?: string
           created_at?: string | null
           created_by?: string
@@ -17198,6 +17207,7 @@ export type Database = {
           employer_dba_name: string | null
           esignature_request_id: string | null
           form_submission_id: string | null
+          handbook_acknowledgment_id: string | null
           handbook_version: string | null
           id: string
           is_deleted: boolean
@@ -17235,6 +17245,7 @@ export type Database = {
           employer_dba_name?: string | null
           esignature_request_id?: string | null
           form_submission_id?: string | null
+          handbook_acknowledgment_id?: string | null
           handbook_version?: string | null
           id?: string
           is_deleted?: boolean
@@ -17272,6 +17283,7 @@ export type Database = {
           employer_dba_name?: string | null
           esignature_request_id?: string | null
           form_submission_id?: string | null
+          handbook_acknowledgment_id?: string | null
           handbook_version?: string | null
           id?: string
           is_deleted?: boolean
@@ -17293,6 +17305,13 @@ export type Database = {
           waiver_type?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "onboarding_document_acknowledgm_handbook_acknowledgment_id_fkey"
+            columns: ["handbook_acknowledgment_id"]
+            isOneToOne: false
+            referencedRelation: "handbook_acknowledgments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "onboarding_document_acknowledgments_company_id_fkey"
             columns: ["company_id"]
@@ -26003,6 +26022,10 @@ export type Database = {
         Args: { p_occurrence_id: string; p_reason: string }
         Returns: undefined
       }
+      mhd_automation_action_assign_handbook_acknowledgments: {
+        Args: { p_config: Json; p_event_id: string; p_run_id: string }
+        Returns: Json
+      }
       mhd_automation_action_create_task: {
         Args: { p_config: Json; p_event_id: string; p_run_id: string }
         Returns: Json
@@ -28770,6 +28793,7 @@ export type Database = {
         Args: { p_version_id: string }
         Returns: {
           acknowledged_at: string
+          due_at: string
           id: string
           person_display_name: string
           person_id: string
@@ -28779,6 +28803,13 @@ export type Database = {
       mhd_handbook_acknowledge: {
         Args: { p_ack_id: string; p_esignature_request_id?: string }
         Returns: undefined
+      }
+      mhd_handbook_acknowledgment_sweep: {
+        Args: never
+        Returns: {
+          acknowledgment_id: string
+          action: string
+        }[]
       }
       mhd_handbook_archive: {
         Args: { p_handbook_id: string }
@@ -28799,6 +28830,10 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_handbook_body_to_html: {
+        Args: { p_body: string; p_section_title?: string }
+        Returns: string
+      }
       mhd_handbook_create: {
         Args: {
           p_company_id: string
@@ -28811,10 +28846,12 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_handbook_inline_html: { Args: { p_text: string }; Returns: string }
       mhd_handbook_is_privileged: { Args: never; Returns: boolean }
       mhd_handbook_list: {
         Args: { p_company_id: string }
         Returns: {
+          acknowledgment_due_days: number
           created_at: string
           current_version_id: string
           effective_date: string
@@ -28830,6 +28867,7 @@ export type Database = {
         Args: never
         Returns: {
           acknowledged_at: string
+          due_at: string
           esignature_request_id: string
           handbook_title: string
           handbook_type: string
@@ -28894,6 +28932,10 @@ export type Database = {
           source_section_id: string
           title: string
         }[]
+      }
+      mhd_handbook_set_ack_policy: {
+        Args: { p_due_days: number; p_handbook_id: string }
+        Returns: undefined
       }
       mhd_handbook_toggle_section: {
         Args: {

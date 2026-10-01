@@ -248,6 +248,82 @@ describe('mhdHandbookService — contract + mapping', () => {
     expect(result.id).toBe('sec-3');
   });
 
+  it('sets the acknowledgment deadline policy and surfaces the server refusal verbatim', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: null });
+    await mhdHandbookService.setAckPolicy({ handbookId: 'hbk-1', dueDays: 14 });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_handbook_set_ack_policy', {
+      p_handbook_id: 'hbk-1',
+      p_due_days: 14,
+    });
+
+    rpcMock.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'The acknowledgment deadline must be between 1 and 365 days' },
+    });
+    await expect(
+      mhdHandbookService.setAckPolicy({ handbookId: 'hbk-1', dueDays: 0 }),
+    ).rejects.toMatchObject({
+      message: 'The acknowledgment deadline must be between 1 and 365 days',
+    });
+  });
+
+  it('maps the deadline on the handbook list, the board and the employee surface', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'hbk-1',
+          reference_id: 'HBK-0001',
+          handbook_type: 'EMPLOYEE',
+          title: 'Handbook',
+          jurisdictions: ['FEDERAL'],
+          status: 'PUBLISHED',
+          current_version_id: 'ver-1',
+          effective_date: null,
+          created_at: '2026-07-20T00:00:00Z',
+          acknowledgment_due_days: '21', // serialised as a string
+        },
+      ],
+      error: null,
+    });
+    const [handbook] = await mhdHandbookService.list({ companyId: 'company-1' });
+    expect(handbook.acknowledgmentDueDays).toBe(21);
+
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'ack-1',
+          person_id: 'p-1',
+          person_display_name: 'A Person',
+          status: 'PENDING',
+          acknowledged_at: null,
+          due_at: '2026-10-31T00:00:00Z',
+        },
+      ],
+      error: null,
+    });
+    const [row] = await mhdHandbookService.ackStatus('ver-1');
+    expect(row.dueAt).toBe('2026-10-31T00:00:00Z');
+
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'ack-1',
+          handbook_version_id: 'ver-1',
+          handbook_title: 'Handbook',
+          handbook_type: 'EMPLOYEE',
+          version_number: 1,
+          status: 'PENDING',
+          esignature_request_id: null,
+          acknowledged_at: null,
+          due_at: null,
+        },
+      ],
+      error: null,
+    });
+    const [mine] = await mhdHandbookService.myAcknowledgments();
+    expect(mine.dueAt).toBeNull();
+  });
+
   it('maps a frozen version — numeric-string version_number and the assembled snapshot', async () => {
     rpcMock.mockResolvedValueOnce({
       data: [
