@@ -10,6 +10,7 @@ import {
   mhdFormatLeaveMeasurementMethod,
   type MhdLeaveType,
 } from '../Types';
+import type { z } from 'zod';
 
 interface Props {
   companyId: string;
@@ -51,7 +52,7 @@ export function MhdLeaveTypeForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdLeaveTypeFormValues>({
+  } = useForm<z.input<typeof mhdLeaveTypeFormSchema>, unknown, MhdLeaveTypeFormValues>({
     resolver: zodResolver(mhdLeaveTypeFormSchema),
     defaultValues: {
       typeId: leaveType?.id,
@@ -71,7 +72,9 @@ export function MhdLeaveTypeForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <input type="hidden" value={companyId} {...register('companyId')} readOnly />
-      {leaveType ? <input type="hidden" value={leaveType.id} {...register('typeId')} readOnly /> : null}
+      {leaveType ? (
+        <input type="hidden" value={leaveType.id} {...register('typeId')} readOnly />
+      ) : null}
 
       <MhdFormFieldStack>
         <div>
@@ -93,7 +96,9 @@ export function MhdLeaveTypeForm({
               The key is this type&apos;s stable identity and cannot be changed.
             </p>
           ) : null}
-          {errors.typeKey ? <p className="mt-1 text-xs text-rose-600">{errors.typeKey.message}</p> : null}
+          {errors.typeKey ? (
+            <p className="mt-1 text-xs text-rose-600">{errors.typeKey.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -131,17 +136,23 @@ export function MhdLeaveTypeForm({
           placeholder="e.g. Family and Medical Leave Act"
           className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
         />
-        {errors.typeName ? <p className="mt-1 text-xs text-rose-600">{errors.typeName.message}</p> : null}
+        {errors.typeName ? (
+          <p className="mt-1 text-xs text-rose-600">{errors.typeName.message}</p>
+        ) : null}
       </div>
 
       {!isEdit && canPublishGlobal ? (
         <label className="flex items-start gap-2 text-sm text-foreground">
-          <input type="checkbox" {...register('isGlobal')} className="mt-1 h-4 w-4 rounded border-border" />
+          <input
+            type="checkbox"
+            {...register('isGlobal')}
+            className="mt-1 h-4 w-4 rounded border-border"
+          />
           <span>
             Publish to the platform library (global)
             <span className="block text-xs font-normal text-muted-foreground">
-              Readable and forkable by every company. Leave unchecked to create a type owned by your own
-              company only.
+              Readable and forkable by every company. Leave unchecked to create a type owned by your
+              own company only.
             </span>
           </span>
         </label>
@@ -210,8 +221,8 @@ export function MhdLeaveTypeForm({
             className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
           <p className="mt-1 text-xs text-muted-foreground">
-            E.g. 12 for FMLA/CFRA&apos;s rolling look-back. Leave blank when the method above has no window
-            (PER_EVENT / NONE).
+            E.g. 12 for FMLA/CFRA&apos;s rolling look-back. Leave blank when the method above has no
+            window (PER_EVENT / NONE).
           </p>
           {errors.measurementMonths ? (
             <p className="mt-1 text-xs text-rose-600">{errors.measurementMonths.message}</p>
@@ -229,7 +240,9 @@ export function MhdLeaveTypeForm({
             placeholder="e.g. 29 CFR 825"
             className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
-          {errors.citation ? <p className="mt-1 text-xs text-rose-600">{errors.citation.message}</p> : null}
+          {errors.citation ? (
+            <p className="mt-1 text-xs text-rose-600">{errors.citation.message}</p>
+          ) : null}
         </div>
       </MhdFormFieldStack>
 

@@ -7,6 +7,7 @@ import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { useMhdFeedbackSettings, useMhdUpsertFeedbackSettings } from '../Hook-v2';
 import { MHD_FEEDBACK_THRESHOLD_FLOOR } from '../Types-v2';
 import { mhdFeedbackSettingsSchema, type MhdFeedbackSettingsFormValues } from '../Schemas-v2';
+import type { z } from 'zod';
 
 interface Props {
   companyId: string;
@@ -35,7 +36,7 @@ export function MhdFeedbackSettingsForm({ companyId }: Props) {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<MhdFeedbackSettingsFormValues>({
+  } = useForm<z.input<typeof mhdFeedbackSettingsSchema>, unknown, MhdFeedbackSettingsFormValues>({
     resolver: zodResolver(mhdFeedbackSettingsSchema),
     defaultValues: {
       companyId,

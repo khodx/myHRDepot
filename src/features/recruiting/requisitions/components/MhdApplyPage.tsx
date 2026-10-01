@@ -22,6 +22,7 @@ import {
   mhdFormatEeoRaceEthnicity,
   mhdFormatEeoVeteranStatus,
 } from '../Types';
+import type { z } from 'zod';
 
 interface Props {
   /**
@@ -60,7 +61,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
   const [isSubmittingApplication, setIsSubmittingApplication] = useState(false);
   const [isSubmittingEeo, setIsSubmittingEeo] = useState(false);
 
-  const applyForm = useForm<MhdApplyFormValues>({
+  const applyForm = useForm<z.input<typeof mhdApplySchema>, unknown, MhdApplyFormValues>({
     resolver: zodResolver(mhdApplySchema),
     defaultValues: {
       desiredPayRate: null,
@@ -70,7 +71,7 @@ export function MhdApplyPage({ token: tokenProp }: Props) {
     },
   });
 
-  const eeoForm = useForm<MhdEeoSelfIdFormValues>({
+  const eeoForm = useForm<z.input<typeof mhdEeoSelfIdSchema>, unknown, MhdEeoSelfIdFormValues>({
     resolver: zodResolver(mhdEeoSelfIdSchema),
     defaultValues: {
       raceEthnicity: '',

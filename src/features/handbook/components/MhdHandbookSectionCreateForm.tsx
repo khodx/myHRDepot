@@ -2,7 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
-import { mhdCreateHandbookSectionSchema, type MhdCreateHandbookSectionFormValues } from '../Schemas';
+import {
+  mhdCreateHandbookSectionSchema,
+  type MhdCreateHandbookSectionFormValues,
+} from '../Schemas';
 import {
   MHD_HANDBOOK_ATTORNEY_PLACEHOLDER,
   MHD_HANDBOOK_JURISDICTIONS_BY_TYPE,
@@ -10,6 +13,7 @@ import {
   mhdFormatHandbookJurisdiction,
   mhdFormatHandbookType,
 } from '../Types';
+import type { z } from 'zod';
 
 interface Props {
   companyId: string;
@@ -44,7 +48,11 @@ export function MhdHandbookSectionCreateForm({
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<MhdCreateHandbookSectionFormValues>({
+  } = useForm<
+    z.input<typeof mhdCreateHandbookSectionSchema>,
+    unknown,
+    MhdCreateHandbookSectionFormValues
+  >({
     resolver: zodResolver(mhdCreateHandbookSectionSchema),
     defaultValues: {
       companyId,
@@ -193,7 +201,11 @@ export function MhdHandbookSectionCreateForm({
 
       <MhdFormFieldStack>
         <label className="flex items-center gap-2 text-sm text-foreground">
-          <input type="checkbox" {...register('isRequired')} className="h-4 w-4 rounded border-border" />
+          <input
+            type="checkbox"
+            {...register('isRequired')}
+            className="h-4 w-4 rounded border-border"
+          />
           Required (auto-includes on assembly)
         </label>
 

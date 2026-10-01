@@ -5,6 +5,7 @@ import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { mhdTripFormSchema, type MhdTripFormValues } from '../Schemas';
 import type { MhdMileageTrip } from '../Types';
+import type { z } from 'zod';
 
 interface PersonOption {
   id: string;
@@ -59,7 +60,7 @@ export function MhdTripForm({
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<MhdTripFormValues>({
+  } = useForm<z.input<typeof mhdTripFormSchema>, unknown, MhdTripFormValues>({
     resolver: zodResolver(mhdTripFormSchema),
     defaultValues: {
       personId: trip?.personId ?? presetPersonId ?? '',

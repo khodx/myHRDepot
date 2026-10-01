@@ -13,6 +13,7 @@ import {
   mhdFormatSectionResponseType,
 } from '../Types-v2';
 import { mhdReviewTemplateSchema, type MhdReviewTemplateFormValues } from '../Schemas-v2';
+import type { z } from 'zod';
 
 interface Props {
   companyId: string;
@@ -42,7 +43,7 @@ export function MhdReviewTemplateEditor({ companyId, isPlatformAdmin }: Props) {
     reset,
     setValue,
     formState: { errors },
-  } = useForm<MhdReviewTemplateFormValues>({
+  } = useForm<z.input<typeof mhdReviewTemplateSchema>, unknown, MhdReviewTemplateFormValues>({
     resolver: zodResolver(mhdReviewTemplateSchema),
     defaultValues: {
       companyId,
@@ -123,7 +124,11 @@ export function MhdReviewTemplateEditor({ companyId, isPlatformAdmin }: Props) {
                     type="button"
                     onClick={() => publishTemplate.mutate({ templateId: template.id })}
                     disabled={publishTemplate.isPending}
-                    className={cn(buttonBaseClasses, buttonVariantClasses.secondary, 'h-9 shrink-0 px-3')}
+                    className={cn(
+                      buttonBaseClasses,
+                      buttonVariantClasses.secondary,
+                      'h-9 shrink-0 px-3',
+                    )}
                   >
                     {publishTemplate.isPending ? 'Publishing…' : 'Publish'}
                   </button>

@@ -4,6 +4,7 @@ import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { mhdOfferFormSchema, type MhdOfferFormValues } from '../Schemas';
+import type { z } from 'zod';
 
 interface PersonOption {
   id: string;
@@ -48,7 +49,7 @@ export function MhdOfferForm({
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdOfferFormValues>({
+  } = useForm<z.input<typeof mhdOfferFormSchema>, unknown, MhdOfferFormValues>({
     resolver: zodResolver(mhdOfferFormSchema),
     defaultValues: {
       applicationId,

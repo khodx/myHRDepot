@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/Button';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
-import { mhdActivityFormSchema, type MhdActivityFormSchemaInput } from '@/features/activities/Schemas';
+import {
+  mhdActivityFormSchema,
+  type MhdActivityFormSchemaInput,
+} from '@/features/activities/Schemas';
 import {
   MHD_ACTIVITY_PARTICIPANT_ROLES,
   MHD_ACTIVITY_TYPES,
@@ -15,6 +18,7 @@ import {
   mhdFormatActivityParticipantRole,
   mhdFormatActivityType,
 } from '@/features/activities/Types';
+import type { z } from 'zod';
 
 type ParticipantKind = 'USER' | 'PERSON';
 
@@ -60,7 +64,7 @@ export function MhdActivityForm({
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<MhdActivityFormSchemaInput>({
+  } = useForm<z.input<typeof mhdActivityFormSchema>, unknown, MhdActivityFormSchemaInput>({
     resolver: zodResolver(mhdActivityFormSchema),
     defaultValues: initial
       ? {
@@ -125,10 +129,7 @@ export function MhdActivityForm({
   }
 
   return (
-    <form
-      className="space-y-4"
-      onSubmit={handleSubmit((data) => onSubmit(data, checklistTitles))}
-    >
+    <form className="space-y-4" onSubmit={handleSubmit((data) => onSubmit(data, checklistTitles))}>
       <MhdFormFieldStack>
         <div>
           <label htmlFor="activityType" className="mb-1 block text-sm font-medium">
@@ -391,7 +392,8 @@ export function MhdActivityForm({
         <fieldset className="space-y-2 rounded-md border border-border p-3">
           <legend className="px-1 text-sm font-medium">Checklist</legend>
           <p className="text-xs text-muted-foreground">
-            Add starter checklist items now, or skip this and add them later from the activity's detail page.
+            Add starter checklist items now, or skip this and add them later from the activity's
+            detail page.
           </p>
 
           {checklistTitles.length === 0 ? (

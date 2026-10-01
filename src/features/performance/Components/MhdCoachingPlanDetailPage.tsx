@@ -42,6 +42,7 @@ import type { MhdCoachingPlanItem } from '../Types';
 import { mhdFormatCoachingPlanItemStatus } from '../Types';
 import { MhdCoachingPlanForm } from './MhdCoachingPlanForm';
 import { MhdCoachingStatusBadge } from './MhdCoachingStatusBadge';
+import type { z } from 'zod';
 
 function formatDate(value: string | null): string {
   return value ? new Date(`${value}T00:00:00`).toLocaleDateString() : '—';
@@ -63,7 +64,7 @@ function MhdCheckpointForm({
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdCoachingPlanItemSchemaInput>({
+  } = useForm<z.input<typeof mhdCoachingPlanItemSchema>, unknown, MhdCoachingPlanItemSchemaInput>({
     resolver: zodResolver(mhdCoachingPlanItemSchema),
     defaultValues: initial
       ? {
@@ -445,7 +446,11 @@ export function MhdCoachingPlanDetailPage() {
             value={items.length > 0 ? `${completedItemCount} of ${items.length} done` : 'None yet'}
           />
           <MhdDetailField label="Coach" value={plan.coachDisplayName} />
-          <MhdDetailField label="Objective" value={plan.objective} className="whitespace-pre-wrap" />
+          <MhdDetailField
+            label="Objective"
+            value={plan.objective}
+            className="whitespace-pre-wrap"
+          />
           <MhdDetailField
             label="Outcome"
             value={plan.outcomeSummary}

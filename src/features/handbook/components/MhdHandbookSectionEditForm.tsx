@@ -3,8 +3,12 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdDetailField } from '@/components/ui/MhdDetailField';
-import { mhdUpdateHandbookSectionSchema, type MhdUpdateHandbookSectionFormValues } from '../Schemas';
+import {
+  mhdUpdateHandbookSectionSchema,
+  type MhdUpdateHandbookSectionFormValues,
+} from '../Schemas';
 import type { MhdHandbookSection } from '../Types';
+import type { z } from 'zod';
 
 interface Props {
   section: MhdHandbookSection;
@@ -25,7 +29,11 @@ export function MhdHandbookSectionEditForm({ section, onSubmit, onCancel, isSubm
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdUpdateHandbookSectionFormValues>({
+  } = useForm<
+    z.input<typeof mhdUpdateHandbookSectionSchema>,
+    unknown,
+    MhdUpdateHandbookSectionFormValues
+  >({
     resolver: zodResolver(mhdUpdateHandbookSectionSchema),
     defaultValues: {
       sectionId: section.id,
@@ -80,12 +88,20 @@ export function MhdHandbookSectionEditForm({ section, onSubmit, onCancel, isSubm
 
       <MhdFormFieldStack>
         <label className="flex items-center gap-2 text-sm text-foreground">
-          <input type="checkbox" {...register('isRequired')} className="h-4 w-4 rounded border-border" />
+          <input
+            type="checkbox"
+            {...register('isRequired')}
+            className="h-4 w-4 rounded border-border"
+          />
           Required
         </label>
 
         <label className="flex items-center gap-2 text-sm text-foreground">
-          <input type="checkbox" {...register('isActive')} className="h-4 w-4 rounded border-border" />
+          <input
+            type="checkbox"
+            {...register('isActive')}
+            className="h-4 w-4 rounded border-border"
+          />
           Active
         </label>
 

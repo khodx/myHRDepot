@@ -23,6 +23,7 @@ import {
   type MhdInterviewGuideItemSource,
 } from '../Types';
 import { MhdComplianceFlag } from './MhdComplianceFlag';
+import type { z } from 'zod';
 
 interface Props {
   companyId: string;
@@ -77,7 +78,7 @@ export function MhdInterviewGuideBuilder({ companyId, requisitionId, canManage }
     reset,
     control,
     formState: { errors },
-  } = useForm<MhdAddCustomQuestionFormValues>({
+  } = useForm<z.input<typeof mhdAddCustomQuestionSchema>, unknown, MhdAddCustomQuestionFormValues>({
     resolver: zodResolver(mhdAddCustomQuestionSchema),
     defaultValues: {
       guideId: '',

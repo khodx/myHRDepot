@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdLeaveCaseFormSchema, type MhdLeaveCaseFormValues } from '../Schemas';
+import type { z } from 'zod';
 
 interface PersonOption {
   id: string;
@@ -34,7 +35,7 @@ export function MhdLeaveCaseForm({ companyId, people, onSubmit, onCancel, isSubm
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdLeaveCaseFormValues>({
+  } = useForm<z.input<typeof mhdLeaveCaseFormSchema>, unknown, MhdLeaveCaseFormValues>({
     resolver: zodResolver(mhdLeaveCaseFormSchema),
     defaultValues: {
       companyId,
