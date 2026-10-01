@@ -3,6 +3,7 @@ import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { mhdRequisitionFormSchema, type MhdRequisitionFormValues } from '../Schemas';
+import type { z } from 'zod';
 
 interface PersonOption {
   id: string;
@@ -52,7 +53,7 @@ export function MhdRequisitionForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdRequisitionFormValues>({
+  } = useForm<z.input<typeof mhdRequisitionFormSchema>, unknown, MhdRequisitionFormValues>({
     resolver: zodResolver(mhdRequisitionFormSchema),
     defaultValues: {
       companyId,

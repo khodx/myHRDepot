@@ -50,7 +50,7 @@ export function MhdAdminQuotesSection() {
     handleSubmit,
     register,
     reset,
-  } = useForm<MhdQuoteFormValues>({
+  } = useForm<z.input<typeof mhdQuoteSchema>, unknown, MhdQuoteFormValues>({
     defaultValues: EMPTY_QUOTE_FORM,
     resolver: zodResolver(mhdQuoteSchema),
   });

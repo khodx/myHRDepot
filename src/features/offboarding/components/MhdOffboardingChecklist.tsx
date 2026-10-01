@@ -24,6 +24,7 @@ import {
   mhdFormatEvidenceLinkType,
 } from '../Types';
 import { MhdItemStatusBadge } from './MhdItemStatusBadge';
+import type { z } from 'zod';
 
 interface Props {
   caseId: string;
@@ -53,7 +54,7 @@ function MhdItemWaiverForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdItemWaiverSchemaInput>({
+  } = useForm<z.input<typeof mhdItemWaiverSchema>, unknown, MhdItemWaiverSchemaInput>({
     resolver: zodResolver(mhdItemWaiverSchema),
     defaultValues: { status: 'WAIVED' },
   });
@@ -138,7 +139,7 @@ function MhdCustomItemForm({
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdCustomItemSchemaInput>({
+  } = useForm<z.input<typeof mhdCustomItemSchema>, unknown, MhdCustomItemSchemaInput>({
     resolver: zodResolver(mhdCustomItemSchema),
     defaultValues: { caseId, isRequired: false },
   });

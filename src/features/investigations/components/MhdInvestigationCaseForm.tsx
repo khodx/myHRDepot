@@ -9,6 +9,7 @@ import {
   mhdFormatInvestigationCaseType,
   mhdFormatInvestigationConfidentiality,
 } from '../Types';
+import type { z } from 'zod';
 
 interface UserOption {
   id: string;
@@ -44,7 +45,11 @@ export function MhdInvestigationCaseForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdInvestigationCaseFormValues>({
+  } = useForm<
+    z.input<typeof mhdInvestigationCaseFormSchema>,
+    unknown,
+    MhdInvestigationCaseFormValues
+  >({
     resolver: zodResolver(mhdInvestigationCaseFormSchema),
     defaultValues: {
       companyId,

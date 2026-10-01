@@ -15,6 +15,7 @@ import {
   mhdHandbookParentCandidates,
   type MhdHandbookSection,
 } from '../Types';
+import type { z } from 'zod';
 
 interface Props {
   companyId: string;
@@ -52,7 +53,11 @@ export function MhdHandbookSectionCreateForm({
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<MhdCreateHandbookSectionFormValues>({
+  } = useForm<
+    z.input<typeof mhdCreateHandbookSectionSchema>,
+    unknown,
+    MhdCreateHandbookSectionFormValues
+  >({
     resolver: zodResolver(mhdCreateHandbookSectionSchema),
     defaultValues: {
       companyId,

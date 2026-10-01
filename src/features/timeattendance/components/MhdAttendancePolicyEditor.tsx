@@ -11,6 +11,7 @@ import {
   type MhdAttendancePolicy,
 } from '../Types';
 import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
+import type { z } from 'zod';
 
 interface Props {
   companyId: string;
@@ -50,7 +51,7 @@ export function MhdAttendancePolicyEditor({
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdAttendancePolicyFormValues>({
+  } = useForm<z.input<typeof mhdAttendancePolicySchema>, unknown, MhdAttendancePolicyFormValues>({
     resolver: zodResolver(mhdAttendancePolicySchema),
     defaultValues: {
       companyId,

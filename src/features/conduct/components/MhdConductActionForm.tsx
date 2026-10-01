@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdConductActionFormSchema, type MhdConductActionFormSchemaInput } from '../Schemas';
 import { MHD_CONDUCT_SEVERITIES, type MhdConductAction, mhdFormatConductSeverity } from '../Types';
+import type { z } from 'zod';
 
 interface Props {
   mode: 'create' | 'edit';
@@ -82,21 +83,23 @@ export function MhdConductActionForm({ mode, initial, onSubmit, onCancel, isSubm
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdConductActionFormSchemaInput>({
-    resolver: zodResolver(mhdConductActionFormSchema),
-    defaultValues: initial
-      ? {
-          severity: initial.severity,
-          actionSummary: initial.actionSummary ?? undefined,
-          documentPayload: initial.documentPayload,
-          requiresDocument: initial.requiresDocument,
-        }
-      : {
-          severity: 'WRITTEN_WARNING',
-          documentPayload: {},
-          requiresDocument: true,
-        },
-  });
+  } = useForm<z.input<typeof mhdConductActionFormSchema>, unknown, MhdConductActionFormSchemaInput>(
+    {
+      resolver: zodResolver(mhdConductActionFormSchema),
+      defaultValues: initial
+        ? {
+            severity: initial.severity,
+            actionSummary: initial.actionSummary ?? undefined,
+            documentPayload: initial.documentPayload,
+            requiresDocument: initial.requiresDocument,
+          }
+        : {
+            severity: 'WRITTEN_WARNING',
+            documentPayload: {},
+            requiresDocument: true,
+          },
+    },
+  );
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>

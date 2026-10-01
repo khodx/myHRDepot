@@ -5,6 +5,7 @@ import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { mhdCreatePropertyItemSchema, type MhdCreatePropertyItemSchemaInput } from '../Schemas';
 import { MHD_PROPERTY_CATEGORIES } from '../Types';
+import type { z } from 'zod';
 
 interface MhdPropertyItemFormProps {
   companyId: string;
@@ -24,7 +25,11 @@ export function MhdPropertyItemForm({
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdCreatePropertyItemSchemaInput>({
+  } = useForm<
+    z.input<typeof mhdCreatePropertyItemSchema>,
+    unknown,
+    MhdCreatePropertyItemSchemaInput
+  >({
     resolver: zodResolver(mhdCreatePropertyItemSchema),
     defaultValues: {
       companyId,

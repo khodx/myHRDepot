@@ -8,6 +8,7 @@ import {
   type MhdUpdateHandbookSectionFormValues,
 } from '../Schemas';
 import { mhdHandbookParentCandidates, type MhdHandbookSection } from '../Types';
+import type { z } from 'zod';
 
 interface Props {
   section: MhdHandbookSection;
@@ -44,7 +45,11 @@ export function MhdHandbookSectionEditForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdUpdateHandbookSectionFormValues>({
+  } = useForm<
+    z.input<typeof mhdUpdateHandbookSectionSchema>,
+    unknown,
+    MhdUpdateHandbookSectionFormValues
+  >({
     resolver: zodResolver(mhdUpdateHandbookSectionSchema),
     defaultValues: {
       sectionId: section.id,

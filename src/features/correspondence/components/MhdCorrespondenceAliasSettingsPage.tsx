@@ -21,6 +21,7 @@ import {
   mhdCorrespondenceMailboxAliasSchema,
   type MhdCorrespondenceMailboxAliasSchemaInput,
 } from '../Schemas';
+import type { z } from 'zod';
 
 export function MhdCorrespondenceAliasSettingsPage() {
   const { roles } = useMhdAuth();
@@ -49,7 +50,11 @@ export function MhdCorrespondenceAliasSettingsPage() {
     setValue,
     getValues,
     formState: { errors },
-  } = useForm<MhdCorrespondenceMailboxAliasSchemaInput>({
+  } = useForm<
+    z.input<typeof mhdCorrespondenceMailboxAliasSchema>,
+    unknown,
+    MhdCorrespondenceMailboxAliasSchemaInput
+  >({
     resolver: zodResolver(mhdCorrespondenceMailboxAliasSchema),
     defaultValues: {
       companyId: '',
@@ -96,8 +101,8 @@ export function MhdCorrespondenceAliasSettingsPage() {
           <div>
             <h2 className="text-base font-semibold text-foreground">Mailbox aliases</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Add routing aliases, choose the primary address, and retire addresses without
-              deleting routing history.
+              Add routing aliases, choose the primary address, and retire addresses without deleting
+              routing history.
             </p>
           </div>
           {canManage ? (
@@ -159,7 +164,9 @@ export function MhdCorrespondenceAliasSettingsPage() {
                 <select
                   id="mailboxId"
                   {...register('mailboxId')}
-                  disabled={!selectedCompanyId || mailboxesQuery.isLoading || mailboxes.length === 0}
+                  disabled={
+                    !selectedCompanyId || mailboxesQuery.isLoading || mailboxes.length === 0
+                  }
                   className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <option value="">
@@ -182,10 +189,7 @@ export function MhdCorrespondenceAliasSettingsPage() {
               </div>
 
               <div>
-                <label
-                  htmlFor="aliasAddress"
-                  className="block text-sm font-medium text-foreground"
-                >
+                <label htmlFor="aliasAddress" className="block text-sm font-medium text-foreground">
                   Alias address
                 </label>
                 <input

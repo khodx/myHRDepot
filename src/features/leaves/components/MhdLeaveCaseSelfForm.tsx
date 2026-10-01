@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdLeaveCaseSelfFormSchema, type MhdLeaveCaseSelfFormValues } from '../Schemas';
+import type { z } from 'zod';
 
 interface Props {
   onSubmit: (values: MhdLeaveCaseSelfFormValues) => Promise<void>;
@@ -25,7 +26,7 @@ export function MhdLeaveCaseSelfForm({ onSubmit, onCancel, isSubmitting }: Props
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdLeaveCaseSelfFormValues>({
+  } = useForm<z.input<typeof mhdLeaveCaseSelfFormSchema>, unknown, MhdLeaveCaseSelfFormValues>({
     resolver: zodResolver(mhdLeaveCaseSelfFormSchema),
     defaultValues: {
       reasonCategory: '',

@@ -10,6 +10,7 @@ import {
   type MhdOffboardingOption,
   mhdFormatSeparationType,
 } from '../Types';
+import type { z } from 'zod';
 
 interface Props {
   mode: 'create' | 'edit';
@@ -44,7 +45,7 @@ export function MhdOffboardingCaseForm({
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<MhdCaseFormSchemaInput>({
+  } = useForm<z.input<typeof mhdCaseFormSchema>, unknown, MhdCaseFormSchemaInput>({
     resolver: zodResolver(mhdCaseFormSchema),
     defaultValues: initial
       ? {
