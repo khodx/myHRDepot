@@ -151,6 +151,16 @@ describe('MhdAttendancePage - privileged (HR Partner)', () => {
     expect(h.reassessmentArg.current).toBe('company-1');
   });
 
+  it('opens the Record Occurrence dialog with its form', () => {
+    renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Record Occurrence' }));
+
+    const dialog = screen.getByRole('dialog', { name: 'Record Occurrence' });
+    expect(within(dialog).getByLabelText('Employee')).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('Date')).toBeInTheDocument();
+  });
+
   it('puts Edit, Reclassify and Void on every live occurrence', () => {
     renderPage();
 
