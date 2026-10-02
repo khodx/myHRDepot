@@ -28354,7 +28354,9 @@ export type Database = {
           changed_by_name: string
           content: string
           content_format: string
+          merge_fields: Json
           name: string
+          narrative_slots: Json
           requires_signature: boolean
           version: number
         }[]

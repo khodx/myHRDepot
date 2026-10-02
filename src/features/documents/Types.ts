@@ -383,6 +383,8 @@ export interface MhdDocumentTemplateVersion {
   name: string;
   contentFormat: string;
   content: string;
+  mergeFields: MhdDocumentMergeField[];
+  narrativeSlots: MhdDocumentNarrativeSlot[];
   requiresSignature: boolean;
   changedBy: string | null;
   changedByName: string | null;

@@ -8,6 +8,7 @@ import {
 import type {
   MhdDocumentBranding,
   MhdDocumentEmployeeFileCategory,
+  MhdDocumentMergeField,
   MhdDocumentMergeOverrides,
   MhdDocumentNarrativeSlot,
   MhdDocumentNarrativeSections,
@@ -85,6 +86,8 @@ type MhdTemplateVersionRow = {
   name: string;
   content_format: string;
   content: string;
+  merge_fields: Json;
+  narrative_slots: Json;
   requires_signature: boolean;
   changed_by: string | null;
   changed_by_name: string | null;
@@ -426,6 +429,10 @@ export const mhdDocumentOutputService = {
       name: row.name,
       contentFormat: row.content_format,
       content: row.content,
+      mergeFields: (Array.isArray(row.merge_fields)
+        ? row.merge_fields
+        : []) as unknown as MhdDocumentMergeField[],
+      narrativeSlots: narrativeSlots(row.narrative_slots),
       requiresSignature: row.requires_signature,
       changedBy: row.changed_by,
       changedByName: row.changed_by_name,

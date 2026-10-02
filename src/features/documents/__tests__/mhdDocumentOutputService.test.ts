@@ -142,6 +142,8 @@ describe('mhdDocumentOutputService RPC mappings', () => {
           name: 'Packet',
           content_format: 'HTML',
           content: '<p>Hi</p>',
+          merge_fields: [{ path: 'person.first_name', label: 'First name', source: 'person' }],
+          narrative_slots: [{ key: 'summary', label: 'Summary' }, { key: 7 }],
           requires_signature: true,
           changed_by: null,
           changed_by_name: null,
@@ -153,6 +155,8 @@ describe('mhdDocumentOutputService RPC mappings', () => {
     expect((await mhdDocumentOutputService.listTemplateVersions(id()))[0]).toMatchObject({
       contentFormat: 'HTML',
       changedAt: '2026-09-01',
+      mergeFields: [{ path: 'person.first_name', label: 'First name', source: 'person' }],
+      narrativeSlots: [{ key: 'summary', label: 'Summary' }],
     });
     returnsMock.mockResolvedValueOnce({
       data: [
