@@ -696,3 +696,4 @@ export {
   type MhdIssueDocumentSignatureResult,
   type MhdIssueSignedDocumentResult,
 } from './issueDocument';
+export { mhdDocumentOutputService } from './OutputService';

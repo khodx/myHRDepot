@@ -177,3 +177,4 @@ export function useMhdDocumentGenerationActions(
 
   return { generate, uploadCompleted };
 }
+export * from './OutputHook';

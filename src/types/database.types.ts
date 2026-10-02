@@ -3626,7 +3626,6 @@ export type Database = {
           id: string
           logo_data_uri: string | null
           reference_id: string
-          show_page_numbers: boolean
           show_reference_id: boolean
           updated_at: string
           updated_by: string | null
@@ -3642,7 +3641,6 @@ export type Database = {
           id?: string
           logo_data_uri?: string | null
           reference_id: string
-          show_page_numbers?: boolean
           show_reference_id?: boolean
           updated_at?: string
           updated_by?: string | null
@@ -3658,7 +3656,6 @@ export type Database = {
           id?: string
           logo_data_uri?: string | null
           reference_id?: string
-          show_page_numbers?: boolean
           show_reference_id?: boolean
           updated_at?: string
           updated_by?: string | null
@@ -28131,7 +28128,6 @@ export type Database = {
           id: string
           is_platform_default: boolean
           logo_data_uri: string
-          show_page_numbers: boolean
           show_reference_id: boolean
         }[]
       }
@@ -28143,7 +28139,6 @@ export type Database = {
           p_footer_text: string
           p_header_text: string
           p_logo_data_uri: string
-          p_show_page_numbers?: boolean
           p_show_reference_id?: boolean
         }
         Returns: string

@@ -10,12 +10,7 @@ export type MhdDocumentGenerationId = string;
 export type MhdDocumentGenerationReferenceId = `DGEN-${string}`;
 
 export type MhdDocumentTemplateType =
-  | 'OFFER_LETTER'
-  | 'CONTRACT'
-  | 'FORM'
-  | 'CERTIFICATE'
-  | 'CORRESPONDENCE'
-  | 'REPORT';
+  'OFFER_LETTER' | 'CONTRACT' | 'FORM' | 'CERTIFICATE' | 'CORRESPONDENCE' | 'REPORT';
 
 export const MHD_DOCUMENT_TEMPLATE_TYPES: MhdDocumentTemplateType[] = [
   'OFFER_LETTER',
@@ -73,7 +68,16 @@ export type MhdDocumentDeliveryStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'FAIL
 
 /** One of the "Merge Field Sources" the Bible spec documents — the source a
  *  declared merge field's value is resolved from at generation time. */
-export type MhdDocumentMergeFieldSource = 'person' | 'company' | 'user' | 'task' | 'system' | 'custom';
+export type MhdDocumentMergeFieldSource =
+  | 'person'
+  | 'company'
+  | 'user'
+  | 'task'
+  | 'system'
+  | 'custom'
+  | 'record'
+  | 'handbook'
+  | 'narrative';
 
 export interface MhdDocumentMergeField {
   /** e.g. "person.first_name" — matches the `{{field.path}}` template syntax. */
@@ -175,4 +179,224 @@ export interface MhdRequestDocumentGenerationInput {
 
 export interface MhdDocumentMutationContext {
   actorUserId: string;
+}
+
+export const MHD_DOCUMENT_EMPLOYEE_FILE_CATEGORIES = [
+  'general',
+  'payroll',
+  'i9',
+  'benefits',
+  'confidential',
+  'supervisors',
+  'hr',
+  'private',
+] as const;
+export type MhdDocumentEmployeeFileCategory =
+  (typeof MHD_DOCUMENT_EMPLOYEE_FILE_CATEGORIES)[number];
+
+export const MHD_DOCUMENT_SOURCE_WIZARDS = [
+  'JOB_DESCRIPTION',
+  'LEAVE_INTAKE',
+  'COMPENSATION_CLASSIFICATION',
+  'CONTRACTOR_CLASSIFICATION',
+  'TRAINING',
+  'HANDBOOK',
+  'ACCOMMODATION_INTAKE',
+  'CONDUCT',
+  'INVESTIGATION',
+  'OFFBOARDING',
+  'ONBOARDING',
+  'REQUISITION',
+  'OFFER',
+  'SAFETY_INCIDENT',
+  'PERFORMANCE_CYCLE',
+  'GRIEVANCE',
+] as const;
+export type MhdDocumentSourceWizard = (typeof MHD_DOCUMENT_SOURCE_WIZARDS)[number];
+
+export const MHD_DOCUMENT_QUEUE_STATUSES = [
+  'QUEUED',
+  'GENERATING',
+  'GENERATED',
+  'FAILED',
+  'DISMISSED',
+] as const;
+export type MhdDocumentQueueStatus = (typeof MHD_DOCUMENT_QUEUE_STATUSES)[number];
+
+export const MHD_DOCUMENT_BRANDING_FONTS = [
+  'Arial',
+  'Calibri',
+  'Georgia',
+  'Helvetica',
+  'Times New Roman',
+] as const;
+export type MhdDocumentBrandingFont = (typeof MHD_DOCUMENT_BRANDING_FONTS)[number];
+
+export type MhdDocumentMergeOverrides = Record<string, string | number | boolean | null>;
+export type MhdDocumentNarrativeSections = Record<string, string>;
+
+export interface MhdDocumentQueueItem {
+  id: string;
+  referenceId: string;
+  companyId: string;
+  templateKey: string;
+  templateName: string | null;
+  entityType: string;
+  entityId: string;
+  subjectPersonId: string | null;
+  subjectPersonName: string | null;
+  sourceWizard: MhdDocumentSourceWizard;
+  status: MhdDocumentQueueStatus;
+  outputFormat: MhdDocumentOutputFormat;
+  requiresSignature: boolean;
+  employeeFileCategory: MhdDocumentEmployeeFileCategory | null;
+  generationId: string | null;
+  generationStatus: string | null;
+  failureReason: string | null;
+  queuedBy: string | null;
+  queuedByName: string | null;
+  queuedAt: string;
+  generatedAt: string | null;
+}
+export interface MhdDocumentQueueDetail {
+  id: string;
+  referenceId: string;
+  companyId: string;
+  templateKey: string;
+  entityType: string;
+  entityId: string;
+  subjectPersonId: string | null;
+  sourceWizard: MhdDocumentSourceWizard;
+  status: MhdDocumentQueueStatus;
+  outputFormat: MhdDocumentOutputFormat;
+  requiresSignature: boolean;
+  employeeFileCategory: MhdDocumentEmployeeFileCategory | null;
+  wizardInputs: Record<string, unknown>;
+  mergeOverrides: MhdDocumentMergeOverrides;
+  narrativeSections: MhdDocumentNarrativeSections;
+  generationId: string | null;
+  failureReason: string | null;
+  queuedBy: string | null;
+  queuedAt: string;
+}
+export interface MhdDocumentQueueFilters {
+  status?: MhdDocumentQueueStatus | 'ALL';
+  subjectPersonId?: string | null;
+  entityType?: string | null;
+  entityId?: string | null;
+}
+export interface MhdEnqueueDocumentInput {
+  companyId: string;
+  templateKey: string;
+  entityType: string;
+  entityId: string;
+  sourceWizard: MhdDocumentSourceWizard;
+  wizardInputs?: Record<string, unknown>;
+  mergeOverrides?: MhdDocumentMergeOverrides;
+  narrativeSections?: MhdDocumentNarrativeSections;
+  outputFormat?: MhdDocumentOutputFormat;
+  requiresSignature?: boolean;
+  /** Omit to use the template's default category; 'NONE' to deliberately not file the document. */
+  employeeFileCategory?: MhdDocumentEmployeeFileCategory | 'NONE';
+}
+export interface MhdEnqueuedDocument {
+  id: string;
+  referenceId: string;
+}
+export interface MhdDocumentNarrativeSlot {
+  key: string;
+  label: string;
+  help?: string;
+}
+export interface MhdDocumentTemplateWizardSettings {
+  id: string;
+  templateKey: string | null;
+  version: number;
+  isSystem: boolean;
+  companyId: string | null;
+  requiresSignature: boolean;
+  employeeFileCategory: MhdDocumentEmployeeFileCategory | null;
+  narrativeSlots: MhdDocumentNarrativeSlot[];
+  complianceModuleKey: string | null;
+  complianceContentKey: string | null;
+}
+export interface MhdSetDocumentTemplateWizardSettingsInput {
+  employeeFileCategory: MhdDocumentEmployeeFileCategory | null;
+  narrativeSlots: MhdDocumentNarrativeSlot[];
+}
+export interface MhdDocumentTemplateVersion {
+  version: number;
+  name: string;
+  contentFormat: string;
+  content: string;
+  requiresSignature: boolean;
+  changedBy: string | null;
+  changedByName: string | null;
+  changedAt: string;
+}
+export interface MhdForkedDocumentTemplate {
+  id: string;
+  referenceId: string;
+  alreadyExisted: boolean;
+}
+export interface MhdDocumentBranding {
+  id: string;
+  companyId: string | null;
+  isPlatformDefault: boolean;
+  headerText: string | null;
+  footerText: string | null;
+  accentColor: string;
+  fontFamily: MhdDocumentBrandingFont;
+  logoDataUri: string | null;
+  showReferenceId: boolean;
+}
+export interface MhdSaveDocumentBrandingInput {
+  companyId: string | null;
+  headerText: string | null;
+  footerText: string | null;
+  accentColor: string;
+  fontFamily: MhdDocumentBrandingFont;
+  logoDataUri: string | null;
+  showReferenceId: boolean;
+}
+export interface MhdEmployeeFileDocument {
+  id: string;
+  referenceId: string;
+  templateKey: string | null;
+  templateName: string;
+  employeeFileCategory: MhdDocumentEmployeeFileCategory;
+  entityType: string;
+  entityId: string;
+  status: string;
+  outputFormat: MhdDocumentOutputFormat;
+  outputFileName: string | null;
+  outputDriveFileId: string | null;
+  esignatureRequestId: string | null;
+  generatedAt: string | null;
+  createdBy: string | null;
+  createdByName: string | null;
+  createdAt: string;
+}
+/** What the wizard's preview step renders: the template, the company (for its letterhead) and the merged data. */
+export interface MhdDocumentPreviewRenderInput {
+  templateId: string;
+  companyId: string;
+  mergeData: Record<string, unknown>;
+}
+export interface MhdDocumentPreviewInput {
+  templateId: string;
+  companyId: string;
+  entityType: string;
+  entityId: string;
+  custom?: Record<string, unknown>;
+  overrides?: MhdDocumentMergeOverrides;
+  narrative?: MhdDocumentNarrativeSections;
+}
+export interface MhdQueuedDocumentGeneration {
+  queueId: string;
+  generationId: string;
+  generationReferenceId: string;
+  templateId: string;
+  documentHash: string | null;
+  outputDriveFileId: string | null;
 }
