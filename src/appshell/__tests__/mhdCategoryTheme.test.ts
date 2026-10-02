@@ -40,6 +40,8 @@ const NAV_INVENTORY: ReadonlyArray<[route: string, theme: MhdCategoryTheme]> = [
   ['/my-handbooks', 'talent'],
   ['/conduct', 'employee-relations'],
   ['/investigations', 'employee-relations'],
+  ['/grievances', 'employee-relations'],
+  ['/my-grievances', 'employee-relations'],
   ['/offboarding', 'employee-relations'],
   ['/tasks', 'work-tools'],
   ['/activities', 'work-tools'],

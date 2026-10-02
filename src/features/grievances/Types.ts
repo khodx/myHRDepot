@@ -71,6 +71,8 @@ export interface MhdGrievanceDetailRpcRow {
   concerns_unrecorded_oral_reprimand: boolean;
   is_harassment_related: boolean;
   referred_to_process: string | null;
+  /** Present only for someone who may view that investigation. */
+  referred_to_investigation_id?: string | null;
   referred_at: string | null;
   submitted_at: string | null;
   employee_signature_name: string | null;
@@ -139,6 +141,8 @@ export interface MhdGrievanceDetail {
   concernsUnrecordedOralReprimand: boolean;
   isHarassmentRelated: boolean;
   referredToProcess: string | null;
+  /** The investigation it was referred to; null unless the viewer may see that investigation. */
+  referredToInvestigationId: string | null;
   referredAt: string | null;
   submittedAt: string | null;
   employeeSignatureName: string | null;
@@ -195,6 +199,8 @@ export interface MhdAddGrievanceStepInput {
 export interface MhdReferGrievanceInput {
   grievanceId: string;
   referredToProcess: string;
+  /** Links the referral to an investigation the caller can view (0363). */
+  investigationCaseId?: string | null;
 }
 
 export interface MhdResolveGrievanceInput {

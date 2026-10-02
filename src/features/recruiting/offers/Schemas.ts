@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MHD_OFFER_PAY_FREQUENCIES } from './Types';
 
 // ---------------------------------------------------------------------------
 // Create offer
@@ -29,11 +30,12 @@ export const mhdOfferFormSchema = z.object({
       .min(0, 'Salary cannot be negative.')
       .nullable(),
   ),
-  payFrequency: z.string().trim().max(120).optional().nullable().or(z.literal('')),
+  payFrequency: z.enum(MHD_OFFER_PAY_FREQUENCIES).optional().nullable().or(z.literal('')),
   employmentType: z.string().trim().max(120).optional().nullable().or(z.literal('')),
   reportingManagerPersonId: z.string().trim().optional().nullable().or(z.literal('')),
   offerExpirationDate: z.string().trim().optional().nullable().or(z.literal('')),
   requiresApproval: z.boolean().default(false),
+  salaryOverrideReason: z.string().trim().max(2000).optional().nullable().or(z.literal('')),
 });
 
 // ---------------------------------------------------------------------------

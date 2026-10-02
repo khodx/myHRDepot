@@ -148,6 +148,7 @@ export const mhdOfferService = {
       p_reporting_manager_person_id: trimmedOrUndefined(input.reportingManagerPersonId),
       p_offer_expiration_date: trimmedOrUndefined(input.offerExpirationDate),
       p_requires_approval: input.requiresApproval ?? false,
+      p_salary_override_reason: trimmedOrUndefined(input.salaryOverrideReason),
     });
     if (error) throw error;
     const row = ((data ?? []) as MhdOfferMutationRpcRow[])[0];

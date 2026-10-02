@@ -66,7 +66,6 @@ export interface MhdStartOnboardingPacketInput {
   documentKeys: MhdOnboardingDocumentKey[];
   /** Applied to newly seeded items only. Null leaves them open-ended. */
   dueDate: string | null;
-  actorUserId: MhdUserId;
 }
 
 export interface MhdOnboardingPacketDefinition {

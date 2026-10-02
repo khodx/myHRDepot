@@ -176,7 +176,6 @@ export const mhdOffboardingService = {
       ...(trimmedOrUndefined(input.reasonSummary)
         ? { p_reason_summary: trimmedOrUndefined(input.reasonSummary) }
         : {}),
-      ...(input.actorUserId ? { p_actor_user_id: input.actorUserId } : {}),
     }).returns<MhdOffboardingMutationRpcRow[]>();
 
     if (error) {

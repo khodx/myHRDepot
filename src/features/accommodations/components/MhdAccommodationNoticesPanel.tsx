@@ -78,7 +78,7 @@ export function MhdAccommodationNoticesPanel({ caseId }: { caseId: string }) {
                 await createNotice.mutateAsync({
                   caseId,
                   noticeType,
-                  templateKey: template.id || template.name,
+                  templateKey: template.templateKey ?? template.name,
                   templateVersion: template.version,
                   documentGenerationId: generation.id,
                 });

@@ -80,6 +80,7 @@ export function MhdOfferPanel({
       reportingManagerPersonId: values.reportingManagerPersonId || null,
       offerExpirationDate: values.offerExpirationDate || null,
       requiresApproval: values.requiresApproval,
+      salaryOverrideReason: values.salaryOverrideReason || null,
     });
     setIsCreating(false);
     setSelectedOfferId(result.id);

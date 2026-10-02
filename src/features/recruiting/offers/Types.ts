@@ -127,6 +127,29 @@ export type MhdOfferReferenceId = `OFR-${string}`;
 export type MhdOfferStatus =
   'DRAFT' | 'PENDING_APPROVAL' | 'EXTENDED' | 'ACCEPTED' | 'DECLINED' | 'RESCINDED' | 'EXPIRED';
 
+/**
+ * The pay-frequency vocabulary the offer's pay check understands (0362). The database constrains new
+ * offers to exactly these, so the pay can be annualized and checked against the job's classification.
+ */
+export const MHD_OFFER_PAY_FREQUENCIES = [
+  'ANNUAL',
+  'MONTHLY',
+  'SEMIMONTHLY',
+  'BIWEEKLY',
+  'WEEKLY',
+  'HOURLY',
+] as const;
+export type MhdOfferPayFrequency = (typeof MHD_OFFER_PAY_FREQUENCIES)[number];
+
+export const MHD_OFFER_PAY_FREQUENCY_LABELS: Record<MhdOfferPayFrequency, string> = {
+  ANNUAL: 'Annual salary',
+  MONTHLY: 'Monthly',
+  SEMIMONTHLY: 'Twice a month',
+  BIWEEKLY: 'Every two weeks',
+  WEEKLY: 'Weekly',
+  HOURLY: 'Hourly rate',
+};
+
 export const MHD_OFFER_STATUSES = [
   'DRAFT',
   'PENDING_APPROVAL',
@@ -271,6 +294,8 @@ export interface MhdCreateOfferInput {
   reportingManagerPersonId?: string | null;
   offerExpirationDate?: string | null;
   requiresApproval?: boolean;
+  /** Why to proceed despite blocking pay-check findings; required by the server only when there are some. */
+  salaryOverrideReason?: string | null;
 }
 
 /**

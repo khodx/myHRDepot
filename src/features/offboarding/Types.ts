@@ -147,7 +147,6 @@ export interface MhdCreateOffboardingCaseInput {
   separationDate: string;
   lastWorkingDay?: string | null;
   reasonSummary?: string | null;
-  actorUserId?: string | null;
 }
 
 export interface MhdUpdateOffboardingCaseInput {

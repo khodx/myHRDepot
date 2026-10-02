@@ -68,6 +68,7 @@ function mapDetail(row: MhdGrievanceDetailRpcRow): MhdGrievanceDetail {
     concernsUnrecordedOralReprimand: row.concerns_unrecorded_oral_reprimand,
     isHarassmentRelated: row.is_harassment_related,
     referredToProcess: row.referred_to_process,
+    referredToInvestigationId: row.referred_to_investigation_id ?? null,
     referredAt: row.referred_at,
     submittedAt: row.submitted_at,
     employeeSignatureName: row.employee_signature_name,
@@ -170,6 +171,7 @@ export const mhdGrievancesService = {
     const { error } = await supabaseClient.rpc('mhd_grievance_refer', {
       p_grievance_id: input.grievanceId,
       p_referred_to_process: input.referredToProcess,
+      ...(input.investigationCaseId ? { p_investigation_case_id: input.investigationCaseId } : {}),
     });
     if (error) throw error;
   },

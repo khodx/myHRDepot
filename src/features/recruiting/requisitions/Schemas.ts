@@ -12,10 +12,11 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
- * Creating a requisition. `title` is required; `headcount` mirrors the column
- * CHECK (`>= 1`) and defaults to 1. Every other field is optional (a req may be
- * drafted before a JD, hiring manager, or location exists). `jobId` /
- * `hiringManagerPersonId` are ids chosen from pickers; blank means unset. This
+ * Creating a requisition. `title` and `jobId` are required — a requisition is for a job, and
+ * accepting an offer needs that job to assign the hire (0362); `headcount` mirrors the column
+ * CHECK (`>= 1`) and defaults to 1. Every other field is optional (a req may be drafted before
+ * a hiring manager or location exists). `jobId` / `hiringManagerPersonId` are ids chosen from
+ * pickers; blank hiring manager means unset. This
  * schema validates the payload only; the RPC remains the authority on who may
  * create a requisition (the three admin roles).
  */
@@ -26,7 +27,7 @@ export const mhdRequisitionFormSchema = z.object({
     .trim()
     .min(1, 'A title is required.')
     .max(300, 'That title is longer than the record supports.'),
-  jobId: z.string().trim().optional().nullable().or(z.literal('')),
+  jobId: z.string().trim().min(1, 'Select the job this requisition is for.'),
   hiringManagerPersonId: z.string().trim().optional().nullable().or(z.literal('')),
   department: z.string().trim().max(200).optional().nullable().or(z.literal('')),
   location: z.string().trim().max(200).optional().nullable().or(z.literal('')),

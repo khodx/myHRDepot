@@ -413,7 +413,7 @@ export function MhdLeaveWorkflowPanel({
                     await recordNotice.mutateAsync({
                       caseId,
                       noticeType,
-                      templateKey: template.id || template.name,
+                      templateKey: template.templateKey ?? template.name,
                       templateVersion: template.version,
                       dueAt: noticeDueAt || null,
                       documentGenerationId: generation.id,

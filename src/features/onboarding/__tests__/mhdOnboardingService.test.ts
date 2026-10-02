@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mhdOnboardingService } from '../Service';
-import {
-  MHD_ONBOARDING_DOCUMENT_KEY_SET,
-  MHD_ONBOARDING_PACKET_DEFINITIONS,
-} from '../Types';
+import { MHD_ONBOARDING_DOCUMENT_KEY_SET, MHD_ONBOARDING_PACKET_DEFINITIONS } from '../Types';
 
 const {
   rpcReturnsMock,
@@ -137,8 +134,12 @@ describe('mhdOnboardingService', () => {
       p_document_key: 'onboarding_i9_records',
       p_document_record_id: '01I9RECORD',
       p_status: 'SUBMITTED',
-      p_actor_user_id: '01USER',
     });
+    // The actor is the signed-in user, derived by the server; the client never names one.
+    expect(rpcMock).not.toHaveBeenCalledWith(
+      'mhd_upsert_onboarding_checklist_item',
+      expect.objectContaining({ p_actor_user_id: expect.anything() }),
+    );
     expect(result.documentRecordId).toBe('01I9RECORD');
   });
 
@@ -212,7 +213,10 @@ describe('mhdOnboardingService', () => {
     async ({ documentKey, designationType, formNumber, recordId }) => {
       fromLookupReturnsMock.mockResolvedValueOnce({ data: [], error: null });
       fromInsertSingleMock.mockResolvedValueOnce({ data: { id: recordId }, error: null });
-      rpcReturnsMock.mockResolvedValueOnce({ data: [{ destination_record_id: recordId }], error: null });
+      rpcReturnsMock.mockResolvedValueOnce({
+        data: [{ destination_record_id: recordId }],
+        error: null,
+      });
       rpcReturnsMock.mockResolvedValueOnce({
         data: [
           {

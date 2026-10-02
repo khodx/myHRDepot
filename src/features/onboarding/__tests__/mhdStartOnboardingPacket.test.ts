@@ -23,7 +23,6 @@ describe('mhdOnboardingService.startPacket', () => {
       personId: 'person-1',
       documentKeys: ['onboarding_i9_records', 'onboarding_w4_elections'],
       dueDate: '2026-08-15T00:00:00.000Z',
-      actorUserId: 'user-1',
     });
 
     expect(mockRpc).toHaveBeenCalledWith('mhd_start_onboarding_packet', {
@@ -31,8 +30,9 @@ describe('mhdOnboardingService.startPacket', () => {
       p_person_id: 'person-1',
       p_document_keys: ['onboarding_i9_records', 'onboarding_w4_elections'],
       p_due_date: '2026-08-15T00:00:00.000Z',
-      p_actor_user_id: 'user-1',
     });
+    // The actor is the signed-in user, derived by the server; the client never names one.
+    expect(mockRpc.mock.calls[0][1]).not.toHaveProperty('p_actor_user_id');
   });
 
   it('sends a null due date rather than omitting the argument', async () => {
@@ -45,7 +45,6 @@ describe('mhdOnboardingService.startPacket', () => {
       personId: 'person-1',
       documentKeys: ['onboarding_i9_records'],
       dueDate: null,
-      actorUserId: 'user-1',
     });
 
     expect(mockRpc.mock.calls[0][1]).toHaveProperty('p_due_date', null);
@@ -74,7 +73,6 @@ describe('mhdOnboardingService.startPacket', () => {
       personId: 'person-1',
       documentKeys: ['onboarding_i9_records'],
       dueDate: '2026-08-15T00:00:00.000Z',
-      actorUserId: 'user-1',
     });
 
     expect(items).toHaveLength(1);
@@ -99,7 +97,6 @@ describe('mhdOnboardingService.startPacket', () => {
         personId: 'person-1',
         documentKeys: ['onboarding_i9_records'],
         dueDate: null,
-        actorUserId: 'user-1',
       }),
     ).rejects.toThrow(/cannot start an onboarding packet/);
   });

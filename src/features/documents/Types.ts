@@ -106,6 +106,9 @@ export interface MhdDocumentTemplate {
    *  CASE_DOCUMENT). Null = not yet tagged to a module — hidden from every
    *  module-filtered list, still visible in the admin template library. */
   applicableEntityType: string | null;
+  /** The template's stable key (null for a template created without one). What a record that
+   *  refers to a template by name — a notice, an output setting — stores, never the id. */
+  templateKey: string | null;
   description: string | null;
   contentFormat: MhdDocumentContentFormat;
   mergeFields: MhdDocumentMergeField[];

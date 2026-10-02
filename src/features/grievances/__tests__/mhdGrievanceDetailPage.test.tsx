@@ -43,6 +43,7 @@ function detail(overrides: Partial<MhdGrievanceDetail>): MhdGrievanceDetail {
     concernsUnrecordedOralReprimand: false,
     isHarassmentRelated: false,
     referredToProcess: null,
+    referredToInvestigationId: null,
     referredAt: null,
     submittedAt: '2026-09-01T00:00:00Z',
     employeeSignatureName: 'Dana Doe',

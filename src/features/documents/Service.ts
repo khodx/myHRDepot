@@ -64,6 +64,7 @@ type MhdDocumentTemplateRow = {
   requires_signature: boolean;
   created_at: string;
   updated_at: string;
+  template_key?: string | null;
 };
 
 type MhdDocumentTemplateDetailRow = MhdDocumentTemplateRow & { content: string };
@@ -123,6 +124,7 @@ function mapTemplateRow(row: MhdDocumentTemplateRow): MhdDocumentTemplate {
     name: row.name,
     templateType: row.template_type as MhdDocumentTemplate['templateType'],
     applicableEntityType: row.applicable_entity_type,
+    templateKey: row.template_key ?? null,
     description: row.description,
     contentFormat: row.content_format as MhdDocumentTemplate['contentFormat'],
     mergeFields: (row.merge_fields ?? []) as unknown as MhdDocumentTemplate['mergeFields'],

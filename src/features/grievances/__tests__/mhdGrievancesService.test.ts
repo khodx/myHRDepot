@@ -95,19 +95,28 @@ describe('mhdGrievancesService', () => {
     await mhdGrievancesService.acknowledgeGrievance('g1');
     expect(rpcMock).toHaveBeenLastCalledWith('mhd_grievance_acknowledge', { p_grievance_id: 'g1' });
 
-    await mhdGrievancesService.referGrievance({ grievanceId: 'g1', referredToProcess: 'Harassment Policy' });
+    await mhdGrievancesService.referGrievance({
+      grievanceId: 'g1',
+      referredToProcess: 'Harassment Policy',
+    });
     expect(rpcMock).toHaveBeenLastCalledWith('mhd_grievance_refer', {
       p_grievance_id: 'g1',
       p_referred_to_process: 'Harassment Policy',
     });
 
-    await mhdGrievancesService.resolveGrievance({ grievanceId: 'g1', resolution: 'Resolved amicably' });
+    await mhdGrievancesService.resolveGrievance({
+      grievanceId: 'g1',
+      resolution: 'Resolved amicably',
+    });
     expect(rpcMock).toHaveBeenLastCalledWith('mhd_grievance_resolve', {
       p_grievance_id: 'g1',
       p_resolution: 'Resolved amicably',
     });
 
-    await mhdGrievancesService.rejectGrievance({ grievanceId: 'g1', reason: 'Oral reprimand, not recorded' });
+    await mhdGrievancesService.rejectGrievance({
+      grievanceId: 'g1',
+      reason: 'Oral reprimand, not recorded',
+    });
     expect(rpcMock).toHaveBeenLastCalledWith('mhd_grievance_reject_not_grievable', {
       p_grievance_id: 'g1',
       p_reason: 'Oral reprimand, not recorded',
@@ -115,6 +124,28 @@ describe('mhdGrievancesService', () => {
 
     await mhdGrievancesService.withdrawGrievance('g1');
     expect(rpcMock).toHaveBeenLastCalledWith('mhd_grievance_withdraw', { p_grievance_id: 'g1' });
+  });
+
+  it('links a referral to an investigation when one is given, and sends nothing extra otherwise', async () => {
+    rpcMock.mockResolvedValue({ data: null, error: null });
+
+    await mhdGrievancesService.referGrievance({
+      grievanceId: 'g1',
+      referredToProcess: 'Investigation',
+      investigationCaseId: 'case-9',
+    });
+    expect(rpcMock).toHaveBeenLastCalledWith('mhd_grievance_refer', {
+      p_grievance_id: 'g1',
+      p_referred_to_process: 'Investigation',
+      p_investigation_case_id: 'case-9',
+    });
+
+    await mhdGrievancesService.referGrievance({
+      grievanceId: 'g1',
+      referredToProcess: 'Mediation',
+      investigationCaseId: null,
+    });
+    expect(rpcMock.mock.lastCall?.[1]).not.toHaveProperty('p_investigation_case_id');
   });
 
   it('propagates a denial error verbatim from get', async () => {

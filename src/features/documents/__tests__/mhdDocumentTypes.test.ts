@@ -10,6 +10,7 @@ describe('Document Generation type contract', () => {
       name: 'Monthly Task Summary',
       templateType: 'REPORT',
       applicableEntityType: 'TASK',
+    templateKey: null,
       description: 'A monthly summary report.',
       contentFormat: 'HTML',
       mergeFields: [{ path: 'task.title', label: 'Task Title', source: 'task' }],

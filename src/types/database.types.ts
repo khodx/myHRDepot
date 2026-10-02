@@ -6164,6 +6164,7 @@ export type Database = {
           person_id: string
           reference_id: string | null
           referred_at: string | null
+          referred_to_investigation_id: string | null
           referred_to_process: string | null
           remedy_requested: string | null
           resolution: string | null
@@ -6198,6 +6199,7 @@ export type Database = {
           person_id: string
           reference_id?: string | null
           referred_at?: string | null
+          referred_to_investigation_id?: string | null
           referred_to_process?: string | null
           remedy_requested?: string | null
           resolution?: string | null
@@ -6232,6 +6234,7 @@ export type Database = {
           person_id?: string
           reference_id?: string | null
           referred_at?: string | null
+          referred_to_investigation_id?: string | null
           referred_to_process?: string | null
           remedy_requested?: string | null
           resolution?: string | null
@@ -6276,6 +6279,13 @@ export type Database = {
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_grievances_referred_to_investigation_id_fkey"
+            columns: ["referred_to_investigation_id"]
+            isOneToOne: false
+            referencedRelation: "investigation_cases"
             referencedColumns: ["id"]
           },
           {
@@ -21593,6 +21603,9 @@ export type Database = {
           reference_id: string
           reporting_manager_person_id: string | null
           requires_approval: boolean
+          salary_check: Json | null
+          salary_check_override_by: string | null
+          salary_check_override_reason: string | null
           start_date: string | null
           status: string
           updated_at: string | null
@@ -21617,6 +21630,9 @@ export type Database = {
           reference_id: string
           reporting_manager_person_id?: string | null
           requires_approval?: boolean
+          salary_check?: Json | null
+          salary_check_override_by?: string | null
+          salary_check_override_reason?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string | null
@@ -21641,6 +21657,9 @@ export type Database = {
           reference_id?: string
           reporting_manager_person_id?: string | null
           requires_approval?: boolean
+          salary_check?: Json | null
+          salary_check_override_by?: string | null
+          salary_check_override_reason?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string | null
@@ -21693,6 +21712,13 @@ export type Database = {
             columns: ["reporting_manager_person_id"]
             isOneToOne: false
             referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recruiting_offers_salary_check_override_by_fkey"
+            columns: ["salary_check_override_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -27718,7 +27744,6 @@ export type Database = {
       }
       mhd_create_offboarding_case: {
         Args: {
-          p_actor_user_id?: string
           p_company_id: string
           p_last_working_day?: string
           p_person_id: string
@@ -28153,6 +28178,7 @@ export type Database = {
         }
         Returns: Json
       }
+      mhd_document_date: { Args: { p_value: string }; Returns: string }
       mhd_document_entity_lookup: {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: Record<string, unknown>
@@ -28169,6 +28195,8 @@ export type Database = {
         Args: { p_category: string; p_generation_id: string }
         Returns: undefined
       }
+      mhd_document_label: { Args: { p_value: string }; Returns: string }
+      mhd_document_money: { Args: { p_value: number }; Returns: string }
       mhd_document_preview_context: {
         Args: {
           p_company_id: string
@@ -28281,6 +28309,27 @@ export type Database = {
           p_queue_id: string
         }
         Returns: undefined
+      }
+      mhd_document_record_accommodation_case: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_contractor_classification: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_job_classification: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_job_description: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_leave_case: { Args: { p_id: string }; Returns: Json }
+      mhd_document_record_training_course: {
+        Args: { p_id: string }
+        Returns: Json
       }
       mhd_document_resolve_template: {
         Args: { p_company_id: string; p_template_key: string }
@@ -28770,6 +28819,7 @@ export type Database = {
           name: string
           reference_id: string
           requires_signature: boolean
+          template_key: string
           template_type: string
           updated_at: string
           version: number
@@ -29334,6 +29384,7 @@ export type Database = {
           person_id: string
           reference_id: string
           referred_at: string
+          referred_to_investigation_id: string
           referred_to_process: string
           remedy_requested: string
           resolution: string
@@ -29386,7 +29437,11 @@ export type Database = {
         }[]
       }
       mhd_grievance_refer: {
-        Args: { p_grievance_id: string; p_referred_to_process: string }
+        Args: {
+          p_grievance_id: string
+          p_investigation_case_id?: string
+          p_referred_to_process: string
+        }
         Returns: undefined
       }
       mhd_grievance_reject_not_grievable: {
@@ -31191,6 +31246,7 @@ export type Database = {
           name: string
           reference_id: string
           requires_signature: boolean
+          template_key: string
           template_type: string
           updated_at: string
           version: number
@@ -33373,6 +33429,7 @@ export type Database = {
           p_pay_frequency?: string
           p_reporting_manager_person_id?: string
           p_requires_approval?: boolean
+          p_salary_override_reason?: string
           p_start_date?: string
         }
         Returns: {
@@ -33439,6 +33496,15 @@ export type Database = {
         Args: { p_offer_id: string; p_reason?: string }
         Returns: undefined
       }
+      mhd_recruiting_offer_salary_check: {
+        Args: {
+          p_application_id: string
+          p_as_of?: string
+          p_base_salary: number
+          p_pay_frequency: string
+        }
+        Returns: Json
+      }
       mhd_recruiting_reason_list: {
         Args: { p_company_id: string }
         Returns: {
@@ -33485,6 +33551,10 @@ export type Database = {
           status: string
           title: string
         }[]
+      }
+      mhd_recruiting_requisition_set_job: {
+        Args: { p_job_id: string; p_requisition_id: string }
+        Returns: undefined
       }
       mhd_recruiting_requisition_transition: {
         Args: { p_new_status: string; p_req_id: string }
@@ -34143,7 +34213,6 @@ export type Database = {
       }
       mhd_start_onboarding_packet: {
         Args: {
-          p_actor_user_id: string
           p_company_id: string
           p_document_keys: string[]
           p_due_date: string
@@ -35927,7 +35996,6 @@ export type Database = {
       }
       mhd_upsert_onboarding_checklist_item: {
         Args: {
-          p_actor_user_id: string
           p_company_id: string
           p_document_key: string
           p_document_record_id: string

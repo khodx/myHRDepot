@@ -68,7 +68,6 @@ export function MhdStartOnboardingDialog({ row, onClose }: MhdStartOnboardingDia
       // <input type="date"> yields YYYY-MM-DD; send an explicit UTC instant so
       // the stored deadline does not shift by the viewer's timezone offset.
       dueDate: dueDate ? new Date(`${dueDate}T00:00:00Z`).toISOString() : null,
-      actorUserId: profile.userId,
     });
     onClose();
   }

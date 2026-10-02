@@ -89,14 +89,14 @@ export function MhdRequisitionForm({
       <MhdFormFieldStack>
         <div>
           <label htmlFor="jobId" className="block text-sm font-medium text-foreground">
-            Job <span className="font-normal text-muted-foreground">(optional)</span>
+            Job
           </label>
           <select
             id="jobId"
             {...register('jobId')}
             className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
-            <option value="">No job selected</option>
+            <option value="">Select a job</option>
             {(jobs ?? []).map((job) => (
               <option key={job.id} value={job.id}>
                 {job.title}
@@ -104,7 +104,7 @@ export function MhdRequisitionForm({
             ))}
           </select>
           <p className="mt-1 text-xs text-muted-foreground">
-            Links the JD and its competencies; needed for package-2 interview questions.
+            Required: links the JD and its competencies, drives package-2 interview questions, and is the job the hire is assigned to.
           </p>
         </div>
 

@@ -292,7 +292,6 @@ export const mhdOnboardingService = {
         p_document_key: input.documentKey,
         p_document_record_id: documentRecordId,
         p_status: input.status ?? 'SUBMITTED',
-        p_actor_user_id: input.actorUserId,
       })
       .returns<MhdOnboardingChecklistRow[]>();
 
@@ -320,7 +319,6 @@ export const mhdOnboardingService = {
         // "no due date" rather than a missing argument. Same compatibility cast
         // as the Forms employee-file category arguments.
         p_due_date: input.dueDate as never,
-        p_actor_user_id: input.actorUserId,
       })
       .returns<MhdOnboardingChecklistRow[]>();
 

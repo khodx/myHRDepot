@@ -858,13 +858,16 @@ export function mhdCanMutatePerformance(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_PERFORMANCE_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }
 
+/**
+ * Roles that may create and change offboarding cases. Matches the server exactly (0361): Platform Admin,
+ * HR Partner, HR Admin and Client Admin. Executive Leadership and Director are read audiences for
+ * offboarding and are refused by every mutating RPC, so they are not offered the affordances.
+ */
 export const MHD_OFFBOARDING_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
   'HR Admin',
   'Client Admin',
-  'Executive Leadership',
-  'Director',
 ];
 
 export function mhdCanMutateOffboarding(userRoles: MhdAuthRoleName[]): boolean {
@@ -872,19 +875,17 @@ export function mhdCanMutateOffboarding(userRoles: MhdAuthRoleName[]): boolean {
 }
 
 /**
- * Same audience as /onboarding itself (route table above): Platform Admin,
- * HR Partner, Client Admin. Mirrors mhd_onboarding_cancel_person's own
- * authorization check (mhd_can_access_company + Client Admin or HR Partner —
- * Platform Admin passes via mhd_user_has_role's is_admin bypass), migration
- * 0091.
+ * Roles that may start and change onboarding: Platform Admin, HR Partner, HR Admin and Client
+ * Admin. Mirrors the onboarding RPCs' own authorization check (company access +
+ * Client Admin, HR Partner or HR Admin — Platform Admin passes via mhd_user_has_role's
+ * is_admin bypass), migrations 0091 and 0361. Executive Leadership and Director are not
+ * accepted by those RPCs, so the affordances are not offered to them.
  */
 export const MHD_ONBOARDING_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
   'HR Admin',
   'Client Admin',
-  'Executive Leadership',
-  'Director',
 ];
 
 export function mhdCanMutateOnboarding(userRoles: MhdAuthRoleName[]): boolean {

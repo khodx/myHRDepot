@@ -64,6 +64,8 @@ const MHD_CATEGORY_PREFIX_ENTRIES = [
   ['/my-memorandums', 'work-tools'],
   ['/conduct', 'employee-relations'],
   ['/investigations', 'employee-relations'],
+  ['/grievances', 'employee-relations'],
+  ['/my-grievances', 'employee-relations'],
   ['/offboarding', 'employee-relations'],
   ['/audit-reports', 'employee-relations'],
   ['/contractor-classification', 'employee-relations'],

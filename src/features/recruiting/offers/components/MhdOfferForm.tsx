@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { mhdOfferFormSchema, type MhdOfferFormValues } from '../Schemas';
 import type { z } from 'zod';
+import { MHD_OFFER_PAY_FREQUENCIES, MHD_OFFER_PAY_FREQUENCY_LABELS } from '../Types';
 
 interface PersonOption {
   id: string;
@@ -61,6 +62,7 @@ export function MhdOfferForm({
       reportingManagerPersonId: '',
       offerExpirationDate: '',
       requiresApproval: false,
+      salaryOverrideReason: '',
     },
   });
 
@@ -130,13 +132,21 @@ export function MhdOfferForm({
           <label htmlFor="payFrequency" className="block text-sm font-medium text-foreground">
             Pay frequency <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
-          <input
+          <select
             id="payFrequency"
-            type="text"
             {...register('payFrequency')}
-            placeholder="e.g. Annual, Bi-weekly"
             className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
-          />
+          >
+            <option value="">Not set</option>
+            {MHD_OFFER_PAY_FREQUENCIES.map((value) => (
+              <option key={value} value={value}>
+                {MHD_OFFER_PAY_FREQUENCY_LABELS[value]}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Needed to check the pay against the job's classification.
+          </p>
         </div>
 
         <div>
@@ -199,6 +209,23 @@ export function MhdOfferForm({
           />
         </div>
       </MhdFormFieldStack>
+
+      <div>
+        <label htmlFor="salaryOverrideReason" className="block text-sm font-medium text-foreground">
+          Reason to proceed despite a pay check{' '}
+          <span className="font-normal text-muted-foreground">(only if the pay check blocks the offer)</span>
+        </label>
+        <textarea
+          id="salaryOverrideReason"
+          rows={2}
+          {...register('salaryOverrideReason')}
+          className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
+        />
+        <p className="mt-1 text-xs text-muted-foreground">
+          If the pay falls below an exempt salary floor or a minimum wage, the offer is refused unless a
+          reason is recorded here. The reason and the findings are kept on the offer.
+        </p>
+      </div>
 
       <div className="flex items-start gap-2">
         <input
