@@ -22,7 +22,7 @@ export type MhdCoachingPlanReferenceId = `COCH-${string}`;
 export type MhdCoachingPlanItemId = string;
 export type MhdCoachingPlanItemReferenceId = `COPI-${string}`;
 
-export type MhdPerformanceReviewType = 'INTRODUCTORY' | 'ANNUAL';
+export type MhdPerformanceReviewType = 'INTRODUCTORY' | 'ANNUAL' | 'QUARTERLY' | 'PROBATIONARY';
 
 export type MhdPerformanceReviewStatus =
   'DRAFT' | 'IN_REVIEW' | 'PENDING_SIGNATURE' | 'COMPLETED' | 'CANCELLED';
@@ -34,6 +34,8 @@ export type MhdCoachingPlanItemStatus = 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' 
 export const MHD_PERFORMANCE_REVIEW_TYPES = [
   'INTRODUCTORY',
   'ANNUAL',
+  'QUARTERLY',
+  'PROBATIONARY',
 ] as const satisfies readonly MhdPerformanceReviewType[];
 
 export const MHD_PERFORMANCE_REVIEW_STATUSES = [
@@ -294,6 +296,8 @@ export function mhdFormatPerformanceReviewType(reviewType: MhdPerformanceReviewT
   const labels: Record<MhdPerformanceReviewType, string> = {
     INTRODUCTORY: 'Introductory',
     ANNUAL: 'Annual',
+    QUARTERLY: 'Quarterly',
+    PROBATIONARY: 'Probationary',
   };
 
   return labels[reviewType];

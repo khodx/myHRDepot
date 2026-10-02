@@ -6,6 +6,8 @@ import { mhdFormatReviewType, type MhdReviewType } from '../Types';
 const TYPE_VARIANTS: Record<MhdReviewType, MhdBadgeVariant> = {
   INTRODUCTORY: 'info',
   ANNUAL: 'accent',
+  QUARTERLY: 'accent',
+  PROBATIONARY: 'info',
 };
 
 interface Props {

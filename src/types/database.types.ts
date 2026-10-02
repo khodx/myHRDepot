@@ -20475,6 +20475,143 @@ export type Database = {
           },
         ]
       }
+      performance_review_cycle_competencies: {
+        Row: {
+          competency_id: string
+          cycle_id: string
+          id: string
+          sort_order: number
+        }
+        Insert: {
+          competency_id: string
+          cycle_id: string
+          id?: string
+          sort_order?: number
+        }
+        Update: {
+          competency_id?: string
+          cycle_id?: string
+          id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_review_cycle_competencies_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_review_cycle_competencies_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "performance_review_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_review_cycles: {
+        Row: {
+          announcement_note: string | null
+          closed_at: string | null
+          closed_by: string | null
+          company_id: string
+          created_at: string
+          cycle_name: string
+          feedback_due: string | null
+          id: string
+          includes_self_assessment: boolean
+          is_multi_rater: boolean
+          launched_at: string
+          launched_by: string
+          reference_id: string
+          review_due: string
+          review_period_end: string
+          review_period_start: string
+          review_type: string
+          self_assessment_due: string | null
+          status: string
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          announcement_note?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id: string
+          created_at?: string
+          cycle_name: string
+          feedback_due?: string | null
+          id?: string
+          includes_self_assessment?: boolean
+          is_multi_rater?: boolean
+          launched_at?: string
+          launched_by: string
+          reference_id: string
+          review_due: string
+          review_period_end: string
+          review_period_start: string
+          review_type: string
+          self_assessment_due?: string | null
+          status?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          announcement_note?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id?: string
+          created_at?: string
+          cycle_name?: string
+          feedback_due?: string | null
+          id?: string
+          includes_self_assessment?: boolean
+          is_multi_rater?: boolean
+          launched_at?: string
+          launched_by?: string
+          reference_id?: string
+          review_due?: string
+          review_period_end?: string
+          review_period_start?: string
+          review_type?: string
+          self_assessment_due?: string | null
+          status?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_review_cycles_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_review_cycles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_review_cycles_launched_by_fkey"
+            columns: ["launched_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_review_cycles_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "performance_review_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       performance_review_participants: {
         Row: {
           approved_by: string | null
@@ -20667,6 +20804,7 @@ export type Database = {
           company_id: string
           created_at: string | null
           created_by: string
+          cycle_id: string | null
           document_generation_id: string | null
           due_date: string | null
           employee_comments: string | null
@@ -20699,6 +20837,7 @@ export type Database = {
           company_id: string
           created_at?: string | null
           created_by: string
+          cycle_id?: string | null
           document_generation_id?: string | null
           due_date?: string | null
           employee_comments?: string | null
@@ -20731,6 +20870,7 @@ export type Database = {
           company_id?: string
           created_at?: string | null
           created_by?: string
+          cycle_id?: string | null
           document_generation_id?: string | null
           due_date?: string | null
           employee_comments?: string | null
@@ -20771,6 +20911,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "performance_review_cycles"
             referencedColumns: ["id"]
           },
           {
@@ -28999,6 +29146,10 @@ export type Database = {
         Args: { p_id: string }
         Returns: Json
       }
+      mhd_document_record_performance_cycle: {
+        Args: { p_id: string }
+        Returns: Json
+      }
       mhd_document_record_recruiting_offer: {
         Args: { p_id: string }
         Returns: Json
@@ -33587,6 +33738,10 @@ export type Database = {
         Args: { p_participant_id: string }
         Returns: undefined
       }
+      mhd_performance_can_manage_cycles: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
       mhd_performance_close_feedback: {
         Args: { p_reason: string; p_review_id: string }
         Returns: undefined
@@ -33601,6 +33756,83 @@ export type Database = {
         Returns: {
           id: string
           reference_id: string
+        }[]
+      }
+      mhd_performance_cycle_candidates: {
+        Args: {
+          p_company_id: string
+          p_include_indirect?: boolean
+          p_period_end?: string
+          p_period_start?: string
+          p_review_type?: string
+          p_root_person_id?: string
+        }
+        Returns: {
+          competency_count: number
+          conflicting_review_reference: string
+          depth: number
+          display_name: string
+          has_published_job: boolean
+          job_title: string
+          manager_name: string
+          manager_person_id: string
+          person_id: string
+          reviewer_name: string
+          reviewer_user_id: string
+        }[]
+      }
+      mhd_performance_cycle_close: {
+        Args: { p_cycle_id: string }
+        Returns: undefined
+      }
+      mhd_performance_cycle_launch: {
+        Args: {
+          p_company_id: string
+          p_competency_ids?: string[]
+          p_cycle: Json
+          p_participants: Json
+        }
+        Returns: Json
+      }
+      mhd_performance_cycle_list: {
+        Args: { p_company_id: string }
+        Returns: {
+          completed_count: number
+          cycle_name: string
+          feedback_due: string
+          id: string
+          is_multi_rater: boolean
+          launched_at: string
+          overdue_count: number
+          reference_id: string
+          review_count: number
+          review_due: string
+          review_period_end: string
+          review_period_start: string
+          review_type: string
+          self_assessment_due: string
+          status: string
+          template_name: string
+        }[]
+      }
+      mhd_performance_cycle_progress: {
+        Args: { p_cycle_id: string }
+        Returns: Json
+      }
+      mhd_performance_cycle_rater_plan: {
+        Args: {
+          p_company_id: string
+          p_include_peers?: boolean
+          p_include_upward?: boolean
+          p_max_peers?: number
+          p_max_upward?: number
+          p_person_ids: string[]
+        }
+        Returns: {
+          participant_type: string
+          rater_name: string
+          rater_person_id: string
+          subject_person_id: string
         }[]
       }
       mhd_performance_decline_participation: {
