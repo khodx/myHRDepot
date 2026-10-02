@@ -1,19 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   MhdAddGrievanceStepInput,
+  MhdGrievanceIntakeInput,
   MhdGrievanceListFilters,
   MhdRejectGrievanceInput,
   MhdReferGrievanceInput,
   MhdResolveGrievanceInput,
   MhdSubmitGrievanceInput,
 } from './Types';
+import { mhdPersonService } from '@/features/people/Service';
 import { mhdGrievancesService } from './Service';
 
 export const mhdGrievancesQueryKeys = {
   list: (filters: MhdGrievanceListFilters) => ['mhd-grievances', 'list', filters] as const,
   mine: (personId: string | null) => ['mhd-grievances', 'mine', personId ?? ''] as const,
-  detail: (grievanceId: string | null) =>
-    ['mhd-grievances', 'detail', grievanceId ?? ''] as const,
+  detail: (grievanceId: string | null) => ['mhd-grievances', 'detail', grievanceId ?? ''] as const,
   steps: (grievanceId: string | null) => ['mhd-grievances', 'steps', grievanceId ?? ''] as const,
 };
 
@@ -112,5 +113,40 @@ export function useMhdWithdrawGrievance() {
   return useMutation({
     mutationFn: (grievanceId: string) => mhdGrievancesService.withdrawGrievance(grievanceId),
     onSuccess: (_data, grievanceId) => invalidateGrievance(queryClient, grievanceId),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Intake wizard (0372)
+// ---------------------------------------------------------------------------
+
+export function useMhdGrievanceIntakeDetail(grievanceId: string | null) {
+  return useQuery({
+    queryKey: ['mhd-grievances', 'intake-detail', grievanceId ?? ''] as const,
+    queryFn: () => mhdGrievancesService.getIntakeDetail(grievanceId!),
+    enabled: Boolean(grievanceId),
+  });
+}
+
+export function useMhdOpenGrievanceFromIntake() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdGrievanceIntakeInput) => mhdGrievancesService.openFromIntake(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-grievances'] });
+    },
+  });
+}
+
+/**
+ * People the filer can name as the subject of a grievance or as a witness. The People service applies
+ * the caller's own visibility, so a filer sees only the colleagues the app already lets them see; the
+ * wizard also accepts a typed name.
+ */
+export function useMhdGrievancePeople(companyId: string | null) {
+  return useQuery({
+    queryKey: ['mhd-grievances', 'people', companyId ?? ''] as const,
+    queryFn: () => mhdPersonService.listPeople({ companyId: companyId!, searchTerm: '' }),
+    enabled: Boolean(companyId),
   });
 }

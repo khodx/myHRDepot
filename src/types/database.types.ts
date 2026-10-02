@@ -6193,6 +6193,48 @@ export type Database = {
           },
         ]
       }
+      employee_grievance_witnesses: {
+        Row: {
+          created_at: string
+          grievance_id: string
+          id: string
+          what_they_know: string | null
+          witness_name: string
+          witness_person_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          grievance_id: string
+          id?: string
+          what_they_know?: string | null
+          witness_name: string
+          witness_person_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          grievance_id?: string
+          id?: string
+          what_they_know?: string | null
+          witness_name?: string
+          witness_person_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_grievance_witnesses_grievance_id_fkey"
+            columns: ["grievance_id"]
+            isOneToOne: false
+            referencedRelation: "employee_grievances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_grievance_witnesses_witness_person_id_fkey"
+            columns: ["witness_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_grievances: {
         Row: {
           acknowledged_at: string | null
@@ -6207,6 +6249,7 @@ export type Database = {
           disagreement_explanation: string | null
           employee_signature_at: string | null
           employee_signature_name: string | null
+          grievance_category: string | null
           grievance_what: string | null
           grievance_when: string | null
           grievance_where: string | null
@@ -6215,6 +6258,7 @@ export type Database = {
           id: string
           is_deleted: boolean
           is_harassment_related: boolean
+          person_grieved_against_id: string | null
           person_id: string
           reference_id: string | null
           referred_at: string | null
@@ -6224,7 +6268,9 @@ export type Database = {
           resolution: string | null
           resolution_at: string | null
           resolution_by: string | null
+          retaliation_concern: boolean
           status: string
+          steps_already_taken: string | null
           submitted_at: string | null
           updated_at: string
           updated_by: string | null
@@ -6242,6 +6288,7 @@ export type Database = {
           disagreement_explanation?: string | null
           employee_signature_at?: string | null
           employee_signature_name?: string | null
+          grievance_category?: string | null
           grievance_what?: string | null
           grievance_when?: string | null
           grievance_where?: string | null
@@ -6250,6 +6297,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           is_harassment_related?: boolean
+          person_grieved_against_id?: string | null
           person_id: string
           reference_id?: string | null
           referred_at?: string | null
@@ -6259,7 +6307,9 @@ export type Database = {
           resolution?: string | null
           resolution_at?: string | null
           resolution_by?: string | null
+          retaliation_concern?: boolean
           status?: string
+          steps_already_taken?: string | null
           submitted_at?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -6277,6 +6327,7 @@ export type Database = {
           disagreement_explanation?: string | null
           employee_signature_at?: string | null
           employee_signature_name?: string | null
+          grievance_category?: string | null
           grievance_what?: string | null
           grievance_when?: string | null
           grievance_where?: string | null
@@ -6285,6 +6336,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           is_harassment_related?: boolean
+          person_grieved_against_id?: string | null
           person_id?: string
           reference_id?: string | null
           referred_at?: string | null
@@ -6294,7 +6346,9 @@ export type Database = {
           resolution?: string | null
           resolution_at?: string | null
           resolution_by?: string | null
+          retaliation_concern?: boolean
           status?: string
+          steps_already_taken?: string | null
           submitted_at?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -6326,6 +6380,13 @@ export type Database = {
             columns: ["deleted_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_grievances_person_grieved_against_id_fkey"
+            columns: ["person_grieved_against_id"]
+            isOneToOne: false
+            referencedRelation: "people"
             referencedColumns: ["id"]
           },
           {
@@ -29125,6 +29186,7 @@ export type Database = {
         Args: { p_id: string }
         Returns: Json
       }
+      mhd_document_record_grievance: { Args: { p_id: string }; Returns: Json }
       mhd_document_record_investigation_case: {
         Args: { p_id: string }
         Returns: Json
@@ -30241,6 +30303,19 @@ export type Database = {
           status: string
           submitted_at: string
         }[]
+      }
+      mhd_grievance_get_intake_detail: {
+        Args: { p_grievance_id: string }
+        Returns: Json
+      }
+      mhd_grievance_intake_open: {
+        Args: {
+          p_company_id: string
+          p_grievance: Json
+          p_person_id: string
+          p_witnesses?: Json
+        }
+        Returns: Json
       }
       mhd_grievance_list: {
         Args: { p_company_id: string; p_status?: string }

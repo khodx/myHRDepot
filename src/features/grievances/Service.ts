@@ -1,8 +1,13 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
+import { mhdEsignatureService } from '@/features/esignature/Service';
 import type {
   MhdAddGrievanceStepInput,
   MhdGrievanceDetail,
+  MhdGrievanceCategory,
   MhdGrievanceDetailRpcRow,
+  MhdGrievanceIntakeDetail,
+  MhdGrievanceIntakeInput,
+  MhdGrievanceIntakeResult,
   MhdGrievanceListFilters,
   MhdGrievanceListItem,
   MhdGrievanceListRpcRow,
@@ -13,6 +18,7 @@ import type {
   MhdMyGrievanceRpcRow,
   MhdRejectGrievanceInput,
   MhdReferGrievanceInput,
+  MhdRequestGrievanceSignatureInput,
   MhdResolveGrievanceInput,
   MhdSubmitGrievanceInput,
 } from './Types';
@@ -197,5 +203,83 @@ export const mhdGrievancesService = {
       p_grievance_id: grievanceId,
     });
     if (error) throw error;
+  },
+  // -------------------------------------------------------------------------
+  // Intake wizard (0372)
+  // -------------------------------------------------------------------------
+
+  /** Files the grievance, its witnesses, the signature evidence and the audit trail in one transaction. */
+  async openFromIntake(input: MhdGrievanceIntakeInput): Promise<MhdGrievanceIntakeResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_grievance_intake_open', {
+      p_company_id: input.companyId,
+      p_person_id: input.personId,
+      p_grievance: {
+        grievance_what: input.grievanceWhat,
+        disagreement_explanation: input.disagreementExplanation,
+        remedy_requested: input.remedyRequested,
+        employee_signature_name: input.employeeSignatureName,
+        grievance_category: input.grievanceCategory ?? null,
+        person_grieved_against_id: input.personGrievedAgainstId ?? null,
+        grievance_who: input.grievanceWho ?? null,
+        grievance_where: input.grievanceWhere ?? null,
+        grievance_when: input.grievanceWhen ?? null,
+        grievance_why: input.grievanceWhy ?? null,
+        steps_already_taken: input.stepsAlreadyTaken ?? null,
+        is_harassment_related: input.isHarassmentRelated,
+        retaliation_concern: input.retaliationConcern,
+        concerns_unrecorded_oral_reprimand: input.concernsUnrecordedOralReprimand,
+      },
+      p_witnesses: input.witnesses.map((witness) => ({
+        witness_name: witness.witnessName,
+        witness_person_id: witness.witnessPersonId ?? null,
+        what_they_know: witness.whatTheyKnow ?? null,
+      })),
+    });
+    if (error) throw new Error(error.message);
+    const raw = (data ?? {}) as Record<string, unknown>;
+    return {
+      id: String(raw.id),
+      referenceId: String(raw.reference_id),
+      status: raw.status as MhdGrievanceStatus,
+      referred: Boolean(raw.referred),
+    };
+  },
+
+  /** The category, who it concerns, what was tried, the retaliation concern and the witnesses. */
+  async getIntakeDetail(grievanceId: string): Promise<MhdGrievanceIntakeDetail> {
+    const { data, error } = await supabaseClient.rpc('mhd_grievance_get_intake_detail', {
+      p_grievance_id: grievanceId,
+    });
+    if (error) throw new Error(`Unable to load the grievance detail: ${error.message}`);
+    const raw = (data ?? {}) as Record<string, unknown>;
+    return {
+      grievanceCategory: (raw.grievance_category as MhdGrievanceCategory | null) ?? null,
+      personGrievedAgainstId: (raw.person_grieved_against_id as string | null) ?? null,
+      personGrievedAgainstName: (raw.person_grieved_against_name as string | null) ?? null,
+      stepsAlreadyTaken: (raw.steps_already_taken as string | null) ?? null,
+      retaliationConcern: Boolean(raw.retaliation_concern),
+      witnesses: ((raw.witnesses as Array<Record<string, unknown>> | null) ?? []).map(
+        (witness) => ({
+          id: String(witness.id),
+          witnessName: String(witness.witness_name),
+          witnessPersonId: (witness.witness_person_id as string | null) ?? null,
+          whatTheyKnow: (witness.what_they_know as string | null) ?? null,
+        }),
+      ),
+    };
+  },
+
+  /** Asks the filer to sign the generated receipt in the app. */
+  async requestFilerSignature(
+    input: MhdRequestGrievanceSignatureInput,
+  ): Promise<{ requestId: string; invitationErrors: string[] }> {
+    const result = await mhdEsignatureService.createRequestFromGeneratedDocument({
+      companyId: input.companyId,
+      generationId: input.generationId,
+      documentHash: input.documentHash,
+      signers: [{ kind: 'internal', userId: input.userId }],
+      signingOrder: 'SEQUENTIAL',
+    });
+    return { requestId: result.request.id, invitationErrors: result.invitationErrors };
   },
 };

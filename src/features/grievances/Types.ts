@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 export const MHD_GRIEVANCE_STATUSES = [
+  'DRAFT',
   'SUBMITTED',
   'ACKNOWLEDGED',
   'IN_REVIEW',
@@ -15,6 +16,7 @@ export type MhdGrievanceStatus = (typeof MHD_GRIEVANCE_STATUSES)[number];
 
 export function mhdFormatGrievanceStatus(status: string): string {
   const labels: Record<string, string> = {
+    DRAFT: 'Draft',
     SUBMITTED: 'Submitted',
     ACKNOWLEDGED: 'Acknowledged',
     IN_REVIEW: 'In Review',
@@ -211,4 +213,92 @@ export interface MhdResolveGrievanceInput {
 export interface MhdRejectGrievanceInput {
   grievanceId: string;
   reason: string;
+}
+
+// ---------------------------------------------------------------------------
+// Intake wizard (0372)
+// ---------------------------------------------------------------------------
+
+export const MHD_GRIEVANCE_CATEGORIES = [
+  'PAY_AND_HOURS',
+  'DISCIPLINE_OR_PERFORMANCE',
+  'SCHEDULING_OR_LEAVE',
+  'WORKING_CONDITIONS',
+  'SUPERVISOR_CONDUCT',
+  'COWORKER_CONDUCT',
+  'POLICY_APPLICATION',
+  'SAFETY',
+  'OTHER',
+] as const;
+export type MhdGrievanceCategory = (typeof MHD_GRIEVANCE_CATEGORIES)[number];
+
+export const MHD_GRIEVANCE_CATEGORY_LABELS: Record<MhdGrievanceCategory, string> = {
+  PAY_AND_HOURS: 'Pay and hours',
+  DISCIPLINE_OR_PERFORMANCE: 'Discipline or performance',
+  SCHEDULING_OR_LEAVE: 'Scheduling or leave',
+  WORKING_CONDITIONS: 'Working conditions',
+  SUPERVISOR_CONDUCT: "A supervisor's conduct",
+  COWORKER_CONDUCT: "A coworker's conduct",
+  POLICY_APPLICATION: 'How a policy was applied',
+  SAFETY: 'Safety',
+  OTHER: 'Something else',
+};
+
+export interface MhdGrievanceWitnessInput {
+  witnessName: string;
+  witnessPersonId?: string | null;
+  whatTheyKnow?: string | null;
+}
+
+export interface MhdGrievanceIntakeInput {
+  companyId: string;
+  personId: string;
+  grievanceWhat: string;
+  disagreementExplanation: string;
+  remedyRequested: string;
+  employeeSignatureName: string;
+  grievanceCategory?: MhdGrievanceCategory | null;
+  personGrievedAgainstId?: string | null;
+  grievanceWho?: string | null;
+  grievanceWhere?: string | null;
+  /** ISO timestamp of the event. */
+  grievanceWhen?: string | null;
+  grievanceWhy?: string | null;
+  stepsAlreadyTaken?: string | null;
+  isHarassmentRelated: boolean;
+  retaliationConcern: boolean;
+  concernsUnrecordedOralReprimand: boolean;
+  witnesses: MhdGrievanceWitnessInput[];
+}
+
+export interface MhdGrievanceIntakeResult {
+  id: string;
+  referenceId: string;
+  status: MhdGrievanceStatus;
+  referred: boolean;
+}
+
+export interface MhdGrievanceWitness {
+  id: string;
+  witnessName: string;
+  witnessPersonId: string | null;
+  whatTheyKnow: string | null;
+}
+
+/** What the intake captured beyond `mhd_grievance_get`'s fixed columns. */
+export interface MhdGrievanceIntakeDetail {
+  grievanceCategory: MhdGrievanceCategory | null;
+  personGrievedAgainstId: string | null;
+  personGrievedAgainstName: string | null;
+  stepsAlreadyTaken: string | null;
+  retaliationConcern: boolean;
+  witnesses: MhdGrievanceWitness[];
+}
+
+export interface MhdRequestGrievanceSignatureInput {
+  companyId: string;
+  generationId: string;
+  documentHash: string;
+  /** The signed-in filer's user id; the receipt is signed in the app, not by an emailed link. */
+  userId: string;
 }
