@@ -524,6 +524,10 @@ const MhdInvestigationsPage = lazyPage(
   () => import('@/features/investigations/components/MhdInvestigationsPage'),
   'MhdInvestigationsPage',
 );
+const MhdInvestigationIntakeWizard = lazyPage(
+  () => import('@/features/investigations/components/MhdInvestigationIntakeWizard'),
+  'MhdInvestigationIntakeWizard',
+);
 const MhdInvestigationCaseDetailPage = lazyPage(
   () => import('@/features/investigations/components/MhdInvestigationCaseDetailPage'),
   'MhdInvestigationCaseDetailPage',
@@ -1022,6 +1026,7 @@ function MhdAppRoutes() {
                   are excluded; there is deliberately NO subject-facing route. Both
                   pages read useMhdAuth/useParams themselves. */}
                 <Route path="/investigations" element={<MhdInvestigationsPage />} />
+                <Route path="/investigations/new" element={<MhdInvestigationIntakeWizard />} />
                 <Route
                   path="/investigations/:caseId"
                   element={<MhdInvestigationCaseDetailPage />}

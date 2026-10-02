@@ -24,6 +24,20 @@ describe('investigations route access', () => {
     }
   });
 
+  it('gives the guided intake wizard the same audience as the board', () => {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
+      expect(mhdCanAccessRoute('/investigations/new', [role])).toBe(false);
+    }
+    for (const role of [
+      'Platform Admin',
+      'HR Partner',
+      'HR Admin',
+      'Client Admin',
+    ] as MhdAuthRoleName[]) {
+      expect(mhdCanAccessRoute('/investigations/new', [role])).toBe(true);
+    }
+  });
+
   it('admits Platform Admin / HR Partner / Client Admin to the board and its detail sub-route', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/investigations', [role])).toBe(true);

@@ -369,10 +369,12 @@ export function MhdConductIntakeWizard() {
         {textField('Department / program', department, setDepartmentEdit)}
         {textField('Supervisor', supervisor, setSupervisorEdit)}
         {textField('Facility location', facility, setFacilityEdit)}
-        <label className="block text-sm font-medium">
-          Date of hire
-          <MhdDateField value={dateOfHire} onChange={setDateOfHireEdit} />
-        </label>
+        <div>
+          <label htmlFor="conduct-date-of-hire" className="block text-sm font-medium">
+            Date of hire
+          </label>
+          <MhdDateField id="conduct-date-of-hire" value={dateOfHire} onChange={setDateOfHireEdit} />
+        </div>
       </MhdFormFieldStack>
     );
   }
@@ -507,14 +509,26 @@ export function MhdConductIntakeWizard() {
         {textField('Expectations', expectations, setExpectations, true)}
         {textField('Consequences if not met', consequencesText, setConsequencesText, true)}
         {textField('Training items', trainingItems, setTrainingItems, true)}
-        <label className="block text-sm font-medium">
-          Training deadline
-          <MhdDateField value={trainingDeadline} onChange={setTrainingDeadline} />
-        </label>
-        <label className="block text-sm font-medium">
-          Follow-up review date
-          <MhdDateField value={followUpReviewDate} onChange={setFollowUpReviewDate} />
-        </label>
+        <div>
+          <label htmlFor="conduct-training-deadline" className="block text-sm font-medium">
+            Training deadline
+          </label>
+          <MhdDateField
+            id="conduct-training-deadline"
+            value={trainingDeadline}
+            onChange={setTrainingDeadline}
+          />
+        </div>
+        <div>
+          <label htmlFor="conduct-follow-up-review" className="block text-sm font-medium">
+            Follow-up review date
+          </label>
+          <MhdDateField
+            id="conduct-follow-up-review"
+            value={followUpReviewDate}
+            onChange={setFollowUpReviewDate}
+          />
+        </div>
         <label className="block text-sm font-medium">
           Extenuating circumstances considered
           <select

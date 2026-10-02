@@ -9,6 +9,7 @@ import {
   ClipboardCheck,
   FileWarning,
   GraduationCap,
+  Scale,
 } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -79,6 +80,12 @@ const WIZARD_DEFINITIONS: WizardDefinition[] = [
     description: 'Document an incident, see the employee\'s history and the recommended next step, and issue a corrective action.',
     route: '/conduct/new',
     icon: FileWarning,
+  },
+  {
+    label: 'Investigation Intake Wizard',
+    description: 'Open an investigation with its parties, an independent investigator, a target date and interim measures.',
+    route: '/investigations/new',
+    icon: Scale,
   },
 ];
 
