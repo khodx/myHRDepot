@@ -170,6 +170,14 @@ const MhdDocumentsPage = lazyPage(
   () => import('@/features/documents/components/MhdDocumentsPage'),
   'MhdDocumentsPage',
 );
+const MhdDocumentQueuePage = lazyPage(
+  () => import('@/features/documents/components/MhdDocumentQueuePage'),
+  'MhdDocumentQueuePage',
+);
+const MhdDocumentLetterheadPage = lazyPage(
+  () => import('@/features/documents/components/MhdDocumentLetterheadPage'),
+  'MhdDocumentLetterheadPage',
+);
 const MhdFormsPage = lazyPage(
   () => import('@/features/forms/components/MhdFormsPage'),
   'MhdFormsPage',
@@ -794,6 +802,8 @@ function MhdAppRoutes() {
                 <Route path="/calendar" element={<MhdCalendarPage />} />
                 <Route path="/command-center" element={<MhdCommandCenterPage />} />
                 <Route path="/reports" element={<MhdDocumentsPage />} />
+                <Route path="/reports/queue" element={<MhdDocumentQueuePage />} />
+                <Route path="/reports/letterhead" element={<MhdDocumentLetterheadPage />} />
                 <Route path="/forms" element={<MhdFormsPage />} />
                 {/* Forms Studio/Library split (2026-08-18). '/forms/studio'
                     aliases the existing Studio list; '/forms' keeps working

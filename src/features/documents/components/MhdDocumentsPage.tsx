@@ -8,7 +8,11 @@ import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTaskWorkspaceNav } from '@/appshell/components/MhdTaskWorkspaceNav';
 import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdCanMutateDocumentTemplates, mhdIsPlatformAdmin } from '@/appshell/mhdRouteAccess';
+import {
+  mhdCanManageDocumentContent,
+  mhdCanMutateDocumentTemplates,
+  mhdIsPlatformAdmin,
+} from '@/appshell/mhdRouteAccess';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import {
   useMhdDocumentTemplate,
@@ -34,6 +38,9 @@ import { MhdDocumentTemplateVersionsModal } from './MhdDocumentTemplateVersionsM
 export function MhdDocumentsPage() {
   const { profile, roles } = useMhdAuth();
   const canMutate = mhdCanMutateDocumentTemplates(roles);
+  // Customizing, wizard settings and restoring a version change company content, which the
+  // server allows only for Client Admin, HR Partner and Platform Admin.
+  const canManageContent = mhdCanManageDocumentContent(roles);
   const isPlatformAdmin = mhdIsPlatformAdmin(roles);
   const actorContext = useMemo(
     () => (profile?.userId ? { actorUserId: profile.userId } : null),
@@ -60,7 +67,7 @@ export function MhdDocumentsPage() {
   const actions = useMhdDocumentTemplateActions(actorContext);
   const forkTemplate = useMhdForkDocumentTemplate();
   const setWizardSettings = useMhdSetDocumentTemplateWizardSettings(historyTemplateId ?? '');
-  const canCustomize = canMutate && Boolean(profile?.companyId);
+  const canCustomize = canManageContent && Boolean(profile?.companyId);
 
   function openCreate() {
     setEditingTemplateId(null);
@@ -190,7 +197,7 @@ export function MhdDocumentsPage() {
             setIsEditorOpen(false);
           }}
           onCancel={() => setIsEditorOpen(false)}
-          canEdit={canMutate}
+          canEdit={canManageContent}
         />
       ) : null}
 
@@ -234,7 +241,7 @@ export function MhdDocumentsPage() {
         <MhdDocumentTemplateVersionsModal
           templateId={historyTemplateId}
           templateName={historyTemplateName}
-          canRestore={canMutate}
+          canRestore={canManageContent}
           isRestoring={isRestoring}
           onRestore={handleRestore}
           onClose={() => setHistoryTemplateId(null)}

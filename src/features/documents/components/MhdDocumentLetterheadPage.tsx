@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { mhdCanMutateDocumentTemplates, mhdIsPlatformAdmin } from '@/appshell/mhdRouteAccess';
+import { mhdCanManageDocumentContent, mhdIsPlatformAdmin } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdDocumentBranding, useMhdSaveDocumentBranding } from '../Hook';
 import { mhdDocumentBrandingFormSchema } from '../Schemas';
@@ -297,7 +297,7 @@ function LetterheadForm({ branding, selectedCompanyId, canEdit }: LetterheadForm
 export function MhdDocumentLetterheadPage() {
   const { profile, roles } = useMhdAuth();
   const isPlatformAdmin = mhdIsPlatformAdmin(roles);
-  const canEdit = mhdCanMutateDocumentTemplates(roles);
+  const canEdit = mhdCanManageDocumentContent(roles);
   const [scope, setScope] = useState<'company' | 'platform'>('company');
   const selectedCompanyId = scope === 'platform' ? null : (profile?.companyId ?? null);
   const brandingQuery = useMhdDocumentBranding(selectedCompanyId);

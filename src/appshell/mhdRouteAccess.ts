@@ -107,6 +107,27 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // authoring is narrower (Client Admin/HR Partner, or Platform Admin for a
   // platform-level template) — see MHD_DOCUMENTS_MUTATING_ROLES below,
   // mirroring document_templates' RLS.
+  // Documents To Generate: the worklist of documents wizards saved to generate later. Every
+  // role that can run a wizard may have queued one; the server shows each person only their
+  // own requests (administrators see their company's), so the route admits everyone but
+  // Viewer. Listed before '/reports' because the first matching rule wins.
+  {
+    path: '/reports/queue',
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
+      'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
+  },
+  // Document letterhead: HR and leadership roles may view it; only the roles in
+  // MHD_DOCUMENT_CONTENT_MANAGER_ROLES can change it.
+  {
+    path: '/reports/letterhead',
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Client Admin', 'Executive Leadership', 'Director',
+    ],
+  },
   {
     path: '/reports',
     roles: [
@@ -729,6 +750,27 @@ export const MHD_DOCUMENTS_MUTATING_ROLES: MhdAuthRoleName[] = [
 
 export function mhdCanMutateDocumentTemplates(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_DOCUMENTS_MUTATING_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Roles that can change a company's document CONTENT: customize a library template for the
+ * company, edit its wizard output settings, restore a template version, and set the company
+ * letterhead. This is exactly what the corresponding RPCs accept (Client Admin or HR Partner
+ * for their company; Platform Admin for platform-level content), so a control is only enabled
+ * for a role the server will honour.
+ *
+ * Deliberately NOT MHD_DOCUMENTS_MUTATING_ROLES, which also lists HR Admin, Executive
+ * Leadership and Director: those three see template-edit controls the template RPCs refuse
+ * them. That older mismatch is reported separately rather than copied into the new features.
+ */
+export const MHD_DOCUMENT_CONTENT_MANAGER_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'Client Admin',
+];
+
+export function mhdCanManageDocumentContent(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_DOCUMENT_CONTENT_MANAGER_ROLES.some((role) => userRoles.includes(role));
 }
 
 export const MHD_PROPERTY_MUTATING_ROLES: MhdAuthRoleName[] = [
