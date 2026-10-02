@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTaskWorkspaceNav } from '@/appshell/components/MhdTaskWorkspaceNav';
+import { cn } from '@/utils/cn';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateDocumentTemplates, mhdIsPlatformAdmin } from '@/appshell/mhdRouteAccess';
 import { useMhdCompanies } from '@/features/companies/Hook';
@@ -12,9 +15,13 @@ import {
   useMhdDocumentTemplateActions,
   useMhdDocumentTemplates,
 } from '../Hook';
+import { useMhdForkDocumentTemplate, useMhdSetDocumentTemplateWizardSettings } from '../OutputHook';
+import { mhdDocumentOutputService, mhdDocumentService } from '../Service';
 import { MHD_DOCUMENT_TEMPLATE_TYPES } from '../Types';
+import type { MhdDocumentTemplateVersion } from '../Types';
 import { MhdDocumentTemplateEditor } from './MhdDocumentTemplateEditor';
 import { MhdDocumentTemplateList } from './MhdDocumentTemplateList';
+import { MhdDocumentTemplateVersionsModal } from './MhdDocumentTemplateVersionsModal';
 
 /**
  * The "document library / search UI" the 04.8 Bible spec flags as unbuilt
@@ -37,6 +44,10 @@ export function MhdDocumentsPage() {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [historyTemplateId, setHistoryTemplateId] = useState<string | null>(null);
+  const [historyTemplateName, setHistoryTemplateName] = useState('');
+  const [isRestoring, setIsRestoring] = useState(false);
 
   const companiesQuery = useMhdCompanies({ searchTerm: '' });
   const companies = companiesQuery.data ?? [];
@@ -47,6 +58,9 @@ export function MhdDocumentsPage() {
   );
   const selectedTemplateQuery = useMhdDocumentTemplate(editingTemplateId);
   const actions = useMhdDocumentTemplateActions(actorContext);
+  const forkTemplate = useMhdForkDocumentTemplate();
+  const setWizardSettings = useMhdSetDocumentTemplateWizardSettings(historyTemplateId ?? '');
+  const canCustomize = canMutate && Boolean(profile?.companyId);
 
   function openCreate() {
     setEditingTemplateId(null);
@@ -67,6 +81,57 @@ export function MhdDocumentsPage() {
     }
   }
 
+  async function handleCustomize(templateId: string) {
+    if (!profile?.companyId) return;
+    setActionError(null);
+    setInfoMessage(null);
+    try {
+      const result = await forkTemplate.mutateAsync({ templateId, companyId: profile.companyId });
+      openEdit(result.id);
+      if (result.alreadyExisted)
+        setInfoMessage('Your company already has its own copy — opened it for editing.');
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Unable to customize template.');
+    }
+  }
+
+  async function handleRestore(version: MhdDocumentTemplateVersion) {
+    if (!historyTemplateId) return;
+    setActionError(null);
+    setIsRestoring(true);
+    try {
+      const detail = await mhdDocumentService.getTemplate(historyTemplateId);
+      await actions.updateTemplate.mutateAsync({
+        templateId: detail.id,
+        companyId: detail.companyId,
+        name: version.name,
+        templateType: detail.templateType,
+        applicableEntityType: detail.applicableEntityType,
+        description: detail.description,
+        contentFormat: version.contentFormat as typeof detail.contentFormat,
+        content: version.content,
+        mergeFields: version.mergeFields,
+        requiresSignature: version.requiresSignature,
+        isActive: detail.isActive,
+      });
+      // The filing category is not part of a version, so keep whatever the template has now.
+      // Read it fresh: a settings query that had not loaded yet would otherwise clear it.
+      const currentSettings =
+        await mhdDocumentOutputService.getTemplateWizardSettings(historyTemplateId);
+      await setWizardSettings.mutateAsync({
+        employeeFileCategory: currentSettings.employeeFileCategory,
+        narrativeSlots: version.narrativeSlots,
+      });
+      setHistoryTemplateId(null);
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : 'Unable to restore template version.',
+      );
+    } finally {
+      setIsRestoring(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <MhdTaskWorkspaceNav />
@@ -75,18 +140,37 @@ export function MhdDocumentsPage() {
         title="Reports"
         description="Report templates and generation, shared across every module — the same library any task, case, or record can generate a report from."
         actions={
-          canMutate ? (
-            <Button onClick={openCreate} className="gap-1.5">
-              <Plus className="h-4 w-4" />
-              New Template
-            </Button>
-          ) : undefined
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              to="/reports/queue"
+              className={cn(buttonBaseClasses, buttonVariantClasses.secondary)}
+            >
+              Documents To Generate
+            </Link>
+            <Link
+              to="/reports/letterhead"
+              className={cn(buttonBaseClasses, buttonVariantClasses.secondary)}
+            >
+              Letterhead
+            </Link>
+            {canMutate ? (
+              <Button onClick={openCreate} className="gap-1.5">
+                <Plus className="h-4 w-4" />
+                New Template
+              </Button>
+            ) : null}
+          </div>
         }
       />
 
       {actionError ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {actionError}
+        </div>
+      ) : null}
+      {infoMessage ? (
+        <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+          {infoMessage}
         </div>
       ) : null}
 
@@ -106,6 +190,7 @@ export function MhdDocumentsPage() {
             setIsEditorOpen(false);
           }}
           onCancel={() => setIsEditorOpen(false)}
+          canEdit={canMutate}
         />
       ) : null}
 
@@ -134,10 +219,27 @@ export function MhdDocumentsPage() {
               canMutate={canMutate}
               onEdit={openEdit}
               onDelete={(templateId) => void handleDelete(templateId)}
+              canCustomize={canCustomize}
+              onCustomize={(templateId) => void handleCustomize(templateId)}
+              onHistory={(templateId) => {
+                const template = (templatesQuery.data ?? []).find((item) => item.id === templateId);
+                setHistoryTemplateName(template?.name ?? 'Template');
+                setHistoryTemplateId(templateId);
+              }}
             />
           )}
         </div>
       </MhdCard>
+      {historyTemplateId ? (
+        <MhdDocumentTemplateVersionsModal
+          templateId={historyTemplateId}
+          templateName={historyTemplateName}
+          canRestore={canMutate}
+          isRestoring={isRestoring}
+          onRestore={handleRestore}
+          onClose={() => setHistoryTemplateId(null)}
+        />
+      ) : null}
     </div>
   );
 }

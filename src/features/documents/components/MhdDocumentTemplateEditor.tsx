@@ -15,6 +15,7 @@ import {
 import { mhdDocumentTemplateFormSchema } from '../Schemas';
 import { mhdDocumentService } from '../Service';
 import { MhdDocumentTemplateCompliancePanel } from './MhdDocumentTemplateCompliancePanel';
+import { MhdDocumentTemplateWizardSettingsPanel } from './MhdDocumentTemplateWizardSettingsPanel';
 
 interface MhdDocumentTemplateEditorProps {
   companies: MhdCompany[];
@@ -24,6 +25,7 @@ interface MhdDocumentTemplateEditorProps {
   onCreate: (values: ReturnType<typeof mhdDocumentTemplateFormSchema.parse>) => Promise<void>;
   onUpdate: (values: ReturnType<typeof mhdDocumentTemplateFormSchema.parse>) => Promise<void>;
   onCancel: () => void;
+  canEdit: boolean;
 }
 
 const MERGE_FIELD_SOURCES: MhdDocumentMergeFieldSource[] = [
@@ -33,6 +35,9 @@ const MERGE_FIELD_SOURCES: MhdDocumentMergeFieldSource[] = [
   'task',
   'system',
   'custom',
+  'record',
+  'handbook',
+  'narrative',
 ];
 
 function emptyMergeField(): MhdDocumentMergeField {
@@ -47,6 +52,7 @@ export function MhdDocumentTemplateEditor({
   onCreate,
   onUpdate,
   onCancel,
+  canEdit,
 }: MhdDocumentTemplateEditorProps) {
   const [companyId, setCompanyId] = useState<string | null>(companies[0]?.id ?? null);
   const [name, setName] = useState('');
@@ -58,9 +64,9 @@ export function MhdDocumentTemplateEditor({
   const [requiresSignature, setRequiresSignature] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [mergeFields, setMergeFields] = useState<MhdDocumentMergeField[]>([]);
-  const [mergeFieldCatalog, setMergeFieldCatalog] = useState<
-    MhdDocumentMergeFieldCatalogEntry[]
-  >([]);
+  const [mergeFieldCatalog, setMergeFieldCatalog] = useState<MhdDocumentMergeFieldCatalogEntry[]>(
+    [],
+  );
   const [formError, setFormError] = useState<string | null>(null);
   const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -192,7 +198,9 @@ export function MhdDocumentTemplateEditor({
           <select
             className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             value={companyId ?? ''}
-            onChange={(event) => setCompanyId(event.target.value === '' ? null : event.target.value)}
+            onChange={(event) =>
+              setCompanyId(event.target.value === '' ? null : event.target.value)
+            }
           >
             {canAuthorPlatformLevel ? <option value="">Platform-level (shared)</option> : null}
             {companies.map((company) => (
@@ -350,9 +358,7 @@ export function MhdDocumentTemplateEditor({
                 </select>
                 <button
                   type="button"
-                  onClick={() =>
-                    setMergeFields((current) => current.filter((_, i) => i !== index))
-                  }
+                  onClick={() => setMergeFields((current) => current.filter((_, i) => i !== index))}
                   aria-label="Remove merge field"
                   className="rounded p-2 text-muted-foreground hover:bg-red-50 hover:text-red-600"
                 >
@@ -387,10 +393,16 @@ export function MhdDocumentTemplateEditor({
       </Button>
 
       {selectedTemplate ? (
-        <MhdDocumentTemplateCompliancePanel
-          templateId={selectedTemplate.id}
-          canManage={canAuthorPlatformLevel}
-        />
+        <>
+          <MhdDocumentTemplateCompliancePanel
+            templateId={selectedTemplate.id}
+            canManage={canAuthorPlatformLevel}
+          />
+          <MhdDocumentTemplateWizardSettingsPanel
+            templateId={selectedTemplate.id}
+            canEdit={canEdit}
+          />
+        </>
       ) : null}
     </form>
   );
