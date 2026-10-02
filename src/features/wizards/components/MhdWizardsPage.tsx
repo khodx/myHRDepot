@@ -11,6 +11,7 @@ import {
   DoorOpen,
   GraduationCap,
   HandCoins,
+  HardHat,
   UserPlus,
   Scale,
   UsersRound,
@@ -114,6 +115,12 @@ const WIZARD_DEFINITIONS: WizardDefinition[] = [
     description: 'Open an applicant from Recruiting, then start the guided offer from the Offer tab: role, pay check, terms and the signed offer letter.',
     route: '/recruiting',
     icon: HandCoins,
+  },
+  {
+    label: 'Safety Incident Wizard',
+    description: 'Record a workplace injury or illness, see whether it is recordable under OSHA, and decide whether it must be reported within hours.',
+    route: '/safety/incidents/new',
+    icon: HardHat,
   },
 ];
 

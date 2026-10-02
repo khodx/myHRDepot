@@ -524,6 +524,10 @@ const MhdSafetyModulePage = lazyPage(
   () => import('@/features/safety/components/MhdSafetyModulePage'),
   'MhdSafetyModulePage',
 );
+const MhdSafetyIncidentWizard = lazyPage(
+  () => import('@/features/safety/components/MhdSafetyIncidentWizard'),
+  'MhdSafetyIncidentWizard',
+);
 const MhdOshaAnnualSummaryPage = lazyPage(
   () => import('@/features/safety/components/MhdOshaAnnualSummaryPage'),
   'MhdOshaAnnualSummaryPage',
@@ -1022,6 +1026,7 @@ function MhdAppRoutes() {
                   path="/safety/:establishmentId/annual-summary"
                   element={<MhdOshaAnnualSummaryPage />}
                 />
+                <Route path="/safety/incidents/new" element={<MhdSafetyIncidentWizard />} />
                 <Route path="/safety" element={<MhdSafetyModulePage />} />
                 <Route
                   path="/accommodations/:caseId"

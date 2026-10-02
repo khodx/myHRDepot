@@ -7,12 +7,11 @@ import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdPersonService } from '@/features/people/Service';
-import { useQuery } from '@tanstack/react-query';
 import {
   useMhdCreateOshaEstablishment,
   useMhdOshaEstablishments,
   useMhdSafetyIncidents,
+  useMhdSafetyPeople,
 } from '../Hook';
 import { mhdOshaEstablishmentSchema } from '../Schemas';
 import { MhdSafetyIncidentForm } from './MhdSafetyIncidentForm';
@@ -49,11 +48,7 @@ export function MhdSafetyModulePage() {
     calendarYear,
   );
 
-  const people = useQuery({
-    queryKey: ['mhd-safety', 'people', companyId],
-    queryFn: () => mhdPersonService.listPeople({ companyId, searchTerm: '' }),
-    enabled: Boolean(companyId),
-  });
+  const people = useMhdSafetyPeople(companyId || null);
   const peopleOptions = useMemo(
     () =>
       (people.data ?? []).map((person) => ({
@@ -137,6 +132,12 @@ export function MhdSafetyModulePage() {
                 className="inline-flex h-9 items-center rounded-md border border-border bg-card px-3 text-[16.8px] font-semibold text-foreground hover:bg-accent-tint"
               >
                 Form 300A Summary
+              </Link>
+              <Link
+                to="/safety/incidents/new"
+                className="inline-flex h-9 items-center rounded-md border border-border bg-card px-3 text-[16.8px] font-semibold text-foreground hover:bg-accent-tint"
+              >
+                Guided Incident
               </Link>
               <Button
                 onClick={() => setRecordingIncident((value) => !value)}

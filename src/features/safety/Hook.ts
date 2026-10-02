@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { mhdPersonService } from '@/features/people/Service';
 import { mhdSafetyService } from './Service';
 import type {
   MhdCertifyOshaAnnualSummaryInput,
@@ -35,6 +36,15 @@ function useInvalidateSafety() {
       void queryClient.invalidateQueries({ queryKey: mhdSafetyQueryKeys.annualSummary(opts.summaryId) });
     }
   };
+}
+
+/** Employee picker (People directory) for recording an incident. */
+export function useMhdSafetyPeople(companyId: string | null) {
+  return useQuery({
+    queryKey: ['mhd-safety', 'people', companyId ?? ''] as const,
+    queryFn: () => mhdPersonService.listPeople({ companyId: companyId!, searchTerm: '' }),
+    enabled: Boolean(companyId),
+  });
 }
 
 export function useMhdOshaEstablishments(companyId: string | null) {
