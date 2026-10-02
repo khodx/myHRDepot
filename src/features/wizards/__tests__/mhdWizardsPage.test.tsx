@@ -79,6 +79,7 @@ describe('MhdWizardsPage', () => {
       MhdOfferWizard: 'Offer Wizard',
       MhdSafetyIncidentWizard: 'Safety Incident Wizard',
       MhdPerformanceCycleWizard: 'Review Cycle Wizard',
+      MhdGrievanceIntakeWizard: 'Grievance Intake Wizard',
     };
     const found = Object.keys(import.meta.glob('/src/features/**/components/*Wizard.tsx')).map(
       (path) => path.split('/').pop()!.replace('.tsx', ''),
@@ -95,8 +96,15 @@ describe('MhdWizardsPage', () => {
         <MhdWizardsPage />
       </MemoryRouter>,
     );
+    // Filing a grievance is for employees; the roles that administer grievances do not file, so the
+    // card is shown (and checked) for the filing roles instead.
+    const EMPLOYEE_ONLY = new Set(['Grievance Intake Wizard']);
     for (const label of Object.values(HUB_COMPONENTS)) {
-      expect(screen.getByRole('link', { name: new RegExp(label) })).toBeInTheDocument();
+      if (EMPLOYEE_ONLY.has(label)) {
+        expect(screen.queryByRole('link', { name: new RegExp(label) })).not.toBeInTheDocument();
+      } else {
+        expect(screen.getByRole('link', { name: new RegExp(label) })).toBeInTheDocument();
+      }
     }
   });
 
@@ -127,5 +135,19 @@ describe('MhdWizardsPage', () => {
       </MemoryRouter>,
     );
     expect(screen.getByText(/No wizards are available/)).toBeInTheDocument();
+  });
+
+  it('shows the grievance intake card to the roles that file grievances, and not the administrative cards', () => {
+    mockAuth(['Employee']);
+    render(
+      <MemoryRouter>
+        <MhdWizardsPage />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('link', { name: /Grievance Intake Wizard/ })).toHaveAttribute(
+      'href',
+      '/my-grievances/new',
+    );
+    expect(screen.queryByRole('link', { name: /Investigation Intake Wizard/ })).not.toBeInTheDocument();
   });
 });

@@ -10,6 +10,7 @@ import {
   FileWarning,
   DoorOpen,
   GraduationCap,
+  MessageSquareWarning,
   HandCoins,
   CalendarRange,
   HardHat,
@@ -128,6 +129,12 @@ const WIZARD_DEFINITIONS: WizardDefinition[] = [
     description: 'Launch a performance review cycle: the period and deadlines, who is reviewed, who gives feedback, and the announcement.',
     route: '/performance/cycles/new',
     icon: CalendarRange,
+  },
+  {
+    label: 'Grievance Intake Wizard',
+    description: 'File a workplace grievance: what happened, why you disagree, the outcome you want, and a signed receipt.',
+    route: '/my-grievances/new',
+    icon: MessageSquareWarning,
   },
 ];
 

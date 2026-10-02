@@ -359,6 +359,10 @@ const MhdPerformanceCycleWizard = lazyPage(
   () => import('@/features/performance/Components/MhdPerformanceCycleWizard'),
   'MhdPerformanceCycleWizard',
 );
+const MhdGrievanceIntakeWizard = lazyPage(
+  () => import('@/features/grievances/components/MhdGrievanceIntakeWizard'),
+  'MhdGrievanceIntakeWizard',
+);
 const MhdPerformancePage = lazyPage(
   () => import('@/features/performance/Components/MhdPerformancePage'),
   'MhdPerformancePage',
@@ -1072,6 +1076,7 @@ function MhdAppRoutes() {
                   first and is a distinct prefix from /grievances (does not start
                   with "/grievances/"), so the first-match prefix scan never lets
                   the /grievances rule capture /my-grievances. */}
+                <Route path="/my-grievances/new" element={<MhdGrievanceIntakeWizard />} />
                 <Route path="/my-grievances" element={<MhdMyGrievancesPage />} />
                 <Route path="/grievances" element={<MhdGrievancesPage />} />
                 <Route path="/grievances/:grievanceId" element={<MhdGrievanceDetailPage />} />

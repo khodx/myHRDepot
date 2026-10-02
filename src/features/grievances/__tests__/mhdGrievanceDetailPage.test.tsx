@@ -1,12 +1,13 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdGrievanceDetail } from '../Types';
 
-const { detailMock, stepsMock, acknowledgeMock, referMock, resolveMock, rejectMock, addStepMock } = vi.hoisted(() => ({
+const { detailMock, stepsMock, intakeMock, acknowledgeMock, referMock, resolveMock, rejectMock, addStepMock } = vi.hoisted(() => ({
   detailMock: vi.fn(),
   stepsMock: vi.fn(),
+  intakeMock: vi.fn(),
   acknowledgeMock: vi.fn().mockResolvedValue(undefined),
   referMock: vi.fn().mockResolvedValue(undefined),
   resolveMock: vi.fn().mockResolvedValue(undefined),
@@ -17,6 +18,7 @@ const { detailMock, stepsMock, acknowledgeMock, referMock, resolveMock, rejectMo
 vi.mock('../Hook', () => ({
   useMhdGrievance: detailMock,
   useMhdGrievanceSteps: stepsMock,
+  useMhdGrievanceIntakeDetail: intakeMock,
   useMhdAcknowledgeGrievance: () => ({ mutateAsync: acknowledgeMock, isPending: false }),
   useMhdReferGrievance: () => ({ mutateAsync: referMock, isPending: false }),
   useMhdResolveGrievance: () => ({ mutateAsync: resolveMock, isPending: false }),
@@ -67,6 +69,10 @@ function renderAt(grievanceId: string) {
 }
 
 describe('MhdGrievanceDetailPage', () => {
+  beforeEach(() => {
+    intakeMock.mockReturnValue({ data: undefined });
+  });
+
   it('offers Acknowledge for a freshly submitted grievance', () => {
     detailMock.mockReturnValue({ data: detail({}), isLoading: false, error: null });
     stepsMock.mockReturnValue({ data: [], isLoading: false });
@@ -125,5 +131,48 @@ describe('MhdGrievanceDetailPage', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('State the process this is being referred to.');
     expect(referMock).not.toHaveBeenCalled();
+  });
+
+  it('shows the intake detail, the witnesses and a retaliation alert', () => {
+    detailMock.mockReturnValue({ data: detail({ concernsUnrecordedOralReprimand: true }), isLoading: false, error: null });
+    stepsMock.mockReturnValue({ data: [], isLoading: false });
+    intakeMock.mockReturnValue({
+      data: {
+        grievanceCategory: 'PAY_AND_HOURS',
+        personGrievedAgainstId: 'person-callum',
+        personGrievedAgainstName: 'Callum Reyes',
+        stepsAlreadyTaken: 'Emailed payroll twice.',
+        retaliationConcern: true,
+        witnesses: [{ id: 'w1', witnessName: 'Dario Fontaine', witnessPersonId: null, whatTheyKnow: 'Saw me clock out.' }],
+      },
+    });
+    renderAt('g1');
+
+    expect(screen.getByText('Pay and hours')).toBeInTheDocument();
+    expect(screen.getByText('Callum Reyes')).toBeInTheDocument();
+    expect(screen.getByText('Emailed payroll twice.')).toBeInTheDocument();
+    expect(screen.getByText(/Dario Fontaine — Saw me clock out\./)).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('worried about retaliation');
+    expect(screen.getByText(/oral reprimand that was not recorded in writing/)).toBeInTheDocument();
+  });
+
+  it('opens the Investigation wizard prefilled from this grievance', () => {
+    detailMock.mockReturnValue({ data: detail({}), isLoading: false, error: null });
+    stepsMock.mockReturnValue({ data: [], isLoading: false });
+    renderAt('g1');
+
+    expect(screen.getByRole('link', { name: 'Open An Investigation' })).toHaveAttribute(
+      'href',
+      '/investigations/new?sourceType=GRIEVANCE&sourceId=g1',
+    );
+  });
+
+  it('links to the investigation instead once one is attached', () => {
+    detailMock.mockReturnValue({ data: detail({ status: 'REFERRED', referredToInvestigationId: 'case-7' }), isLoading: false, error: null });
+    stepsMock.mockReturnValue({ data: [], isLoading: false });
+    renderAt('g1');
+
+    expect(screen.getByRole('link', { name: 'Open the investigation' })).toHaveAttribute('href', '/investigations/case-7');
+    expect(screen.queryByRole('link', { name: 'Open An Investigation' })).not.toBeInTheDocument();
   });
 });

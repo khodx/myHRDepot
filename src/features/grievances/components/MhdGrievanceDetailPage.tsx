@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
@@ -10,12 +10,17 @@ import {
   useMhdAcknowledgeGrievance,
   useMhdAddGrievanceStep,
   useMhdGrievance,
+  useMhdGrievanceIntakeDetail,
   useMhdGrievanceSteps,
   useMhdRejectGrievance,
   useMhdReferGrievance,
   useMhdResolveGrievance,
 } from '../Hook';
-import { mhdFormatGrievanceStatus, type MhdGrievanceStatus } from '../Types';
+import {
+  MHD_GRIEVANCE_CATEGORY_LABELS,
+  mhdFormatGrievanceStatus,
+  type MhdGrievanceStatus,
+} from '../Types';
 
 const fieldClass = 'mt-1 w-full rounded-md border border-border bg-background px-3 py-2';
 
@@ -143,6 +148,7 @@ export function MhdGrievanceDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const grievance = useMhdGrievance(grievanceId || null);
   const steps = useMhdGrievanceSteps(grievanceId || null);
+  const intake = useMhdGrievanceIntakeDetail(grievanceId || null);
   const acknowledge = useMhdAcknowledgeGrievance();
 
   const detail = grievance.data;
@@ -188,6 +194,53 @@ export function MhdGrievanceDetailPage() {
         <div><p className="text-sm text-muted-foreground">Employee signature</p><p>{detail.employeeSignatureName ?? '—'} · {dateTime(detail.employeeSignatureAt)}</p></div>
       </MhdCard>
 
+      {intake.data?.retaliationConcern ? (
+        <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          The employee said they are worried about retaliation for filing this. Protect their confidentiality and follow up promptly.
+        </div>
+      ) : null}
+
+      {intake.data ? (
+        <MhdCard className="space-y-4">
+          <h2 className="text-base font-semibold text-foreground">Intake detail</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-sm text-muted-foreground">Type of concern</p>
+              <p>{intake.data.grievanceCategory ? MHD_GRIEVANCE_CATEGORY_LABELS[intake.data.grievanceCategory] : '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Concerns</p>
+              <p>{intake.data.personGrievedAgainstName ?? '—'}</p>
+            </div>
+          </div>
+          {intake.data.stepsAlreadyTaken ? (
+            <div><p className="text-sm text-muted-foreground">What the employee already tried</p><p className="whitespace-pre-wrap">{intake.data.stepsAlreadyTaken}</p></div>
+          ) : null}
+          {detail.concernsUnrecordedOralReprimand ? (
+            <p className="text-sm text-amber-900">The employee said this concerns an oral reprimand that was not recorded in writing.</p>
+          ) : null}
+          <div>
+            <p className="text-sm text-muted-foreground">Witnesses</p>
+            {intake.data.witnesses.length === 0 ? (
+              <p>None listed.</p>
+            ) : (
+              <ul className="list-disc pl-5">
+                {intake.data.witnesses.map((witness) => (
+                  <li key={witness.id}>{witness.witnessName}{witness.whatTheyKnow ? ` — ${witness.whatTheyKnow}` : ''}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </MhdCard>
+      ) : null}
+
+      {detail.referredToInvestigationId ? (
+        <MhdCard>
+          <p className="text-sm text-muted-foreground">Investigation</p>
+          <Link className="text-accent hover:underline" to={`/investigations/${detail.referredToInvestigationId}`}>Open the investigation</Link>
+        </MhdCard>
+      ) : null}
+
       {detail.referredToProcess ? (
         <MhdCard><p className="text-sm text-muted-foreground">Referred to</p><p>{detail.referredToProcess} · {dateTime(detail.referredAt)}</p></MhdCard>
       ) : null}
@@ -216,6 +269,14 @@ export function MhdGrievanceDetailPage() {
           {canAcknowledge ? <Button onClick={() => void handleAcknowledge()} disabled={acknowledge.isPending}>{acknowledge.isPending ? 'Acknowledging…' : 'Acknowledge'}</Button> : null}
           <Button variant="secondary" onClick={() => { setError(null); setModal('step'); }}>Record Step</Button>
           <Button variant="secondary" onClick={() => { setError(null); setModal('refer'); }}>Refer</Button>
+          {!detail.referredToInvestigationId ? (
+            <Link
+              to={`/investigations/new?sourceType=GRIEVANCE&sourceId=${grievanceId}`}
+              className="inline-flex h-10 items-center justify-center rounded-full bg-slate-100 px-4 text-sm font-semibold text-slate-950 hover:opacity-80"
+            >
+              Open An Investigation
+            </Link>
+          ) : null}
           <Button onClick={() => { setError(null); setModal('resolve'); }}>Resolve</Button>
           <Button variant="ghost" className="text-red-700" onClick={() => { setError(null); setModal('reject'); }}>Reject — Not Grievable</Button>
         </div>
