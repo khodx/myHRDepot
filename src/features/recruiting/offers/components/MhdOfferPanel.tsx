@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { useMhdCreateOffer, useMhdOffers } from '../Hook';
@@ -105,14 +106,22 @@ export function MhdOfferPanel({
             {showHirePreview ? 'Hide handoff preview' : 'Preview handoff'}
           </button>
           {!isCreating ? (
-            <Button
-              onClick={() => {
-                setIsCreating(true);
-                setSelectedOfferId(null);
-              }}
-            >
-              New offer
-            </Button>
+            <>
+              <Link
+                to={`/recruiting/applications/${applicationId}/offer/new`}
+                className="inline-flex items-center justify-center rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-200"
+              >
+                Guided setup
+              </Link>
+              <Button
+                onClick={() => {
+                  setIsCreating(true);
+                  setSelectedOfferId(null);
+                }}
+              >
+                New offer
+              </Button>
+            </>
           ) : null}
         </div>
       </div>

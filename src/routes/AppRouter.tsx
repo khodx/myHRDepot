@@ -688,6 +688,14 @@ const MhdApplicationOfferRoutePage = lazyPage(
   () => import('@/features/recruiting/components/MhdApplicationOfferRoutePage'),
   'MhdApplicationOfferRoutePage',
 );
+const MhdRequisitionWizard = lazyPage(
+  () => import('@/features/recruiting/requisitions/components/MhdRequisitionWizard'),
+  'MhdRequisitionWizard',
+);
+const MhdOfferWizard = lazyPage(
+  () => import('@/features/recruiting/offers/components/MhdOfferWizard'),
+  'MhdOfferWizard',
+);
 const MhdInterviewWorksheetRoutePage = lazyPage(
   () => import('@/features/recruiting/components/MhdInterviewWorksheetRoutePage'),
   'MhdInterviewWorksheetRoutePage',
@@ -1141,6 +1149,7 @@ function MhdAppRoutes() {
                   path="/recruiting/interviews/:interviewId"
                   element={<MhdInterviewWorksheetRoutePage />}
                 />
+                <Route path="/recruiting/requisitions/new" element={<MhdRequisitionWizard />} />
                 <Route
                   path="/recruiting/requisitions/:reqId"
                   element={<MhdRequisitionDetailRoutePage />}
@@ -1172,6 +1181,10 @@ function MhdAppRoutes() {
                 <Route
                   path="/recruiting/applications/:appId/offer"
                   element={<MhdApplicationOfferRoutePage />}
+                />
+                <Route
+                  path="/recruiting/applications/:appId/offer/new"
+                  element={<MhdOfferWizard />}
                 />
               </Route>
             </Route>

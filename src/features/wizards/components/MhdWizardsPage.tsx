@@ -10,8 +10,10 @@ import {
   FileWarning,
   DoorOpen,
   GraduationCap,
+  HandCoins,
   UserPlus,
   Scale,
+  UsersRound,
 } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -100,6 +102,18 @@ const WIZARD_DEFINITIONS: WizardDefinition[] = [
     description: 'Start a new hire\'s onboarding packet from what is known about the accepted offer.',
     route: '/onboarding/new',
     icon: UserPlus,
+  },
+  {
+    label: 'Requisition Wizard',
+    description: 'Open a requisition for a job: hiring manager, headcount and whether it needs approval.',
+    route: '/recruiting/requisitions/new',
+    icon: UsersRound,
+  },
+  {
+    label: 'Offer Wizard',
+    description: 'Open an applicant from Recruiting, then start the guided offer from the Offer tab: role, pay check, terms and the signed offer letter.',
+    route: '/recruiting',
+    icon: HandCoins,
   },
 ];
 
