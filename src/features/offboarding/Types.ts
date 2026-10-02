@@ -335,3 +335,107 @@ export function mhdIsOffboardingCaseOverdue(
     new Date(`${offboardingCase.lastWorkingDay}T23:59:59.999Z`).getTime() < Date.now()
   );
 }
+
+// ---------------------------------------------------------------------------
+// Intake wizard (0367)
+// ---------------------------------------------------------------------------
+
+export const MHD_OFFBOARDING_NOTICE_KEYS = [
+  'FINAL_PAY',
+  'UNEMPLOYMENT_NOTICE',
+  'BENEFITS_CONTINUATION',
+  'WARN_NOTICE',
+] as const;
+export type MhdOffboardingNoticeKey = (typeof MHD_OFFBOARDING_NOTICE_KEYS)[number];
+
+export const MHD_OFFBOARDING_NOTICE_LABELS: Record<MhdOffboardingNoticeKey, string> = {
+  FINAL_PAY: 'Final Pay',
+  UNEMPLOYMENT_NOTICE: 'Unemployment Insurance Notice',
+  BENEFITS_CONTINUATION: 'Benefits Continuation Notice',
+  WARN_NOTICE: 'Layoff (WARN) Notice',
+};
+
+export type MhdOffboardingSeparationKind =
+  | 'INVOLUNTARY'
+  | 'VOLUNTARY_WITH_NOTICE'
+  | 'VOLUNTARY_NO_NOTICE'
+  | 'LAYOFF';
+
+/** One rule's recommendation. `applies` is null when more information is needed (WARN needs the layoff count). */
+export interface MhdOffboardingNoticeRecommendation {
+  noticeKey: MhdOffboardingNoticeKey;
+  jurisdiction: string;
+  ruleId: string;
+  recommendedDue: string;
+  applies: boolean | null;
+  notApplicableReason: string | null;
+  citation: string;
+  summary: string;
+}
+
+export interface MhdOffboardingNoticePlan {
+  separationKind: MhdOffboardingSeparationKind;
+  stateCode: string | null;
+  stateRulesOnFile: boolean;
+  items: MhdOffboardingNoticeRecommendation[];
+  advisories: string[];
+}
+
+export interface MhdOffboardingNoticePlanInput {
+  companyId: string;
+  personId: string;
+  separationType: MhdSeparationType;
+  separationDate: string;
+  lastWorkingDay?: string | null;
+  stateCode?: string | null;
+  noticeGivenDays?: number | null;
+  layoffCount?: number | null;
+}
+
+export interface MhdOffboardingObligationCase {
+  referenceId: string;
+  status: string;
+  category?: string | null;
+  requestedStart?: string | null;
+  requestedEnd?: string | null;
+}
+
+/** References and statuses only — never reasons or any medical content. */
+export interface MhdOffboardingObligations {
+  leaveVisible: boolean;
+  leaveCases: MhdOffboardingObligationCase[];
+  accommodationVisible: boolean;
+  accommodationCases: MhdOffboardingObligationCase[];
+  conductCases: MhdOffboardingObligationCase[];
+}
+
+/** A notice as the person confirmed it. A date later than the recommendation needs a reason. */
+export interface MhdOffboardingIntakeNotice {
+  noticeKey: MhdOffboardingNoticeKey;
+  plannedDue?: string | null;
+  deviationReason?: string | null;
+}
+
+export interface MhdOffboardingIntakeCustomItem {
+  title: string;
+  description?: string | null;
+  isRequired?: boolean;
+  dueDate?: string | null;
+  assignedUserId?: string | null;
+}
+
+export interface MhdOpenOffboardingIntakeInput extends MhdOffboardingNoticePlanInput {
+  reasonSummary?: string | null;
+  notices?: MhdOffboardingIntakeNotice[];
+  customItems?: MhdOffboardingIntakeCustomItem[];
+}
+
+export interface MhdOffboardingCaseNotice {
+  id: string;
+  noticeKey: MhdOffboardingNoticeKey;
+  jurisdiction: string | null;
+  recommendedDue: string | null;
+  plannedDue: string | null;
+  deviationReason: string | null;
+  deliveredAt: string | null;
+}

@@ -8,6 +8,8 @@ import type {
   MhdExitCeremonyStepState,
   MhdGenerateExitDocumentInput,
   MhdOffboardingCaseFilters,
+  MhdOffboardingNoticePlanInput,
+  MhdOpenOffboardingIntakeInput,
   MhdTransitionOffboardingCaseInput,
   MhdUpdateOffboardingCaseInput,
   MhdUpdateOffboardingItemInput,
@@ -24,6 +26,10 @@ export const mhdOffboardingQueryKeys = {
     ['mhd-offboarding', 'exit-interview-activities', companyId ?? '', personId ?? ''] as const,
   people: (companyId: string | null) => ['mhd-offboarding', 'people', companyId ?? 'ALL'] as const,
   users: (companyId: string | null) => ['mhd-offboarding', 'users', companyId ?? 'ALL'] as const,
+  obligations: (personId: string | null) =>
+    ['mhd-offboarding', 'obligations', personId ?? ''] as const,
+  caseNotices: (caseId: string | null) =>
+    ['mhd-offboarding', 'case-notices', caseId ?? ''] as const,
 };
 
 export function useMhdOffboardingCases(filters: MhdOffboardingCaseFilters) {
@@ -306,4 +312,43 @@ export function useMhdExitDocumentCeremony() {
   );
 
   return { launch, reset, isLaunching: actions.generateExitDocument.isPending, steps };
+}
+
+// ---------------------------------------------------------------------------
+// Intake wizard (0367)
+// ---------------------------------------------------------------------------
+
+/** Recommended notice dates for a proposed separation; waits until the minimum inputs exist. */
+export function useMhdOffboardingNoticePlan(input: MhdOffboardingNoticePlanInput | null) {
+  return useQuery({
+    queryKey: ['mhd-offboarding', 'notice-plan', input] as const,
+    queryFn: () => mhdOffboardingService.planNotices(input!),
+    enabled: Boolean(input),
+  });
+}
+
+export function useMhdOffboardingObligations(personId: string | null) {
+  return useQuery({
+    queryKey: mhdOffboardingQueryKeys.obligations(personId),
+    queryFn: () => mhdOffboardingService.getObligations(personId!),
+    enabled: Boolean(personId),
+  });
+}
+
+export function useMhdOpenOffboardingFromIntake() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdOpenOffboardingIntakeInput) => mhdOffboardingService.openFromIntake(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-offboarding'] });
+    },
+  });
+}
+
+export function useMhdOffboardingCaseNotices(caseId: string | null) {
+  return useQuery({
+    queryKey: mhdOffboardingQueryKeys.caseNotices(caseId),
+    queryFn: () => mhdOffboardingService.listCaseNotices(caseId!),
+    enabled: Boolean(caseId),
+  });
 }

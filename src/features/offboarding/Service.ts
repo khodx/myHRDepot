@@ -13,6 +13,14 @@ import type {
   MhdGenerateExitDocumentResult,
   MhdOffboardingCase,
   MhdOffboardingCaseFilters,
+  MhdOffboardingCaseNotice,
+  MhdOffboardingNoticeKey,
+  MhdOffboardingNoticePlan,
+  MhdOffboardingNoticePlanInput,
+  MhdOffboardingObligationCase,
+  MhdOffboardingObligations,
+  MhdOffboardingSeparationKind,
+  MhdOpenOffboardingIntakeInput,
   MhdOffboardingCaseRpcRow,
   MhdOffboardingChecklistItem,
   MhdOffboardingItemRpcRow,
@@ -162,6 +170,120 @@ export const mhdOffboardingService = {
     }
 
     return mapCaseRow(row);
+  },
+
+  // -------------------------------------------------------------------------
+  // Intake wizard (0367)
+  // -------------------------------------------------------------------------
+
+  /** Recommended notice dates from the rules on file. Recommendations only — never a determination. */
+  async planNotices(input: MhdOffboardingNoticePlanInput): Promise<MhdOffboardingNoticePlan> {
+    const { data, error } = await supabaseClient.rpc('mhd_offboarding_notice_plan', {
+      p_company_id: input.companyId,
+      p_person_id: input.personId,
+      p_separation_type: input.separationType,
+      p_separation_date: input.separationDate,
+      ...(trimmedOrUndefined(input.lastWorkingDay)
+        ? { p_last_working_day: trimmedOrUndefined(input.lastWorkingDay) }
+        : {}),
+      ...(trimmedOrUndefined(input.stateCode) ? { p_state_code: trimmedOrUndefined(input.stateCode) } : {}),
+      ...(input.noticeGivenDays != null ? { p_notice_given_days: input.noticeGivenDays } : {}),
+      ...(input.layoffCount != null ? { p_layoff_count: input.layoffCount } : {}),
+    });
+    if (error) throw new Error(`Unable to plan the separation notices: ${error.message}`);
+    const raw = data as Record<string, unknown> | null;
+    if (!raw) throw new Error('The notice plan returned nothing.');
+    return {
+      separationKind: raw.separation_kind as MhdOffboardingSeparationKind,
+      stateCode: (raw.state_code as string | null) ?? null,
+      stateRulesOnFile: Boolean(raw.state_rules_on_file),
+      items: ((raw.items as Array<Record<string, unknown>>) ?? []).map((item) => ({
+        noticeKey: item.notice_key as MhdOffboardingNoticeKey,
+        jurisdiction: String(item.jurisdiction),
+        ruleId: String(item.rule_id),
+        recommendedDue: String(item.recommended_due),
+        applies: item.applies === null || item.applies === undefined ? null : Boolean(item.applies),
+        notApplicableReason: (item.not_applicable_reason as string | null) ?? null,
+        citation: String(item.citation),
+        summary: String(item.summary),
+      })),
+      advisories: ((raw.advisories as unknown[]) ?? []).map(String),
+    };
+  },
+
+  /** Open leave, accommodation and corrective-action cases for the person (references and statuses only). */
+  async getObligations(personId: string): Promise<MhdOffboardingObligations> {
+    const { data, error } = await supabaseClient.rpc('mhd_offboarding_person_obligations', {
+      p_person_id: personId,
+    });
+    if (error) throw new Error(`Unable to load the employee's open obligations: ${error.message}`);
+    const raw = (data ?? {}) as Record<string, unknown>;
+    const mapCases = (value: unknown): MhdOffboardingObligationCase[] =>
+      ((value as Array<Record<string, unknown>> | null) ?? []).map((row) => ({
+        referenceId: String(row.reference_id),
+        status: String(row.status),
+        category: (row.category as string | null) ?? null,
+        requestedStart: (row.requested_start as string | null) ?? null,
+        requestedEnd: (row.requested_end as string | null) ?? null,
+      }));
+    return {
+      leaveVisible: Boolean(raw.leave_visible),
+      leaveCases: mapCases(raw.leave_cases),
+      accommodationVisible: Boolean(raw.accommodation_visible),
+      accommodationCases: mapCases(raw.accommodation_cases),
+      conductCases: mapCases(raw.conduct_cases),
+    };
+  },
+
+  /** Case, notice plan and custom checklist items in one transaction. */
+  async openFromIntake(input: MhdOpenOffboardingIntakeInput): Promise<{ id: string; referenceId: string }> {
+    const { data, error } = await supabaseClient.rpc('mhd_offboarding_intake_open', {
+      p_company_id: input.companyId,
+      p_person_id: input.personId,
+      p_separation_type: input.separationType,
+      p_separation_date: input.separationDate,
+      ...(trimmedOrUndefined(input.lastWorkingDay)
+        ? { p_last_working_day: trimmedOrUndefined(input.lastWorkingDay) }
+        : {}),
+      ...(trimmedOrUndefined(input.reasonSummary)
+        ? { p_reason_summary: trimmedOrUndefined(input.reasonSummary) }
+        : {}),
+      ...(trimmedOrUndefined(input.stateCode) ? { p_state_code: trimmedOrUndefined(input.stateCode) } : {}),
+      ...(input.noticeGivenDays != null ? { p_notice_given_days: input.noticeGivenDays } : {}),
+      ...(input.layoffCount != null ? { p_layoff_count: input.layoffCount } : {}),
+      p_notices: (input.notices ?? []).map((notice) => ({
+        notice_key: notice.noticeKey,
+        planned_due: notice.plannedDue ?? null,
+        deviation_reason: trimmedOrUndefined(notice.deviationReason) ?? null,
+      })),
+      p_custom_items: (input.customItems ?? []).map((item) => ({
+        title: item.title,
+        description: trimmedOrUndefined(item.description) ?? null,
+        is_required: item.isRequired ?? false,
+        due_date: item.dueDate ?? null,
+        assigned_user_id: item.assignedUserId ?? null,
+      })),
+    });
+    if (error) throw new Error(`Unable to open the offboarding case: ${error.message}`);
+    const row = ((data ?? []) as unknown as Array<{ id: string; reference_id: string }>)[0];
+    if (!row) throw new Error('Unable to open the offboarding case: no record returned.');
+    return { id: row.id, referenceId: row.reference_id };
+  },
+
+  async listCaseNotices(caseId: string): Promise<MhdOffboardingCaseNotice[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_offboarding_list_case_notices', {
+      p_case_id: caseId,
+    });
+    if (error) throw new Error(`Unable to load the case's notices: ${error.message}`);
+    return ((data ?? []) as unknown as Array<Record<string, unknown>>).map((row) => ({
+      id: String(row.id),
+      noticeKey: row.notice_key as MhdOffboardingNoticeKey,
+      jurisdiction: (row.jurisdiction as string | null) ?? null,
+      recommendedDue: (row.recommended_due as string | null) ?? null,
+      plannedDue: (row.planned_due as string | null) ?? null,
+      deviationReason: (row.deviation_reason as string | null) ?? null,
+      deliveredAt: (row.delivered_at as string | null) ?? null,
+    }));
   },
 
   async createCase(input: MhdCreateOffboardingCaseInput): Promise<MhdOffboardingCase> {

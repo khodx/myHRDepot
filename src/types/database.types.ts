@@ -16305,6 +16305,70 @@ export type Database = {
           },
         ]
       }
+      offboarding_case_notices: {
+        Row: {
+          case_id: string
+          created_at: string
+          created_by: string | null
+          delivered_at: string | null
+          deviation_reason: string | null
+          id: string
+          jurisdiction: string | null
+          notice_key: string
+          planned_due: string | null
+          recommended_due: string | null
+          rule_id: string | null
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          deviation_reason?: string | null
+          id?: string
+          jurisdiction?: string | null
+          notice_key: string
+          planned_due?: string | null
+          recommended_due?: string | null
+          rule_id?: string | null
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          deviation_reason?: string | null
+          id?: string
+          jurisdiction?: string | null
+          notice_key?: string
+          planned_due?: string | null
+          recommended_due?: string | null
+          rule_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_case_notices_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_case_notices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_case_notices_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_notice_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offboarding_cases: {
         Row: {
           cancel_reason: string | null
@@ -16512,6 +16576,65 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offboarding_notice_rules: {
+        Row: {
+          anchor: string
+          citation: string
+          content_registry_id: string | null
+          created_at: string
+          due_offset_hours: number
+          effective_from: string
+          effective_to: string | null
+          id: string
+          jurisdiction: string
+          min_affected_employees: number | null
+          min_employer_employees: number | null
+          notice_key: string
+          separation_kind: string
+          summary: string
+        }
+        Insert: {
+          anchor?: string
+          citation: string
+          content_registry_id?: string | null
+          created_at?: string
+          due_offset_hours: number
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          jurisdiction: string
+          min_affected_employees?: number | null
+          min_employer_employees?: number | null
+          notice_key: string
+          separation_kind: string
+          summary: string
+        }
+        Update: {
+          anchor?: string
+          citation?: string
+          content_registry_id?: string | null
+          created_at?: string
+          due_offset_hours?: number
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          jurisdiction?: string
+          min_affected_employees?: number | null
+          min_employer_employees?: number | null
+          notice_key?: string
+          separation_kind?: string
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_notice_rules_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
             referencedColumns: ["id"]
           },
         ]
@@ -28485,6 +28608,10 @@ export type Database = {
         Returns: Json
       }
       mhd_document_record_leave_case: { Args: { p_id: string }; Returns: Json }
+      mhd_document_record_offboarding_case: {
+        Args: { p_id: string }
+        Returns: Json
+      }
       mhd_document_record_training_course: {
         Args: { p_id: string }
         Returns: Json
@@ -32883,6 +33010,54 @@ export type Database = {
           p_title: string
         }
         Returns: string[]
+      }
+      mhd_offboarding_intake_open: {
+        Args: {
+          p_company_id: string
+          p_custom_items?: Json
+          p_last_working_day?: string
+          p_layoff_count?: number
+          p_notice_given_days?: number
+          p_notices?: Json
+          p_person_id: string
+          p_reason_summary?: string
+          p_separation_date: string
+          p_separation_type: string
+          p_state_code?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_offboarding_list_case_notices: {
+        Args: { p_case_id: string }
+        Returns: {
+          delivered_at: string
+          deviation_reason: string
+          id: string
+          jurisdiction: string
+          notice_key: string
+          planned_due: string
+          recommended_due: string
+        }[]
+      }
+      mhd_offboarding_notice_plan: {
+        Args: {
+          p_company_id: string
+          p_last_working_day?: string
+          p_layoff_count?: number
+          p_notice_given_days?: number
+          p_person_id: string
+          p_separation_date: string
+          p_separation_type: string
+          p_state_code?: string
+        }
+        Returns: Json
+      }
+      mhd_offboarding_person_obligations: {
+        Args: { p_person_id: string }
+        Returns: Json
       }
       mhd_onboarding_cancel_person: {
         Args: { p_person_id: string; p_reason: string }
