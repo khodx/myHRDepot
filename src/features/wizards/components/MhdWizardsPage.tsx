@@ -8,7 +8,9 @@ import {
   CalendarClock,
   ClipboardCheck,
   FileWarning,
+  DoorOpen,
   GraduationCap,
+  UserPlus,
   Scale,
 } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
@@ -86,6 +88,18 @@ const WIZARD_DEFINITIONS: WizardDefinition[] = [
     description: 'Open an investigation with its parties, an independent investigator, a target date and interim measures.',
     route: '/investigations/new',
     icon: Scale,
+  },
+  {
+    label: 'Offboarding Wizard',
+    description: 'Record a separation, plan the final-pay and benefits notices, set up the exit checklist, and see what is still open.',
+    route: '/offboarding/new',
+    icon: DoorOpen,
+  },
+  {
+    label: 'Onboarding Wizard',
+    description: 'Start a new hire\'s onboarding packet from what is known about the accepted offer.',
+    route: '/onboarding/new',
+    icon: UserPlus,
   },
 ];
 

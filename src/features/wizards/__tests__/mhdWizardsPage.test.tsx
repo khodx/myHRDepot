@@ -73,6 +73,8 @@ describe('MhdWizardsPage', () => {
       MhdAccommodationIntakeWizard: 'Accommodation Intake Wizard',
       MhdConductIntakeWizard: 'Conduct Intake Wizard',
       MhdInvestigationIntakeWizard: 'Investigation Intake Wizard',
+      MhdOffboardingWizard: 'Offboarding Wizard',
+      MhdOnboardingWizard: 'Onboarding Wizard',
     };
     const found = Object.keys(import.meta.glob('/src/features/**/components/*Wizard.tsx')).map(
       (path) => path.split('/').pop()!.replace('.tsx', ''),

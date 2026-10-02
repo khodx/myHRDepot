@@ -379,6 +379,10 @@ const MhdOnboardingIndexPage = lazyPage(
   () => import('@/features/onboarding/components/MhdOnboardingIndexPage'),
   'MhdOnboardingIndexPage',
 );
+const MhdOnboardingWizard = lazyPage(
+  () => import('@/features/onboarding/components/MhdOnboardingWizard'),
+  'MhdOnboardingWizard',
+);
 const MhdOnboardingPersonPage = lazyPage(
   () => import('@/features/onboarding/components/MhdOnboardingPersonPage'),
   'MhdOnboardingPersonPage',
@@ -913,6 +917,7 @@ function MhdAppRoutes() {
                   still embedded in /people/:personId; these routes give the
                   module its own reachable surface. */}
                 <Route path="/onboarding" element={<MhdOnboardingIndexPage />} />
+                <Route path="/onboarding/new" element={<MhdOnboardingWizard />} />
                 <Route path="/onboarding/:personId" element={<MhdOnboardingPersonPage />} />
                 <Route path="/offboarding" element={<MhdOffboardingPage />} />
                 <Route path="/offboarding/new" element={<MhdOffboardingWizard />} />
