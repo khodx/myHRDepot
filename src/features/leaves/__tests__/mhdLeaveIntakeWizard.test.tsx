@@ -10,9 +10,25 @@ const confirmAsync = vi.fn();
 const overrideAsync = vi.fn();
 const navigate = vi.fn();
 
-vi.mock('@/features/authentication/Hook', () => ({ useMhdAuth: () => ({ profile: { companyId: 'company-1' } }) }));
-vi.mock('@/features/people/Hook', () => ({ useMhdPeoplePicker: () => ({ data: [{ id: 'person-1', firstName: 'Ada', lastName: 'Lovelace' }] }) }));
-vi.mock('../Hook', () => ({ useMhdCreateLeaveCase: () => ({ mutateAsync: createAsync, isPending: false }) }));
+const authRef = vi.hoisted(() => ({ roles: ['HR Partner'] as string[] }));
+
+vi.mock('@/features/authentication/Hook', () => ({
+  useMhdAuth: () => ({ profile: { companyId: 'company-1' }, roles: authRef.roles }),
+}));
+// The document step has its own tests; here we only care that it is offered for the right record.
+vi.mock('@/components/ui/MhdWizardOutputStep', () => ({
+  MhdWizardOutputStep: (props: { templateKey: string; entityType: string; entityId: string }) => (
+    <p>{`Document step: ${props.templateKey} for ${props.entityType} ${props.entityId}`}</p>
+  ),
+}));
+vi.mock('@/features/people/Hook', () => ({
+  useMhdPeoplePicker: () => ({
+    data: [{ id: 'person-1', firstName: 'Ada', lastName: 'Lovelace' }],
+  }),
+}));
+vi.mock('../Hook', () => ({
+  useMhdCreateLeaveCase: () => ({ mutateAsync: createAsync, isPending: false }),
+}));
 vi.mock('../WorkflowHook', () => ({
   useMhdLeaveEligibility: () => ({ mutateAsync: evaluateAsync, isPending: false }),
   useMhdConfirmLeaveEligibility: () => ({ mutateAsync: confirmAsync, isPending: false }),
@@ -20,8 +36,12 @@ vi.mock('../WorkflowHook', () => ({
   useMhdLeaveReadiness: () => ({ data: null }),
 }));
 vi.mock('@/components/ui/MhdComplianceGateBanner', () => ({ MhdComplianceGateBanner: () => null }));
-vi.mock('@/components/ui/MhdPageHeader', () => ({ MhdPageHeader: ({ title }: { title: string }) => <h1>{title}</h1> }));
-vi.mock('@/components/ui/MhdCard', () => ({ MhdCard: ({ children }: { children: ReactNode }) => <section>{children}</section> }));
+vi.mock('@/components/ui/MhdPageHeader', () => ({
+  MhdPageHeader: ({ title }: { title: string }) => <h1>{title}</h1>,
+}));
+vi.mock('@/components/ui/MhdCard', () => ({
+  MhdCard: ({ children }: { children: ReactNode }) => <section>{children}</section>,
+}));
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
   return { ...actual, useNavigate: () => navigate };
@@ -56,14 +76,19 @@ function renderWizard(initialEntry = '/leaves/new/intake') {
 function enterFacts() {
   fireEvent.change(screen.getByLabelText('Employer employee count'), { target: { value: '60' } });
   fireEvent.change(screen.getByLabelText('Months of service'), { target: { value: '24' } });
-  fireEvent.change(screen.getByLabelText('Hours worked in last 12 months'), { target: { value: '1500' } });
-  fireEvent.change(screen.getByLabelText('Worksite employees within 75 miles'), { target: { value: '60' } });
+  fireEvent.change(screen.getByLabelText('Hours worked in last 12 months'), {
+    target: { value: '1500' },
+  });
+  fireEvent.change(screen.getByLabelText('Worksite employees within 75 miles'), {
+    target: { value: '60' },
+  });
   fireEvent.change(screen.getByLabelText('Scheduled weekly hours'), { target: { value: '40' } });
 }
 
 describe('MhdLeaveIntakeWizard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authRef.roles = ['HR Partner'];
     createAsync.mockResolvedValue({ id: 'case-1', referenceId: 'LV-1' });
     evaluateAsync.mockResolvedValue([result]);
     confirmAsync.mockResolvedValue(undefined);
@@ -82,13 +107,17 @@ describe('MhdLeaveIntakeWizard', () => {
   it('guards create and evaluate when navigating back and forward, while Previous stays side-effect-free', async () => {
     renderWizard();
     fireEvent.change(screen.getByLabelText('Subject person'), { target: { value: 'person-1' } });
-    fireEvent.change(screen.getByLabelText('Reason category'), { target: { value: 'Medical leave' } });
+    fireEvent.change(screen.getByLabelText('Reason category'), {
+      target: { value: 'Medical leave' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(createAsync).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
     expect(createAsync).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    await waitFor(() => expect(screen.getAllByText('Employer & Service Facts').length).toBeGreaterThan(0));
+    await waitFor(() =>
+      expect(screen.getAllByText('Employer & Service Facts').length).toBeGreaterThan(0),
+    );
     expect(createAsync).toHaveBeenCalledTimes(1);
     enterFacts();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
@@ -121,13 +150,19 @@ describe('MhdLeaveIntakeWizard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm all as evaluated' }));
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Snapshot confirmed' })).toBeDisabled());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Snapshot confirmed' })).toBeDisabled(),
+    );
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText('Reason for override'), { target: { value: 'Verified service dates with payroll' } });
+    fireEvent.change(screen.getByPlaceholderText('Reason for override'), {
+      target: { value: 'Verified service dates with payroll' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Override this one' }));
     await waitFor(() => expect(overrideAsync).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('confirmation is out of date'));
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('confirmation is out of date'),
+    );
     expect(screen.getByRole('button', { name: 'Confirm all as evaluated' })).toBeEnabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
@@ -138,6 +173,71 @@ describe('MhdLeaveIntakeWizard', () => {
     await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(screen.getAllByText('Designation Summary').length).toBeGreaterThan(0);
+  });
+
+  it('re-evaluates when a fact changes after walking back, and drops the old confirmation', async () => {
+    renderWizard('/leaves/case-1/intake');
+    enterFacts();
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(evaluateAsync).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
+    fireEvent.change(screen.getByLabelText('Months of service'), { target: { value: '6' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(evaluateAsync).toHaveBeenCalledTimes(2));
+    expect(evaluateAsync.mock.calls[1][0]).toMatchObject({ caseId: 'case-1', monthsOfService: 6 });
+  });
+
+  it('shows the server message when the evaluation fails and stays on the facts step', async () => {
+    evaluateAsync.mockRejectedValueOnce(new Error('No active leave rules for this date.'));
+    renderWizard('/leaves/case-1/intake');
+    enterFacts();
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'No active leave rules for this date.',
+    );
+    expect(screen.getByLabelText('Months of service')).toBeInTheDocument();
+    // The failed run is retryable.
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(evaluateAsync).toHaveBeenCalledTimes(2));
+  });
+
+  it('offers the determination document on completion to privileged roles only', async () => {
+    async function finish() {
+      renderWizard('/leaves/case-1/intake');
+      enterFacts();
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      await waitFor(() => expect(evaluateAsync).toHaveBeenCalled());
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Confirm all as evaluated' }));
+      await screen.findByRole('button', { name: 'Snapshot confirmed' });
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      fireEvent.click(await screen.findByRole('button', { name: /submit|finish/i }));
+      expect(await screen.findByText('Leave Eligibility Recorded')).toBeInTheDocument();
+    }
+
+    await finish();
+    expect(
+      screen.getByText('Document step: LEAVE_ELIGIBILITY_DETERMINATION for LEAVE_CASE case-1'),
+    ).toBeInTheDocument();
+  });
+
+  it('does not offer the determination document to a role that cannot see restricted leave records', async () => {
+    authRef.roles = ['Employee'];
+    renderWizard('/leaves/case-1/intake');
+    enterFacts();
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(evaluateAsync).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm all as evaluated' }));
+    await screen.findByRole('button', { name: 'Snapshot confirmed' });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(await screen.findByRole('button', { name: /submit|finish/i }));
+    expect(await screen.findByText('Leave Eligibility Recorded')).toBeInTheDocument();
+    expect(screen.queryByText(/Document step:/)).not.toBeInTheDocument();
   });
 
   it('assumes no employer or service fact: the facts step is blank and cannot advance until they are entered', () => {
