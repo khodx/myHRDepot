@@ -351,6 +351,14 @@ const MhdApprovalDetailPage = lazyPage(
   () => import('@/features/approvals/components/MhdApprovalDetailPage'),
   'MhdApprovalDetailPage',
 );
+const MhdPerformanceCyclesPage = lazyPage(
+  () => import('@/features/performance/Components/MhdPerformanceCyclesPage'),
+  'MhdPerformanceCyclesPage',
+);
+const MhdPerformanceCycleWizard = lazyPage(
+  () => import('@/features/performance/Components/MhdPerformanceCycleWizard'),
+  'MhdPerformanceCycleWizard',
+);
 const MhdPerformancePage = lazyPage(
   () => import('@/features/performance/Components/MhdPerformancePage'),
   'MhdPerformancePage',
@@ -916,6 +924,8 @@ function MhdAppRoutes() {
                   their narrower access rules precede /performance in
                   mhdRouteAccess. Static paths, so the router matches them ahead of
                   /performance/reviews/:reviewId regardless of declaration order. */}
+                <Route path="/performance/cycles/new" element={<MhdPerformanceCycleWizard />} />
+                <Route path="/performance/cycles" element={<MhdPerformanceCyclesPage />} />
                 <Route path="/performance/invitations" element={<MhdFeedbackInvitationsPage />} />
                 <Route path="/performance/templates" element={<MhdReviewTemplatesPage />} />
                 <Route path="/performance/settings" element={<MhdFeedbackSettingsPage />} />

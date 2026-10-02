@@ -78,6 +78,7 @@ describe('MhdWizardsPage', () => {
       MhdRequisitionWizard: 'Requisition Wizard',
       MhdOfferWizard: 'Offer Wizard',
       MhdSafetyIncidentWizard: 'Safety Incident Wizard',
+      MhdPerformanceCycleWizard: 'Review Cycle Wizard',
     };
     const found = Object.keys(import.meta.glob('/src/features/**/components/*Wizard.tsx')).map(
       (path) => path.split('/').pop()!.replace('.tsx', ''),

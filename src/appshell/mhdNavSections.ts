@@ -552,6 +552,13 @@ export const NAV_SECTIONS: NavSection[] = [
             status: mhdRouteStatus('/performance/invitations'),
           },
           subPage(
+            'Review Cycles',
+            'Launch a review cycle and follow its progress.',
+            '/performance/cycles',
+            CalendarRange,
+            ['annual reviews', 'review period', 'launch reviews'],
+          ),
+          subPage(
             'Review Templates',
             'Build the templates used for performance reviews.',
             '/performance/templates',

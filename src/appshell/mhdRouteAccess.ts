@@ -190,6 +190,14 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // audience as /performance. The review and coaching detail sub-routes
   // (/performance/reviews/:id, /performance/coaching/:id) deliberately inherit
   // the general /performance rule below.
+  // Review cycles: launching a cycle creates reviews for many people at once, so it is limited to the
+  // roles that can mutate any review and read job descriptions (mhd_performance_can_manage_cycles).
+  // More specific than /performance, so it must precede it.
+  {
+    path: '/performance/cycles',
+    roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
+    status: 'comingSoon',
+  },
   {
     path: '/performance/templates',
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
@@ -890,6 +898,13 @@ export const MHD_RECRUITING_OFFER_DOCUMENT_ROLES: MhdAuthRoleName[] = [
 
 export function mhdCanIssueOfferDocuments(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_RECRUITING_OFFER_DOCUMENT_ROLES.some((role) => userRoles.includes(role));
+}
+
+/** Roles that may launch and manage performance review cycles (mhd_performance_can_manage_cycles). */
+export const MHD_PERFORMANCE_CYCLE_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'HR Partner', 'Client Admin'];
+
+export function mhdCanManagePerformanceCycles(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_PERFORMANCE_CYCLE_ROLES.some((role) => userRoles.includes(role));
 }
 
 export const MHD_OFFBOARDING_MUTATING_ROLES: MhdAuthRoleName[] = [

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import {
   mhdCanAccessRoute,
+  mhdCanManagePerformanceCycles,
   mhdIsRouteComingSoon,
   mhdRouteStatus,
 } from '@/appshell/mhdRouteAccess';
@@ -39,5 +40,33 @@ describe('performance route access', () => {
       expect(mhdIsRouteComingSoon(path, ['HR Partner'])).toBe(true);
       expect(mhdIsRouteComingSoon(path, ['Client Admin'])).toBe(true);
     }
+  });
+});
+
+describe('performance review cycle access', () => {
+  it('limits launching and managing cycles to the roles the server allows', () => {
+    for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
+      expect(mhdCanAccessRoute('/performance/cycles', [role])).toBe(true);
+      expect(mhdCanAccessRoute('/performance/cycles/new', [role])).toBe(true);
+      expect(mhdCanManagePerformanceCycles([role])).toBe(true);
+    }
+    for (const role of [
+      'HR Admin',
+      'HR Specialist',
+      'Executive Leadership',
+      'Director',
+      'Manager',
+      'Employee',
+      'Viewer',
+    ] as MhdAuthRoleName[]) {
+      expect(mhdCanAccessRoute('/performance/cycles', [role])).toBe(false);
+      expect(mhdCanAccessRoute('/performance/cycles/new', [role])).toBe(false);
+      expect(mhdCanManagePerformanceCycles([role])).toBe(false);
+    }
+  });
+
+  it('keeps the rest of the performance module open to the roles that had it', () => {
+    expect(mhdCanAccessRoute('/performance', ['Manager'])).toBe(true);
+    expect(mhdCanAccessRoute('/performance/reviews/some-review', ['Employee'])).toBe(true);
   });
 });

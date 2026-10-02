@@ -11,6 +11,7 @@ import {
   DoorOpen,
   GraduationCap,
   HandCoins,
+  CalendarRange,
   HardHat,
   UserPlus,
   Scale,
@@ -121,6 +122,12 @@ const WIZARD_DEFINITIONS: WizardDefinition[] = [
     description: 'Record a workplace injury or illness, see whether it is recordable under OSHA, and decide whether it must be reported within hours.',
     route: '/safety/incidents/new',
     icon: HardHat,
+  },
+  {
+    label: 'Review Cycle Wizard',
+    description: 'Launch a performance review cycle: the period and deadlines, who is reviewed, who gives feedback, and the announcement.',
+    route: '/performance/cycles/new',
+    icon: CalendarRange,
   },
 ];
 
