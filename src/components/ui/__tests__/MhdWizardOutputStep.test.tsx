@@ -216,6 +216,17 @@ describe('MhdWizardOutputStep', () => {
     );
   });
 
+  it('offers no filing choice, and files nowhere, for a record that has no employee-file home', async () => {
+    const user = userEvent.setup();
+    setup({ allowEmployeeFile: false });
+
+    expect(screen.queryByLabelText('File Document In')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Generate Later' }));
+    expect(hooks.enqueueMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({ employeeFileCategory: 'NONE' }),
+    );
+  });
+
   it('stops text that includes a diagnosis, cause or medical record before anything is saved', async () => {
     const user = userEvent.setup();
     setup();

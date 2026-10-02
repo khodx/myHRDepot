@@ -56,6 +56,12 @@ interface MhdWizardOutputStepProps {
   signing?: MhdWizardOutputSigning | null;
   /** Called once the step ends. The step shows its own result, so a wizard only needs this to react. */
   onResolved?: (outcome: MhdWizardOutputOutcome) => void;
+  /**
+   * False for a record that must never be filed in an employee file (an investigation, a safety
+   * incident): the filing choice is not offered and the document is always generated unfiled.
+   * Defaults to true.
+   */
+  allowEmployeeFile?: boolean;
 }
 
 const EDITABLE_SOURCES = new Set(['person', 'company', 'record', 'custom']);
@@ -111,6 +117,7 @@ export function MhdWizardOutputStep({
   wizardInputs,
   signing = null,
   onResolved,
+  allowEmployeeFile = true,
 }: MhdWizardOutputStepProps) {
   const templateQuery = useMhdDocumentTemplateByKey(templateKey, companyId);
   const template = templateQuery.data ?? null;
@@ -158,7 +165,7 @@ export function MhdWizardOutputStep({
   // The category the document files under: the person's choice, else the template's default.
   const defaultCategory: MhdDocumentEmployeeFileCategory | null =
     settings?.employeeFileCategory ?? null;
-  const effectiveFiling = filing ?? defaultCategory ?? NOT_FILED;
+  const effectiveFiling = allowEmployeeFile ? (filing ?? defaultCategory ?? NOT_FILED) : NOT_FILED;
 
   function currentOverrides(): MhdDocumentMergeOverrides {
     const base = preview.data?.mergeData ?? {};
@@ -438,21 +445,23 @@ export function MhdWizardOutputStep({
             ))}
           </select>
         </label>
-        <label className="block text-sm font-medium">
-          File Document In
-          <select
-            className={inputClass}
-            value={effectiveFiling}
-            onChange={(event) => setFiling(event.target.value)}
-          >
-            <option value={NOT_FILED}>Not Filed In An Employee File</option>
-            {MHD_DOCUMENT_EMPLOYEE_FILE_CATEGORIES.map((category) => (
-              <option key={category} value={category}>
-                {MHD_DOCUMENT_EMPLOYEE_FILE_CATEGORY_LABELS[category]}
-              </option>
-            ))}
-          </select>
-        </label>
+        {allowEmployeeFile ? (
+          <label className="block text-sm font-medium">
+            File Document In
+            <select
+              className={inputClass}
+              value={effectiveFiling}
+              onChange={(event) => setFiling(event.target.value)}
+            >
+              <option value={NOT_FILED}>Not Filed In An Employee File</option>
+              {MHD_DOCUMENT_EMPLOYEE_FILE_CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {MHD_DOCUMENT_EMPLOYEE_FILE_CATEGORY_LABELS[category]}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
       </section>
 
       {signing && settings?.requiresSignature ? (
