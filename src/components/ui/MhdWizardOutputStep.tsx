@@ -54,7 +54,8 @@ interface MhdWizardOutputStepProps {
   wizardInputs?: Record<string, unknown>;
   /** Present when the document must be signed once generated; the wizard knows the signers. */
   signing?: MhdWizardOutputSigning | null;
-  onResolved: (outcome: MhdWizardOutputOutcome) => void;
+  /** Called once the step ends. The step shows its own result, so a wizard only needs this to react. */
+  onResolved?: (outcome: MhdWizardOutputOutcome) => void;
 }
 
 const EDITABLE_SOURCES = new Set(['person', 'company', 'record', 'custom']);
@@ -224,7 +225,7 @@ export function MhdWizardOutputStep({
       const queued = await enqueueRequest();
       const outcome: MhdWizardOutputOutcome = { outcome: 'QUEUED', queueId: queued.id };
       setResult(outcome);
-      onResolved(outcome);
+      onResolved?.(outcome);
     } catch (caught) {
       setError(mhdDocumentOutputErrorMessage(caught));
     }
@@ -264,7 +265,7 @@ export function MhdWizardOutputStep({
         esignatureRequestId,
       };
       setResult(outcome);
-      onResolved(outcome);
+      onResolved?.(outcome);
     } catch (caught) {
       setError(mhdDocumentOutputErrorMessage(caught));
     }
@@ -273,7 +274,7 @@ export function MhdWizardOutputStep({
   function handleSkip() {
     const outcome: MhdWizardOutputOutcome = { outcome: 'SKIPPED' };
     setResult(outcome);
-    onResolved(outcome);
+    onResolved?.(outcome);
   }
 
   if (result) {

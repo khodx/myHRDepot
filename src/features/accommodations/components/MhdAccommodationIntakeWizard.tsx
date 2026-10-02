@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
-import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
+import { MhdWizardOutputStep } from '@/components/ui/MhdWizardOutputStep';
+import { MhdWizardShell } from '@/components/ui/MhdWizardShell';
 import { mhdAccommodationsIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { useMhdWizardFlow, type MhdWizardStepDefinition } from '@/utils/useMhdWizardFlow';
 import {
   useMhdAccommodationPeople,
   useMhdAccommodationReadiness,
@@ -25,12 +26,6 @@ import {
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 
-const STEPS: MhdStep[] = [
-  { id: 'person', title: 'Person', description: 'Who the request is for.' },
-  { id: 'origin', title: 'How It Arrived', description: 'Source and channel of the request.' },
-  { id: 'request', title: 'Request', description: 'The workplace change or assistance requested.' },
-];
-
 /**
  * `/accommodations/new` — guided intake that opens a reasonable-accommodation
  * process. Same create RPC and request schema the list page's inline form used
@@ -42,6 +37,10 @@ const STEPS: MhdStep[] = [
  * genetic information, or medical record — the schema rejects that language.
  * Privileged roles pick the subject person; everyone else opens a request for
  * their own person record (the server re-checks this regardless).
+ *
+ * Once the case is open, a privileged person is offered the request
+ * acknowledgment document (generate now, save for later, or skip). A person
+ * opening their own request goes straight to the case.
  */
 export function MhdAccommodationIntakeWizard() {
   const navigate = useNavigate();
@@ -50,12 +49,11 @@ export function MhdAccommodationIntakeWizard() {
   const selfPersonId = profile?.personId ?? null;
   const isPrivileged = mhdAccommodationsIsPrivileged(roles);
 
-  const [stepIndex, setStepIndex] = useState(0);
   const [personId, setPersonId] = useState('');
   const [requestSource, setRequestSource] = useState<MhdAccommodationRequestSource>('SELF');
   const [requestChannel, setRequestChannel] = useState<MhdAccommodationRequestChannel>('VERBAL');
   const [requestSummary, setRequestSummary] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [openedCaseId, setOpenedCaseId] = useState<string | null>(null);
 
   const people = useMhdAccommodationPeople(isPrivileged ? companyId || null : null);
   const readiness = useMhdAccommodationReadiness();
@@ -72,61 +70,69 @@ export function MhdAccommodationIntakeWizard() {
 
   const subjectPersonId = isPrivileged ? personId : (selfPersonId ?? '');
 
-  function validateCurrentStep(): boolean {
-    if (STEPS[stepIndex].id === 'person') {
-      if (!subjectPersonId) {
-        setError(
-          isPrivileged
-            ? 'Choose a person.'
-            : 'Your account is not linked to a person record, so a request cannot be opened.',
-        );
-        return false;
-      }
-    }
-    if (STEPS[stepIndex].id === 'request') {
-      const parsed = mhdAccommodationRequestSchema.safeParse({
-        personId: subjectPersonId,
-        requestSource,
-        requestChannel,
-        requestedAt: new Date().toISOString(),
-        requestSummary,
-      });
-      if (!parsed.success) {
-        setError(parsed.error.issues[0]?.message ?? 'Review the request details.');
-        return false;
-      }
-    }
-    setError(null);
-    return true;
-  }
-
-  async function handleSubmit() {
-    const requestedAt = new Date().toISOString();
-    const parsed = mhdAccommodationRequestSchema.safeParse({
+  function parseRequest(requestedAt: string) {
+    return mhdAccommodationRequestSchema.safeParse({
       personId: subjectPersonId,
       requestSource,
       requestChannel,
       requestedAt,
       requestSummary,
     });
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Review the request details.');
-      return;
-    }
-    setError(null);
-    const result = await createCase.mutateAsync({
-      companyId,
-      personId: parsed.data.personId,
-      requestSource: parsed.data.requestSource,
-      requestChannel: parsed.data.requestChannel,
-      requestedAt,
-      requestSummary: parsed.data.requestSummary,
-    });
-    navigate(`/accommodations/${result.id}`);
   }
 
+  const steps: MhdWizardStepDefinition[] = [
+    {
+      id: 'person',
+      title: 'Person',
+      description: 'Who the request is for.',
+      validate: () => {
+        if (subjectPersonId) return null;
+        return isPrivileged
+          ? 'Choose a person.'
+          : 'Your account is not linked to a person record, so a request cannot be opened.';
+      },
+    },
+    { id: 'origin', title: 'How It Arrived', description: 'Source and channel of the request.' },
+    {
+      id: 'request',
+      title: 'Request',
+      description: 'The workplace change or assistance requested.',
+      validate: () => {
+        const parsed = parseRequest(new Date().toISOString());
+        return parsed.success
+          ? null
+          : (parsed.error.issues[0]?.message ?? 'Review the request details.');
+      },
+    },
+  ];
+
+  const flow = useMhdWizardFlow({
+    steps,
+    isDirty: Boolean(personId) || requestSummary.trim().length > 0,
+    onSubmit: async () => {
+      const requestedAt = new Date().toISOString();
+      const parsed = parseRequest(requestedAt);
+      if (!parsed.success) {
+        throw new Error(parsed.error.issues[0]?.message ?? 'Review the request details.');
+      }
+      const result = await createCase.mutateAsync({
+        companyId,
+        personId: parsed.data.personId,
+        requestSource: parsed.data.requestSource,
+        requestChannel: parsed.data.requestChannel,
+        requestedAt,
+        requestSummary: parsed.data.requestSummary,
+      });
+      if (isPrivileged) {
+        setOpenedCaseId(result.id);
+        return;
+      }
+      navigate(`/accommodations/${result.id}`);
+    },
+  });
+
   function renderStep() {
-    switch (STEPS[stepIndex].id) {
+    switch (flow.currentStep?.id) {
       case 'person':
         return isPrivileged ? (
           <label className="block text-sm font-medium">
@@ -202,41 +208,41 @@ export function MhdAccommodationIntakeWizard() {
     }
   }
 
-  return (
-    <div className="space-y-6">
-      <MhdPageHeader
-        title="Guided accommodation intake"
-        description="A request may be verbal and does not require this form or any special words. Record the workplace change or assistance requested—never a diagnosis or medical history."
-        backTo="/accommodations"
-        backLabel="Reasonable Accommodations"
-      />
-      <MhdComplianceGateBanner readiness={readiness.data} />
-
-      <MhdStepper
-        steps={STEPS}
-        currentStepIndex={stepIndex}
-        onNavigate={setStepIndex}
-        validateCurrentStep={validateCurrentStep}
-        onSubmit={() => void handleSubmit()}
-        isSubmitting={createCase.isPending}
-      />
-
+  const completion = openedCaseId ? (
+    <div className="space-y-4">
       <MhdCard>
-        <h2 className="text-lg font-semibold text-foreground">{STEPS[stepIndex].title}</h2>
-        <div className="mt-4">{renderStep()}</div>
-        {error ? (
-          <p role="alert" className="mt-4 text-sm text-rose-700">
-            {error}
-          </p>
-        ) : null}
+        <h2 className="text-lg font-semibold text-foreground">Accommodation Request Opened</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          The request is recorded and the interactive process can begin.
+        </p>
+        <div className="mt-4">
+          <Button onClick={() => navigate(`/accommodations/${openedCaseId}`)}>Open Case</Button>
+        </div>
       </MhdCard>
-
-      <div>
-        <Button variant="secondary" onClick={() => navigate('/accommodations')}>
-          Cancel
-        </Button>
-      </div>
+      <MhdWizardOutputStep
+        companyId={companyId}
+        sourceWizard="ACCOMMODATION_INTAKE"
+        templateKey="ACCOMMODATION_CASE_OPENING"
+        entityType="ACCOMMODATION_CASE"
+        entityId={openedCaseId}
+        recordLabel="accommodation request"
+      />
     </div>
+  ) : undefined;
+
+  return (
+    <MhdWizardShell
+      title="Guided accommodation intake"
+      description="A request may be verbal and does not require this form or any special words. Record the workplace change or assistance requested—never a diagnosis or medical history."
+      backTo="/accommodations"
+      backLabel="Reasonable Accommodations"
+      flow={flow}
+      gateBanner={<MhdComplianceGateBanner readiness={readiness.data} />}
+      cancelTo="/accommodations"
+      completion={completion}
+    >
+      {renderStep()}
+    </MhdWizardShell>
   );
 }
 

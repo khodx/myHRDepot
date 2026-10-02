@@ -29,9 +29,15 @@ vi.mock('../Hook', () => ({
   useMhdCreateAccommodation: () => ({ mutateAsync: createMock, isPending: false }),
 }));
 
-const { MhdAccommodationIntakeWizard } = await import(
-  '../components/MhdAccommodationIntakeWizard'
-);
+// The document step has its own tests; here we only care that the wizard offers it, for the
+// right record, to the right people.
+vi.mock('@/components/ui/MhdWizardOutputStep', () => ({
+  MhdWizardOutputStep: (props: { templateKey: string; entityType: string; entityId: string }) => (
+    <p>{`Document step: ${props.templateKey} for ${props.entityType} ${props.entityId}`}</p>
+  ),
+}));
+
+const { MhdAccommodationIntakeWizard } = await import('../components/MhdAccommodationIntakeWizard');
 
 function renderWizard() {
   return render(
@@ -54,7 +60,7 @@ beforeEach(() => {
 });
 
 describe('MhdAccommodationIntakeWizard', () => {
-  it('lets a privileged role pick the subject person and opens the case', async () => {
+  it('lets a privileged role pick the subject person, then offers the acknowledgment document', async () => {
     authRef.current = {
       profile: { companyId: 'company-a', personId: SELF_PERSON_ID },
       roles: ['HR Partner'],
@@ -81,10 +87,21 @@ describe('MhdAccommodationIntakeWizard', () => {
       requestChannel: 'VERBAL',
       requestSummary: 'Later start time so the morning commute is manageable.',
     });
+
+    expect(await screen.findByText('Accommodation Request Opened')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        `Document step: ACCOMMODATION_CASE_OPENING for ACCOMMODATION_CASE ${NEW_CASE_ID}`,
+      ),
+    ).toBeInTheDocument();
+    // The wizard itself is gone; nothing left to step through.
+    expect(screen.queryByLabelText(/Requested workplace change/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open Case' }));
     expect(await screen.findByText('Case opened')).toBeInTheDocument();
   });
 
-  it("opens a self-service request for the caller's own person record only", async () => {
+  it("opens a self-service request for the caller's own person record and goes straight to the case", async () => {
     authRef.current = {
       profile: { companyId: 'company-a', personId: SELF_PERSON_ID },
       roles: ['Employee'],
@@ -101,6 +118,8 @@ describe('MhdAccommodationIntakeWizard', () => {
 
     await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
     expect(createMock.mock.calls[0][0].personId).toBe(SELF_PERSON_ID);
+    expect(await screen.findByText('Case opened')).toBeInTheDocument();
+    expect(screen.queryByText(/Document step:/)).not.toBeInTheDocument();
   });
 
   it('refuses a self-service request when the account has no person record', () => {
@@ -128,5 +147,28 @@ describe('MhdAccommodationIntakeWizard', () => {
     clickNext();
     expect(screen.getByRole('alert')).toHaveTextContent(/Do not enter a diagnosis/);
     expect(createMock).not.toHaveBeenCalled();
+  });
+
+  it('shows the server message when opening the case fails, and stays on the last step', async () => {
+    authRef.current = {
+      profile: { companyId: 'company-a', personId: SELF_PERSON_ID },
+      roles: ['Employee'],
+    };
+    createMock.mockRejectedValueOnce(
+      new Error('An accommodation case is already open for this person.'),
+    );
+    renderWizard();
+    clickNext();
+    clickNext();
+    fireEvent.change(screen.getByLabelText(/Requested workplace change/), {
+      target: { value: 'A quieter workstation away from the loading area.' },
+    });
+    clickNext();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'An accommodation case is already open for this person.',
+    );
+    expect(screen.getByLabelText(/Requested workplace change/)).toBeInTheDocument();
+    expect(screen.queryByText('Case opened')).not.toBeInTheDocument();
   });
 });
