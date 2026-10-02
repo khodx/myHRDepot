@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MhdCompensationClassificationWizard } from '../components/MhdCompensationClassificationWizard';
 
@@ -15,6 +16,12 @@ const mutate = {
 };
 
 vi.mock('@/features/authentication/Hook', () => ({ useMhdAuth: () => ({ profile: { companyId: 'company-1' } }) }));
+// The document step has its own tests; here we only care that it is offered for the right record.
+vi.mock('@/components/ui/MhdWizardOutputStep', () => ({
+  MhdWizardOutputStep: (props: { templateKey: string; entityType: string; entityId: string }) => (
+    <p>{`Document step: ${props.templateKey} for ${props.entityType} ${props.entityId}`}</p>
+  ),
+}));
 vi.mock('@/features/jobs/Hook', () => ({
   useMhdJobs: () => ({ data: [{ id: 'job-1', jobTitle: 'Analyst', jobCode: 'A1', onetSocCode: null, caWageOrderClassification: null }] }),
 }));
@@ -39,7 +46,11 @@ const determination = {
 };
 
 function renderWizard() {
-  return render(<MhdCompensationClassificationWizard />);
+  return render(
+    <MemoryRouter>
+      <MhdCompensationClassificationWizard />
+    </MemoryRouter>,
+  );
 }
 
 async function selectJobAndFacts(user: ReturnType<typeof userEvent.setup>) {
@@ -128,5 +139,62 @@ describe('MhdCompensationClassificationWizard', () => {
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(mutate.evaluate).toHaveBeenCalledTimes(1));
     expect(mutate.evaluate).toHaveBeenCalledWith(expect.objectContaining({ ksaInputs: undefined }));
+  });
+  it('evaluates again when a fact changes after walking back, and drops the old confirmations', async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await selectJobAndFacts(user);
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(mutate.evaluate).toHaveBeenCalledTimes(1));
+    await user.click(screen.getByRole('button', { name: 'Previous' }));
+    await user.clear(screen.getByRole('spinbutton', { name: 'Weekly salary' }));
+    await user.type(screen.getByRole('spinbutton', { name: 'Weekly salary' }), '2500');
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(mutate.evaluate).toHaveBeenCalledTimes(2));
+    expect(mutate.evaluate.mock.calls[1][0]).toMatchObject({ weeklySalary: 2500 });
+    // The new determinations are unconfirmed: the Confirm step refuses to advance.
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Confirm or override every determination');
+  });
+
+  it('shows the server message when the evaluation fails and stays on the facts step', async () => {
+    mutate.evaluate.mockRejectedValueOnce(new Error('No active exemption rules for this date.'));
+    const user = userEvent.setup();
+    renderWizard();
+    await selectJobAndFacts(user);
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('No active exemption rules for this date.');
+    expect(screen.getByRole('spinbutton', { name: 'Weekly salary' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(mutate.evaluate).toHaveBeenCalledTimes(2));
+  });
+
+  it('offers the classification memo for the evaluated snapshot once the pay-grade recommendation is made', async () => {
+    mutate.recommend.mockResolvedValue([
+      { recommendationId: 'recommendation-1', totalPoints: 10, recommendedPayGradeId: 'grade-7' },
+    ]);
+    const user = userEvent.setup();
+    renderWizard();
+    await selectJobAndFacts(user);
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await user.click(await screen.findByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('Classification Recorded')).toBeInTheDocument();
+    expect(
+      screen.getByText('Document step: COMPENSATION_CLASSIFICATION_MEMO for JOB_CLASSIFICATION_SNAPSHOT snapshot-1'),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Confirm this grade' }));
+    await waitFor(() =>
+      expect(mutate.payConfirm).toHaveBeenCalledWith({
+        recommendationId: 'recommendation-1',
+        confirmedPayGradeId: 'grade-7',
+        overrideReason: null,
+      }),
+    );
+    expect(await screen.findByText('Pay grade confirmed.')).toBeInTheDocument();
   });
 });
