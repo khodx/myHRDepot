@@ -1,4 +1,6 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
+import { mhdEsignatureService } from '@/features/esignature/Service';
+import { mhdPersonService } from '@/features/people/Service';
 import { mhdToNumber } from './Types';
 import type {
   MhdAcceptOfferInput,
@@ -14,8 +16,12 @@ import type {
   MhdOfferMutationResult,
   MhdOfferMutationRpcRow,
   MhdOfferRpcRow,
+  MhdOfferSalaryCheck,
+  MhdOfferSalaryCheckInput,
+  MhdOfferSalaryFinding,
   MhdOfferSummary,
   MhdOnboardingRecommendation,
+  MhdRequestCandidateSignatureInput,
   MhdRescindOfferInput,
 } from './Types';
 
@@ -132,6 +138,60 @@ function mapHirePayload(row: MhdHirePayloadRpcRow): MhdHirePayload {
 // ---------------------------------------------------------------------------
 
 export const mhdOfferService = {
+  // -------------------------------------------------------------------------
+  // Offer wizard (0362 / 0369)
+  // -------------------------------------------------------------------------
+
+  /** The offered pay checked against the job's classification and pay range. */
+  async checkSalary(input: MhdOfferSalaryCheckInput): Promise<MhdOfferSalaryCheck> {
+    const { data, error } = await supabaseClient.rpc('mhd_recruiting_offer_salary_check', {
+      p_application_id: input.applicationId,
+      p_base_salary: input.baseSalary,
+      p_pay_frequency: input.payFrequency,
+      ...(input.asOf ? { p_as_of: input.asOf } : {}),
+    });
+    if (error) throw new Error(`Unable to check the offered pay: ${error.message}`);
+    const raw = (data ?? {}) as Record<string, unknown>;
+    const findings = (value: unknown): MhdOfferSalaryFinding[] =>
+      ((value as Array<Record<string, unknown>> | null) ?? []).map((finding) => ({
+        code: String(finding.code),
+        message: String(finding.message),
+      }));
+    return {
+      checked: Boolean(raw.checked),
+      flsaClassification: (raw.flsa_classification as string | null) ?? null,
+      payFrequency: (raw.pay_frequency as string | null) ?? null,
+      annualizedPay: raw.annualized_pay == null ? null : Number(raw.annualized_pay),
+      annualizationBasis: (raw.annualization_basis as string | null) ?? null,
+      blocking: findings(raw.blocking),
+      advisory: findings(raw.advisory),
+    };
+  },
+
+  /**
+   * Sends the generated offer letter to the candidate for signature. The candidate is the sole
+   * external signer; the address comes from the person record, never from the browser.
+   */
+  async requestCandidateSignature(
+    input: MhdRequestCandidateSignatureInput,
+  ): Promise<{ requestId: string; invitationErrors: string[] }> {
+    const candidate = await mhdPersonService.getPersonById(input.personId);
+    const externalEmail = candidate.primaryEmail?.trim();
+    if (!externalEmail) {
+      throw new Error(
+        'The candidate has no primary email on record, so the offer letter cannot be sent for signature.',
+      );
+    }
+    const result = await mhdEsignatureService.createRequestFromGeneratedDocument({
+      companyId: input.companyId,
+      generationId: input.generationId,
+      documentHash: input.documentHash,
+      signers: [{ kind: 'external', externalEmail, externalName: candidate.displayName }],
+      signingOrder: 'SEQUENTIAL',
+    });
+    return { requestId: result.request.id, invitationErrors: result.invitationErrors };
+  },
+
   /**
    * Create an offer against an application. Admin-only at the RPC; the caller sees
    * the minted `(id, reference_id)`. Optional terms are omitted when blank; the

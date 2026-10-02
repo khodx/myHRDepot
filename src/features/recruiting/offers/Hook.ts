@@ -4,6 +4,7 @@ import type {
   MhdCreateOfferInput,
   MhdDeclineOfferInput,
   MhdExtendOfferInput,
+  MhdOfferSalaryCheckInput,
   MhdRescindOfferInput,
 } from './Types';
 import { mhdOfferService } from './Service';
@@ -131,5 +132,18 @@ export function useMhdRescindOffer() {
       void queryClient.invalidateQueries({ queryKey: ['mhd-recruiting-offer', 'list'] });
       void queryClient.invalidateQueries({ queryKey: ['mhd-recruiting-offer', 'detail'] });
     },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Offer wizard (0362 / 0369)
+// ---------------------------------------------------------------------------
+
+/** The offered pay checked against the job; waits until there is a pay and a frequency to check. */
+export function useMhdOfferSalaryCheck(input: MhdOfferSalaryCheckInput | null) {
+  return useQuery({
+    queryKey: ['mhd-recruiting-offer', 'salary-check', input] as const,
+    queryFn: () => mhdOfferService.checkSalary(input!),
+    enabled: Boolean(input),
   });
 }

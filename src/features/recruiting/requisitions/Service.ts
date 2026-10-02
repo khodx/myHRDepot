@@ -252,6 +252,18 @@ export const mhdRecruitingService = {
   },
 
   /**
+   * Links a job to a requisition created before a job was required (0362). The server refuses a
+   * requisition that already has one, and a job that is not an active job of the company.
+   */
+  async setRequisitionJob(input: { requisitionId: string; jobId: string }): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_recruiting_requisition_set_job', {
+      p_requisition_id: input.requisitionId,
+      p_job_id: input.jobId,
+    });
+    if (error) throw error;
+  },
+
+  /**
    * A company's requisitions. Privileged callers see all of the company's; a
    * hiring manager sees only their own (RLS + `can_view_requisition`). Each row
    * carries the server-computed `open_application_count`.

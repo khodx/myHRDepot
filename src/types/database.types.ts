@@ -25944,6 +25944,29 @@ export type Database = {
           },
         ]
       }
+      v_document_entity_recruiting_offer: {
+        Row: {
+          company_id: string | null
+          id: string | null
+          person_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruiting_applications_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recruiting_offers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_employment_applications_validity: {
         Row: {
           applicant_first_name: string | null
@@ -28651,6 +28674,11 @@ export type Database = {
         Args: { p_id: string }
         Returns: Json
       }
+      mhd_document_record_recruiting_offer: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_requisition: { Args: { p_id: string }; Returns: Json }
       mhd_document_record_training_course: {
         Args: { p_id: string }
         Returns: Json

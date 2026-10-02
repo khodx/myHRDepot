@@ -875,6 +875,23 @@ export function mhdCanMutatePerformance(userRoles: MhdAuthRoleName[]): boolean {
  * HR Partner, HR Admin and Client Admin. Executive Leadership and Director are read audiences for
  * offboarding and are refused by every mutating RPC, so they are not offered the affordances.
  */
+/**
+ * Roles that may generate and sign an offer letter. An offer carries pay, so its document is RESTRICTED
+ * (mhd_attachment_scope_access): Platform Admin, HR Partner, HR Admin and Client Admin. Other recruiting
+ * administrators (HR Specialist, Executive Leadership, Director) may create and extend offers but are
+ * not offered the letter step, which the server would refuse.
+ */
+export const MHD_RECRUITING_OFFER_DOCUMENT_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'HR Admin',
+  'Client Admin',
+];
+
+export function mhdCanIssueOfferDocuments(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_RECRUITING_OFFER_DOCUMENT_ROLES.some((role) => userRoles.includes(role));
+}
+
 export const MHD_OFFBOARDING_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',

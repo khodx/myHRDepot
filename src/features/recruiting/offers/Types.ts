@@ -390,3 +390,39 @@ export function mhdToNumber(value: number | string | null | undefined): number {
   const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
+
+// ---------------------------------------------------------------------------
+// Offer wizard (0362 / 0369)
+// ---------------------------------------------------------------------------
+
+/** One finding of the offer's pay check. Findings are recommendations for a person, not a determination. */
+export interface MhdOfferSalaryFinding {
+  code: string;
+  message: string;
+}
+
+export interface MhdOfferSalaryCheck {
+  /** False when no pay was entered, so nothing could be checked. */
+  checked: boolean;
+  flsaClassification: string | null;
+  payFrequency: string | null;
+  annualizedPay: number | null;
+  /** FULL_TIME_2080_HOURS for hourly pay, PAY_PERIODS otherwise. */
+  annualizationBasis: string | null;
+  blocking: MhdOfferSalaryFinding[];
+  advisory: MhdOfferSalaryFinding[];
+}
+
+export interface MhdOfferSalaryCheckInput {
+  applicationId: string;
+  baseSalary: number;
+  payFrequency: string;
+  asOf?: string | null;
+}
+
+export interface MhdRequestCandidateSignatureInput {
+  companyId: string;
+  personId: string;
+  generationId: string;
+  documentHash: string;
+}

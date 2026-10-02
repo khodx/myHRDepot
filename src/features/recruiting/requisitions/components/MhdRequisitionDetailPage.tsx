@@ -1,9 +1,15 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdRequisitionRecordTabs } from '@/appshell/components/MhdRequisitionRecordTabs';
-import { useMhdRecruitingRequisitions, useMhdTransitionRequisition } from '../Hook';
+import { useMhdJobs } from '@/features/jobs/Hook';
+import {
+  useMhdRecruitingRequisitions,
+  useMhdSetRequisitionJob,
+  useMhdTransitionRequisition,
+} from '../Hook';
 import {
   MHD_RECRUITING_REQUISITION_STATUSES,
   mhdFormatRequisitionStatus,
@@ -33,6 +39,9 @@ interface Props {
 export function MhdRequisitionDetailPage({ companyId, requisitionId, canManage }: Props) {
   const requisitions = useMhdRecruitingRequisitions({ companyId, status: 'ALL' });
   const transition = useMhdTransitionRequisition();
+  const setJob = useMhdSetRequisitionJob();
+  const jobs = useMhdJobs(canManage ? companyId : null);
+  const [jobToLink, setJobToLink] = useState('');
 
   const requisition = useMemo(
     () => (requisitions.data ?? []).find((item) => item.id === requisitionId) ?? null,
@@ -87,6 +96,45 @@ export function MhdRequisitionDetailPage({ companyId, requisitionId, canManage }
           <MhdDetailField label="Requires approval" value={requisition.requiresApproval ? 'Yes' : 'No'} />
         </dl>
       </MhdCard>
+
+      {canManage && !requisition.jobId ? (
+        <MhdCard className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Job</h2>
+          <p className="text-sm text-muted-foreground">
+            This requisition has no job. A job is required so an accepted offer can assign the hire;
+            link one before creating an offer.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <label htmlFor="reqJobToLink" className="text-sm text-muted-foreground">
+              Job
+            </label>
+            <select
+              id="reqJobToLink"
+              value={jobToLink}
+              onChange={(event) => setJobToLink(event.target.value)}
+              className="rounded-md border border-border px-3 py-1.5 text-sm"
+            >
+              <option value="">Select a job</option>
+              {(jobs.data ?? []).map((job) => (
+                <option key={job.id} value={job.id}>
+                  {job.jobTitle}
+                </option>
+              ))}
+            </select>
+            <Button
+              disabled={!jobToLink || setJob.isPending}
+              onClick={() => void setJob.mutateAsync({ requisitionId, jobId: jobToLink })}
+            >
+              Link Job
+            </Button>
+          </div>
+          {setJob.isError ? (
+            <p role="alert" className="text-sm text-rose-700">
+              {setJob.error instanceof Error ? setJob.error.message : 'Unable to link the job.'}
+            </p>
+          ) : null}
+        </MhdCard>
+      ) : null}
 
       {canManage ? (
         <MhdCard className="space-y-3">

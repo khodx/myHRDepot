@@ -86,6 +86,17 @@ export function useMhdCreateRequisition() {
   });
 }
 
+export function useMhdSetRequisitionJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { requisitionId: string; jobId: string }) =>
+      mhdRecruitingService.setRequisitionJob(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-recruiting', 'requisitions'] });
+    },
+  });
+}
+
 export function useMhdTransitionRequisition() {
   const queryClient = useQueryClient();
   return useMutation({

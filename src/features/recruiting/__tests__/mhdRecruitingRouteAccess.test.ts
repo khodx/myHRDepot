@@ -6,6 +6,7 @@ import {
   mhdIsRouteComingSoon,
   mhdRecruitingIsPrivileged,
   mhdRouteStatus,
+  mhdCanIssueOfferDocuments,
 } from '@/appshell/mhdRouteAccess';
 
 /**
@@ -60,12 +61,7 @@ describe('recruiting route access', () => {
 
   it('restricts the EEO report route to Platform Admin ONLY — every other role is rejected', () => {
     expect(mhdCanAccessRoute('/recruiting/eeo', ['Platform Admin'])).toBe(true);
-    for (const role of [
-      'HR Partner',
-      'Client Admin',
-      'Employee',
-      'Viewer',
-    ] as MhdAuthRoleName[]) {
+    for (const role of ['HR Partner', 'Client Admin', 'Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanAccessRoute('/recruiting/eeo', [role])).toBe(false);
     }
     // The /recruiting/eeo rule must precede /recruiting: an HR Partner / Client
@@ -76,12 +72,7 @@ describe('recruiting route access', () => {
 
   it('mhdCanReadEeoReport is Platform Admin only', () => {
     expect(mhdCanReadEeoReport(['Platform Admin'])).toBe(true);
-    for (const role of [
-      'HR Partner',
-      'Client Admin',
-      'Employee',
-      'Viewer',
-    ] as MhdAuthRoleName[]) {
+    for (const role of ['HR Partner', 'Client Admin', 'Employee', 'Viewer'] as MhdAuthRoleName[]) {
       expect(mhdCanReadEeoReport([role])).toBe(false);
     }
   });
@@ -106,11 +97,7 @@ describe('recruiting route access', () => {
   });
 
   it('marks authenticated recruiting surfaces as coming soon for non-Platform Admins', () => {
-    for (const path of [
-      '/recruiting',
-      '/recruiting/eeo',
-      '/recruiting/interviews',
-    ] as const) {
+    for (const path of ['/recruiting', '/recruiting/eeo', '/recruiting/interviews'] as const) {
       expect(mhdRouteStatus(path)).toBe('comingSoon');
       expect(mhdIsRouteComingSoon(path, ['Platform Admin'])).toBe(false);
     }
@@ -118,5 +105,22 @@ describe('recruiting route access', () => {
     expect(mhdIsRouteComingSoon('/recruiting', ['HR Partner'])).toBe(true);
     expect(mhdIsRouteComingSoon('/recruiting', ['Client Admin'])).toBe(true);
     expect(mhdIsRouteComingSoon('/recruiting/interviews/iv-1', ['Employee'])).toBe(true);
+  });
+});
+
+describe('offer letter roles', () => {
+  it('limits the signed, pay-bearing offer letter to the roles that can see RESTRICTED records', () => {
+    for (const role of ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin'] as const) {
+      expect(mhdCanIssueOfferDocuments([role])).toBe(true);
+    }
+    for (const role of [
+      'HR Specialist',
+      'Executive Leadership',
+      'Director',
+      'Manager',
+      'Employee',
+    ] as const) {
+      expect(mhdCanIssueOfferDocuments([role])).toBe(false);
+    }
   });
 });
