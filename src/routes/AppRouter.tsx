@@ -387,6 +387,10 @@ const MhdOffboardingPage = lazyPage(
   () => import('@/features/offboarding/components/MhdOffboardingPage'),
   'MhdOffboardingPage',
 );
+const MhdOffboardingWizard = lazyPage(
+  () => import('@/features/offboarding/components/MhdOffboardingWizard'),
+  'MhdOffboardingWizard',
+);
 const MhdOffboardingCaseDetailPage = lazyPage(
   () => import('@/features/offboarding/components/MhdOffboardingCaseDetailPage'),
   'MhdOffboardingCaseDetailPage',
@@ -911,6 +915,7 @@ function MhdAppRoutes() {
                 <Route path="/onboarding" element={<MhdOnboardingIndexPage />} />
                 <Route path="/onboarding/:personId" element={<MhdOnboardingPersonPage />} />
                 <Route path="/offboarding" element={<MhdOffboardingPage />} />
+                <Route path="/offboarding/new" element={<MhdOffboardingWizard />} />
                 <Route path="/offboarding/:caseId" element={<MhdOffboardingCaseDetailPage />} />
                 {/* Conduct. Admin-only (see mhdRouteAccess); /conduct/:caseId
                   inherits the /conduct rule via the guard's prefix match. There

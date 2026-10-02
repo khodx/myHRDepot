@@ -224,6 +224,18 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // /onboarding/:personId inherits this rule via the prefix match, and it
   // matches the role check inside mhd_list_onboarding_progress_for_company —
   // hiding a nav link is not access control, the router guard and the RPC are.
+  // The guided onboarding / offboarding wizards write, so their audience is the roles the RPCs accept
+  // (MHD_ONBOARDING_MUTATING_ROLES / MHD_OFFBOARDING_MUTATING_ROLES: Platform Admin, HR Partner, HR Admin,
+  // Client Admin), narrower than the read audience of the boards. Listed before the parent prefixes so the
+  // guard's prefix match finds them first.
+  {
+    path: '/onboarding/new',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin'],
+  },
+  {
+    path: '/offboarding/new',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin'],
+  },
   {
     path: '/onboarding',
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],

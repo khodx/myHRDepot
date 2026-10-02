@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   MHD_OFFBOARDING_MUTATING_ROLES,
   MHD_ONBOARDING_MUTATING_ROLES,
+  mhdCanAccessRoute,
   mhdCanMutateOffboarding,
   mhdCanMutateOnboarding,
 } from '../mhdRouteAccess';
@@ -26,6 +27,24 @@ describe('onboarding and offboarding mutating roles', () => {
       'Viewer',
     ] as const) {
       expect(canMutate([role])).toBe(false);
+    }
+  });
+});
+
+describe('the guided onboarding and offboarding wizards', () => {
+  it.each([
+    ['/onboarding/new', MHD_ONBOARDING_MUTATING_ROLES],
+    ['/offboarding/new', MHD_OFFBOARDING_MUTATING_ROLES],
+  ] as const)('%s is open to exactly the roles that may mutate', (route, roles) => {
+    for (const role of roles) expect(mhdCanAccessRoute(route, [role])).toBe(true);
+    for (const role of [
+      'Executive Leadership',
+      'Director',
+      'Manager',
+      'Employee',
+      'Viewer',
+    ] as const) {
+      expect(mhdCanAccessRoute(route, [role])).toBe(false);
     }
   });
 });
