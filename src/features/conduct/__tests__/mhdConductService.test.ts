@@ -394,3 +394,166 @@ describe('mhdConductService issue ceremony', () => {
     expect(createRequestFromGeneratedDocumentMock).not.toHaveBeenCalled();
   });
 });
+
+describe('mhdConductService - intake wizard support (0365)', () => {
+  it("maps the employee's notice context", async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          company_name: 'Northstar Payroll Services',
+          position_title: 'Warehouse Associate',
+          department: 'Fulfillment',
+          supervisor_name: 'Avery Nguyen',
+          date_of_hire: '2024-03-27',
+          facility_location: 'Los Angeles, CA',
+        },
+      ],
+      error: null,
+    });
+    const context = await mhdConductService.getPersonContext('person-1');
+    expect(rpcMock).toHaveBeenCalledWith('mhd_conduct_person_context', { p_person_id: 'person-1' });
+    expect(context).toEqual({
+      companyName: 'Northstar Payroll Services',
+      positionTitle: 'Warehouse Associate',
+      department: 'Fulfillment',
+      supervisorName: 'Avery Nguyen',
+      dateOfHire: '2024-03-27',
+      facilityLocation: 'Los Angeles, CA',
+    });
+  });
+
+  it('returns no context rather than inventing one', async () => {
+    rpcMock.mockResolvedValueOnce({ data: [], error: null });
+    expect(await mhdConductService.getPersonContext('person-1')).toBeNull();
+  });
+
+  it('maps prior history from corrective actions and attendance thresholds', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [
+        {
+          source: 'CONDUCT_ACTION',
+          reference_id: 'CACT-9',
+          occurred_at: '2026-06-01T09:00:00Z',
+          category: 'ATTENDANCE',
+          severity: 'WRITTEN_WARNING',
+          status: 'ACKNOWLEDGED',
+          summary: 'Repeated tardiness',
+        },
+        {
+          source: 'ATTENDANCE_THRESHOLD',
+          reference_id: null,
+          occurred_at: '2026-05-10T09:00:00Z',
+          category: 'ATTENDANCE',
+          severity: null,
+          status: 'OPEN',
+          summary: 'Attendance points reached 6',
+        },
+      ],
+      error: null,
+    });
+    const history = await mhdConductService.listPersonHistory('person-1', 12);
+    expect(rpcMock).toHaveBeenCalledWith('mhd_conduct_person_history', {
+      p_person_id: 'person-1',
+      p_months: 12,
+    });
+    expect(history[0]).toMatchObject({
+      source: 'CONDUCT_ACTION',
+      referenceId: 'CACT-9',
+      severity: 'WRITTEN_WARNING',
+    });
+    expect(history[1]).toMatchObject({
+      source: 'ATTENDANCE_THRESHOLD',
+      referenceId: null,
+      severity: null,
+    });
+  });
+
+  it('maps the progressive-discipline recommendation, including an exhausted ladder', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: {
+        recommended_severity: 'FINAL_WARNING',
+        ladder: ['VERBAL_WARNING', 'WRITTEN_WARNING', 'FINAL_WARNING'],
+        lookback_months: 12,
+        rule_id: 'rule-1',
+        rule_scope: 'COMPANY',
+        exhausted: true,
+        prior_actions: [
+          {
+            reference_id: 'CACT-9',
+            severity: 'FINAL_WARNING',
+            status: 'ISSUED',
+            issued_at: '2026-06-01T09:00:00Z',
+          },
+        ],
+        note: 'The final rung has already been reached.',
+      },
+      error: null,
+    });
+    const recommendation = await mhdConductService.recommendSeverity('person-1', 'ATTENDANCE');
+    expect(rpcMock).toHaveBeenCalledWith('mhd_conduct_recommend_severity', {
+      p_person_id: 'person-1',
+      p_category: 'ATTENDANCE',
+    });
+    expect(recommendation).toMatchObject({
+      recommendedSeverity: 'FINAL_WARNING',
+      lookbackMonths: 12,
+      ruleScope: 'COMPANY',
+      exhausted: true,
+    });
+    expect(recommendation.priorActions).toEqual([
+      {
+        referenceId: 'CACT-9',
+        severity: 'FINAL_WARNING',
+        status: 'ISSUED',
+        issuedAt: '2026-06-01T09:00:00Z',
+      },
+    ]);
+  });
+
+  it('refuses when the server does', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Only a corrective-action administrator may read this history' },
+    });
+    await expect(mhdConductService.listPersonHistory('person-1')).rejects.toThrow(
+      /corrective-action administrator/,
+    );
+  });
+
+  it('keeps the severity choice on the payload it reads back', async () => {
+    returnsMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'action-1',
+          reference_id: 'CACT-1',
+          severity: 'FINAL_WARNING',
+          status: 'DRAFT',
+          action_summary: 'Final written warning',
+          document_payload: {
+            severityRecommendation: {
+              recommended: 'WRITTEN_WARNING',
+              chosen: 'FINAL_WARNING',
+              overrideReason: 'A safety rule was broken.',
+              ruleId: 'rule-1',
+            },
+          },
+          requires_document: true,
+          esignature_request_id: null,
+          esignature_status: null,
+          acknowledgment_type: null,
+          outcome_reason: null,
+          issued_at: null,
+          sort_order: 1,
+        },
+      ],
+      error: null,
+    });
+    const actions = await mhdConductService.listActions('case-1');
+    expect(actions[0].documentPayload.severityRecommendation).toEqual({
+      recommended: 'WRITTEN_WARNING',
+      chosen: 'FINAL_WARNING',
+      overrideReason: 'A safety rule was broken.',
+      ruleId: 'rule-1',
+    });
+  });
+});

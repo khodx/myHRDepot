@@ -31,6 +31,20 @@ describe('conduct route access', () => {
     }
   });
 
+  it('gives the guided intake wizard the same audience as the board', () => {
+    for (const role of ['Employee', 'Viewer'] as MhdAuthRoleName[]) {
+      expect(mhdCanAccessRoute('/conduct/new', [role])).toBe(false);
+    }
+    for (const role of [
+      'Platform Admin',
+      'HR Partner',
+      'HR Admin',
+      'Client Admin',
+    ] as MhdAuthRoleName[]) {
+      expect(mhdCanAccessRoute('/conduct/new', [role])).toBe(true);
+    }
+  });
+
   it('mhdCanMutateConduct is Platform Admin / HR Partner / Client Admin only', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdCanMutateConduct([role])).toBe(true);

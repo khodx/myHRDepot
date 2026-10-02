@@ -7,6 +7,7 @@ import {
   Briefcase,
   CalendarClock,
   ClipboardCheck,
+  FileWarning,
   GraduationCap,
 } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
@@ -72,6 +73,12 @@ const WIZARD_DEFINITIONS: WizardDefinition[] = [
     description: 'Open a reasonable-accommodation process and start the interactive dialogue.',
     route: '/accommodations/new',
     icon: Accessibility,
+  },
+  {
+    label: 'Conduct Intake Wizard',
+    description: 'Document an incident, see the employee\'s history and the recommended next step, and issue a corrective action.',
+    route: '/conduct/new',
+    icon: FileWarning,
   },
 ];
 

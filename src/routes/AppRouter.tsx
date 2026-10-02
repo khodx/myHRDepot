@@ -395,6 +395,10 @@ const MhdConductPage = lazyPage(
   () => import('@/features/conduct/components/MhdConductPage'),
   'MhdConductPage',
 );
+const MhdConductIntakeWizard = lazyPage(
+  () => import('@/features/conduct/components/MhdConductIntakeWizard'),
+  'MhdConductIntakeWizard',
+);
 const MhdConductCaseDetailPage = lazyPage(
   () => import('@/features/conduct/components/MhdConductCaseDetailPage'),
   'MhdConductCaseDetailPage',
@@ -909,6 +913,7 @@ function MhdAppRoutes() {
                   is no subject-facing Conduct route — the subject reaches their
                   issued document only through the /sign/:token signing link. */}
                 <Route path="/conduct" element={<MhdConductPage />} />
+                <Route path="/conduct/new" element={<MhdConductIntakeWizard />} />
                 <Route path="/conduct/:caseId" element={<MhdConductCaseDetailPage />} />
                 <Route path="/schedule" element={<MhdSchedulePage />} />
                 {/* Pattern management is privileged-only; its rule precedes /schedule

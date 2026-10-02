@@ -71,6 +71,7 @@ describe('MhdWizardsPage', () => {
       MhdContractorClassificationWizard: 'Contractor Classification Wizard',
       MhdHandbookWizard: 'Handbook Wizard',
       MhdAccommodationIntakeWizard: 'Accommodation Intake Wizard',
+      MhdConductIntakeWizard: 'Conduct Intake Wizard',
     };
     const found = Object.keys(import.meta.glob('/src/features/**/components/*Wizard.tsx')).map(
       (path) => path.split('/').pop()!.replace('.tsx', ''),
