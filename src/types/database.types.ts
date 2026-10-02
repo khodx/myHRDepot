@@ -22235,90 +22235,217 @@ export type Database = {
           },
         ]
       }
+      safety_incident_determinations: {
+        Row: {
+          company_id: string
+          decided_at: string
+          decided_by: string
+          decided_classification: string | null
+          decided_recordable: boolean
+          facts: Json
+          id: string
+          incident_id: string
+          is_override: boolean
+          override_reason: string | null
+          recommendation: Json
+          recommended_classification: string | null
+          recommended_recordable: boolean
+          registry_review_status: string | null
+          rule_set_version: number
+        }
+        Insert: {
+          company_id: string
+          decided_at?: string
+          decided_by: string
+          decided_classification?: string | null
+          decided_recordable: boolean
+          facts: Json
+          id?: string
+          incident_id: string
+          is_override: boolean
+          override_reason?: string | null
+          recommendation: Json
+          recommended_classification?: string | null
+          recommended_recordable: boolean
+          registry_review_status?: string | null
+          rule_set_version: number
+        }
+        Update: {
+          company_id?: string
+          decided_at?: string
+          decided_by?: string
+          decided_classification?: string | null
+          decided_recordable?: boolean
+          facts?: Json
+          id?: string
+          incident_id?: string
+          is_override?: boolean
+          override_reason?: string | null
+          recommendation?: Json
+          recommended_classification?: string | null
+          recommended_recordable?: boolean
+          registry_review_status?: string | null
+          rule_set_version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_incident_determinations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incident_determinations_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incident_determinations_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: true
+            referencedRelation: "safety_incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       safety_incidents: {
         Row: {
-          case_number: number
-          classification: string
+          activity_before: string | null
+          body_part: string | null
+          case_number: number | null
+          classification: string | null
           company_id: string
           created_at: string
           created_by: string
           date_of_incident: string
           days_away_count: number
           days_restricted_or_transferred_count: number
+          death_date: string | null
+          employer_notified_at: string | null
           establishment_id: string
+          first_day_away: string | null
+          hospitalized_inpatient: boolean | null
           id: string
           illness_type: string | null
           incident_year: number
           injury_illness_description: string
           is_privacy_case: boolean
           job_title: string | null
+          leave_case_id: string | null
           location_description: string | null
+          loss_of_consciousness: boolean | null
           non_employee_name: string | null
+          object_substance: string | null
           person_id: string | null
+          physician_name: string | null
+          privacy_case_reason: string | null
+          recordability: string
           reference_id: string
           reported_at: string | null
           reported_by: string | null
+          return_to_work_date: string | null
           status: string
           time_of_incident: string | null
+          treated_in_emergency_room: boolean | null
+          treatment_facility: string | null
+          treatment_level: string | null
           updated_at: string
           updated_by: string | null
           what_happened: string
+          work_related: boolean | null
         }
         Insert: {
-          case_number: number
-          classification: string
+          activity_before?: string | null
+          body_part?: string | null
+          case_number?: number | null
+          classification?: string | null
           company_id: string
           created_at?: string
           created_by: string
           date_of_incident: string
           days_away_count?: number
           days_restricted_or_transferred_count?: number
+          death_date?: string | null
+          employer_notified_at?: string | null
           establishment_id: string
+          first_day_away?: string | null
+          hospitalized_inpatient?: boolean | null
           id?: string
           illness_type?: string | null
           incident_year: number
           injury_illness_description: string
           is_privacy_case?: boolean
           job_title?: string | null
+          leave_case_id?: string | null
           location_description?: string | null
+          loss_of_consciousness?: boolean | null
           non_employee_name?: string | null
+          object_substance?: string | null
           person_id?: string | null
+          physician_name?: string | null
+          privacy_case_reason?: string | null
+          recordability?: string
           reference_id: string
           reported_at?: string | null
           reported_by?: string | null
+          return_to_work_date?: string | null
           status?: string
           time_of_incident?: string | null
+          treated_in_emergency_room?: boolean | null
+          treatment_facility?: string | null
+          treatment_level?: string | null
           updated_at?: string
           updated_by?: string | null
           what_happened: string
+          work_related?: boolean | null
         }
         Update: {
-          case_number?: number
-          classification?: string
+          activity_before?: string | null
+          body_part?: string | null
+          case_number?: number | null
+          classification?: string | null
           company_id?: string
           created_at?: string
           created_by?: string
           date_of_incident?: string
           days_away_count?: number
           days_restricted_or_transferred_count?: number
+          death_date?: string | null
+          employer_notified_at?: string | null
           establishment_id?: string
+          first_day_away?: string | null
+          hospitalized_inpatient?: boolean | null
           id?: string
           illness_type?: string | null
           incident_year?: number
           injury_illness_description?: string
           is_privacy_case?: boolean
           job_title?: string | null
+          leave_case_id?: string | null
           location_description?: string | null
+          loss_of_consciousness?: boolean | null
           non_employee_name?: string | null
+          object_substance?: string | null
           person_id?: string | null
+          physician_name?: string | null
+          privacy_case_reason?: string | null
+          recordability?: string
           reference_id?: string
           reported_at?: string | null
           reported_by?: string | null
+          return_to_work_date?: string | null
           status?: string
           time_of_incident?: string | null
+          treated_in_emergency_room?: boolean | null
+          treatment_facility?: string | null
+          treatment_level?: string | null
           updated_at?: string
           updated_by?: string | null
           what_happened?: string
+          work_related?: boolean | null
         }
         Relationships: [
           {
@@ -22350,6 +22477,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "safety_incidents_leave_case_id_fkey"
+            columns: ["leave_case_id"]
+            isOneToOne: false
+            referencedRelation: "leave_cases"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "safety_incidents_person_id_fkey"
             columns: ["person_id"]
             isOneToOne: false
@@ -22371,6 +22505,197 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      safety_recordability_rules: {
+        Row: {
+          answer_type: string
+          citation: string
+          created_at: string
+          fact_key: string
+          guidance: string | null
+          id: string
+          is_active: boolean
+          kind: string
+          label: string
+          outcome_classification: string | null
+          rule_key: string
+          rule_version: number
+          severity_rank: number
+          sort_order: number
+          test: string
+        }
+        Insert: {
+          answer_type: string
+          citation: string
+          created_at?: string
+          fact_key: string
+          guidance?: string | null
+          id?: string
+          is_active?: boolean
+          kind: string
+          label: string
+          outcome_classification?: string | null
+          rule_key: string
+          rule_version?: number
+          severity_rank?: number
+          sort_order?: number
+          test: string
+        }
+        Update: {
+          answer_type?: string
+          citation?: string
+          created_at?: string
+          fact_key?: string
+          guidance?: string | null
+          id?: string
+          is_active?: boolean
+          kind?: string
+          label?: string
+          outcome_classification?: string | null
+          rule_key?: string
+          rule_version?: number
+          severity_rank?: number
+          sort_order?: number
+          test?: string
+        }
+        Relationships: []
+      }
+      safety_severe_injury_reports: {
+        Row: {
+          agency_reference: string | null
+          company_id: string
+          created_at: string
+          deadline_at: string | null
+          deadline_hours: number
+          decided_at: string
+          decided_by: string
+          decision: string
+          decision_reason: string | null
+          employer_notified_at: string | null
+          id: string
+          incident_id: string
+          jurisdiction: string
+          report_method: string | null
+          reported_at: string | null
+          reported_by: string | null
+          rule_citation: string
+          trigger_kind: string
+        }
+        Insert: {
+          agency_reference?: string | null
+          company_id: string
+          created_at?: string
+          deadline_at?: string | null
+          deadline_hours: number
+          decided_at?: string
+          decided_by: string
+          decision: string
+          decision_reason?: string | null
+          employer_notified_at?: string | null
+          id?: string
+          incident_id: string
+          jurisdiction: string
+          report_method?: string | null
+          reported_at?: string | null
+          reported_by?: string | null
+          rule_citation: string
+          trigger_kind: string
+        }
+        Update: {
+          agency_reference?: string | null
+          company_id?: string
+          created_at?: string
+          deadline_at?: string | null
+          deadline_hours?: number
+          decided_at?: string
+          decided_by?: string
+          decision?: string
+          decision_reason?: string | null
+          employer_notified_at?: string | null
+          id?: string
+          incident_id?: string
+          jurisdiction?: string
+          report_method?: string | null
+          reported_at?: string | null
+          reported_by?: string | null
+          rule_citation?: string
+          trigger_kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_severe_injury_reports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_severe_injury_reports_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_severe_injury_reports_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "safety_incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_severe_injury_reports_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      safety_severe_injury_rules: {
+        Row: {
+          citation: string
+          created_at: string
+          deadline_hours: number
+          fact_key: string
+          guidance: string | null
+          id: string
+          is_active: boolean
+          jurisdiction: string
+          label: string
+          rule_key: string
+          sort_order: number
+          trigger_kind: string
+        }
+        Insert: {
+          citation: string
+          created_at?: string
+          deadline_hours: number
+          fact_key: string
+          guidance?: string | null
+          id?: string
+          is_active?: boolean
+          jurisdiction: string
+          label: string
+          rule_key: string
+          sort_order?: number
+          trigger_kind: string
+        }
+        Update: {
+          citation?: string
+          created_at?: string
+          deadline_hours?: number
+          fact_key?: string
+          guidance?: string | null
+          id?: string
+          is_active?: boolean
+          jurisdiction?: string
+          label?: string
+          rule_key?: string
+          sort_order?: number
+          trigger_kind?: string
+        }
+        Relationships: []
       }
       schedule_assignments: {
         Row: {
@@ -28679,6 +29004,10 @@ export type Database = {
         Returns: Json
       }
       mhd_document_record_requisition: { Args: { p_id: string }; Returns: Json }
+      mhd_document_record_safety_incident: {
+        Args: { p_id: string }
+        Returns: Json
+      }
       mhd_document_record_training_course: {
         Args: { p_id: string }
         Returns: Json
@@ -29527,6 +29856,8 @@ export type Database = {
       mhd_get_safety_incident: {
         Args: { p_incident_id: string }
         Returns: {
+          activity_before: string
+          body_part: string
           case_number: number
           classification: string
           company_id: string
@@ -29534,20 +29865,35 @@ export type Database = {
           date_of_incident: string
           days_away_count: number
           days_restricted_or_transferred_count: number
+          death_date: string
           displayed_subject_name: string
+          employer_notified_at: string
           establishment_id: string
+          first_day_away: string
+          hospitalized_inpatient: boolean
           id: string
           illness_type: string
           incident_year: number
           injury_illness_description: string
           is_privacy_case: boolean
           job_title: string
+          leave_case_id: string
           location_description: string
+          loss_of_consciousness: boolean
+          object_substance: string
           person_id: string
+          physician_name: string
+          privacy_case_reason: string
+          recordability: string
           reference_id: string
+          return_to_work_date: string
           status: string
           time_of_incident: string
+          treated_in_emergency_room: boolean
+          treatment_facility: string
+          treatment_level: string
           what_happened: string
+          work_related: boolean
         }[]
       }
       mhd_get_signature_events: {
@@ -32477,6 +32823,8 @@ export type Database = {
           p_establishment_id?: string
         }
         Returns: {
+          activity_before: string
+          body_part: string
           case_number: number
           classification: string
           company_id: string
@@ -32484,20 +32832,35 @@ export type Database = {
           date_of_incident: string
           days_away_count: number
           days_restricted_or_transferred_count: number
+          death_date: string
           displayed_subject_name: string
+          employer_notified_at: string
           establishment_id: string
+          first_day_away: string
+          hospitalized_inpatient: boolean
           id: string
           illness_type: string
           incident_year: number
           injury_illness_description: string
           is_privacy_case: boolean
           job_title: string
+          leave_case_id: string
           location_description: string
+          loss_of_consciousness: boolean
+          object_substance: string
           person_id: string
+          physician_name: string
+          privacy_case_reason: string
+          recordability: string
           reference_id: string
+          return_to_work_date: string
           status: string
           time_of_incident: string
+          treated_in_emergency_room: boolean
+          treatment_facility: string
+          treatment_level: string
           what_happened: string
+          work_related: boolean
         }[]
       }
       mhd_list_signature_requests_for_company: {
@@ -34270,6 +34633,10 @@ export type Database = {
         Args: { p_role_id: string; p_user_id: string }
         Returns: undefined
       }
+      mhd_safety_fact_test: {
+        Args: { p_fact_key: string; p_facts: Json; p_test: string }
+        Returns: boolean
+      }
       mhd_safety_incident_create: {
         Args: {
           p_classification: string
@@ -34290,6 +34657,29 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_safety_incident_determination_get: {
+        Args: { p_incident_id: string }
+        Returns: Json
+      }
+      mhd_safety_incident_intake_open: {
+        Args: {
+          p_company_id: string
+          p_decision: Json
+          p_establishment_id: string
+          p_facts: Json
+          p_incident: Json
+          p_severe_decisions?: Json
+        }
+        Returns: Json
+      }
+      mhd_safety_incident_leave_context: {
+        Args: {
+          p_company_id: string
+          p_incident_date: string
+          p_person_id: string
+        }
+        Returns: Json
+      }
       mhd_safety_incident_update: {
         Args: {
           p_classification?: string
@@ -34304,6 +34694,76 @@ export type Database = {
           p_what_happened?: string
         }
         Returns: undefined
+      }
+      mhd_safety_recordability_evaluate: {
+        Args: { p_company_id: string; p_facts: Json }
+        Returns: Json
+      }
+      mhd_safety_recordability_rules_list: {
+        Args: { p_company_id: string }
+        Returns: {
+          answer_type: string
+          citation: string
+          created_at: string
+          fact_key: string
+          guidance: string | null
+          id: string
+          is_active: boolean
+          kind: string
+          label: string
+          outcome_classification: string | null
+          rule_key: string
+          rule_version: number
+          severity_rank: number
+          sort_order: number
+          test: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "safety_recordability_rules"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mhd_safety_severe_injury_evaluate: {
+        Args: {
+          p_employer_notified_at?: string
+          p_establishment_id: string
+          p_facts: Json
+        }
+        Returns: Json
+      }
+      mhd_safety_severe_injury_record_report: {
+        Args: {
+          p_agency_reference?: string
+          p_method: string
+          p_report_id: string
+          p_reported_at: string
+        }
+        Returns: undefined
+      }
+      mhd_safety_severe_injury_rules_list: {
+        Args: { p_establishment_id: string }
+        Returns: {
+          citation: string
+          created_at: string
+          deadline_hours: number
+          fact_key: string
+          guidance: string | null
+          id: string
+          is_active: boolean
+          jurisdiction: string
+          label: string
+          rule_key: string
+          sort_order: number
+          trigger_kind: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "safety_severe_injury_rules"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       mhd_satisfy_compliance_deadline: {
         Args: { p_deadline_id: string; p_note?: string }

@@ -7,8 +7,24 @@ import type {
   MhdOshaEstablishment,
   MhdOshaEstablishmentRpcRow,
   MhdOshaThresholdResult,
+  MhdRecordSevereInjuryReportInput,
+  MhdSafetyFacts,
   MhdSafetyIncident,
+  MhdSafetyIncidentClassification,
+  MhdSafetyIncidentEvidence,
   MhdSafetyIncidentRpcRow,
+  MhdSafetyIntakeIncident,
+  MhdSafetyIntakeInput,
+  MhdSafetyIntakeResult,
+  MhdSafetyLeaveContext,
+  MhdSafetyRecordabilityEvaluation,
+  MhdSafetyRecordabilityFinding,
+  MhdSafetyRecordabilityRule,
+  MhdSafetyReportMethod,
+  MhdSafetySevereInjuryEvaluation,
+  MhdSafetySevereInjuryReport,
+  MhdSafetySevereInjuryRule,
+  MhdSafetySevereTriggerKind,
   MhdUpdateOshaEstablishmentInput,
   MhdUpdateSafetyIncidentInput,
 } from './Types';
@@ -60,6 +76,109 @@ function mapIncident(row: MhdSafetyIncidentRpcRow): MhdSafetyIncident {
     isPrivacyCase: row.is_privacy_case,
     status: row.status,
     createdAt: row.created_at,
+    recordability: row.recordability,
+    workRelated: row.work_related,
+    bodyPart: row.body_part,
+    objectSubstance: row.object_substance,
+    activityBefore: row.activity_before,
+    treatmentLevel: row.treatment_level,
+    treatedInEmergencyRoom: row.treated_in_emergency_room,
+    hospitalizedInpatient: row.hospitalized_inpatient,
+    physicianName: row.physician_name,
+    treatmentFacility: row.treatment_facility,
+    lossOfConsciousness: row.loss_of_consciousness,
+    deathDate: row.death_date,
+    employerNotifiedAt: row.employer_notified_at,
+    firstDayAway: row.first_day_away,
+    returnToWorkDate: row.return_to_work_date,
+    privacyCaseReason: row.privacy_case_reason,
+    leaveCaseId: row.leave_case_id,
+  };
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return (value ?? {}) as Record<string, unknown>;
+}
+
+function asArray(value: unknown): Array<Record<string, unknown>> {
+  return Array.isArray(value) ? (value as Array<Record<string, unknown>>) : [];
+}
+
+function text(value: unknown): string | null {
+  return value == null ? null : String(value);
+}
+
+function mapFinding(row: Record<string, unknown>): MhdSafetyRecordabilityFinding {
+  return {
+    ruleKey: String(row.rule_key),
+    label: String(row.label),
+    citation: String(row.citation),
+    ...(row.classification ? { classification: row.classification as MhdSafetyIncidentClassification } : {}),
+  };
+}
+
+function mapEvaluation(value: unknown): MhdSafetyRecordabilityEvaluation {
+  const raw = asRecord(value);
+  return {
+    ruleSetVersion: Number(raw.rule_set_version),
+    registryReviewStatus: text(raw.registry_review_status),
+    recordable: raw.recordable == null ? null : Boolean(raw.recordable),
+    classification: (raw.classification as MhdSafetyIncidentClassification | null) ?? null,
+    failedPreconditions: asArray(raw.failed_preconditions).map(mapFinding),
+    matchedCriteria: asArray(raw.matched_criteria).map(mapFinding),
+    missingFacts: asArray(raw.missing_facts).map((fact) => ({
+      ruleKey: String(fact.rule_key),
+      factKey: String(fact.fact_key),
+      label: String(fact.label),
+    })),
+  };
+}
+
+function mapSevereReport(row: Record<string, unknown>): MhdSafetySevereInjuryReport {
+  return {
+    id: String(row.id),
+    incidentId: String(row.incident_id),
+    triggerKind: row.trigger_kind as MhdSafetySevereTriggerKind,
+    jurisdiction: String(row.jurisdiction),
+    ruleCitation: String(row.rule_citation),
+    deadlineHours: Number(row.deadline_hours),
+    deadlineAt: text(row.deadline_at),
+    decision: row.decision as MhdSafetySevereInjuryReport['decision'],
+    decisionReason: text(row.decision_reason),
+    reportedAt: text(row.reported_at),
+    reportMethod: (row.report_method as MhdSafetyReportMethod | null) ?? null,
+    agencyReference: text(row.agency_reference),
+  };
+}
+
+function incidentPayload(incident: MhdSafetyIntakeIncident) {
+  return {
+    person_id: incident.personId ?? null,
+    non_employee_name: incident.nonEmployeeName ?? null,
+    job_title: incident.jobTitle ?? null,
+    date_of_incident: incident.dateOfIncident,
+    time_of_incident: incident.timeOfIncident || null,
+    location_description: incident.locationDescription ?? null,
+    what_happened: incident.whatHappened,
+    injury_illness_description: incident.injuryIllnessDescription,
+    illness_type: incident.illnessType ?? null,
+    days_away_count: incident.daysAwayCount,
+    days_restricted_or_transferred_count: incident.daysRestrictedOrTransferredCount,
+    is_privacy_case: incident.isPrivacyCase,
+    privacy_case_reason: incident.privacyCaseReason ?? null,
+    body_part: incident.bodyPart ?? null,
+    object_substance: incident.objectSubstance ?? null,
+    activity_before: incident.activityBefore ?? null,
+    treatment_level: incident.treatmentLevel ?? null,
+    treated_in_emergency_room: incident.treatedInEmergencyRoom ?? null,
+    hospitalized_inpatient: incident.hospitalizedInpatient ?? null,
+    physician_name: incident.physicianName ?? null,
+    treatment_facility: incident.treatmentFacility ?? null,
+    death_date: incident.deathDate ?? null,
+    employer_notified_at: incident.employerNotifiedAt ?? null,
+    first_day_away: incident.firstDayAway ?? null,
+    return_to_work_date: incident.returnToWorkDate ?? null,
+    leave_case_id: incident.leaveCaseId ?? null,
   };
 }
 
@@ -277,4 +396,182 @@ export const mhdSafetyService = {
     if (error) throw new Error(`Unable to queue ITA submission: ${error.message}`);
     return data as string;
   },
+  // -------------------------------------------------------------------------
+  // Incident wizard (0370)
+  // -------------------------------------------------------------------------
+
+  /** The recordability rules the wizard asks its questions from; nothing about the regulation is hard-coded in the UI. */
+  async listRecordabilityRules(companyId: string): Promise<MhdSafetyRecordabilityRule[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_safety_recordability_rules_list', {
+      p_company_id: companyId,
+    });
+    if (error) throw new Error(`Unable to load the recordability questions: ${error.message}`);
+    return (data ?? []).map((row) => ({
+      ruleKey: row.rule_key,
+      kind: row.kind as MhdSafetyRecordabilityRule['kind'],
+      factKey: row.fact_key,
+      answerType: row.answer_type as MhdSafetyRecordabilityRule['answerType'],
+      outcomeClassification: (row.outcome_classification as MhdSafetyIncidentClassification | null) ?? null,
+      label: row.label,
+      guidance: row.guidance,
+      citation: row.citation,
+    }));
+  },
+
+  /** A recommendation only: the person confirms it or records why they differ. */
+  async evaluateRecordability(
+    companyId: string,
+    facts: MhdSafetyFacts,
+  ): Promise<MhdSafetyRecordabilityEvaluation> {
+    const { data, error } = await supabaseClient.rpc('mhd_safety_recordability_evaluate', {
+      p_company_id: companyId,
+      p_facts: facts,
+    });
+    if (error) throw new Error(`Unable to evaluate recordability: ${error.message}`);
+    return mapEvaluation(data);
+  },
+
+  async listSevereInjuryRules(establishmentId: string): Promise<MhdSafetySevereInjuryRule[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_safety_severe_injury_rules_list', {
+      p_establishment_id: establishmentId,
+    });
+    if (error) throw new Error(`Unable to load the severe-injury reporting rules: ${error.message}`);
+    return (data ?? []).map((row) => ({
+      ruleKey: row.rule_key,
+      jurisdiction: row.jurisdiction as MhdSafetySevereInjuryRule['jurisdiction'],
+      triggerKind: row.trigger_kind as MhdSafetySevereTriggerKind,
+      factKey: row.fact_key,
+      deadlineHours: row.deadline_hours,
+      label: row.label,
+      guidance: row.guidance,
+      citation: row.citation,
+    }));
+  },
+
+  async evaluateSevereInjury(
+    establishmentId: string,
+    facts: MhdSafetyFacts,
+    employerNotifiedAt: string | null,
+  ): Promise<MhdSafetySevereInjuryEvaluation> {
+    const { data, error } = await supabaseClient.rpc('mhd_safety_severe_injury_evaluate', {
+      p_establishment_id: establishmentId,
+      p_facts: facts,
+      ...(employerNotifiedAt ? { p_employer_notified_at: employerNotifiedAt } : {}),
+    });
+    if (error) throw new Error(`Unable to check the reporting deadlines: ${error.message}`);
+    const raw = asRecord(data);
+    return {
+      jurisdiction: raw.jurisdiction as MhdSafetySevereInjuryEvaluation['jurisdiction'],
+      triggers: asArray(raw.triggers).map((trigger) => ({
+        triggerKind: trigger.trigger_kind as MhdSafetySevereTriggerKind,
+        label: String(trigger.label),
+        guidance: text(trigger.guidance),
+        citation: String(trigger.citation),
+        deadlineHours: Number(trigger.deadline_hours),
+        deadlineAt: text(trigger.deadline_at),
+      })),
+      earliestDeadlineAt: text(raw.earliest_deadline_at),
+      needsNotifiedTime: Boolean(raw.needs_notified_time),
+    };
+  },
+
+  /** Dates and status of the employee's leaves after the incident - never the reason for a leave. */
+  async getLeaveContext(
+    companyId: string,
+    personId: string,
+    incidentDate: string,
+  ): Promise<MhdSafetyLeaveContext> {
+    const { data, error } = await supabaseClient.rpc('mhd_safety_incident_leave_context', {
+      p_company_id: companyId,
+      p_person_id: personId,
+      p_incident_date: incidentDate,
+    });
+    if (error) throw new Error(`Unable to look up the employee's leaves: ${error.message}`);
+    const raw = asRecord(data);
+    return {
+      visible: Boolean(raw.visible),
+      cases: asArray(raw.cases).map((leave) => ({
+        id: String(leave.id),
+        referenceId: String(leave.reference_id),
+        status: String(leave.status),
+        startDate: String(leave.start_date),
+        endDate: text(leave.end_date),
+        suggestedCalendarDays: Number(leave.suggested_calendar_days),
+      })),
+    };
+  },
+
+  /** Opens the incident, the recordability decision and the reporting decisions in one transaction. */
+  async openFromIntake(input: MhdSafetyIntakeInput): Promise<MhdSafetyIntakeResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_safety_incident_intake_open', {
+      p_company_id: input.companyId,
+      p_establishment_id: input.establishmentId,
+      p_incident: incidentPayload(input.incident),
+      p_facts: input.facts,
+      p_decision: {
+        recordable: input.decision.recordable,
+        classification: input.decision.classification,
+        override_reason: input.decision.overrideReason ?? null,
+      },
+      p_severe_decisions: input.severeDecisions.map((decision) => ({
+        trigger_kind: decision.triggerKind,
+        decision: decision.decision,
+        reason: decision.reason ?? null,
+      })),
+    });
+    if (error) throw new Error(error.message);
+    const raw = asRecord(data);
+    return {
+      id: String(raw.id),
+      referenceId: String(raw.reference_id),
+      caseNumber: raw.case_number == null ? null : Number(raw.case_number),
+      recordable: Boolean(raw.recordable),
+      classification: (raw.classification as MhdSafetyIncidentClassification | null) ?? null,
+      severeInjuryReports: asArray(raw.severe_injury_reports).map((report) => ({
+        id: String(report.id),
+        triggerKind: report.trigger_kind as MhdSafetySevereTriggerKind,
+        decision: report.decision as 'REPORT_REQUIRED' | 'NOT_REQUIRED',
+        deadlineAt: text(report.deadline_at),
+      })),
+    };
+  },
+
+  async getEvidence(incidentId: string): Promise<MhdSafetyIncidentEvidence> {
+    const { data, error } = await supabaseClient.rpc('mhd_safety_incident_determination_get', {
+      p_incident_id: incidentId,
+    });
+    if (error) throw new Error(`Unable to load the recordability record: ${error.message}`);
+    const raw = asRecord(data);
+    const det = raw.determination ? asRecord(raw.determination) : null;
+    return {
+      determination: det
+        ? {
+            ruleSetVersion: Number(det.rule_set_version),
+            registryReviewStatus: text(det.registry_review_status),
+            recommendation: mapEvaluation(det.recommendation),
+            recommendedRecordable: Boolean(det.recommended_recordable),
+            recommendedClassification:
+              (det.recommended_classification as MhdSafetyIncidentClassification | null) ?? null,
+            decidedRecordable: Boolean(det.decided_recordable),
+            decidedClassification:
+              (det.decided_classification as MhdSafetyIncidentClassification | null) ?? null,
+            isOverride: Boolean(det.is_override),
+            overrideReason: text(det.override_reason),
+            decidedAt: String(det.decided_at),
+          }
+        : null,
+      severeInjuryReports: asArray(raw.severe_injury_reports).map(mapSevereReport),
+    };
+  },
+
+  async recordSevereInjuryReport(input: MhdRecordSevereInjuryReportInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_safety_severe_injury_record_report', {
+      p_report_id: input.reportId,
+      p_reported_at: input.reportedAt,
+      p_method: input.method,
+      ...(input.agencyReference ? { p_agency_reference: input.agencyReference } : {}),
+    });
+    if (error) throw new Error(error.message);
+  },
+
 };

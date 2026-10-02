@@ -55,11 +55,15 @@ export function MhdSafetyIncidentList({ incidents, isLoading }: MhdSafetyInciden
         <tbody>
           {incidents.map((incident) => (
             <MhdTr key={incident.id}>
-              <MhdTd className="font-mono">{incident.caseNumber}</MhdTd>
+              <MhdTd className="font-mono">{incident.caseNumber ?? '—'}</MhdTd>
               <MhdTd>{incident.dateOfIncident}</MhdTd>
               <MhdTd>{incident.displayedSubjectName}</MhdTd>
               <MhdTd>{incident.jobTitle ?? '—'}</MhdTd>
-              <MhdTd>{CLASSIFICATION_LABELS[incident.classification] ?? incident.classification}</MhdTd>
+              <MhdTd>
+                {incident.classification
+                  ? (CLASSIFICATION_LABELS[incident.classification] ?? incident.classification)
+                  : 'Not recordable'}
+              </MhdTd>
               <MhdTd>{incident.daysAwayCount}</MhdTd>
               <MhdTd>{incident.daysRestrictedOrTransferredCount}</MhdTd>
               <MhdTd>{incident.status}</MhdTd>

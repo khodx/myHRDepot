@@ -4,6 +4,9 @@ import type {
   MhdCertifyOshaAnnualSummaryInput,
   MhdCreateOshaEstablishmentInput,
   MhdCreateSafetyIncidentInput,
+  MhdRecordSevereInjuryReportInput,
+  MhdSafetyFacts,
+  MhdSafetyIntakeInput,
   MhdUpdateOshaEstablishmentInput,
   MhdUpdateSafetyIncidentInput,
 } from './Types';
@@ -141,5 +144,83 @@ export function useMhdQueueOshaItaSubmission() {
   return useMutation({
     mutationFn: (summaryId: string) => mhdSafetyService.queueItaSubmission(summaryId),
     onSuccess: (_, summaryId) => invalidate({ summaryId }),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Incident wizard (0370)
+// ---------------------------------------------------------------------------
+
+export function useMhdSafetyRecordabilityRules(companyId: string | null) {
+  return useQuery({
+    queryKey: ['mhd-safety', 'recordability-rules', companyId ?? ''] as const,
+    queryFn: () => mhdSafetyService.listRecordabilityRules(companyId!),
+    enabled: Boolean(companyId),
+  });
+}
+
+/** The recommendation for the answers so far; re-asks whenever an answer changes. */
+export function useMhdSafetyRecordability(companyId: string | null, facts: MhdSafetyFacts | null) {
+  return useQuery({
+    queryKey: ['mhd-safety', 'recordability', companyId ?? '', facts] as const,
+    queryFn: () => mhdSafetyService.evaluateRecordability(companyId!, facts!),
+    enabled: Boolean(companyId && facts),
+  });
+}
+
+export function useMhdSafetySevereInjuryRules(establishmentId: string | null) {
+  return useQuery({
+    queryKey: ['mhd-safety', 'severe-rules', establishmentId ?? ''] as const,
+    queryFn: () => mhdSafetyService.listSevereInjuryRules(establishmentId!),
+    enabled: Boolean(establishmentId),
+  });
+}
+
+export function useMhdSafetySevereInjury(
+  establishmentId: string | null,
+  facts: MhdSafetyFacts | null,
+  employerNotifiedAt: string | null,
+) {
+  return useQuery({
+    queryKey: ['mhd-safety', 'severe-injury', establishmentId ?? '', facts, employerNotifiedAt] as const,
+    queryFn: () => mhdSafetyService.evaluateSevereInjury(establishmentId!, facts!, employerNotifiedAt),
+    enabled: Boolean(establishmentId && facts),
+  });
+}
+
+export function useMhdSafetyLeaveContext(
+  companyId: string | null,
+  personId: string | null,
+  incidentDate: string | null,
+) {
+  return useQuery({
+    queryKey: ['mhd-safety', 'leave-context', companyId ?? '', personId ?? '', incidentDate ?? ''] as const,
+    queryFn: () => mhdSafetyService.getLeaveContext(companyId!, personId!, incidentDate!),
+    enabled: Boolean(companyId && personId && incidentDate),
+  });
+}
+
+export function useMhdSafetyIncidentEvidence(incidentId: string | null) {
+  return useQuery({
+    queryKey: ['mhd-safety', 'evidence', incidentId ?? ''] as const,
+    queryFn: () => mhdSafetyService.getEvidence(incidentId!),
+    enabled: Boolean(incidentId),
+  });
+}
+
+export function useMhdOpenSafetyIncidentFromIntake() {
+  const invalidate = useInvalidateSafety();
+  return useMutation({
+    mutationFn: (input: MhdSafetyIntakeInput) => mhdSafetyService.openFromIntake(input),
+    onSuccess: (result) => invalidate({ incidentId: result.id }),
+  });
+}
+
+export function useMhdRecordSevereInjuryReport() {
+  const invalidate = useInvalidateSafety();
+  return useMutation({
+    mutationFn: (input: MhdRecordSevereInjuryReportInput) =>
+      mhdSafetyService.recordSevereInjuryReport(input),
+    onSuccess: () => invalidate(),
   });
 }
