@@ -10900,6 +10900,7 @@ export type Database = {
           id: string
           jurisdictions: string[]
           reference_id: string
+          requires_signature: boolean
           status: string
           title: string
           updated_at: string | null
@@ -10915,6 +10916,7 @@ export type Database = {
           id?: string
           jurisdictions?: string[]
           reference_id: string
+          requires_signature?: boolean
           status?: string
           title: string
           updated_at?: string | null
@@ -10930,6 +10932,7 @@ export type Database = {
           id?: string
           jurisdictions?: string[]
           reference_id?: string
+          requires_signature?: boolean
           status?: string
           title?: string
           updated_at?: string | null
@@ -27839,7 +27842,11 @@ export type Database = {
         }[]
       }
       mhd_fork_handbook_section: {
-        Args: { p_company_id: string; p_source_section_id: string }
+        Args: {
+          p_company_id: string
+          p_include_descendants?: boolean
+          p_source_section_id: string
+        }
         Returns: {
           id: string
         }[]
@@ -28794,6 +28801,8 @@ export type Database = {
         Returns: {
           acknowledged_at: string
           due_at: string
+          esignature_request_id: string
+          esignature_status: string
           id: string
           person_display_name: string
           person_id: string
@@ -28813,6 +28822,10 @@ export type Database = {
       }
       mhd_handbook_archive: {
         Args: { p_handbook_id: string }
+        Returns: undefined
+      }
+      mhd_handbook_assert_ack_document_allowed: {
+        Args: { p_ack_id: string }
         Returns: undefined
       }
       mhd_handbook_assert_export_allowed: {
@@ -28848,6 +28861,10 @@ export type Database = {
       }
       mhd_handbook_inline_html: { Args: { p_text: string }; Returns: string }
       mhd_handbook_is_privileged: { Args: never; Returns: boolean }
+      mhd_handbook_link_signature: {
+        Args: { p_ack_id: string; p_esignature_request_id: string }
+        Returns: undefined
+      }
       mhd_handbook_list: {
         Args: { p_company_id: string }
         Returns: {
@@ -28859,6 +28876,7 @@ export type Database = {
           id: string
           jurisdictions: string[]
           reference_id: string
+          requires_signature: boolean
           status: string
           title: string
         }[]
@@ -28873,6 +28891,7 @@ export type Database = {
           handbook_type: string
           handbook_version_id: string
           id: string
+          requires_signature: boolean
           status: string
           version_number: number
         }[]
@@ -28934,7 +28953,11 @@ export type Database = {
         }[]
       }
       mhd_handbook_set_ack_policy: {
-        Args: { p_due_days: number; p_handbook_id: string }
+        Args: {
+          p_due_days: number
+          p_handbook_id: string
+          p_requires_signature?: boolean
+        }
         Returns: undefined
       }
       mhd_handbook_toggle_section: {

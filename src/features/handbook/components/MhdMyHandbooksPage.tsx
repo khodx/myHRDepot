@@ -12,30 +12,18 @@ import {
 import { MhdHandbookPdfDownloadButton } from './MhdHandbookPdfDownloadButton';
 import { MhdHandbookVersionView } from './MhdHandbookVersionView';
 
-interface Props {
-  /**
-   * APP-LAYER e-sign ceremony hook. When provided, invoking it runs the host
-   * route's signature flow for this acknowledgment and resolves to the completed
-   * e-signature request id, which is forwarded to `acknowledge`. The server GATES
-   * `acknowledge` on that request being COMPLETED — so this callback is expected
-   * to return only once signing finished. When absent (the shell path), acknowledge
-   * is called directly and succeeds if no signature request is attached. This
-   * module never invents an E-Sign RPC; it only forwards the id the callback returns.
-   */
-  onSign?: (item: MhdMyAcknowledgment) => Promise<string | null>;
-}
-
 /**
  * `/my-handbooks` — the employee acknowledgment surface.
  *
  * Any authenticated employee reaches this page; it is gated by identity, not by
  * the privileged role that governs the admin `/handbooks` wizard and board. The
  * list is the employee's OWN acknowledgments (`my_acknowledgments`, narrowed by
- * `auth.uid()` server-side). Acknowledging is GATED server-side on the signature
- * completing — this page surfaces the server's "signature not yet complete" error
- * rather than pre-empting it.
+ * `auth.uid()` server-side). Acknowledging is GATED server-side: when the handbook
+ * requires a signature there must be a signature request, and it must be COMPLETED.
+ * This page shows where the person is in that process and surfaces the server's
+ * message rather than pre-empting it.
  */
-export function MhdMyHandbooksPage({ onSign }: Props) {
+export function MhdMyHandbooksPage() {
   const acknowledgments = useMhdMyAcknowledgments();
 
   const pending = (acknowledgments.data ?? []).filter((item) => item.status === 'PENDING');
@@ -57,7 +45,7 @@ export function MhdMyHandbooksPage({ onSign }: Props) {
         ) : (
           <ul className="space-y-3">
             {pending.map((item) => (
-              <MhdMyHandbookRow key={item.id} item={item} onSign={onSign} />
+              <MhdMyHandbookRow key={item.id} item={item} />
             ))}
           </ul>
         )}
@@ -99,34 +87,26 @@ export function MhdMyHandbooksPage({ onSign }: Props) {
 
 interface RowProps {
   item: MhdMyAcknowledgment;
-  onSign?: (item: MhdMyAcknowledgment) => Promise<string | null>;
 }
 
 /**
  * One pending acknowledgment. The employee can read the frozen version (read-only,
- * placeholder bodies clearly marked) and acknowledge it. Kept as its own component
- * so the review/sign state is isolated per row.
+ * placeholder bodies clearly marked), keep a PDF, and acknowledge it. When the handbook
+ * requires a signature, the row says where the person is: waiting for HR to send the
+ * signature request, or waiting for them to sign it from the emailed link. Kept as its
+ * own component so the review state is isolated per row.
  */
-function MhdMyHandbookRow({ item, onSign }: RowProps) {
+function MhdMyHandbookRow({ item }: RowProps) {
   const acknowledge = useMhdAcknowledgeHandbook();
   const [isViewing, setIsViewing] = useState(false);
-  const [isSigning, setIsSigning] = useState(false);
   const overdue = mhdIsAcknowledgmentOverdue(item.dueAt, item.status);
+  // Nothing to acknowledge against yet: a signature is required but none has been sent.
+  const awaitingRequest = item.requiresSignature && !item.esignatureRequestId;
 
-  async function handleAcknowledge() {
-    // App-layer signature ceremony: if wired, run signing first and forward the
-    // completed request's id. The server still GATES on that request being
-    // COMPLETED — we do not pre-empt it, and its error surfaces below.
-    let esignatureRequestId: string | null = null;
-    if (onSign) {
-      setIsSigning(true);
-      try {
-        esignatureRequestId = await onSign(item);
-      } finally {
-        setIsSigning(false);
-      }
-    }
-    await acknowledge.mutateAsync({ ackId: item.id, esignatureRequestId });
+  function handleAcknowledge() {
+    // The server GATES this (a required signature must exist and be COMPLETED); its
+    // message is shown below, never pre-empted here.
+    acknowledge.mutate({ ackId: item.id });
   }
 
   return (
@@ -146,9 +126,15 @@ function MhdMyHandbookRow({ item, onSign }: RowProps) {
               This acknowledgment is overdue. Please review and acknowledge it as soon as you can.
             </p>
           ) : null}
-          {item.esignatureRequestId ? (
+          {awaitingRequest ? (
             <p className="mt-1 text-xs text-amber-700">
-              A signature is required — acknowledgment records only once signing is complete.
+              A signature is required. HR has not sent your signature request yet — you will get an
+              email with a signing link.
+            </p>
+          ) : item.esignatureRequestId ? (
+            <p className="mt-1 text-xs text-amber-700">
+              A signature is required — check your email for the signing link. You can acknowledge
+              once signing is complete.
             </p>
           ) : null}
         </div>
@@ -162,17 +148,8 @@ function MhdMyHandbookRow({ item, onSign }: RowProps) {
           {isViewing ? 'Hide handbook' : 'Review handbook'}
         </Button>
         <MhdHandbookPdfDownloadButton versionId={item.handbookVersionId} />
-        <Button
-          onClick={() => void handleAcknowledge()}
-          disabled={acknowledge.isPending || isSigning}
-        >
-          {isSigning
-            ? 'Signing…'
-            : acknowledge.isPending
-              ? 'Recording…'
-              : onSign
-                ? 'Sign & acknowledge'
-                : 'Acknowledge'}
+        <Button onClick={handleAcknowledge} disabled={acknowledge.isPending || awaitingRequest}>
+          {acknowledge.isPending ? 'Recording…' : 'Acknowledge'}
         </Button>
       </div>
 

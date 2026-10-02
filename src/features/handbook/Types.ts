@@ -61,6 +61,8 @@ export interface MhdHandbookRpcRow {
   created_at: string;
   // 0342: days an employee has to acknowledge a newly assigned version.
   acknowledgment_due_days: number | string;
+  // 0345: whether an employee must sign a receipt to acknowledge.
+  requires_signature: boolean;
 }
 
 /** Row shape returned by `mhd_handbook_preview` — one included section, in order. */
@@ -120,6 +122,9 @@ export interface MhdHandbookAckStatusRpcRow {
   status: string;
   acknowledged_at: string | null;
   due_at: string | null;
+  // 0345: the receipt's signature request and its live status.
+  esignature_request_id: string | null;
+  esignature_status: string | null;
 }
 
 /** Row shape returned by `mhd_handbook_my_acknowledgments`. */
@@ -133,6 +138,7 @@ export interface MhdMyAcknowledgmentRpcRow {
   esignature_request_id: string | null;
   acknowledged_at: string | null;
   due_at: string | null;
+  requires_signature: boolean;
 }
 
 /** Row shape returned by a create/assign RPC that mints a reference: `(id, reference_id)`. */
@@ -269,6 +275,8 @@ export interface MhdHandbook {
   createdAt: string;
   /** Days an employee has to acknowledge a newly assigned version. */
   acknowledgmentDueDays: number;
+  /** When true an employee cannot acknowledge without signing the receipt. */
+  requiresSignature: boolean;
 }
 
 /** One assembled row of a DRAFT preview (`preview`). `body` is a placeholder. */
@@ -335,6 +343,10 @@ export interface MhdHandbookAckStatusRow {
   status: MhdHandbookAckStatus;
   acknowledgedAt: string | null;
   dueAt: string | null;
+  /** The receipt's signature request, if one has been sent. */
+  esignatureRequestId: string | null;
+  /** PENDING / IN_PROGRESS / COMPLETED / DECLINED / VOIDED / EXPIRED, when a request exists. */
+  esignatureStatus: string | null;
 }
 
 /** One row of the employee's own acknowledgment surface (`my_acknowledgments`). */
@@ -350,6 +362,8 @@ export interface MhdMyAcknowledgment {
   esignatureRequestId: string | null;
   acknowledgedAt: string | null;
   dueAt: string | null;
+  /** True when this handbook requires a signed receipt before the employee can acknowledge. */
+  requiresSignature: boolean;
 }
 
 /** Mapped result of a create / assign RPC that mints a reference. */
@@ -390,6 +404,42 @@ export interface MhdCreateHandbookInput {
 export interface MhdSetHandbookAckPolicyInput {
   handbookId: MhdHandbookId;
   dueDays: number;
+  /** Omit to leave the signature requirement as it is. */
+  requiresSignature?: boolean;
+}
+
+/** The document target and system template of the per-person acknowledgment receipt (0345). */
+export const MHD_HANDBOOK_ACK_ENTITY_TYPE = 'HANDBOOK_ACK';
+export const MHD_HANDBOOK_ACK_TEMPLATE_KEY = 'HANDBOOK_ACKNOWLEDGMENT';
+
+/**
+ * Sending an employee the signature request for their acknowledgment receipt. An
+ * administrator does this (creating a request is an administrator act in the
+ * e-signature engine); the employee signs from the emailed link and then acknowledges.
+ */
+export interface MhdRequestAcknowledgmentSignatureInput {
+  ackId: MhdHandbookAcknowledgmentId;
+  companyId: string;
+  personId: string;
+  /** The administrator creating the request. */
+  actorUserId: string;
+}
+
+export interface MhdRequestAcknowledgmentSignatureResult {
+  esignatureRequestId: string;
+  /** Per-signer email failures; the request exists even when an invitation failed. */
+  invitationErrors: string[];
+}
+
+/** A pending acknowledgment that still needs a signature request sent (none yet, or the last one ended unsigned). */
+export function mhdNeedsSignatureRequest(row: {
+  status: string;
+  esignatureRequestId: string | null;
+  esignatureStatus: string | null;
+}): boolean {
+  if (row.status !== 'PENDING') return false;
+  if (!row.esignatureRequestId) return true;
+  return ['DECLINED', 'VOIDED', 'EXPIRED'].includes(row.esignatureStatus ?? '');
 }
 
 /** Bounds of the acknowledgment deadline; mirrors the database CHECK (0342). */
@@ -515,6 +565,12 @@ export interface MhdUpdateHandbookSectionInput {
 export interface MhdForkHandbookSectionInput {
   sourceSectionId: string;
   companyId: string;
+  /**
+   * Copy the section's active subsections too, each re-parented under the copy of its
+   * parent. Without it only the one section is copied and its children stay under the
+   * library original.
+   */
+  includeDescendants?: boolean;
 }
 
 export interface MhdHandbookListFilters {

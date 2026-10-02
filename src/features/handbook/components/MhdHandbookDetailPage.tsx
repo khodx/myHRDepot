@@ -22,11 +22,9 @@ interface MhdHandbookDetailPageProps {
  *
  * Document generation is not part of publishing: a published version is exported on
  * demand from the Export section (PDF, or Word for administrators), rendered from the
- * frozen version. The `onGenerateDocument` (publish-time render) and
- * `onRequestSignature` (per-acknowledgment e-sign) ceremony callbacks are therefore
- * deliberately NOT injected here — publish freezes with no document link, and an
- * acknowledgment is assigned with no signature request, unless a deployment wires an
- * e-sign flow in. The components handle the absence gracefully.
+ * frozen version. The signature ceremony lives on the Acknowledgments tab: when the
+ * handbook requires a signature, an administrator sends each person a signature request
+ * for a short per-person receipt, and the person can only acknowledge once it is signed.
  */
 export function MhdHandbookDetailPage({ tab = 'detail' }: MhdHandbookDetailPageProps) {
   const { profile, roles } = useMhdAuth();

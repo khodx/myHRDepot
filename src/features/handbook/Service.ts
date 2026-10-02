@@ -1,5 +1,12 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
-import { mhdToNumber } from './Types';
+import {
+  mhdDocumentService,
+  mhdPollDocumentGenerationUntilGenerated,
+  mhdRenderDocumentGeneration,
+} from '@/features/documents/Service';
+import { mhdEsignatureService } from '@/features/esignature/Service';
+import { mhdPersonService } from '@/features/people/Service';
+import { MHD_HANDBOOK_ACK_ENTITY_TYPE, MHD_HANDBOOK_ACK_TEMPLATE_KEY, mhdToNumber } from './Types';
 import type {
   MhdAcknowledgeInput,
   MhdAssignAcknowledgmentInput,
@@ -30,6 +37,8 @@ import type {
   MhdMoveHandbookSectionInput,
   MhdMyAcknowledgmentRpcRow,
   MhdPublishHandbookInput,
+  MhdRequestAcknowledgmentSignatureInput,
+  MhdRequestAcknowledgmentSignatureResult,
   MhdSetHandbookAckPolicyInput,
   MhdToggleSectionInput,
   MhdUpdateHandbookSectionInput,
@@ -90,6 +99,7 @@ function mapHandbook(row: MhdHandbookRpcRow): MhdHandbook {
     effectiveDate: row.effective_date,
     createdAt: row.created_at,
     acknowledgmentDueDays: mhdToNumber(row.acknowledgment_due_days),
+    requiresSignature: row.requires_signature,
   };
 }
 
@@ -149,6 +159,8 @@ function mapAckStatusRow(row: MhdHandbookAckStatusRpcRow): MhdHandbookAckStatusR
     status: row.status as MhdHandbookAckStatusRow['status'],
     acknowledgedAt: row.acknowledged_at,
     dueAt: row.due_at,
+    esignatureRequestId: row.esignature_request_id,
+    esignatureStatus: row.esignature_status,
   };
 }
 
@@ -163,6 +175,7 @@ function mapMyAcknowledgment(row: MhdMyAcknowledgmentRpcRow): MhdMyAcknowledgmen
     esignatureRequestId: row.esignature_request_id,
     acknowledgedAt: row.acknowledged_at,
     dueAt: row.due_at,
+    requiresSignature: row.requires_signature,
   };
 }
 
@@ -319,6 +332,7 @@ export const mhdHandbookService = {
     const { data, error } = await supabaseClient.rpc('mhd_fork_handbook_section', {
       p_source_section_id: input.sourceSectionId,
       p_company_id: input.companyId,
+      ...(input.includeDescendants ? { p_include_descendants: true } : {}),
     });
     if (error) throw error;
     const row = ((data ?? []) as MhdHandbookSectionMutationRpcRow[])[0];
@@ -377,8 +391,78 @@ export const mhdHandbookService = {
     const { error } = await supabaseClient.rpc('mhd_handbook_set_ack_policy', {
       p_handbook_id: input.handbookId,
       p_due_days: input.dueDays,
+      ...(input.requiresSignature !== undefined
+        ? { p_requires_signature: input.requiresSignature }
+        : {}),
     });
     if (error) throw error;
+  },
+
+  /**
+   * Send an employee the signature request for their acknowledgment receipt.
+   *
+   * What is signed is a short per-person receipt (template HANDBOOK_ACKNOWLEDGMENT) that
+   * names the handbook version and its content hash and attests to receipt, not
+   * agreement — converting the whole handbook once per employee would be slow, and the
+   * hash ties the receipt to the exact frozen text. Steps: render the receipt, wait for
+   * it, create the signature request in the e-signature engine (the employee signs from
+   * the emailed link, whether or not they have an account), then attach it to the
+   * acknowledgment. The server gates acknowledging on that request completing.
+   */
+  async requestAcknowledgmentSignature(
+    input: MhdRequestAcknowledgmentSignatureInput,
+  ): Promise<MhdRequestAcknowledgmentSignatureResult> {
+    const person = await mhdPersonService.getPersonById(input.personId);
+    const externalEmail = trimmedOrUndefined(person.primaryEmail);
+    if (!externalEmail) {
+      throw new Error(
+        `${person.displayName} has no primary email on record, so a signature request cannot be sent.`,
+      );
+    }
+
+    const templateId = await mhdDocumentService.getTemplateIdByKey(
+      MHD_HANDBOOK_ACK_TEMPLATE_KEY,
+      input.companyId,
+    );
+    if (!templateId) {
+      throw new Error('The handbook acknowledgment receipt template was not found.');
+    }
+
+    const requested = await mhdDocumentService.requestGeneration(
+      {
+        templateId,
+        companyId: input.companyId,
+        entityType: MHD_HANDBOOK_ACK_ENTITY_TYPE,
+        entityId: input.ackId,
+        mergeData: {},
+        outputFormat: 'PDF',
+      },
+      { actorUserId: input.actorUserId },
+    );
+    await mhdRenderDocumentGeneration(requested.id, 'Acknowledgment receipt render');
+    const generation = await mhdPollDocumentGenerationUntilGenerated(requested.id, {
+      timeoutHint: 'Try sending the signature request again in a moment.',
+    });
+    const documentHash = trimmedOrUndefined(generation.output_document_hash);
+    if (!documentHash) {
+      throw new Error('The acknowledgment receipt was generated without a content hash.');
+    }
+
+    const result = await mhdEsignatureService.createRequestFromGeneratedDocument({
+      companyId: input.companyId,
+      generationId: requested.id,
+      documentHash,
+      signers: [{ kind: 'external', externalEmail, externalName: person.displayName }],
+      signingOrder: 'SEQUENTIAL',
+    });
+
+    const { error } = await supabaseClient.rpc('mhd_handbook_link_signature', {
+      p_ack_id: input.ackId,
+      p_esignature_request_id: result.request.id,
+    });
+    if (error) throw error;
+
+    return { esignatureRequestId: result.request.id, invitationErrors: result.invitationErrors };
   },
 
   /**
