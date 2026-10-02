@@ -45,6 +45,8 @@ type MhdQueueListRow = {
   employee_file_category: string | null;
   generation_id: string | null;
   generation_status: string | null;
+  output_file_name: string | null;
+  output_drive_file_id: string | null;
   failure_reason: string | null;
   queued_by: string | null;
   queued_by_name: string | null;
@@ -206,6 +208,8 @@ function mapQueueRow(row: MhdQueueListRow): MhdDocumentQueueItem {
     employeeFileCategory: row.employee_file_category as MhdDocumentEmployeeFileCategory | null,
     generationId: row.generation_id,
     generationStatus: row.generation_status,
+    outputFileName: row.output_file_name,
+    outputDriveFileId: row.output_drive_file_id,
     failureReason: row.failure_reason,
     queuedBy: row.queued_by,
     queuedByName: row.queued_by_name,

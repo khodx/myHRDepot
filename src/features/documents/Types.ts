@@ -214,6 +214,50 @@ export const MHD_DOCUMENT_SOURCE_WIZARDS = [
 ] as const;
 export type MhdDocumentSourceWizard = (typeof MHD_DOCUMENT_SOURCE_WIZARDS)[number];
 
+/** Display names, matching the cards on the Wizards hub. */
+export const MHD_DOCUMENT_SOURCE_WIZARD_LABELS: Record<MhdDocumentSourceWizard, string> = {
+  JOB_DESCRIPTION: 'Job Description Wizard',
+  LEAVE_INTAKE: 'Leave Intake Wizard',
+  COMPENSATION_CLASSIFICATION: 'Compensation Classification Wizard',
+  CONTRACTOR_CLASSIFICATION: 'Contractor Classification Wizard',
+  TRAINING: 'Course/Curriculum/Program Wizard',
+  HANDBOOK: 'Handbook Wizard',
+  ACCOMMODATION_INTAKE: 'Accommodation Intake Wizard',
+  CONDUCT: 'Conduct Intake Wizard',
+  INVESTIGATION: 'Investigation Intake Wizard',
+  OFFBOARDING: 'Offboarding Wizard',
+  ONBOARDING: 'Onboarding Wizard',
+  REQUISITION: 'Requisition Wizard',
+  OFFER: 'Offer Wizard',
+  SAFETY_INCIDENT: 'Safety Incident Wizard',
+  PERFORMANCE_CYCLE: 'Performance Cycle Wizard',
+  GRIEVANCE: 'Grievance Intake Wizard',
+};
+
+export const MHD_DOCUMENT_EMPLOYEE_FILE_CATEGORY_LABELS: Record<
+  MhdDocumentEmployeeFileCategory,
+  string
+> = {
+  general: 'General File',
+  payroll: 'Payroll File',
+  i9: 'I9 File',
+  benefits: 'Benefits File',
+  confidential: 'Confidential File',
+  supervisors: "Supervisor's File",
+  hr: 'HR File',
+  private: 'Private File',
+};
+
+/** 'CONDUCT_ACTION' -> 'Conduct Action'. */
+export function mhdFormatDocumentEntityType(entityType: string): string {
+  return entityType
+    .toLowerCase()
+    .split('_')
+    .filter((part) => part.length > 0)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 export const MHD_DOCUMENT_QUEUE_STATUSES = [
   'QUEUED',
   'GENERATING',
@@ -222,6 +266,14 @@ export const MHD_DOCUMENT_QUEUE_STATUSES = [
   'DISMISSED',
 ] as const;
 export type MhdDocumentQueueStatus = (typeof MHD_DOCUMENT_QUEUE_STATUSES)[number];
+
+export const MHD_DOCUMENT_QUEUE_STATUS_LABELS: Record<MhdDocumentQueueStatus, string> = {
+  QUEUED: 'Queued',
+  GENERATING: 'Generating',
+  GENERATED: 'Generated',
+  FAILED: 'Failed',
+  DISMISSED: 'Dismissed',
+};
 
 export const MHD_DOCUMENT_BRANDING_FONTS = [
   'Arial',
@@ -252,6 +304,8 @@ export interface MhdDocumentQueueItem {
   employeeFileCategory: MhdDocumentEmployeeFileCategory | null;
   generationId: string | null;
   generationStatus: string | null;
+  outputFileName: string | null;
+  outputDriveFileId: string | null;
   failureReason: string | null;
   queuedBy: string | null;
   queuedByName: string | null;

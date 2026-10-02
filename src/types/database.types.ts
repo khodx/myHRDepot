@@ -28258,6 +28258,8 @@ export type Database = {
           generation_id: string
           generation_status: string
           id: string
+          output_drive_file_id: string
+          output_file_name: string
           output_format: string
           queued_at: string
           queued_by: string

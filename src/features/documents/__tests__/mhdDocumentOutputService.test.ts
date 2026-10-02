@@ -37,6 +37,8 @@ const queueRow = {
   employee_file_category: 'hr',
   generation_id: null,
   generation_status: null,
+  output_file_name: null,
+  output_drive_file_id: null,
   failure_reason: null,
   queued_by: id(),
   queued_by_name: 'Elliot Park',
