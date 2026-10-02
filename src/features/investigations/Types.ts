@@ -366,3 +366,83 @@ export function mhdToNumber(value: number | string | null | undefined): number {
   const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
+
+// ---------------------------------------------------------------------------
+// Intake wizard (0366)
+// ---------------------------------------------------------------------------
+
+/** What prompted an investigation. Only visible to the case's grant holders. */
+export const MHD_INVESTIGATION_SOURCE_TYPES = ['GRIEVANCE', 'CONDUCT_CASE', 'SAFETY_INCIDENT'] as const;
+export type MhdInvestigationSourceType = (typeof MHD_INVESTIGATION_SOURCE_TYPES)[number];
+
+export const MHD_INVESTIGATION_INTERIM_MEASURE_TYPES = [
+  'SEPARATION_OF_PARTIES',
+  'SCHEDULE_CHANGE',
+  'PAID_ADMINISTRATIVE_LEAVE',
+  'NO_CONTACT_DIRECTIVE',
+  'OTHER',
+] as const;
+export type MhdInvestigationInterimMeasureType =
+  (typeof MHD_INVESTIGATION_INTERIM_MEASURE_TYPES)[number];
+
+export type MhdInvestigationConflictSeverity = 'BLOCKING' | 'ADVISORY';
+
+export interface MhdInvestigationConflict {
+  code: string;
+  severity: MhdInvestigationConflictSeverity;
+  personId: string;
+  message: string;
+}
+
+export interface MhdInvestigationIntakeParty {
+  partyRole: MhdInvestigationPartyRole;
+  /** A person of the company, or an external name — one of the two. */
+  personId?: string | null;
+  externalName?: string | null;
+  isConfidential?: boolean;
+  statement?: string | null;
+}
+
+export interface MhdInvestigationIntakeInterimMeasure {
+  measureType: MhdInvestigationInterimMeasureType;
+  description: string;
+  effectiveFrom?: string | null;
+  reviewBy?: string | null;
+}
+
+/** Everything the wizard collected, opened in one transaction. */
+export interface MhdOpenInvestigationIntakeInput {
+  companyId: string;
+  caseType: MhdInvestigationCaseType;
+  allegation: string;
+  severity?: string | null;
+  confidentiality?: MhdInvestigationConfidentiality;
+  assignedInvestigatorUserId?: string | null;
+  parties?: MhdInvestigationIntakeParty[];
+  sourceType?: MhdInvestigationSourceType | null;
+  sourceId?: string | null;
+  targetCompletionDate?: string | null;
+  interimMeasures?: MhdInvestigationIntakeInterimMeasure[];
+  /** Why a blocking independence finding should not stop the investigation; the server requires it then. */
+  conflictAcknowledgment?: string | null;
+}
+
+export interface MhdInvestigationInterimMeasure {
+  id: string;
+  measureType: MhdInvestigationInterimMeasureType;
+  description: string;
+  effectiveFrom: string;
+  reviewBy: string | null;
+  status: 'ACTIVE' | 'LIFTED';
+  createdAt: string;
+}
+
+export interface MhdInvestigationInterimMeasureRpcRow {
+  id: string;
+  measure_type: string;
+  description: string;
+  effective_from: string;
+  review_by: string | null;
+  status: string;
+  created_at: string;
+}

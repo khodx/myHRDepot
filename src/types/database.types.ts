@@ -11799,7 +11799,10 @@ export type Database = {
           opened_by: string
           reference_id: string
           severity: string | null
+          source_id: string | null
+          source_type: string | null
           status: string
+          target_completion_date: string | null
           updated_at: string | null
         }
         Insert: {
@@ -11817,7 +11820,10 @@ export type Database = {
           opened_by: string
           reference_id: string
           severity?: string | null
+          source_id?: string | null
+          source_type?: string | null
           status?: string
+          target_completion_date?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -11835,7 +11841,10 @@ export type Database = {
           opened_by?: string
           reference_id?: string
           severity?: string | null
+          source_id?: string | null
+          source_type?: string | null
           status?: string
+          target_completion_date?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -11863,6 +11872,70 @@ export type Database = {
           {
             foreignKeyName: "investigation_cases_opened_by_fkey"
             columns: ["opened_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investigation_interim_measures: {
+        Row: {
+          case_id: string
+          created_at: string
+          created_by: string | null
+          description: string
+          effective_from: string
+          id: string
+          lifted_at: string | null
+          lifted_by: string | null
+          measure_type: string
+          review_by: string | null
+          status: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          effective_from?: string
+          id?: string
+          lifted_at?: string | null
+          lifted_by?: string | null
+          measure_type: string
+          review_by?: string | null
+          status?: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          effective_from?: string
+          id?: string
+          lifted_at?: string | null
+          lifted_by?: string | null
+          measure_type?: string
+          review_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investigation_interim_measures_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "investigation_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_interim_measures_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_interim_measures_lifted_by_fkey"
+            columns: ["lifted_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -28399,6 +28472,10 @@ export type Database = {
         Args: { p_id: string }
         Returns: Json
       }
+      mhd_document_record_investigation_case: {
+        Args: { p_id: string }
+        Returns: Json
+      }
       mhd_document_record_job_classification: {
         Args: { p_id: string }
         Returns: Json
@@ -29926,6 +30003,15 @@ export type Database = {
         Args: { p_case_id: string; p_investigator: string }
         Returns: undefined
       }
+      mhd_investigation_check_conflicts: {
+        Args: {
+          p_company_id: string
+          p_investigator_user_id: string
+          p_party_person_ids?: string[]
+          p_respondent_person_ids?: string[]
+        }
+        Returns: Json
+      }
       mhd_investigation_create: {
         Args: {
           p_allegation: string
@@ -29963,6 +30049,26 @@ export type Database = {
         Args: { p_case_id: string; p_user_id: string }
         Returns: undefined
       }
+      mhd_investigation_intake_open: {
+        Args: {
+          p_allegation: string
+          p_assigned_investigator?: string
+          p_case_type: string
+          p_company_id: string
+          p_confidentiality?: string
+          p_conflict_acknowledgment?: string
+          p_interim_measures?: Json
+          p_parties?: Json
+          p_severity?: string
+          p_source_id?: string
+          p_source_type?: string
+          p_target_completion_date?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
       mhd_investigation_list: {
         Args: { p_company_id: string; p_status?: string }
         Returns: {
@@ -29983,6 +30089,18 @@ export type Database = {
           granted_at: string
           granted_by: string
           user_id: string
+        }[]
+      }
+      mhd_investigation_list_interim_measures: {
+        Args: { p_case_id: string }
+        Returns: {
+          created_at: string
+          description: string
+          effective_from: string
+          id: string
+          measure_type: string
+          review_by: string
+          status: string
         }[]
       }
       mhd_investigation_list_parties: {

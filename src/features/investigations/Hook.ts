@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdPersonService } from '@/features/people/Service';
+import { mhdTaskService } from '@/features/tasks/Service';
 import type {
   MhdAddPartyInput,
   MhdAssignInvestigatorInput,
   MhdCreateInvestigationInput,
   MhdInvestigationCaseFilters,
   MhdInvestigationGrantInput,
+  MhdOpenInvestigationIntakeInput,
   MhdTransitionInvestigationInput,
 } from './Types';
 import { mhdInvestigationsService } from './Service';
@@ -18,6 +20,9 @@ export const mhdInvestigationsQueryKeys = {
   parties: (caseId: string | null) => ['mhd-investigations', 'parties', caseId ?? ''] as const,
   people: (companyId: string | null) =>
     ['mhd-investigations', 'people', companyId ?? 'ALL'] as const,
+  users: (companyId: string | null) => ['mhd-investigations', 'users', companyId ?? 'ALL'] as const,
+  interimMeasures: (caseId: string | null) =>
+    ['mhd-investigations', 'interim-measures', caseId ?? ''] as const,
 };
 
 // ---------------------------------------------------------------------------
@@ -182,5 +187,64 @@ export function useMhdInvestigationPeople(companyId: string | null) {
     // string to list the whole company roster.
     queryFn: () => mhdPersonService.listPeople({ companyId: companyId!, searchTerm: '' }),
     enabled: Boolean(companyId),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Intake wizard (0366)
+// ---------------------------------------------------------------------------
+
+/** Investigator picker (company users that can be assigned work). */
+export function useMhdInvestigationUsers(companyId: string | null) {
+  return useQuery({
+    queryKey: mhdInvestigationsQueryKeys.users(companyId),
+    queryFn: () => mhdTaskService.listAssignableUsers(companyId ?? 'ALL'),
+    enabled: Boolean(companyId),
+  });
+}
+
+/** The independence check for a proposed investigator and parties. */
+export function useMhdInvestigationConflicts(input: {
+  companyId: string | null;
+  investigatorUserId: string | null;
+  partyPersonIds: string[];
+  respondentPersonIds: string[];
+}) {
+  return useQuery({
+    queryKey: [
+      'mhd-investigations',
+      'conflicts',
+      input.companyId ?? '',
+      input.investigatorUserId ?? '',
+      [...input.partyPersonIds].sort(),
+      [...input.respondentPersonIds].sort(),
+    ] as const,
+    queryFn: () =>
+      mhdInvestigationsService.checkConflicts({
+        companyId: input.companyId!,
+        investigatorUserId: input.investigatorUserId,
+        partyPersonIds: input.partyPersonIds,
+        respondentPersonIds: input.respondentPersonIds,
+      }),
+    enabled: Boolean(input.companyId) && Boolean(input.investigatorUserId),
+  });
+}
+
+export function useMhdOpenInvestigationFromIntake() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdOpenInvestigationIntakeInput) =>
+      mhdInvestigationsService.openFromIntake(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-investigations'] });
+    },
+  });
+}
+
+export function useMhdInvestigationInterimMeasures(caseId: string | null) {
+  return useQuery({
+    queryKey: mhdInvestigationsQueryKeys.interimMeasures(caseId),
+    queryFn: () => mhdInvestigationsService.listInterimMeasures(caseId!),
+    enabled: Boolean(caseId),
   });
 }

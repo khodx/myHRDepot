@@ -8,12 +8,18 @@ import type {
   MhdInvestigationCaseFilters,
   MhdInvestigationCaseRpcRow,
   MhdInvestigationCaseSummary,
+  MhdInvestigationConflict,
   MhdInvestigationGrant,
   MhdInvestigationGrantInput,
   MhdInvestigationGrantRpcRow,
+  MhdInvestigationInterimMeasure,
+  MhdInvestigationInterimMeasureRpcRow,
+  MhdInvestigationInterimMeasureType,
+  MhdInvestigationMutationRpcRow,
   MhdInvestigationParty,
   MhdInvestigationPartyRpcRow,
   MhdMutationResult,
+  MhdOpenInvestigationIntakeInput,
   MhdTransitionInvestigationInput,
 } from './Types';
 
@@ -156,6 +162,86 @@ export const mhdInvestigationsService = {
    * and audits the reveal (content-free) on every call — so it must be triggered
    * by a deliberate user action, never fetched on mount.
    */
+  // -------------------------------------------------------------------------
+  // Intake wizard (0366)
+  // -------------------------------------------------------------------------
+
+  /** The independence check: findings are recommendations, a blocking one needs a recorded reason. */
+  async checkConflicts(input: {
+    companyId: string;
+    investigatorUserId: string | null;
+    partyPersonIds: string[];
+    respondentPersonIds: string[];
+  }): Promise<MhdInvestigationConflict[]> {
+    if (!input.investigatorUserId) return [];
+    const { data, error } = await supabaseClient.rpc('mhd_investigation_check_conflicts', {
+      p_company_id: input.companyId,
+      p_investigator_user_id: input.investigatorUserId,
+      p_party_person_ids: input.partyPersonIds,
+      p_respondent_person_ids: input.respondentPersonIds,
+    });
+    if (error) throw new Error(`Unable to check the investigator's independence: ${error.message}`);
+    const raw = data as { conflicts?: Array<Record<string, unknown>> } | null;
+    return (raw?.conflicts ?? []).map((conflict) => ({
+      code: String(conflict.code),
+      severity: conflict.severity === 'BLOCKING' ? 'BLOCKING' : 'ADVISORY',
+      personId: String(conflict.person_id),
+      message: String(conflict.message),
+    }));
+  },
+
+  /** Opens the case, its parties, source link, deadline and interim measures in one transaction. */
+  async openFromIntake(input: MhdOpenInvestigationIntakeInput): Promise<MhdMutationResult> {
+    const { data, error } = await supabaseClient.rpc('mhd_investigation_intake_open', {
+      p_company_id: input.companyId,
+      p_case_type: input.caseType,
+      p_allegation: input.allegation,
+      ...(input.severity ? { p_severity: input.severity } : {}),
+      ...(input.confidentiality ? { p_confidentiality: input.confidentiality } : {}),
+      ...(input.assignedInvestigatorUserId
+        ? { p_assigned_investigator: input.assignedInvestigatorUserId }
+        : {}),
+      p_parties: (input.parties ?? []).map((party) => ({
+        party_role: party.partyRole,
+        person_id: party.personId ?? null,
+        external_name: party.externalName ?? null,
+        is_confidential: party.isConfidential ?? false,
+        statement: party.statement ?? null,
+      })),
+      ...(input.sourceType && input.sourceId
+        ? { p_source_type: input.sourceType, p_source_id: input.sourceId }
+        : {}),
+      ...(input.targetCompletionDate ? { p_target_completion_date: input.targetCompletionDate } : {}),
+      p_interim_measures: (input.interimMeasures ?? []).map((measure) => ({
+        measure_type: measure.measureType,
+        description: measure.description,
+        effective_from: measure.effectiveFrom ?? null,
+        review_by: measure.reviewBy ?? null,
+      })),
+      ...(input.conflictAcknowledgment ? { p_conflict_acknowledgment: input.conflictAcknowledgment } : {}),
+    });
+    if (error) throw new Error(`Unable to open the investigation: ${error.message}`);
+    const row = ((data ?? []) as unknown as MhdInvestigationMutationRpcRow[])[0];
+    if (!row) throw new Error('Unable to open the investigation: no record returned.');
+    return { id: row.id, referenceId: row.reference_id as MhdMutationResult['referenceId'] };
+  },
+
+  async listInterimMeasures(caseId: string): Promise<MhdInvestigationInterimMeasure[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_investigation_list_interim_measures', {
+      p_case_id: caseId,
+    });
+    if (error) throw new Error(`Unable to load interim measures: ${error.message}`);
+    return ((data ?? []) as unknown as MhdInvestigationInterimMeasureRpcRow[]).map((row) => ({
+      id: row.id,
+      measureType: row.measure_type as MhdInvestigationInterimMeasureType,
+      description: row.description,
+      effectiveFrom: row.effective_from,
+      reviewBy: row.review_by,
+      status: row.status === 'LIFTED' ? 'LIFTED' : 'ACTIVE',
+      createdAt: row.created_at,
+    }));
+  },
+
   async revealAllegation(caseId: string): Promise<string | null> {
     const { data, error } = await supabaseClient.rpc('mhd_investigation_reveal_allegation', {
       p_case_id: caseId,
