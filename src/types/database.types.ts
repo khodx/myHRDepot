@@ -18843,6 +18843,41 @@ export type Database = {
           },
         ]
       }
+      onboarding_packet_rules: {
+        Row: {
+          condition_kind: string
+          condition_value: string
+          created_at: string
+          document_key: string
+          id: string
+          reason: string
+        }
+        Insert: {
+          condition_kind: string
+          condition_value: string
+          created_at?: string
+          document_key: string
+          id?: string
+          reason: string
+        }
+        Update: {
+          condition_kind?: string
+          condition_value?: string
+          created_at?: string
+          document_key?: string
+          id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_packet_rules_document_key_fkey"
+            columns: ["document_key"]
+            isOneToOne: false
+            referencedRelation: "onboarding_document_keys"
+            referencedColumns: ["document_key"]
+          },
+        ]
+      }
       onboarding_required_notice_ack_clauses: {
         Row: {
           ack_id: string
@@ -28612,6 +28647,10 @@ export type Database = {
         Args: { p_id: string }
         Returns: Json
       }
+      mhd_document_record_onboarding_packet: {
+        Args: { p_id: string }
+        Returns: Json
+      }
       mhd_document_record_training_course: {
         Args: { p_id: string }
         Returns: Json
@@ -33062,6 +33101,24 @@ export type Database = {
       mhd_onboarding_cancel_person: {
         Args: { p_person_id: string; p_reason: string }
         Returns: number
+      }
+      mhd_onboarding_hire_context: {
+        Args: { p_person_id: string }
+        Returns: Json
+      }
+      mhd_onboarding_suggest_packet: {
+        Args: {
+          p_employment_type?: string
+          p_person_id: string
+          p_state_code?: string
+        }
+        Returns: {
+          already_started: boolean
+          document_key: string
+          is_required: boolean
+          label: string
+          reason: string
+        }[]
       }
       mhd_open_compliance_deadline: {
         Args: {

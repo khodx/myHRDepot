@@ -6,7 +6,9 @@ import type {
   MhdOnboardingChecklistStatus,
   MhdOnboardingChecklistUpsertInput,
   MhdOnboardingDocumentKey,
+  MhdOnboardingHireContext,
   MhdOnboardingPacketFormRef,
+  MhdOnboardingPacketSuggestion,
   MhdOnboardingProgressSummary,
   MhdStartOnboardingPacketInput,
 } from './Types';
@@ -305,6 +307,55 @@ export const mhdOnboardingService = {
     }
 
     return mapChecklistRow(row);
+  },
+
+  // -------------------------------------------------------------------------
+  // Onboarding wizard (0368)
+  // -------------------------------------------------------------------------
+
+  async getHireContext(personId: string): Promise<MhdOnboardingHireContext> {
+    const { data, error } = await supabaseClient.rpc('mhd_onboarding_hire_context', {
+      p_person_id: personId,
+    });
+    if (error) throw new Error(`Unable to load the hire's details: ${error.message}`);
+    const raw = (data ?? {}) as Record<string, unknown>;
+    return {
+      hasAcceptedOffer: Boolean(raw.has_accepted_offer),
+      offerReference: (raw.offer_reference as string | null) ?? null,
+      startDate: (raw.start_date as string | null) ?? null,
+      jobTitle: (raw.job_title as string | null) ?? null,
+      employmentType: (raw.employment_type as string | null) ?? null,
+      department: (raw.department as string | null) ?? null,
+      location: (raw.location as string | null) ?? null,
+      stateCode: (raw.state_code as string | null) ?? null,
+      managerName: (raw.manager_name as string | null) ?? null,
+      companyName: (raw.company_name as string | null) ?? null,
+      packetItemsStarted: Number(raw.packet_items_started ?? 0),
+    };
+  },
+
+  /** Required-by-default documents plus those a rule suggests for the hire's state and employment type. */
+  async suggestPacket(input: {
+    personId: string;
+    stateCode?: string | null;
+    employmentType?: string | null;
+  }): Promise<MhdOnboardingPacketSuggestion[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_onboarding_suggest_packet', {
+      p_person_id: input.personId,
+      ...(input.stateCode ? { p_state_code: input.stateCode } : {}),
+      ...(input.employmentType ? { p_employment_type: input.employmentType } : {}),
+    });
+    if (error) throw new Error(`Unable to load the suggested packet: ${error.message}`);
+    const known = new Set<string>(MHD_ONBOARDING_PACKET_DEFINITIONS.map((packet) => packet.documentKey));
+    return ((data ?? []) as unknown as Array<Record<string, unknown>>)
+      .filter((row) => known.has(String(row.document_key)))
+      .map((row) => ({
+        documentKey: row.document_key as MhdOnboardingDocumentKey,
+        label: String(row.label),
+        isRequired: Boolean(row.is_required),
+        reason: String(row.reason ?? ''),
+        alreadyStarted: Boolean(row.already_started),
+      }));
   },
 
   async startPacket(input: MhdStartOnboardingPacketInput): Promise<MhdOnboardingChecklistItem[]> {

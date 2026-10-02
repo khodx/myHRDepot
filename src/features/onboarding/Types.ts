@@ -413,3 +413,31 @@ export const MHD_ONBOARDING_DOCUMENT_KEY_SET: Record<MhdOnboardingDocumentKey, t
   onboarding_physician_predesignations: true,
   onboarding_chiropractor_designations: true,
 };
+
+// ---------------------------------------------------------------------------
+// Onboarding wizard (0368)
+// ---------------------------------------------------------------------------
+
+/** What is already known about a hire - from the accepted offer, the job and the person's reporting line. */
+export interface MhdOnboardingHireContext {
+  hasAcceptedOffer: boolean;
+  offerReference: string | null;
+  startDate: string | null;
+  jobTitle: string | null;
+  employmentType: string | null;
+  department: string | null;
+  location: string | null;
+  stateCode: string | null;
+  managerName: string | null;
+  companyName: string | null;
+  packetItemsStarted: number;
+}
+
+/** A packet document suggested for the hire, and why. */
+export interface MhdOnboardingPacketSuggestion {
+  documentKey: MhdOnboardingDocumentKey;
+  label: string;
+  isRequired: boolean;
+  reason: string;
+  alreadyStarted: boolean;
+}

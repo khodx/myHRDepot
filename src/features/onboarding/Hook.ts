@@ -183,3 +183,38 @@ export function useMhdOnboardingPacket(personId: string, companyId: string) {
     },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Onboarding wizard (0368)
+// ---------------------------------------------------------------------------
+
+export function useMhdOnboardingHireContext(personId: string | null) {
+  return useQuery({
+    queryKey: ['mhd-onboarding', 'hire-context', personId ?? ''] as const,
+    queryFn: () => mhdOnboardingService.getHireContext(personId!),
+    enabled: Boolean(personId),
+  });
+}
+
+export function useMhdOnboardingPacketSuggestions(input: {
+  personId: string | null;
+  stateCode: string | null;
+  employmentType: string | null;
+}) {
+  return useQuery({
+    queryKey: [
+      'mhd-onboarding',
+      'packet-suggestions',
+      input.personId ?? '',
+      input.stateCode ?? '',
+      input.employmentType ?? '',
+    ] as const,
+    queryFn: () =>
+      mhdOnboardingService.suggestPacket({
+        personId: input.personId!,
+        stateCode: input.stateCode,
+        employmentType: input.employmentType,
+      }),
+    enabled: Boolean(input.personId),
+  });
+}
