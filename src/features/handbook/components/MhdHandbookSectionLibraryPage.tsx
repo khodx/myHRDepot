@@ -132,8 +132,16 @@ export function MhdHandbookSectionLibraryPage() {
     setDialogState(null);
   }
 
-  async function handleFork(section: MhdHandbookSection) {
-    const result = await forkSection.mutateAsync({ sourceSectionId: section.id, companyId });
+  function hasSubsections(section: MhdHandbookSection): boolean {
+    return (sections.data ?? []).some((other) => other.parentSectionId === section.id);
+  }
+
+  async function handleFork(section: MhdHandbookSection, includeDescendants = false) {
+    const result = await forkSection.mutateAsync({
+      sourceSectionId: section.id,
+      companyId,
+      includeDescendants,
+    });
     // Open the freshly minted company-owned copy for editing right away, per the
     // "fork then edit" flow. Pre-fill from the source's own fields — the fork RPC
     // clones them verbatim — rather than waiting on the invalidated list refetch.
@@ -278,6 +286,17 @@ export function MhdHandbookSectionLibraryPage() {
                                 className="text-sm font-medium text-accent hover:text-accent-hover disabled:opacity-50"
                               >
                                 Fork to My Company
+                              </button>
+                            ) : null}
+                            {canForkRow(section) && hasSubsections(section) ? (
+                              <button
+                                type="button"
+                                onClick={() => void handleFork(section, true)}
+                                disabled={forkSection.isPending}
+                                title="Copies this section and its subsections, keeping them nested"
+                                className="text-sm font-medium text-accent hover:text-accent-hover disabled:opacity-50"
+                              >
+                                Fork With Subsections
                               </button>
                             ) : null}
                           </div>

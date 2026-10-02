@@ -42,6 +42,7 @@ const HANDBOOK: MhdHandbook = {
   effectiveDate: null,
   createdAt: '2026-07-20T00:00:00Z',
   acknowledgmentDueDays: 30,
+  requiresSignature: false,
 };
 
 beforeEach(() => {
@@ -71,7 +72,7 @@ describe('MhdHandbookAckPolicyCard', () => {
     render(<MhdHandbookAckPolicyCard handbook={HANDBOOK} canManage />);
 
     expect(screen.getByLabelText(/acknowledgment deadline/i)).toHaveValue(30);
-    expect(screen.getByRole('button', { name: /save deadline/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /save policy/i })).toBeDisabled();
   });
 
   it('saves a valid new deadline', async () => {
@@ -81,17 +82,21 @@ describe('MhdHandbookAckPolicyCard', () => {
     fireEvent.change(screen.getByLabelText(/acknowledgment deadline/i), {
       target: { value: '14' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /save deadline/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save policy/i }));
 
     await waitFor(() =>
-      expect(policyMutate).toHaveBeenCalledWith({ handbookId: 'hbk-1', dueDays: 14 }),
+      expect(policyMutate).toHaveBeenCalledWith({
+        handbookId: 'hbk-1',
+        dueDays: 14,
+        requiresSignature: false,
+      }),
     );
   });
 
   it('refuses a deadline outside 1–365 days, or a non-whole number, before calling the server', () => {
     render(<MhdHandbookAckPolicyCard handbook={HANDBOOK} canManage />);
     const input = screen.getByLabelText(/acknowledgment deadline/i);
-    const save = screen.getByRole('button', { name: /save deadline/i });
+    const save = screen.getByRole('button', { name: /save policy/i });
 
     for (const bad of ['0', '366', '2.5', '']) {
       fireEvent.change(input, { target: { value: bad } });
@@ -105,7 +110,7 @@ describe('MhdHandbookAckPolicyCard', () => {
     render(<MhdHandbookAckPolicyCard handbook={HANDBOOK} canManage={false} />);
 
     expect(screen.getByLabelText(/acknowledgment deadline/i)).toBeDisabled();
-    expect(screen.queryByRole('button', { name: /save deadline/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /save policy/i })).toBeNull();
   });
 });
 

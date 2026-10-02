@@ -35,16 +35,6 @@ interface Props {
   canManage: boolean;
   /** Which record tab this route renders. Defaults to 'detail'. */
   activeTab?: MhdHandbookRecordTab;
-  /**
-   * APP-LAYER publish ceremony hook. When provided, the host route renders the
-   * handbook document (doc-gen) and resolves to its id, forwarded to `publish` as
-   * the `documentGenerationId` soft link. When absent, publish freezes the version
-   * with no document link (the shell path). This module never invents a Doc-Gen
-   * RPC; it only forwards the id an injected callback returns.
-   */
-  onGenerateDocument?: (handbookId: string) => Promise<string | null>;
-  /** APP-LAYER e-sign ceremony hook, forwarded to the ack board (see there). */
-  onRequestSignature?: (personId: string) => Promise<string | null>;
 }
 
 /**
@@ -60,14 +50,7 @@ interface Props {
  * SHELL: the preview and version bodies are attorney-flagged placeholders and are
  * rendered as such (both surfaces carry the attorney-pending banner).
  */
-export function MhdHandbookWizard({
-  handbook,
-  companyId,
-  canManage,
-  activeTab = 'detail',
-  onGenerateDocument,
-  onRequestSignature,
-}: Props) {
+export function MhdHandbookWizard({ handbook, companyId, canManage, activeTab = 'detail' }: Props) {
   const isDraft = handbook.status === 'DRAFT';
 
   return (
@@ -95,12 +78,7 @@ export function MhdHandbookWizard({
             </p>
           </MhdCard>
         ) : (
-          <MhdHandbookDraftEditor
-            handbook={handbook}
-            companyId={companyId}
-            canManage={canManage}
-            onGenerateDocument={onGenerateDocument}
-          />
+          <MhdHandbookDraftEditor handbook={handbook} companyId={companyId} canManage={canManage} />
         )
       ) : (
         <MhdHandbookPublishedView
@@ -108,7 +86,6 @@ export function MhdHandbookWizard({
           companyId={companyId}
           canManage={canManage}
           activeTab={activeTab}
-          onRequestSignature={onRequestSignature}
         />
       )}
     </div>
@@ -123,15 +100,9 @@ interface DraftProps {
   handbook: MhdHandbook;
   companyId: string;
   canManage: boolean;
-  onGenerateDocument?: (handbookId: string) => Promise<string | null>;
 }
 
-function MhdHandbookDraftEditor({
-  handbook,
-  companyId,
-  canManage,
-  onGenerateDocument,
-}: DraftProps) {
+function MhdHandbookDraftEditor({ handbook, companyId, canManage }: DraftProps) {
   // The full library for the pack (global + this company's own sections);
   // filtered to this draft's jurisdictions below. `companyId` is REQUIRED as of
   // 0184 — see MhdHandbookSectionFilters.
@@ -141,7 +112,6 @@ function MhdHandbookDraftEditor({
   const publish = useMhdPublishHandbook();
 
   const [effectiveDate, setEffectiveDate] = useState('');
-  const [isPreparingDocument, setIsPreparingDocument] = useState(false);
 
   const candidateSections = useMemo(
     () =>
@@ -157,28 +127,16 @@ function MhdHandbookDraftEditor({
   );
 
   function handleToggle(sectionId: string, included: boolean) {
-    // Fire-and-forget; the hook invalidates the preview on success. The server
-    // refuses excluding a required section — the picker disables those anyway.
-    void toggle.mutateAsync({ handbookId: handbook.id, sectionId, included });
+    // `mutate`, not `mutateAsync`: the hook invalidates the preview on success, and a
+    // server refusal (a required section, or the same clause twice) is shown below from
+    // `toggle.error` rather than thrown as an unhandled rejection.
+    toggle.mutate({ handbookId: handbook.id, sectionId, included });
   }
 
   async function handlePublish() {
-    // App-layer publish ceremony: render the document first if wired, forward its
-    // id; otherwise publish with no document link (shell path).
-    let documentGenerationId: string | null = null;
-    if (onGenerateDocument) {
-      setIsPreparingDocument(true);
-      try {
-        documentGenerationId = await onGenerateDocument(handbook.id);
-      } finally {
-        setIsPreparingDocument(false);
-      }
-    }
-    await publish.mutateAsync({
-      handbookId: handbook.id,
-      effectiveDate: effectiveDate || null,
-      documentGenerationId,
-    });
+    // Publishing freezes the version. The document itself is exported on demand from the
+    // published page, so there is nothing to render here.
+    await publish.mutateAsync({ handbookId: handbook.id, effectiveDate: effectiveDate || null });
   }
 
   return (
@@ -226,13 +184,9 @@ function MhdHandbookDraftEditor({
             <Button
               className="w-full"
               onClick={() => void handlePublish()}
-              disabled={publish.isPending || isPreparingDocument}
+              disabled={publish.isPending}
             >
-              {isPreparingDocument
-                ? 'Preparing document…'
-                : publish.isPending
-                  ? 'Publishing…'
-                  : 'Publish handbook'}
+              {publish.isPending ? 'Publishing…' : 'Publish handbook'}
             </Button>
             {/* Surface the server's publish error (e.g. "no included sections"). */}
             {publish.isError ? (
@@ -256,16 +210,9 @@ interface PublishedProps {
   companyId: string;
   canManage: boolean;
   activeTab: MhdHandbookRecordTab;
-  onRequestSignature?: (personId: string) => Promise<string | null>;
 }
 
-function MhdHandbookPublishedView({
-  handbook,
-  companyId,
-  canManage,
-  activeTab,
-  onRequestSignature,
-}: PublishedProps) {
+function MhdHandbookPublishedView({ handbook, companyId, canManage, activeTab }: PublishedProps) {
   const archive = useMhdArchiveHandbook();
   const versionId = handbook.currentVersionId;
 
@@ -275,7 +222,7 @@ function MhdHandbookPublishedView({
         <MhdHandbookAckBoard
           companyId={companyId}
           versionId={versionId}
-          onRequestSignature={onRequestSignature}
+          requiresSignature={handbook.requiresSignature}
         />
       );
     }

@@ -10,6 +10,7 @@ import type {
   MhdHandbookSectionFilters,
   MhdMoveHandbookSectionInput,
   MhdPublishHandbookInput,
+  MhdRequestAcknowledgmentSignatureInput,
   MhdSetHandbookAckPolicyInput,
   MhdToggleSectionInput,
   MhdUpdateHandbookSectionInput,
@@ -149,6 +150,21 @@ export function useMhdSetHandbookAckPolicy() {
     mutationFn: (input: MhdSetHandbookAckPolicyInput) => mhdHandbookService.setAckPolicy(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-handbook', 'handbooks'] });
+    },
+  });
+}
+
+/**
+ * Sending signature requests changes each acknowledgment's signature state on the
+ * board, so the board refreshes.
+ */
+export function useMhdRequestAcknowledgmentSignature() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdRequestAcknowledgmentSignatureInput) =>
+      mhdHandbookService.requestAcknowledgmentSignature(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['mhd-handbook', 'ack-status'] });
     },
   });
 }

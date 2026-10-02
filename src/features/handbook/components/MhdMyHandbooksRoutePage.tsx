@@ -9,11 +9,11 @@ import { MhdMyHandbooksPage } from './MhdMyHandbooksPage';
  * employee's own acknowledgments (`my_acknowledgments`, narrowed by `auth.uid()`
  * server-side).
  *
- * `onSign` is deliberately not injected here: the signature ceremony flows through
- * the host signing surface, exercised in the browser walkthrough (Stage 5).
- * Without it, an acknowledgment with no linked signature request is recorded
- * directly, and one WITH a linked request is still refused server-side until the
- * signature COMPLETES — the gate is the server's, never this component's.
+ * Signing is not driven from this page. When a handbook requires a signature, an
+ * administrator sends the person a signature request for a short receipt; they sign
+ * from the emailed link, then acknowledge here. Acknowledging is refused server-side
+ * until that request COMPLETES (and, when a signature is required, until one exists) —
+ * the gate is the server's, never this component's.
  */
 export function MhdMyHandbooksRoutePage() {
   const { profile } = useMhdAuth();
