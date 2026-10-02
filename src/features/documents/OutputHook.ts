@@ -106,6 +106,29 @@ export function useMhdDocumentPreviewContext(input: MhdDocumentPreviewInput | nu
     enabled: input !== null,
   });
 }
+/**
+ * The wizard's preview: resolves the merge data server-side (with the person's edits applied),
+ * then renders it as the company's letterheaded HTML. Returns both so the caller can show the
+ * rendered document and read the current values of the editable fields.
+ */
+export function useMhdDocumentPreviewHtml(input: MhdDocumentPreviewInput | null) {
+  return useQuery({
+    queryKey: ['mhd-document-preview-html', input] as const,
+    queryFn: async () => {
+      const mergeData = await mhdDocumentOutputService.previewContext(input!);
+      const html = await mhdDocumentOutputService.renderPreviewHtml({
+        templateId: input!.templateId,
+        companyId: input!.companyId,
+        mergeData,
+      });
+      return { mergeData, html };
+    },
+    enabled: input !== null,
+    retry: false,
+    staleTime: 0,
+  });
+}
+
 export function useMhdForkDocumentTemplate() {
   const queryClient = useQueryClient();
   return useMutation({

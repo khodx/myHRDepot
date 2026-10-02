@@ -21,6 +21,12 @@ interface MhdWizardShellProps {
   cancelTo?: string;
   /** Adds a progress bar above the stepper. Off by default. */
   showProgress?: boolean;
+  /**
+   * Shown in place of the stepper once the flow has been submitted. A wizard whose record is
+   * created on submit uses this for what happens next: the Generate A Document step and a link
+   * to the new record. Nothing to leave unsaved at that point, so the exit guard is already off.
+   */
+  completion?: ReactNode;
   /** The body of the current step. */
   children: ReactNode;
 }
@@ -42,31 +48,44 @@ export function MhdWizardShell({
   gateBanner,
   cancelTo,
   showProgress = false,
+  completion,
   children,
 }: MhdWizardShellProps) {
   const guard = useMhdUnsavedChangesGuard(flow.guardUnsaved);
+  const showCompletion = flow.isComplete && completion !== undefined;
 
   return (
     <div className="space-y-6">
-      <MhdPageHeader title={title} description={description} backTo={backTo} backLabel={backLabel} />
+      <MhdPageHeader
+        title={title}
+        description={description}
+        backTo={backTo}
+        backLabel={backLabel}
+      />
       {gateBanner}
 
-      {showProgress ? (
-        <MhdStepperProgress currentStepIndex={flow.stepIndex} totalSteps={flow.steps.length} />
-      ) : null}
-      <MhdStepper {...flow.stepperProps} />
+      {showCompletion ? (
+        completion
+      ) : (
+        <>
+          {showProgress ? (
+            <MhdStepperProgress currentStepIndex={flow.stepIndex} totalSteps={flow.steps.length} />
+          ) : null}
+          <MhdStepper {...flow.stepperProps} />
 
-      <MhdCard>
-        <h2 className="text-lg font-semibold text-foreground">{flow.currentStep?.title}</h2>
-        <div className="mt-4">{children}</div>
-        {flow.error ? (
-          <p role="alert" className="mt-4 text-sm text-rose-700">
-            {flow.error}
-          </p>
-        ) : null}
-      </MhdCard>
+          <MhdCard>
+            <h2 className="text-lg font-semibold text-foreground">{flow.currentStep?.title}</h2>
+            <div className="mt-4">{children}</div>
+            {flow.error ? (
+              <p role="alert" className="mt-4 text-sm text-rose-700">
+                {flow.error}
+              </p>
+            ) : null}
+          </MhdCard>
+        </>
+      )}
 
-      {cancelTo ? (
+      {cancelTo && !showCompletion ? (
         <div>
           <Button variant="secondary" onClick={() => guard.requestLeave(cancelTo)}>
             Cancel

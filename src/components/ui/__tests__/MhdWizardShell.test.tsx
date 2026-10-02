@@ -18,7 +18,9 @@ function Harness({
     {
       id: 'one',
       title: 'First Step',
-      onLeave: failLeaveOfFirst ? () => Promise.reject(new Error('Could not save the first step.')) : undefined,
+      onLeave: failLeaveOfFirst
+        ? () => Promise.reject(new Error('Could not save the first step.'))
+        : undefined,
     },
     { id: 'two', title: 'Second Step' },
   ];
@@ -49,7 +51,44 @@ function renderShell(props: Parameters<typeof Harness>[0] = {}) {
   );
 }
 
+function CompletionHarness() {
+  const flow = useMhdWizardFlow({
+    steps: [{ id: 'only', title: 'Only Step' }],
+    onSubmit: () => Promise.resolve(),
+    isDirty: true,
+  });
+  return (
+    <MhdWizardShell
+      title="Guided Intake"
+      flow={flow}
+      cancelTo="/list"
+      completion={<p>Next: generate the document</p>}
+    >
+      <p>Body of only</p>
+    </MhdWizardShell>
+  );
+}
+
 describe('MhdWizardShell', () => {
+  it('replaces the stepper with the completion panel once submitted', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/wizard']}>
+        <Routes>
+          <Route path="/wizard" element={<CompletionHarness />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('Body of only')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+
+    expect(await screen.findByText('Next: generate the document')).toBeInTheDocument();
+    expect(screen.queryByText('Body of only')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
+  });
+
   it('renders the header, gate banner, current step and progress', () => {
     renderShell({ withBanner: true });
 
