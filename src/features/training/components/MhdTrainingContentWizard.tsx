@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
 import { MhdModal } from '@/components/ui/MhdModal';
+import { MhdWizardOutputStep } from '@/components/ui/MhdWizardOutputStep';
+import { mhdWizardErrorMessage } from '@/utils/useMhdWizardFlow';
 import { MhdTrainingContentTreeEditor } from './MhdTrainingContentTreeEditor';
 import {
   useMhdCreateTrainingCurriculum,
@@ -39,7 +41,11 @@ import {
   type MhdTrainingProgram,
   type MhdTrainingTemplate,
 } from '../Types';
-import { WIZARD_STEPS, validateWizardStep, type MhdTrainingContentEntityType } from './MhdTrainingContentWizardSteps';
+import {
+  WIZARD_STEPS,
+  validateWizardStep,
+  type MhdTrainingContentEntityType,
+} from './MhdTrainingContentWizardSteps';
 
 export interface MhdTrainingContentWizardProps {
   entityType: MhdTrainingContentEntityType;
@@ -555,6 +561,12 @@ export function MhdTrainingContentWizard({
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [selectedPrerequisite, setSelectedPrerequisite] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [pendingActions, setPendingActions] = useState(0);
+  const createRef = useRef<Promise<void> | null>(null);
+  // A blank course is created and then switched to AUTHORED; if the second call fails the
+  // retry must finish that course, never create another.
+  const createdCourseIdRef = useRef<string | null>(null);
+  const authoredModeSetRef = useRef(false);
   const curricula = useMhdTrainingCurriculums(companyId, true);
   const programs = useMhdTrainingPrograms({ companyId, includeInactive: true });
   const courses = useMhdTrainingCourses({ companyId, includeInactive: true });
@@ -640,6 +652,32 @@ export function MhdTrainingContentWizard({
     [courseKey, courses.data, entityType, programs.data, savedEntityId, title],
   );
 
+  // Every action that writes goes through here, so a failure is shown instead of vanishing
+  // as an unhandled rejection, and the stepper shows it is working.
+  async function run(action: () => Promise<unknown>) {
+    setPendingActions((count) => count + 1);
+    setError(null);
+    try {
+      await action();
+    } catch (caught) {
+      setError(mhdWizardErrorMessage(caught, 'The training action failed. Please try again.'));
+    } finally {
+      setPendingActions((count) => count - 1);
+    }
+  }
+
+  // The entity is created exactly once even if the step is left twice before the first
+  // create returns; a failed create clears the slot so the retry can run.
+  function createOnce(create: () => Promise<void>) {
+    if (!createRef.current) {
+      createRef.current = create().catch((caught: unknown) => {
+        createRef.current = null;
+        throw caught;
+      });
+    }
+    return createRef.current;
+  }
+
   async function saveDetails() {
     const validationError = validateWizardStep(
       0,
@@ -676,14 +714,15 @@ export function MhdTrainingContentWizard({
           description,
           isActive,
         });
-      else {
-        const result = await createCurriculum.mutateAsync({
-          companyId,
-          title: title.trim(),
-          description,
+      else
+        await createOnce(async () => {
+          const result = await createCurriculum.mutateAsync({
+            companyId,
+            title: title.trim(),
+            description,
+          });
+          setSavedEntityId(result.id);
         });
-        setSavedEntityId(result.id);
-      }
     } else if (savedEntityId) {
       await updateProgram.mutateAsync({
         programId: savedEntityId,
@@ -695,20 +734,27 @@ export function MhdTrainingContentWizard({
         isActive,
       });
     } else {
-      const result = await createProgram.mutateAsync({
-        companyId,
-        title: title.trim(),
-        description,
-        curriculumId: curriculumId || null,
-        sortOrder,
+      await createOnce(async () => {
+        const result = await createProgram.mutateAsync({
+          companyId,
+          title: title.trim(),
+          description,
+          curriculumId: curriculumId || null,
+          sortOrder,
+        });
+        setSavedEntityId(result.id);
       });
-      setSavedEntityId(result.id);
     }
     return true;
   }
 
   async function createCourseAtTemplateStep() {
     if (savedEntityId) return true;
+    await createOnce(createCourseNow);
+    return true;
+  }
+
+  async function createCourseNow(): Promise<void> {
     const input = {
       companyId,
       courseKey: courseKey.trim(),
@@ -728,7 +774,7 @@ export function MhdTrainingContentWizard({
         templateId: selectedTemplateId,
       });
       setSavedEntityId(result.id);
-      return true;
+      return;
     }
     // mhd_training_course_create leaves content_mode at its schema default
     // (EVIDENCE_ONLY) -- only mhd_training_course_create_from_template sets
@@ -737,10 +783,18 @@ export function MhdTrainingContentWizard({
     // it explicitly -- without this, mhd_training_module_create refuses
     // every module with "Course is not an authored course" and the Content
     // step's Add Module action silently fails for every blank course.
-    const result = await createCourse.mutateAsync(input);
-    await setContentMode.mutateAsync({ courseId: result.id, contentMode: 'AUTHORED' });
-    setSavedEntityId(result.id);
-    return true;
+    if (!createdCourseIdRef.current) {
+      const result = await createCourse.mutateAsync(input);
+      createdCourseIdRef.current = result.id;
+    }
+    if (!authoredModeSetRef.current) {
+      await setContentMode.mutateAsync({
+        courseId: createdCourseIdRef.current,
+        contentMode: 'AUTHORED',
+      });
+      authoredModeSetRef.current = true;
+    }
+    setSavedEntityId(createdCourseIdRef.current);
   }
 
   async function advanceApproval() {
@@ -863,7 +917,11 @@ export function MhdTrainingContentWizard({
           </p>
         ) : null}
         {showOverview ? (
-          <Checklist steps={steps} complete={complete} onSelect={(index) => void goToStep(index)} />
+          <Checklist
+            steps={steps}
+            complete={complete}
+            onSelect={(index) => void run(() => goToStep(index))}
+          />
         ) : (
           <>
             <div className="flex justify-end">
@@ -925,9 +983,9 @@ export function MhdTrainingContentWizard({
                   entityId={savedEntityId}
                   programs={programs.data ?? []}
                   courses={courses.data ?? []}
-                  onAttachProgram={(item, attach) => void attachProgram(item, attach)}
-                  onAttachCourse={(item, attach) => void attachCourse(item, attach)}
-                  onReorder={(item, delta) => void reorder(item, delta)}
+                  onAttachProgram={(item, attach) => void run(() => attachProgram(item, attach))}
+                  onAttachCourse={(item, attach) => void run(() => attachCourse(item, attach))}
+                  onReorder={(item, delta) => void run(() => reorder(item, delta))}
                 />
               )
             ) : null}
@@ -959,7 +1017,7 @@ export function MhdTrainingContentWizard({
                     </select>
                     <Button
                       type="button"
-                      onClick={() => void handleAddPrerequisite()}
+                      onClick={() => void run(handleAddPrerequisite)}
                       disabled={!selectedPrerequisite}
                     >
                       Add
@@ -981,7 +1039,9 @@ export function MhdTrainingContentWizard({
                         <button
                           type="button"
                           className="text-red-700"
-                          onClick={() => void handleRemovePrerequisite(item.prerequisiteCourseId)}
+                          onClick={() =>
+                            void run(() => handleRemovePrerequisite(item.prerequisiteCourseId))
+                          }
                         >
                           Remove
                         </button>
@@ -1052,7 +1112,7 @@ export function MhdTrainingContentWizard({
                           {mhdFormatTrainingApprovalStatus(currentCourse.approvalStatus)}
                         </MhdBadge>
                         {approvalActionLabel ? (
-                          <Button type="button" onClick={() => void advanceApproval()}>
+                          <Button type="button" onClick={() => void run(advanceApproval)}>
                             {approvalActionLabel}
                           </Button>
                         ) : null}
@@ -1074,6 +1134,16 @@ export function MhdTrainingContentWizard({
                     </p>
                   </>
                 )}
+                {entityType === 'COURSE' && savedEntityId ? (
+                  <MhdWizardOutputStep
+                    companyId={companyId}
+                    sourceWizard="TRAINING"
+                    templateKey="TRAINING_COURSE_SUMMARY"
+                    entityType="TRAINING_COURSE"
+                    entityId={savedEntityId}
+                    recordLabel="course summary"
+                  />
+                ) : null}
                 <Button type="button" onClick={onClose}>
                   Finish
                 </Button>
@@ -1082,7 +1152,7 @@ export function MhdTrainingContentWizard({
             <MhdStepper
               steps={steps}
               currentStepIndex={currentStepIndex}
-              onNavigate={(index) => void goToStep(index)}
+              onNavigate={(index) => void run(() => goToStep(index))}
               validateCurrentStep={() =>
                 !validateWizardStep(
                   currentStepIndex,
@@ -1092,6 +1162,7 @@ export function MhdTrainingContentWizard({
                 )
               }
               onSubmit={onClose}
+              isSubmitting={pendingActions > 0}
               showSubmit={false}
             />
           </>

@@ -55,6 +55,20 @@ vi.mock('../components/MhdTrainingContentTreeEditor', () => ({
   ),
 }));
 
+// The document step has its own tests; here we only care that it is offered for the right record.
+vi.mock('@/components/ui/MhdWizardOutputStep', () => ({
+  MhdWizardOutputStep: (props: { templateKey: string; entityType: string; entityId: string }) => (
+    <p>{`Document step: ${props.templateKey} for ${props.entityType} ${props.entityId}`}</p>
+  ),
+}));
+
+// Next is disabled for the instant a previous step's save is still settling.
+async function clickNext() {
+  const next = screen.getByRole('button', { name: 'Next' });
+  await vi.waitFor(() => expect(next).toBeEnabled());
+  fireEvent.click(next);
+}
+
 describe('MhdTrainingContentWizard', () => {
   it('requires a non-blank title only on the Details step', () => {
     expect(validateWizardStep(0, '   ')).toBe('Enter a title to continue.');
@@ -88,8 +102,9 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: user.name } });
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() =>
       expect(mocks.createCurriculum).toHaveBeenCalledWith({
         companyId: 'company-1',
@@ -161,8 +176,9 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Renamed program' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() =>
       expect(mocks.updateProgram).toHaveBeenCalledWith(
         expect.objectContaining({ programId: 'prog-1', title: 'Renamed program' }),
@@ -193,11 +209,12 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     await vi.waitFor(() =>
       expect(screen.getByLabelText('Title')).toHaveValue('Existing curriculum'),
     );
     expect(screen.getByLabelText('Description')).toHaveValue('Saved curriculum description');
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() =>
       expect(mocks.updateCurriculum).toHaveBeenCalledWith({
         curriculumId: 'cur-existing',
@@ -243,11 +260,12 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     await vi.waitFor(() => expect(screen.getByLabelText('Title')).toHaveValue('Existing program'));
     expect(screen.getByLabelText('Description')).toHaveValue('Saved program description');
     expect(screen.getByLabelText('Curriculum')).toHaveValue('cur-parent');
     expect(screen.getByLabelText('Sort order')).toHaveValue(4);
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() =>
       expect(mocks.updateProgram).toHaveBeenCalledWith({
         programId: 'prog-existing',
@@ -294,9 +312,15 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     const checklist = screen.getByRole('list', { name: 'Wizard overview' });
-    expect(within(checklist).getByRole('button', { name: /Details[\s\S]*Complete/ })).toBeInTheDocument();
-    expect(within(checklist).getByRole('button', { name: /Programs[\s\S]*Complete/ })).toBeInTheDocument();
-    expect(within(checklist).getByRole('button', { name: /Review[\s\S]*Complete/ })).toBeInTheDocument();
+    expect(
+      within(checklist).getByRole('button', { name: /Details[\s\S]*Complete/ }),
+    ).toBeInTheDocument();
+    expect(
+      within(checklist).getByRole('button', { name: /Programs[\s\S]*Complete/ }),
+    ).toBeInTheDocument();
+    expect(
+      within(checklist).getByRole('button', { name: /Review[\s\S]*Complete/ }),
+    ).toBeInTheDocument();
 
     vi.mocked(mocks.trainingPrograms).mockReturnValue({ data: [] });
     render(
@@ -325,12 +349,13 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     fireEvent.change(screen.getByLabelText('Course key'), { target: { value: 'course-blank' } });
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Blank course' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
     expect(mocks.createCourse).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() =>
       expect(mocks.createCourse).toHaveBeenCalledWith(
         expect.objectContaining({ courseKey: 'course-blank', title: 'Blank course' }),
@@ -379,14 +404,15 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     fireEvent.change(screen.getByLabelText('Course key'), { target: { value: 'course-locked' } });
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Locked course' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText('Course template'), { target: { value: 'tpl-1' } });
     expect(screen.getByText(/create these slots automatically/)).toBeInTheDocument();
     expect(screen.getByText('Welcome module')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() =>
       expect(mocks.createCourseFromTemplate).toHaveBeenCalledWith(
         expect.objectContaining({ templateId: 'tpl-1', courseKey: 'course-locked' }),
@@ -425,17 +451,18 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     await vi.waitFor(() => expect(screen.getByLabelText('Course key')).toHaveValue('existing-key'));
     expect(screen.getByLabelText('Course key')).toHaveAttribute('readonly');
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() => expect(screen.getByTestId('content-tree-editor')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() =>
       expect(screen.getByLabelText('Prerequisite course')).toBeInTheDocument(),
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() =>
       expect(screen.getByRole('heading', { name: 'Review' })).toBeInTheDocument(),
     );
@@ -458,11 +485,12 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     fireEvent.change(screen.getByLabelText('Course key'), { target: { value: 'content-course' } });
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Content course' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() =>
       expect(screen.getByTestId('content-tree-editor')).toHaveTextContent('course-content'),
     );
@@ -506,12 +534,13 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     await vi.waitFor(() => expect(screen.getByLabelText('Course key')).toHaveValue('existing-key'));
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() => expect(screen.getByTestId('content-tree-editor')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
 
     const select = await screen.findByLabelText('Prerequisite course');
     expect(screen.queryByRole('option', { name: 'Current course' })).not.toBeInTheDocument();
@@ -564,6 +593,7 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     await vi.waitFor(() => expect(screen.getByLabelText('Course key')).toHaveValue('approval-key'));
     fireEvent.click(screen.getByRole('button', { name: 'Overview' }));
     fireEvent.click(
@@ -578,48 +608,63 @@ describe('MhdTrainingContentWizard', () => {
   });
 
   it.each([
-    ['IN_REVIEW', 'Approve Content', 'approveContent', { courseId: 'course-approval', reviewNotes: 'Looks good' }],
+    [
+      'IN_REVIEW',
+      'Approve Content',
+      'approveContent',
+      { courseId: 'course-approval', reviewNotes: 'Looks good' },
+    ],
     ['APPROVED', 'Publish Content', 'publishContent', { courseId: 'course-approval' }],
-  ] as const)('advances %s courses through the Review action', async (approvalStatus, action, hook, expected) => {
-    vi.mocked(mocks.trainingCourses).mockReturnValue({
-      data: [
-        {
-          id: 'course-approval',
-          courseKey: 'approval-key',
-          title: 'Approval course',
-          description: 'Description',
-          category: 'SAFETY',
-          deliveryMode: 'ONLINE',
-          durationMinutes: 30,
-          recurrenceMonths: 12,
-          requiresEvidence: true,
-          externalUrl: null,
-          programId: null,
-          isActive: true,
-          templateId: null,
-          approvalStatus,
-        },
-      ],
-    } as never);
-    vi.mocked(mocks[hook]).mockClear();
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('Looks good');
-    render(
-      <MhdTrainingContentWizard
-        entityType="COURSE"
-        companyId="company-1"
-        entityId="course-approval"
-        onClose={vi.fn()}
-      />,
-    );
-    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
-    await vi.waitFor(() => expect(screen.getByLabelText('Course key')).toHaveValue('approval-key'));
-    fireEvent.click(screen.getByRole('button', { name: 'Overview' }));
-    fireEvent.click(screen.getAllByRole('button').find((el) => el.textContent?.includes('Review'))!);
-    await vi.waitFor(() => expect(screen.getByRole('button', { name: action })).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: action }));
-    await vi.waitFor(() => expect(mocks[hook]).toHaveBeenCalledWith(expected));
-    promptSpy.mockRestore();
-  });
+  ] as const)(
+    'advances %s courses through the Review action',
+    async (approvalStatus, action, hook, expected) => {
+      vi.mocked(mocks.trainingCourses).mockReturnValue({
+        data: [
+          {
+            id: 'course-approval',
+            courseKey: 'approval-key',
+            title: 'Approval course',
+            description: 'Description',
+            category: 'SAFETY',
+            deliveryMode: 'ONLINE',
+            durationMinutes: 30,
+            recurrenceMonths: 12,
+            requiresEvidence: true,
+            externalUrl: null,
+            programId: null,
+            isActive: true,
+            templateId: null,
+            approvalStatus,
+          },
+        ],
+      } as never);
+      vi.mocked(mocks[hook]).mockClear();
+      const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('Looks good');
+      render(
+        <MhdTrainingContentWizard
+          entityType="COURSE"
+          companyId="company-1"
+          entityId="course-approval"
+          onClose={vi.fn()}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+      await screen.findByLabelText('Title');
+      await vi.waitFor(() =>
+        expect(screen.getByLabelText('Course key')).toHaveValue('approval-key'),
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Overview' }));
+      fireEvent.click(
+        screen.getAllByRole('button').find((el) => el.textContent?.includes('Review'))!,
+      );
+      await vi.waitFor(() =>
+        expect(screen.getByRole('button', { name: action })).toBeInTheDocument(),
+      );
+      fireEvent.click(screen.getByRole('button', { name: action }));
+      await vi.waitFor(() => expect(mocks[hook]).toHaveBeenCalledWith(expected));
+      promptSpy.mockRestore();
+    },
+  );
 
   it('guards the Content step when the course id is still missing', async () => {
     vi.mocked(mocks.createCourse).mockResolvedValueOnce({ id: '', referenceId: 'TRN-MISSING' });
@@ -632,11 +677,12 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     fireEvent.change(screen.getByLabelText('Course key'), { target: { value: 'missing-course' } });
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Missing course' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     expect(
       await screen.findByText(
         'Complete the Details and Template steps before authoring course content.',
@@ -654,10 +700,11 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Curriculum' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     expect(await screen.findByText('Attached programs')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     expect(await screen.findByRole('heading', { name: 'Review' })).toBeInTheDocument();
     unmount();
 
@@ -670,10 +717,92 @@ describe('MhdTrainingContentWizard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Program' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     expect(await screen.findByText('Attached courses')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await clickNext();
     expect(await screen.findByRole('heading', { name: 'Review' })).toBeInTheDocument();
+  });
+  it('shows the server message when creating the course fails, and does not leave the Template step', async () => {
+    mocks.createCourse.mockClear();
+    mocks.createCourse.mockRejectedValueOnce(new Error('A course with this key already exists.'));
+    render(
+      <MhdTrainingContentWizard
+        entityType="COURSE"
+        companyId="company-1"
+        entityId={null}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
+    fireEvent.change(screen.getByLabelText('Course key'), { target: { value: 'course-dup' } });
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Duplicate course' } });
+    await clickNext();
+    await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
+    await clickNext();
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'A course with this key already exists.',
+    );
+    expect(screen.getByLabelText('Course template')).toBeInTheDocument();
+  });
+
+  it('offers the course summary document on the Review step once the course exists', async () => {
+    render(
+      <MhdTrainingContentWizard
+        entityType="COURSE"
+        companyId="company-1"
+        entityId={null}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
+    fireEvent.change(screen.getByLabelText('Course key'), { target: { value: 'course-docs' } });
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Documented course' } });
+    await clickNext();
+    await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
+    await clickNext();
+    await vi.waitFor(() => expect(screen.getByTestId('content-tree-editor')).toBeInTheDocument());
+    await clickNext();
+    await vi.waitFor(() =>
+      expect(screen.getByLabelText('Prerequisite course')).toBeInTheDocument(),
+    );
+    await clickNext();
+    expect(
+      await screen.findByText(
+        'Document step: TRAINING_COURSE_SUMMARY for TRAINING_COURSE course-new',
+      ),
+    ).toBeInTheDocument();
+  });
+  it('finishes the same course after the content-mode switch fails, never creating a second one', async () => {
+    mocks.createCourse.mockClear();
+    mocks.setContentMode.mockClear();
+    mocks.setContentMode.mockRejectedValueOnce(
+      new Error('Could not switch the course to authored content.'),
+    );
+    render(
+      <MhdTrainingContentWizard
+        entityType="COURSE"
+        companyId="company-1"
+        entityId={null}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    await screen.findByLabelText('Title');
+    fireEvent.change(screen.getByLabelText('Course key'), { target: { value: 'course-retry' } });
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Retry course' } });
+    await clickNext();
+    await vi.waitFor(() => expect(screen.getByLabelText('Course template')).toBeInTheDocument());
+    await clickNext();
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not switch the course to authored content.',
+    );
+    await clickNext();
+    await vi.waitFor(() => expect(screen.getByTestId('content-tree-editor')).toBeInTheDocument());
+    expect(mocks.createCourse).toHaveBeenCalledTimes(1);
+    expect(mocks.setContentMode).toHaveBeenCalledTimes(2);
   });
 });
