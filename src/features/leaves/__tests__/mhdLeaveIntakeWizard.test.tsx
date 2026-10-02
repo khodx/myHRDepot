@@ -236,7 +236,9 @@ describe('MhdLeaveIntakeWizard', () => {
     await screen.findByRole('button', { name: 'Snapshot confirmed' });
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     // The advance is asynchronous; under a loaded full-suite run the default 1s is too tight.
-    fireEvent.click(await screen.findByRole('button', { name: /submit|finish/i }, { timeout: 5000 }));
+    fireEvent.click(
+      await screen.findByRole('button', { name: /submit|finish/i }, { timeout: 5000 }),
+    );
     expect(
       await screen.findByText('Leave Eligibility Recorded', undefined, { timeout: 5000 }),
     ).toBeInTheDocument();
