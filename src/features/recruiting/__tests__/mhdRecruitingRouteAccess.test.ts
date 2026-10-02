@@ -96,15 +96,14 @@ describe('recruiting route access', () => {
     }
   });
 
-  it('marks authenticated recruiting surfaces as coming soon for non-Platform Admins', () => {
+  it('treats the recruiting surfaces as live for every role', () => {
     for (const path of ['/recruiting', '/recruiting/eeo', '/recruiting/interviews'] as const) {
-      expect(mhdRouteStatus(path)).toBe('comingSoon');
-      expect(mhdIsRouteComingSoon(path, ['Platform Admin'])).toBe(false);
+      expect(mhdRouteStatus(path)).toBe('live');
+      for (const role of ['Platform Admin', 'HR Partner', 'Client Admin', 'Employee'] as const) {
+        expect(mhdIsRouteComingSoon(path, [role])).toBe(false);
+      }
     }
-
-    expect(mhdIsRouteComingSoon('/recruiting', ['HR Partner'])).toBe(true);
-    expect(mhdIsRouteComingSoon('/recruiting', ['Client Admin'])).toBe(true);
-    expect(mhdIsRouteComingSoon('/recruiting/interviews/iv-1', ['Employee'])).toBe(true);
+    expect(mhdIsRouteComingSoon('/recruiting/interviews/iv-1', ['Employee'])).toBe(false);
   });
 });
 

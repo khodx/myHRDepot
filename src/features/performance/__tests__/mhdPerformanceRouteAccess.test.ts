@@ -28,17 +28,18 @@ describe('performance route access', () => {
     expect(mhdCanAccessRoute('/performance', ['Viewer'])).toBe(false);
   });
 
-  it('marks performance surfaces as coming soon for non-Platform Admins', () => {
+  it('treats the performance surfaces as live for every role', () => {
     for (const path of [
       '/performance',
+      '/performance/cycles',
       '/performance/templates',
       '/performance/settings',
       '/performance/invitations',
     ] as const) {
-      expect(mhdRouteStatus(path)).toBe('comingSoon');
-      expect(mhdIsRouteComingSoon(path, ['Platform Admin'])).toBe(false);
-      expect(mhdIsRouteComingSoon(path, ['HR Partner'])).toBe(true);
-      expect(mhdIsRouteComingSoon(path, ['Client Admin'])).toBe(true);
+      expect(mhdRouteStatus(path)).toBe('live');
+      for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as const) {
+        expect(mhdIsRouteComingSoon(path, [role])).toBe(false);
+      }
     }
   });
 });

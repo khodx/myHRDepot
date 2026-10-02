@@ -1,5 +1,6 @@
 import { MemoryRouter } from 'react-router-dom';
-import { render, screen } from '@testing-library/react';
+import { mhdCanAccessRoute } from '@/appshell/mhdRouteAccess';
+import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 
@@ -37,18 +38,16 @@ describe('MhdWizardsPage', () => {
       'href',
       '/leaves/new/intake',
     );
-    expect(screen.getByRole('link', { name: /Compensation Classification Wizard/ })).toHaveAttribute(
-      'href',
-      '/compensation',
-    );
+    expect(
+      screen.getByRole('link', { name: /Compensation Classification Wizard/ }),
+    ).toHaveAttribute('href', '/compensation');
     expect(screen.getByRole('link', { name: /Contractor Classification Wizard/ })).toHaveAttribute(
       'href',
       '/contractor-classification',
     );
-    expect(screen.getByRole('link', { name: /Course\/Curriculum\/Program Wizard/ })).toHaveAttribute(
-      'href',
-      '/training',
-    );
+    expect(
+      screen.getByRole('link', { name: /Course\/Curriculum\/Program Wizard/ }),
+    ).toHaveAttribute('href', '/training');
     expect(screen.getByRole('link', { name: /Handbook Wizard/ })).toHaveAttribute(
       'href',
       '/handbooks/new',
@@ -148,6 +147,74 @@ describe('MhdWizardsPage', () => {
       'href',
       '/my-grievances/new',
     );
-    expect(screen.queryByRole('link', { name: /Investigation Intake Wizard/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /Investigation Intake Wizard/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('groups the cards by category theme, in order, and shows only the groups the role can open', () => {
+    mockAuth(['Platform Admin']);
+    render(
+      <MemoryRouter>
+        <MhdWizardsPage />
+      </MemoryRouter>,
+    );
+    const headings = screen
+      .getAllByRole('heading', { level: 2 })
+      .map((heading) => heading.textContent);
+    expect(headings).toEqual(['People & Org', 'Time & Leave', 'Talent', 'Employee Relations']);
+    const talent = screen.getByRole('region', { name: 'Talent' });
+    expect(within(talent).getByRole('link', { name: /Review Cycle Wizard/ })).toBeInTheDocument();
+    expect(
+      within(talent).queryByRole('link', { name: /Safety Incident Wizard/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows an employee only the groups they can open', () => {
+    mockAuth(['Employee']);
+    render(
+      <MemoryRouter>
+        <MhdWizardsPage />
+      </MemoryRouter>,
+    );
+    const headings = screen
+      .getAllByRole('heading', { level: 2 })
+      .map((heading) => heading.textContent);
+    expect(headings).toContain('Employee Relations');
+    expect(headings).not.toContain('Talent');
+    expect(headings).not.toContain('People & Org');
+  });
+
+  it('lets every role that can open at least one wizard open the hub itself', () => {
+    const roles = [
+      'Platform Admin',
+      'HR Partner',
+      'HR Admin',
+      'HR Specialist',
+      'Client Admin',
+      'Executive Leadership',
+      'Director',
+      'Manager',
+      'Supervisor',
+      'Lead',
+      'Employee',
+      'Viewer',
+    ] as const;
+    for (const role of roles) {
+      mockAuth([role]);
+      const { unmount } = render(
+        <MemoryRouter>
+          <MhdWizardsPage />
+        </MemoryRouter>,
+      );
+      const canOpenAWizard = screen.queryAllByRole('link').length > 0;
+      unmount();
+      if (canOpenAWizard) {
+        expect(
+          mhdCanAccessRoute('/wizards', [role]),
+          `${role} can open a wizard but not the hub`,
+        ).toBe(true);
+      }
+    }
   });
 });

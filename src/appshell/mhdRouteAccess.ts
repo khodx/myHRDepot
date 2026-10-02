@@ -169,8 +169,9 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   },
   // Wizards hub (/wizards) — a directory of every guided-creation wizard in the
   // app (Job Description, Leave Intake, Compensation Classification, Contractor
-  // Classification, Course/Curriculum/Program, Handbook, Accommodation Intake). The hub itself is gated to the
-  // union of every wizard's own audience so nobody who can reach at least one
+  // Classification, Course/Curriculum/Program, Handbook, Accommodation Intake, Conduct, Investigation,
+  // Offboarding, Onboarding, Requisition, Offer, Safety Incident, Review Cycle and Grievance Intake). The hub itself is gated to the
+  // union of every wizard's own audience (the grievance wizard is for employees, so the filing roles are included) so nobody who can reach at least one
   // wizard is refused the directory; the page itself hides a card for any
   // wizard the viewer's own roles can't actually open (checked per-card against
   // that wizard's real route via mhdCanAccessRoute, never widened here). Each
@@ -178,7 +179,10 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   // this entry only controls the hub page, not what it links to.
   {
     path: '/wizards',
-    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
+    roles: [
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director',
+      'Manager', 'Supervisor', 'Lead', 'Employee',
+    ],
   },
   // Performance. The specific /performance/* sub-routes precede the general
   // /performance rule because mhdCanAccessRoute returns the FIRST matching rule
@@ -196,17 +200,14 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   {
     path: '/performance/cycles',
     roles: ['Platform Admin', 'HR Partner', 'Client Admin'],
-    status: 'comingSoon',
   },
   {
     path: '/performance/templates',
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
-    status: 'comingSoon',
   },
   {
     path: '/performance/settings',
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
-    status: 'comingSoon',
   },
   {
     path: '/performance/invitations',
@@ -215,7 +216,6 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
       'Client Admin', 'Executive Leadership', 'Director',
       'Manager', 'Supervisor', 'Lead', 'Employee',
     ],
-    status: 'comingSoon',
   },
   {
     path: '/performance',
@@ -224,7 +224,6 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
       'Client Admin', 'Executive Leadership', 'Director',
       'Manager', 'Supervisor', 'Lead', 'Employee',
     ],
-    status: 'comingSoon',
   },
   // Onboarding. Same audience as /offboarding: new-hire packets carry
   // RESTRICTED-tier documents (I-9, W-4, direct deposit banking, consumer
@@ -247,12 +246,10 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   {
     path: '/onboarding',
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
-    status: 'comingSoon',
   },
   {
     path: '/offboarding',
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
-    status: 'comingSoon',
   },
   // Conduct — the strictest module. Corrective-action cases carry RESTRICTED-tier
   // discipline narratives, so only Platform Admin / HR Partner / Client Admin
@@ -566,7 +563,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   //   surface: Platform Admin / HR Partner / Client Admin. A hiring manager sees
   //   only their own requisitions (RLS). Viewer is excluded from every
   //   authenticated recruiting surface.
-  { path: '/recruiting/eeo', roles: ['Platform Admin'], status: 'comingSoon' },
+  { path: '/recruiting/eeo', roles: ['Platform Admin'] },
   {
     path: '/recruiting/interviews',
     roles: [
@@ -574,12 +571,10 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
       'Client Admin', 'Executive Leadership', 'Director',
       'Manager', 'Supervisor', 'Lead', 'Employee',
     ],
-    status: 'comingSoon',
   },
   {
     path: '/recruiting',
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'Client Admin', 'Executive Leadership', 'Director'],
-    status: 'comingSoon',
   },
   // Lab/Sandbox: Platform Admin ONLY — no exception. `roles` here is read
   // from the (impersonation-aware) auth context, so while a real Platform

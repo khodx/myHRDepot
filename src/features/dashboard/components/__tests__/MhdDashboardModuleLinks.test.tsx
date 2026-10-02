@@ -107,18 +107,21 @@ describe('MhdDashboardModuleLinks', () => {
 
     expect(screen.getByRole('link', { name: 'Tasks' })).toHaveAttribute('href', '/tasks');
     expect(screen.getByRole('link', { name: 'Tasks' })).not.toHaveTextContent('Coming Soon');
+    const propertyLink = screen.getByRole('link', { name: 'Property' });
+    expect(propertyLink).toHaveAttribute('href', '/property');
+    expect(propertyLink).toHaveTextContent('Coming Soon');
     const onboardingLink = screen.getByRole('link', { name: 'Onboarding' });
     expect(onboardingLink).toHaveAttribute('href', '/onboarding');
-    expect(onboardingLink).toHaveTextContent('Coming Soon');
+    expect(onboardingLink).not.toHaveTextContent('Coming Soon');
   });
 
-  it('badges a comingSoon child chip inside its parent card', async () => {
+  it('shows a live child chip inside its parent card without a badge', async () => {
     mockAuth(['Platform Admin']);
 
     await renderModuleLinks();
 
     const feedbackLink = screen.getByRole('link', { name: 'Feedback Requests' });
-    expect(feedbackLink).toHaveTextContent('Coming Soon');
+    expect(feedbackLink).not.toHaveTextContent('Coming Soon');
     expect(feedbackLink.closest('.mhd-module-card')).toBe(
       screen.getByRole('link', { name: 'Performance' }).closest('.mhd-module-card'),
     );
@@ -252,11 +255,11 @@ describe('MhdDashboardModuleLinks', () => {
 
     await renderModuleLinks();
 
-    await user.type(screen.getByRole('textbox', { name: 'Search modules' }), 'onboarding');
+    await user.type(screen.getByRole('textbox', { name: 'Search modules' }), 'property');
 
-    const onboardingLink = screen.getByRole('link', { name: 'Onboarding' });
-    expect(onboardingLink).toBeInTheDocument();
-    expect(onboardingLink).toHaveTextContent('Coming Soon');
+    const propertyLink = screen.getByRole('link', { name: 'Property' });
+    expect(propertyLink).toBeInTheDocument();
+    expect(propertyLink).toHaveTextContent('Coming Soon');
   });
 
   it('shows an empty state when nothing matches, with no module cards', async () => {

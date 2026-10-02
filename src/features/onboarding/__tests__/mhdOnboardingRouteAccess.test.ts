@@ -42,16 +42,12 @@ describe('onboarding route access', () => {
     expect(mhdCanAccessRoute('/onboarding/abc-123', ['Viewer'])).toBe(false);
   });
 
-  it('marks /onboarding as coming soon for non-Platform Admin route access', () => {
-    expect(mhdRouteStatus('/onboarding')).toBe('comingSoon');
-    expect(mhdIsRouteComingSoon('/onboarding', ['HR Partner'])).toBe(true);
-    expect(mhdIsRouteComingSoon('/onboarding', ['Client Admin'])).toBe(true);
-    expect(mhdIsRouteComingSoon('/onboarding', ['Platform Admin'])).toBe(false);
-  });
-
-  it('lets /onboarding/:personId inherit the coming soon status via prefix match', () => {
-    expect(mhdIsRouteComingSoon('/onboarding/abc-123', ['Client Admin'])).toBe(true);
-    expect(mhdIsRouteComingSoon('/onboarding/abc-123', ['Platform Admin'])).toBe(false);
+  it('treats /onboarding as live for every role that can reach it', () => {
+    expect(mhdRouteStatus('/onboarding')).toBe('live');
+    for (const role of ['HR Partner', 'Client Admin', 'Platform Admin'] as const) {
+      expect(mhdIsRouteComingSoon('/onboarding', [role])).toBe(false);
+      expect(mhdIsRouteComingSoon('/onboarding/abc-123', [role])).toBe(false);
+    }
   });
 
   it('keeps live routes live regardless of role', () => {
@@ -70,11 +66,11 @@ describe('onboarding route access', () => {
     expect(mhdCanAccessRoute('/offboarding', ['Client Admin'])).toBe(true);
   });
 
-  it('marks /offboarding as coming soon for non-Platform Admin route access', () => {
-    expect(mhdRouteStatus('/offboarding')).toBe('comingSoon');
-    expect(mhdIsRouteComingSoon('/offboarding', ['HR Partner'])).toBe(true);
-    expect(mhdIsRouteComingSoon('/offboarding', ['Client Admin'])).toBe(true);
-    expect(mhdIsRouteComingSoon('/offboarding', ['Platform Admin'])).toBe(false);
+  it('treats /offboarding as live for every role that can reach it', () => {
+    expect(mhdRouteStatus('/offboarding')).toBe('live');
+    for (const role of ['HR Partner', 'Client Admin', 'Platform Admin'] as const) {
+      expect(mhdIsRouteComingSoon('/offboarding', [role])).toBe(false);
+    }
   });
 });
 
