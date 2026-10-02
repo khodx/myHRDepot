@@ -3614,6 +3614,79 @@ export type Database = {
         }
         Relationships: []
       }
+      company_document_branding: {
+        Row: {
+          accent_color: string
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          font_family: string
+          footer_text: string | null
+          header_text: string | null
+          id: string
+          logo_data_uri: string | null
+          reference_id: string
+          show_page_numbers: boolean
+          show_reference_id: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          accent_color: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          font_family: string
+          footer_text?: string | null
+          header_text?: string | null
+          id?: string
+          logo_data_uri?: string | null
+          reference_id: string
+          show_page_numbers?: boolean
+          show_reference_id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          accent_color?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          font_family?: string
+          footer_text?: string | null
+          header_text?: string | null
+          id?: string
+          logo_data_uri?: string | null
+          reference_id?: string
+          show_page_numbers?: boolean
+          show_reference_id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_document_branding_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_document_branding_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_document_branding_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_holidays: {
         Row: {
           company_id: string
@@ -4952,17 +5025,193 @@ export type Database = {
           },
         ]
       }
-      document_generations: {
+      document_entity_types: {
+        Row: {
+          company_column: string
+          created_at: string
+          entity_type: string
+          id_column: string
+          label: string
+          merge_builder: string | null
+          person_column: string | null
+          sensitivity_level: string
+          source_table: string
+        }
+        Insert: {
+          company_column?: string
+          created_at?: string
+          entity_type: string
+          id_column?: string
+          label: string
+          merge_builder?: string | null
+          person_column?: string | null
+          sensitivity_level?: string
+          source_table: string
+        }
+        Update: {
+          company_column?: string
+          created_at?: string
+          entity_type?: string
+          id_column?: string
+          label?: string
+          merge_builder?: string | null
+          person_column?: string | null
+          sensitivity_level?: string
+          source_table?: string
+        }
+        Relationships: []
+      }
+      document_generation_queue: {
         Row: {
           company_id: string
           created_at: string
+          dismissed_at: string | null
+          dismissed_by: string | null
+          dismissed_reason: string | null
+          employee_file_category: string | null
+          entity_id: string
+          entity_type: string
+          failure_reason: string | null
+          generated_at: string | null
+          generated_by: string | null
+          generation_id: string | null
+          id: string
+          merge_overrides: Json
+          narrative_sections: Json
+          output_format: string
+          queued_at: string
+          queued_by: string | null
+          reference_id: string
+          requires_signature: boolean
+          sensitivity_level: string
+          source_wizard: string
+          status: string
+          subject_person_id: string | null
+          template_key: string
+          updated_at: string
+          wizard_inputs: Json
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          dismissed_reason?: string | null
+          employee_file_category?: string | null
+          entity_id: string
+          entity_type: string
+          failure_reason?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          generation_id?: string | null
+          id?: string
+          merge_overrides?: Json
+          narrative_sections?: Json
+          output_format?: string
+          queued_at?: string
+          queued_by?: string | null
+          reference_id: string
+          requires_signature?: boolean
+          sensitivity_level?: string
+          source_wizard: string
+          status?: string
+          subject_person_id?: string | null
+          template_key: string
+          updated_at?: string
+          wizard_inputs?: Json
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          dismissed_reason?: string | null
+          employee_file_category?: string | null
+          entity_id?: string
+          entity_type?: string
+          failure_reason?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          generation_id?: string | null
+          id?: string
+          merge_overrides?: Json
+          narrative_sections?: Json
+          output_format?: string
+          queued_at?: string
+          queued_by?: string | null
+          reference_id?: string
+          requires_signature?: boolean
+          sensitivity_level?: string
+          source_wizard?: string
+          status?: string
+          subject_person_id?: string | null
+          template_key?: string
+          updated_at?: string
+          wizard_inputs?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_generation_queue_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generation_queue_dismissed_by_fkey"
+            columns: ["dismissed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generation_queue_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generation_queue_generation_id_fkey"
+            columns: ["generation_id"]
+            isOneToOne: false
+            referencedRelation: "document_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generation_queue_queued_by_fkey"
+            columns: ["queued_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generation_queue_subject_person_id_fkey"
+            columns: ["subject_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_generations: {
+        Row: {
+          branding_snapshot: Json | null
+          company_id: string
+          created_at: string
           created_by: string | null
+          edited_at: string | null
+          edited_by: string | null
+          employee_file_category: string | null
           entity_id: string
           entity_type: string
           esignature_request_id: string | null
           generated_at: string | null
           id: string
           merge_data: Json
+          merge_data_original: Json | null
+          merge_overrides: Json
+          narrative_sections: Json
           output_document_hash: string | null
           output_drive_file_id: string | null
           output_file_name: string | null
@@ -4977,15 +5226,22 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          branding_snapshot?: Json | null
           company_id: string
           created_at?: string
           created_by?: string | null
+          edited_at?: string | null
+          edited_by?: string | null
+          employee_file_category?: string | null
           entity_id: string
           entity_type: string
           esignature_request_id?: string | null
           generated_at?: string | null
           id?: string
           merge_data?: Json
+          merge_data_original?: Json | null
+          merge_overrides?: Json
+          narrative_sections?: Json
           output_document_hash?: string | null
           output_drive_file_id?: string | null
           output_file_name?: string | null
@@ -5000,15 +5256,22 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          branding_snapshot?: Json | null
           company_id?: string
           created_at?: string
           created_by?: string | null
+          edited_at?: string | null
+          edited_by?: string | null
+          employee_file_category?: string | null
           entity_id?: string
           entity_type?: string
           esignature_request_id?: string | null
           generated_at?: string | null
           id?: string
           merge_data?: Json
+          merge_data_original?: Json | null
+          merge_overrides?: Json
+          narrative_sections?: Json
           output_document_hash?: string | null
           output_drive_file_id?: string | null
           output_file_name?: string | null
@@ -5033,6 +5296,13 @@ export type Database = {
           {
             foreignKeyName: "document_generations_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generations_edited_by_fkey"
+            columns: ["edited_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -5477,6 +5747,63 @@ export type Database = {
           },
         ]
       }
+      document_template_versions: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          content: string
+          content_format: string
+          id: string
+          merge_fields: Json
+          name: string
+          narrative_slots: Json
+          requires_signature: boolean
+          template_id: string
+          version: number
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          content: string
+          content_format: string
+          id?: string
+          merge_fields?: Json
+          name: string
+          narrative_slots?: Json
+          requires_signature?: boolean
+          template_id: string
+          version: number
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          content?: string
+          content_format?: string
+          id?: string
+          merge_fields?: Json
+          name?: string
+          narrative_slots?: Json
+          requires_signature?: boolean
+          template_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_template_versions_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_templates: {
         Row: {
           applicable_entity_type: string | null
@@ -5490,12 +5817,14 @@ export type Database = {
           deleted_at: string | null
           deleted_by: string | null
           description: string | null
+          employee_file_category: string | null
           id: string
           is_active: boolean
           is_deleted: boolean
           is_system: boolean
           merge_fields: Json
           name: string
+          narrative_slots: Json
           reference_id: string
           requires_signature: boolean
           template_key: string | null
@@ -5516,12 +5845,14 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
+          employee_file_category?: string | null
           id?: string
           is_active?: boolean
           is_deleted?: boolean
           is_system?: boolean
           merge_fields?: Json
           name: string
+          narrative_slots?: Json
           reference_id: string
           requires_signature?: boolean
           template_key?: string | null
@@ -5542,12 +5873,14 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
+          employee_file_category?: string | null
           id?: string
           is_active?: boolean
           is_deleted?: boolean
           is_system?: boolean
           merge_fields?: Json
           name?: string
+          narrative_slots?: Json
           reference_id?: string
           requires_signature?: boolean
           template_key?: string | null
@@ -10900,6 +11233,7 @@ export type Database = {
           id: string
           jurisdictions: string[]
           reference_id: string
+          requires_signature: boolean
           status: string
           title: string
           updated_at: string | null
@@ -10915,6 +11249,7 @@ export type Database = {
           id?: string
           jurisdictions?: string[]
           reference_id: string
+          requires_signature?: boolean
           status?: string
           title: string
           updated_at?: string | null
@@ -10930,6 +11265,7 @@ export type Database = {
           id?: string
           jurisdictions?: string[]
           reference_id?: string
+          requires_signature?: boolean
           status?: string
           title?: string
           updated_at?: string | null
@@ -25277,6 +25613,29 @@ export type Database = {
           },
         ]
       }
+      v_document_entity_conduct_action: {
+        Row: {
+          company_id: string | null
+          id: string | null
+          person_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conduct_cases_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conduct_cases_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_employment_applications_validity: {
         Row: {
           applicant_first_name: string | null
@@ -27757,6 +28116,212 @@ export type Database = {
       }
       mhd_dispatch_form_workflow_webhooks: { Args: never; Returns: number }
       mhd_dispatch_notification_emails: { Args: never; Returns: number }
+      mhd_document_assert_no_prohibited_content: {
+        Args: { p_data: Json; p_scan_values?: boolean }
+        Returns: undefined
+      }
+      mhd_document_branding_get: {
+        Args: { p_company_id: string }
+        Returns: {
+          accent_color: string
+          company_id: string
+          font_family: string
+          footer_text: string
+          header_text: string
+          id: string
+          is_platform_default: boolean
+          logo_data_uri: string
+          show_page_numbers: boolean
+          show_reference_id: boolean
+        }[]
+      }
+      mhd_document_branding_upsert: {
+        Args: {
+          p_accent_color: string
+          p_company_id: string
+          p_font_family: string
+          p_footer_text: string
+          p_header_text: string
+          p_logo_data_uri: string
+          p_show_page_numbers?: boolean
+          p_show_reference_id?: boolean
+        }
+        Returns: string
+      }
+      mhd_document_compose_edits: {
+        Args: {
+          p_base: Json
+          p_declared: Json
+          p_narrative: Json
+          p_overrides: Json
+          p_slots: Json
+        }
+        Returns: Json
+      }
+      mhd_document_entity_lookup: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: Record<string, unknown>
+      }
+      mhd_document_generation_apply_edits: {
+        Args: {
+          p_generation_id: string
+          p_narrative?: Json
+          p_overrides?: Json
+        }
+        Returns: undefined
+      }
+      mhd_document_generation_set_employee_file_category: {
+        Args: { p_category: string; p_generation_id: string }
+        Returns: undefined
+      }
+      mhd_document_preview_context: {
+        Args: {
+          p_company_id: string
+          p_custom?: Json
+          p_entity_id: string
+          p_entity_type: string
+          p_narrative?: Json
+          p_overrides?: Json
+          p_template_id: string
+        }
+        Returns: Json
+      }
+      mhd_document_queue_can_act: {
+        Args: { p_queued_by: string }
+        Returns: boolean
+      }
+      mhd_document_queue_dismiss: {
+        Args: { p_queue_id: string; p_reason: string }
+        Returns: undefined
+      }
+      mhd_document_queue_enqueue: {
+        Args: {
+          p_company_id: string
+          p_employee_file_category?: string
+          p_entity_id: string
+          p_entity_type: string
+          p_merge_overrides?: Json
+          p_narrative_sections?: Json
+          p_output_format?: string
+          p_requires_signature?: boolean
+          p_source_wizard: string
+          p_template_key: string
+          p_wizard_inputs?: Json
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_document_queue_generate: {
+        Args: { p_queue_id: string }
+        Returns: {
+          generation_id: string
+          generation_reference_id: string
+          template_id: string
+        }[]
+      }
+      mhd_document_queue_get: {
+        Args: { p_queue_id: string }
+        Returns: {
+          company_id: string
+          employee_file_category: string
+          entity_id: string
+          entity_type: string
+          failure_reason: string
+          generation_id: string
+          id: string
+          merge_overrides: Json
+          narrative_sections: Json
+          output_format: string
+          queued_at: string
+          queued_by: string
+          reference_id: string
+          requires_signature: boolean
+          source_wizard: string
+          status: string
+          subject_person_id: string
+          template_key: string
+          wizard_inputs: Json
+        }[]
+      }
+      mhd_document_queue_list: {
+        Args: {
+          p_company_id: string
+          p_entity_id?: string
+          p_entity_type?: string
+          p_status?: string
+          p_subject_person_id?: string
+        }
+        Returns: {
+          company_id: string
+          employee_file_category: string
+          entity_id: string
+          entity_type: string
+          failure_reason: string
+          generated_at: string
+          generation_id: string
+          generation_status: string
+          id: string
+          output_format: string
+          queued_at: string
+          queued_by: string
+          queued_by_name: string
+          reference_id: string
+          requires_signature: boolean
+          source_wizard: string
+          status: string
+          subject_person_id: string
+          subject_person_name: string
+          template_key: string
+          template_name: string
+        }[]
+      }
+      mhd_document_queue_update_edits: {
+        Args: {
+          p_merge_overrides?: Json
+          p_narrative_sections?: Json
+          p_queue_id: string
+        }
+        Returns: undefined
+      }
+      mhd_document_resolve_template: {
+        Args: { p_company_id: string; p_template_key: string }
+        Returns: {
+          applicable_entity_type: string | null
+          company_id: string | null
+          compliance_content_key: string | null
+          compliance_module_key: string | null
+          content: string
+          content_format: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string | null
+          employee_file_category: string | null
+          id: string
+          is_active: boolean
+          is_deleted: boolean
+          is_system: boolean
+          merge_fields: Json
+          name: string
+          narrative_slots: Json
+          reference_id: string
+          requires_signature: boolean
+          template_key: string | null
+          template_type: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "document_templates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       mhd_document_retention_schedule_list: {
         Args: { p_company_id: string; p_entity_type?: string }
         Returns: {
@@ -27766,6 +28331,50 @@ export type Database = {
           id: string
           retention_basis: string
           retention_expires_at: string
+        }[]
+      }
+      mhd_document_template_fork: {
+        Args: { p_company_id: string; p_template_id: string }
+        Returns: {
+          already_existed: boolean
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_document_template_set_wizard_settings: {
+        Args: {
+          p_employee_file_category: string
+          p_narrative_slots: Json
+          p_template_id: string
+        }
+        Returns: undefined
+      }
+      mhd_document_template_versions: {
+        Args: { p_template_id: string }
+        Returns: {
+          changed_at: string
+          changed_by: string
+          changed_by_name: string
+          content: string
+          content_format: string
+          name: string
+          requires_signature: boolean
+          version: number
+        }[]
+      }
+      mhd_document_template_wizard_settings: {
+        Args: { p_template_id: string }
+        Returns: {
+          company_id: string
+          compliance_content_key: string
+          compliance_module_key: string
+          employee_file_category: string
+          id: string
+          is_system: boolean
+          narrative_slots: Json
+          requires_signature: boolean
+          template_key: string
+          version: number
         }[]
       }
       mhd_edit_message: {
@@ -27839,7 +28448,11 @@ export type Database = {
         }[]
       }
       mhd_fork_handbook_section: {
-        Args: { p_company_id: string; p_source_section_id: string }
+        Args: {
+          p_company_id: string
+          p_include_descendants?: boolean
+          p_source_section_id: string
+        }
         Returns: {
           id: string
         }[]
@@ -28794,6 +29407,8 @@ export type Database = {
         Returns: {
           acknowledged_at: string
           due_at: string
+          esignature_request_id: string
+          esignature_status: string
           id: string
           person_display_name: string
           person_id: string
@@ -28813,6 +29428,10 @@ export type Database = {
       }
       mhd_handbook_archive: {
         Args: { p_handbook_id: string }
+        Returns: undefined
+      }
+      mhd_handbook_assert_ack_document_allowed: {
+        Args: { p_ack_id: string }
         Returns: undefined
       }
       mhd_handbook_assert_export_allowed: {
@@ -28848,6 +29467,10 @@ export type Database = {
       }
       mhd_handbook_inline_html: { Args: { p_text: string }; Returns: string }
       mhd_handbook_is_privileged: { Args: never; Returns: boolean }
+      mhd_handbook_link_signature: {
+        Args: { p_ack_id: string; p_esignature_request_id: string }
+        Returns: undefined
+      }
       mhd_handbook_list: {
         Args: { p_company_id: string }
         Returns: {
@@ -28859,6 +29482,7 @@ export type Database = {
           id: string
           jurisdictions: string[]
           reference_id: string
+          requires_signature: boolean
           status: string
           title: string
         }[]
@@ -28873,6 +29497,7 @@ export type Database = {
           handbook_type: string
           handbook_version_id: string
           id: string
+          requires_signature: boolean
           status: string
           version_number: number
         }[]
@@ -28934,7 +29559,11 @@ export type Database = {
         }[]
       }
       mhd_handbook_set_ack_policy: {
-        Args: { p_due_days: number; p_handbook_id: string }
+        Args: {
+          p_due_days: number
+          p_handbook_id: string
+          p_requires_signature?: boolean
+        }
         Returns: undefined
       }
       mhd_handbook_toggle_section: {
@@ -30575,6 +31204,27 @@ export type Database = {
           form_id: string
           form_name: string
           form_status: string
+        }[]
+      }
+      mhd_list_employee_file_documents: {
+        Args: { p_person_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          created_by_name: string
+          employee_file_category: string
+          entity_id: string
+          entity_type: string
+          esignature_request_id: string
+          generated_at: string
+          id: string
+          output_drive_file_id: string
+          output_file_name: string
+          output_format: string
+          reference_id: string
+          status: string
+          template_key: string
+          template_name: string
         }[]
       }
       mhd_list_employee_file_submissions: {

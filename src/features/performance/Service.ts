@@ -4,10 +4,7 @@ import { mhdActivityService } from '@/features/activities/Service';
 import { mhdEsignatureService } from '@/features/esignature/Service';
 import type { MhdActivity, MhdUpdateActivityInput } from '@/features/activities/Types';
 import type { MhdEsignatureSignerInput } from '@/features/esignature/Types';
-import {
-  mhdPollDocumentGenerationUntilGenerated,
-  mhdRenderDocumentGeneration,
-} from '@/features/documents/Service';
+import { mhdIssueGeneratedDocument } from '@/features/documents/Service';
 import { mhdJobsService } from '@/features/jobs/Service';
 import type { MhdJobDescriptionDisclaimerCurrent } from '@/features/jobs/Types';
 import type {
@@ -41,9 +38,6 @@ import { mhdFormatPerformanceReviewType } from './Types';
 // the current schema size (TS2589). A direct call only instantiates for the
 // literal RPC name at that call site, so the generated argument and return
 // types are still fully checked.
-
-const DEFAULT_GENERATION_POLL_ATTEMPTS = 10;
-const DEFAULT_GENERATION_POLL_INTERVAL_MS = 1500;
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -403,77 +397,36 @@ export const mhdPerformanceService = {
       .listCurrentJobDescriptionDisclaimers(review.companyId)
       .catch(() => []);
 
-    input.onStep?.(1);
-    // Step 1 — request the document generation.
-    const { data: generationData, error: generationError } = await supabaseClient
-      .rpc('mhd_request_document_generation', {
-        p_company_id: review.companyId,
-        p_template_id: templateId,
-        p_entity_type: 'PERFORMANCE_REVIEW',
-        p_entity_id: review.id,
-        p_merge_data: buildReviewMergeData(review, disclaimers) as Json,
-        ...(input.actorUserId ? { p_actor_user_id: input.actorUserId } : {}),
-      })
-      .returns<Array<{ id: string; reference_id: string; status: string }>>();
-
-    if (generationError) {
-      throw new Error(
-        `Finalize step 1 (request document generation) failed: ${generationError.message}`,
-      );
-    }
-
-    const generationId = generationData?.[0]?.id;
-    if (!generationId) {
-      throw new Error(
-        'Finalize step 1 (request document generation) failed: no generation id returned.',
-      );
-    }
-
-    input.onStep?.(2);
-    // Step 2 — render the document via the edge function.
-    await mhdRenderDocumentGeneration(generationId, 'Finalize step 2 (render document)');
-
-    input.onStep?.(3);
-    // Step 3 — wait for the generation row to reach GENERATED.
-    const generation = await mhdPollDocumentGenerationUntilGenerated(generationId, {
-      attempts: input.pollAttempts ?? DEFAULT_GENERATION_POLL_ATTEMPTS,
-      intervalMs: input.pollIntervalMs ?? DEFAULT_GENERATION_POLL_INTERVAL_MS,
-      timeoutHint: 'Retry the finalize action once rendering finishes.',
+    // Steps 1-5 (request, render, poll, hash, signature request for the review subject)
+    // are the shared ceremony.
+    const issued = await mhdIssueGeneratedDocument({
+      label: 'Finalize',
+      retryHint: 'Retry the finalize action once rendering finishes.',
+      companyId: review.companyId,
+      templateId,
+      entityType: 'PERFORMANCE_REVIEW',
+      entityId: review.id,
+      mergeData: buildReviewMergeData(review, disclaimers) as Json,
+      actorUserId: input.actorUserId,
+      manualDocumentHash: input.manualDocumentHash,
+      pollAttempts: input.pollAttempts,
+      pollIntervalMs: input.pollIntervalMs,
+      onStep: input.onStep,
+      signing: {
+        createRequest: async ({ generationId, documentHash }) => {
+          const result = await mhdEsignatureService.createRequestFromGeneratedDocument({
+            companyId: review.companyId,
+            generationId,
+            documentHash,
+            signers: [mapSignerInput(input.signer)],
+            signingOrder: 'SEQUENTIAL',
+            ...(input.expiresAt ? { expiresAt: input.expiresAt } : {}),
+          });
+          return { requestId: result.request.id, invitationErrors: result.invitationErrors };
+        },
+      },
     });
-
-    input.onStep?.(4);
-    // Step 4 — resolve the document hash (04.8 auto-stamp, manual fallback).
-    const documentHash =
-      trimmedOrUndefined(generation.output_document_hash) ??
-      trimmedOrUndefined(input.manualDocumentHash);
-
-    if (!documentHash) {
-      throw new Error(
-        'Finalize step 4 (document hash) failed: the generation has no auto-stamped hash and no manual hash was provided.',
-      );
-    }
-
-    input.onStep?.(5);
-    // Step 5 — create the signature request from the generated document.
-    let esignatureRequestId: string;
-    let invitationErrors: string[];
-    try {
-      const result = await mhdEsignatureService.createRequestFromGeneratedDocument({
-        companyId: review.companyId,
-        generationId,
-        documentHash,
-        signers: [mapSignerInput(input.signer)],
-        signingOrder: 'SEQUENTIAL',
-        ...(input.expiresAt ? { expiresAt: input.expiresAt } : {}),
-      });
-      esignatureRequestId = result.request.id;
-      invitationErrors = result.invitationErrors;
-    } catch (cause) {
-      throw new Error(
-        `Finalize step 5 (create signature request) failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-        { cause },
-      );
-    }
+    const { generationId, documentHash, esignatureRequestId, invitationErrors } = issued;
 
     input.onStep?.(6);
     // Step 6 — store the soft links on the review.

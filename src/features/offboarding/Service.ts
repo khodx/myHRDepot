@@ -5,10 +5,7 @@ import { mhdEsignatureService } from '@/features/esignature/Service';
 import { mhdPropertyService } from '@/features/property/Service';
 import type { MhdActivity, MhdUpdateActivityInput } from '@/features/activities/Types';
 import type { MhdPropertyAssignment } from '@/features/property/Types';
-import {
-  mhdPollDocumentGenerationUntilGenerated,
-  mhdRenderDocumentGeneration,
-} from '@/features/documents/Service';
+import { mhdIssueGeneratedDocument } from '@/features/documents/Service';
 import type {
   MhdCreateOffboardingCaseInput,
   MhdCreateOffboardingItemInput,
@@ -31,9 +28,6 @@ import { mhdFormatSeparationType } from './Types';
 // exceeds the TypeScript instantiation depth limit (TS2589) at this schema size.
 // A direct call instantiates only the matching overload, so argument and return
 // types remain fully checked.
-
-const DEFAULT_GENERATION_POLL_ATTEMPTS = 10;
-const DEFAULT_GENERATION_POLL_INTERVAL_MS = 1500;
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
   if (value == null) return undefined;
@@ -444,90 +438,46 @@ export const mhdOffboardingService = {
       }
     }
 
-    input.onStep?.(1);
-    // Step 1 — request the document generation.
-    const { data: generationData, error: generationError } = await supabaseClient
-      .rpc('mhd_request_document_generation', {
-        p_company_id: offboardingCase.companyId,
-        p_template_id: templateId,
-        p_entity_type: 'OFFBOARDING_CASE',
-        p_entity_id: offboardingCase.id,
-        p_merge_data: buildExitAcknowledgmentMergeData(offboardingCase) as Json,
-        ...(input.actorUserId ? { p_actor_user_id: input.actorUserId } : {}),
-      })
-      .returns<Array<{ id: string; reference_id: string; status: string }>>();
-
-    if (generationError) {
-      throw new Error(
-        `Exit document step 1 (request document generation) failed: ${generationError.message}`,
-      );
-    }
-
-    const generationId = generationData?.[0]?.id;
-    if (!generationId) {
-      throw new Error(
-        'Exit document step 1 (request document generation) failed: no generation id returned.',
-      );
-    }
-
-    input.onStep?.(2);
-    // Step 2 — render the document via the edge function.
-    await mhdRenderDocumentGeneration(generationId, 'Exit document step 2 (render document)');
-
-    input.onStep?.(3);
-    // Step 3 — wait for the generation row to reach GENERATED.
-    const generation = await mhdPollDocumentGenerationUntilGenerated(generationId, {
-      attempts: input.pollAttempts ?? DEFAULT_GENERATION_POLL_ATTEMPTS,
-      intervalMs: input.pollIntervalMs ?? DEFAULT_GENERATION_POLL_INTERVAL_MS,
-      timeoutHint: 'Retry the generate action once rendering finishes.',
+    // Steps 1-5 (request, render, poll, hash, signature request with the separating
+    // employee as the sole external signer) are the shared ceremony.
+    const issued = await mhdIssueGeneratedDocument({
+      label: 'Exit document',
+      retryHint: 'Retry the generate action once rendering finishes.',
+      companyId: offboardingCase.companyId,
+      templateId,
+      entityType: 'OFFBOARDING_CASE',
+      entityId: offboardingCase.id,
+      mergeData: buildExitAcknowledgmentMergeData(offboardingCase) as Json,
+      actorUserId: input.actorUserId,
+      manualDocumentHash: input.manualDocumentHash,
+      pollAttempts: input.pollAttempts,
+      pollIntervalMs: input.pollIntervalMs,
+      onStep: input.onStep,
+      signing: {
+        createRequest: async ({ generationId, documentHash }) => {
+          const externalEmail = trimmedOrUndefined(offboardingCase.personPrimaryEmail);
+          if (!externalEmail) {
+            throw new Error('the separating employee has no primary email on record.');
+          }
+          const result = await mhdEsignatureService.createRequestFromGeneratedDocument({
+            companyId: offboardingCase.companyId,
+            generationId,
+            documentHash,
+            signers: [
+              {
+                kind: 'external',
+                externalEmail,
+                externalName: offboardingCase.personDisplayName,
+              },
+            ],
+            signingOrder: 'SEQUENTIAL',
+            ...(input.expiresAt ? { expiresAt: input.expiresAt } : {}),
+          });
+          return { requestId: result.request.id, invitationErrors: result.invitationErrors };
+        },
+      },
     });
-
-    input.onStep?.(4);
-    // Step 4 — resolve the document hash (04.8 auto-stamp, manual fallback).
-    const documentHash =
-      trimmedOrUndefined(generation.output_document_hash) ??
-      trimmedOrUndefined(input.manualDocumentHash);
-
-    if (!documentHash) {
-      throw new Error(
-        'Exit document step 4 (document hash) failed: the generation has no auto-stamped hash and no manual hash was provided.',
-      );
-    }
-
-    input.onStep?.(5);
-    // Step 5 — create the signature request with the subject as external signer.
-    const externalEmail = trimmedOrUndefined(offboardingCase.personPrimaryEmail);
-    if (!externalEmail) {
-      throw new Error(
-        'Exit document step 5 (create signature request) failed: the separating employee has no primary email on record.',
-      );
-    }
-
-    let esignatureRequestId: string;
-    let invitationErrors: string[];
-    try {
-      const result = await mhdEsignatureService.createRequestFromGeneratedDocument({
-        companyId: offboardingCase.companyId,
-        generationId,
-        documentHash,
-        signers: [
-          {
-            kind: 'external',
-            externalEmail,
-            externalName: offboardingCase.personDisplayName,
-          },
-        ],
-        signingOrder: 'SEQUENTIAL',
-        ...(input.expiresAt ? { expiresAt: input.expiresAt } : {}),
-      });
-      esignatureRequestId = result.request.id;
-      invitationErrors = result.invitationErrors;
-    } catch (cause) {
-      throw new Error(
-        `Exit document step 5 (create signature request) failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-        { cause },
-      );
-    }
+    const { generationId, documentHash, esignatureRequestId, invitationErrors } = issued;
 
     input.onStep?.(6);
     // Step 6 — link the request as evidence on the seeded exit_acknowledgment item.

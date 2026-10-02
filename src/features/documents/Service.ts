@@ -686,3 +686,13 @@ export {
   mhdRenderDocumentGeneration,
   mhdPollDocumentGenerationUntilGenerated,
 } from './generationEngine';
+
+// The shared request -> render -> poll -> hash -> signature-request ceremony. Conduct,
+// Offboarding and Performance each carried a copy of these five steps; they now call this.
+export {
+  mhdIssueGeneratedDocument,
+  type MhdIssueDocumentInput,
+  type MhdIssueDocumentResult,
+  type MhdIssueDocumentSignatureResult,
+  type MhdIssueSignedDocumentResult,
+} from './issueDocument';
