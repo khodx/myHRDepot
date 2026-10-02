@@ -33,6 +33,15 @@ export const mhdConductActionDocumentPayloadSchema = z
     consequencesText: mhdOptionalPayloadText,
     extenuatingCircumstancesConsidered: mhdOptionalPayloadText,
     extenuatingCircumstancesExplanation: mhdOptionalPayloadText,
+    severityRecommendation: z
+      .object({
+        recommended: z.enum(MHD_CONDUCT_SEVERITIES),
+        chosen: z.enum(MHD_CONDUCT_SEVERITIES),
+        overrideReason: z.string().max(2000).nullable(),
+        ruleId: z.string().nullable(),
+      })
+      .optional()
+      .nullable(),
   })
   .optional()
   .nullable();

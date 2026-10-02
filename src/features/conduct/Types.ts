@@ -117,6 +117,19 @@ export interface MhdConductActionDocumentPayload {
   consequencesText?: string | null;
   extenuatingCircumstancesConsidered?: string | null;
   extenuatingCircumstancesExplanation?: string | null;
+  /**
+   * What the progressive-discipline tool recommended, what a person chose, and why the two differ.
+   * Kept with the action so the decision is evidence, not memory.
+   */
+  severityRecommendation?: MhdConductSeverityChoice | null;
+}
+
+/** The record of a human confirming or overriding the recommended rung. */
+export interface MhdConductSeverityChoice {
+  recommended: MhdConductSeverity;
+  chosen: MhdConductSeverity;
+  overrideReason: string | null;
+  ruleId: string | null;
 }
 
 export const MHD_CONDUCT_CATEGORIES = [
@@ -366,4 +379,68 @@ export function mhdIsConductCaseCloseable(
   conductCase: Pick<MhdConductCase, 'status' | 'actionCount' | 'terminalCount'>,
 ): boolean {
   return conductCase.status === 'OPEN' && conductCase.actionCount === conductCase.terminalCount;
+}
+
+// ---------------------------------------------------------------------------
+// Intake wizard support (0365)
+// ---------------------------------------------------------------------------
+
+/** Row shape returned by `mhd_conduct_person_context`. */
+export interface MhdConductPersonContextRpcRow {
+  company_name: string | null;
+  position_title: string | null;
+  department: string | null;
+  supervisor_name: string | null;
+  date_of_hire: string | null;
+  facility_location: string | null;
+}
+
+/** Row shape returned by `mhd_conduct_person_history`. */
+export interface MhdConductHistoryRpcRow {
+  source: string;
+  reference_id: string | null;
+  occurred_at: string;
+  category: string;
+  severity: string | null;
+  status: string;
+  summary: string | null;
+}
+
+/** Who the employee is for the notice — read from People / Jobs / Companies, never typed twice. */
+export interface MhdConductPersonContext {
+  companyName: string | null;
+  positionTitle: string | null;
+  department: string | null;
+  supervisorName: string | null;
+  dateOfHire: string | null;
+  facilityLocation: string | null;
+}
+
+export type MhdConductHistorySource = 'CONDUCT_ACTION' | 'ATTENDANCE_THRESHOLD';
+
+export interface MhdConductHistoryEntry {
+  source: MhdConductHistorySource;
+  referenceId: string | null;
+  occurredAt: string;
+  category: string;
+  severity: MhdConductSeverity | null;
+  status: string;
+  summary: string | null;
+}
+
+export interface MhdConductSeverityRecommendation {
+  recommendedSeverity: MhdConductSeverity;
+  ladder: MhdConductSeverity[];
+  lookbackMonths: number;
+  ruleId: string;
+  ruleScope: 'PLATFORM' | 'COMPANY';
+  /** The last rung was already reached inside the window; the tool recommends nothing further. */
+  exhausted: boolean;
+  priorActions: Array<{
+    referenceId: string;
+    severity: MhdConductSeverity;
+    status: string;
+    issuedAt: string;
+  }>;
+  note: string;
 }

@@ -10,7 +10,14 @@ import type {
   MhdConductCase,
   MhdConductCaseFilters,
   MhdConductCaseRpcRow,
+  MhdConductHistoryEntry,
+  MhdConductHistoryRpcRow,
   MhdConductMutationRpcRow,
+  MhdConductPersonContext,
+  MhdConductPersonContextRpcRow,
+  MhdConductSeverity,
+  MhdConductSeverityChoice,
+  MhdConductSeverityRecommendation,
   MhdCreateConductActionInput,
   MhdCreateConductCaseInput,
   MhdIssueConductActionInput,
@@ -64,6 +71,19 @@ function mapDocumentPayload(value: Json | null | undefined): MhdConductActionDoc
     consequencesText: stringOrNull(payload.consequencesText),
     extenuatingCircumstancesConsidered: stringOrNull(payload.extenuatingCircumstancesConsidered),
     extenuatingCircumstancesExplanation: stringOrNull(payload.extenuatingCircumstancesExplanation),
+    severityRecommendation: mapSeverityChoice(payload.severityRecommendation),
+  };
+}
+
+function mapSeverityChoice(value: unknown): MhdConductSeverityChoice | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const choice = value as Record<string, unknown>;
+  if (typeof choice.recommended !== 'string' || typeof choice.chosen !== 'string') return null;
+  return {
+    recommended: choice.recommended as MhdConductSeverity,
+    chosen: choice.chosen as MhdConductSeverity,
+    overrideReason: stringOrNull(choice.overrideReason),
+    ruleId: stringOrNull(choice.ruleId),
   };
 }
 
@@ -317,6 +337,74 @@ export const mhdConductService = {
     }
 
     return ((data ?? []) as unknown as MhdConductActionRpcRow[]).map(mapActionRow);
+  },
+
+  // -------------------------------------------------------------------------
+  // Intake wizard support (0365): context, prior history, ladder recommendation
+  // -------------------------------------------------------------------------
+
+  async getPersonContext(personId: string): Promise<MhdConductPersonContext | null> {
+    const { data, error } = await supabaseClient.rpc('mhd_conduct_person_context', {
+      p_person_id: personId,
+    });
+    if (error) throw new Error(`Unable to load the employee's details: ${error.message}`);
+    const row = ((data ?? []) as unknown as MhdConductPersonContextRpcRow[])[0];
+    if (!row) return null;
+    return {
+      companyName: row.company_name,
+      positionTitle: row.position_title,
+      department: row.department,
+      supervisorName: row.supervisor_name,
+      dateOfHire: row.date_of_hire,
+      facilityLocation: row.facility_location,
+    };
+  },
+
+  async listPersonHistory(personId: string, months?: number): Promise<MhdConductHistoryEntry[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_conduct_person_history', {
+      p_person_id: personId,
+      ...(months ? { p_months: months } : {}),
+    });
+    if (error) throw new Error(`Unable to load prior history: ${error.message}`);
+    return ((data ?? []) as unknown as MhdConductHistoryRpcRow[]).map((row) => ({
+      source: row.source as MhdConductHistoryEntry['source'],
+      referenceId: row.reference_id,
+      occurredAt: row.occurred_at,
+      category: row.category,
+      severity: row.severity as MhdConductSeverity | null,
+      status: row.status,
+      summary: row.summary,
+    }));
+  },
+
+  async recommendSeverity(
+    personId: string,
+    category: string,
+  ): Promise<MhdConductSeverityRecommendation> {
+    const { data, error } = await supabaseClient.rpc('mhd_conduct_recommend_severity', {
+      p_person_id: personId,
+      p_category: category,
+    });
+    if (error) {
+      throw new Error(`Unable to load the progressive-discipline recommendation: ${error.message}`);
+    }
+    const raw = data as Record<string, unknown> | null;
+    if (!raw) throw new Error('The progressive-discipline recommendation returned nothing.');
+    return {
+      recommendedSeverity: raw.recommended_severity as MhdConductSeverity,
+      ladder: (raw.ladder as MhdConductSeverity[]) ?? [],
+      lookbackMonths: Number(raw.lookback_months),
+      ruleId: String(raw.rule_id),
+      ruleScope: raw.rule_scope === 'COMPANY' ? 'COMPANY' : 'PLATFORM',
+      exhausted: Boolean(raw.exhausted),
+      priorActions: ((raw.prior_actions as Array<Record<string, unknown>>) ?? []).map((prior) => ({
+        referenceId: String(prior.reference_id),
+        severity: prior.severity as MhdConductSeverity,
+        status: String(prior.status),
+        issuedAt: String(prior.issued_at),
+      })),
+      note: String(raw.note ?? ''),
+    };
   },
 
   async createAction(input: MhdCreateConductActionInput): Promise<MhdConductMutationRpcRow> {

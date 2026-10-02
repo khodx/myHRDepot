@@ -4280,6 +4280,60 @@ export type Database = {
           },
         ]
       }
+      conduct_discipline_ladder_rules: {
+        Row: {
+          category: string
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          ladder: string[]
+          lookback_months: number
+          rationale: string
+        }
+        Insert: {
+          category: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          ladder: string[]
+          lookback_months: number
+          rationale: string
+        }
+        Update: {
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          ladder?: string[]
+          lookback_months?: number
+          rationale?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conduct_discipline_ladder_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conduct_discipline_ladder_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_methods: {
         Row: {
           contact_type: string
@@ -27203,6 +27257,33 @@ export type Database = {
           id: string
           reference_id: string
         }[]
+      }
+      mhd_conduct_person_context: {
+        Args: { p_person_id: string }
+        Returns: {
+          company_name: string
+          date_of_hire: string
+          department: string
+          facility_location: string
+          position_title: string
+          supervisor_name: string
+        }[]
+      }
+      mhd_conduct_person_history: {
+        Args: { p_months?: number; p_person_id: string }
+        Returns: {
+          category: string
+          occurred_at: string
+          reference_id: string
+          severity: string
+          source: string
+          status: string
+          summary: string
+        }[]
+      }
+      mhd_conduct_recommend_severity: {
+        Args: { p_as_of?: string; p_category: string; p_person_id: string }
+        Returns: Json
       }
       mhd_conduct_record_outcome: {
         Args: {

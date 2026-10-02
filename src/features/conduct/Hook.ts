@@ -21,6 +21,12 @@ export const mhdConductQueryKeys = {
   caseActions: (caseId: string | null) => ['mhd-conduct', 'case-actions', caseId ?? ''] as const,
   people: (companyId: string | null) => ['mhd-conduct', 'people', companyId ?? 'ALL'] as const,
   users: (companyId: string | null) => ['mhd-conduct', 'users', companyId ?? 'ALL'] as const,
+  personContext: (personId: string | null) =>
+    ['mhd-conduct', 'person-context', personId ?? ''] as const,
+  personHistory: (personId: string | null) =>
+    ['mhd-conduct', 'person-history', personId ?? ''] as const,
+  recommendation: (personId: string | null, category: string) =>
+    ['mhd-conduct', 'recommendation', personId ?? '', category] as const,
 };
 
 export function useMhdConductCases(filters: MhdConductCaseFilters) {
@@ -53,6 +59,33 @@ export function useMhdConductPeople(companyId: string | null, enabled = true) {
     queryKey: mhdConductQueryKeys.people(companyId),
     queryFn: () => mhdPersonService.listPeople({ companyId: companyId ?? 'ALL', searchTerm: '' }),
     enabled: enabled && Boolean(companyId),
+  });
+}
+
+/** Position, department, supervisor, hire date and facility for the notice (0365). */
+export function useMhdConductPersonContext(personId: string | null) {
+  return useQuery({
+    queryKey: mhdConductQueryKeys.personContext(personId),
+    queryFn: () => mhdConductService.getPersonContext(personId!),
+    enabled: Boolean(personId),
+  });
+}
+
+/** Earlier issued actions and attendance-threshold crossings for the employee (0365). */
+export function useMhdConductPersonHistory(personId: string | null) {
+  return useQuery({
+    queryKey: mhdConductQueryKeys.personHistory(personId),
+    queryFn: () => mhdConductService.listPersonHistory(personId!),
+    enabled: Boolean(personId),
+  });
+}
+
+/** The next rung of the progressive-discipline ladder — a recommendation, never a decision (0365). */
+export function useMhdConductSeverityRecommendation(personId: string | null, category: string) {
+  return useQuery({
+    queryKey: mhdConductQueryKeys.recommendation(personId, category),
+    queryFn: () => mhdConductService.recommendSeverity(personId!, category),
+    enabled: Boolean(personId) && Boolean(category),
   });
 }
 
