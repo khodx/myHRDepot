@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdDocumentGenerationPanel } from '@/components/ui/MhdDocumentGenerationPanel';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdStepper } from '@/components/ui/MhdStepper';
+import { useMhdWizardFlow, type MhdWizardStepDefinition } from '@/utils/useMhdWizardFlow';
 import {
   MhdHandbookRecordTabs,
   type MhdHandbookRecordTab,
@@ -19,6 +21,7 @@ import {
   MHD_HANDBOOK_EXPORT_ENTITY_TYPE,
   MHD_HANDBOOK_EXPORT_TEMPLATE_KEY,
   type MhdHandbook,
+  type MhdHandbookPreviewRow,
 } from '../Types';
 import { MhdHandbookAckBoard } from './MhdHandbookAckBoard';
 import { MhdHandbookAckPolicyCard } from './MhdHandbookAckPolicyCard';
@@ -40,8 +43,8 @@ interface Props {
 /**
  * The handbook wizard.
  *
- * A DRAFT is editable: toggle optional sections, watch the assembled preview,
- * then publish. Once PUBLISHED the handbook is a FROZEN artifact — the wizard
+ * A DRAFT is stepped through by someone who may manage it — Sections, Acknowledgment,
+ * then Preview & Publish; a person who may only read it sees the sections and preview. Once PUBLISHED the handbook is a FROZEN artifact — the wizard
  * stops showing editable selections and instead renders the frozen version
  * (`MhdHandbookVersionView`) plus the acknowledgment board. Only a DRAFT can be
  * edited; the toggle RPC refuses a non-DRAFT, so the picker is simply not shown
@@ -109,9 +112,6 @@ function MhdHandbookDraftEditor({ handbook, companyId, canManage }: DraftProps) 
   const sections = useMhdHandbookSections({ companyId, handbookType: handbook.handbookType });
   const preview = useMhdHandbookPreview(handbook.id);
   const toggle = useMhdToggleHandbookSection();
-  const publish = useMhdPublishHandbook();
-
-  const [effectiveDate, setEffectiveDate] = useState('');
 
   const candidateSections = useMemo(
     () =>
@@ -133,70 +133,150 @@ function MhdHandbookDraftEditor({ handbook, companyId, canManage }: DraftProps) 
     toggle.mutate({ handbookId: handbook.id, sectionId, included });
   }
 
-  async function handlePublish() {
-    // Publishing freezes the version. The document itself is exported on demand from the
-    // published page, so there is nothing to render here.
-    await publish.mutateAsync({ handbookId: handbook.id, effectiveDate: effectiveDate || null });
+  const sectionsPicker = (
+    <section className="space-y-3">
+      <h2 className="text-base font-semibold text-foreground">Sections</h2>
+      {sections.isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading sections…</p>
+      ) : (
+        <MhdHandbookSectionPicker
+          sections={candidateSections}
+          includedSectionIds={includedSectionIds}
+          onToggle={handleToggle}
+          disabled={!canManage || toggle.isPending}
+        />
+      )}
+      {toggle.isError ? (
+        <p className="text-xs text-rose-600">
+          {toggle.error instanceof Error ? toggle.error.message : 'Could not update the section.'}
+        </p>
+      ) : null}
+    </section>
+  );
+
+  // Someone who can see a draft but not manage it reads it as before: sections and the
+  // assembled preview side by side, nothing to step through or publish.
+  if (!canManage) {
+    return (
+      <div className="grid gap-8 lg:grid-cols-2">
+        {sectionsPicker}
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold text-foreground">Preview</h2>
+          <MhdHandbookPreview rows={preview.data ?? []} isLoading={preview.isLoading} />
+        </section>
+      </div>
+    );
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold text-foreground">Sections</h2>
-        {sections.isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading sections…</p>
-        ) : (
-          <MhdHandbookSectionPicker
-            sections={candidateSections}
-            includedSectionIds={includedSectionIds}
-            onToggle={handleToggle}
-            disabled={!canManage || toggle.isPending}
-          />
-        )}
-        {toggle.isError ? (
-          <p className="text-xs text-rose-600">
-            {toggle.error instanceof Error ? toggle.error.message : 'Could not update the section.'}
+    <MhdHandbookPublishStepper
+      handbook={handbook}
+      sectionsPicker={sectionsPicker}
+      previewRows={preview.data ?? []}
+      previewLoading={preview.isLoading}
+    />
+  );
+}
+
+interface PublishStepperProps {
+  handbook: MhdHandbook;
+  sectionsPicker: ReactNode;
+  previewRows: MhdHandbookPreviewRow[];
+  previewLoading: boolean;
+}
+
+/**
+ * Setup → Acknowledgment → Preview & Publish for a DRAFT the person may manage.
+ *
+ * Each section toggle and the acknowledgment policy save as they are changed (the same
+ * RPCs as before), so nothing here is unsaved and leaving the page loses nothing; the one
+ * step that matters is the last, which freezes the version. Publishing re-renders the page
+ * as the published record, where the document is exported on demand.
+ */
+function MhdHandbookPublishStepper({
+  handbook,
+  sectionsPicker,
+  previewRows,
+  previewLoading,
+}: PublishStepperProps) {
+  const publish = useMhdPublishHandbook();
+  const [effectiveDate, setEffectiveDate] = useState('');
+
+  const steps: MhdWizardStepDefinition[] = [
+    {
+      id: 'sections',
+      title: 'Sections',
+      description: 'Choose the sections this handbook includes.',
+      validate: () =>
+        previewRows.length > 0 ? null : 'Include at least one section before continuing.',
+    },
+    {
+      id: 'acknowledgment',
+      title: 'Acknowledgment',
+      description: 'Who must acknowledge the handbook, and whether a signature is required.',
+    },
+    {
+      id: 'publish',
+      title: 'Preview & Publish',
+      description: 'Review the assembled handbook and freeze it.',
+    },
+  ];
+
+  const flow = useMhdWizardFlow({
+    steps,
+    fallbackError: 'Could not publish.',
+    // Publishing freezes the version. The document itself is exported on demand from the
+    // published page, so there is nothing to render here.
+    onSubmit: async () => {
+      await publish.mutateAsync({ handbookId: handbook.id, effectiveDate: effectiveDate || null });
+    },
+  });
+
+  function renderStep() {
+    switch (flow.currentStep?.id) {
+      case 'sections':
+        return sectionsPicker;
+      case 'acknowledgment':
+        return <MhdHandbookAckPolicyCard handbook={handbook} canManage />;
+      default:
+        return (
+          <div className="grid gap-8 lg:grid-cols-2">
+            <section className="space-y-3">
+              <h2 className="text-base font-semibold text-foreground">Preview</h2>
+              <MhdHandbookPreview rows={previewRows} isLoading={previewLoading} />
+            </section>
+            <MhdCard className="space-y-2 self-start">
+              <label htmlFor="effectiveDate" className="block text-sm font-medium text-foreground">
+                Effective date <span className="font-normal text-muted-foreground">(optional)</span>
+              </label>
+              <MhdDateField
+                id="effectiveDate"
+                value={effectiveDate}
+                onChange={(nextValue) => setEffectiveDate(nextValue)}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">
+                Publishing freezes an immutable version with a content hash. A later change is a
+                new version, not an edit.
+              </p>
+            </MhdCard>
+          </div>
+        );
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <MhdStepper {...flow.stepperProps} submitLabel="Publish Handbook" />
+      <MhdCard>
+        <h2 className="text-lg font-semibold text-foreground">{flow.currentStep?.title}</h2>
+        <div className="mt-4">{renderStep()}</div>
+        {flow.error ? (
+          <p role="alert" className="mt-4 text-sm text-rose-700">
+            {flow.error}
           </p>
         ) : null}
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold text-foreground">Preview</h2>
-        <MhdHandbookPreview rows={preview.data ?? []} isLoading={preview.isLoading} />
-
-        {canManage ? <MhdHandbookAckPolicyCard handbook={handbook} canManage={canManage} /> : null}
-
-        {canManage ? (
-          <MhdCard className="space-y-2">
-            <label htmlFor="effectiveDate" className="block text-sm font-medium text-foreground">
-              Effective date <span className="font-normal text-muted-foreground">(optional)</span>
-            </label>
-            <MhdDateField
-              id="effectiveDate"
-              value={effectiveDate}
-              onChange={(nextValue) => setEffectiveDate(nextValue)}
-              className="w-full"
-            />
-            <p className="text-xs text-muted-foreground">
-              Publishing freezes an immutable version with a content hash. A later change is a new
-              version, not an edit.
-            </p>
-            <Button
-              className="w-full"
-              onClick={() => void handlePublish()}
-              disabled={publish.isPending}
-            >
-              {publish.isPending ? 'Publishing…' : 'Publish handbook'}
-            </Button>
-            {/* Surface the server's publish error (e.g. "no included sections"). */}
-            {publish.isError ? (
-              <p className="text-xs text-rose-600">
-                {publish.error instanceof Error ? publish.error.message : 'Could not publish.'}
-              </p>
-            ) : null}
-          </MhdCard>
-        ) : null}
-      </section>
+      </MhdCard>
     </div>
   );
 }

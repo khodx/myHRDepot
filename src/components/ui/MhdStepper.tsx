@@ -15,6 +15,8 @@ export interface MhdStepperProps {
   /** Defaults to currentStepIndex + 1 when omitted. */
   resolveNextStepIndex?: (currentIndex: number) => number;
   isSubmitting?: boolean;
+  /** Label of the final step's button. Defaults to 'Submit'. */
+  submitLabel?: string;
   onSubmit: () => void;
   /** Defaults to true. */
   showSubmit?: boolean;
@@ -27,6 +29,7 @@ export function MhdStepper({
   validateCurrentStep,
   resolveNextStepIndex,
   isSubmitting = false,
+  submitLabel = 'Submit',
   onSubmit,
   showSubmit = true,
 }: MhdStepperProps) {
@@ -86,7 +89,7 @@ export function MhdStepper({
             aria-busy={isSubmitting}
             className={cn(buttonBaseClasses, buttonVariantClasses.primary)}
           >
-            {isLastStep ? (isSubmitting ? 'Submitting...' : 'Submit') : 'Next'}
+            {isLastStep ? (isSubmitting ? 'Submitting...' : submitLabel) : 'Next'}
           </button>
         ) : null}
       </div>
