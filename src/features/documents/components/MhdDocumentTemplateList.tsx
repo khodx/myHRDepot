@@ -5,6 +5,9 @@ interface MhdDocumentTemplateListProps {
   canMutate: boolean;
   onEdit: (templateId: string) => void;
   onDelete: (templateId: string) => void;
+  canCustomize?: boolean;
+  onCustomize?: (templateId: string) => void;
+  onHistory?: (templateId: string) => void;
 }
 
 export function MhdDocumentTemplateList({
@@ -12,6 +15,9 @@ export function MhdDocumentTemplateList({
   canMutate,
   onEdit,
   onDelete,
+  canCustomize,
+  onCustomize,
+  onHistory,
 }: MhdDocumentTemplateListProps) {
   if (templates.length === 0) {
     return <p className="text-sm text-muted-foreground">No document templates yet.</p>;
@@ -25,7 +31,9 @@ export function MhdDocumentTemplateList({
             <p className="truncate text-sm font-medium text-foreground">{template.name}</p>
             <p className="text-xs text-muted-foreground">
               {template.referenceId} · {template.templateType} · v{template.version}
-              {template.applicableEntityType ? ` · ${template.applicableEntityType}` : ' · Unassigned'}
+              {template.applicableEntityType
+                ? ` · ${template.applicableEntityType}`
+                : ' · Unassigned'}
               {template.companyId === null ? ' · Platform-level' : ''}
             </p>
           </div>
@@ -38,8 +46,26 @@ export function MhdDocumentTemplateList({
           >
             {template.isActive ? 'Active' : 'Inactive'}
           </span>
+          {canCustomize && onCustomize && template.companyId === null ? (
+            <button
+              type="button"
+              onClick={() => onCustomize(template.id)}
+              className="text-xs font-medium text-accent-hover hover:underline"
+            >
+              Customize For My Company
+            </button>
+          ) : null}
           {canMutate ? (
             <div className="flex shrink-0 items-center gap-2">
+              {onHistory ? (
+                <button
+                  type="button"
+                  onClick={() => onHistory(template.id)}
+                  className="text-xs font-medium text-accent-hover hover:underline"
+                >
+                  Version History
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={() => onEdit(template.id)}
@@ -61,6 +87,14 @@ export function MhdDocumentTemplateList({
                 Delete
               </button>
             </div>
+          ) : onHistory ? (
+            <button
+              type="button"
+              onClick={() => onHistory(template.id)}
+              className="text-xs font-medium text-accent-hover hover:underline"
+            >
+              Version History
+            </button>
           ) : null}
         </li>
       ))}
