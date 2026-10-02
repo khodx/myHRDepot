@@ -1,5 +1,4 @@
 import {
-  useRef,
   useState,
   type ChangeEvent,
   type Dispatch,
@@ -15,8 +14,9 @@ import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdExternalDataAttribution } from '@/components/ui/MhdExternalDataAttribution';
 import { MhdRichTextEditor, MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import careerOneStopLogo from '@/assets/careeronestop-logo.svg';
-import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
-import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
+import { MhdWizardOutputStep } from '@/components/ui/MhdWizardOutputStep';
+import { MhdWizardShell } from '@/components/ui/MhdWizardShell';
+import { useMhdWizardFlow, type MhdWizardStepDefinition } from '@/utils/useMhdWizardFlow';
 import {
   useMhdCompetencies,
   useMhdCareerOneStopOccupationLookup,
@@ -28,7 +28,9 @@ import {
   useMhdSetDescriptionCompetencies,
   useMhdSetDescriptionFunctions,
   useMhdSetDescriptionQualifications,
+  useMhdSetPayRange,
   useMhdUpdateDescriptionDraft,
+  useMhdUpdateJob,
 } from '../Hook';
 import { mhdJobFormSchema } from '../Schemas';
 import {
@@ -55,22 +57,6 @@ import {
   type MhdOnetOccupationSearchResult,
   type MhdQualificationType,
 } from '../Types';
-
-const BASICS_STEP_INDEX = 0;
-const SOC_STEP_INDEX = 1;
-const PAY_STEP_INDEX = 2;
-const DUTIES_STEP_INDEX = 3;
-const COMPETENCIES_STEP_INDEX = 4;
-const REVIEW_STEP_INDEX = 5;
-
-const steps: MhdStep[] = [
-  { id: 'basics', title: 'Basics' },
-  { id: 'soc-wage-order', title: 'SOC & Wage Order' },
-  { id: 'pay-flsa', title: 'Pay & FLSA' },
-  { id: 'duties-qualifications', title: 'Duties & Qualifications' },
-  { id: 'competencies', title: 'Competencies' },
-  { id: 'review', title: 'Review' },
-];
 
 interface DraftFunction { functionText: string; isEssential: boolean }
 interface DraftQualification {
@@ -165,12 +151,13 @@ function mhdAppendRichTextParagraph(previousHtml: string, text: string): string 
   return previousHtml + mhdEscapeRichTextParagraph(text);
 }
 
+/** A field the step's rule is refusing is marked here; the rule's message itself is shown
+ * once, in the wizard's error region, so it is never printed twice. */
 function Field({ label, id, children, error }: { label: string; id: string; children: ReactNode; error?: string }) {
   return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-foreground">{label}</label>
+    <div data-invalid={error ? 'true' : undefined}>
+      <label htmlFor={id} className={`block text-sm font-medium ${error ? 'text-rose-700' : 'text-foreground'}`}>{label}</label>
       {children}
-      {error ? <p className="mt-1 text-xs text-rose-600">{error}</p> : null}
     </div>
   );
 }
@@ -179,9 +166,6 @@ export function MhdJobDescriptionWizard() {
   const { profile } = useMhdAuth();
   const companyId = profile?.companyId ?? null;
   const navigate = useNavigate();
-  const [currentStepIndex, setCurrentStepIndex] = useState(BASICS_STEP_INDEX);
-  const [isAdvancing, setIsAdvancing] = useState(false);
-  const [stepError, setStepError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<MhdJobDescriptionWizardFieldError>(null);
   const [createdJobId, setCreatedJobId] = useState<string | null>(null);
   const [descriptionId, setDescriptionId] = useState<string | null>(null);
@@ -202,6 +186,8 @@ export function MhdJobDescriptionWizard() {
   const [qualifications, setQualifications] = useState<DraftQualification[]>([]);
   const [selectedCompetencyIds, setSelectedCompetencyIds] = useState<string[]>([]);
   const createJob = useMhdCreateJob();
+  const updateJobRecord = useMhdUpdateJob();
+  const setPayRange = useMhdSetPayRange();
   const createDraft = useMhdCreateDescriptionDraft(companyId);
   const updateDraft = useMhdUpdateDescriptionDraft(companyId);
   const setFns = useMhdSetDescriptionFunctions(companyId);
@@ -209,9 +195,6 @@ export function MhdJobDescriptionWizard() {
   const setCompetencies = useMhdSetDescriptionCompetencies(companyId);
   const publish = useMhdPublishDescription(companyId);
   const competencies = useMhdCompetencies(companyId, job.industry);
-  const createStarted = useRef(false);
-  const dutiesSaved = useRef(false);
-  const competenciesSaved = useRef(false);
 
   const essentialCount = functions.filter((fn) => fn.isEssential && fn.functionText.trim()).length;
   const gate = mhdCanPublishDescription(summary, essentialCount);
@@ -221,21 +204,8 @@ export function MhdJobDescriptionWizard() {
     setFieldError(null);
   };
 
-  function validateCurrentStep() {
-    setStepError(null);
+  function validateJobSteps(): string | null {
     setFieldError(null);
-    if (currentStepIndex === DUTIES_STEP_INDEX) {
-      if (!functions.some((fn) => fn.isEssential && fn.functionText.trim())) {
-        setStepError('Add at least one essential function before continuing.');
-        return false;
-      }
-      return true;
-    }
-    if (currentStepIndex === REVIEW_STEP_INDEX) {
-      if (!gate.ok) setStepError(gate.reason);
-      return gate.ok;
-    }
-    if (currentStepIndex === COMPETENCIES_STEP_INDEX) return true;
     const result = mhdJobFormSchema.safeParse({
       companyId, ...job,
       jobCode: job.jobCode || null, jobFamily: job.jobFamily || null,
@@ -245,87 +215,143 @@ export function MhdJobDescriptionWizard() {
       caWageOrderClassification: job.caWageOrderClassification || null,
       payPeriod: job.payPeriod || null,
     });
-    if (!result.success) {
-      const issue = result.error.issues[0];
-      setFieldError({ field: String(issue.path[0] ?? ''), message: issue.message });
-      return false;
-    }
-    return true;
+    if (result.success) return null;
+    const issue = result.error.issues[0];
+    setFieldError({ field: String(issue.path[0] ?? ''), message: issue.message });
+    return issue.message;
   }
 
-  async function handleNavigate(nextIndex: number) {
-    const isGoingBack = nextIndex < currentStepIndex;
-    if (isGoingBack) {
-      setCurrentStepIndex(nextIndex);
-      return;
-    }
-    try {
-      setIsAdvancing(true);
-      setStepError(null);
-      if (currentStepIndex === PAY_STEP_INDEX && !createdJobId && !createStarted.current) {
-        createStarted.current = true;
-        const result = await createJob.mutateAsync({
-          companyId: companyId!, jobTitle: job.jobTitle.trim(), jobCode: job.jobCode || null,
+  /**
+   * Nothing is written until the person publishes, so abandoning the wizard (or reloading
+   * it) leaves no half-built job behind. Publishing is a short sequence of writes; each is
+   * guarded by the flow's run-once keys, so a failure part-way retries only what is
+   * missing and a change made after a failed attempt is carried forward instead of lost.
+   */
+  async function saveAndPublish() {
+    if (!companyId) throw new Error('Your account is not linked to a company.');
+    if (!gate.ok) throw new Error(gate.reason ?? 'The description is not ready to publish.');
+
+    const jobKey = JSON.stringify(job);
+    const created = await flow.runOnce('create-job', async () => {
+      const result = await createJob.mutateAsync({
+        companyId, jobTitle: job.jobTitle.trim(), jobCode: job.jobCode || null,
+        jobFamily: job.jobFamily || null, jobLevel: job.jobLevel || null, department: job.department || null,
+        flsaClassification: job.flsaClassification || null, employmentType: job.employmentType,
+        industry: job.industry, isSafetySensitive: job.isSafetySensitive,
+        onetSocCode: job.onetSocCode || null,
+        caWageOrderClassification: job.caWageOrderClassification || null,
+        payMin: job.payMin, payMax: job.payMax, payPeriod: job.payPeriod || null,
+      });
+      setCreatedJobId(result.id);
+      return { id: result.id, key: jobKey, hadPay: job.payMin != null };
+    });
+
+    if (created.key !== jobKey) {
+      await flow.runOnce(`sync-job:${jobKey}`, async () => {
+        await updateJobRecord.mutateAsync({
+          jobId: created.id, jobTitle: job.jobTitle.trim(), jobCode: job.jobCode || null,
           jobFamily: job.jobFamily || null, jobLevel: job.jobLevel || null, department: job.department || null,
           flsaClassification: job.flsaClassification || null, employmentType: job.employmentType,
           industry: job.industry, isSafetySensitive: job.isSafetySensitive,
           onetSocCode: job.onetSocCode || null,
           caWageOrderClassification: job.caWageOrderClassification || null,
-          payMin: job.payMin, payMax: job.payMax, payPeriod: job.payPeriod || null,
         });
-        setCreatedJobId(result.id);
-        const draft = await createDraft.mutateAsync({ jobId: result.id, copyFrom: null });
-        setDescriptionId(draft.id);
-      }
-      if (currentStepIndex === DUTIES_STEP_INDEX && descriptionId && !dutiesSaved.current) {
-        dutiesSaved.current = true;
-        await updateDraft.mutateAsync({ descriptionId, summary, physicalRequirements, educationRequirements });
-        await setFns.mutateAsync({ descriptionId, functions: functions.filter((fn) => fn.functionText.trim()) });
-        await setQuals.mutateAsync({ descriptionId, qualifications: qualifications.filter((q) => q.qualificationText.trim()) });
-      }
-      if (currentStepIndex === COMPETENCIES_STEP_INDEX && descriptionId && !competenciesSaved.current) {
-        competenciesSaved.current = true;
-        await setCompetencies.mutateAsync({ descriptionId, competencies: selectedCompetencyIds.map((competencyId) => ({ competencyId })) });
-      }
-      setCurrentStepIndex(nextIndex);
-    } catch (err) {
-      if (currentStepIndex === PAY_STEP_INDEX) createStarted.current = false;
-      if (currentStepIndex === DUTIES_STEP_INDEX) dutiesSaved.current = false;
-      if (currentStepIndex === COMPETENCIES_STEP_INDEX) competenciesSaved.current = false;
-      setStepError(err instanceof Error ? err.message : 'Something went wrong.');
-    } finally {
-      setIsAdvancing(false);
+        if (job.payMin != null && job.payMax != null && job.payPeriod) {
+          await setPayRange.mutateAsync({ jobId: created.id, payMin: job.payMin, payMax: job.payMax, payPeriod: job.payPeriod });
+        } else if (created.hadPay) {
+          throw new Error('A pay range cannot be removed once the job record exists. Restore it here, or edit the job after publishing.');
+        }
+      });
     }
+
+    const draft = await flow.runOnce('create-draft', async () => {
+      const result = await createDraft.mutateAsync({ jobId: created.id, copyFrom: null });
+      setDescriptionId(result.id);
+      return result;
+    });
+
+    const duties = {
+      summary, physicalRequirements, educationRequirements,
+      functions: functions.filter((fn) => fn.functionText.trim()),
+      qualifications: qualifications.filter((q) => q.qualificationText.trim()),
+    };
+    await flow.runOnce(`duties:${JSON.stringify(duties)}`, async () => {
+      await updateDraft.mutateAsync({ descriptionId: draft.id, summary, physicalRequirements, educationRequirements });
+      await setFns.mutateAsync({ descriptionId: draft.id, functions: duties.functions });
+      await setQuals.mutateAsync({ descriptionId: draft.id, qualifications: duties.qualifications });
+    });
+    await flow.runOnce(`competencies:${JSON.stringify(selectedCompetencyIds)}`, () =>
+      setCompetencies.mutateAsync({ descriptionId: draft.id, competencies: selectedCompetencyIds.map((competencyId) => ({ competencyId })) }),
+    );
+    await publish.mutateAsync({ descriptionId: draft.id });
   }
 
-  async function handleSubmit() {
-    if (!descriptionId || !createdJobId) return;
-    if (!gate.ok) { setStepError(gate.reason); return; }
-    try {
-      setIsAdvancing(true);
-      await publish.mutateAsync({ descriptionId });
-      navigate(`/jobs/${createdJobId}`);
-    } catch (err) {
-      setStepError(err instanceof Error ? err.message : 'Something went wrong.');
-    } finally { setIsAdvancing(false); }
-  }
+  const steps: MhdWizardStepDefinition[] = [
+    { id: 'basics', title: 'Basics', validate: validateJobSteps },
+    { id: 'soc-wage-order', title: 'SOC & Wage Order', validate: validateJobSteps },
+    { id: 'pay-flsa', title: 'Pay & FLSA', validate: validateJobSteps },
+    {
+      id: 'duties-qualifications',
+      title: 'Duties & Qualifications',
+      validate: () =>
+        functions.some((fn) => fn.isEssential && fn.functionText.trim())
+          ? null
+          : 'Add at least one essential function before continuing.',
+    },
+    { id: 'competencies', title: 'Competencies' },
+    { id: 'review', title: 'Review', validate: () => (gate.ok ? null : gate.reason) },
+  ];
+
+  const flow = useMhdWizardFlow({
+    steps,
+    isDirty: job.jobTitle.trim().length > 0 || Boolean(summary) || Boolean(createdJobId),
+    onSubmit: saveAndPublish,
+  });
 
   if (!companyId) return <p className="text-sm text-muted-foreground">Loading job setup…</p>;
 
-  return (
-    <div className="space-y-6">
-      <MhdPageHeader title="Guided job setup" description="Build a complete job description one step at a time." />
-      <MhdCard className="space-y-6">
-        {currentStepIndex === BASICS_STEP_INDEX ? <Basics job={job} updateJob={updateJob} fieldError={fieldError} /> : null}
-        {currentStepIndex === SOC_STEP_INDEX ? <Soc job={job} updateJob={updateJob} fieldError={fieldError} /> : null}
-        {currentStepIndex === PAY_STEP_INDEX ? <Pay job={job} updateJob={updateJob} fieldError={fieldError} /> : null}
-        {currentStepIndex === DUTIES_STEP_INDEX ? <Duties summary={summary} onetSocCode={job.onetSocCode} setSummary={setSummary} physicalRequirements={physicalRequirements} educationRequirements={educationRequirements} setPhysicalRequirements={setPhysicalRequirements} setEducationRequirements={setEducationRequirements} functions={functions} setFunctions={setFunctions} qualifications={qualifications} setQualifications={setQualifications} /> : null}
-        {currentStepIndex === COMPETENCIES_STEP_INDEX ? <CompetencyList data={competencies.data ?? []} selected={selectedCompetencyIds} setSelected={setSelectedCompetencyIds} /> : null}
-        {currentStepIndex === REVIEW_STEP_INDEX ? <Review job={job} summary={summary} functions={functions} qualifications={qualifications} selectedCompetencyIds={selectedCompetencyIds} gate={gate} /> : null}
-        {stepError ? <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{stepError}</p> : null}
-        <MhdStepper steps={steps} currentStepIndex={currentStepIndex} onNavigate={(index) => void handleNavigate(index)} validateCurrentStep={validateCurrentStep} isSubmitting={isAdvancing} onSubmit={() => void handleSubmit()} />
+  function renderStep() {
+    switch (flow.currentStep?.id) {
+      case 'basics': return <Basics job={job} updateJob={updateJob} fieldError={fieldError} />;
+      case 'soc-wage-order': return <Soc job={job} updateJob={updateJob} fieldError={fieldError} />;
+      case 'pay-flsa': return <Pay job={job} updateJob={updateJob} fieldError={fieldError} />;
+      case 'duties-qualifications':
+        return <Duties summary={summary} onetSocCode={job.onetSocCode} setSummary={setSummary} physicalRequirements={physicalRequirements} educationRequirements={educationRequirements} setPhysicalRequirements={setPhysicalRequirements} setEducationRequirements={setEducationRequirements} functions={functions} setFunctions={setFunctions} qualifications={qualifications} setQualifications={setQualifications} />;
+      case 'competencies': return <CompetencyList data={competencies.data ?? []} selected={selectedCompetencyIds} setSelected={setSelectedCompetencyIds} />;
+      default: return <Review job={job} summary={summary} functions={functions} qualifications={qualifications} selectedCompetencyIds={selectedCompetencyIds} gate={gate} />;
+    }
+  }
+
+  const completion = flow.isComplete && createdJobId && descriptionId ? (
+    <div className="space-y-4">
+      <MhdCard>
+        <h2 className="text-lg font-semibold text-foreground">Job Description Published</h2>
+        <p className="mt-2 text-sm text-muted-foreground">The job and its description are now live.</p>
+        <div className="mt-4"><Button onClick={() => navigate(`/jobs/${createdJobId}`)}>Open Job</Button></div>
       </MhdCard>
+      <MhdWizardOutputStep
+        companyId={companyId}
+        sourceWizard="JOB_DESCRIPTION"
+        templateKey="JOB_DESCRIPTION_RECORD"
+        entityType="JOB_DESCRIPTION"
+        entityId={descriptionId}
+        recordLabel="job description"
+      />
     </div>
+  ) : undefined;
+
+  return (
+    <MhdWizardShell
+      title="Guided job setup"
+      description="Build a complete job description one step at a time."
+      backTo="/jobs"
+      backLabel="Jobs"
+      flow={flow}
+      cancelTo="/jobs"
+      completion={completion}
+    >
+      {renderStep()}
+    </MhdWizardShell>
   );
 }
 
