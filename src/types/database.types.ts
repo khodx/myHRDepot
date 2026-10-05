@@ -3614,6 +3614,76 @@ export type Database = {
         }
         Relationships: []
       }
+      company_document_branding: {
+        Row: {
+          accent_color: string
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          font_family: string
+          footer_text: string | null
+          header_text: string | null
+          id: string
+          logo_data_uri: string | null
+          reference_id: string
+          show_reference_id: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          accent_color: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          font_family: string
+          footer_text?: string | null
+          header_text?: string | null
+          id?: string
+          logo_data_uri?: string | null
+          reference_id: string
+          show_reference_id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          accent_color?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          font_family?: string
+          footer_text?: string | null
+          header_text?: string | null
+          id?: string
+          logo_data_uri?: string | null
+          reference_id?: string
+          show_reference_id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_document_branding_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_document_branding_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_document_branding_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_holidays: {
         Row: {
           company_id: string
@@ -4206,6 +4276,60 @@ export type Database = {
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conduct_discipline_ladder_rules: {
+        Row: {
+          category: string
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          ladder: string[]
+          lookback_months: number
+          rationale: string
+        }
+        Insert: {
+          category: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          ladder: string[]
+          lookback_months: number
+          rationale: string
+        }
+        Update: {
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          ladder?: string[]
+          lookback_months?: number
+          rationale?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conduct_discipline_ladder_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conduct_discipline_ladder_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -4952,17 +5076,193 @@ export type Database = {
           },
         ]
       }
-      document_generations: {
+      document_entity_types: {
+        Row: {
+          company_column: string
+          created_at: string
+          entity_type: string
+          id_column: string
+          label: string
+          merge_builder: string | null
+          person_column: string | null
+          sensitivity_level: string
+          source_table: string
+        }
+        Insert: {
+          company_column?: string
+          created_at?: string
+          entity_type: string
+          id_column?: string
+          label: string
+          merge_builder?: string | null
+          person_column?: string | null
+          sensitivity_level?: string
+          source_table: string
+        }
+        Update: {
+          company_column?: string
+          created_at?: string
+          entity_type?: string
+          id_column?: string
+          label?: string
+          merge_builder?: string | null
+          person_column?: string | null
+          sensitivity_level?: string
+          source_table?: string
+        }
+        Relationships: []
+      }
+      document_generation_queue: {
         Row: {
           company_id: string
           created_at: string
+          dismissed_at: string | null
+          dismissed_by: string | null
+          dismissed_reason: string | null
+          employee_file_category: string | null
+          entity_id: string
+          entity_type: string
+          failure_reason: string | null
+          generated_at: string | null
+          generated_by: string | null
+          generation_id: string | null
+          id: string
+          merge_overrides: Json
+          narrative_sections: Json
+          output_format: string
+          queued_at: string
+          queued_by: string | null
+          reference_id: string
+          requires_signature: boolean
+          sensitivity_level: string
+          source_wizard: string
+          status: string
+          subject_person_id: string | null
+          template_key: string
+          updated_at: string
+          wizard_inputs: Json
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          dismissed_reason?: string | null
+          employee_file_category?: string | null
+          entity_id: string
+          entity_type: string
+          failure_reason?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          generation_id?: string | null
+          id?: string
+          merge_overrides?: Json
+          narrative_sections?: Json
+          output_format?: string
+          queued_at?: string
+          queued_by?: string | null
+          reference_id: string
+          requires_signature?: boolean
+          sensitivity_level?: string
+          source_wizard: string
+          status?: string
+          subject_person_id?: string | null
+          template_key: string
+          updated_at?: string
+          wizard_inputs?: Json
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          dismissed_reason?: string | null
+          employee_file_category?: string | null
+          entity_id?: string
+          entity_type?: string
+          failure_reason?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          generation_id?: string | null
+          id?: string
+          merge_overrides?: Json
+          narrative_sections?: Json
+          output_format?: string
+          queued_at?: string
+          queued_by?: string | null
+          reference_id?: string
+          requires_signature?: boolean
+          sensitivity_level?: string
+          source_wizard?: string
+          status?: string
+          subject_person_id?: string | null
+          template_key?: string
+          updated_at?: string
+          wizard_inputs?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_generation_queue_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generation_queue_dismissed_by_fkey"
+            columns: ["dismissed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generation_queue_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generation_queue_generation_id_fkey"
+            columns: ["generation_id"]
+            isOneToOne: false
+            referencedRelation: "document_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generation_queue_queued_by_fkey"
+            columns: ["queued_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generation_queue_subject_person_id_fkey"
+            columns: ["subject_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_generations: {
+        Row: {
+          branding_snapshot: Json | null
+          company_id: string
+          created_at: string
           created_by: string | null
+          edited_at: string | null
+          edited_by: string | null
+          employee_file_category: string | null
           entity_id: string
           entity_type: string
           esignature_request_id: string | null
           generated_at: string | null
           id: string
           merge_data: Json
+          merge_data_original: Json | null
+          merge_overrides: Json
+          narrative_sections: Json
           output_document_hash: string | null
           output_drive_file_id: string | null
           output_file_name: string | null
@@ -4977,15 +5277,22 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          branding_snapshot?: Json | null
           company_id: string
           created_at?: string
           created_by?: string | null
+          edited_at?: string | null
+          edited_by?: string | null
+          employee_file_category?: string | null
           entity_id: string
           entity_type: string
           esignature_request_id?: string | null
           generated_at?: string | null
           id?: string
           merge_data?: Json
+          merge_data_original?: Json | null
+          merge_overrides?: Json
+          narrative_sections?: Json
           output_document_hash?: string | null
           output_drive_file_id?: string | null
           output_file_name?: string | null
@@ -5000,15 +5307,22 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          branding_snapshot?: Json | null
           company_id?: string
           created_at?: string
           created_by?: string | null
+          edited_at?: string | null
+          edited_by?: string | null
+          employee_file_category?: string | null
           entity_id?: string
           entity_type?: string
           esignature_request_id?: string | null
           generated_at?: string | null
           id?: string
           merge_data?: Json
+          merge_data_original?: Json | null
+          merge_overrides?: Json
+          narrative_sections?: Json
           output_document_hash?: string | null
           output_drive_file_id?: string | null
           output_file_name?: string | null
@@ -5033,6 +5347,13 @@ export type Database = {
           {
             foreignKeyName: "document_generations_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_generations_edited_by_fkey"
+            columns: ["edited_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -5477,6 +5798,63 @@ export type Database = {
           },
         ]
       }
+      document_template_versions: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          content: string
+          content_format: string
+          id: string
+          merge_fields: Json
+          name: string
+          narrative_slots: Json
+          requires_signature: boolean
+          template_id: string
+          version: number
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          content: string
+          content_format: string
+          id?: string
+          merge_fields?: Json
+          name: string
+          narrative_slots?: Json
+          requires_signature?: boolean
+          template_id: string
+          version: number
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          content?: string
+          content_format?: string
+          id?: string
+          merge_fields?: Json
+          name?: string
+          narrative_slots?: Json
+          requires_signature?: boolean
+          template_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_template_versions_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_templates: {
         Row: {
           applicable_entity_type: string | null
@@ -5490,12 +5868,14 @@ export type Database = {
           deleted_at: string | null
           deleted_by: string | null
           description: string | null
+          employee_file_category: string | null
           id: string
           is_active: boolean
           is_deleted: boolean
           is_system: boolean
           merge_fields: Json
           name: string
+          narrative_slots: Json
           reference_id: string
           requires_signature: boolean
           template_key: string | null
@@ -5516,12 +5896,14 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
+          employee_file_category?: string | null
           id?: string
           is_active?: boolean
           is_deleted?: boolean
           is_system?: boolean
           merge_fields?: Json
           name: string
+          narrative_slots?: Json
           reference_id: string
           requires_signature?: boolean
           template_key?: string | null
@@ -5542,12 +5924,14 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
+          employee_file_category?: string | null
           id?: string
           is_active?: boolean
           is_deleted?: boolean
           is_system?: boolean
           merge_fields?: Json
           name?: string
+          narrative_slots?: Json
           reference_id?: string
           requires_signature?: boolean
           template_key?: string | null
@@ -5809,6 +6193,48 @@ export type Database = {
           },
         ]
       }
+      employee_grievance_witnesses: {
+        Row: {
+          created_at: string
+          grievance_id: string
+          id: string
+          what_they_know: string | null
+          witness_name: string
+          witness_person_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          grievance_id: string
+          id?: string
+          what_they_know?: string | null
+          witness_name: string
+          witness_person_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          grievance_id?: string
+          id?: string
+          what_they_know?: string | null
+          witness_name?: string
+          witness_person_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_grievance_witnesses_grievance_id_fkey"
+            columns: ["grievance_id"]
+            isOneToOne: false
+            referencedRelation: "employee_grievances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_grievance_witnesses_witness_person_id_fkey"
+            columns: ["witness_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_grievances: {
         Row: {
           acknowledged_at: string | null
@@ -5823,6 +6249,7 @@ export type Database = {
           disagreement_explanation: string | null
           employee_signature_at: string | null
           employee_signature_name: string | null
+          grievance_category: string | null
           grievance_what: string | null
           grievance_when: string | null
           grievance_where: string | null
@@ -5831,15 +6258,19 @@ export type Database = {
           id: string
           is_deleted: boolean
           is_harassment_related: boolean
+          person_grieved_against_id: string | null
           person_id: string
           reference_id: string | null
           referred_at: string | null
+          referred_to_investigation_id: string | null
           referred_to_process: string | null
           remedy_requested: string | null
           resolution: string | null
           resolution_at: string | null
           resolution_by: string | null
+          retaliation_concern: boolean
           status: string
+          steps_already_taken: string | null
           submitted_at: string | null
           updated_at: string
           updated_by: string | null
@@ -5857,6 +6288,7 @@ export type Database = {
           disagreement_explanation?: string | null
           employee_signature_at?: string | null
           employee_signature_name?: string | null
+          grievance_category?: string | null
           grievance_what?: string | null
           grievance_when?: string | null
           grievance_where?: string | null
@@ -5865,15 +6297,19 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           is_harassment_related?: boolean
+          person_grieved_against_id?: string | null
           person_id: string
           reference_id?: string | null
           referred_at?: string | null
+          referred_to_investigation_id?: string | null
           referred_to_process?: string | null
           remedy_requested?: string | null
           resolution?: string | null
           resolution_at?: string | null
           resolution_by?: string | null
+          retaliation_concern?: boolean
           status?: string
+          steps_already_taken?: string | null
           submitted_at?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -5891,6 +6327,7 @@ export type Database = {
           disagreement_explanation?: string | null
           employee_signature_at?: string | null
           employee_signature_name?: string | null
+          grievance_category?: string | null
           grievance_what?: string | null
           grievance_when?: string | null
           grievance_where?: string | null
@@ -5899,15 +6336,19 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           is_harassment_related?: boolean
+          person_grieved_against_id?: string | null
           person_id?: string
           reference_id?: string | null
           referred_at?: string | null
+          referred_to_investigation_id?: string | null
           referred_to_process?: string | null
           remedy_requested?: string | null
           resolution?: string | null
           resolution_at?: string | null
           resolution_by?: string | null
+          retaliation_concern?: boolean
           status?: string
+          steps_already_taken?: string | null
           submitted_at?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -5942,10 +6383,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "employee_grievances_person_grieved_against_id_fkey"
+            columns: ["person_grieved_against_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "employee_grievances_person_id_fkey"
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_grievances_referred_to_investigation_id_fkey"
+            columns: ["referred_to_investigation_id"]
+            isOneToOne: false
+            referencedRelation: "investigation_cases"
             referencedColumns: ["id"]
           },
           {
@@ -11405,7 +11860,10 @@ export type Database = {
           opened_by: string
           reference_id: string
           severity: string | null
+          source_id: string | null
+          source_type: string | null
           status: string
+          target_completion_date: string | null
           updated_at: string | null
         }
         Insert: {
@@ -11423,7 +11881,10 @@ export type Database = {
           opened_by: string
           reference_id: string
           severity?: string | null
+          source_id?: string | null
+          source_type?: string | null
           status?: string
+          target_completion_date?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -11441,7 +11902,10 @@ export type Database = {
           opened_by?: string
           reference_id?: string
           severity?: string | null
+          source_id?: string | null
+          source_type?: string | null
           status?: string
+          target_completion_date?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -11469,6 +11933,70 @@ export type Database = {
           {
             foreignKeyName: "investigation_cases_opened_by_fkey"
             columns: ["opened_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investigation_interim_measures: {
+        Row: {
+          case_id: string
+          created_at: string
+          created_by: string | null
+          description: string
+          effective_from: string
+          id: string
+          lifted_at: string | null
+          lifted_by: string | null
+          measure_type: string
+          review_by: string | null
+          status: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          effective_from?: string
+          id?: string
+          lifted_at?: string | null
+          lifted_by?: string | null
+          measure_type: string
+          review_by?: string | null
+          status?: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          effective_from?: string
+          id?: string
+          lifted_at?: string | null
+          lifted_by?: string | null
+          measure_type?: string
+          review_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investigation_interim_measures_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "investigation_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_interim_measures_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_interim_measures_lifted_by_fkey"
+            columns: ["lifted_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -15838,6 +16366,70 @@ export type Database = {
           },
         ]
       }
+      offboarding_case_notices: {
+        Row: {
+          case_id: string
+          created_at: string
+          created_by: string | null
+          delivered_at: string | null
+          deviation_reason: string | null
+          id: string
+          jurisdiction: string | null
+          notice_key: string
+          planned_due: string | null
+          recommended_due: string | null
+          rule_id: string | null
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          deviation_reason?: string | null
+          id?: string
+          jurisdiction?: string | null
+          notice_key: string
+          planned_due?: string | null
+          recommended_due?: string | null
+          rule_id?: string | null
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          deviation_reason?: string | null
+          id?: string
+          jurisdiction?: string | null
+          notice_key?: string
+          planned_due?: string | null
+          recommended_due?: string | null
+          rule_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_case_notices_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_case_notices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_case_notices_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_notice_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offboarding_cases: {
         Row: {
           cancel_reason: string | null
@@ -16045,6 +16637,65 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offboarding_notice_rules: {
+        Row: {
+          anchor: string
+          citation: string
+          content_registry_id: string | null
+          created_at: string
+          due_offset_hours: number
+          effective_from: string
+          effective_to: string | null
+          id: string
+          jurisdiction: string
+          min_affected_employees: number | null
+          min_employer_employees: number | null
+          notice_key: string
+          separation_kind: string
+          summary: string
+        }
+        Insert: {
+          anchor?: string
+          citation: string
+          content_registry_id?: string | null
+          created_at?: string
+          due_offset_hours: number
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          jurisdiction: string
+          min_affected_employees?: number | null
+          min_employer_employees?: number | null
+          notice_key: string
+          separation_kind: string
+          summary: string
+        }
+        Update: {
+          anchor?: string
+          citation?: string
+          content_registry_id?: string | null
+          created_at?: string
+          due_offset_hours?: number
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          jurisdiction?: string
+          min_affected_employees?: number | null
+          min_employer_employees?: number | null
+          notice_key?: string
+          separation_kind?: string
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_notice_rules_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
             referencedColumns: ["id"]
           },
         ]
@@ -18253,6 +18904,41 @@ export type Database = {
           },
         ]
       }
+      onboarding_packet_rules: {
+        Row: {
+          condition_kind: string
+          condition_value: string
+          created_at: string
+          document_key: string
+          id: string
+          reason: string
+        }
+        Insert: {
+          condition_kind: string
+          condition_value: string
+          created_at?: string
+          document_key: string
+          id?: string
+          reason: string
+        }
+        Update: {
+          condition_kind?: string
+          condition_value?: string
+          created_at?: string
+          document_key?: string
+          id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_packet_rules_document_key_fkey"
+            columns: ["document_key"]
+            isOneToOne: false
+            referencedRelation: "onboarding_document_keys"
+            referencedColumns: ["document_key"]
+          },
+        ]
+      }
       onboarding_required_notice_ack_clauses: {
         Row: {
           ack_id: string
@@ -19850,6 +20536,143 @@ export type Database = {
           },
         ]
       }
+      performance_review_cycle_competencies: {
+        Row: {
+          competency_id: string
+          cycle_id: string
+          id: string
+          sort_order: number
+        }
+        Insert: {
+          competency_id: string
+          cycle_id: string
+          id?: string
+          sort_order?: number
+        }
+        Update: {
+          competency_id?: string
+          cycle_id?: string
+          id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_review_cycle_competencies_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_review_cycle_competencies_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "performance_review_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_review_cycles: {
+        Row: {
+          announcement_note: string | null
+          closed_at: string | null
+          closed_by: string | null
+          company_id: string
+          created_at: string
+          cycle_name: string
+          feedback_due: string | null
+          id: string
+          includes_self_assessment: boolean
+          is_multi_rater: boolean
+          launched_at: string
+          launched_by: string
+          reference_id: string
+          review_due: string
+          review_period_end: string
+          review_period_start: string
+          review_type: string
+          self_assessment_due: string | null
+          status: string
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          announcement_note?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id: string
+          created_at?: string
+          cycle_name: string
+          feedback_due?: string | null
+          id?: string
+          includes_self_assessment?: boolean
+          is_multi_rater?: boolean
+          launched_at?: string
+          launched_by: string
+          reference_id: string
+          review_due: string
+          review_period_end: string
+          review_period_start: string
+          review_type: string
+          self_assessment_due?: string | null
+          status?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          announcement_note?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id?: string
+          created_at?: string
+          cycle_name?: string
+          feedback_due?: string | null
+          id?: string
+          includes_self_assessment?: boolean
+          is_multi_rater?: boolean
+          launched_at?: string
+          launched_by?: string
+          reference_id?: string
+          review_due?: string
+          review_period_end?: string
+          review_period_start?: string
+          review_type?: string
+          self_assessment_due?: string | null
+          status?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_review_cycles_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_review_cycles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_review_cycles_launched_by_fkey"
+            columns: ["launched_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_review_cycles_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "performance_review_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       performance_review_participants: {
         Row: {
           approved_by: string | null
@@ -20042,6 +20865,7 @@ export type Database = {
           company_id: string
           created_at: string | null
           created_by: string
+          cycle_id: string | null
           document_generation_id: string | null
           due_date: string | null
           employee_comments: string | null
@@ -20074,6 +20898,7 @@ export type Database = {
           company_id: string
           created_at?: string | null
           created_by: string
+          cycle_id?: string | null
           document_generation_id?: string | null
           due_date?: string | null
           employee_comments?: string | null
@@ -20106,6 +20931,7 @@ export type Database = {
           company_id?: string
           created_at?: string | null
           created_by?: string
+          cycle_id?: string | null
           document_generation_id?: string | null
           due_date?: string | null
           employee_comments?: string | null
@@ -20146,6 +20972,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "performance_review_cycles"
             referencedColumns: ["id"]
           },
           {
@@ -21263,6 +22096,9 @@ export type Database = {
           reference_id: string
           reporting_manager_person_id: string | null
           requires_approval: boolean
+          salary_check: Json | null
+          salary_check_override_by: string | null
+          salary_check_override_reason: string | null
           start_date: string | null
           status: string
           updated_at: string | null
@@ -21287,6 +22123,9 @@ export type Database = {
           reference_id: string
           reporting_manager_person_id?: string | null
           requires_approval?: boolean
+          salary_check?: Json | null
+          salary_check_override_by?: string | null
+          salary_check_override_reason?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string | null
@@ -21311,6 +22150,9 @@ export type Database = {
           reference_id?: string
           reporting_manager_person_id?: string | null
           requires_approval?: boolean
+          salary_check?: Json | null
+          salary_check_override_by?: string | null
+          salary_check_override_reason?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string | null
@@ -21363,6 +22205,13 @@ export type Database = {
             columns: ["reporting_manager_person_id"]
             isOneToOne: false
             referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recruiting_offers_salary_check_override_by_fkey"
+            columns: ["salary_check_override_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -21594,90 +22443,217 @@ export type Database = {
           },
         ]
       }
+      safety_incident_determinations: {
+        Row: {
+          company_id: string
+          decided_at: string
+          decided_by: string
+          decided_classification: string | null
+          decided_recordable: boolean
+          facts: Json
+          id: string
+          incident_id: string
+          is_override: boolean
+          override_reason: string | null
+          recommendation: Json
+          recommended_classification: string | null
+          recommended_recordable: boolean
+          registry_review_status: string | null
+          rule_set_version: number
+        }
+        Insert: {
+          company_id: string
+          decided_at?: string
+          decided_by: string
+          decided_classification?: string | null
+          decided_recordable: boolean
+          facts: Json
+          id?: string
+          incident_id: string
+          is_override: boolean
+          override_reason?: string | null
+          recommendation: Json
+          recommended_classification?: string | null
+          recommended_recordable: boolean
+          registry_review_status?: string | null
+          rule_set_version: number
+        }
+        Update: {
+          company_id?: string
+          decided_at?: string
+          decided_by?: string
+          decided_classification?: string | null
+          decided_recordable?: boolean
+          facts?: Json
+          id?: string
+          incident_id?: string
+          is_override?: boolean
+          override_reason?: string | null
+          recommendation?: Json
+          recommended_classification?: string | null
+          recommended_recordable?: boolean
+          registry_review_status?: string | null
+          rule_set_version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_incident_determinations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incident_determinations_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incident_determinations_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: true
+            referencedRelation: "safety_incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       safety_incidents: {
         Row: {
-          case_number: number
-          classification: string
+          activity_before: string | null
+          body_part: string | null
+          case_number: number | null
+          classification: string | null
           company_id: string
           created_at: string
           created_by: string
           date_of_incident: string
           days_away_count: number
           days_restricted_or_transferred_count: number
+          death_date: string | null
+          employer_notified_at: string | null
           establishment_id: string
+          first_day_away: string | null
+          hospitalized_inpatient: boolean | null
           id: string
           illness_type: string | null
           incident_year: number
           injury_illness_description: string
           is_privacy_case: boolean
           job_title: string | null
+          leave_case_id: string | null
           location_description: string | null
+          loss_of_consciousness: boolean | null
           non_employee_name: string | null
+          object_substance: string | null
           person_id: string | null
+          physician_name: string | null
+          privacy_case_reason: string | null
+          recordability: string
           reference_id: string
           reported_at: string | null
           reported_by: string | null
+          return_to_work_date: string | null
           status: string
           time_of_incident: string | null
+          treated_in_emergency_room: boolean | null
+          treatment_facility: string | null
+          treatment_level: string | null
           updated_at: string
           updated_by: string | null
           what_happened: string
+          work_related: boolean | null
         }
         Insert: {
-          case_number: number
-          classification: string
+          activity_before?: string | null
+          body_part?: string | null
+          case_number?: number | null
+          classification?: string | null
           company_id: string
           created_at?: string
           created_by: string
           date_of_incident: string
           days_away_count?: number
           days_restricted_or_transferred_count?: number
+          death_date?: string | null
+          employer_notified_at?: string | null
           establishment_id: string
+          first_day_away?: string | null
+          hospitalized_inpatient?: boolean | null
           id?: string
           illness_type?: string | null
           incident_year: number
           injury_illness_description: string
           is_privacy_case?: boolean
           job_title?: string | null
+          leave_case_id?: string | null
           location_description?: string | null
+          loss_of_consciousness?: boolean | null
           non_employee_name?: string | null
+          object_substance?: string | null
           person_id?: string | null
+          physician_name?: string | null
+          privacy_case_reason?: string | null
+          recordability?: string
           reference_id: string
           reported_at?: string | null
           reported_by?: string | null
+          return_to_work_date?: string | null
           status?: string
           time_of_incident?: string | null
+          treated_in_emergency_room?: boolean | null
+          treatment_facility?: string | null
+          treatment_level?: string | null
           updated_at?: string
           updated_by?: string | null
           what_happened: string
+          work_related?: boolean | null
         }
         Update: {
-          case_number?: number
-          classification?: string
+          activity_before?: string | null
+          body_part?: string | null
+          case_number?: number | null
+          classification?: string | null
           company_id?: string
           created_at?: string
           created_by?: string
           date_of_incident?: string
           days_away_count?: number
           days_restricted_or_transferred_count?: number
+          death_date?: string | null
+          employer_notified_at?: string | null
           establishment_id?: string
+          first_day_away?: string | null
+          hospitalized_inpatient?: boolean | null
           id?: string
           illness_type?: string | null
           incident_year?: number
           injury_illness_description?: string
           is_privacy_case?: boolean
           job_title?: string | null
+          leave_case_id?: string | null
           location_description?: string | null
+          loss_of_consciousness?: boolean | null
           non_employee_name?: string | null
+          object_substance?: string | null
           person_id?: string | null
+          physician_name?: string | null
+          privacy_case_reason?: string | null
+          recordability?: string
           reference_id?: string
           reported_at?: string | null
           reported_by?: string | null
+          return_to_work_date?: string | null
           status?: string
           time_of_incident?: string | null
+          treated_in_emergency_room?: boolean | null
+          treatment_facility?: string | null
+          treatment_level?: string | null
           updated_at?: string
           updated_by?: string | null
           what_happened?: string
+          work_related?: boolean | null
         }
         Relationships: [
           {
@@ -21709,6 +22685,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "safety_incidents_leave_case_id_fkey"
+            columns: ["leave_case_id"]
+            isOneToOne: false
+            referencedRelation: "leave_cases"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "safety_incidents_person_id_fkey"
             columns: ["person_id"]
             isOneToOne: false
@@ -21730,6 +22713,197 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      safety_recordability_rules: {
+        Row: {
+          answer_type: string
+          citation: string
+          created_at: string
+          fact_key: string
+          guidance: string | null
+          id: string
+          is_active: boolean
+          kind: string
+          label: string
+          outcome_classification: string | null
+          rule_key: string
+          rule_version: number
+          severity_rank: number
+          sort_order: number
+          test: string
+        }
+        Insert: {
+          answer_type: string
+          citation: string
+          created_at?: string
+          fact_key: string
+          guidance?: string | null
+          id?: string
+          is_active?: boolean
+          kind: string
+          label: string
+          outcome_classification?: string | null
+          rule_key: string
+          rule_version?: number
+          severity_rank?: number
+          sort_order?: number
+          test: string
+        }
+        Update: {
+          answer_type?: string
+          citation?: string
+          created_at?: string
+          fact_key?: string
+          guidance?: string | null
+          id?: string
+          is_active?: boolean
+          kind?: string
+          label?: string
+          outcome_classification?: string | null
+          rule_key?: string
+          rule_version?: number
+          severity_rank?: number
+          sort_order?: number
+          test?: string
+        }
+        Relationships: []
+      }
+      safety_severe_injury_reports: {
+        Row: {
+          agency_reference: string | null
+          company_id: string
+          created_at: string
+          deadline_at: string | null
+          deadline_hours: number
+          decided_at: string
+          decided_by: string
+          decision: string
+          decision_reason: string | null
+          employer_notified_at: string | null
+          id: string
+          incident_id: string
+          jurisdiction: string
+          report_method: string | null
+          reported_at: string | null
+          reported_by: string | null
+          rule_citation: string
+          trigger_kind: string
+        }
+        Insert: {
+          agency_reference?: string | null
+          company_id: string
+          created_at?: string
+          deadline_at?: string | null
+          deadline_hours: number
+          decided_at?: string
+          decided_by: string
+          decision: string
+          decision_reason?: string | null
+          employer_notified_at?: string | null
+          id?: string
+          incident_id: string
+          jurisdiction: string
+          report_method?: string | null
+          reported_at?: string | null
+          reported_by?: string | null
+          rule_citation: string
+          trigger_kind: string
+        }
+        Update: {
+          agency_reference?: string | null
+          company_id?: string
+          created_at?: string
+          deadline_at?: string | null
+          deadline_hours?: number
+          decided_at?: string
+          decided_by?: string
+          decision?: string
+          decision_reason?: string | null
+          employer_notified_at?: string | null
+          id?: string
+          incident_id?: string
+          jurisdiction?: string
+          report_method?: string | null
+          reported_at?: string | null
+          reported_by?: string | null
+          rule_citation?: string
+          trigger_kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_severe_injury_reports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_severe_injury_reports_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_severe_injury_reports_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "safety_incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_severe_injury_reports_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      safety_severe_injury_rules: {
+        Row: {
+          citation: string
+          created_at: string
+          deadline_hours: number
+          fact_key: string
+          guidance: string | null
+          id: string
+          is_active: boolean
+          jurisdiction: string
+          label: string
+          rule_key: string
+          sort_order: number
+          trigger_kind: string
+        }
+        Insert: {
+          citation: string
+          created_at?: string
+          deadline_hours: number
+          fact_key: string
+          guidance?: string | null
+          id?: string
+          is_active?: boolean
+          jurisdiction: string
+          label: string
+          rule_key: string
+          sort_order?: number
+          trigger_kind: string
+        }
+        Update: {
+          citation?: string
+          created_at?: string
+          deadline_hours?: number
+          fact_key?: string
+          guidance?: string | null
+          id?: string
+          is_active?: boolean
+          jurisdiction?: string
+          label?: string
+          rule_key?: string
+          sort_order?: number
+          trigger_kind?: string
+        }
+        Relationships: []
       }
       schedule_assignments: {
         Row: {
@@ -25280,6 +26454,52 @@ export type Database = {
           },
         ]
       }
+      v_document_entity_conduct_action: {
+        Row: {
+          company_id: string | null
+          id: string | null
+          person_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conduct_cases_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conduct_cases_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_document_entity_recruiting_offer: {
+        Row: {
+          company_id: string | null
+          id: string | null
+          person_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruiting_applications_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recruiting_offers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_employment_applications_validity: {
         Row: {
           applicant_first_name: string | null
@@ -26825,6 +28045,33 @@ export type Database = {
           reference_id: string
         }[]
       }
+      mhd_conduct_person_context: {
+        Args: { p_person_id: string }
+        Returns: {
+          company_name: string
+          date_of_hire: string
+          department: string
+          facility_location: string
+          position_title: string
+          supervisor_name: string
+        }[]
+      }
+      mhd_conduct_person_history: {
+        Args: { p_months?: number; p_person_id: string }
+        Returns: {
+          category: string
+          occurred_at: string
+          reference_id: string
+          severity: string
+          source: string
+          status: string
+          summary: string
+        }[]
+      }
+      mhd_conduct_recommend_severity: {
+        Args: { p_as_of?: string; p_category: string; p_person_id: string }
+        Returns: Json
+      }
       mhd_conduct_record_outcome: {
         Args: {
           p_action_id: string
@@ -27365,7 +28612,6 @@ export type Database = {
       }
       mhd_create_offboarding_case: {
         Args: {
-          p_actor_user_id?: string
           p_company_id: string
           p_last_working_day?: string
           p_person_id: string
@@ -27596,28 +28842,6 @@ export type Database = {
           month_start: string
         }[]
       }
-      mhd_dashboard_module_alerts: {
-        Args: { p_company_id?: string }
-        Returns: {
-          accommodations_needs_attention: number
-          activities_needs_attention: number
-          approvals_needs_attention: number
-          attendance_needs_attention: number
-          communications_needs_attention: number
-          compensation_needs_attention: number
-          conduct_needs_attention: number
-          contractor_classification_needs_attention: number
-          esignature_needs_attention: number
-          handbooks_needs_attention: number
-          investigations_needs_attention: number
-          leaves_needs_attention: number
-          my_handbooks_needs_attention: number
-          my_training_needs_attention: number
-          tasks_needs_attention: number
-          training_needs_attention: number
-          workplace_safety_needs_attention: number
-        }[]
-      }
       mhd_dashboard_my_tasks: {
         Args: { p_company_id?: string; p_limit?: number }
         Returns: {
@@ -27760,6 +28984,262 @@ export type Database = {
       }
       mhd_dispatch_form_workflow_webhooks: { Args: never; Returns: number }
       mhd_dispatch_notification_emails: { Args: never; Returns: number }
+      mhd_document_assert_no_prohibited_content: {
+        Args: { p_data: Json; p_scan_values?: boolean }
+        Returns: undefined
+      }
+      mhd_document_branding_get: {
+        Args: { p_company_id: string }
+        Returns: {
+          accent_color: string
+          company_id: string
+          font_family: string
+          footer_text: string
+          header_text: string
+          id: string
+          is_platform_default: boolean
+          logo_data_uri: string
+          show_reference_id: boolean
+        }[]
+      }
+      mhd_document_branding_upsert: {
+        Args: {
+          p_accent_color: string
+          p_company_id: string
+          p_font_family: string
+          p_footer_text: string
+          p_header_text: string
+          p_logo_data_uri: string
+          p_show_reference_id?: boolean
+        }
+        Returns: string
+      }
+      mhd_document_compose_edits: {
+        Args: {
+          p_base: Json
+          p_declared: Json
+          p_narrative: Json
+          p_overrides: Json
+          p_slots: Json
+        }
+        Returns: Json
+      }
+      mhd_document_date: { Args: { p_value: string }; Returns: string }
+      mhd_document_entity_lookup: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: Record<string, unknown>
+      }
+      mhd_document_generation_apply_edits: {
+        Args: {
+          p_generation_id: string
+          p_narrative?: Json
+          p_overrides?: Json
+        }
+        Returns: undefined
+      }
+      mhd_document_generation_set_employee_file_category: {
+        Args: { p_category: string; p_generation_id: string }
+        Returns: undefined
+      }
+      mhd_document_label: { Args: { p_value: string }; Returns: string }
+      mhd_document_money: { Args: { p_value: number }; Returns: string }
+      mhd_document_preview_context: {
+        Args: {
+          p_company_id: string
+          p_custom?: Json
+          p_entity_id: string
+          p_entity_type: string
+          p_narrative?: Json
+          p_overrides?: Json
+          p_template_id: string
+        }
+        Returns: Json
+      }
+      mhd_document_queue_can_act: {
+        Args: { p_queued_by: string }
+        Returns: boolean
+      }
+      mhd_document_queue_dismiss: {
+        Args: { p_queue_id: string; p_reason: string }
+        Returns: undefined
+      }
+      mhd_document_queue_enqueue: {
+        Args: {
+          p_company_id: string
+          p_employee_file_category?: string
+          p_entity_id: string
+          p_entity_type: string
+          p_merge_overrides?: Json
+          p_narrative_sections?: Json
+          p_output_format?: string
+          p_requires_signature?: boolean
+          p_source_wizard: string
+          p_template_key: string
+          p_wizard_inputs?: Json
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_document_queue_generate: {
+        Args: { p_queue_id: string }
+        Returns: {
+          generation_id: string
+          generation_reference_id: string
+          template_id: string
+        }[]
+      }
+      mhd_document_queue_get: {
+        Args: { p_queue_id: string }
+        Returns: {
+          company_id: string
+          employee_file_category: string
+          entity_id: string
+          entity_type: string
+          failure_reason: string
+          generation_id: string
+          id: string
+          merge_overrides: Json
+          narrative_sections: Json
+          output_format: string
+          queued_at: string
+          queued_by: string
+          reference_id: string
+          requires_signature: boolean
+          source_wizard: string
+          status: string
+          subject_person_id: string
+          template_key: string
+          wizard_inputs: Json
+        }[]
+      }
+      mhd_document_queue_list: {
+        Args: {
+          p_company_id: string
+          p_entity_id?: string
+          p_entity_type?: string
+          p_status?: string
+          p_subject_person_id?: string
+        }
+        Returns: {
+          company_id: string
+          employee_file_category: string
+          entity_id: string
+          entity_type: string
+          failure_reason: string
+          generated_at: string
+          generation_id: string
+          generation_status: string
+          id: string
+          output_drive_file_id: string
+          output_file_name: string
+          output_format: string
+          queued_at: string
+          queued_by: string
+          queued_by_name: string
+          reference_id: string
+          requires_signature: boolean
+          source_wizard: string
+          status: string
+          subject_person_id: string
+          subject_person_name: string
+          template_key: string
+          template_name: string
+        }[]
+      }
+      mhd_document_queue_update_edits: {
+        Args: {
+          p_merge_overrides?: Json
+          p_narrative_sections?: Json
+          p_queue_id: string
+        }
+        Returns: undefined
+      }
+      mhd_document_record_accommodation_case: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_contractor_classification: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_grievance: { Args: { p_id: string }; Returns: Json }
+      mhd_document_record_investigation_case: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_job_classification: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_job_description: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_leave_case: { Args: { p_id: string }; Returns: Json }
+      mhd_document_record_offboarding_case: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_onboarding_packet: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_performance_cycle: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_recruiting_offer: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_requisition: { Args: { p_id: string }; Returns: Json }
+      mhd_document_record_safety_incident: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_record_training_course: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      mhd_document_resolve_template: {
+        Args: { p_company_id: string; p_template_key: string }
+        Returns: {
+          applicable_entity_type: string | null
+          company_id: string | null
+          compliance_content_key: string | null
+          compliance_module_key: string | null
+          content: string
+          content_format: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string | null
+          employee_file_category: string | null
+          id: string
+          is_active: boolean
+          is_deleted: boolean
+          is_system: boolean
+          merge_fields: Json
+          name: string
+          narrative_slots: Json
+          reference_id: string
+          requires_signature: boolean
+          template_key: string | null
+          template_type: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "document_templates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       mhd_document_retention_schedule_list: {
         Args: { p_company_id: string; p_entity_type?: string }
         Returns: {
@@ -27769,6 +29249,52 @@ export type Database = {
           id: string
           retention_basis: string
           retention_expires_at: string
+        }[]
+      }
+      mhd_document_template_fork: {
+        Args: { p_company_id: string; p_template_id: string }
+        Returns: {
+          already_existed: boolean
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_document_template_set_wizard_settings: {
+        Args: {
+          p_employee_file_category: string
+          p_narrative_slots: Json
+          p_template_id: string
+        }
+        Returns: undefined
+      }
+      mhd_document_template_versions: {
+        Args: { p_template_id: string }
+        Returns: {
+          changed_at: string
+          changed_by: string
+          changed_by_name: string
+          content: string
+          content_format: string
+          merge_fields: Json
+          name: string
+          narrative_slots: Json
+          requires_signature: boolean
+          version: number
+        }[]
+      }
+      mhd_document_template_wizard_settings: {
+        Args: { p_template_id: string }
+        Returns: {
+          company_id: string
+          compliance_content_key: string
+          compliance_module_key: string
+          employee_file_category: string
+          id: string
+          is_system: boolean
+          narrative_slots: Json
+          requires_signature: boolean
+          template_key: string
+          version: number
         }[]
       }
       mhd_edit_message: {
@@ -28165,6 +29691,7 @@ export type Database = {
           name: string
           reference_id: string
           requires_signature: boolean
+          template_key: string
           template_type: string
           updated_at: string
           version: number
@@ -28520,6 +30047,8 @@ export type Database = {
       mhd_get_safety_incident: {
         Args: { p_incident_id: string }
         Returns: {
+          activity_before: string
+          body_part: string
           case_number: number
           classification: string
           company_id: string
@@ -28527,20 +30056,35 @@ export type Database = {
           date_of_incident: string
           days_away_count: number
           days_restricted_or_transferred_count: number
+          death_date: string
           displayed_subject_name: string
+          employer_notified_at: string
           establishment_id: string
+          first_day_away: string
+          hospitalized_inpatient: boolean
           id: string
           illness_type: string
           incident_year: number
           injury_illness_description: string
           is_privacy_case: boolean
           job_title: string
+          leave_case_id: string
           location_description: string
+          loss_of_consciousness: boolean
+          object_substance: string
           person_id: string
+          physician_name: string
+          privacy_case_reason: string
+          recordability: string
           reference_id: string
+          return_to_work_date: string
           status: string
           time_of_incident: string
+          treated_in_emergency_room: boolean
+          treatment_facility: string
+          treatment_level: string
           what_happened: string
+          work_related: boolean
         }[]
       }
       mhd_get_signature_events: {
@@ -28729,6 +30273,7 @@ export type Database = {
           person_id: string
           reference_id: string
           referred_at: string
+          referred_to_investigation_id: string
           referred_to_process: string
           remedy_requested: string
           resolution: string
@@ -28736,6 +30281,19 @@ export type Database = {
           status: string
           submitted_at: string
         }[]
+      }
+      mhd_grievance_get_intake_detail: {
+        Args: { p_grievance_id: string }
+        Returns: Json
+      }
+      mhd_grievance_intake_open: {
+        Args: {
+          p_company_id: string
+          p_grievance: Json
+          p_person_id: string
+          p_witnesses?: Json
+        }
+        Returns: Json
       }
       mhd_grievance_list: {
         Args: { p_company_id: string; p_status?: string }
@@ -28781,7 +30339,11 @@ export type Database = {
         }[]
       }
       mhd_grievance_refer: {
-        Args: { p_grievance_id: string; p_referred_to_process: string }
+        Args: {
+          p_grievance_id: string
+          p_investigation_case_id?: string
+          p_referred_to_process: string
+        }
         Returns: undefined
       }
       mhd_grievance_reject_not_grievable: {
@@ -29185,6 +30747,15 @@ export type Database = {
         Args: { p_case_id: string; p_investigator: string }
         Returns: undefined
       }
+      mhd_investigation_check_conflicts: {
+        Args: {
+          p_company_id: string
+          p_investigator_user_id: string
+          p_party_person_ids?: string[]
+          p_respondent_person_ids?: string[]
+        }
+        Returns: Json
+      }
       mhd_investigation_create: {
         Args: {
           p_allegation: string
@@ -29222,6 +30793,26 @@ export type Database = {
         Args: { p_case_id: string; p_user_id: string }
         Returns: undefined
       }
+      mhd_investigation_intake_open: {
+        Args: {
+          p_allegation: string
+          p_assigned_investigator?: string
+          p_case_type: string
+          p_company_id: string
+          p_confidentiality?: string
+          p_conflict_acknowledgment?: string
+          p_interim_measures?: Json
+          p_parties?: Json
+          p_severity?: string
+          p_source_id?: string
+          p_source_type?: string
+          p_target_completion_date?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
       mhd_investigation_list: {
         Args: { p_company_id: string; p_status?: string }
         Returns: {
@@ -29242,6 +30833,18 @@ export type Database = {
           granted_at: string
           granted_by: string
           user_id: string
+        }[]
+      }
+      mhd_investigation_list_interim_measures: {
+        Args: { p_case_id: string }
+        Returns: {
+          created_at: string
+          description: string
+          effective_from: string
+          id: string
+          measure_type: string
+          review_by: string
+          status: string
         }[]
       }
       mhd_investigation_list_parties: {
@@ -30586,6 +32189,7 @@ export type Database = {
           name: string
           reference_id: string
           requires_signature: boolean
+          template_key: string
           template_type: string
           updated_at: string
           version: number
@@ -30598,6 +32202,27 @@ export type Database = {
           form_id: string
           form_name: string
           form_status: string
+        }[]
+      }
+      mhd_list_employee_file_documents: {
+        Args: { p_person_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          created_by_name: string
+          employee_file_category: string
+          entity_id: string
+          entity_type: string
+          esignature_request_id: string
+          generated_at: string
+          id: string
+          output_drive_file_id: string
+          output_file_name: string
+          output_format: string
+          reference_id: string
+          status: string
+          template_key: string
+          template_name: string
         }[]
       }
       mhd_list_employee_file_submissions: {
@@ -31402,6 +33027,8 @@ export type Database = {
           p_establishment_id?: string
         }
         Returns: {
+          activity_before: string
+          body_part: string
           case_number: number
           classification: string
           company_id: string
@@ -31409,20 +33036,35 @@ export type Database = {
           date_of_incident: string
           days_away_count: number
           days_restricted_or_transferred_count: number
+          death_date: string
           displayed_subject_name: string
+          employer_notified_at: string
           establishment_id: string
+          first_day_away: string
+          hospitalized_inpatient: boolean
           id: string
           illness_type: string
           incident_year: number
           injury_illness_description: string
           is_privacy_case: boolean
           job_title: string
+          leave_case_id: string
           location_description: string
+          loss_of_consciousness: boolean
+          object_substance: string
           person_id: string
+          physician_name: string
+          privacy_case_reason: string
+          recordability: string
           reference_id: string
+          return_to_work_date: string
           status: string
           time_of_incident: string
+          treated_in_emergency_room: boolean
+          treatment_facility: string
+          treatment_level: string
           what_happened: string
+          work_related: boolean
         }[]
       }
       mhd_list_signature_requests_for_company: {
@@ -32003,9 +33645,75 @@ export type Database = {
         }
         Returns: string[]
       }
+      mhd_offboarding_intake_open: {
+        Args: {
+          p_company_id: string
+          p_custom_items?: Json
+          p_last_working_day?: string
+          p_layoff_count?: number
+          p_notice_given_days?: number
+          p_notices?: Json
+          p_person_id: string
+          p_reason_summary?: string
+          p_separation_date: string
+          p_separation_type: string
+          p_state_code?: string
+        }
+        Returns: {
+          id: string
+          reference_id: string
+        }[]
+      }
+      mhd_offboarding_list_case_notices: {
+        Args: { p_case_id: string }
+        Returns: {
+          delivered_at: string
+          deviation_reason: string
+          id: string
+          jurisdiction: string
+          notice_key: string
+          planned_due: string
+          recommended_due: string
+        }[]
+      }
+      mhd_offboarding_notice_plan: {
+        Args: {
+          p_company_id: string
+          p_last_working_day?: string
+          p_layoff_count?: number
+          p_notice_given_days?: number
+          p_person_id: string
+          p_separation_date: string
+          p_separation_type: string
+          p_state_code?: string
+        }
+        Returns: Json
+      }
+      mhd_offboarding_person_obligations: {
+        Args: { p_person_id: string }
+        Returns: Json
+      }
       mhd_onboarding_cancel_person: {
         Args: { p_person_id: string; p_reason: string }
         Returns: number
+      }
+      mhd_onboarding_hire_context: {
+        Args: { p_person_id: string }
+        Returns: Json
+      }
+      mhd_onboarding_suggest_packet: {
+        Args: {
+          p_employment_type?: string
+          p_person_id: string
+          p_state_code?: string
+        }
+        Returns: {
+          already_started: boolean
+          document_key: string
+          is_required: boolean
+          label: string
+          reason: string
+        }[]
       }
       mhd_open_compliance_deadline: {
         Args: {
@@ -32083,6 +33791,10 @@ export type Database = {
         Args: { p_participant_id: string }
         Returns: undefined
       }
+      mhd_performance_can_manage_cycles: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
       mhd_performance_close_feedback: {
         Args: { p_reason: string; p_review_id: string }
         Returns: undefined
@@ -32097,6 +33809,83 @@ export type Database = {
         Returns: {
           id: string
           reference_id: string
+        }[]
+      }
+      mhd_performance_cycle_candidates: {
+        Args: {
+          p_company_id: string
+          p_include_indirect?: boolean
+          p_period_end?: string
+          p_period_start?: string
+          p_review_type?: string
+          p_root_person_id?: string
+        }
+        Returns: {
+          competency_count: number
+          conflicting_review_reference: string
+          depth: number
+          display_name: string
+          has_published_job: boolean
+          job_title: string
+          manager_name: string
+          manager_person_id: string
+          person_id: string
+          reviewer_name: string
+          reviewer_user_id: string
+        }[]
+      }
+      mhd_performance_cycle_close: {
+        Args: { p_cycle_id: string }
+        Returns: undefined
+      }
+      mhd_performance_cycle_launch: {
+        Args: {
+          p_company_id: string
+          p_competency_ids?: string[]
+          p_cycle: Json
+          p_participants: Json
+        }
+        Returns: Json
+      }
+      mhd_performance_cycle_list: {
+        Args: { p_company_id: string }
+        Returns: {
+          completed_count: number
+          cycle_name: string
+          feedback_due: string
+          id: string
+          is_multi_rater: boolean
+          launched_at: string
+          overdue_count: number
+          reference_id: string
+          review_count: number
+          review_due: string
+          review_period_end: string
+          review_period_start: string
+          review_type: string
+          self_assessment_due: string
+          status: string
+          template_name: string
+        }[]
+      }
+      mhd_performance_cycle_progress: {
+        Args: { p_cycle_id: string }
+        Returns: Json
+      }
+      mhd_performance_cycle_rater_plan: {
+        Args: {
+          p_company_id: string
+          p_include_peers?: boolean
+          p_include_upward?: boolean
+          p_max_peers?: number
+          p_max_upward?: number
+          p_person_ids: string[]
+        }
+        Returns: {
+          participant_type: string
+          rater_name: string
+          rater_person_id: string
+          subject_person_id: string
         }[]
       }
       mhd_performance_decline_participation: {
@@ -32747,6 +34536,7 @@ export type Database = {
           p_pay_frequency?: string
           p_reporting_manager_person_id?: string
           p_requires_approval?: boolean
+          p_salary_override_reason?: string
           p_start_date?: string
         }
         Returns: {
@@ -32813,6 +34603,15 @@ export type Database = {
         Args: { p_offer_id: string; p_reason?: string }
         Returns: undefined
       }
+      mhd_recruiting_offer_salary_check: {
+        Args: {
+          p_application_id: string
+          p_as_of?: string
+          p_base_salary: number
+          p_pay_frequency: string
+        }
+        Returns: Json
+      }
       mhd_recruiting_reason_list: {
         Args: { p_company_id: string }
         Returns: {
@@ -32859,6 +34658,10 @@ export type Database = {
           status: string
           title: string
         }[]
+      }
+      mhd_recruiting_requisition_set_job: {
+        Args: { p_job_id: string; p_requisition_id: string }
+        Returns: undefined
       }
       mhd_recruiting_requisition_transition: {
         Args: { p_new_status: string; p_req_id: string }
@@ -33115,6 +34918,10 @@ export type Database = {
         Args: { p_role_id: string; p_user_id: string }
         Returns: undefined
       }
+      mhd_safety_fact_test: {
+        Args: { p_fact_key: string; p_facts: Json; p_test: string }
+        Returns: boolean
+      }
       mhd_safety_incident_create: {
         Args: {
           p_classification: string
@@ -33135,6 +34942,29 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_safety_incident_determination_get: {
+        Args: { p_incident_id: string }
+        Returns: Json
+      }
+      mhd_safety_incident_intake_open: {
+        Args: {
+          p_company_id: string
+          p_decision: Json
+          p_establishment_id: string
+          p_facts: Json
+          p_incident: Json
+          p_severe_decisions?: Json
+        }
+        Returns: Json
+      }
+      mhd_safety_incident_leave_context: {
+        Args: {
+          p_company_id: string
+          p_incident_date: string
+          p_person_id: string
+        }
+        Returns: Json
+      }
       mhd_safety_incident_update: {
         Args: {
           p_classification?: string
@@ -33149,6 +34979,76 @@ export type Database = {
           p_what_happened?: string
         }
         Returns: undefined
+      }
+      mhd_safety_recordability_evaluate: {
+        Args: { p_company_id: string; p_facts: Json }
+        Returns: Json
+      }
+      mhd_safety_recordability_rules_list: {
+        Args: { p_company_id: string }
+        Returns: {
+          answer_type: string
+          citation: string
+          created_at: string
+          fact_key: string
+          guidance: string | null
+          id: string
+          is_active: boolean
+          kind: string
+          label: string
+          outcome_classification: string | null
+          rule_key: string
+          rule_version: number
+          severity_rank: number
+          sort_order: number
+          test: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "safety_recordability_rules"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mhd_safety_severe_injury_evaluate: {
+        Args: {
+          p_employer_notified_at?: string
+          p_establishment_id: string
+          p_facts: Json
+        }
+        Returns: Json
+      }
+      mhd_safety_severe_injury_record_report: {
+        Args: {
+          p_agency_reference?: string
+          p_method: string
+          p_report_id: string
+          p_reported_at: string
+        }
+        Returns: undefined
+      }
+      mhd_safety_severe_injury_rules_list: {
+        Args: { p_establishment_id: string }
+        Returns: {
+          citation: string
+          created_at: string
+          deadline_hours: number
+          fact_key: string
+          guidance: string | null
+          id: string
+          is_active: boolean
+          jurisdiction: string
+          label: string
+          rule_key: string
+          sort_order: number
+          trigger_kind: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "safety_severe_injury_rules"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       mhd_satisfy_compliance_deadline: {
         Args: { p_deadline_id: string; p_note?: string }
@@ -33517,7 +35417,6 @@ export type Database = {
       }
       mhd_start_onboarding_packet: {
         Args: {
-          p_actor_user_id: string
           p_company_id: string
           p_document_keys: string[]
           p_due_date: string
@@ -35301,7 +37200,6 @@ export type Database = {
       }
       mhd_upsert_onboarding_checklist_item: {
         Args: {
-          p_actor_user_id: string
           p_company_id: string
           p_document_key: string
           p_document_record_id: string
