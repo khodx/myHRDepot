@@ -108,7 +108,12 @@ export function MhdModuleCardGrid({
           </span>
           <span className="truncate text-[18.15px] font-bold">{item.label}</span>
           {item.status === 'comingSoon' ? (
-            <span className="ml-auto shrink-0 rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
+            <span
+              // Clear the corner badge (29px wide, 12px in from the edge) so the two never overlap.
+              className={`ml-auto shrink-0 rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium text-neutral-600 ${
+                alertCount > 0 ? 'mr-9' : ''
+              }`}
+            >
               Coming Soon
             </span>
           ) : null}

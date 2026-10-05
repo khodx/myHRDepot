@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -79,6 +79,14 @@ describe('MhdCategoryLandingPage', () => {
       screen.getByRole('link', { name: 'Form Library, 1 needs attention' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Tasks' })).toBeInTheDocument();
+  });
+
+  it('keeps the Coming Soon pill clear of the corner badge on the same card', async () => {
+    mockAlerts({ '/offboarding': 7 });
+    await renderAt('/categories/employee-relations');
+
+    const card = screen.getByRole('link', { name: 'Offboarding, 7 need attention' });
+    expect(within(card).getByText('Coming Soon')).toHaveClass('mr-9');
   });
 
   it('uses the shared module card (row tone, border, animation hooks)', async () => {
