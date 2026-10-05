@@ -3,6 +3,10 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
+// Each test dynamically imports the full nav data after vi.resetModules(); under a full
+// parallel run that first import can exceed the 5s default and bleed into the next test.
+vi.setConfig({ testTimeout: 30_000 });
+
 const mockUseMhdAuth = vi.fn();
 vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => mockUseMhdAuth(),
