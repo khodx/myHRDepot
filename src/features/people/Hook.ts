@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { mhdPersonService } from './Service';
-import type { MhdPeopleListFilters } from './Types';
+import { mhdIsInsufficientPrivilegeError, mhdPersonService } from './Service';
+import type { MhdPeopleListFilters, MhdUpsertProfileRequirementInput } from './Types';
 
 export const mhdPeopleQueryKeys = {
   picker: (companyId: string | null) => ['mhd-people', 'picker', companyId ?? 'ALL'] as const,
@@ -13,6 +13,15 @@ export const mhdPeopleQueryKeys = {
     ['mhd-people', 'current-employment-state', personId ?? 'none'] as const,
   photoUrl: (photoPath: string | null) => ['mhd-people', 'photo-url', photoPath ?? 'none'] as const,
   photoUrls: (cacheKey: string) => ['mhd-people', 'photo-urls', cacheKey] as const,
+  incompleteProfilesRoot: () => ['mhd-people', 'incomplete-profiles'] as const,
+  incompleteProfiles: (companyId: string | null, limit: number, offset: number) =>
+    ['mhd-people', 'incomplete-profiles', companyId ?? 'none', limit, offset] as const,
+  profileCompletenessRoot: () => ['mhd-people', 'profile-completeness'] as const,
+  profileCompleteness: (personId: string | null) =>
+    ['mhd-people', 'profile-completeness', personId ?? 'none'] as const,
+  profileRequirements: (companyId: string | null) =>
+    ['mhd-people', 'profile-requirements', companyId ?? 'none'] as const,
+  profileSectionDefinitions: () => ['mhd-people', 'profile-section-definitions'] as const,
 };
 
 /**
@@ -155,4 +164,62 @@ export function useMhdPeople(initialFilters: MhdPeopleListFilters) {
       : null,
     refreshPeople: query.refetch,
   };
+}
+
+/** HR worklist of people whose required profile sections are still missing. */
+export function useMhdIncompleteProfiles(companyId: string | null, limit: number, offset: number) {
+  return useQuery({
+    queryKey: mhdPeopleQueryKeys.incompleteProfiles(companyId, limit, offset),
+    queryFn: () =>
+      mhdPersonService.listIncompleteProfiles({ companyId: companyId!, limit, offset }),
+    enabled: Boolean(companyId),
+  });
+}
+
+/**
+ * Per-person completeness. The RPC raises 42501 for callers who may not see
+ * it; that is never retried so the consumer can simply not render.
+ */
+export function useMhdPersonProfileCompleteness(personId: string | null) {
+  return useQuery({
+    queryKey: mhdPeopleQueryKeys.profileCompleteness(personId),
+    queryFn: () => mhdPersonService.getPersonProfileCompleteness(personId!),
+    enabled: Boolean(personId),
+    retry: (failureCount, error) => !mhdIsInsufficientPrivilegeError(error) && failureCount < 2,
+  });
+}
+
+export function useMhdProfileRequirements(companyId: string | null) {
+  return useQuery({
+    queryKey: mhdPeopleQueryKeys.profileRequirements(companyId),
+    queryFn: () => mhdPersonService.listProfileRequirements(companyId!),
+    enabled: Boolean(companyId),
+  });
+}
+
+/** Section key to readable label source for the worklist. Static reference data. */
+export function useMhdProfileSectionDefinitions() {
+  return useQuery({
+    queryKey: mhdPeopleQueryKeys.profileSectionDefinitions(),
+    queryFn: () => mhdPersonService.listProfileSectionDefinitions(),
+    staleTime: 10 * 60_000,
+  });
+}
+
+/** Overrides a platform default for a company, then refreshes the rules and worklist. */
+export function useMhdUpsertProfileRequirement() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpsertProfileRequirementInput) =>
+      mhdPersonService.upsertProfileRequirement(input),
+    onSuccess: async (_id, input) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: mhdPeopleQueryKeys.incompleteProfilesRoot() }),
+        queryClient.invalidateQueries({ queryKey: mhdPeopleQueryKeys.profileCompletenessRoot() }),
+        queryClient.invalidateQueries({
+          queryKey: mhdPeopleQueryKeys.profileRequirements(input.companyId),
+        }),
+      ]);
+    },
+  });
 }

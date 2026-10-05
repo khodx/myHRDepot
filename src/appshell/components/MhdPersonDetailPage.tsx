@@ -31,6 +31,7 @@ import {
 import { MhdPointLedgerPanel } from '@/features/timeattendance/components/MhdPointLedgerPanel';
 import { MhdJobAssignmentPanel } from '@/features/jobs/components/MhdJobAssignmentPanel';
 import { MhdDirectReportsPanel } from '@/features/people/components/MhdDirectReportsPanel';
+import { MhdProfileCompletenessCard } from '@/features/people/components/MhdProfileCompletenessCard';
 import {
   mhdCanAccessRoute,
   mhdCanReadAllAttendance,
@@ -238,6 +239,8 @@ export function MhdPersonDetailPage() {
           <p>Updated: {mhdFormatDate(person.updatedAt)}</p>
         </div>
       </MhdCard>
+
+      <MhdProfileCompletenessCard personId={person.id} />
 
       <MhdOnboardingChecklistPage
         personId={person.id}

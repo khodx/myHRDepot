@@ -8,12 +8,7 @@
 /** The polymorphic entity a timeline row actually describes — the task
  *  itself, or one of its linked notes/attachments/activities. */
 export type MhdTaskAuditEntityType =
-  | 'TASK'
-  | 'NOTE'
-  | 'ATTACHMENT'
-  | 'ACTIVITY'
-  | 'SUBTASK'
-  | 'DOCUMENT_GENERATION';
+  'TASK' | 'NOTE' | 'ATTACHMENT' | 'ACTIVITY' | 'SUBTASK' | 'DOCUMENT_GENERATION';
 
 /** Raw RPC row shape (mhd_get_task_audit_timeline), per the generated
  *  Database['public']['Functions'] Returns type. The generator marks every
@@ -39,23 +34,105 @@ export interface MhdTaskAuditTimelineRpcRow {
   metadata: unknown;
 }
 
-/** Row shape returned by `mhd_document_retention_schedule_list` (0313). */
-export interface MhdDocumentRetentionScheduleRpcRow {
-  id: string;
+/** Retention disposition lifecycle (migration 0376). Nothing is ever deleted
+ *  by the app: APPROVED_FOR_DISPOSAL only records approval, DISPOSED records
+ *  that the purge was carried out elsewhere. */
+export const MHD_RETENTION_DISPOSITION_STATUSES = [
+  'PENDING_REVIEW',
+  'EXTENDED',
+  'LEGAL_HOLD',
+  'APPROVED_FOR_DISPOSAL',
+  'DISPOSED',
+] as const;
+export type MhdRetentionDispositionStatus = (typeof MHD_RETENTION_DISPOSITION_STATUSES)[number];
+
+export const MHD_RETENTION_DECISIONS = [
+  'EXTEND',
+  'HOLD',
+  'RELEASE_HOLD',
+  'APPROVE_DISPOSAL',
+  'CONFIRM_DISPOSED',
+] as const;
+export type MhdRetentionDecision = (typeof MHD_RETENTION_DECISIONS)[number];
+
+export type MhdRetentionReviewScope = 'awaiting' | 'all';
+
+/** Row shape returned by `mhd_retention_review_list`. The generator marks
+ *  every column non-nullable; the nullable ones below genuinely are. */
+export interface MhdRetentionReviewRpcRow {
+  schedule_id: string;
+  company_id: string;
   entity_type: string;
   entity_id: string;
+  person_id: string | null;
+  person_name: string | null;
   retention_basis: string;
   retention_expires_at: string;
+  effective_expires_at: string;
   computed_at: string;
+  disposition_status: string;
+  extended_until: string | null;
+  hold_reference: string | null;
+  decided_at: string | null;
+  decided_by_name: string | null;
+  decision_reason: string | null;
+  awaiting_review: boolean;
+  blocked_reason: string | null;
 }
 
-export interface MhdDocumentRetentionSchedule {
-  id: string;
+export interface MhdRetentionReviewItem {
+  scheduleId: string;
+  companyId: string;
   entityType: string;
   entityId: string;
+  personId: string | null;
+  personName: string | null;
   retentionBasis: string;
   retentionExpiresAt: string;
+  effectiveExpiresAt: string;
   computedAt: string;
+  dispositionStatus: MhdRetentionDispositionStatus;
+  extendedUntil: string | null;
+  holdReference: string | null;
+  decidedAt: string | null;
+  decidedByName: string | null;
+  decisionReason: string | null;
+  awaitingReview: boolean;
+  /** Set when an open investigation / unresolved grievance forbids disposal. */
+  blockedReason: string | null;
+}
+
+/** Row shape returned by `mhd_retention_decision_history`. */
+export interface MhdRetentionHistoryRpcRow {
+  event_id: string;
+  decision: string;
+  from_status: string | null;
+  to_status: string;
+  reason: string;
+  effective_expiry_before: string | null;
+  extended_until: string | null;
+  actor_email: string | null;
+  created_at: string;
+}
+
+export interface MhdRetentionHistoryEvent {
+  eventId: string;
+  decision: MhdRetentionDecision;
+  fromStatus: MhdRetentionDispositionStatus | null;
+  toStatus: MhdRetentionDispositionStatus;
+  reason: string;
+  effectiveExpiryBefore: string | null;
+  extendedUntil: string | null;
+  actorEmail: string | null;
+  createdAt: string;
+}
+
+export interface MhdRecordRetentionDecisionInput {
+  scheduleId: string;
+  decision: MhdRetentionDecision;
+  reason: string;
+  /** ISO date (YYYY-MM-DD); required for EXTEND, ignored otherwise. */
+  extendUntil?: string | null;
 }
 
 export interface MhdTaskAuditEntry {

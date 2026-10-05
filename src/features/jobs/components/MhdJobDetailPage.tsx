@@ -52,6 +52,7 @@ import {
 } from '../Types';
 import { MhdEssentialFunctionList } from './MhdEssentialFunctionList';
 import { MhdFlsaBadge } from './MhdFlsaBadge';
+import { MhdJobAcknowledgmentBoard } from './MhdJobAcknowledgmentBoard';
 import { MhdJobDescriptionEditor } from './MhdJobDescriptionEditor';
 import { MhdPayRangeField } from './MhdPayRangeField';
 
@@ -92,8 +93,9 @@ export function MhdJobDetailPage() {
   const [employmentType, setEmploymentType] = useState<MhdEmploymentType>('FULL_TIME');
   const [industry, setIndustry] = useState<MhdIndustry>('GENERAL');
   const [onetSocCode, setOnetSocCode] = useState('');
-  const [caWageOrderClassification, setCaWageOrderClassification] =
-    useState<MhdCaWageOrderClassification | ''>('');
+  const [caWageOrderClassification, setCaWageOrderClassification] = useState<
+    MhdCaWageOrderClassification | ''
+  >('');
   const [isSafetySensitive, setIsSafetySensitive] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [jobError, setJobError] = useState<string | null>(null);
@@ -114,7 +116,8 @@ export function MhdJobDetailPage() {
   const marketWageLookup = useMhdMarketWageLookup();
   const careerOneStopWageLookup = useMhdCareerOneStopWageLookup();
   const [marketWageResult, setMarketWageResult] = useState<MhdMarketWageLookupSuccess | null>(null);
-  const [careerOneStopWageResult, setCareerOneStopWageResult] = useState<MhdCareerOneStopWageLookupSuccess | null>(null);
+  const [careerOneStopWageResult, setCareerOneStopWageResult] =
+    useState<MhdCareerOneStopWageLookupSuccess | null>(null);
   const [wageLookupError, setWageLookupError] = useState<string | null>(null);
 
   // Prefer the published description for document generation; fall back to
@@ -140,11 +143,16 @@ export function MhdJobDetailPage() {
     if (!jobId || !job?.onetSocCode) return;
     setWageLookupError(null);
     try {
-      const result = await careerOneStopWageLookup.mutateAsync({ jobId, onetSocCode: job.onetSocCode });
+      const result = await careerOneStopWageLookup.mutateAsync({
+        jobId,
+        onetSocCode: job.onetSocCode,
+      });
       if (result.success) setCareerOneStopWageResult(result);
       else setWageLookupError(result.error);
     } catch (err) {
-      setWageLookupError(err instanceof Error ? err.message : 'The CareerOneStop market wage lookup failed.');
+      setWageLookupError(
+        err instanceof Error ? err.message : 'The CareerOneStop market wage lookup failed.',
+      );
     }
   }
 
@@ -347,7 +355,10 @@ export function MhdJobDetailPage() {
               />
             </div>
             <div>
-              <label htmlFor="flsaClassification" className="block text-sm font-medium text-foreground">
+              <label
+                htmlFor="flsaClassification"
+                className="block text-sm font-medium text-foreground"
+              >
                 FLSA classification
               </label>
               <select
@@ -372,7 +383,9 @@ export function MhdJobDetailPage() {
                       write-back priority) -- this field already reflects whichever one governs,
                       so there is nothing further to show here beyond the single resolved value. */}
                   Set by a confirmed classification determination.{' '}
-                  <Link to="/compensation" className="underline">Review in Classification Wizard</Link>
+                  <Link to="/compensation" className="underline">
+                    Review in Classification Wizard
+                  </Link>
                 </p>
               ) : null}
             </div>
@@ -424,7 +437,10 @@ export function MhdJobDetailPage() {
               />
             </div>
             <div>
-              <label htmlFor="caWageOrderClassification" className="block text-sm font-medium text-foreground">
+              <label
+                htmlFor="caWageOrderClassification"
+                className="block text-sm font-medium text-foreground"
+              >
                 CA Wage Order Classification
               </label>
               <select
@@ -595,6 +611,10 @@ export function MhdJobDetailPage() {
         </section>
       )}
 
+      {job.publishedDescriptionId && !draftId ? (
+        <MhdJobAcknowledgmentBoard descriptionId={job.publishedDescriptionId} />
+      ) : null}
+
       {canSeePay ? (
         <MhdCard className="space-y-4">
           <div>
@@ -611,17 +631,28 @@ export function MhdJobDetailPage() {
           ) : (
             <>
               <div className="flex flex-wrap gap-2">
-                <Button variant="secondary" onClick={() => void handleMarketWageLookup()} disabled={marketWageLookup.isPending}>
+                <Button
+                  variant="secondary"
+                  onClick={() => void handleMarketWageLookup()}
+                  disabled={marketWageLookup.isPending}
+                >
                   {marketWageLookup.isPending ? 'Checking…' : 'Check BLS Market Rate'}
                 </Button>
-                <Button variant="secondary" onClick={() => void handleCareerOneStopWageLookup()} disabled={careerOneStopWageLookup.isPending}>
+                <Button
+                  variant="secondary"
+                  onClick={() => void handleCareerOneStopWageLookup()}
+                  disabled={careerOneStopWageLookup.isPending}
+                >
                   {careerOneStopWageLookup.isPending ? 'Checking…' : 'Compare With CareerOneStop'}
                 </Button>
               </div>
               {wageLookupError ? <p className="text-sm text-rose-600">{wageLookupError}</p> : null}
               {marketWageResult ? (
                 <div className="space-y-2 rounded-md border border-border p-3">
-                  <MhdExternalDataAttribution citation={marketWageResult.source} dataYear={marketWageResult.dataYear} />
+                  <MhdExternalDataAttribution
+                    citation={marketWageResult.source}
+                    dataYear={marketWageResult.dataYear}
+                  />
                   <dl className="space-y-2 text-sm">
                     {Object.entries(marketWageResult)
                       .filter(([key]) => key.includes('Percentile') || key.includes('Median'))
@@ -696,7 +727,9 @@ function mhdBuildJobDescriptionMergeData(
     'job.title': job.jobTitle,
     'job.department': job.department ?? '',
     'job.employmentType': mhdFormatEmploymentType(job.employmentType),
-    'job.flsaClassification': job.flsaClassification ? mhdFormatFlsa(job.flsaClassification) : 'Not yet classified',
+    'job.flsaClassification': job.flsaClassification
+      ? mhdFormatFlsa(job.flsaClassification)
+      : 'Not yet classified',
     'job.payRange': mhdFormatPayRange(pay) ?? 'Not set',
     'description.summary': description?.summary ?? '',
     'description.essentialFunctionsHtml': (description?.essentialFunctions ?? [])

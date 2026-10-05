@@ -7,9 +7,15 @@ import type {
   MhdAuditEvent,
   MhdAuditEventFilters,
   MhdAuditEventsRpcRow,
-  MhdDocumentRetentionSchedule,
-  MhdDocumentRetentionScheduleRpcRow,
   MhdListAuditEventsParams,
+  MhdRecordRetentionDecisionInput,
+  MhdRetentionDecision,
+  MhdRetentionDispositionStatus,
+  MhdRetentionHistoryEvent,
+  MhdRetentionHistoryRpcRow,
+  MhdRetentionReviewItem,
+  MhdRetentionReviewRpcRow,
+  MhdRetentionReviewScope,
   MhdTaskAuditEntry,
   MhdTaskAuditReportTimelineRow,
   MhdTaskAuditTimelineRpcRow,
@@ -91,26 +97,75 @@ function mapAuditEventRow(row: MhdAuditEventsRpcRow): MhdAuditEvent {
 
 export const mhdAuditService = {
   /**
-   * 0313. Raises 42501 (via mhd_can_access_company) for anyone outside the
-   * company — this call is the actual enforcement; the route guard is UX only.
+   * Retention review queue / register (mhd_retention_review_list, 0376).
+   * scope 'awaiting' returns expired schedules needing a decision; 'all'
+   * returns the full register. Reviewer gate (Platform Admin / HR Partner /
+   * Client Admin) is enforced by the RPC — the route guard is UX only.
    */
-  async listDocumentRetentionSchedules(
+  async listRetentionReview(
     companyId: string,
-    entityType?: string | null,
-  ): Promise<MhdDocumentRetentionSchedule[]> {
-    const { data, error } = await supabaseClient.rpc('mhd_document_retention_schedule_list', {
+    scope: MhdRetentionReviewScope,
+  ): Promise<MhdRetentionReviewItem[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_retention_review_list', {
       p_company_id: companyId,
-      p_entity_type: entityType ?? undefined,
+      p_scope: scope,
     });
     if (error) throw error;
-    return ((data ?? []) as MhdDocumentRetentionScheduleRpcRow[]).map((row) => ({
-      id: row.id,
+    return ((data ?? []) as MhdRetentionReviewRpcRow[]).map((row) => ({
+      scheduleId: row.schedule_id,
+      companyId: row.company_id,
       entityType: row.entity_type,
       entityId: row.entity_id,
+      personId: row.person_id ?? null,
+      personName: row.person_name ?? null,
       retentionBasis: row.retention_basis,
       retentionExpiresAt: row.retention_expires_at,
+      effectiveExpiresAt: row.effective_expires_at,
       computedAt: row.computed_at,
+      dispositionStatus: row.disposition_status as MhdRetentionDispositionStatus,
+      extendedUntil: row.extended_until ?? null,
+      holdReference: row.hold_reference ?? null,
+      decidedAt: row.decided_at ?? null,
+      decidedByName: row.decided_by_name ?? null,
+      decisionReason: row.decision_reason ?? null,
+      awaitingReview: row.awaiting_review,
+      blockedReason: row.blocked_reason ?? null,
     }));
+  },
+
+  /** Decision audit trail for one schedule (mhd_retention_decision_history). */
+  async listRetentionDecisionHistory(scheduleId: string): Promise<MhdRetentionHistoryEvent[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_retention_decision_history', {
+      p_schedule_id: scheduleId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as MhdRetentionHistoryRpcRow[]).map((row) => ({
+      eventId: row.event_id,
+      decision: row.decision as MhdRetentionDecision,
+      fromStatus: (row.from_status ?? null) as MhdRetentionDispositionStatus | null,
+      toStatus: row.to_status as MhdRetentionDispositionStatus,
+      reason: row.reason,
+      effectiveExpiryBefore: row.effective_expiry_before ?? null,
+      extendedUntil: row.extended_until ?? null,
+      actorEmail: row.actor_email ?? null,
+      createdAt: row.created_at,
+    }));
+  },
+
+  /**
+   * Records a disposition decision and returns the new event id. Errors are
+   * propagated verbatim — notably 'This action requires multi-factor
+   * authentication.' — so the caller can show them to the user.
+   */
+  async recordRetentionDecision(input: MhdRecordRetentionDecisionInput): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_retention_record_decision', {
+      p_schedule_id: input.scheduleId,
+      p_decision: input.decision,
+      p_reason: input.reason,
+      p_extend_until: input.decision === 'EXTEND' ? (input.extendUntil ?? undefined) : undefined,
+    });
+    if (error) throw error;
+    return data as string;
   },
 
   /**
@@ -145,7 +200,15 @@ export const mhdAuditService = {
   async requestTaskAuditReport(
     task: Pick<
       MhdTask,
-      'id' | 'companyId' | 'referenceId' | 'title' | 'assignedDate' | 'startDate' | 'dueDate' | 'completedDate' | 'statusName'
+      | 'id'
+      | 'companyId'
+      | 'referenceId'
+      | 'title'
+      | 'assignedDate'
+      | 'startDate'
+      | 'dueDate'
+      | 'completedDate'
+      | 'statusName'
     >,
     context: MhdDocumentMutationContext,
     generatedByDisplayName: string,
@@ -246,7 +309,10 @@ export const mhdAuditService = {
     context: MhdDocumentMutationContext,
     generatedByDisplayName: string,
   ): Promise<MhdDocumentGenerationDetailRow> {
-    const template = await mhdDocumentService.getTemplateByKey(AUDIT_REPORT_TEMPLATE_KEY, companyId);
+    const template = await mhdDocumentService.getTemplateByKey(
+      AUDIT_REPORT_TEMPLATE_KEY,
+      companyId,
+    );
     if (!template) {
       throw new Error(
         `No "${AUDIT_REPORT_TEMPLATE_KEY}" report template is available for this company.`,

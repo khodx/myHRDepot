@@ -188,3 +188,23 @@ export type MhdJobQualificationsValues = z.infer<typeof mhdJobQualificationsSche
 export type MhdJobCompetenciesValues = z.infer<typeof mhdJobCompetenciesSchema>;
 export type MhdJobAssignmentValues = z.infer<typeof mhdJobAssignmentSchema>;
 export type MhdCompetencyFormValues = z.infer<typeof mhdCompetencySchema>;
+
+// ---------------------------------------------------------------------------
+// Job description acknowledgments
+// ---------------------------------------------------------------------------
+
+/** The server enforces the same minimum on the typed full name. */
+export const MHD_ACKNOWLEDGMENT_SIGNED_NAME_MIN_LENGTH = 2;
+
+export const mhdAcknowledgeJobDescriptionSchema = z.object({
+  signedName: z
+    .string()
+    .trim()
+    .min(
+      MHD_ACKNOWLEDGMENT_SIGNED_NAME_MIN_LENGTH,
+      `Type your full name (at least ${MHD_ACKNOWLEDGMENT_SIGNED_NAME_MIN_LENGTH} characters).`,
+    )
+    .max(200, 'That name is too long.'),
+});
+
+export type MhdAcknowledgeJobDescriptionForm = z.infer<typeof mhdAcknowledgeJobDescriptionSchema>;

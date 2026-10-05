@@ -365,8 +365,7 @@ export interface MhdCareerOneStopOccupationLookupFailure {
 }
 
 export type MhdCareerOneStopOccupationLookupResponse =
-  | MhdCareerOneStopOccupationLookupSuccess
-  | MhdCareerOneStopOccupationLookupFailure;
+  MhdCareerOneStopOccupationLookupSuccess | MhdCareerOneStopOccupationLookupFailure;
 
 export interface MhdOnetOccupationSearchInput {
   keyword: string;
@@ -656,4 +655,61 @@ export function mhdToNullableNumber(value: number | string | null | undefined): 
   if (value == null) return null;
   const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+// ---------------------------------------------------------------------------
+// Job description acknowledgments
+// ---------------------------------------------------------------------------
+
+export type MhdJobAcknowledgmentStatus = 'PENDING' | 'ACKNOWLEDGED';
+
+/** `mhd_job_description_my_acknowledgments` row, as the RPC serialises it. */
+export interface MhdMyJobAcknowledgmentRpcRow {
+  acknowledgment_id: string;
+  description_id: string;
+  job_id: string;
+  job_title: string;
+  version_number: number | string;
+  effective_from: string;
+  status: string;
+  assigned_at: string;
+  acknowledged_at: string | null;
+  signed_name: string | null;
+}
+
+/** `mhd_job_description_ack_status` row, as the RPC serialises it. */
+export interface MhdJobAcknowledgmentStatusRpcRow {
+  acknowledgment_id: string;
+  person_id: string;
+  person_name: string;
+  status: string;
+  assigned_at: string;
+  acknowledged_at: string | null;
+}
+
+export interface MhdMyJobAcknowledgment {
+  acknowledgmentId: string;
+  descriptionId: MhdJobDescriptionId;
+  jobId: MhdJobId;
+  jobTitle: string;
+  versionNumber: number;
+  effectiveFrom: string;
+  status: MhdJobAcknowledgmentStatus;
+  assignedAt: string;
+  acknowledgedAt: string | null;
+  signedName: string | null;
+}
+
+export interface MhdJobAcknowledgmentStatusRow {
+  acknowledgmentId: string;
+  personId: string;
+  personName: string;
+  status: MhdJobAcknowledgmentStatus;
+  assignedAt: string;
+  acknowledgedAt: string | null;
+}
+
+export interface MhdAcknowledgeJobDescriptionInput {
+  acknowledgmentId: string;
+  signedName: string;
 }

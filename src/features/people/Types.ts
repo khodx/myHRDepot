@@ -59,13 +59,7 @@ export interface MhdPerson {
 }
 
 export type MhdPersonEmploymentStateName =
-  | 'APPLICANT'
-  | 'CANDIDATE'
-  | 'PRE_HIRE'
-  | 'ACTIVE'
-  | 'ON_LEAVE'
-  | 'SUSPENDED'
-  | 'SEPARATED';
+  'APPLICANT' | 'CANDIDATE' | 'PRE_HIRE' | 'ACTIVE' | 'ON_LEAVE' | 'SUSPENDED' | 'SEPARATED';
 
 // From mhd_person_current_employment_state — the person's open
 // (effective_to is null) employment-state row, or null if they've never had
@@ -142,4 +136,60 @@ export interface MhdUpdateContactMethodInput {
   contactMethodId: MhdContactMethodId;
   contactValue?: string;
   isPrimary?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Profile completeness (migration 0378). Presence booleans only — the RPCs
+// never return the underlying values.
+// ---------------------------------------------------------------------------
+
+export interface MhdIncompleteProfile {
+  personId: MhdPersonId;
+  personName: string;
+  relationshipState: string;
+  /** profile_section_definitions.section_key values still missing. */
+  missingSections: string[];
+  requiredTotal: number;
+  requiredComplete: number;
+}
+
+export interface MhdProfileCompletenessSection {
+  sectionKey: string;
+  label: string;
+  sortOrder: number;
+  isRequired: boolean;
+  isComplete: boolean;
+}
+
+export interface MhdProfileRequirement {
+  requirementId: string;
+  companyId: string;
+  relationshipState: string;
+  sectionKey: string;
+  label: string;
+  isRequired: boolean;
+  isActive: boolean;
+  /** True when the row is a company override of a platform default. */
+  isOverride: boolean;
+}
+
+export interface MhdProfileSectionDefinition {
+  sectionKey: string;
+  label: string;
+  description: string | null;
+  sortOrder: number;
+}
+
+export interface MhdListIncompleteProfilesInput {
+  companyId: string;
+  limit: number;
+  offset: number;
+}
+
+export interface MhdUpsertProfileRequirementInput {
+  companyId: string;
+  relationshipState: string;
+  sectionKey: string;
+  isRequired: boolean;
+  isActive: boolean;
 }

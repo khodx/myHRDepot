@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
-import { FileText, FolderLock, ShieldAlert } from 'lucide-react';
+import { ClipboardCheck, FileText, FolderLock, ShieldAlert } from 'lucide-react';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
@@ -18,11 +18,14 @@ import {
   MhdTr,
 } from '@/components/ui/MhdTable';
 import { cn } from '@/utils/cn';
+import { mhdFormatDate } from '@/utils/mhdDateFormat';
 import { mhdFormService } from '@/features/forms/Service';
 import type { MhdEmployeeFileSubmissionRecord } from '@/features/forms/Types';
 import { mhdPersonService } from '@/features/people/Service';
+import { useMhdEmployeeFileCompleteness } from '../Hook';
 import type { MhdEmployeeFileTypeDefinition } from '../Types';
-import { MHD_EMPLOYEE_FILE_TYPES } from '../Types';
+import { MHD_EMPLOYEE_FILE_TYPES, mhdEmployeeFileLabelForKey } from '../Types';
+import { MhdEmployeeFileRequirementStatusBadge } from './MhdEmployeeFileRequirementStatusBadge';
 
 function formatDate(value: string | null) {
   return value ? new Date(value).toLocaleString() : 'Not Submitted';
@@ -163,6 +166,63 @@ function EmployeeFileTable({
   );
 }
 
+/**
+ * This person's required-document checklist. Renders nothing while loading and
+ * when the server refuses the call (the caller may lack file-requirement
+ * access), so a refusal never shows as a page error.
+ */
+function EmployeeFileRequirementsCard({ personId }: { personId: string }) {
+  const completenessQuery = useMhdEmployeeFileCompleteness(personId);
+  const items = completenessQuery.data;
+  if (completenessQuery.isError || !items) return null;
+
+  const outstanding = items.filter((item) => item.status !== 'SATISFIED').length;
+
+  return (
+    <MhdCard className="overflow-hidden p-0">
+      <div className="border-b border-border bg-card px-5 py-4">
+        <div className="flex items-start gap-3">
+          <ClipboardCheck className="mt-1 h-5 w-5 text-accent" aria-hidden />
+          <div>
+            <h2 className="text-base font-semibold text-foreground">File Requirements</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {items.length === 0
+                ? 'No file requirements apply to this employee.'
+                : `${outstanding} of ${items.length} Requirements Outstanding`}
+            </p>
+          </div>
+        </div>
+      </div>
+      {items.length > 0 ? (
+        <MhdTable>
+          <thead>
+            <tr>
+              <MhdTh>Requirement</MhdTh>
+              <MhdTh>Category</MhdTh>
+              <MhdTh>Due Date</MhdTh>
+              <MhdTh>Status</MhdTh>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <MhdTr key={item.requirementId}>
+                <MhdTd className="font-semibold">{item.label}</MhdTd>
+                <MhdTd>{mhdEmployeeFileLabelForKey(item.category)}</MhdTd>
+                <MhdTd className="whitespace-nowrap text-muted-foreground">
+                  {mhdFormatDate(item.dueDate)}
+                </MhdTd>
+                <MhdTd>
+                  <MhdEmployeeFileRequirementStatusBadge status={item.status} />
+                </MhdTd>
+              </MhdTr>
+            ))}
+          </tbody>
+        </MhdTable>
+      ) : null}
+    </MhdCard>
+  );
+}
+
 export function MhdEmployeeFileCabinetPage() {
   const { personId } = useParams<{ personId: string }>();
   const personQuery = useQuery({
@@ -258,6 +318,8 @@ export function MhdEmployeeFileCabinetPage() {
           </p>
         ) : null}
       </MhdCard>
+
+      <EmployeeFileRequirementsCard personId={person.id} />
 
       <div className="space-y-5">
         {MHD_EMPLOYEE_FILE_TYPES.map((fileType) => (

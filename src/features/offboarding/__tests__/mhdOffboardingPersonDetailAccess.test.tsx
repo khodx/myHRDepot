@@ -46,6 +46,9 @@ vi.mock('@/features/onboarding/Hook', () => ({
 vi.mock('@/features/onboarding/components/MhdOnboardingChecklistPage', () => ({
   MhdOnboardingChecklistPage: () => <div>Onboarding summary</div>,
 }));
+vi.mock('@/features/people/components/MhdProfileCompletenessCard', () => ({
+  MhdProfileCompletenessCard: () => null,
+}));
 vi.mock('@/features/activities/Hook', () => ({
   useMhdActivities: () => ({ data: [], isLoading: false, error: null }),
 }));

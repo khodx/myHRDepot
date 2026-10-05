@@ -1,8 +1,13 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { MhdDocumentMutationContext } from '@/features/documents/Types';
 import type { MhdTask } from '@/features/tasks/Types';
 import { mhdAuditService } from './Service';
-import type { MhdAuditEvent, MhdAuditEventFilters } from './Types';
+import type {
+  MhdAuditEvent,
+  MhdAuditEventFilters,
+  MhdRecordRetentionDecisionInput,
+  MhdRetentionReviewScope,
+} from './Types';
 
 export const mhdAuditQueryKeys = {
   taskTimeline: (taskId: string | null) => ['mhd-audit', 'task-timeline', taskId ?? ''] as const,
@@ -13,18 +18,46 @@ export const mhdAuditQueryKeys = {
     companyId: string | null,
     serverFilters: Pick<MhdAuditEventFilters, 'entityType' | 'actionType' | 'from' | 'to'>,
   ) => ['mhd-audit', 'events', companyId ?? '', serverFilters] as const,
-  retentionSchedules: (companyId: string | null, entityType?: string | null) =>
-    ['mhd-audit', 'retention-schedules', companyId ?? '', entityType ?? 'ALL'] as const,
+  retentionReviewRoot: ['mhd-audit', 'retention-review'] as const,
+  retentionReview: (companyId: string | null, scope: MhdRetentionReviewScope) =>
+    ['mhd-audit', 'retention-review', companyId ?? '', scope] as const,
+  retentionHistoryRoot: ['mhd-audit', 'retention-history'] as const,
+  retentionHistory: (scheduleId: string | null) =>
+    ['mhd-audit', 'retention-history', scheduleId ?? ''] as const,
 };
 
-export function useMhdDocumentRetentionSchedules(
-  companyId: string | null,
-  entityType?: string | null,
-) {
+/** Query key the shell's module attention badges read (module-alerts feature). */
+const MODULE_ALERTS_QUERY_KEY = ['mhd-module-alerts'] as const;
+
+export function useMhdRetentionReview(companyId: string | null, scope: MhdRetentionReviewScope) {
   return useQuery({
-    queryKey: mhdAuditQueryKeys.retentionSchedules(companyId, entityType),
-    queryFn: () => mhdAuditService.listDocumentRetentionSchedules(companyId!, entityType),
+    queryKey: mhdAuditQueryKeys.retentionReview(companyId, scope),
+    queryFn: () => mhdAuditService.listRetentionReview(companyId!, scope),
     enabled: Boolean(companyId),
+  });
+}
+
+export function useMhdRetentionDecisionHistory(scheduleId: string | null) {
+  return useQuery({
+    queryKey: mhdAuditQueryKeys.retentionHistory(scheduleId),
+    queryFn: () => mhdAuditService.listRetentionDecisionHistory(scheduleId!),
+    enabled: Boolean(scheduleId),
+  });
+}
+
+/** Records a decision, then refreshes the queue, history and nav attention badge. */
+export function useMhdRecordRetentionDecision() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdRecordRetentionDecisionInput) =>
+      mhdAuditService.recordRetentionDecision(input),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: mhdAuditQueryKeys.retentionReviewRoot }),
+        queryClient.invalidateQueries({ queryKey: mhdAuditQueryKeys.retentionHistoryRoot }),
+        queryClient.invalidateQueries({ queryKey: MODULE_ALERTS_QUERY_KEY }),
+      ]);
+    },
   });
 }
 

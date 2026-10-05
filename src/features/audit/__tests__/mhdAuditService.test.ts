@@ -107,7 +107,10 @@ describe('mhdAuditService.listTaskAuditTimeline', () => {
 
   it('surfaces a 42501 denial for a non-Platform-Admin/HR-Partner caller', async () => {
     rpcMock.mockResolvedValueOnce({
-      error: { code: '42501', message: 'permission denied for function mhd_get_task_audit_timeline' },
+      error: {
+        code: '42501',
+        message: 'permission denied for function mhd_get_task_audit_timeline',
+      },
     });
 
     await expect(mhdAuditService.listTaskAuditTimeline('task-1')).rejects.toMatchObject({
@@ -240,53 +243,153 @@ describe('mhdAuditService.requestTaskAuditReport', () => {
   });
 });
 
-describe('mhdAuditService.listDocumentRetentionSchedules', () => {
-  it('maps a listed retention schedule and passes the entity type filter through', async () => {
+const reviewRow = {
+  schedule_id: 'schedule-1',
+  company_id: 'company-1',
+  entity_type: 'I9_RECORD',
+  entity_id: 'i9-1',
+  person_id: 'person-1',
+  person_name: 'Marisol Quintero',
+  retention_basis: 'IRCA: 3 years from hire or 1 year from termination, whichever is later',
+  retention_expires_at: '2029-01-15',
+  effective_expires_at: '2030-02-01',
+  computed_at: '2026-01-15T00:00:00Z',
+  disposition_status: 'EXTENDED',
+  extended_until: '2030-02-01',
+  hold_reference: null,
+  decided_at: '2026-10-01T10:00:00Z',
+  decided_by_name: 'Priya Natarajan',
+  decision_reason: 'Audit pending',
+  awaiting_review: false,
+  blocked_reason: null,
+};
+
+describe('mhdAuditService retention review', () => {
+  it('maps a review row and passes company and scope through', async () => {
+    rpcMock.mockResolvedValueOnce({ data: [reviewRow], error: null });
+
+    const items = await mhdAuditService.listRetentionReview('company-1', 'awaiting');
+
+    expect(rpcMock).toHaveBeenCalledWith('mhd_retention_review_list', {
+      p_company_id: 'company-1',
+      p_scope: 'awaiting',
+    });
+    expect(items).toEqual([
+      {
+        scheduleId: 'schedule-1',
+        companyId: 'company-1',
+        entityType: 'I9_RECORD',
+        entityId: 'i9-1',
+        personId: 'person-1',
+        personName: 'Marisol Quintero',
+        retentionBasis: reviewRow.retention_basis,
+        retentionExpiresAt: '2029-01-15',
+        effectiveExpiresAt: '2030-02-01',
+        computedAt: '2026-01-15T00:00:00Z',
+        dispositionStatus: 'EXTENDED',
+        extendedUntil: '2030-02-01',
+        holdReference: null,
+        decidedAt: '2026-10-01T10:00:00Z',
+        decidedByName: 'Priya Natarajan',
+        decisionReason: 'Audit pending',
+        awaitingReview: false,
+        blockedReason: null,
+      },
+    ]);
+  });
+
+  it('propagates an access-denied error verbatim', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Access denied for company company-1' },
+    });
+    await expect(mhdAuditService.listRetentionReview('company-1', 'all')).rejects.toMatchObject({
+      message: 'Access denied for company company-1',
+    });
+  });
+
+  it('maps decision history events', async () => {
     rpcMock.mockResolvedValueOnce({
       data: [
         {
-          id: 'schedule-1',
-          entity_type: 'I9_RECORD',
-          entity_id: 'i9-1',
-          retention_basis: 'IRCA: 3 years from hire or 1 year from termination, whichever is later',
-          retention_expires_at: '2029-01-15',
-          computed_at: '2026-01-15T00:00:00Z',
+          event_id: 'event-1',
+          decision: 'EXTEND',
+          from_status: 'PENDING_REVIEW',
+          to_status: 'EXTENDED',
+          reason: 'Audit pending',
+          effective_expiry_before: '2029-01-15',
+          extended_until: '2030-02-01',
+          actor_email: 'priya@example.org',
+          created_at: '2026-10-01T10:00:00Z',
         },
       ],
       error: null,
     });
 
-    const schedules = await mhdAuditService.listDocumentRetentionSchedules('company-1', 'I9_RECORD');
+    const events = await mhdAuditService.listRetentionDecisionHistory('schedule-1');
 
-    expect(rpcMock).toHaveBeenCalledWith('mhd_document_retention_schedule_list', {
-      p_company_id: 'company-1',
-      p_entity_type: 'I9_RECORD',
+    expect(rpcMock).toHaveBeenCalledWith('mhd_retention_decision_history', {
+      p_schedule_id: 'schedule-1',
     });
-    expect(schedules).toEqual([
+    expect(events).toEqual([
       {
-        id: 'schedule-1',
-        entityType: 'I9_RECORD',
-        entityId: 'i9-1',
-        retentionBasis: 'IRCA: 3 years from hire or 1 year from termination, whichever is later',
-        retentionExpiresAt: '2029-01-15',
-        computedAt: '2026-01-15T00:00:00Z',
+        eventId: 'event-1',
+        decision: 'EXTEND',
+        fromStatus: 'PENDING_REVIEW',
+        toStatus: 'EXTENDED',
+        reason: 'Audit pending',
+        effectiveExpiryBefore: '2029-01-15',
+        extendedUntil: '2030-02-01',
+        actorEmail: 'priya@example.org',
+        createdAt: '2026-10-01T10:00:00Z',
       },
     ]);
   });
 
-  it('omits the entity type filter (undefined, not null) when none is given', async () => {
-    rpcMock.mockResolvedValueOnce({ data: [], error: null });
-    await mhdAuditService.listDocumentRetentionSchedules('company-1');
-    expect(rpcMock).toHaveBeenCalledWith('mhd_document_retention_schedule_list', {
-      p_company_id: 'company-1',
-      p_entity_type: undefined,
+  it('records an extension with its date', async () => {
+    rpcMock.mockResolvedValueOnce({ data: 'event-9', error: null });
+    const id = await mhdAuditService.recordRetentionDecision({
+      scheduleId: 'schedule-1',
+      decision: 'EXTEND',
+      reason: 'Audit pending',
+      extendUntil: '2030-02-01',
+    });
+    expect(id).toBe('event-9');
+    expect(rpcMock).toHaveBeenCalledWith('mhd_retention_record_decision', {
+      p_schedule_id: 'schedule-1',
+      p_decision: 'EXTEND',
+      p_reason: 'Audit pending',
+      p_extend_until: '2030-02-01',
     });
   });
 
-  it('propagates an access-denied error verbatim', async () => {
-    rpcMock.mockResolvedValueOnce({ data: null, error: { message: 'Access denied for company company-1' } });
-    await expect(mhdAuditService.listDocumentRetentionSchedules('company-1')).rejects.toMatchObject({
-      message: 'Access denied for company company-1',
+  it('omits the extension date for non-extend decisions', async () => {
+    rpcMock.mockResolvedValueOnce({ data: 'event-10', error: null });
+    await mhdAuditService.recordRetentionDecision({
+      scheduleId: 'schedule-1',
+      decision: 'HOLD',
+      reason: 'Litigation hold ref 24-118',
+      extendUntil: '2030-02-01',
     });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_retention_record_decision', {
+      p_schedule_id: 'schedule-1',
+      p_decision: 'HOLD',
+      p_reason: 'Litigation hold ref 24-118',
+      p_extend_until: undefined,
+    });
+  });
+
+  it('surfaces the multi-factor authentication message verbatim', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'This action requires multi-factor authentication.' },
+    });
+    await expect(
+      mhdAuditService.recordRetentionDecision({
+        scheduleId: 'schedule-1',
+        decision: 'APPROVE_DISPOSAL',
+        reason: 'Retention period expired',
+      }),
+    ).rejects.toMatchObject({ message: 'This action requires multi-factor authentication.' });
   });
 });

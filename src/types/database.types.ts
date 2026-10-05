@@ -5530,6 +5530,134 @@ export type Database = {
         }
         Relationships: []
       }
+      document_retention_disposition_events: {
+        Row: {
+          actor_user_id: string
+          company_id: string
+          created_at: string
+          decision: string
+          effective_expiry_before: string | null
+          extended_until: string | null
+          from_status: string | null
+          id: string
+          reason: string
+          schedule_id: string
+          to_status: string
+        }
+        Insert: {
+          actor_user_id: string
+          company_id: string
+          created_at?: string
+          decision: string
+          effective_expiry_before?: string | null
+          extended_until?: string | null
+          from_status?: string | null
+          id?: string
+          reason: string
+          schedule_id: string
+          to_status: string
+        }
+        Update: {
+          actor_user_id?: string
+          company_id?: string
+          created_at?: string
+          decision?: string
+          effective_expiry_before?: string | null
+          extended_until?: string | null
+          from_status?: string | null
+          id?: string
+          reason?: string
+          schedule_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_retention_disposition_events_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_retention_disposition_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_retention_disposition_events_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "document_retention_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_retention_dispositions: {
+        Row: {
+          company_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          extended_until: string | null
+          hold_reference: string | null
+          id: string
+          reason: string | null
+          schedule_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          extended_until?: string | null
+          hold_reference?: string | null
+          id?: string
+          reason?: string | null
+          schedule_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          extended_until?: string | null
+          hold_reference?: string | null
+          id?: string
+          reason?: string | null
+          schedule_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_retention_dispositions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_retention_dispositions_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_retention_dispositions_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: true
+            referencedRelation: "document_retention_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_retention_schedules: {
         Row: {
           company_id: string
@@ -6112,6 +6240,69 @@ export type Database = {
           },
           {
             foreignKeyName: "employee_file_category_defaults_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_file_requirements: {
+        Row: {
+          applies_to_states: string[]
+          category: string
+          company_id: string | null
+          created_at: string
+          due_days_after_hire: number | null
+          form_id: string | null
+          id: string
+          is_active: boolean
+          label: string
+          satisfied_by_kind: string
+          sort_order: number
+          template_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          applies_to_states?: string[]
+          category: string
+          company_id?: string | null
+          created_at?: string
+          due_days_after_hire?: number | null
+          form_id?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          satisfied_by_kind: string
+          sort_order?: number
+          template_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          applies_to_states?: string[]
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          due_days_after_hire?: number | null
+          form_id?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          satisfied_by_kind?: string
+          sort_order?: number
+          template_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_file_requirements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_file_requirements_form_id_fkey"
             columns: ["form_id"]
             isOneToOne: false
             referencedRelation: "forms"
@@ -12305,6 +12496,77 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_description_acknowledgments: {
+        Row: {
+          acknowledged_at: string | null
+          assigned_at: string
+          assigned_by: string | null
+          company_id: string
+          created_at: string
+          id: string
+          job_description_id: string
+          person_id: string
+          signed_name: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          assigned_at?: string
+          assigned_by?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          job_description_id: string
+          person_id: string
+          signed_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          assigned_at?: string
+          assigned_by?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          job_description_id?: string
+          person_id?: string
+          signed_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_description_acknowledgments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_description_acknowledgments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_description_acknowledgments_job_description_id_fkey"
+            columns: ["job_description_id"]
+            isOneToOne: false
+            referencedRelation: "job_descriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_description_acknowledgments_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
             referencedColumns: ["id"]
           },
         ]
@@ -21209,6 +21471,54 @@ export type Database = {
           },
         ]
       }
+      person_profile_requirements: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          is_required: boolean
+          relationship_state: string
+          section_key: string
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          relationship_state: string
+          section_key: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          relationship_state?: string
+          section_key?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_profile_requirements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_profile_requirements_section_key_fkey"
+            columns: ["section_key"]
+            isOneToOne: false
+            referencedRelation: "profile_section_definitions"
+            referencedColumns: ["section_key"]
+          },
+        ]
+      }
       person_w4_withholding: {
         Row: {
           company_id: string
@@ -21554,6 +21864,27 @@ export type Database = {
           display_order?: number | null
           id?: string
           priority_name?: string
+        }
+        Relationships: []
+      }
+      profile_section_definitions: {
+        Row: {
+          description: string | null
+          label: string
+          section_key: string
+          sort_order: number
+        }
+        Insert: {
+          description?: string | null
+          label: string
+          section_key: string
+          sort_order?: number
+        }
+        Update: {
+          description?: string | null
+          label?: string
+          section_key?: string
+          sort_order?: number
         }
         Relationships: []
       }
@@ -29316,6 +29647,41 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_employee_file_completeness: {
+        Args: { p_person_id: string }
+        Returns: {
+          category: string
+          due_date: string
+          label: string
+          requirement_id: string
+          status: string
+        }[]
+      }
+      mhd_employee_file_evaluate: {
+        Args: { p_company_id: string; p_person_id?: string }
+        Returns: {
+          category: string
+          due_date: string
+          label: string
+          person_id: string
+          person_name: string
+          requirement_id: string
+          sort_order: number
+          status: string
+        }[]
+      }
+      mhd_employee_file_requirement_gaps: {
+        Args: { p_company_id: string }
+        Returns: {
+          category: string
+          due_date: string
+          label: string
+          person_id: string
+          person_name: string
+          requirement_id: string
+          status: string
+        }[]
+      }
       mhd_encrypt_field_value: { Args: { p_plain: string }; Returns: string }
       mhd_end_impersonation: { Args: never; Returns: undefined }
       mhd_esignature_send_expiring_soon: { Args: never; Returns: number }
@@ -31000,6 +31366,25 @@ export type Database = {
       }
       mhd_job_current_job_for_user: { Args: never; Returns: string }
       mhd_job_delete_job: { Args: { p_job_id: string }; Returns: undefined }
+      mhd_job_description_ack_assign: {
+        Args: { p_description_id: string; p_person_ids?: string[] }
+        Returns: number
+      }
+      mhd_job_description_ack_status: {
+        Args: { p_description_id: string }
+        Returns: {
+          acknowledged_at: string
+          acknowledgment_id: string
+          assigned_at: string
+          person_id: string
+          person_name: string
+          status: string
+        }[]
+      }
+      mhd_job_description_acknowledge: {
+        Args: { p_acknowledgment_id: string; p_signed_name: string }
+        Returns: undefined
+      }
       mhd_job_description_create_draft: {
         Args: { p_copy_from?: string; p_job_id: string }
         Returns: {
@@ -31066,6 +31451,21 @@ export type Database = {
           effective_from: string
           is_company_override: boolean
           version: number
+        }[]
+      }
+      mhd_job_description_my_acknowledgments: {
+        Args: never
+        Returns: {
+          acknowledged_at: string
+          acknowledgment_id: string
+          assigned_at: string
+          description_id: string
+          effective_from: string
+          job_id: string
+          job_title: string
+          signed_name: string
+          status: string
+          version_number: number
         }[]
       }
       mhd_job_description_publish: {
@@ -32225,6 +32625,22 @@ export type Database = {
           template_name: string
         }[]
       }
+      mhd_list_employee_file_requirements: {
+        Args: { p_company_id: string }
+        Returns: {
+          applies_to_states: string[]
+          category: string
+          company_id: string
+          due_days_after_hire: number
+          form_id: string
+          is_active: boolean
+          is_override: boolean
+          label: string
+          requirement_id: string
+          satisfied_by_kind: string
+          template_key: string
+        }[]
+      }
       mhd_list_employee_file_submissions: {
         Args: { p_person_id: string }
         Returns: {
@@ -32312,6 +32728,17 @@ export type Database = {
           impersonated_company_name: string
           impersonated_role: string
           started_at: string
+        }[]
+      }
+      mhd_list_incomplete_profiles: {
+        Args: { p_company_id: string; p_limit?: number; p_offset?: number }
+        Returns: {
+          missing_sections: string[]
+          person_id: string
+          person_name: string
+          relationship_state: string
+          required_complete: number
+          required_total: number
         }[]
       }
       mhd_list_kb_articles: {
@@ -32929,6 +33356,19 @@ export type Database = {
           jurisdiction: string
           source_policy_id: string
           title: string
+        }[]
+      }
+      mhd_list_profile_requirements: {
+        Args: { p_company_id: string }
+        Returns: {
+          company_id: string
+          is_active: boolean
+          is_override: boolean
+          is_required: boolean
+          label: string
+          relationship_state: string
+          requirement_id: string
+          section_key: string
         }[]
       }
       mhd_list_property_assignments: {
@@ -34080,6 +34520,27 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_person_profile_applicable: {
+        Args: { p_person_id: string }
+        Returns: {
+          is_required: boolean
+          section_key: string
+        }[]
+      }
+      mhd_person_profile_completeness: {
+        Args: { p_person_id: string }
+        Returns: {
+          is_complete: boolean
+          is_required: boolean
+          label: string
+          section_key: string
+          sort_order: number
+        }[]
+      }
+      mhd_person_profile_section_present: {
+        Args: { p_person_id: string; p_section_key: string }
+        Returns: boolean
+      }
       mhd_person_set_employment_state: {
         Args: {
           p_actor_user_id: string
@@ -34145,6 +34606,17 @@ export type Database = {
           person_id: string
           signed_at: string
           status: string
+        }[]
+      }
+      mhd_profile_gaps: {
+        Args: { p_company_id: string }
+        Returns: {
+          missing_sections: string[]
+          person_id: string
+          person_name: string
+          relationship_state: string
+          required_complete: number
+          required_total: number
         }[]
       }
       mhd_provision_company_user: {
@@ -34889,6 +35361,61 @@ export type Database = {
       mhd_restore_kb_function: {
         Args: { p_function_id: string }
         Returns: undefined
+      }
+      mhd_retention_decision_history: {
+        Args: { p_schedule_id: string }
+        Returns: {
+          actor_email: string
+          created_at: string
+          decision: string
+          effective_expiry_before: string
+          event_id: string
+          extended_until: string
+          from_status: string
+          reason: string
+          to_status: string
+        }[]
+      }
+      mhd_retention_entity_person: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: string
+      }
+      mhd_retention_is_reviewer: { Args: never; Returns: boolean }
+      mhd_retention_open_matter: {
+        Args: { p_person_id: string }
+        Returns: string
+      }
+      mhd_retention_record_decision: {
+        Args: {
+          p_decision: string
+          p_extend_until?: string
+          p_reason: string
+          p_schedule_id: string
+        }
+        Returns: string
+      }
+      mhd_retention_review_list: {
+        Args: { p_company_id: string; p_scope?: string }
+        Returns: {
+          awaiting_review: boolean
+          blocked_reason: string
+          company_id: string
+          computed_at: string
+          decided_at: string
+          decided_by_name: string
+          decision_reason: string
+          disposition_status: string
+          effective_expires_at: string
+          entity_id: string
+          entity_type: string
+          extended_until: string
+          hold_reference: string
+          person_id: string
+          person_name: string
+          retention_basis: string
+          retention_expires_at: string
+          schedule_id: string
+        }[]
       }
       mhd_return_property: {
         Args: {
@@ -37198,6 +37725,20 @@ export type Database = {
           retention_expires_at: string
         }[]
       }
+      mhd_upsert_employee_file_requirement: {
+        Args: {
+          p_applies_to_states?: string[]
+          p_category: string
+          p_company_id: string
+          p_due_days_after_hire?: number
+          p_form_id?: string
+          p_is_active?: boolean
+          p_label: string
+          p_satisfied_by_kind: string
+          p_template_key?: string
+        }
+        Returns: string
+      }
       mhd_upsert_onboarding_checklist_item: {
         Args: {
           p_company_id: string
@@ -37218,6 +37759,16 @@ export type Database = {
           reference_id: string
           status: string
         }[]
+      }
+      mhd_upsert_profile_requirement: {
+        Args: {
+          p_company_id: string
+          p_is_active?: boolean
+          p_is_required: boolean
+          p_relationship_state: string
+          p_section_key: string
+        }
+        Returns: string
       }
       mhd_user_has_role: { Args: { p_role_name: string }; Returns: boolean }
       mhd_verify_audit_certificate_by_code: {

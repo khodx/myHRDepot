@@ -2,8 +2,9 @@ import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { useMhdPublishedJobForPerson } from '../Hook';
+import { useMhdMyJobAcknowledgments, useMhdPublishedJobForPerson } from '../Hook';
 import { mhdFormatIndustry, mhdFormatQualificationType } from '../Types';
+import { MhdJobAcknowledgmentCard } from './MhdJobAcknowledgmentCard';
 import { MhdEssentialFunctionList } from './MhdEssentialFunctionList';
 import { MhdFlsaBadge } from './MhdFlsaBadge';
 
@@ -23,12 +24,47 @@ export function MhdMyJobPage() {
   const { profile } = useMhdAuth();
   const personId = profile?.personId ?? null;
   const published = useMhdPublishedJobForPerson(personId);
+  const acknowledgments = useMhdMyJobAcknowledgments();
 
   if (!personId || published.isLoading) {
     return <p className="text-sm text-muted-foreground">Loading your job description…</p>;
   }
 
   const job = published.data;
+
+  // The acknowledgment for the description on screen, plus any pending one for a
+  // different version (e.g. published but not yet effective) so it is never hidden.
+  const allAcknowledgments = acknowledgments.data ?? [];
+  const shownAcknowledgment = job
+    ? allAcknowledgments.find((item) => item.descriptionId === job.descriptionId)
+    : undefined;
+  const otherPending = allAcknowledgments.filter(
+    (item) => item.status === 'PENDING' && item.descriptionId !== job?.descriptionId,
+  );
+  const acknowledgmentSection = (
+    <>
+      {acknowledgments.isError ? (
+        <p className="text-xs text-rose-600" role="alert">
+          {acknowledgments.error instanceof Error
+            ? acknowledgments.error.message
+            : 'Could not load your acknowledgments.'}
+        </p>
+      ) : null}
+      {acknowledgments.isLoading ? (
+        <p className="text-xs text-muted-foreground">Loading your acknowledgment…</p>
+      ) : null}
+      {otherPending.map((item) => (
+        <MhdJobAcknowledgmentCard
+          key={item.acknowledgmentId}
+          acknowledgment={item}
+          isOtherVersion
+        />
+      ))}
+      {shownAcknowledgment ? (
+        <MhdJobAcknowledgmentCard acknowledgment={shownAcknowledgment} />
+      ) : null}
+    </>
+  );
 
   if (!job) {
     return (
@@ -37,6 +73,7 @@ export function MhdMyJobPage() {
           title="My job"
           description="No published job description is available for you yet. If you believe this is wrong, speak to your HR contact — it usually means a description has been drafted but not published."
         />
+        {acknowledgmentSection}
       </div>
     );
   }
@@ -59,6 +96,8 @@ export function MhdMyJobPage() {
         }
       />
 
+      {acknowledgmentSection}
+
       <MhdDetailField label="Summary" value={job.summary} />
 
       <MhdEssentialFunctionList
@@ -76,7 +115,8 @@ export function MhdMyJobPage() {
                 <li key={`qual-${index}`}>
                   {qual.text}{' '}
                   <span className="text-xs text-muted-foreground">
-                    ({mhdFormatQualificationType(qual.type)} · {qual.required ? 'required' : 'preferred'})
+                    ({mhdFormatQualificationType(qual.type)} ·{' '}
+                    {qual.required ? 'required' : 'preferred'})
                   </span>
                 </li>
               ))}
@@ -98,7 +138,9 @@ export function MhdMyJobPage() {
                   <li key={competency.competencyId}>
                     {competency.name}
                     {competency.isRegulated ? (
-                      <MhdBadge variant="warning" className="ml-2">Regulated</MhdBadge>
+                      <MhdBadge variant="warning" className="ml-2">
+                        Regulated
+                      </MhdBadge>
                     ) : null}
                   </li>
                 ))}

@@ -1,5 +1,6 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type {
+  MhdAcknowledgeJobDescriptionInput,
   MhdAssignJobInput,
   MhdCareerOneStopOccupationLookupInput,
   MhdCareerOneStopOccupationLookupResponse,
@@ -8,6 +9,9 @@ import type {
   MhdCreateJobInput,
   MhdJob,
   MhdJobAssignment,
+  MhdJobAcknowledgmentStatus,
+  MhdJobAcknowledgmentStatusRow,
+  MhdJobAcknowledgmentStatusRpcRow,
   MhdJobAssignmentRpcRow,
   MhdJobDescriptionDetail,
   MhdJobDescriptionDisclaimerCurrent,
@@ -15,6 +19,8 @@ import type {
   MhdJobDescriptionDisclaimerVersion,
   MhdJobDescriptionStatus,
   MhdJobRpcRow,
+  MhdMyJobAcknowledgment,
+  MhdMyJobAcknowledgmentRpcRow,
   MhdOnetOccupationLookupInput,
   MhdOnetOccupationLookupResponse,
   MhdOnetOccupationSearchInput,
@@ -70,6 +76,34 @@ function mapJob(row: MhdJobRpcRow): MhdJob {
     isActive: row.is_active,
     incumbentCount: mhdToNumber(row.incumbent_count),
     publishedDescriptionId: row.published_description_id,
+  };
+}
+
+function mapMyAcknowledgment(row: MhdMyJobAcknowledgmentRpcRow): MhdMyJobAcknowledgment {
+  return {
+    acknowledgmentId: row.acknowledgment_id,
+    descriptionId: row.description_id,
+    jobId: row.job_id,
+    jobTitle: row.job_title,
+    versionNumber: mhdToNumber(row.version_number),
+    effectiveFrom: row.effective_from,
+    status: row.status as MhdJobAcknowledgmentStatus,
+    assignedAt: row.assigned_at,
+    acknowledgedAt: row.acknowledged_at,
+    signedName: row.signed_name,
+  };
+}
+
+function mapAcknowledgmentStatus(
+  row: MhdJobAcknowledgmentStatusRpcRow,
+): MhdJobAcknowledgmentStatusRow {
+  return {
+    acknowledgmentId: row.acknowledgment_id,
+    personId: row.person_id,
+    personName: row.person_name,
+    status: row.status as MhdJobAcknowledgmentStatus,
+    assignedAt: row.assigned_at,
+    acknowledgedAt: row.acknowledged_at,
   };
 }
 
@@ -394,17 +428,53 @@ export const mhdJobsService = {
     return row ? mapPublishedDescription(row) : null;
   },
 
-  async careerOneStopOccupationLookup(input: MhdCareerOneStopOccupationLookupInput): Promise<MhdCareerOneStopOccupationLookupResponse> {
-    const { data, error } = await supabaseClient.functions.invoke('careeronestop-occupation-lookup', {
-      body: { onetSocCode: input.onetSocCode, location: input.location, includeWages: false, includeDuties: true },
+  async listMyAcknowledgments(): Promise<MhdMyJobAcknowledgment[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_job_description_my_acknowledgments');
+    if (error) throw error;
+    return ((data ?? []) as unknown as MhdMyJobAcknowledgmentRpcRow[]).map(mapMyAcknowledgment);
+  },
+
+  async acknowledgeDescription(input: MhdAcknowledgeJobDescriptionInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_job_description_acknowledge', {
+      p_acknowledgment_id: input.acknowledgmentId,
+      p_signed_name: input.signedName.trim(),
     });
+    if (error) throw error;
+  },
+
+  async listAcknowledgmentStatus(descriptionId: string): Promise<MhdJobAcknowledgmentStatusRow[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_job_description_ack_status', {
+      p_description_id: descriptionId,
+    });
+    if (error) throw error;
+    return ((data ?? []) as unknown as MhdJobAcknowledgmentStatusRpcRow[]).map(
+      mapAcknowledgmentStatus,
+    );
+  },
+
+  async careerOneStopOccupationLookup(
+    input: MhdCareerOneStopOccupationLookupInput,
+  ): Promise<MhdCareerOneStopOccupationLookupResponse> {
+    const { data, error } = await supabaseClient.functions.invoke(
+      'careeronestop-occupation-lookup',
+      {
+        body: {
+          onetSocCode: input.onetSocCode,
+          location: input.location,
+          includeWages: false,
+          includeDuties: true,
+        },
+      },
+    );
     if (error) throw error;
     const response = data as MhdCareerOneStopOccupationLookupResponse | undefined;
     if (response?.success === false) throw new Error(response.error);
     return response as MhdCareerOneStopOccupationLookupResponse;
   },
 
-  async onetOccupationSearch(input: MhdOnetOccupationSearchInput): Promise<MhdOnetOccupationSearchResponse> {
+  async onetOccupationSearch(
+    input: MhdOnetOccupationSearchInput,
+  ): Promise<MhdOnetOccupationSearchResponse> {
     const { data, error } = await supabaseClient.functions.invoke('onet-online-lookup', {
       body: { mode: 'search', keyword: input.keyword },
     });
@@ -414,9 +484,16 @@ export const mhdJobsService = {
     return response as MhdOnetOccupationSearchResponse;
   },
 
-  async onetOccupationLookup(input: MhdOnetOccupationLookupInput): Promise<MhdOnetOccupationLookupResponse> {
+  async onetOccupationLookup(
+    input: MhdOnetOccupationLookupInput,
+  ): Promise<MhdOnetOccupationLookupResponse> {
     const { data, error } = await supabaseClient.functions.invoke('onet-online-lookup', {
-      body: { mode: 'occupation', onetSocCode: input.onetSocCode, includeDuties: input.includeDuties ?? false, includeRequirements: input.includeRequirements ?? false },
+      body: {
+        mode: 'occupation',
+        onetSocCode: input.onetSocCode,
+        includeDuties: input.includeDuties ?? false,
+        includeRequirements: input.includeRequirements ?? false,
+      },
     });
     if (error) throw error;
     const response = data as MhdOnetOccupationLookupResponse | undefined;
@@ -461,7 +538,9 @@ export const mhdJobsService = {
     };
   },
 
-  async listCurrentJobDescriptionDisclaimers(companyId: string): Promise<MhdJobDescriptionDisclaimerCurrent[]> {
+  async listCurrentJobDescriptionDisclaimers(
+    companyId: string,
+  ): Promise<MhdJobDescriptionDisclaimerCurrent[]> {
     const { data, error } = await supabaseClient.rpc('mhd_job_description_disclaimers_current', {
       p_company_id: companyId,
     });

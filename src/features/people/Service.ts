@@ -4,14 +4,69 @@ import type {
   MhdContactMethod,
   MhdCreatePersonInput,
   MhdDirectReport,
+  MhdIncompleteProfile,
+  MhdListIncompleteProfilesInput,
   MhdOrgChartNode,
   MhdPeopleListFilters,
   MhdPerson,
   MhdPersonEmploymentState,
   MhdPersonMutationContext,
+  MhdProfileCompletenessSection,
+  MhdProfileRequirement,
+  MhdProfileSectionDefinition,
   MhdUpdateContactMethodInput,
   MhdUpdatePersonInput,
+  MhdUpsertProfileRequirementInput,
 } from './Types';
+
+/** Postgres insufficient_privilege — the completeness RPCs raise it for callers
+ *  who may not see a profile; the UI treats it as "do not render", not a failure. */
+export const MHD_PG_INSUFFICIENT_PRIVILEGE = '42501';
+
+/** Service error that keeps the Postgres SQLSTATE so callers can branch on it. */
+export class MhdProfileCompletenessError extends Error {
+  readonly code: string | null;
+
+  constructor(message: string, code: string | null) {
+    super(message);
+    this.name = 'MhdProfileCompletenessError';
+    this.code = code;
+  }
+}
+
+export function mhdIsInsufficientPrivilegeError(error: unknown): boolean {
+  return (
+    error instanceof MhdProfileCompletenessError && error.code === MHD_PG_INSUFFICIENT_PRIVILEGE
+  );
+}
+
+type MhdIncompleteProfileRow = {
+  person_id: string;
+  person_name: string;
+  relationship_state: string;
+  missing_sections: string[] | null;
+  required_total: number;
+  required_complete: number;
+};
+
+type MhdProfileCompletenessRow = {
+  section_key: string;
+  label: string;
+  sort_order: number;
+  is_required: boolean;
+  is_complete: boolean;
+};
+
+type MhdProfileRequirementRow = {
+  requirement_id: string;
+  company_id: string;
+  relationship_state: string;
+  section_key: string;
+  label: string;
+  is_required: boolean;
+  is_active: boolean;
+  is_override: boolean;
+};
 
 type MhdPersonDirectoryRow = {
   id: string;
@@ -421,7 +476,9 @@ export const mhdPersonService = {
 
     const { data, error } = await supabaseClient
       .rpc('mhd_set_person_photo', { p_person_id: personId, p_photo_path: path })
-      .returns<{ id: string; photo_path: string | null; updated_at: string; updated_by: string }[]>();
+      .returns<
+        { id: string; photo_path: string | null; updated_at: string; updated_by: string }[]
+      >();
 
     if (error) {
       // The upload succeeded but linking it failed — remove the now-orphaned
@@ -444,7 +501,9 @@ export const mhdPersonService = {
       // omits null even though the RPC treats it as "clear the photo" — same
       // gap as p_manager_id elsewhere in this Service.
       .rpc('mhd_set_person_photo', { p_person_id: personId, p_photo_path: null } as never)
-      .returns<{ id: string; photo_path: string | null; updated_at: string; updated_by: string }[]>();
+      .returns<
+        { id: string; photo_path: string | null; updated_at: string; updated_by: string }[]
+      >();
 
     if (error) {
       throw new Error(`Unable to remove photo: ${error.message}`);
@@ -496,5 +555,120 @@ export const mhdPersonService = {
       }
     }
     return result;
+  },
+
+  async listIncompleteProfiles({
+    companyId,
+    limit,
+    offset,
+  }: MhdListIncompleteProfilesInput): Promise<MhdIncompleteProfile[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_incomplete_profiles', {
+        p_company_id: companyId,
+        p_limit: limit,
+        p_offset: offset,
+      })
+      .returns<MhdIncompleteProfileRow[]>();
+
+    if (error) {
+      throw new MhdProfileCompletenessError(
+        `Unable to load incomplete profiles: ${error.message}`,
+        error.code ?? null,
+      );
+    }
+
+    return (data ?? []).map((row) => ({
+      personId: row.person_id,
+      personName: row.person_name,
+      relationshipState: row.relationship_state,
+      missingSections: row.missing_sections ?? [],
+      requiredTotal: row.required_total,
+      requiredComplete: row.required_complete,
+    }));
+  },
+
+  async getPersonProfileCompleteness(personId: string): Promise<MhdProfileCompletenessSection[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_person_profile_completeness', { p_person_id: personId })
+      .returns<MhdProfileCompletenessRow[]>();
+
+    if (error) {
+      throw new MhdProfileCompletenessError(
+        `Unable to load profile completeness: ${error.message}`,
+        error.code ?? null,
+      );
+    }
+
+    return (data ?? []).map((row) => ({
+      sectionKey: row.section_key,
+      label: row.label,
+      sortOrder: row.sort_order,
+      isRequired: row.is_required,
+      isComplete: row.is_complete,
+    }));
+  },
+
+  async listProfileRequirements(companyId: string): Promise<MhdProfileRequirement[]> {
+    const { data, error } = await supabaseClient
+      .rpc('mhd_list_profile_requirements', { p_company_id: companyId })
+      .returns<MhdProfileRequirementRow[]>();
+
+    if (error) {
+      throw new MhdProfileCompletenessError(
+        `Unable to load profile requirements: ${error.message}`,
+        error.code ?? null,
+      );
+    }
+
+    return (data ?? []).map((row) => ({
+      requirementId: row.requirement_id,
+      companyId: row.company_id,
+      relationshipState: row.relationship_state,
+      sectionKey: row.section_key,
+      label: row.label,
+      isRequired: row.is_required,
+      isActive: row.is_active,
+      isOverride: row.is_override,
+    }));
+  },
+
+  async upsertProfileRequirement(input: MhdUpsertProfileRequirementInput): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_upsert_profile_requirement', {
+      p_company_id: input.companyId,
+      p_relationship_state: input.relationshipState,
+      p_section_key: input.sectionKey,
+      p_is_required: input.isRequired,
+      p_is_active: input.isActive,
+    });
+
+    if (error) {
+      throw new MhdProfileCompletenessError(
+        `Unable to save profile requirement: ${error.message}`,
+        error.code ?? null,
+      );
+    }
+
+    return data;
+  },
+
+  async listProfileSectionDefinitions(): Promise<MhdProfileSectionDefinition[]> {
+    const { data, error } = await supabaseClient
+      .from('profile_section_definitions')
+      .select('section_key, label, description, sort_order')
+      .order('sort_order', { ascending: true });
+
+    if (error) {
+      throw new MhdProfileCompletenessError(
+        `Unable to load profile sections: ${error.message}`,
+        error.code ?? null,
+      );
+    }
+
+    return (data ?? []).map((row) => ({
+      sectionKey: row.section_key,
+      label: row.label,
+      description: row.description,
+      sortOrder: row.sort_order,
+    }));
   },
 };

@@ -35,3 +35,13 @@ export function mhdPersonDisplayName(
   const preferredName = values.preferredName.trim();
   return preferredName.length > 0 ? preferredName : `${firstName} ${lastName}`.trim();
 }
+
+export const mhdProfileRequirementFormSchema = z.object({
+  companyId: z.string().trim().min(1, 'Company is required.'),
+  relationshipState: z.string().trim().min(1, 'Relationship state is required.'),
+  sectionKey: z.string().trim().min(1, 'Section is required.'),
+  isRequired: z.boolean(),
+  isActive: z.boolean(),
+});
+
+export type MhdProfileRequirementFormValues = z.infer<typeof mhdProfileRequirementFormSchema>;

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  MhdAcknowledgeJobDescriptionInput,
   MhdAssignJobInput,
   MhdCareerOneStopOccupationLookupInput,
   MhdCreateJobInput,
@@ -22,7 +23,13 @@ export const mhdJobsQueryKeys = {
   assignments: (personId: string | null) => ['mhd-jobs', 'assignments', personId ?? ''] as const,
   publishedForPerson: (personId: string | null, asOf: string | null) =>
     ['mhd-jobs', 'published-for-person', personId ?? '', asOf ?? 'today'] as const,
+  myAcknowledgments: () => ['mhd-jobs', 'my-acknowledgments'] as const,
+  acknowledgmentStatus: (descriptionId: string | null) =>
+    ['mhd-jobs', 'acknowledgment-status', descriptionId ?? ''] as const,
 };
+
+/** Query key of the navigation attention badges (owned by the module-alerts feature). */
+const MODULE_ALERTS_QUERY_KEY = ['mhd-module-alerts'] as const;
 
 /**
  * Publishing a description changes what every downstream consumer resolves —
@@ -257,7 +264,8 @@ export function useMhdPublishedJobForPerson(personId: string | null, asOf: strin
 
 export function useMhdCareerOneStopOccupationLookup() {
   return useMutation({
-    mutationFn: (input: MhdCareerOneStopOccupationLookupInput) => mhdJobsService.careerOneStopOccupationLookup(input),
+    mutationFn: (input: MhdCareerOneStopOccupationLookupInput) =>
+      mhdJobsService.careerOneStopOccupationLookup(input),
   });
 }
 
@@ -308,5 +316,40 @@ export function useMhdUpsertJobDescriptionDisclaimer() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mhd-jobs', 'disclaimers'] });
     },
+  });
+}
+
+export function useMhdMyJobAcknowledgments() {
+  return useQuery({
+    queryKey: mhdJobsQueryKeys.myAcknowledgments(),
+    queryFn: () => mhdJobsService.listMyAcknowledgments(),
+  });
+}
+
+/**
+ * Acknowledging clears a pending item, so the person's own list, the
+ * administrators' board for the description, and the navigation attention badge
+ * all change together.
+ */
+export function useMhdAcknowledgeJobDescription() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdAcknowledgeJobDescriptionInput) =>
+      mhdJobsService.acknowledgeDescription(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: mhdJobsQueryKeys.myAcknowledgments() });
+      void queryClient.invalidateQueries({ queryKey: ['mhd-jobs', 'acknowledgment-status'] });
+      void queryClient.invalidateQueries({ queryKey: MODULE_ALERTS_QUERY_KEY });
+    },
+  });
+}
+
+/** Administrator-only; the RPC raises 42501 for anyone else, so no retry. */
+export function useMhdJobAcknowledgmentStatus(descriptionId: string | null) {
+  return useQuery({
+    queryKey: mhdJobsQueryKeys.acknowledgmentStatus(descriptionId),
+    queryFn: () => mhdJobsService.listAcknowledgmentStatus(descriptionId!),
+    enabled: Boolean(descriptionId),
+    retry: false,
   });
 }

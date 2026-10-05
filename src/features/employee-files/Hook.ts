@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { mhdEmployeeFilesService } from './Service';
+import { mhdEmployeeFilesService, type MhdUpsertEmployeeFileRequirementInput } from './Service';
 import type { MhdEmployeeFileTypeKey } from './Types';
 
 export const mhdEmployeeFileQueryKeys = {
@@ -7,6 +7,12 @@ export const mhdEmployeeFileQueryKeys = {
     ['mhd-employee-files', 'category-default', companyId ?? '', category ?? ''] as const,
   categoryDefaults: (companyId: string | null) =>
     ['mhd-employee-files', 'category-defaults', companyId ?? ''] as const,
+  requirementGaps: (companyId: string | null) =>
+    ['mhd-employee-files', 'requirement-gaps', companyId ?? ''] as const,
+  requirements: (companyId: string | null) =>
+    ['mhd-employee-files', 'requirements', companyId ?? ''] as const,
+  completeness: (personId: string | null) =>
+    ['mhd-employee-files', 'completeness', personId ?? ''] as const,
 };
 
 /**
@@ -62,5 +68,53 @@ export function useMhdClearEmployeeFileCategoryDefault(companyId: string | null)
     mutationFn: (category: MhdEmployeeFileTypeKey) =>
       mhdEmployeeFilesService.clearCategoryDefault(companyId!, category),
     onSuccess: () => invalidate(),
+  });
+}
+
+export function useMhdEmployeeFileRequirementGaps(companyId: string | null) {
+  return useQuery({
+    queryKey: mhdEmployeeFileQueryKeys.requirementGaps(companyId),
+    queryFn: () => mhdEmployeeFilesService.listRequirementGaps(companyId!),
+    enabled: Boolean(companyId),
+  });
+}
+
+export function useMhdEmployeeFileRequirements(companyId: string | null) {
+  return useQuery({
+    queryKey: mhdEmployeeFileQueryKeys.requirements(companyId),
+    queryFn: () => mhdEmployeeFilesService.listRequirements(companyId!),
+    enabled: Boolean(companyId),
+  });
+}
+
+/**
+ * A refused call (caller lacks file access) surfaces as `isError`; callers
+ * that should render nothing in that case check it. A refusal is not
+ * transient, so it is not retried.
+ */
+export function useMhdEmployeeFileCompleteness(personId: string | null) {
+  return useQuery({
+    queryKey: mhdEmployeeFileQueryKeys.completeness(personId),
+    queryFn: () => mhdEmployeeFilesService.getPersonCompleteness(personId!),
+    enabled: Boolean(personId),
+    retry: false,
+  });
+}
+
+export function useMhdUpsertEmployeeFileRequirement(companyId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MhdUpsertEmployeeFileRequirementInput) =>
+      mhdEmployeeFilesService.upsertRequirement(companyId!, input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: mhdEmployeeFileQueryKeys.requirementGaps(companyId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: mhdEmployeeFileQueryKeys.requirements(companyId),
+      });
+      // A rule change alters every person's checklist for this company.
+      void queryClient.invalidateQueries({ queryKey: ['mhd-employee-files', 'completeness'] });
+    },
   });
 }

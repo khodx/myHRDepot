@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FolderOpen, Users } from 'lucide-react';
+import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { cn } from '@/utils/cn';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterInput } from '@/components/ui/MhdFilterBar';
 import { MhdSearchableSelect } from '@/components/ui/MhdSearchableSelect';
@@ -63,6 +65,14 @@ export function MhdEmployeeFilesPage() {
       <MhdPageHeader
         title="Employee Files"
         description="Manage employee file cabinets by person and file type."
+        actions={
+          <Link
+            to="/employees/requirements"
+            className={cn(buttonBaseClasses, buttonVariantClasses.secondary)}
+          >
+            File Requirements
+          </Link>
+        }
       />
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -199,7 +209,9 @@ export function MhdEmployeeFilesPage() {
               ))}
             </tbody>
           </MhdTable>
-          <MhdTableFooter summary={mhdPaginationSummary(pagination, filteredPeople.length, 'Employees')}>
+          <MhdTableFooter
+            summary={mhdPaginationSummary(pagination, filteredPeople.length, 'Employees')}
+          >
             <MhdPaginationControls pagination={pagination} />
           </MhdTableFooter>
         </MhdCard>

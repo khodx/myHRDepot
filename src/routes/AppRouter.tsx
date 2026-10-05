@@ -287,6 +287,10 @@ const MhdEmployeeFileCabinetPage = lazyPage(
   () => import('@/features/employee-files/components/MhdEmployeeFileCabinetPage'),
   'MhdEmployeeFileCabinetPage',
 );
+const MhdEmployeeFileRequirementsPage = lazyPage(
+  () => import('@/features/employee-files/components/MhdEmployeeFileRequirementsPage'),
+  'MhdEmployeeFileRequirementsPage',
+);
 const MhdEmployeeFileNewRecordPage = lazyPage(
   () => import('@/features/employee-files/components/MhdEmployeeFileNewRecordPage'),
   'MhdEmployeeFileNewRecordPage',
@@ -847,6 +851,7 @@ function MhdAppRoutes() {
                   path="/employees/:personId/files/new"
                   element={<MhdEmployeeFileNewRecordPage />}
                 />
+                <Route path="/employees/requirements" element={<MhdEmployeeFileRequirementsPage />} />
                 <Route path="/employees/:personId" element={<MhdEmployeeFileCabinetPage />} />
                 <Route path="/people" element={<MhdPeoplePage />} />
                 <Route path="/people/org-chart" element={<MhdOrgChartPage />} />
