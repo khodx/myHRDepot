@@ -112,6 +112,7 @@ export const mhdAccommodationMedicalSchema = z
       'SIMPLE_CERTIFICATION',
       'DETAILED_CERTIFICATION',
       'PROVIDER_NOTE',
+      'EMPLOYEE_STATEMENT',
       'OTHER',
     ]),
     status: z.enum([

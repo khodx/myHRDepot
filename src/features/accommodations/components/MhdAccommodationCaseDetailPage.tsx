@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
@@ -10,46 +11,170 @@ import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTabs } from '@/components/ui/MhdTabs';
 import { MhdAccommodationCaseRecordTabs } from '@/appshell/components/MhdAccommodationCaseRecordTabs';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { mhdTaskService } from '@/features/tasks/Service';
 import {
   mhdAccommodationsCanSeeMedical,
   mhdAccommodationsIsPrivileged,
 } from '@/appshell/mhdRouteAccess';
 import {
   useMhdAccommodationCase,
+  useMhdAccommodationDenialReasonCodes,
   useMhdAccommodationDocumentTemplates,
   useMhdAccommodationDecision,
+  useMhdAccommodationEmployeeCertify,
+  useMhdAccommodationEquipment,
   useMhdAccommodationImplementation,
   useMhdAccommodationInteraction,
   useMhdAccommodationMedicalRecord,
   useMhdAccommodationMedicalReveal,
   useMhdAccommodationOption,
   useMhdAccommodationOptionCatalog,
+  useMhdAccommodationProviderCertification,
   useMhdAccommodationReadiness,
+  useMhdAccommodationRequestDetails,
   useMhdAccommodationReview,
   useMhdAccommodationTransition,
 } from '../Hook';
-import { mhdAccommodationDecisionBlockers, mhdAccommodationMedicalSchema } from '../Schemas';
 import {
-  MHD_ACCOMMODATION_DENIAL_REASONS,
+  mhdAccommodationDecisionBlockers,
+  mhdAccommodationDenialReasonsSchema,
+  mhdAccommodationEquipmentSchema,
+  mhdAccommodationMedicalSchema,
+  mhdAccommodationReasonsRequireContinuation,
+} from '../Schemas';
+import {
+  MHD_ACCOMMODATION_DECIDE_FROM_STATUS,
   MHD_ACCOMMODATION_DOCUMENTATION_STATUSES,
   MHD_ACCOMMODATION_DOCUMENTATION_TYPES,
+  MHD_ACCOMMODATION_IMPLEMENT_FROM_STATUS,
   MHD_ACCOMMODATION_OPTION_TYPES,
   MHD_ACCOMMODATION_REQUEST_CHANNELS,
   MHD_ACCOMMODATION_STATUSES,
   mhdFormatAccommodationValue,
+  type MhdAccommodationDenialReasonInput,
   type MhdAccommodationDocumentationStatus,
   type MhdAccommodationDocumentationType,
+  type MhdAccommodationImplementation,
   type MhdAccommodationMedicalReveal,
   type MhdAccommodationRequestChannel,
   type MhdAccommodationStatus,
 } from '../Types';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
+import { MhdAccommodationDenialReasonsField } from './MhdAccommodationDenialReasonsField';
+import {
+  MhdAccommodationEquipmentFields,
+  type MhdAccommodationEquipmentErrors,
+  type MhdAccommodationEquipmentUserOption,
+  type MhdAccommodationEquipmentValue,
+} from './MhdAccommodationEquipmentFields';
 import { MhdAccommodationNoticesPanel } from './MhdAccommodationNoticesPanel';
+import { MhdAccommodationProviderCertPanel } from './MhdAccommodationProviderCertPanel';
+import { MhdAccommodationRequestDetailsPanel } from './MhdAccommodationRequestDetailsPanel';
 import { MhdAccommodationReviewCompletion } from './MhdAccommodationReviewCompletion';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
-type Tab = 'process' | 'options' | 'decision' | 'implementation' | 'medical' | 'notices';
+type Tab =
+  | 'process'
+  | 'request'
+  | 'options'
+  | 'decision'
+  | 'implementation'
+  | 'medical'
+  | 'provider'
+  | 'notices';
+type DecisionOutcome = 'APPROVED' | 'PARTIALLY_APPROVED' | 'DENIED';
+
+const EMPTY_EQUIPMENT: MhdAccommodationEquipmentValue = {
+  orderedOn: '',
+  orderedBy: '',
+  receivedOn: '',
+};
+
+const WAITING_FOR_EQUIPMENT_MESSAGE =
+  'Waiting For Equipment — the case stays in Implementing until it arrives.';
+
+/**
+ * The "Update Equipment" card on an existing implementation. Receipt of ordered equipment is what
+ * lets the case leave IMPLEMENTING, so the dates are validated with the shared schema before the
+ * RPC (which re-checks them) is called.
+ */
+function MhdAccommodationEquipmentUpdateCard({
+  caseId,
+  implementation,
+  userOptions,
+}: {
+  caseId: string;
+  implementation: MhdAccommodationImplementation;
+  userOptions: MhdAccommodationEquipmentUserOption[];
+}) {
+  const recordEquipment = useMhdAccommodationEquipment(caseId);
+  const [value, setValue] = useState<MhdAccommodationEquipmentValue>({
+    orderedOn: implementation.equipment_ordered_on ?? '',
+    orderedBy: implementation.equipment_ordered_by ?? '',
+    receivedOn: implementation.equipment_received_on ?? '',
+  });
+  const [errors, setErrors] = useState<MhdAccommodationEquipmentErrors>({});
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSave() {
+    setError(null);
+    const parsed = mhdAccommodationEquipmentSchema.safeParse({
+      implementationId: implementation.id,
+      orderedOn: value.orderedOn || null,
+      orderedBy: value.orderedBy || null,
+      receivedOn: value.receivedOn || null,
+    });
+    if (!parsed.success) {
+      const nextErrors: MhdAccommodationEquipmentErrors = {};
+      const generalMessages: string[] = [];
+      for (const issue of parsed.error.issues) {
+        const field = issue.path[0];
+        if (field === 'orderedOn' || field === 'orderedBy' || field === 'receivedOn') {
+          nextErrors[field] = nextErrors[field] ?? issue.message;
+        } else {
+          generalMessages.push(issue.message);
+        }
+      }
+      setErrors(nextErrors);
+      setError(generalMessages.length ? generalMessages.join(' ') : null);
+      return;
+    }
+    setErrors({});
+    try {
+      await recordEquipment.mutateAsync({
+        implementationId: implementation.id,
+        orderedOn: parsed.data.orderedOn ?? null,
+        orderedBy: parsed.data.orderedBy ?? null,
+        receivedOn: parsed.data.receivedOn ?? null,
+      });
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'The equipment dates were not saved.');
+    }
+  }
+
+  return (
+    <div className="mt-4 space-y-3 border-t border-border pt-4">
+      <MhdCardHeader title="Update Equipment" />
+      {error ? <p className="rounded-md bg-rose-50 p-3 text-sm text-rose-800">{error}</p> : null}
+      <MhdAccommodationEquipmentFields
+        idPrefix={`mhd-implementation-${implementation.id}`}
+        value={value}
+        onChange={setValue}
+        disabled={recordEquipment.isPending}
+        userOptions={userOptions}
+        errors={errors}
+      />
+      <Button
+        variant="secondary"
+        disabled={recordEquipment.isPending}
+        onClick={() => void handleSave()}
+      >
+        {recordEquipment.isPending ? 'Saving…' : 'Update Equipment'}
+      </Button>
+    </div>
+  );
+}
 
 /**
  * accommodation_options.option_type is CHECK-constrained server-side
@@ -106,6 +231,18 @@ export function MhdAccommodationCaseDetailPage() {
   const completeReview = useMhdAccommodationReview(caseId);
   const recordMedical = useMhdAccommodationMedicalRecord(caseId);
   const revealMedical = useMhdAccommodationMedicalReveal();
+  const saveRequestDetails = useMhdAccommodationRequestDetails(caseId);
+  const certifyEmployee = useMhdAccommodationEmployeeCertify(caseId);
+  const saveProviderCertification = useMhdAccommodationProviderCertification(caseId);
+  const denialReasonCodes = useMhdAccommodationDenialReasonCodes();
+  const caseCompanyId = detail.data?.case.company_id ?? null;
+  // Ordered By references users(id), so the picker lists the company's platform users through the
+  // shared Tasks assignable-users contract (the same source every module's user picker reads).
+  const equipmentUsers = useQuery({
+    queryKey: ['mhd-accommodations', 'equipment-users', caseCompanyId ?? ''],
+    queryFn: () => mhdTaskService.listAssignableUsers(caseCompanyId!),
+    enabled: privileged && Boolean(caseCompanyId),
+  });
   const [tab, setTab] = useState<Tab>('process');
   const [status, setStatus] = useState<MhdAccommodationStatus>('INTERACTIVE_PROCESS');
   const [transitionReason, setTransitionReason] = useState('');
@@ -123,13 +260,16 @@ export function MhdAccommodationCaseDetailPage() {
   const [catalogSearch, setCatalogSearch] = useState('');
   const [effectiveness, setEffectiveness] = useState('');
   const [selectedOptionId, setSelectedOptionId] = useState('');
-  const [outcome, setOutcome] = useState<'APPROVED' | 'PARTIALLY_APPROVED' | 'DENIED'>('APPROVED');
+  const [outcome, setOutcome] = useState<DecisionOutcome>('APPROVED');
   const [decisionSummary, setDecisionSummary] = useState('');
-  const [denialReason, setDenialReason] = useState<string>('UNDUE_HARDSHIP');
+  const [denialReasons, setDenialReasons] = useState<MhdAccommodationDenialReasonInput[]>([]);
+  const [processContinues, setProcessContinues] = useState(false);
   const [analysis, setAnalysis] = useState('');
   const [managerInstruction, setManagerInstruction] = useState('');
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [reviewDueDate, setReviewDueDate] = useState('');
+  const [implementEquipment, setImplementEquipment] =
+    useState<MhdAccommodationEquipmentValue>(EMPTY_EQUIPMENT);
   const [documentationType, setDocumentationType] =
     useState<MhdAccommodationDocumentationType>('SIMPLE_CERTIFICATION');
   const [documentationStatus, setDocumentationStatus] =
@@ -213,21 +353,47 @@ export function MhdAccommodationCaseDetailPage() {
     ? []
     : [...new Set(medicalDraft.error.issues.map((issue) => issue.message))];
 
+  // A decision is recorded only from EVALUATION and an implementation only from DECIDED
+  // (mhd_accommodation_transition graph); the controls are offered only there.
+  const canDecide = record.case.status === MHD_ACCOMMODATION_DECIDE_FROM_STATUS;
+  const canImplement = record.case.status === MHD_ACCOMMODATION_IMPLEMENT_FROM_STATUS;
+  const currentStatusLabel = mhdFormatAccommodationValue(record.case.status);
+  const decisionNeedsReasons = outcome !== 'APPROVED';
+  const denialReasonsValid =
+    !decisionNeedsReasons || mhdAccommodationDenialReasonsSchema.safeParse(denialReasons).success;
+  // Undue hardship never ends the interactive process, so it forces and locks continuation.
+  const continuationRequired =
+    decisionNeedsReasons && mhdAccommodationReasonsRequireContinuation(denialReasons);
+  const interactiveProcessContinues =
+    decisionNeedsReasons && (continuationRequired || processContinues);
+  const isOwnCase = Boolean(profile?.personId) && profile?.personId === record.case.person_id;
+  const equipmentUserOptions: MhdAccommodationEquipmentUserOption[] = (
+    equipmentUsers.data ?? []
+  ).map((user) => ({ id: user.id, displayName: user.displayName || user.email }));
+  const equipmentUserNames = new Map(
+    equipmentUserOptions.map((user) => [user.id, user.displayName]),
+  );
+  const implementWaitingForEquipment = Boolean(
+    implementEquipment.orderedOn && !implementEquipment.receivedOn,
+  );
+
   const tabs = [
-    { value: 'process' as const, label: 'Interactive process', count: record.interactions.length },
+    { value: 'process' as const, label: 'Interactive Process', count: record.interactions.length },
+    { value: 'request' as const, label: 'Request Details' },
     { value: 'notices' as const, label: 'Notices' },
     { value: 'options' as const, label: 'Options', count: record.options.length },
     { value: 'decision' as const, label: 'Decision', count: record.decisions.length },
     {
       value: 'implementation' as const,
-      label: 'Implementation & review',
+      label: 'Implementation & Review',
       count: record.implementations.length,
     },
     {
       value: 'medical' as const,
-      label: 'Documentation status',
+      label: 'Documentation Status',
       count: record.medical_status.length,
     },
+    ...(canSeeMedical ? [{ value: 'provider' as const, label: 'Provider Certification' }] : []),
   ];
 
   return (
@@ -374,12 +540,41 @@ export function MhdAccommodationCaseDetailPage() {
 
       {tab === 'notices' ? <MhdAccommodationNoticesPanel caseId={caseId} /> : null}
 
+      {tab === 'request' ? (
+        <MhdAccommodationRequestDetailsPanel
+          key={record.request_details?.id ?? 'unrecorded'}
+          caseId={caseId}
+          details={record.request_details}
+          caseStatus={record.case.status}
+          isOwnCase={isOwnCase}
+          canAdminister={privileged}
+          isPending={saveRequestDetails.isPending || certifyEmployee.isPending}
+          onSave={(input) => saveRequestDetails.mutateAsync(input)}
+          onCertify={(method) => certifyEmployee.mutateAsync({ caseId, method })}
+        />
+      ) : null}
+
+      {/* Absent from the DOM, not hidden, for every role outside the medical partition. */}
+      {tab === 'provider' && canSeeMedical ? (
+        <MhdAccommodationProviderCertPanel
+          key={record.provider_certification?.id ?? 'unrecorded'}
+          caseId={caseId}
+          certification={record.provider_certification}
+          isPending={saveProviderCertification.isPending}
+          onSave={(input) => saveProviderCertification.mutateAsync(input)}
+        />
+      ) : null}
+
       {tab === 'process' ? (
         <div className="space-y-4">
           {record.interactions.map((item) => (
             <MhdCard key={item.id}>
               <MhdDetailField label="Channel" value={mhdFormatAccommodationValue(item.channel)} />
-              <MhdDetailField label="Occurred" value={new Date(item.occurred_at).toLocaleString()} className="mt-2" />
+              <MhdDetailField
+                label="Occurred"
+                value={new Date(item.occurred_at).toLocaleString()}
+                className="mt-2"
+              />
               <MhdDetailField label="Summary" value={item.summary} className="mt-2" />
               <MhdDetailField
                 label="Visibility"
@@ -388,7 +583,11 @@ export function MhdAccommodationCaseDetailPage() {
               />
               <MhdDetailField
                 label="Next step"
-                value={item.next_step ? `${item.next_step}${item.next_step_due ? ` · ${item.next_step_due}` : ''}` : null}
+                value={
+                  item.next_step
+                    ? `${item.next_step}${item.next_step_due ? ` · ${item.next_step_due}` : ''}`
+                    : null
+                }
                 className="mt-2"
               />
             </MhdCard>
@@ -465,10 +664,21 @@ export function MhdAccommodationCaseDetailPage() {
         <div className="space-y-4">
           {record.options.map((item) => (
             <MhdCard key={item.id}>
-              <MhdDetailField label="Option type" value={mhdFormatAccommodationValue(item.option_type)} />
+              <MhdDetailField
+                label="Option type"
+                value={mhdFormatAccommodationValue(item.option_type)}
+              />
               <MhdDetailField label="Description" value={item.description} className="mt-2" />
-              <MhdDetailField label="Expected effectiveness" value={item.expected_effectiveness} className="mt-2" />
-              <MhdDetailField label="Disposition" value={mhdFormatAccommodationValue(item.disposition)} className="mt-2" />
+              <MhdDetailField
+                label="Expected effectiveness"
+                value={item.expected_effectiveness}
+                className="mt-2"
+              />
+              <MhdDetailField
+                label="Disposition"
+                value={mhdFormatAccommodationValue(item.disposition)}
+                className="mt-2"
+              />
             </MhdCard>
           ))}
           {privileged ? (
@@ -486,7 +696,10 @@ export function MhdAccommodationCaseDetailPage() {
               />
               {(optionCatalog.data ?? []).length > 0 ? (
                 <>
-                  <label className="block text-sm font-medium" htmlFor="mhd-accommodation-catalog-search">
+                  <label
+                    className="block text-sm font-medium"
+                    htmlFor="mhd-accommodation-catalog-search"
+                  >
                     Search accommodation ideas
                     <input
                       id="mhd-accommodation-catalog-search"
@@ -497,39 +710,46 @@ export function MhdAccommodationCaseDetailPage() {
                     />
                   </label>
                   <label className="block text-sm font-medium">
-                  Start from catalog{' '}
-                  <span className="font-normal text-muted-foreground">
-                    (optional — pre-fills the fields below, which remain fully editable; this is a
-                    starting point, never a locked template)
-                  </span>
-                  <select
-                    className={`mt-1 ${inputClass}`}
-                    value={catalogPickId}
-                    onChange={(event) => {
-                      const pickedId = event.target.value;
-                      setCatalogPickId(pickedId);
-                      const picked = (optionCatalog.data ?? []).find((item) => item.id === pickedId);
-                      if (picked) {
-                        setOptionType(
-                          MHD_ACCOMMODATION_CATALOG_CATEGORY_TO_CASE_OPTION_TYPE[picked.category] ??
-                            'OTHER',
+                    Start from catalog{' '}
+                    <span className="font-normal text-muted-foreground">
+                      (optional — pre-fills the fields below, which remain fully editable; this is a
+                      starting point, never a locked template)
+                    </span>
+                    <select
+                      className={`mt-1 ${inputClass}`}
+                      value={catalogPickId}
+                      onChange={(event) => {
+                        const pickedId = event.target.value;
+                        setCatalogPickId(pickedId);
+                        const picked = (optionCatalog.data ?? []).find(
+                          (item) => item.id === pickedId,
                         );
-                        setOptionDescription(`${picked.optionType}: ${picked.descriptionTemplate}`);
-                      }
-                    }}
-                  >
-                    <option value="">Start from free text (default)…</option>
-                    {filteredCatalogOptions.length ? (
-                      filteredCatalogOptions.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {mhdFormatAccommodationValue(item.category)} — {item.optionType}
-                          {item.isLibrary ? ' (Global)' : ''}
+                        if (picked) {
+                          setOptionType(
+                            MHD_ACCOMMODATION_CATALOG_CATEGORY_TO_CASE_OPTION_TYPE[
+                              picked.category
+                            ] ?? 'OTHER',
+                          );
+                          setOptionDescription(
+                            `${picked.optionType}: ${picked.descriptionTemplate}`,
+                          );
+                        }
+                      }}
+                    >
+                      <option value="">Start from free text (default)…</option>
+                      {filteredCatalogOptions.length ? (
+                        filteredCatalogOptions.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {mhdFormatAccommodationValue(item.category)} — {item.optionType}
+                            {item.isLibrary ? ' (Global)' : ''}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>
+                          No matching accommodation ideas — try a different term.
                         </option>
-                      ))
-                    ) : (
-                      <option disabled>No matching accommodation ideas — try a different term.</option>
-                    )}
-                  </select>
+                      )}
+                    </select>
                   </label>
                 </>
               ) : null}
@@ -635,7 +855,10 @@ export function MhdAccommodationCaseDetailPage() {
                     <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
                       {documentTemplates.data.map((entry) => (
                         <li key={entry.id}>
-                          <Link className="text-accent hover:underline" to={`/forms/${entry.id}/render`}>
+                          <Link
+                            className="text-accent hover:underline"
+                            to={`/forms/${entry.id}/render`}
+                          >
                             {entry.name}
                           </Link>
                         </li>
@@ -653,14 +876,59 @@ export function MhdAccommodationCaseDetailPage() {
         <div className="space-y-4">
           {activeDecision ? (
             <MhdCard>
-              <MhdDetailField label="Outcome" value={mhdFormatAccommodationValue(activeDecision.outcome)} />
-              <MhdDetailField label="Decision summary" value={activeDecision.decision_summary} className="mt-2" />
-              <MhdDetailField label="Denial reason" value={activeDecision.denial_reason_code ? mhdFormatAccommodationValue(activeDecision.denial_reason_code) : null} className="mt-2" />
+              <MhdDetailField
+                label="Outcome"
+                value={mhdFormatAccommodationValue(activeDecision.outcome)}
+              />
+              <MhdDetailField
+                label="Decision summary"
+                value={activeDecision.decision_summary}
+                className="mt-2"
+              />
+              {activeDecision.outcome !== 'APPROVED' ? (
+                <MhdDetailField
+                  label="Interactive Process Continues"
+                  value={activeDecision.interactive_process_continues ? 'Yes' : 'No'}
+                  className="mt-2"
+                />
+              ) : null}
+              {activeDecision.denial_reasons.length ? (
+                <div className="mt-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Denial Reasons
+                  </p>
+                  <ul className="mt-1 space-y-2 text-sm">
+                    {[...activeDecision.denial_reasons]
+                      .sort((left, right) => left.position - right.position)
+                      .map((reason) => (
+                        <li
+                          key={reason.reason_code}
+                          className="rounded-md border border-border p-2"
+                        >
+                          <p className="font-medium">{reason.label}</p>
+                          {reason.detail ? <p>{reason.detail}</p> : null}
+                          {reason.alternative_offered ? (
+                            <p className="text-muted-foreground">
+                              Alternative offered: {reason.alternative_offered}
+                            </p>
+                          ) : null}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ) : null}
             </MhdCard>
           ) : null}
-          {privileged ? (
+          {privileged && !canDecide ? (
+            <p className="text-sm text-muted-foreground">
+              A decision is recorded while the case is in Evaluation. This case is in{' '}
+              {currentStatusLabel}; move it to Evaluation under Workflow Status once the interactive
+              process and the option evaluation are complete.
+            </p>
+          ) : null}
+          {privileged && canDecide ? (
             <MhdCard className="space-y-3">
-              <MhdCardHeader title="Record decision" />
+              <MhdCardHeader title="Record Decision" />
               {decisionBlockers.length ? (
                 <ul className="list-disc space-y-1 rounded-md bg-amber-50 p-3 pl-8 text-sm text-amber-800">
                   {decisionBlockers.map((blocker) => (
@@ -670,10 +938,9 @@ export function MhdAccommodationCaseDetailPage() {
               ) : null}
               <select
                 className={inputClass}
+                aria-label="Decision Outcome"
                 value={outcome}
-                onChange={(event) =>
-                  setOutcome(event.target.value as 'APPROVED' | 'PARTIALLY_APPROVED' | 'DENIED')
-                }
+                onChange={(event) => setOutcome(event.target.value as DecisionOutcome)}
               >
                 <option value="APPROVED">Approved</option>
                 <option value="PARTIALLY_APPROVED">Partially approved</option>
@@ -704,26 +971,39 @@ export function MhdAccommodationCaseDetailPage() {
                   ))}
                 </select>
               ) : (
-                <>
-                  <select
-                    className={inputClass}
-                    value={denialReason}
-                    onChange={(event) => setDenialReason(event.target.value)}
-                  >
-                    {MHD_ACCOMMODATION_DENIAL_REASONS.map((value) => (
-                      <option key={value} value={value}>
-                        {mhdFormatAccommodationValue(value)}
-                      </option>
-                    ))}
-                  </select>
-                  <textarea
-                    className={`min-h-24 ${inputClass}`}
-                    value={analysis}
-                    onChange={(event) => setAnalysis(event.target.value)}
-                    placeholder="Individualized analysis and alternatives considered"
-                  />
-                </>
+                <textarea
+                  className={`min-h-24 ${inputClass}`}
+                  value={analysis}
+                  onChange={(event) => setAnalysis(event.target.value)}
+                  placeholder="Individualized analysis and alternatives considered"
+                />
               )}
+              {decisionNeedsReasons ? (
+                <>
+                  <MhdAccommodationDenialReasonsField
+                    value={denialReasons}
+                    onChange={setDenialReasons}
+                    vocabulary={denialReasonCodes.data ?? []}
+                  />
+                  <label className="flex items-start gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 rounded border-border"
+                      checked={interactiveProcessContinues}
+                      disabled={continuationRequired}
+                      onChange={(event) => setProcessContinues(event.target.checked)}
+                    />
+                    <span>
+                      Interactive Process Continues
+                      {continuationRequired ? (
+                        <span className="block text-xs text-muted-foreground">
+                          Undue hardship does not end the interactive process; it continues.
+                        </span>
+                      ) : null}
+                    </span>
+                  </label>
+                </>
+              ) : null}
               <textarea
                 className={`min-h-20 ${inputClass}`}
                 value={decisionSummary}
@@ -732,7 +1012,10 @@ export function MhdAccommodationCaseDetailPage() {
               />
               <Button
                 disabled={
-                  decide.isPending || !decisionSummary.trim() || decisionBlockers.length > 0
+                  decide.isPending ||
+                  !decisionSummary.trim() ||
+                  decisionBlockers.length > 0 ||
+                  !denialReasonsValid
                 }
                 onClick={() =>
                   void run(() =>
@@ -741,16 +1024,15 @@ export function MhdAccommodationCaseDetailPage() {
                       outcome,
                       decisionSummary,
                       selectedOptionId: outcome === 'DENIED' ? null : selectedOptionId,
-                      denialReasonCode: outcome === 'DENIED' ? denialReason : null,
+                      denialReasons: decisionNeedsReasons ? denialReasons : null,
                       individualizedAnalysis: outcome === 'DENIED' ? analysis : null,
                       alternativesConsidered: outcome === 'DENIED',
-                      interactiveProcessContinues:
-                        outcome === 'DENIED' && denialReason === 'UNDUE_HARDSHIP',
+                      interactiveProcessContinues,
                     }),
                   )
                 }
               >
-                Record decision
+                Record Decision
               </Button>
             </MhdCard>
           ) : null}
@@ -764,12 +1046,51 @@ export function MhdAccommodationCaseDetailPage() {
               <MhdDetailField label="Manager instruction" value={item.manager_instruction} />
               <MhdDetailField label="Start date" value={item.start_date} className="mt-2" />
               <MhdDetailField label="End date" value={item.end_date} className="mt-2" />
-              <MhdDetailField label="Status" value={item.status} className="mt-2" />
+              <MhdDetailField
+                label="Status"
+                value={mhdFormatAccommodationValue(item.status)}
+                className="mt-2"
+              />
+              <MhdDetailField
+                label="Equipment Ordered On"
+                value={item.equipment_ordered_on}
+                className="mt-2"
+              />
+              <MhdDetailField
+                label="Equipment Ordered By"
+                value={
+                  item.equipment_ordered_by
+                    ? (equipmentUserNames.get(item.equipment_ordered_by) ?? 'Recorded')
+                    : null
+                }
+                className="mt-2"
+              />
+              <MhdDetailField
+                label="Equipment Received On"
+                value={item.equipment_received_on}
+                className="mt-2"
+              />
+              {item.equipment_ordered_on && !item.equipment_received_on ? (
+                <p className="mt-2 text-sm text-amber-700">{WAITING_FOR_EQUIPMENT_MESSAGE}</p>
+              ) : null}
+              {privileged ? (
+                <MhdAccommodationEquipmentUpdateCard
+                  caseId={caseId}
+                  implementation={item}
+                  userOptions={equipmentUserOptions}
+                />
+              ) : null}
             </MhdCard>
           ))}
-          {privileged && implementableOptionId && implementableOption ? (
+          {privileged && !canImplement ? (
+            <p className="text-sm text-muted-foreground">
+              An accommodation is implemented once the case is Decided. This case is in{' '}
+              {currentStatusLabel}.
+            </p>
+          ) : null}
+          {privileged && canImplement && implementableOptionId && implementableOption ? (
             <MhdCard className="space-y-3">
-              <MhdCardHeader title="Implement selected option" />
+              <MhdCardHeader title="Implement Selected Option" />
               <MhdDetailField label="Selected option" value={implementableOption.description} />
               <textarea
                 className={`min-h-20 ${inputClass}`}
@@ -795,28 +1116,46 @@ export function MhdAccommodationCaseDetailPage() {
                   />
                 </label>
               </MhdFormFieldStack>
+              <MhdAccommodationEquipmentFields
+                idPrefix="mhd-implement"
+                value={implementEquipment}
+                onChange={setImplementEquipment}
+                disabled={implement.isPending}
+                userOptions={equipmentUserOptions}
+              />
+              {implementWaitingForEquipment ? (
+                <p className="text-sm text-amber-700">{WAITING_FOR_EQUIPMENT_MESSAGE}</p>
+              ) : null}
               <Button
                 disabled={implement.isPending || !managerInstruction.trim()}
                 onClick={() =>
-                  void run(() =>
-                    implement.mutateAsync({
+                  void run(async () => {
+                    await implement.mutateAsync({
                       caseId,
                       optionId: implementableOptionId,
                       startDate,
                       managerInstruction,
                       reviewDueDate: reviewDueDate || null,
-                    }),
-                  )
+                      equipmentOrderedOn: implementEquipment.orderedOn || null,
+                      equipmentOrderedBy: implementEquipment.orderedBy || null,
+                      equipmentReceivedOn: implementEquipment.receivedOn || null,
+                    });
+                    setImplementEquipment(EMPTY_EQUIPMENT);
+                  })
                 }
               >
-                Activate accommodation
+                Activate Accommodation
               </Button>
             </MhdCard>
           ) : null}
           {record.reviews.map((review) => (
             <MhdCard key={review.id}>
               <MhdDetailField label="Effectiveness review due" value={review.due_date} />
-              <MhdDetailField label="Review summary" value={review.completed_at ? review.summary : null} className="mt-2" />
+              <MhdDetailField
+                label="Review summary"
+                value={review.completed_at ? review.summary : null}
+                className="mt-2"
+              />
               {!review.completed_at && privileged ? (
                 <MhdAccommodationReviewCompletion
                   isPending={completeReview.isPending}

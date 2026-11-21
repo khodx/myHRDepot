@@ -8,6 +8,7 @@ describe('Document Generation type contract', () => {
       referenceId: 'DOCT-000001',
       companyId: null,
       name: 'Monthly Task Summary',
+      templateKey: null,
       templateType: 'REPORT',
       applicableEntityType: 'TASK',
       description: 'A monthly summary report.',

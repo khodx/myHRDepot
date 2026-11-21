@@ -9,9 +9,14 @@ import {
   useMhdAccommodationNoticeDelivery,
   useMhdAccommodationNotices,
 } from '../Hook';
+import { mhdFormatAccommodationValue } from '../Types';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
+
+/** The document entity type accommodation notice templates are tagged with (migration 0391). */
+const ACCOMMODATION_NOTICE_ENTITY_TYPE = 'ACCOMMODATION_CASE';
+
 const NOTICE_TYPES = [
   'REQUEST_ACKNOWLEDGMENT',
   'INFORMATION_REQUEST',
@@ -28,10 +33,28 @@ export function MhdAccommodationNoticesPanel({ caseId }: { caseId: string }) {
   const createNotice = useMhdAccommodationNotice(caseId);
   const deliverNotice = useMhdAccommodationNoticeDelivery(caseId);
   const templates = useQuery({
-    queryKey: ['mhd-accommodations', 'notice-templates', profile?.companyId ?? ''],
-    queryFn: () => mhdDocumentService.listTemplates(profile!.companyId),
+    queryKey: [
+      'mhd-accommodations',
+      'notice-templates',
+      profile?.companyId ?? '',
+      ACCOMMODATION_NOTICE_ENTITY_TYPE,
+    ],
+    queryFn: () =>
+      mhdDocumentService.listTemplates(
+        profile!.companyId,
+        undefined,
+        false,
+        ACCOMMODATION_NOTICE_ENTITY_TYPE,
+      ),
     enabled: Boolean(profile?.companyId),
   });
+  // A notice records the template's stable key (the database refuses anything else), so only
+  // accommodation templates that carry one can be chosen.
+  const noticeTemplates = (templates.data ?? []).filter(
+    (template) =>
+      template.applicableEntityType === ACCOMMODATION_NOTICE_ENTITY_TYPE &&
+      Boolean(template.templateKey),
+  );
   const [open, setOpen] = useState(false);
   const [noticeType, setNoticeType] = useState(NOTICE_TYPES[0]);
   const [templateId, setTemplateId] = useState('');
@@ -50,57 +73,108 @@ export function MhdAccommodationNoticesPanel({ caseId }: { caseId: string }) {
     <MhdCard className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <MhdCardHeader title="Notices" />
-        <Button variant="secondary" onClick={() => setOpen((value) => !value)}>New Notice</Button>
+        <Button variant="secondary" onClick={() => setOpen((value) => !value)}>
+          New Notice
+        </Button>
       </div>
       {error ? <p className="rounded-md bg-rose-50 p-3 text-sm text-rose-800">{error}</p> : null}
       {open ? (
         <div className="space-y-3 rounded-md border border-border p-3">
-          <select className={inputClass} value={noticeType} onChange={(event) => setNoticeType(event.target.value)}>
-            {NOTICE_TYPES.map((value) => <option key={value} value={value}>{value.replaceAll('_', ' ')}</option>)}
+          <select
+            className={inputClass}
+            aria-label="Notice Type"
+            value={noticeType}
+            onChange={(event) => setNoticeType(event.target.value)}
+          >
+            {NOTICE_TYPES.map((value) => (
+              <option key={value} value={value}>
+                {mhdFormatAccommodationValue(value)}
+              </option>
+            ))}
           </select>
-          <select className={inputClass} value={templateId} onChange={(event) => setTemplateId(event.target.value)}>
+          <select
+            className={inputClass}
+            aria-label="Document Template"
+            value={templateId}
+            onChange={(event) => setTemplateId(event.target.value)}
+          >
             <option value="">Select a document template</option>
-            {(templates.data ?? []).map((template) => <option key={template.id} value={template.id}>{template.name} (v{template.version})</option>)}
+            {noticeTemplates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.name} (v{template.version})
+              </option>
+            ))}
           </select>
           <div className="flex gap-2">
             <Button
               disabled={createNotice.isPending || !templateId || !authUserId || !profile?.companyId}
-              onClick={() => void run(async () => {
-                const template = (templates.data ?? []).find((item) => item.id === templateId);
-                if (!template) throw new Error('Select a document template.');
-                const generation = await mhdDocumentService.generateAndPoll({
-                  templateId: template.id,
-                  companyId: profile!.companyId,
-                  entityType: 'ACCOMMODATION_CASE',
-                  entityId: caseId,
-                  mergeData: {},
-                }, { actorUserId: authUserId! });
-                await createNotice.mutateAsync({
-                  caseId,
-                  noticeType,
-                  templateKey: template.id || template.name,
-                  templateVersion: template.version,
-                  documentGenerationId: generation.id,
-                });
-                setOpen(false);
-                setTemplateId('');
-              })}
-            >{createNotice.isPending ? 'Recording…' : 'Create Notice'}</Button>
-            <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
+              onClick={() =>
+                void run(async () => {
+                  const template = noticeTemplates.find((item) => item.id === templateId);
+                  if (!template?.templateKey) throw new Error('Select a document template.');
+                  const generation = await mhdDocumentService.generateAndPoll(
+                    {
+                      templateId: template.id,
+                      companyId: profile!.companyId,
+                      entityType: ACCOMMODATION_NOTICE_ENTITY_TYPE,
+                      entityId: caseId,
+                      mergeData: {},
+                    },
+                    { actorUserId: authUserId! },
+                  );
+                  await createNotice.mutateAsync({
+                    caseId,
+                    noticeType,
+                    templateKey: template.templateKey,
+                    templateVersion: template.version,
+                    documentGenerationId: generation.id,
+                  });
+                  setOpen(false);
+                  setTemplateId('');
+                })
+              }
+            >
+              {createNotice.isPending ? 'Recording…' : 'Create Notice'}
+            </Button>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
           </div>
         </div>
       ) : null}
       {notices.isLoading ? <p className="text-sm text-muted-foreground">Loading notices…</p> : null}
-      {notices.data?.length ? notices.data.map((notice) => (
-        <div key={notice.id} className="flex items-start justify-between gap-3 rounded-md border border-border p-3">
-          <div>
-            <p className="font-medium">{notice.notice_type.replaceAll('_', ' ')}</p>
-            <p className="text-sm text-muted-foreground">{notice.status} · issued {notice.issued_at ? new Date(notice.issued_at).toLocaleDateString() : 'not set'}</p>
-          </div>
-          {notice.status !== 'DELIVERED' ? <Button variant="secondary" disabled={deliverNotice.isPending} onClick={() => void run(() => deliverNotice.mutateAsync({ noticeId: notice.id, status: 'DELIVERED' }))}>Mark Delivered</Button> : null}
-        </div>
-      )) : null}
-      {!notices.isLoading && !notices.data?.length ? <p className="text-sm text-muted-foreground">No notices recorded.</p> : null}
+      {notices.data?.length
+        ? notices.data.map((notice) => (
+            <div
+              key={notice.id}
+              className="flex items-start justify-between gap-3 rounded-md border border-border p-3"
+            >
+              <div>
+                <p className="font-medium">{mhdFormatAccommodationValue(notice.notice_type)}</p>
+                <p className="text-sm text-muted-foreground">
+                  {mhdFormatAccommodationValue(notice.status)} · issued{' '}
+                  {notice.issued_at ? new Date(notice.issued_at).toLocaleDateString() : 'not set'}
+                </p>
+              </div>
+              {notice.status !== 'DELIVERED' ? (
+                <Button
+                  variant="secondary"
+                  disabled={deliverNotice.isPending}
+                  onClick={() =>
+                    void run(() =>
+                      deliverNotice.mutateAsync({ noticeId: notice.id, status: 'DELIVERED' }),
+                    )
+                  }
+                >
+                  Mark Delivered
+                </Button>
+              ) : null}
+            </div>
+          ))
+        : null}
+      {!notices.isLoading && !notices.data?.length ? (
+        <p className="text-sm text-muted-foreground">No notices recorded.</p>
+      ) : null}
     </MhdCard>
   );
 }
