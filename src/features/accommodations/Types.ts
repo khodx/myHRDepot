@@ -31,7 +31,11 @@ export type MhdAccommodationReviewEffectiveness =
   'EFFECTIVE' | 'PARTIALLY_EFFECTIVE' | 'INEFFECTIVE' | 'NO_LONGER_NEEDED';
 
 export type MhdAccommodationDocumentationType =
-  'SIMPLE_CERTIFICATION' | 'DETAILED_CERTIFICATION' | 'PROVIDER_NOTE' | 'OTHER';
+  | 'SIMPLE_CERTIFICATION'
+  | 'DETAILED_CERTIFICATION'
+  | 'PROVIDER_NOTE'
+  | 'EMPLOYEE_STATEMENT'
+  | 'OTHER';
 
 export type MhdAccommodationDocumentationStatus =
   'NOT_NEEDED' | 'REQUESTED' | 'RECEIVED' | 'INCOMPLETE' | 'SUFFICIENT' | 'EXPIRED' | 'WAIVED';
@@ -112,12 +116,23 @@ export interface MhdAccommodationDecision {
   id: string;
   outcome: 'APPROVED' | 'PARTIALLY_APPROVED' | 'DENIED';
   selected_option_id: string | null;
-  denial_reason_code: string | null;
+  /** The first (primary) denial reason; the full set is `denial_reasons`. */
+  denial_reason_code: MhdAccommodationDenialReason | null;
+  denial_reasons: MhdAccommodationDecisionDenialReason[];
   decision_summary: string;
   alternatives_considered: boolean;
   interactive_process_continues: boolean;
   decided_at: string;
   superseded_at: string | null;
+}
+
+/** One reason for a denial, with the specifics Section D of the package asks for. */
+export interface MhdAccommodationDecisionDenialReason {
+  reason_code: MhdAccommodationDenialReason;
+  label: string;
+  detail: string | null;
+  alternative_offered: string | null;
+  position: number;
 }
 
 export interface MhdAccommodationImplementation {
@@ -128,6 +143,9 @@ export interface MhdAccommodationImplementation {
   end_date: string | null;
   manager_instruction: string;
   review_due_date: string | null;
+  equipment_ordered_on: string | null;
+  equipment_ordered_by: string | null;
+  equipment_received_on: string | null;
 }
 
 export interface MhdAccommodationReview {
@@ -207,14 +225,61 @@ export interface MhdAccommodationManagerInstruction {
   reviewDueDate: string | null;
 }
 
+/** Section A of the package: dates, flags and contact facts (non-medical, case-scoped). */
+export interface MhdAccommodationRequestDetails {
+  id: string;
+  limitation_duration: MhdAccommodationLimitationDuration | null;
+  anticipated_recovery_date: string | null;
+  workers_comp_claim: boolean;
+  workers_comp_claim_filed_on: string | null;
+  leave_requested: boolean;
+  leave_request_details: string | null;
+  employee_certified_at: string | null;
+  employee_certified_method: MhdAccommodationCertificationMethod | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  work_location: string | null;
+  supervisor_name: string | null;
+  supervisor_person_id: string | null;
+}
+
+/**
+ * Section B status and dates, returned to medical roles only. The provider's name and the
+ * recommendation are encrypted and come back only from the audited reveal RPC.
+ */
+export interface MhdAccommodationProviderCertification {
+  id: string;
+  certified_at: string | null;
+  disability_verified: boolean;
+  limitation_duration: MhdAccommodationLimitationDuration | null;
+  limitation_end_date: string | null;
+  accommodation_begin_on: string | null;
+  accommodation_end_on: string | null;
+  accommodation_continuous: boolean;
+  job_duty_statement_sent_at: string | null;
+  has_provider_name: boolean;
+  has_recommendation: boolean;
+  has_attachment: boolean;
+}
+
+export interface MhdAccommodationProviderCertificationReveal {
+  provider_name: string | null;
+  recommendation: string | null;
+}
+
 export interface MhdAccommodationDetail {
   case: MhdAccommodationCase;
+  /** Null until Section A has been recorded. */
+  request_details: MhdAccommodationRequestDetails | null;
   interactions: MhdAccommodationInteraction[];
   options: MhdAccommodationOption[];
   decisions: MhdAccommodationDecision[];
   implementations: MhdAccommodationImplementation[];
   reviews: MhdAccommodationReview[];
+  /** Medical roles only; an empty list for everyone else. */
   medical_status: MhdAccommodationMedicalStatus[];
+  /** Medical roles only; null for everyone else. */
+  provider_certification: MhdAccommodationProviderCertification | null;
 }
 
 export interface MhdCreateAccommodationInput {
@@ -291,6 +356,7 @@ export const MHD_ACCOMMODATION_DOCUMENTATION_TYPES: readonly MhdAccommodationDoc
   'SIMPLE_CERTIFICATION',
   'DETAILED_CERTIFICATION',
   'PROVIDER_NOTE',
+  'EMPLOYEE_STATEMENT',
   'OTHER',
 ];
 
@@ -319,13 +385,137 @@ export const MHD_ACCOMMODATION_OPTION_TYPES = [
 ] as const;
 export type MhdAccommodationOptionType = (typeof MHD_ACCOMMODATION_OPTION_TYPES)[number];
 
+/**
+ * Denial reason codes (table accommodation_denial_reason_codes, migration 0388): the eight reasons of
+ * Section D of the package, in form order, plus the two statutory grounds. The interface renders the
+ * vocabulary from the table; this list and the rules below exist for validation and tests and are held
+ * to the table by a parity test.
+ */
 export const MHD_ACCOMMODATION_DENIAL_REASONS = [
+  'INEFFECTIVE',
   'UNDUE_HARDSHIP',
-  'DIRECT_THREAT',
-  'NO_COVERED_DISABILITY',
+  'MEDICAL_DOCUMENTATION_INADEQUATE',
   'REMOVES_ESSENTIAL_FUNCTION',
+  'LOWERS_STANDARD',
+  'NO_VACANT_POSITION',
+  'EMPLOYEE_REJECTED_ALTERNATIVE',
+  'OTHER',
+  'NO_COVERED_DISABILITY',
+  'DIRECT_THREAT',
 ] as const;
 export type MhdAccommodationDenialReason = (typeof MHD_ACCOMMODATION_DENIAL_REASONS)[number];
+
+/** Which codes need their specifics, mirroring requires_detail / requires_alternative in the table. */
+export const MHD_ACCOMMODATION_DENIAL_REASON_RULES: Readonly<
+  Record<MhdAccommodationDenialReason, { requiresDetail: boolean; requiresAlternative: boolean }>
+> = {
+  INEFFECTIVE: { requiresDetail: false, requiresAlternative: false },
+  UNDUE_HARDSHIP: { requiresDetail: true, requiresAlternative: false },
+  MEDICAL_DOCUMENTATION_INADEQUATE: { requiresDetail: false, requiresAlternative: false },
+  REMOVES_ESSENTIAL_FUNCTION: { requiresDetail: true, requiresAlternative: false },
+  LOWERS_STANDARD: { requiresDetail: true, requiresAlternative: false },
+  NO_VACANT_POSITION: { requiresDetail: true, requiresAlternative: false },
+  EMPLOYEE_REJECTED_ALTERNATIVE: { requiresDetail: true, requiresAlternative: true },
+  OTHER: { requiresDetail: true, requiresAlternative: false },
+  NO_COVERED_DISABILITY: { requiresDetail: false, requiresAlternative: false },
+  DIRECT_THREAT: { requiresDetail: true, requiresAlternative: false },
+};
+
+/** A row of accommodation_denial_reason_codes. */
+export interface MhdAccommodationDenialReasonCode {
+  code: MhdAccommodationDenialReason;
+  label: string;
+  sortOrder: number;
+  requiresDetail: boolean;
+  detailPrompt: string | null;
+  requiresAlternative: boolean;
+  alternativePrompt: string | null;
+}
+
+/** One reason sent with a decision (p_denial_reasons). */
+export interface MhdAccommodationDenialReasonInput {
+  code: MhdAccommodationDenialReason;
+  detail?: string | null;
+  alternativeOffered?: string | null;
+}
+
+/** accommodation_request_duration_allowed (0387). */
+export const MHD_ACCOMMODATION_LIMITATION_DURATIONS = [
+  'PERMANENT',
+  'TEMPORARY',
+  'UNKNOWN',
+] as const;
+export type MhdAccommodationLimitationDuration =
+  (typeof MHD_ACCOMMODATION_LIMITATION_DURATIONS)[number];
+
+/** accommodation_request_certified_method_allowed (0387). */
+export const MHD_ACCOMMODATION_CERTIFICATION_METHODS = [
+  'SELF_SERVICE',
+  'IN_PERSON_PAPER',
+  'E_SIGNATURE',
+] as const;
+export type MhdAccommodationCertificationMethod =
+  (typeof MHD_ACCOMMODATION_CERTIFICATION_METHODS)[number];
+
+/** accommodation_implementations_status (0053): IN_PROGRESS means ordered equipment has not arrived. */
+export const MHD_ACCOMMODATION_IMPLEMENTATION_STATUSES = [
+  'PLANNED',
+  'IN_PROGRESS',
+  'ACTIVE',
+  'ENDED',
+  'CANCELLED',
+] as const;
+
+/**
+ * The status each decision/implementation step must start from (mhd_accommodation_transition graph, 0388).
+ * The interface offers a control only in its status; the database refuses it anywhere else (22023).
+ */
+export const MHD_ACCOMMODATION_DECIDE_FROM_STATUS: MhdAccommodationStatus = 'EVALUATION';
+export const MHD_ACCOMMODATION_IMPLEMENT_FROM_STATUS: MhdAccommodationStatus = 'DECIDED';
+
+export interface MhdAccommodationRequestDetailsInput {
+  caseId: string;
+  limitationDuration?: MhdAccommodationLimitationDuration | null;
+  anticipatedRecoveryDate?: string | null;
+  workersCompClaim?: boolean;
+  workersCompClaimFiledOn?: string | null;
+  leaveRequested?: boolean;
+  leaveRequestDetails?: string | null;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  workLocation?: string | null;
+  supervisorName?: string | null;
+  supervisorPersonId?: string | null;
+}
+
+export interface MhdAccommodationEmployeeCertifyInput {
+  caseId: string;
+  method?: MhdAccommodationCertificationMethod;
+}
+
+export interface MhdAccommodationProviderCertificationInput {
+  caseId: string;
+  /** Encrypted at rest; never returned except by the audited reveal. */
+  providerName?: string | null;
+  certifiedAt?: string | null;
+  disabilityVerified?: boolean;
+  limitationDuration?: MhdAccommodationLimitationDuration | null;
+  limitationEndDate?: string | null;
+  accommodationBeginOn?: string | null;
+  accommodationEndOn?: string | null;
+  accommodationContinuous?: boolean;
+  /** Functional recommendation only: never a diagnosis, causation, or genetic information. */
+  recommendation?: string | null;
+  jobDutyStatementSentAt?: string | null;
+  attachmentId?: string | null;
+}
+
+export interface MhdAccommodationEquipmentInput {
+  implementationId: string;
+  orderedOn?: string | null;
+  orderedBy?: string | null;
+  receivedOn?: string | null;
+}
 
 export function mhdFormatAccommodationValue(value: string): string {
   return value
@@ -382,21 +572,22 @@ export type MhdAccommodationFunctionalLimitationTag =
   | 'COMMUTE_TRAVEL'
   | 'TEMPERATURE_SENSITIVITY';
 
-export const MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS: readonly MhdAccommodationFunctionalLimitationTag[] = [
-  'MOBILITY',
-  'LIFTING_CARRYING',
-  'STANDING_SITTING',
-  'FINE_MOTOR',
-  'VISION',
-  'HEARING',
-  'SPEECH_COMMUNICATION',
-  'CONCENTRATION_MEMORY',
-  'STRESS_MENTAL_HEALTH',
-  'FATIGUE_STAMINA',
-  'RESPIRATORY_ENVIRONMENTAL',
-  'COMMUTE_TRAVEL',
-  'TEMPERATURE_SENSITIVITY',
-];
+export const MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS: readonly MhdAccommodationFunctionalLimitationTag[] =
+  [
+    'MOBILITY',
+    'LIFTING_CARRYING',
+    'STANDING_SITTING',
+    'FINE_MOTOR',
+    'VISION',
+    'HEARING',
+    'SPEECH_COMMUNICATION',
+    'CONCENTRATION_MEMORY',
+    'STRESS_MENTAL_HEALTH',
+    'FATIGUE_STAMINA',
+    'RESPIRATORY_ENVIRONMENTAL',
+    'COMMUTE_TRAVEL',
+    'TEMPERATURE_SENSITIVITY',
+  ];
 
 export interface MhdAccommodationOptionCatalogEntryRpcRow {
   id: string;

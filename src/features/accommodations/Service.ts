@@ -1,12 +1,19 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type { Json } from '@/types/database.types';
 import type {
+  MhdAccommodationDenialReasonCode,
+  MhdAccommodationDenialReasonInput,
   MhdAccommodationDetail,
+  MhdAccommodationEmployeeCertifyInput,
+  MhdAccommodationEquipmentInput,
   MhdAccommodationManagerInstruction,
   MhdAccommodationMedicalReveal,
   MhdAccommodationNotice,
   MhdAccommodationOptionCatalogEntry,
   MhdAccommodationOptionCatalogEntryRpcRow,
+  MhdAccommodationProviderCertificationInput,
+  MhdAccommodationProviderCertificationReveal,
+  MhdAccommodationRequestDetailsInput,
   MhdAccommodationReviewEffectiveness,
   MhdAccommodationStatus,
   MhdAccommodationSummary,
@@ -80,7 +87,9 @@ export const mhdAccommodationsService = {
   },
 
   async get(caseId: string): Promise<MhdAccommodationDetail> {
-    const { data, error } = await supabaseClient.rpc('mhd_accommodation_case_get', { p_case_id: caseId });
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_case_get', {
+      p_case_id: caseId,
+    });
     if (error) throw error;
     return data as unknown as MhdAccommodationDetail;
   },
@@ -140,12 +149,15 @@ export const mhdAccommodationsService = {
 
   async createCaseFromSubmission(
     submissionId: string,
-    values: Json
+    values: Json,
   ): Promise<{ id: string; referenceId: string }> {
-    const { data, error } = await supabaseClient.rpc('mhd_create_accommodation_case_from_submission', {
-      p_submission_id: submissionId,
-      p_values: values,
-    });
+    const { data, error } = await supabaseClient.rpc(
+      'mhd_create_accommodation_case_from_submission',
+      {
+        p_submission_id: submissionId,
+        p_values: values,
+      },
+    );
     if (error) throw error;
     const row = ((data ?? []) as Array<{ id: string; reference_id: string }>)[0];
     if (!row) throw new Error('Accommodation case creation from submission returned no row.');
@@ -214,7 +226,10 @@ export const mhdAccommodationsService = {
     outcome: 'APPROVED' | 'PARTIALLY_APPROVED' | 'DENIED';
     decisionSummary: string;
     selectedOptionId?: string | null;
+    /** Legacy single reason; prefer `denialReasons`, which carries each reason's specifics. */
     denialReasonCode?: string | null;
+    /** Required for a denied or partly denied decision: combinable reasons with their specifics. */
+    denialReasons?: MhdAccommodationDenialReasonInput[] | null;
     individualizedAnalysis?: string | null;
     alternativesConsidered: boolean;
     interactiveProcessContinues: boolean;
@@ -230,6 +245,13 @@ export const mhdAccommodationsService = {
         : {},
       p_alternatives_considered: input.alternativesConsidered,
       p_interactive_process_continues: input.interactiveProcessContinues,
+      p_denial_reasons: input.denialReasons?.length
+        ? input.denialReasons.map((reason) => ({
+            code: reason.code,
+            detail: reason.detail?.trim() || null,
+            alternative_offered: reason.alternativeOffered?.trim() || null,
+          }))
+        : undefined,
     });
     if (error) throw error;
     return data as string;
@@ -242,6 +264,10 @@ export const mhdAccommodationsService = {
     endDate?: string | null;
     managerInstruction: string;
     reviewDueDate?: string | null;
+    /** Equipment ordered but not received keeps the case IMPLEMENTING until it arrives. */
+    equipmentOrderedOn?: string | null;
+    equipmentOrderedBy?: string | null;
+    equipmentReceivedOn?: string | null;
   }) {
     const { data, error } = await supabaseClient.rpc('mhd_accommodation_implement', {
       p_case_id: input.caseId,
@@ -250,6 +276,9 @@ export const mhdAccommodationsService = {
       p_end_date: input.endDate || undefined,
       p_manager_instruction: input.managerInstruction.trim(),
       p_review_due_date: input.reviewDueDate || undefined,
+      p_equipment_ordered_on: input.equipmentOrderedOn || undefined,
+      p_equipment_ordered_by: input.equipmentOrderedBy || undefined,
+      p_equipment_received_on: input.equipmentReceivedOn || undefined,
     });
     if (error) throw error;
     return data as string;
@@ -305,6 +334,111 @@ export const mhdAccommodationsService = {
     });
     if (error) throw error;
     return data as unknown as MhdAccommodationMedicalReveal;
+  },
+
+  /** Section A (non-medical). The employee completes their own until they certify it. */
+  async recordRequestDetails(input: MhdAccommodationRequestDetailsInput): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_request_details_record', {
+      p_case_id: input.caseId,
+      p_limitation_duration: input.limitationDuration || undefined,
+      p_anticipated_recovery_date: input.anticipatedRecoveryDate || undefined,
+      p_workers_comp_claim: input.workersCompClaim ?? false,
+      p_workers_comp_claim_filed_on: input.workersCompClaimFiledOn || undefined,
+      p_leave_requested: input.leaveRequested ?? false,
+      p_leave_request_details: input.leaveRequestDetails?.trim() || undefined,
+      p_contact_phone: input.contactPhone?.trim() || undefined,
+      p_contact_email: input.contactEmail?.trim() || undefined,
+      p_work_location: input.workLocation?.trim() || undefined,
+      p_supervisor_name: input.supervisorName?.trim() || undefined,
+      p_supervisor_person_id: input.supervisorPersonId || undefined,
+    });
+    if (error) throw error;
+    return data as string;
+  },
+
+  /** The employee's own certification (self-service), or an administrator recording a paper or e-signature one. */
+  async certifyAsEmployee(input: MhdAccommodationEmployeeCertifyInput): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_accommodation_employee_certify', {
+      p_case_id: input.caseId,
+      p_method: input.method ?? 'SELF_SERVICE',
+    });
+    if (error) throw error;
+    return data as string;
+  },
+
+  /**
+   * Section B, written by medical administrators only (aal2). The provider's name and the
+   * recommendation are encrypted server-side and screened for diagnosis, causation and genetic information.
+   */
+  async recordProviderCertification(
+    input: MhdAccommodationProviderCertificationInput,
+  ): Promise<string> {
+    const { data, error } = await supabaseClient.rpc(
+      'mhd_accommodation_provider_certification_record',
+      {
+        p_case_id: input.caseId,
+        p_provider_name: input.providerName?.trim() || undefined,
+        p_certified_at: input.certifiedAt || undefined,
+        p_disability_verified: input.disabilityVerified ?? false,
+        p_limitation_duration: input.limitationDuration || undefined,
+        p_limitation_end_date: input.limitationEndDate || undefined,
+        p_accommodation_begin_on: input.accommodationBeginOn || undefined,
+        p_accommodation_end_on: input.accommodationEndOn || undefined,
+        p_accommodation_continuous: input.accommodationContinuous ?? false,
+        p_recommendation: input.recommendation?.trim() || undefined,
+        p_job_duty_statement_sent_at: input.jobDutyStatementSentAt || undefined,
+        p_attachment_id: input.attachmentId || undefined,
+      },
+    );
+    if (error) throw error;
+    return data as string;
+  },
+
+  /** The sole read path for the provider's name and recommendation. Every call writes an audit event. */
+  async revealProviderCertification(
+    certificationId: string,
+  ): Promise<MhdAccommodationProviderCertificationReveal> {
+    const { data, error } = await supabaseClient.rpc(
+      'mhd_accommodation_provider_certification_reveal',
+      {
+        p_certification_id: certificationId,
+      },
+    );
+    if (error) throw error;
+    return data as unknown as MhdAccommodationProviderCertificationReveal;
+  },
+
+  async recordEquipment(input: MhdAccommodationEquipmentInput): Promise<void> {
+    const { error } = await supabaseClient.rpc(
+      'mhd_accommodation_implementation_record_equipment',
+      {
+        p_implementation_id: input.implementationId,
+        p_ordered_on: input.orderedOn || undefined,
+        p_ordered_by: input.orderedBy || undefined,
+        p_received_on: input.receivedOn || undefined,
+      },
+    );
+    if (error) throw error;
+  },
+
+  /** The denial vocabulary, in the form's order. The interface renders its choices and prompts from this. */
+  async listDenialReasonCodes(): Promise<MhdAccommodationDenialReasonCode[]> {
+    const { data, error } = await supabaseClient
+      .from('accommodation_denial_reason_codes')
+      .select(
+        'code, label, sort_order, requires_detail, detail_prompt, requires_alternative, alternative_prompt',
+      )
+      .order('sort_order');
+    if (error) throw error;
+    return (data ?? []).map((row) => ({
+      code: row.code as MhdAccommodationDenialReasonCode['code'],
+      label: row.label,
+      sortOrder: row.sort_order,
+      requiresDetail: row.requires_detail,
+      detailPrompt: row.detail_prompt,
+      requiresAlternative: row.requires_alternative,
+      alternativePrompt: row.alternative_prompt,
+    }));
   },
 
   /** Manager-safe projection: instructions and dates only, never medical facts. */

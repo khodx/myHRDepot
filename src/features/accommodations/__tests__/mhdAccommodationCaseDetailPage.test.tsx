@@ -20,16 +20,16 @@ const {
   reviewMock,
   interactionMock,
 } = vi.hoisted(() => ({
-    rolesRef: { current: [] as MhdAuthRoleName[] },
-    detailRef: { current: null as unknown },
-    readinessRef: { current: null as unknown },
-    implementMock: vi.fn(),
-    revealMock: vi.fn(),
-    recordMedicalMock: vi.fn(),
-    addOptionMock: vi.fn(),
-    reviewMock: vi.fn(),
-    interactionMock: vi.fn(),
-  }));
+  rolesRef: { current: [] as MhdAuthRoleName[] },
+  detailRef: { current: null as unknown },
+  readinessRef: { current: null as unknown },
+  implementMock: vi.fn(),
+  revealMock: vi.fn(),
+  recordMedicalMock: vi.fn(),
+  addOptionMock: vi.fn(),
+  reviewMock: vi.fn(),
+  interactionMock: vi.fn(),
+}));
 
 vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => ({ roles: rolesRef.current }),
@@ -53,11 +53,21 @@ vi.mock('../Hook', () => ({
   // Added 2026-08-19 (option-catalog picker on this page's "Evaluate an
   // option" card) -- empty/not-loading is a safe default since no test in
   // this file exercises the catalog-picker path itself.
-  useMhdAccommodationOptionCatalog: () => ({ data: [], isLoading: false, isError: false, error: null }),
+  useMhdAccommodationOptionCatalog: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+    error: null,
+  }),
   // Added 2026-08-22 (document-templates list on this page's "Evaluate an
   // option" card) -- empty/not-loading is a safe default since no test in
   // this file exercises the document-templates path itself.
-  useMhdAccommodationDocumentTemplates: () => ({ data: [], isLoading: false, isError: false, error: null }),
+  useMhdAccommodationDocumentTemplates: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+    error: null,
+  }),
 }));
 
 const { MhdAccommodationCaseDetailPage } =
@@ -121,6 +131,8 @@ function detail(overrides: Partial<MhdAccommodationDetail> = {}): MhdAccommodati
     implementations: [],
     reviews: [],
     medical_status: [],
+    request_details: null,
+    provider_certification: null,
     ...overrides,
   };
 }
@@ -152,6 +164,7 @@ describe('implementation resolves the option from the active decision', () => {
     outcome: 'APPROVED' as const,
     selected_option_id: OPTION_GOOD.id,
     denial_reason_code: null,
+    denial_reasons: [],
     decision_summary: 'Granted the later start.',
     alternatives_considered: true,
     interactive_process_continues: false,

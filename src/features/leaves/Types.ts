@@ -1,3 +1,4 @@
+import type { MhdLeaveAdminIntakeChannel, MhdLeaveRequestedMode } from './WorkflowTypes';
 import type { Json } from '@/types/database.types';
 
 // ---------------------------------------------------------------------------
@@ -369,6 +370,10 @@ export interface MhdCreateLeaveCaseInput {
   requestedStart?: string | null;
   requestedEnd?: string | null;
   isIntermittent?: boolean;
+  /** Defaults from isIntermittent. REDUCED_SCHEDULE has no other writer. */
+  requestedMode?: MhdLeaveRequestedMode | null;
+  /** HR_ENTRY (default), MANAGER_REFERRAL or OTHER; SELF_SERVICE is the employee's own request. */
+  intakeChannel?: MhdLeaveAdminIntakeChannel | null;
 }
 
 /**
@@ -458,6 +463,8 @@ export interface MhdUpdateCertificationStatusInput {
   deficiencyNotifiedAt?: string | null;
   cureDueDate?: string | null;
   reviewNote?: string | null;
+  /** The date the certification was requested (starts the 15-day clock). */
+  requestedAt?: string | null;
 }
 
 export interface MhdMarkCertificationInput {

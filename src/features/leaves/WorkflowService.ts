@@ -4,17 +4,35 @@ import type {
   MhdLeaveBenefitObligationInput,
   MhdLeaveBenefitObligationStatusInput,
   MhdLeaveBenefitTransactionInput,
+  MhdLeaveBondingEventInput,
+  MhdLeaveCertificationClearDatesInput,
+  MhdLeaveDesignatedPersonInput,
+  MhdLeaveDesignatedPersonVoidInput,
   MhdLeaveEligibilityInput,
+  MhdLeaveKeyEmployeeInput,
+  MhdLeavePaySourceInput,
+  MhdLeavePaySourceStatusInput,
+  MhdLeavePaySourceWarning,
+  MhdLeaveReturnToWorkInput,
   MhdLeaveSegmentInput,
   MhdLeaveSegmentStatusInput,
+  MhdLeaveWorkersCompInput,
   MhdLeaveWorkflow,
 } from './WorkflowTypes';
 import {
   mhdValidateLeaveBenefitObligation,
   mhdValidateLeaveBenefitObligationStatus,
   mhdValidateLeaveBenefitTransaction,
+  mhdValidateLeaveBondingEvent,
+  mhdValidateLeaveCertificationClearDates,
+  mhdValidateLeaveDesignatedPerson,
+  mhdValidateLeaveDesignatedPersonVoid,
+  mhdValidateLeaveKeyEmployee,
+  mhdValidateLeavePaySource,
+  mhdValidateLeaveReturnToWork,
   mhdValidateLeaveSegment,
   mhdValidateLeaveSegmentStatus,
+  mhdValidateLeaveWorkersComp,
 } from './WorkflowValidation';
 
 // supabaseClient.rpc is called directly rather than bound to a local alias.
@@ -25,7 +43,9 @@ import {
 
 export const mhdLeaveWorkflowService = {
   async get(caseId: string): Promise<MhdLeaveWorkflow> {
-    const { data, error } = await supabaseClient.rpc('mhd_leave_workflow_get', { p_case_id: caseId });
+    const { data, error } = await supabaseClient.rpc('mhd_leave_workflow_get', {
+      p_case_id: caseId,
+    });
     if (error) throw error;
     return data as unknown as MhdLeaveWorkflow;
   },
@@ -41,10 +61,18 @@ export const mhdLeaveWorkflowService = {
       p_scheduled_weekly_hours: input.scheduledWeeklyHours,
       p_reason_code: input.reasonCode,
       p_family_relationship: input.familyRelationship || undefined,
-      p_designated_person_selected: input.designatedPersonSelected,
+      p_designated_person_selected: input.designatedPersonSelected ?? false,
       p_facts_source: 'ADMIN_ENTERED',
       p_eligibility_context: {
         covered_employer_override: input.coveredEmployerOverride,
+        // Facts the 0382 rules read: an adult child's self-care and employer agreement to
+        // intermittent bonding. Left out when unknown, so the engine reports UNDETERMINED.
+        ...(input.incapableOfSelfCare == null
+          ? {}
+          : { incapable_of_self_care: input.incapableOfSelfCare }),
+        ...(input.employerAgreedIntermittentBonding == null
+          ? {}
+          : { employer_agreed_intermittent_bonding: input.employerAgreedIntermittentBonding }),
       },
     });
     if (error) throw error;
@@ -108,15 +136,9 @@ export const mhdLeaveWorkflowService = {
     return data as string;
   },
 
-  async recordReturnToWork(input: {
-    caseId: string;
-    expectedReturnDate: string;
-    actualReturnDate?: string | null;
-    sameOrComparableJob?: boolean | null;
-    fitnessRequired: boolean;
-    restrictionsPresent: boolean;
-    accommodationReferralRequired: boolean;
-  }) {
+  async recordReturnToWork(input: MhdLeaveReturnToWorkInput) {
+    const invalid = mhdValidateLeaveReturnToWork(input);
+    if (invalid) throw new Error(invalid);
     const { data, error } = await supabaseClient.rpc('mhd_leave_return_to_work_record', {
       p_case_id: input.caseId,
       p_expected_return_date: input.expectedReturnDate,
@@ -125,6 +147,11 @@ export const mhdLeaveWorkflowService = {
       p_fitness_required: input.fitnessRequired,
       p_restrictions_present: input.restrictionsPresent,
       p_accommodation_referral_required: input.accommodationReferralRequired,
+      p_reinstatement_note: input.reinstatementNote?.trim() || undefined,
+      p_reinstatement_outcome: input.reinstatementOutcome || undefined,
+      p_exception_reason: input.exceptionReason?.trim() || undefined,
+      p_rtw_certification_requested_on: input.rtwCertificationRequestedOn || undefined,
+      p_rtw_certification_received_on: input.rtwCertificationReceivedOn || undefined,
     });
     if (error) throw error;
     return data as string;
@@ -211,14 +238,19 @@ export const mhdLeaveWorkflowService = {
     if (invalid) throw new Error(invalid);
     const { data, error } = await supabaseClient.rpc('mhd_leave_benefit_obligation_record', {
       p_case_id: input.caseId,
-      p_benefit_type: input.benefitType.trim(),
+      p_benefit_type: input.benefitType,
       p_coverage_start: input.coverageStart,
       // The generated argument type is non-nullable, but the column and the RPC accept
       // NULL for an open-ended coverage period.
       p_coverage_end: (input.coverageEnd || null) as string,
       p_employer_amount: input.employerAmount,
       p_employee_amount: input.employeeAmount,
-      p_frequency: input.frequency.trim(),
+      p_frequency: input.frequency,
+      p_due_date: input.dueDate || undefined,
+      p_grace_period_days: input.gracePeriodDays ?? undefined,
+      p_continuation_basis: input.continuationBasis || undefined,
+      p_seniority_credit_through: input.seniorityCreditThrough || undefined,
+      p_benefit_label: input.benefitLabel?.trim() || undefined,
     });
     if (error) throw error;
     return data as string;
@@ -249,7 +281,131 @@ export const mhdLeaveWorkflowService = {
     return data as string;
   },
 
-  async readiness():Promise<MhdComplianceReadiness | null> {
+  async setBondingEvent(input: MhdLeaveBondingEventInput): Promise<void> {
+    const invalid = mhdValidateLeaveBondingEvent(input);
+    if (invalid) throw new Error(invalid);
+    const { error } = await supabaseClient.rpc('mhd_leave_case_set_bonding_event', {
+      p_case_id: input.caseId,
+      p_event_date: input.eventDate,
+      p_event_type: input.eventType,
+    });
+    if (error) throw error;
+  },
+
+  /**
+   * A designated person is a recorded fact (who, by whom, when), not a flag. The employer's one-per-12-months
+   * limit, when it elected one, is enforced here by the database.
+   */
+  async recordDesignatedPerson(input: MhdLeaveDesignatedPersonInput): Promise<string> {
+    const invalid = mhdValidateLeaveDesignatedPerson(input);
+    if (invalid) throw new Error(invalid);
+    const { data, error } = await supabaseClient.rpc('mhd_leave_designated_person_record', {
+      p_case_id: input.caseId,
+      p_designated_name: input.designatedName.trim(),
+      p_relationship_note: input.relationshipNote?.trim() || undefined,
+      p_pfl_attested_on: input.pflAttestedOn || undefined,
+    });
+    if (error) throw error;
+    return data as string;
+  },
+
+  async voidDesignatedPerson(input: MhdLeaveDesignatedPersonVoidInput): Promise<void> {
+    const invalid = mhdValidateLeaveDesignatedPersonVoid(input);
+    if (invalid) throw new Error(invalid);
+    const { error } = await supabaseClient.rpc('mhd_leave_designated_person_void', {
+      p_designated_person_id: input.designatedPersonId,
+      p_reason: input.reason.trim(),
+    });
+    if (error) throw error;
+  },
+
+  /** Returns the new row's id and any non-blocking warnings (e.g. SDI_PFL_OVERLAP). */
+  async recordPaySource(
+    input: MhdLeavePaySourceInput,
+  ): Promise<{ id: string; warnings: MhdLeavePaySourceWarning[] }> {
+    const invalid = mhdValidateLeavePaySource(input);
+    if (invalid) throw new Error(invalid);
+    const { data, error } = await supabaseClient.rpc('mhd_leave_pay_source_record', {
+      p_case_id: input.caseId,
+      p_source_key: input.sourceKey,
+      p_status: input.status,
+      p_claim_ref: input.claimRef?.trim() || undefined,
+      p_paid_from: input.paidFrom || undefined,
+      p_paid_to: input.paidTo || undefined,
+      p_employer_required: input.employerRequired ?? false,
+      p_mutual_agreement: input.mutualAgreement ?? false,
+      p_note: input.note?.trim() || undefined,
+    });
+    if (error) throw error;
+    const row = ((data ?? []) as Array<{ pay_source_id: string; warnings: string[] | null }>)[0];
+    if (!row) throw new Error('Recording the pay source returned no row.');
+    return { id: row.pay_source_id, warnings: (row.warnings ?? []) as MhdLeavePaySourceWarning[] };
+  },
+
+  async updatePaySourceStatus(
+    input: MhdLeavePaySourceStatusInput,
+  ): Promise<MhdLeavePaySourceWarning[]> {
+    if (input.paidFrom && input.paidTo && input.paidTo < input.paidFrom)
+      throw new Error('The pay period cannot end before it starts.');
+    const { data, error } = await supabaseClient.rpc('mhd_leave_pay_source_update_status', {
+      p_pay_source_id: input.paySourceId,
+      p_status: input.status,
+      p_paid_from: input.paidFrom || undefined,
+      p_paid_to: input.paidTo || undefined,
+      p_claim_ref: input.claimRef?.trim() || undefined,
+    });
+    if (error) throw error;
+    return (data ?? []) as MhdLeavePaySourceWarning[];
+  },
+
+  async setWorkersComp(input: MhdLeaveWorkersCompInput): Promise<void> {
+    const invalid = mhdValidateLeaveWorkersComp(input);
+    if (invalid) throw new Error(invalid);
+    const { error } = await supabaseClient.rpc('mhd_leave_case_set_workers_comp', {
+      p_case_id: input.caseId,
+      p_claim: input.claim,
+      p_filed_on: input.filedOn || undefined,
+      p_concurrent_designated_on: input.concurrentDesignatedOn || undefined,
+      p_light_duty_declined_note: input.lightDutyDeclinedNote?.trim() || undefined,
+    });
+    if (error) throw error;
+  },
+
+  async setKeyEmployee(input: MhdLeaveKeyEmployeeInput): Promise<void> {
+    const invalid = mhdValidateLeaveKeyEmployee(input);
+    if (invalid) throw new Error(invalid);
+    const { error } = await supabaseClient.rpc('mhd_leave_case_set_key_employee', {
+      p_case_id: input.caseId,
+      p_status: input.status,
+      p_determined_on: input.determinedOn || undefined,
+      p_notice_on: input.noticeOn || undefined,
+      p_restoration_denied_notice_on: input.restorationDeniedNoticeOn || undefined,
+    });
+    if (error) throw error;
+  },
+
+  /** Records delivery of the essential-functions list; returns the published job description it was. */
+  async recordEssentialFunctions(caseId: string, providedOn?: string | null): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_case_record_essential_functions', {
+      p_case_id: caseId,
+      p_provided_on: providedOn || undefined,
+    });
+    if (error) throw error;
+    return data as string;
+  },
+
+  async clearCertificationDates(input: MhdLeaveCertificationClearDatesInput): Promise<void> {
+    const invalid = mhdValidateLeaveCertificationClearDates(input);
+    if (invalid) throw new Error(invalid);
+    const { error } = await supabaseClient.rpc('mhd_leave_certification_clear_dates', {
+      p_certification_id: input.certificationId,
+      p_fields: input.fields,
+      p_reason: input.reason.trim(),
+    });
+    if (error) throw error;
+  },
+
+  async readiness(): Promise<MhdComplianceReadiness | null> {
     const { data, error } = await supabaseClient.rpc('mhd_compliance_module_readiness', {
       p_module_key: 'LEAVES',
     });

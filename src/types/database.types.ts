@@ -145,6 +145,61 @@ export type Database = {
           },
         ]
       }
+      accommodation_decision_denial_reasons: {
+        Row: {
+          alternative_offered: string | null
+          company_id: string
+          created_at: string
+          decision_id: string
+          detail: string | null
+          id: string
+          position: number
+          reason_code: string
+        }
+        Insert: {
+          alternative_offered?: string | null
+          company_id: string
+          created_at?: string
+          decision_id: string
+          detail?: string | null
+          id?: string
+          position: number
+          reason_code: string
+        }
+        Update: {
+          alternative_offered?: string | null
+          company_id?: string
+          created_at?: string
+          decision_id?: string
+          detail?: string | null
+          id?: string
+          position?: number
+          reason_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accommodation_decision_denial_reasons_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_decision_denial_reasons_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "accommodation_decisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_decision_denial_reasons_reason_code_fkey"
+            columns: ["reason_code"]
+            isOneToOne: false
+            referencedRelation: "accommodation_denial_reason_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       accommodation_decisions: {
         Row: {
           alternatives_considered: boolean
@@ -217,6 +272,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "accommodation_decisions_denial_reason_code_fkey"
+            columns: ["denial_reason_code"]
+            isOneToOne: false
+            referencedRelation: "accommodation_denial_reason_codes"
+            referencedColumns: ["code"]
+          },
+          {
             foreignKeyName: "accommodation_decisions_selected_option_id_fkey"
             columns: ["selected_option_id"]
             isOneToOne: false
@@ -232,6 +294,47 @@ export type Database = {
           },
         ]
       }
+      accommodation_denial_reason_codes: {
+        Row: {
+          alternative_prompt: string | null
+          code: string
+          content_registry_id: string | null
+          detail_prompt: string | null
+          label: string
+          requires_alternative: boolean
+          requires_detail: boolean
+          sort_order: number
+        }
+        Insert: {
+          alternative_prompt?: string | null
+          code: string
+          content_registry_id?: string | null
+          detail_prompt?: string | null
+          label: string
+          requires_alternative?: boolean
+          requires_detail: boolean
+          sort_order: number
+        }
+        Update: {
+          alternative_prompt?: string | null
+          code?: string
+          content_registry_id?: string | null
+          detail_prompt?: string | null
+          label?: string
+          requires_alternative?: boolean
+          requires_detail?: boolean
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accommodation_denial_reason_codes_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accommodation_implementations: {
         Row: {
           actual_cost: number | null
@@ -240,6 +343,9 @@ export type Database = {
           created_at: string
           created_by: string
           end_date: string | null
+          equipment_ordered_by: string | null
+          equipment_ordered_on: string | null
+          equipment_received_on: string | null
           id: string
           manager_instruction: string
           option_id: string
@@ -256,6 +362,9 @@ export type Database = {
           created_at?: string
           created_by: string
           end_date?: string | null
+          equipment_ordered_by?: string | null
+          equipment_ordered_on?: string | null
+          equipment_received_on?: string | null
           id?: string
           manager_instruction: string
           option_id: string
@@ -272,6 +381,9 @@ export type Database = {
           created_at?: string
           created_by?: string
           end_date?: string | null
+          equipment_ordered_by?: string | null
+          equipment_ordered_on?: string | null
+          equipment_received_on?: string | null
           id?: string
           manager_instruction?: string
           option_id?: string
@@ -299,6 +411,13 @@ export type Database = {
           {
             foreignKeyName: "accommodation_implementations_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_implementations_equipment_ordered_by_fkey"
+            columns: ["equipment_ordered_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -679,6 +798,210 @@ export type Database = {
           {
             foreignKeyName: "accommodation_options_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accommodation_provider_certifications: {
+        Row: {
+          accommodation_begin_on: string | null
+          accommodation_continuous: boolean
+          accommodation_end_on: string | null
+          attachment_id: string | null
+          case_id: string
+          certified_at: string | null
+          company_id: string
+          created_at: string
+          created_by: string
+          disability_verified: boolean
+          id: string
+          job_duty_statement_sent_at: string | null
+          limitation_duration: string | null
+          limitation_end_date: string | null
+          provider_name_ciphertext: string | null
+          recommendation_ciphertext: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          accommodation_begin_on?: string | null
+          accommodation_continuous?: boolean
+          accommodation_end_on?: string | null
+          attachment_id?: string | null
+          case_id: string
+          certified_at?: string | null
+          company_id: string
+          created_at?: string
+          created_by: string
+          disability_verified?: boolean
+          id?: string
+          job_duty_statement_sent_at?: string | null
+          limitation_duration?: string | null
+          limitation_end_date?: string | null
+          provider_name_ciphertext?: string | null
+          recommendation_ciphertext?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          accommodation_begin_on?: string | null
+          accommodation_continuous?: boolean
+          accommodation_end_on?: string | null
+          attachment_id?: string | null
+          case_id?: string
+          certified_at?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          disability_verified?: boolean
+          id?: string
+          job_duty_statement_sent_at?: string | null
+          limitation_duration?: string | null
+          limitation_end_date?: string | null
+          provider_name_ciphertext?: string | null
+          recommendation_ciphertext?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accommodation_provider_certifications_attachment_id_fkey"
+            columns: ["attachment_id"]
+            isOneToOne: false
+            referencedRelation: "attachments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_provider_certifications_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "accommodation_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_provider_certifications_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_provider_certifications_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_provider_certifications_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accommodation_request_details: {
+        Row: {
+          anticipated_recovery_date: string | null
+          case_id: string
+          company_id: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          created_by: string
+          employee_certified_at: string | null
+          employee_certified_method: string | null
+          id: string
+          leave_request_details: string | null
+          leave_requested: boolean
+          limitation_duration: string | null
+          supervisor_name: string | null
+          supervisor_person_id: string | null
+          updated_at: string | null
+          updated_by: string | null
+          work_location: string | null
+          workers_comp_claim: boolean
+          workers_comp_claim_filed_on: string | null
+        }
+        Insert: {
+          anticipated_recovery_date?: string | null
+          case_id: string
+          company_id: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by: string
+          employee_certified_at?: string | null
+          employee_certified_method?: string | null
+          id?: string
+          leave_request_details?: string | null
+          leave_requested?: boolean
+          limitation_duration?: string | null
+          supervisor_name?: string | null
+          supervisor_person_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          work_location?: string | null
+          workers_comp_claim?: boolean
+          workers_comp_claim_filed_on?: string | null
+        }
+        Update: {
+          anticipated_recovery_date?: string | null
+          case_id?: string
+          company_id?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string
+          employee_certified_at?: string | null
+          employee_certified_method?: string | null
+          id?: string
+          leave_request_details?: string | null
+          leave_requested?: boolean
+          limitation_duration?: string | null
+          supervisor_name?: string | null
+          supervisor_person_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          work_location?: string | null
+          workers_comp_claim?: boolean
+          workers_comp_claim_filed_on?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accommodation_request_details_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "accommodation_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_request_details_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_request_details_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_request_details_supervisor_person_id_fkey"
+            columns: ["supervisor_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_request_details_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -3732,6 +4055,63 @@ export type Database = {
           },
         ]
       }
+      company_leave_policies: {
+        Row: {
+          anchor_day: number | null
+          anchor_month: number | null
+          change_reason: string | null
+          company_id: string
+          created_at: string
+          effective_from: string
+          id: string
+          limit_designated_person: boolean
+          rtw_certification_uniform_policy: boolean
+          set_by: string
+          year_method: string
+        }
+        Insert: {
+          anchor_day?: number | null
+          anchor_month?: number | null
+          change_reason?: string | null
+          company_id: string
+          created_at?: string
+          effective_from: string
+          id?: string
+          limit_designated_person?: boolean
+          rtw_certification_uniform_policy?: boolean
+          set_by: string
+          year_method: string
+        }
+        Update: {
+          anchor_day?: number | null
+          anchor_month?: number | null
+          change_reason?: string | null
+          company_id?: string
+          created_at?: string
+          effective_from?: string
+          id?: string
+          limit_designated_person?: boolean
+          rtw_certification_uniform_policy?: boolean
+          set_by?: string
+          year_method?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_leave_policies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_leave_policies_set_by_fkey"
+            columns: ["set_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compensation_exemption_rule_sets: {
         Row: {
           citation: string
@@ -3954,6 +4334,7 @@ export type Database = {
           interval_amount: number
           interval_unit: string
           legal_citation: string | null
+          overdue_notified_at: string | null
           person_id: string | null
           satisfaction_note: string | null
           satisfied_at: string | null
@@ -3979,6 +4360,7 @@ export type Database = {
           interval_amount: number
           interval_unit: string
           legal_citation?: string | null
+          overdue_notified_at?: string | null
           person_id?: string | null
           satisfaction_note?: string | null
           satisfied_at?: string | null
@@ -4004,6 +4386,7 @@ export type Database = {
           interval_amount?: number
           interval_unit?: string
           legal_citation?: string | null
+          overdue_notified_at?: string | null
           person_id?: string | null
           satisfaction_note?: string | null
           satisfied_at?: string | null
@@ -13509,48 +13892,69 @@ export type Database = {
       }
       leave_benefit_obligations: {
         Row: {
+          benefit_label: string | null
           benefit_type: string
           company_id: string
+          continuation_basis: string | null
           coverage_end: string | null
           coverage_start: string
           created_at: string
           created_by: string
+          due_date: string | null
           employee_amount: number
           employer_amount: number
           frequency: string
+          grace_period_days: number | null
           id: string
           leave_case_id: string
+          seniority_credit_through: string | null
           status: string
+          status_changed_at: string | null
+          status_reason: string | null
           updated_at: string | null
         }
         Insert: {
+          benefit_label?: string | null
           benefit_type: string
           company_id: string
+          continuation_basis?: string | null
           coverage_end?: string | null
           coverage_start: string
           created_at?: string
           created_by: string
+          due_date?: string | null
           employee_amount?: number
           employer_amount?: number
           frequency: string
+          grace_period_days?: number | null
           id?: string
           leave_case_id: string
+          seniority_credit_through?: string | null
           status?: string
+          status_changed_at?: string | null
+          status_reason?: string | null
           updated_at?: string | null
         }
         Update: {
+          benefit_label?: string | null
           benefit_type?: string
           company_id?: string
+          continuation_basis?: string | null
           coverage_end?: string | null
           coverage_start?: string
           created_at?: string
           created_by?: string
+          due_date?: string | null
           employee_amount?: number
           employer_amount?: number
           frequency?: string
+          grace_period_days?: number | null
           id?: string
           leave_case_id?: string
+          seniority_credit_through?: string | null
           status?: string
+          status_changed_at?: string | null
+          status_reason?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -13573,6 +13977,47 @@ export type Database = {
             columns: ["leave_case_id"]
             isOneToOne: false
             referencedRelation: "leave_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_benefit_rules: {
+        Row: {
+          basis_key: string
+          cap_amount: number
+          cap_unit: string
+          citation: string
+          content_registry_id: string | null
+          default_grace_days: number
+          label: string
+          lapse_notice_days: number
+        }
+        Insert: {
+          basis_key: string
+          cap_amount: number
+          cap_unit: string
+          citation: string
+          content_registry_id?: string | null
+          default_grace_days: number
+          label: string
+          lapse_notice_days: number
+        }
+        Update: {
+          basis_key?: string
+          cap_amount?: number
+          cap_unit?: string
+          citation?: string
+          content_registry_id?: string | null
+          default_grace_days?: number
+          label?: string
+          lapse_notice_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_benefit_rules_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
             referencedColumns: ["id"]
           },
         ]
@@ -13746,14 +14191,23 @@ export type Database = {
         Row: {
           actual_end: string | null
           actual_start: string | null
+          bonding_event_date: string | null
+          bonding_event_type: string | null
           company_id: string
           created_at: string | null
           created_by: string
           decision_reason: string | null
+          essential_functions_description_id: string | null
+          essential_functions_provided_on: string | null
           family_relationship: string | null
           id: string
           intake_channel: string
           is_intermittent: boolean
+          key_employee_determined_on: string | null
+          key_employee_notice_on: string | null
+          key_employee_restoration_denied_notice_on: string | null
+          key_employee_status: string
+          light_duty_declined_note: string | null
           opened_by: string
           person_id: string
           reason_category: string
@@ -13765,18 +14219,30 @@ export type Database = {
           source_submission_id: string | null
           status: string
           updated_at: string | null
+          wc_concurrent_designated_on: string | null
+          workers_comp_claim: boolean
+          workers_comp_claim_filed_on: string | null
         }
         Insert: {
           actual_end?: string | null
           actual_start?: string | null
+          bonding_event_date?: string | null
+          bonding_event_type?: string | null
           company_id: string
           created_at?: string | null
           created_by: string
           decision_reason?: string | null
+          essential_functions_description_id?: string | null
+          essential_functions_provided_on?: string | null
           family_relationship?: string | null
           id?: string
           intake_channel?: string
           is_intermittent?: boolean
+          key_employee_determined_on?: string | null
+          key_employee_notice_on?: string | null
+          key_employee_restoration_denied_notice_on?: string | null
+          key_employee_status?: string
+          light_duty_declined_note?: string | null
           opened_by: string
           person_id: string
           reason_category: string
@@ -13788,18 +14254,30 @@ export type Database = {
           source_submission_id?: string | null
           status?: string
           updated_at?: string | null
+          wc_concurrent_designated_on?: string | null
+          workers_comp_claim?: boolean
+          workers_comp_claim_filed_on?: string | null
         }
         Update: {
           actual_end?: string | null
           actual_start?: string | null
+          bonding_event_date?: string | null
+          bonding_event_type?: string | null
           company_id?: string
           created_at?: string | null
           created_by?: string
           decision_reason?: string | null
+          essential_functions_description_id?: string | null
+          essential_functions_provided_on?: string | null
           family_relationship?: string | null
           id?: string
           intake_channel?: string
           is_intermittent?: boolean
+          key_employee_determined_on?: string | null
+          key_employee_notice_on?: string | null
+          key_employee_restoration_denied_notice_on?: string | null
+          key_employee_status?: string
+          light_duty_declined_note?: string | null
           opened_by?: string
           person_id?: string
           reason_category?: string
@@ -13811,6 +14289,9 @@ export type Database = {
           source_submission_id?: string | null
           status?: string
           updated_at?: string | null
+          wc_concurrent_designated_on?: string | null
+          workers_comp_claim?: boolean
+          workers_comp_claim_filed_on?: string | null
         }
         Relationships: [
           {
@@ -13825,6 +14306,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_cases_essential_functions_description_id_fkey"
+            columns: ["essential_functions_description_id"]
+            isOneToOne: false
+            referencedRelation: "job_descriptions"
             referencedColumns: ["id"]
           },
           {
@@ -13944,6 +14432,137 @@ export type Database = {
             columns: ["leave_case_id"]
             isOneToOne: false
             referencedRelation: "leave_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_deadline_rules: {
+        Row: {
+          citation: string
+          content_registry_id: string | null
+          created_at: string
+          deadline_kind: string
+          effective_from: string
+          id: string
+          interval_amount: number
+          interval_unit: string
+          legal_basis_key: string
+          status: string
+          trigger_event: string
+        }
+        Insert: {
+          citation: string
+          content_registry_id?: string | null
+          created_at?: string
+          deadline_kind: string
+          effective_from: string
+          id?: string
+          interval_amount: number
+          interval_unit: string
+          legal_basis_key: string
+          status?: string
+          trigger_event: string
+        }
+        Update: {
+          citation?: string
+          content_registry_id?: string | null
+          created_at?: string
+          deadline_kind?: string
+          effective_from?: string
+          id?: string
+          interval_amount?: number
+          interval_unit?: string
+          legal_basis_key?: string
+          status?: string
+          trigger_event?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_deadline_rules_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_designated_persons: {
+        Row: {
+          company_id: string
+          designated_at: string
+          designated_by: string
+          designated_name: string
+          id: string
+          leave_case_id: string
+          person_id: string
+          pfl_attested_on: string | null
+          relationship_note: string | null
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          company_id: string
+          designated_at?: string
+          designated_by: string
+          designated_name: string
+          id?: string
+          leave_case_id: string
+          person_id: string
+          pfl_attested_on?: string | null
+          relationship_note?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          company_id?: string
+          designated_at?: string
+          designated_by?: string
+          designated_name?: string
+          id?: string
+          leave_case_id?: string
+          person_id?: string
+          pfl_attested_on?: string | null
+          relationship_note?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_designated_persons_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_designated_persons_designated_by_fkey"
+            columns: ["designated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_designated_persons_leave_case_id_fkey"
+            columns: ["leave_case_id"]
+            isOneToOne: false
+            referencedRelation: "leave_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_designated_persons_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_designated_persons_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -14343,6 +14962,124 @@ export type Database = {
           },
         ]
       }
+      leave_pay_source_kinds: {
+        Row: {
+          citation: string
+          content_registry_id: string | null
+          employer_may_require: string
+          is_wage_replacement: boolean
+          label: string
+          sort_order: number
+          source_key: string
+        }
+        Insert: {
+          citation: string
+          content_registry_id?: string | null
+          employer_may_require: string
+          is_wage_replacement: boolean
+          label: string
+          sort_order: number
+          source_key: string
+        }
+        Update: {
+          citation?: string
+          content_registry_id?: string | null
+          employer_may_require?: string
+          is_wage_replacement?: boolean
+          label?: string
+          sort_order?: number
+          source_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_pay_source_kinds_content_registry_id_fkey"
+            columns: ["content_registry_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_content_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_pay_sources: {
+        Row: {
+          claim_ref: string | null
+          company_id: string
+          created_at: string
+          created_by: string
+          employer_required: boolean
+          id: string
+          leave_case_id: string
+          mutual_agreement: boolean
+          note: string | null
+          paid_from: string | null
+          paid_to: string | null
+          source_key: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          claim_ref?: string | null
+          company_id: string
+          created_at?: string
+          created_by: string
+          employer_required?: boolean
+          id?: string
+          leave_case_id: string
+          mutual_agreement?: boolean
+          note?: string | null
+          paid_from?: string | null
+          paid_to?: string | null
+          source_key: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          claim_ref?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          employer_required?: boolean
+          id?: string
+          leave_case_id?: string
+          mutual_agreement?: boolean
+          note?: string | null
+          paid_from?: string | null
+          paid_to?: string | null
+          source_key?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_pay_sources_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_pay_sources_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_pay_sources_leave_case_id_fkey"
+            columns: ["leave_case_id"]
+            isOneToOne: false
+            referencedRelation: "leave_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_pay_sources_source_key_fkey"
+            columns: ["source_key"]
+            isOneToOne: false
+            referencedRelation: "leave_pay_source_kinds"
+            referencedColumns: ["source_key"]
+          },
+        ]
+      }
       leave_return_to_work: {
         Row: {
           accommodation_case_id: string | null
@@ -14357,8 +15094,12 @@ export type Database = {
           id: string
           job_description_id: string | null
           leave_case_id: string
+          reinstatement_exception_reason: string | null
           reinstatement_note: string | null
+          reinstatement_outcome: string | null
           restrictions_present: boolean
+          rtw_certification_received_on: string | null
+          rtw_certification_requested_on: string | null
           same_or_comparable_job: boolean | null
           updated_at: string | null
         }
@@ -14375,8 +15116,12 @@ export type Database = {
           id?: string
           job_description_id?: string | null
           leave_case_id: string
+          reinstatement_exception_reason?: string | null
           reinstatement_note?: string | null
+          reinstatement_outcome?: string | null
           restrictions_present?: boolean
+          rtw_certification_received_on?: string | null
+          rtw_certification_requested_on?: string | null
           same_or_comparable_job?: boolean | null
           updated_at?: string | null
         }
@@ -14393,8 +15138,12 @@ export type Database = {
           id?: string
           job_description_id?: string | null
           leave_case_id?: string
+          reinstatement_exception_reason?: string | null
           reinstatement_note?: string | null
+          reinstatement_outcome?: string | null
           restrictions_present?: boolean
+          rtw_certification_received_on?: string | null
+          rtw_certification_requested_on?: string | null
           same_or_comparable_job?: boolean | null
           updated_at?: string | null
         }
@@ -27011,6 +27760,7 @@ export type Database = {
           p_case_id: string
           p_decision_summary: string
           p_denial_reason_code?: string
+          p_denial_reasons?: Json
           p_individualized_analysis?: Json
           p_interactive_process_continues?: boolean
           p_outcome: string
@@ -27018,11 +27768,22 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_accommodation_denial_reasons_json: {
+        Args: { p_decision_id: string }
+        Returns: Json
+      }
+      mhd_accommodation_employee_certify: {
+        Args: { p_case_id: string; p_method?: string }
+        Returns: string
+      }
       mhd_accommodation_implement: {
         Args: {
           p_actual_cost?: number
           p_case_id: string
           p_end_date?: string
+          p_equipment_ordered_by?: string
+          p_equipment_ordered_on?: string
+          p_equipment_received_on?: string
           p_manager_instruction: string
           p_option_id: string
           p_review_due_date?: string
@@ -27030,6 +27791,15 @@ export type Database = {
           p_vendor_name?: string
         }
         Returns: string
+      }
+      mhd_accommodation_implementation_record_equipment: {
+        Args: {
+          p_implementation_id: string
+          p_ordered_by?: string
+          p_ordered_on?: string
+          p_received_on?: string
+        }
+        Returns: undefined
       }
       mhd_accommodation_is_privileged: { Args: never; Returns: boolean }
       mhd_accommodation_manager_projection: {
@@ -27073,6 +27843,44 @@ export type Database = {
           p_notice_type: string
           p_template_key: string
           p_template_version: number
+        }
+        Returns: string
+      }
+      mhd_accommodation_provider_certification_record: {
+        Args: {
+          p_accommodation_begin_on?: string
+          p_accommodation_continuous?: boolean
+          p_accommodation_end_on?: string
+          p_attachment_id?: string
+          p_case_id: string
+          p_certified_at?: string
+          p_disability_verified?: boolean
+          p_job_duty_statement_sent_at?: string
+          p_limitation_duration?: string
+          p_limitation_end_date?: string
+          p_provider_name?: string
+          p_recommendation?: string
+        }
+        Returns: string
+      }
+      mhd_accommodation_provider_certification_reveal: {
+        Args: { p_certification_id: string }
+        Returns: Json
+      }
+      mhd_accommodation_request_details_record: {
+        Args: {
+          p_anticipated_recovery_date?: string
+          p_case_id: string
+          p_contact_email?: string
+          p_contact_phone?: string
+          p_leave_request_details?: string
+          p_leave_requested?: boolean
+          p_limitation_duration?: string
+          p_supervisor_name?: string
+          p_supervisor_person_id?: string
+          p_work_location?: string
+          p_workers_comp_claim?: boolean
+          p_workers_comp_claim_filed_on?: string
         }
         Returns: string
       }
@@ -27138,6 +27946,10 @@ export type Database = {
       }
       mhd_add_business_days: {
         Args: { p_days: number; p_from: string }
+        Returns: string
+      }
+      mhd_add_business_days_co: {
+        Args: { p_company_id: string; p_days: number; p_from: string }
         Returns: string
       }
       mhd_add_checklist_template_item: {
@@ -28154,6 +28966,28 @@ export type Database = {
           status_raw: string
           title: string
         }[]
+      }
+      mhd_company_leave_policy_in_force: {
+        Args: { p_as_of?: string; p_company_id: string }
+        Returns: {
+          anchor_day: number | null
+          anchor_month: number | null
+          change_reason: string | null
+          company_id: string
+          created_at: string
+          effective_from: string
+          id: string
+          limit_designated_person: boolean
+          rtw_certification_uniform_policy: boolean
+          set_by: string
+          year_method: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "company_leave_policies"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       mhd_compensation_is_privileged: { Args: never; Returns: boolean }
       mhd_competency_list: {
@@ -29373,6 +30207,10 @@ export type Database = {
         Returns: undefined
       }
       mhd_document_label: { Args: { p_value: string }; Returns: string }
+      mhd_document_leave_year_method: {
+        Args: { p_as_of: string; p_company_id: string }
+        Returns: Json
+      }
       mhd_document_money: { Args: { p_value: number }; Returns: string }
       mhd_document_preview_context: {
         Args: {
@@ -31643,6 +32481,15 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_leave_assert_designated_person_allowed: {
+        Args: {
+          p_as_of: string
+          p_company_id: string
+          p_designated_name: string
+          p_person_id: string
+        }
+        Returns: undefined
+      }
       mhd_leave_assert_designation_allowed: {
         Args: { p_case_id: string; p_effective_date: string; p_hours: number }
         Returns: number
@@ -31651,15 +32498,33 @@ export type Database = {
         Args: { p_as_of?: string; p_leave_type_id: string; p_person_id: string }
         Returns: number
       }
+      mhd_leave_balance_by_method: {
+        Args: {
+          p_anchor_day?: number
+          p_anchor_month?: number
+          p_as_of: string
+          p_leave_type_id: string
+          p_method: string
+          p_months?: number
+          p_person_id: string
+        }
+        Returns: number
+      }
+      mhd_leave_benefit_frequencies: { Args: never; Returns: string[] }
       mhd_leave_benefit_obligation_record: {
         Args: {
+          p_benefit_label?: string
           p_benefit_type: string
           p_case_id: string
+          p_continuation_basis?: string
           p_coverage_end: string
           p_coverage_start: string
+          p_due_date?: string
           p_employee_amount: number
           p_employer_amount: number
           p_frequency: string
+          p_grace_period_days?: number
+          p_seniority_credit_through?: string
         }
         Returns: string
       }
@@ -31678,13 +32543,20 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_leave_benefit_types: { Args: never; Returns: string[] }
+      mhd_leave_case_clock_laws: {
+        Args: { p_case_id: string }
+        Returns: string[]
+      }
       mhd_leave_case_create: {
         Args: {
           p_company_id: string
+          p_intake_channel?: string
           p_is_intermittent?: boolean
           p_person_id: string
           p_reason_category: string
           p_requested_end?: string
+          p_requested_mode?: string
           p_requested_start?: string
         }
         Returns: {
@@ -31714,6 +32586,10 @@ export type Database = {
           type_name: string
         }[]
       }
+      mhd_leave_case_has_basis: {
+        Args: { p_case_id: string; p_type_key: string }
+        Returns: boolean
+      }
       mhd_leave_case_list: {
         Args: { p_company_id: string; p_person_id?: string; p_status?: string }
         Returns: {
@@ -31728,8 +32604,36 @@ export type Database = {
           status: string
         }[]
       }
+      mhd_leave_case_record_essential_functions: {
+        Args: { p_case_id: string; p_provided_on?: string }
+        Returns: string
+      }
       mhd_leave_case_set_bases: {
         Args: { p_case_id: string; p_type_ids: string[] }
+        Returns: undefined
+      }
+      mhd_leave_case_set_bonding_event: {
+        Args: { p_case_id: string; p_event_date: string; p_event_type: string }
+        Returns: undefined
+      }
+      mhd_leave_case_set_key_employee: {
+        Args: {
+          p_case_id: string
+          p_determined_on?: string
+          p_notice_on?: string
+          p_restoration_denied_notice_on?: string
+          p_status: string
+        }
+        Returns: undefined
+      }
+      mhd_leave_case_set_workers_comp: {
+        Args: {
+          p_case_id: string
+          p_claim: boolean
+          p_concurrent_designated_on?: string
+          p_filed_on?: string
+          p_light_duty_declined_note?: string
+        }
         Returns: undefined
       }
       mhd_leave_case_transition: {
@@ -31769,20 +32673,93 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_leave_certification_clear_dates: {
+        Args: {
+          p_certification_id: string
+          p_fields: string[]
+          p_reason: string
+        }
+        Returns: undefined
+      }
       mhd_leave_certification_update_status: {
         Args: {
           p_certification_id: string
           p_cure_due_date?: string
           p_deficiency_notified_at?: string
           p_received_at?: string
+          p_requested_at?: string
           p_review_note?: string
           p_status: string
         }
         Returns: undefined
       }
+      mhd_leave_checklist_status: {
+        Args: {
+          p_applicable: boolean
+          p_done: boolean
+          p_due: string
+          p_ready?: boolean
+        }
+        Returns: string
+      }
+      mhd_leave_close_deadlines: {
+        Args: {
+          p_kinds: string[]
+          p_note: string
+          p_subject_id: string
+          p_subject_table: string
+        }
+        Returns: undefined
+      }
+      mhd_leave_deadline_list: {
+        Args: { p_case_id: string }
+        Returns: {
+          basis_at: string
+          basis_event: string
+          deadline_id: string
+          deadline_kind: string
+          due_at: string
+          is_overdue: boolean
+          legal_citation: string
+          satisfied_at: string
+          waived_at: string
+          waiver_reason: string
+        }[]
+      }
+      mhd_leave_deadline_sweep: {
+        Args: never
+        Returns: {
+          action: string
+          deadline_id: string
+        }[]
+      }
       mhd_leave_designate: {
         Args: { p_case_id: string; p_effective_date: string; p_hours: number }
         Returns: number
+      }
+      mhd_leave_designated_person_record: {
+        Args: {
+          p_case_id: string
+          p_designated_name: string
+          p_pfl_attested_on?: string
+          p_relationship_note?: string
+        }
+        Returns: string
+      }
+      mhd_leave_designated_person_void: {
+        Args: { p_designated_person_id: string; p_reason: string }
+        Returns: undefined
+      }
+      mhd_leave_documentation_checklist: {
+        Args: { p_case_id: string }
+        Returns: {
+          due_at: string
+          item_key: string
+          label: string
+          stage_key: string
+          stage_no: number
+          status: string
+        }[]
       }
       mhd_leave_eligibility_confirm: {
         Args: { p_snapshot_id: string }
@@ -31832,6 +32809,19 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_leave_family_relationship_values: { Args: never; Returns: string[] }
+      mhd_leave_health_continuation: {
+        Args: { p_case_id: string }
+        Returns: {
+          cap_end: string
+          continuation_basis: string
+          coverage_end: string
+          coverage_start: string
+          days_remaining: number
+          exceeds_cap: boolean
+          label: string
+        }[]
+      }
       mhd_leave_list_ledger: {
         Args: { p_leave_type_id?: string; p_person_id: string }
         Returns: {
@@ -31847,6 +32837,7 @@ export type Database = {
           type_name: string
         }[]
       }
+      mhd_leave_normalize_key: { Args: { p_text: string }; Returns: string }
       mhd_leave_notice_mark_delivery: {
         Args: {
           p_delivery_method?: string
@@ -31872,16 +32863,97 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_leave_open_deadlines: {
+        Args: {
+          p_basis_at: string
+          p_case_id: string
+          p_laws: string[]
+          p_subject_id: string
+          p_subject_table: string
+          p_trigger_event: string
+        }
+        Returns: undefined
+      }
+      mhd_leave_pay_assert_substitution: {
+        Args: {
+          p_case_id: string
+          p_employer_required: boolean
+          p_excluding_id?: string
+          p_from: string
+          p_mutual_agreement?: boolean
+          p_source_key: string
+          p_status?: string
+          p_to: string
+        }
+        Returns: string[]
+      }
+      mhd_leave_pay_source_record: {
+        Args: {
+          p_case_id: string
+          p_claim_ref?: string
+          p_employer_required?: boolean
+          p_mutual_agreement?: boolean
+          p_note?: string
+          p_paid_from?: string
+          p_paid_to?: string
+          p_source_key: string
+          p_status?: string
+        }
+        Returns: {
+          pay_source_id: string
+          warnings: string[]
+        }[]
+      }
+      mhd_leave_pay_source_update_status: {
+        Args: {
+          p_claim_ref?: string
+          p_paid_from?: string
+          p_paid_to?: string
+          p_pay_source_id: string
+          p_status: string
+        }
+        Returns: string[]
+      }
+      mhd_leave_policy_get: {
+        Args: { p_as_of?: string; p_company_id: string }
+        Returns: Json
+      }
+      mhd_leave_policy_set: {
+        Args: {
+          p_anchor_day?: number
+          p_anchor_month?: number
+          p_company_id: string
+          p_effective_from?: string
+          p_limit_designated_person?: boolean
+          p_reason?: string
+          p_rtw_certification_uniform?: boolean
+          p_year_method: string
+        }
+        Returns: string
+      }
       mhd_leave_return_to_work_record: {
         Args: {
           p_accommodation_referral_required?: boolean
           p_actual_return_date?: string
           p_case_id: string
+          p_exception_reason?: string
           p_expected_return_date: string
           p_fitness_required?: boolean
           p_reinstatement_note?: string
+          p_reinstatement_outcome?: string
           p_restrictions_present?: boolean
+          p_rtw_certification_received_on?: string
+          p_rtw_certification_requested_on?: string
           p_same_or_comparable_job?: boolean
+        }
+        Returns: string
+      }
+      mhd_leave_rolling_forward_start: {
+        Args: {
+          p_as_of: string
+          p_leave_type_id: string
+          p_months?: number
+          p_person_id: string
         }
         Returns: string
       }
@@ -31922,6 +32994,20 @@ export type Database = {
         }[]
       }
       mhd_leave_workflow_get: { Args: { p_case_id: string }; Returns: Json }
+      mhd_leave_year_window: {
+        Args: {
+          p_anchor_day: number
+          p_anchor_month: number
+          p_as_of: string
+          p_cycle_start?: string
+          p_method: string
+          p_months?: number
+        }
+        Returns: {
+          window_end: string
+          window_start: string
+        }[]
+      }
       mhd_leaves_can_see_medical: { Args: never; Returns: boolean }
       mhd_leaves_is_privileged: { Args: never; Returns: boolean }
       mhd_leaves_status_category: {
@@ -35989,6 +37075,10 @@ export type Database = {
       mhd_tasks_status_category: {
         Args: { p_status_name: string }
         Returns: string
+      }
+      mhd_text_has_prohibited_medical_detail: {
+        Args: { p_text: string }
+        Returns: boolean
       }
       mhd_training_accommodation_request_create: {
         Args: {

@@ -4,6 +4,10 @@ import { mhdFormService } from '@/features/forms/Service';
 import type { MhdFormLibraryEntry } from '@/features/forms/Types';
 import { mhdAccommodationsService } from './Service';
 import type {
+  MhdAccommodationEmployeeCertifyInput,
+  MhdAccommodationEquipmentInput,
+  MhdAccommodationProviderCertificationInput,
+  MhdAccommodationRequestDetailsInput,
   MhdAccommodationStatus,
   MhdCreateAccommodationInput,
   MhdCreateAccommodationOptionCatalogEntryInput,
@@ -255,5 +259,60 @@ export function useMhdForkAccommodationOptionCatalogEntry() {
     mutationFn: (input: { sourceOptionId: string; companyId: string }) =>
       mhdAccommodationsService.forkOptionCatalogEntry(input.sourceOptionId, input.companyId),
     onSuccess: () => invalidate(),
+  });
+}
+
+export function useMhdAccommodationRequestDetails(caseId: string) {
+  const invalidate = useInvalidateAccommodationCase();
+  return useMutation({
+    mutationFn: (input: MhdAccommodationRequestDetailsInput) =>
+      mhdAccommodationsService.recordRequestDetails(input),
+    onSuccess: () => invalidate(caseId),
+  });
+}
+
+export function useMhdAccommodationEmployeeCertify(caseId: string) {
+  const invalidate = useInvalidateAccommodationCase();
+  return useMutation({
+    mutationFn: (input: MhdAccommodationEmployeeCertifyInput) =>
+      mhdAccommodationsService.certifyAsEmployee(input),
+    onSuccess: () => invalidate(caseId),
+  });
+}
+
+export function useMhdAccommodationProviderCertification(caseId: string) {
+  const invalidate = useInvalidateAccommodationCase();
+  return useMutation({
+    mutationFn: (input: MhdAccommodationProviderCertificationInput) =>
+      mhdAccommodationsService.recordProviderCertification(input),
+    onSuccess: () => invalidate(caseId),
+  });
+}
+
+/**
+ * A mutation, not a query: every reveal writes an audit event server-side, so it must be an explicit
+ * act, never something React Query refetches in the background or replays from cache.
+ */
+export function useMhdAccommodationProviderCertificationReveal() {
+  return useMutation({
+    mutationFn: (certificationId: string) =>
+      mhdAccommodationsService.revealProviderCertification(certificationId),
+  });
+}
+
+export function useMhdAccommodationEquipment(caseId: string) {
+  const invalidate = useInvalidateAccommodationCase();
+  return useMutation({
+    mutationFn: (input: MhdAccommodationEquipmentInput) =>
+      mhdAccommodationsService.recordEquipment(input),
+    onSuccess: () => invalidate(caseId),
+  });
+}
+
+export function useMhdAccommodationDenialReasonCodes() {
+  return useQuery({
+    queryKey: ['mhd-accommodations', 'denial-reason-codes'],
+    queryFn: () => mhdAccommodationsService.listDenialReasonCodes(),
+    staleTime: Infinity,
   });
 }

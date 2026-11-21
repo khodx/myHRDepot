@@ -216,6 +216,8 @@ export const mhdLeavesService = {
       p_requested_start: input.requestedStart ?? undefined,
       p_requested_end: input.requestedEnd ?? undefined,
       p_is_intermittent: input.isIntermittent ?? false,
+      p_requested_mode: input.requestedMode ?? undefined,
+      p_intake_channel: input.intakeChannel ?? undefined,
     });
     if (error) throw error;
     const row = ((data ?? []) as Array<{ id: string; reference_id: string }>)[0];
@@ -270,7 +272,9 @@ export const mhdLeavesService = {
    * Case (via Form)" action in MhdLeavesPage.tsx for the current, honest
    * entry point (it opens the Forms Library; it does not yet open a case).
    */
-  async createCaseFromSubmission(input: MhdCreateLeaveCaseFromSubmissionInput): Promise<MhdMutationResult> {
+  async createCaseFromSubmission(
+    input: MhdCreateLeaveCaseFromSubmissionInput,
+  ): Promise<MhdMutationResult> {
     const { data, error } = await supabaseClient
       .rpc('mhd_create_leave_case_from_submission', {
         p_submission_id: input.submissionId,
@@ -304,7 +308,9 @@ export const mhdLeavesService = {
    * outside the certification partition.
    */
   async listCaseBases(caseId: string): Promise<MhdLeaveTypeId[]> {
-    const { data, error } = await supabaseClient.rpc('mhd_leave_case_get_bases', { p_case_id: caseId });
+    const { data, error } = await supabaseClient.rpc('mhd_leave_case_get_bases', {
+      p_case_id: caseId,
+    });
     if (error) throw error;
     return ((data ?? []) as MhdLeaveCaseBasisRpcRow[]).map((row) => row.leave_type_id);
   },
@@ -426,6 +432,7 @@ export const mhdLeavesService = {
       p_cure_due_date: input.cureDueDate || undefined,
       // Operational note only; the RPC stores it in the restricted certification row.
       p_review_note: trimmedOrUndefined(input.reviewNote),
+      p_requested_at: input.requestedAt || undefined,
     });
     if (error) throw error;
   },

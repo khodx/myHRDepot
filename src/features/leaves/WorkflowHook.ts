@@ -120,8 +120,9 @@ export function useMhdLeaveBenefitObligation(caseId: string) {
 export function useMhdLeaveBenefitObligationStatus(caseId: string) {
   const refresh = useRefresh(caseId);
   return useMutation({
-    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.updateBenefitObligationStatus>[0]) =>
-      mhdLeaveWorkflowService.updateBenefitObligationStatus(input),
+    mutationFn: (
+      input: Parameters<typeof mhdLeaveWorkflowService.updateBenefitObligationStatus>[0],
+    ) => mhdLeaveWorkflowService.updateBenefitObligationStatus(input),
     onSuccess: refresh,
   });
 }
@@ -131,6 +132,87 @@ export function useMhdLeaveBenefitTransaction(caseId: string) {
   return useMutation({
     mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.recordBenefitTransaction>[0]) =>
       mhdLeaveWorkflowService.recordBenefitTransaction(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveBondingEvent(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.setBondingEvent>[0]) =>
+      mhdLeaveWorkflowService.setBondingEvent(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveDesignatedPerson(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.recordDesignatedPerson>[0]) =>
+      mhdLeaveWorkflowService.recordDesignatedPerson(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveDesignatedPersonVoid(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.voidDesignatedPerson>[0]) =>
+      mhdLeaveWorkflowService.voidDesignatedPerson(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeavePaySource(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.recordPaySource>[0]) =>
+      mhdLeaveWorkflowService.recordPaySource(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeavePaySourceStatus(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.updatePaySourceStatus>[0]) =>
+      mhdLeaveWorkflowService.updatePaySourceStatus(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveWorkersComp(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.setWorkersComp>[0]) =>
+      mhdLeaveWorkflowService.setWorkersComp(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveKeyEmployee(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.setKeyEmployee>[0]) =>
+      mhdLeaveWorkflowService.setKeyEmployee(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveEssentialFunctions(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (providedOn?: string | null) =>
+      mhdLeaveWorkflowService.recordEssentialFunctions(caseId, providedOn),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveCertificationClearDates(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.clearCertificationDates>[0]) =>
+      mhdLeaveWorkflowService.clearCertificationDates(input),
     onSuccess: refresh,
   });
 }

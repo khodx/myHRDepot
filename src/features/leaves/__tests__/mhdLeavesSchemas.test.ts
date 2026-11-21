@@ -107,6 +107,8 @@ describe('MHD_LEAVE_STATUS_TRANSITIONS', () => {
     for (const status of MHD_LEAVE_CASE_STATUSES) {
       expect(MHD_LEAVE_STATUS_TRANSITIONS[status]).not.toContain(status);
     }
-    expect(Object.keys(MHD_LEAVE_STATUS_TRANSITIONS).sort()).toEqual([...MHD_LEAVE_CASE_STATUSES].sort());
+    expect(Object.keys(MHD_LEAVE_STATUS_TRANSITIONS).sort()).toEqual(
+      [...MHD_LEAVE_CASE_STATUSES].sort(),
+    );
   });
 });

@@ -125,12 +125,12 @@ describe('segment validation', () => {
 describe('benefit recording', () => {
   const obligation = {
     caseId: CASE,
-    benefitType: ' Medical premium ',
+    benefitType: 'MEDICAL' as const,
     coverageStart: '2026-08-03',
     coverageEnd: null,
     employerAmount: 412.5,
     employeeAmount: 96,
-    frequency: 'Monthly',
+    frequency: 'MONTHLY' as const,
   };
 
   it('records an obligation with an open-ended coverage period as NULL', async () => {
@@ -138,12 +138,12 @@ describe('benefit recording', () => {
     await mhdLeaveWorkflowService.recordBenefitObligation(obligation);
     expect(rpcMock).toHaveBeenCalledWith('mhd_leave_benefit_obligation_record', {
       p_case_id: CASE,
-      p_benefit_type: 'Medical premium',
+      p_benefit_type: 'MEDICAL',
       p_coverage_start: '2026-08-03',
       p_coverage_end: null,
       p_employer_amount: 412.5,
       p_employee_amount: 96,
-      p_frequency: 'Monthly',
+      p_frequency: 'MONTHLY',
     });
   });
 
@@ -154,8 +154,8 @@ describe('benefit recording', () => {
     expect(mhdValidateLeaveBenefitObligation({ ...obligation, coverageEnd: '2026-07-01' })).toBe(
       'Coverage cannot end before it starts.',
     );
-    expect(mhdValidateLeaveBenefitObligation({ ...obligation, benefitType: '  ' })).toBe(
-      'Enter the benefit type.',
+    expect(mhdValidateLeaveBenefitObligation({ ...obligation, benefitType: 'GYM' as never })).toBe(
+      'Choose a benefit type from the list.',
     );
     await expect(
       mhdLeaveWorkflowService.recordBenefitTransaction({
