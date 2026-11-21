@@ -26,7 +26,7 @@ import {
   type MhdViewMode,
 } from '@/components/ui/MhdViewToggleUtils';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
+import { mhdCanAccessRoute, mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdCreateLeaveCase, useMhdCreateLeaveCaseSelf, useMhdLeaveCases } from '../Hook';
 import { useMhdPeoplePicker } from '@/features/people/Hook';
 import type { MhdLeaveCaseFormValues, MhdLeaveCaseSelfFormValues } from '../Schemas';
@@ -92,7 +92,8 @@ export function MhdLeavesPage() {
   const createCaseSelf = useMhdCreateLeaveCaseSelf();
   const visibleCases = pagination.sliceItems(casesData);
   const visibleCaseIds = visibleCases.map((leaveCase) => leaveCase.id);
-  const allVisibleCasesSelected = visibleCaseIds.length > 0 && visibleCaseIds.every((id) => selectedCaseIds.has(id));
+  const allVisibleCasesSelected =
+    visibleCaseIds.length > 0 && visibleCaseIds.every((id) => selectedCaseIds.has(id));
 
   function toggleCase(caseId: string) {
     setSelectedCaseIds((current) => {
@@ -176,6 +177,18 @@ export function MhdLeavesPage() {
                 >
                   Policy Library
                 </Link>
+                {mhdCanAccessRoute('/leaves/settings', roles) ? (
+                  <Link
+                    to="/leaves/settings"
+                    className={cn(
+                      buttonBaseClasses,
+                      buttonVariantClasses.secondary,
+                      'h-9 px-3 text-[16.8px]',
+                    )}
+                  >
+                    Leave Policy
+                  </Link>
+                ) : null}
                 <Link
                   to="/leaves/new/intake"
                   className={cn(
@@ -276,61 +289,81 @@ export function MhdLeavesPage() {
             <div className="mb-3 flex items-center justify-between gap-3 text-sm">
               <span className="text-muted-foreground">{selectedCaseIds.size} selected</span>
               <div className="flex items-center gap-2">
-                <button type="button" className="text-sm text-muted-foreground underline" onClick={() => setSelectedCaseIds(new Set())}>Clear selection</button>
-                <Button onClick={() => setLauncherOpen(true)} disabled={!companyId}>Generate Documents</Button>
+                <button
+                  type="button"
+                  className="text-sm text-muted-foreground underline"
+                  onClick={() => setSelectedCaseIds(new Set())}
+                >
+                  Clear selection
+                </button>
+                <Button onClick={() => setLauncherOpen(true)} disabled={!companyId}>
+                  Generate Documents
+                </Button>
               </div>
             </div>
           ) : null}
           <MhdCard className="overflow-hidden p-0">
-          <MhdTable>
-            <thead>
-              <tr>
-                <MhdTh className="w-10">
-                  <input type="checkbox" aria-label="Select all leave cases" checked={allVisibleCasesSelected} onChange={toggleVisibleCases} className="h-4 w-4 rounded" />
-                </MhdTh>
-                <MhdTh>Reference</MhdTh>
-                {isPrivileged ? <MhdTh>Employee</MhdTh> : null}
-                <MhdTh>Reason</MhdTh>
-                <MhdTh>Dates</MhdTh>
-                <MhdTh className="text-right">Bases</MhdTh>
-                <MhdTh>Status</MhdTh>
-                <MhdActionsTh />
-              </tr>
-            </thead>
-            <tbody>
-              {visibleCases.map((leaveCase) => (
-                <MhdTr key={leaveCase.id} to={`/leaves/${leaveCase.id}`}>
-                  <MhdTd>
-                    <input type="checkbox" checked={selectedCaseIds.has(leaveCase.id)} onChange={() => toggleCase(leaveCase.id)} aria-label={`Select ${leaveCase.referenceId}`} className="h-4 w-4 rounded" />
-                  </MhdTd>
-                  <MhdTd className="whitespace-nowrap font-mono text-xs">
-                    {leaveCase.referenceId}
-                  </MhdTd>
-                  {isPrivileged ? (
-                    <MhdTd className="whitespace-nowrap">{leaveCase.personDisplayName}</MhdTd>
-                  ) : null}
-                  <MhdTd>{leaveCase.reasonCategory}</MhdTd>
-                  <MhdTd className="whitespace-nowrap text-muted-foreground">
-                    {leaveCase.requestedStart ?? '—'}
-                    {leaveCase.requestedEnd ? ` → ${leaveCase.requestedEnd}` : ''}
-                  </MhdTd>
-                  <MhdTd className="text-right tabular-nums">{leaveCase.basisCount}</MhdTd>
-                  <MhdTd>
-                    <MhdLeaveStatusBadge status={leaveCase.status} />
-                  </MhdTd>
-                  <MhdTableActions
-                    viewTo={`/leaves/${leaveCase.id}`}
-                    editTo={isPrivileged ? `/leaves/${leaveCase.id}` : undefined}
-                  />
-                </MhdTr>
-              ))}
-            </tbody>
-          </MhdTable>
-          <MhdTableFooter
-            summary={mhdPaginationSummary(pagination, casesData.length, 'leave cases')}
-          >
-            <MhdPaginationControls pagination={pagination} />
-          </MhdTableFooter>
+            <MhdTable>
+              <thead>
+                <tr>
+                  <MhdTh className="w-10">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all leave cases"
+                      checked={allVisibleCasesSelected}
+                      onChange={toggleVisibleCases}
+                      className="h-4 w-4 rounded"
+                    />
+                  </MhdTh>
+                  <MhdTh>Reference</MhdTh>
+                  {isPrivileged ? <MhdTh>Employee</MhdTh> : null}
+                  <MhdTh>Reason</MhdTh>
+                  <MhdTh>Dates</MhdTh>
+                  <MhdTh className="text-right">Bases</MhdTh>
+                  <MhdTh>Status</MhdTh>
+                  <MhdActionsTh />
+                </tr>
+              </thead>
+              <tbody>
+                {visibleCases.map((leaveCase) => (
+                  <MhdTr key={leaveCase.id} to={`/leaves/${leaveCase.id}`}>
+                    <MhdTd>
+                      <input
+                        type="checkbox"
+                        checked={selectedCaseIds.has(leaveCase.id)}
+                        onChange={() => toggleCase(leaveCase.id)}
+                        aria-label={`Select ${leaveCase.referenceId}`}
+                        className="h-4 w-4 rounded"
+                      />
+                    </MhdTd>
+                    <MhdTd className="whitespace-nowrap font-mono text-xs">
+                      {leaveCase.referenceId}
+                    </MhdTd>
+                    {isPrivileged ? (
+                      <MhdTd className="whitespace-nowrap">{leaveCase.personDisplayName}</MhdTd>
+                    ) : null}
+                    <MhdTd>{leaveCase.reasonCategory}</MhdTd>
+                    <MhdTd className="whitespace-nowrap text-muted-foreground">
+                      {leaveCase.requestedStart ?? '—'}
+                      {leaveCase.requestedEnd ? ` → ${leaveCase.requestedEnd}` : ''}
+                    </MhdTd>
+                    <MhdTd className="text-right tabular-nums">{leaveCase.basisCount}</MhdTd>
+                    <MhdTd>
+                      <MhdLeaveStatusBadge status={leaveCase.status} />
+                    </MhdTd>
+                    <MhdTableActions
+                      viewTo={`/leaves/${leaveCase.id}`}
+                      editTo={isPrivileged ? `/leaves/${leaveCase.id}` : undefined}
+                    />
+                  </MhdTr>
+                ))}
+              </tbody>
+            </MhdTable>
+            <MhdTableFooter
+              summary={mhdPaginationSummary(pagination, casesData.length, 'leave cases')}
+            >
+              <MhdPaginationControls pagination={pagination} />
+            </MhdTableFooter>
           </MhdCard>
           {launcherOpen ? (
             <MhdDocumentMergeBatchLauncher
