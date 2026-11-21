@@ -6,6 +6,7 @@ describe('Document Generation type contract', () => {
     const template: MhdDocumentTemplate = {
       id: '11111111-1111-4111-8111-111111111111',
       referenceId: 'DOCT-000001',
+      templateKey: 'MONTHLY_TASK_SUMMARY',
       companyId: null,
       name: 'Monthly Task Summary',
       templateType: 'REPORT',

@@ -2,11 +2,32 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type {
+  MhdLeaveBenefit,
+  MhdLeaveBenefitTransaction,
+  MhdLeaveWorkflow,
+} from '../WorkflowTypes';
+import { mhdTestLeaveWorkflow } from './leaveWorkflowFixture';
 
 const CASE_ID = 'e7a13c94-5d20-4b86-8f31-2c9b06d4a715';
 
-const { segmentAsync, segmentStatusAsync, obligationAsync, obligationStatusAsync, transactionAsync, workflowData } = vi.hoisted(() => ({
+const {
+  segmentAsync,
+  segmentStatusAsync,
+  obligationAsync,
+  obligationStatusAsync,
+  transactionAsync,
+  noticeAsync,
+  returnAsync,
+  generateAndPoll,
+  listTemplates,
+  workflowData,
+} = vi.hoisted(() => ({
   segmentAsync: vi.fn(),
+  noticeAsync: vi.fn(),
+  returnAsync: vi.fn(),
+  generateAndPoll: vi.fn(),
+  listTemplates: vi.fn(),
   segmentStatusAsync: vi.fn(),
   obligationAsync: vi.fn(),
   obligationStatusAsync: vi.fn(),
@@ -17,45 +38,42 @@ const { segmentAsync, segmentStatusAsync, obligationAsync, obligationStatusAsync
 }));
 
 vi.mock('@/features/authentication/Hook', () => ({
-  useMhdAuth: () => ({ authUserId: 'user-1', profile: { companyId: null }, roles: ['HR Partner'] }),
+  useMhdAuth: () => ({
+    authUserId: 'user-1',
+    profile: { companyId: '9b5e2c71-3d84-4f1a-a6c0-58d27e4f1b93' },
+    roles: ['HR Partner'],
+  }),
 }));
 
 vi.mock('@/features/documents/Service', () => ({
-  mhdDocumentService: { listTemplates: vi.fn().mockResolvedValue([]) },
+  mhdDocumentService: { listTemplates, generateAndPoll },
 }));
 
-const idle = () => ({ mutateAsync: vi.fn(), isPending: false });
-
-vi.mock('../WorkflowHook', () => ({
-  useMhdLeaveWorkflow: () => ({ isLoading: false, data: workflowData.current }),
-  useMhdLeaveReadiness: () => ({ data: undefined }),
-  useMhdLeaveEligibility: () => idle(),
-  useMhdConfirmLeaveEligibility: () => idle(),
-  useMhdOverrideLeaveEligibility: () => idle(),
-  useMhdLeaveEvent: () => idle(),
-  useMhdLeaveReturnToWork: () => idle(),
-  useMhdLeaveNotice: () => idle(),
-  useMhdLeaveNoticeDelivery: () => idle(),
-  useMhdLeaveSegment: () => ({ mutateAsync: segmentAsync, isPending: false }),
-  useMhdLeaveSegmentStatus: () => ({ mutateAsync: segmentStatusAsync, isPending: false }),
-  useMhdLeaveBenefitObligation: () => ({ mutateAsync: obligationAsync, isPending: false }),
-  useMhdLeaveBenefitObligationStatus: () => ({ mutateAsync: obligationStatusAsync, isPending: false }),
-  useMhdLeaveBenefitTransaction: () => ({ mutateAsync: transactionAsync, isPending: false }),
-}));
+vi.mock('../WorkflowHook', async () => {
+  const { mhdIdleLeaveWorkflowHooks } = await import('./leaveWorkflowFixture');
+  return {
+    ...mhdIdleLeaveWorkflowHooks(),
+    useMhdLeaveWorkflow: () => ({ isLoading: false, data: workflowData.current }),
+    useMhdLeaveReturnToWork: () => ({ mutateAsync: returnAsync, isPending: false }),
+    useMhdLeaveNotice: () => ({ mutateAsync: noticeAsync, isPending: false }),
+    useMhdLeaveSegment: () => ({ mutateAsync: segmentAsync, isPending: false }),
+    useMhdLeaveSegmentStatus: () => ({ mutateAsync: segmentStatusAsync, isPending: false }),
+    useMhdLeaveBenefitObligation: () => ({ mutateAsync: obligationAsync, isPending: false }),
+    useMhdLeaveBenefitObligationStatus: () => ({
+      mutateAsync: obligationStatusAsync,
+      isPending: false,
+    }),
+    useMhdLeaveBenefitTransaction: () => ({ mutateAsync: transactionAsync, isPending: false }),
+  };
+});
 
 const { MhdLeaveWorkflowPanel } = await import('../components/MhdLeaveWorkflowPanel');
 
-function workflow(benefits: unknown[] = []) {
-  return {
-    case: { id: CASE_ID },
-    eligibility: [],
-    notices: [],
-    segments: [],
-    events: [],
-    certifications: [],
-    benefits,
-    return_to_work: null,
-  };
+function workflow(
+  benefits: MhdLeaveBenefit[] = [],
+  overrides: Partial<MhdLeaveWorkflow> = {},
+): MhdLeaveWorkflow {
+  return mhdTestLeaveWorkflow(CASE_ID, { benefits, ...overrides });
 }
 
 const segmentRow = {
@@ -69,15 +87,21 @@ const segmentRow = {
   designated_at: null,
 };
 
-const obligationRow = {
+const obligationRow: MhdLeaveBenefit = {
   id: 'obl-1',
-  benefit_type: 'MEDICAL_PREMIUM',
+  benefit_type: 'MEDICAL',
+  benefit_label: 'Kaiser HMO family plan',
   coverage_start: '2026-08-03',
   coverage_end: null,
   employer_amount: 412.5,
   employee_amount: 96,
   frequency: 'MONTHLY',
   status: 'ACTIVE',
+  status_reason: null,
+  due_date: '2026-08-01',
+  grace_period_days: 30,
+  continuation_basis: 'FMLA_CFRA',
+  seniority_credit_through: null,
   transactions: [],
 };
 
@@ -104,6 +128,10 @@ beforeEach(() => {
   obligationAsync.mockResolvedValue('obl-2');
   obligationStatusAsync.mockResolvedValue(undefined);
   transactionAsync.mockResolvedValue('txn-1');
+  noticeAsync.mockResolvedValue('notice-1');
+  returnAsync.mockResolvedValue('rtw-1');
+  generateAndPoll.mockResolvedValue({ id: 'generation-1' });
+  listTemplates.mockResolvedValue([]);
 });
 
 describe('Schedule tab', () => {
@@ -180,16 +208,16 @@ describe('Benefits tab', () => {
     expect(screen.queryByRole('button', { name: 'Record Transaction' })).not.toBeInTheDocument();
   });
 
-  it('records an obligation from free-text type and frequency', async () => {
+  it('records an obligation from the benefit type and frequency vocabularies', async () => {
     renderPanel();
     openTab(/Benefits/);
     expect(screen.queryByRole('button', { name: 'Record Transaction' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Record Obligation' })).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Benefit type'), {
-      target: { value: 'Dental premium' },
+      target: { value: 'DENTAL' },
     });
     fireEvent.change(screen.getByLabelText('Contribution frequency'), {
-      target: { value: 'Monthly' },
+      target: { value: 'MONTHLY' },
     });
     fireEvent.change(screen.getByLabelText('Coverage start'), { target: { value: '08/03/2026' } });
     fireEvent.blur(screen.getByLabelText('Coverage start'));
@@ -202,12 +230,17 @@ describe('Benefits tab', () => {
     await waitFor(() => expect(obligationAsync).toHaveBeenCalledTimes(1));
     expect(obligationAsync).toHaveBeenCalledWith({
       caseId: CASE_ID,
-      benefitType: 'Dental premium',
-      frequency: 'Monthly',
+      benefitType: 'DENTAL',
+      frequency: 'MONTHLY',
       coverageStart: '2026-08-03',
       coverageEnd: null,
       employerAmount: 38.4,
       employeeAmount: 12,
+      dueDate: null,
+      gracePeriodDays: null,
+      continuationBasis: null,
+      seniorityCreditThrough: null,
+      benefitLabel: null,
     });
   });
 
@@ -281,7 +314,7 @@ describe('Benefit transaction reversals', () => {
     reversal_of: 'txn-charge',
   };
 
-  function withTransactions(transactions: unknown[]) {
+  function withTransactions(transactions: MhdLeaveBenefitTransaction[]) {
     workflowData.current = workflow([{ ...obligationRow, transactions }]);
   }
 
@@ -377,9 +410,223 @@ describe('Benefit transaction reversals', () => {
       expect(screen.getByRole('button', { name: 'Record Transaction' })).toBeEnabled(),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Record Transaction' }));
-    expect(await screen.findByText('That transaction has already been reversed')).toBeInTheDocument();
+    expect(
+      await screen.findByText('That transaction has already been reversed'),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Transaction type')).toHaveValue('REVERSAL');
     expect(screen.getByLabelText('Transaction being reversed')).toHaveValue('txn-charge');
     expect(screen.getByLabelText('Effective date')).toHaveValue('08/20/2026');
+  });
+});
+
+describe('Benefits tab: continuation and health caps', () => {
+  it('offers a continuation basis only for group health coverage and sends it', async () => {
+    renderPanel();
+    openTab(/Benefits/);
+    const basis = screen.getByLabelText('Continuation basis');
+    expect(basis).toBeDisabled();
+    expect(
+      Array.from(basis.querySelectorAll('option')).map((option) => option.textContent),
+    ).toEqual(['Not applicable', 'FMLA/CFRA (12 workweeks)', 'Pregnancy Disability (4 months)']);
+    fireEvent.change(screen.getByLabelText('Benefit type'), {
+      target: { value: 'LIFE_INSURANCE' },
+    });
+    expect(screen.getByLabelText('Continuation basis')).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Benefit type'), { target: { value: 'MEDICAL' } });
+    expect(screen.getByLabelText('Continuation basis')).toBeEnabled();
+    fireEvent.change(screen.getByLabelText('Continuation basis'), { target: { value: 'PDL' } });
+    fireEvent.change(screen.getByLabelText('Contribution frequency'), {
+      target: { value: 'BIWEEKLY' },
+    });
+    fireEvent.change(screen.getByLabelText('Description (optional)'), {
+      target: { value: 'Blue Shield PPO employee plus one' },
+    });
+    fireEvent.change(screen.getByLabelText('Grace period in days (optional)'), {
+      target: { value: '30' },
+    });
+    fireEvent.change(screen.getByLabelText('Coverage start'), { target: { value: '09/01/2026' } });
+    fireEvent.blur(screen.getByLabelText('Coverage start'));
+    fireEvent.change(screen.getByLabelText('Employer amount'), { target: { value: '510' } });
+    fireEvent.change(screen.getByLabelText('Employee amount'), { target: { value: '88.25' } });
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Record Obligation' })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Record Obligation' }));
+    await waitFor(() => expect(obligationAsync).toHaveBeenCalledTimes(1));
+    expect(obligationAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        benefitType: 'MEDICAL',
+        frequency: 'BIWEEKLY',
+        continuationBasis: 'PDL',
+        gracePeriodDays: 30,
+        benefitLabel: 'Blue Shield PPO employee plus one',
+      }),
+    );
+  });
+
+  it('shows the health continuation summary and warns when coverage runs past the cap', () => {
+    workflowData.current = workflow([obligationRow], {
+      health_continuation: [
+        {
+          continuation_basis: 'FMLA_CFRA',
+          label: 'FMLA/CFRA',
+          coverage_start: '2026-08-03',
+          cap_end: '2026-10-26',
+          coverage_end: '2026-12-31',
+          exceeds_cap: true,
+          days_remaining: 41,
+        },
+      ],
+    });
+    renderPanel(false);
+    openTab(/Benefits/);
+    expect(screen.getByText('Coverage Runs Past The Cap')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('continuation cap of 2026-10-26');
+    expect(screen.getByText('Kaiser HMO family plan')).toBeInTheDocument();
+    expect(screen.getByText('FMLA/CFRA (12 workweeks)')).toBeInTheDocument();
+  });
+});
+
+describe('Notices tab', () => {
+  const keyedTemplate = {
+    id: '5f0c7e2a-93d1-4b8e-a647-0d2b9c1e8f35',
+    referenceId: 'DOCT-000214',
+    templateKey: 'LEAVE_ELIGIBILITY_RIGHTS_NOTICE',
+    companyId: null,
+    name: 'Notice of Eligibility and Rights',
+    templateType: 'REPORT',
+    applicableEntityType: 'LEAVE_CASE',
+    description: null,
+    contentFormat: 'HTML',
+    mergeFields: [],
+    version: 3,
+    isActive: true,
+    requiresSignature: false,
+    createdAt: '2026-11-20T00:00:00Z',
+    updatedAt: '2026-11-20T00:00:00Z',
+  };
+  const unkeyedTemplate = {
+    ...keyedTemplate,
+    id: '8a3d51c6-2e7f-4b90-b1d4-6c5e0f2a9d73',
+    referenceId: 'DOCT-000215',
+    templateKey: null,
+    name: 'Ad Hoc Leave Letter',
+  };
+  const eligibilityDeadline = {
+    id: 'deadline-1',
+    deadline_kind: 'LEAVE_ELIGIBILITY_NOTICE' as const,
+    basis_event: 'CASE_REQUEST',
+    basis_at: '2026-08-03T15:00:00Z',
+    due_at: '2026-08-10T15:00:00Z',
+    satisfied_at: null,
+    waived_at: null,
+    waiver_reason: null,
+    legal_citation: '29 CFR 825.300(b)(1)',
+    is_overdue: true,
+  };
+
+  it('records a notice under the template stable key with no hand-typed due date', async () => {
+    listTemplates.mockResolvedValue([keyedTemplate, unkeyedTemplate]);
+    workflowData.current = workflow([], { deadlines: [eligibilityDeadline] });
+    renderPanel();
+    openTab(/Notices/);
+    expect(screen.getByText('Eligibility Notice')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'New Notice' }));
+    expect(screen.queryByLabelText(/due date/i)).not.toBeInTheDocument();
+    expect(listTemplates).toHaveBeenCalledWith(
+      '9b5e2c71-3d84-4f1a-a6c0-58d27e4f1b93',
+      undefined,
+      false,
+      'LEAVE_CASE',
+    );
+    await screen.findByRole('option', { name: 'Notice of Eligibility and Rights (v3)' });
+    expect(screen.queryByRole('option', { name: /Ad Hoc Leave Letter/ })).not.toBeInTheDocument();
+    expect(
+      Array.from(screen.getByLabelText('Notice type').querySelectorAll('option')),
+    ).toHaveLength(16);
+    fireEvent.change(screen.getByLabelText('Document template'), {
+      target: { value: 'LEAVE_ELIGIBILITY_RIGHTS_NOTICE' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Create Notice' }));
+    await waitFor(() => expect(noticeAsync).toHaveBeenCalledTimes(1));
+    expect(generateAndPoll).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: keyedTemplate.id, entityType: 'LEAVE_CASE' }),
+      { actorUserId: 'user-1' },
+    );
+    expect(noticeAsync).toHaveBeenCalledWith({
+      caseId: CASE_ID,
+      noticeType: 'ELIGIBILITY',
+      templateKey: 'LEAVE_ELIGIBILITY_RIGHTS_NOTICE',
+      templateVersion: 3,
+      documentGenerationId: 'generation-1',
+    });
+  });
+
+  it('shows which open deadlines the chosen notice type closes', () => {
+    workflowData.current = workflow([], { deadlines: [eligibilityDeadline] });
+    renderPanel();
+    openTab(/Notices/);
+    fireEvent.click(screen.getByRole('button', { name: 'New Notice' }));
+    expect(screen.getAllByText('Eligibility Notice')).toHaveLength(2);
+    fireEvent.change(screen.getByLabelText('Notice type'), { target: { value: 'BALANCE' } });
+    expect(screen.getByText('This notice type closes no open deadline.')).toBeInTheDocument();
+  });
+});
+
+describe('Return To Work tab', () => {
+  it('records the extended return-to-work fields', async () => {
+    workflowData.current = workflow([], {
+      policy: { ...mhdTestLeaveWorkflow(CASE_ID).policy, rtw_certification_uniform_policy: true },
+    });
+    renderPanel();
+    openTab(/Return To Work/);
+    expect(
+      screen.getAllByText(
+        'Return-to-work certifications are required under a uniformly applied company policy.',
+      ).length,
+    ).toBeGreaterThan(0);
+    fireEvent.change(screen.getByLabelText('Expected return date'), {
+      target: { value: '09/14/2026' },
+    });
+    fireEvent.blur(screen.getByLabelText('Expected return date'));
+    fireEvent.change(screen.getByLabelText('Reinstatement outcome (optional)'), {
+      target: { value: 'COMPARABLE_POSITION' },
+    });
+    fireEvent.change(screen.getByLabelText('Exception reason'), {
+      target: { value: 'Original route eliminated in the August reorganization' },
+    });
+    fireEvent.click(screen.getByLabelText('Fitness-For-Duty Certification Required'));
+    fireEvent.change(screen.getByLabelText('Certification requested on (optional)'), {
+      target: { value: '09/01/2026' },
+    });
+    fireEvent.blur(screen.getByLabelText('Certification requested on (optional)'));
+    fireEvent.change(screen.getByLabelText('Reinstatement note (optional)'), {
+      target: { value: 'Same shift and pay grade' },
+    });
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Save Return-To-Work Plan' })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save Return-To-Work Plan' }));
+    await waitFor(() => expect(returnAsync).toHaveBeenCalledTimes(1));
+    expect(returnAsync).toHaveBeenCalledWith({
+      caseId: CASE_ID,
+      expectedReturnDate: '2026-09-14',
+      actualReturnDate: null,
+      sameOrComparableJob: true,
+      fitnessRequired: true,
+      restrictionsPresent: false,
+      accommodationReferralRequired: false,
+      reinstatementNote: 'Same shift and pay grade',
+      reinstatementOutcome: 'COMPARABLE_POSITION',
+      exceptionReason: 'Original route eliminated in the August reorganization',
+      rtwCertificationRequestedOn: '2026-09-01',
+      rtwCertificationReceivedOn: null,
+    });
+  });
+
+  it('explains that a certification will be refused without a uniform policy', () => {
+    renderPanel();
+    openTab(/Return To Work/);
+    expect(screen.getByText(/requiring a certification will be refused/)).toBeInTheDocument();
   });
 });

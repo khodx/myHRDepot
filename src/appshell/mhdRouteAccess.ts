@@ -346,7 +346,7 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
   {
     path: '/leaves',
     roles: [
-      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist',
+      'Platform Admin', 'HR Partner', 'HR Admin', 'HR Specialist', 'HR Coordinator',
       'Client Admin', 'Executive Leadership', 'Director',
       'Manager', 'Supervisor', 'Lead', 'Employee',
     ],

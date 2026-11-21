@@ -16,6 +16,7 @@ const cert: MhdLeaveCertification = {
 function renderPanel(
   canSeeMedical: boolean,
   onUpdateStatus = vi.fn().mockResolvedValue(undefined),
+  onClearDates = vi.fn().mockResolvedValue(undefined),
 ) {
   render(
     <MhdLeaveCertificationPanel
@@ -25,6 +26,7 @@ function renderPanel(
       onRecord={vi.fn()}
       onMarkSufficient={vi.fn()}
       onUpdateStatus={onUpdateStatus}
+      onClearDates={onClearDates}
     />,
   );
   return onUpdateStatus;
@@ -90,6 +92,7 @@ describe('MhdLeaveCertificationPanel status update', () => {
       deficiencyNotifiedAt: '2026-08-07',
       cureDueDate: '2026-08-14',
       reviewNote: 'Provider section unsigned',
+      requestedAt: null,
     });
     await waitFor(() =>
       expect(screen.queryByLabelText('Certification status')).not.toBeInTheDocument(),
@@ -138,6 +141,7 @@ describe('MhdLeaveCertificationPanel operational status display', () => {
         onRecord={vi.fn()}
         onMarkSufficient={vi.fn()}
         onUpdateStatus={vi.fn().mockResolvedValue(undefined)}
+        onClearDates={vi.fn().mockResolvedValue(undefined)}
       />,
     );
   }
@@ -175,5 +179,65 @@ describe('MhdLeaveCertificationPanel operational status display', () => {
     expect(screen.queryByText('Cure due')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
     expect(screen.getByLabelText('Certification status')).toHaveValue('');
+  });
+});
+
+describe('MhdLeaveCertificationPanel requested date and date clearing', () => {
+  it('sends the Requested On date with a status update', async () => {
+    const onUpdateStatus = renderPanel(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    fireEvent.change(screen.getByLabelText('Certification status'), {
+      target: { value: 'REQUESTED' },
+    });
+    fireEvent.change(screen.getByLabelText('Requested On'), { target: { value: '07/20/2026' } });
+    fireEvent.blur(screen.getByLabelText('Requested On'));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Status' }));
+    await waitFor(() => expect(onUpdateStatus).toHaveBeenCalledTimes(1));
+    expect(onUpdateStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'REQUESTED', requestedAt: '2026-07-20' }),
+    );
+  });
+
+  it('offers Clear A Date only to a viewer who can see medical detail', () => {
+    renderPanel(false);
+    expect(screen.queryByRole('button', { name: 'Clear A Date' })).not.toBeInTheDocument();
+  });
+
+  it('clears the chosen dates with a required reason', async () => {
+    const onClearDates = vi.fn().mockResolvedValue(undefined);
+    renderPanel(true, undefined, onClearDates);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear A Date' }));
+    const options = screen.getAllByRole('checkbox');
+    expect(options).toHaveLength(3);
+    const clear = screen.getByRole('button', { name: 'Clear Dates' });
+    expect(clear).toBeDisabled();
+    fireEvent.click(screen.getByLabelText('Received Date'));
+    expect(clear).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Reason for clearing'), {
+      target: { value: 'Entered against the wrong certification' },
+    });
+    fireEvent.click(clear);
+    await waitFor(() => expect(onClearDates).toHaveBeenCalledTimes(1));
+    expect(onClearDates).toHaveBeenCalledWith({
+      certificationId: 'cert-1',
+      fields: ['received_at'],
+      reason: 'Entered against the wrong certification',
+    });
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Clear Dates' })).not.toBeInTheDocument(),
+    );
+  });
+
+  it('shows the refusal and keeps the clear form open', async () => {
+    const onClearDates = vi.fn().mockRejectedValue(new Error('Medical access denied'));
+    renderPanel(true, undefined, onClearDates);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear A Date' }));
+    fireEvent.click(screen.getByLabelText('Requested Date'));
+    fireEvent.change(screen.getByLabelText('Reason for clearing'), {
+      target: { value: 'Duplicate entry' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Dates' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Medical access denied');
+    expect(screen.getByLabelText('Requested Date')).toBeChecked();
   });
 });

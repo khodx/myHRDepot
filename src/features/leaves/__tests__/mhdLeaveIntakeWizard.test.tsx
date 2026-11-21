@@ -3,16 +3,30 @@ import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MhdLeaveIntakeWizard } from '../components/MhdLeaveIntakeWizard';
+import {
+  MHD_LEAVE_ADMIN_INTAKE_CHANNELS,
+  MHD_LEAVE_FAMILY_RELATIONSHIPS,
+  MHD_LEAVE_REQUESTED_MODES,
+} from '../WorkflowTypes';
 
 const createAsync = vi.fn();
 const evaluateAsync = vi.fn();
 const confirmAsync = vi.fn();
 const overrideAsync = vi.fn();
 const navigate = vi.fn();
+const authRoles = vi.hoisted(() => ({ current: ['HR Partner'] as string[] }));
 
-vi.mock('@/features/authentication/Hook', () => ({ useMhdAuth: () => ({ profile: { companyId: 'company-1' } }) }));
-vi.mock('@/features/people/Hook', () => ({ useMhdPeoplePicker: () => ({ data: [{ id: 'person-1', firstName: 'Ada', lastName: 'Lovelace' }] }) }));
-vi.mock('../Hook', () => ({ useMhdCreateLeaveCase: () => ({ mutateAsync: createAsync, isPending: false }) }));
+vi.mock('@/features/authentication/Hook', () => ({
+  useMhdAuth: () => ({ profile: { companyId: 'company-1' }, roles: authRoles.current }),
+}));
+vi.mock('@/features/people/Hook', () => ({
+  useMhdPeoplePicker: () => ({
+    data: [{ id: 'person-1', firstName: 'Ada', lastName: 'Lovelace' }],
+  }),
+}));
+vi.mock('../Hook', () => ({
+  useMhdCreateLeaveCase: () => ({ mutateAsync: createAsync, isPending: false }),
+}));
 vi.mock('../WorkflowHook', () => ({
   useMhdLeaveEligibility: () => ({ mutateAsync: evaluateAsync, isPending: false }),
   useMhdConfirmLeaveEligibility: () => ({ mutateAsync: confirmAsync, isPending: false }),
@@ -20,8 +34,12 @@ vi.mock('../WorkflowHook', () => ({
   useMhdLeaveReadiness: () => ({ data: null }),
 }));
 vi.mock('@/components/ui/MhdComplianceGateBanner', () => ({ MhdComplianceGateBanner: () => null }));
-vi.mock('@/components/ui/MhdPageHeader', () => ({ MhdPageHeader: ({ title }: { title: string }) => <h1>{title}</h1> }));
-vi.mock('@/components/ui/MhdCard', () => ({ MhdCard: ({ children }: { children: ReactNode }) => <section>{children}</section> }));
+vi.mock('@/components/ui/MhdPageHeader', () => ({
+  MhdPageHeader: ({ title }: { title: string }) => <h1>{title}</h1>,
+}));
+vi.mock('@/components/ui/MhdCard', () => ({
+  MhdCard: ({ children }: { children: ReactNode }) => <section>{children}</section>,
+}));
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
   return { ...actual, useNavigate: () => navigate };
@@ -56,14 +74,19 @@ function renderWizard(initialEntry = '/leaves/new/intake') {
 function enterFacts() {
   fireEvent.change(screen.getByLabelText('Employer employee count'), { target: { value: '60' } });
   fireEvent.change(screen.getByLabelText('Months of service'), { target: { value: '24' } });
-  fireEvent.change(screen.getByLabelText('Hours worked in last 12 months'), { target: { value: '1500' } });
-  fireEvent.change(screen.getByLabelText('Worksite employees within 75 miles'), { target: { value: '60' } });
+  fireEvent.change(screen.getByLabelText('Hours worked in last 12 months'), {
+    target: { value: '1500' },
+  });
+  fireEvent.change(screen.getByLabelText('Worksite employees within 75 miles'), {
+    target: { value: '60' },
+  });
   fireEvent.change(screen.getByLabelText('Scheduled weekly hours'), { target: { value: '40' } });
 }
 
 describe('MhdLeaveIntakeWizard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authRoles.current = ['HR Partner'];
     createAsync.mockResolvedValue({ id: 'case-1', referenceId: 'LV-1' });
     evaluateAsync.mockResolvedValue([result]);
     confirmAsync.mockResolvedValue(undefined);
@@ -82,13 +105,17 @@ describe('MhdLeaveIntakeWizard', () => {
   it('guards create and evaluate when navigating back and forward, while Previous stays side-effect-free', async () => {
     renderWizard();
     fireEvent.change(screen.getByLabelText('Subject person'), { target: { value: 'person-1' } });
-    fireEvent.change(screen.getByLabelText('Reason category'), { target: { value: 'Medical leave' } });
+    fireEvent.change(screen.getByLabelText('Reason category'), {
+      target: { value: 'Medical leave' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(createAsync).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
     expect(createAsync).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    await waitFor(() => expect(screen.getAllByText('Employer & Service Facts').length).toBeGreaterThan(0));
+    await waitFor(() =>
+      expect(screen.getAllByText('Employer & Service Facts').length).toBeGreaterThan(0),
+    );
     expect(createAsync).toHaveBeenCalledTimes(1);
     enterFacts();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
@@ -121,13 +148,19 @@ describe('MhdLeaveIntakeWizard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm all as evaluated' }));
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Snapshot confirmed' })).toBeDisabled());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Snapshot confirmed' })).toBeDisabled(),
+    );
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText('Reason for override'), { target: { value: 'Verified service dates with payroll' } });
+    fireEvent.change(screen.getByPlaceholderText('Reason for override'), {
+      target: { value: 'Verified service dates with payroll' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Override this one' }));
     await waitFor(() => expect(overrideAsync).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('confirmation is out of date'));
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('confirmation is out of date'),
+    );
     expect(screen.getByRole('button', { name: 'Confirm all as evaluated' })).toBeEnabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
@@ -160,5 +193,60 @@ describe('MhdLeaveIntakeWizard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(screen.getByRole('alert')).toHaveTextContent('none are assumed');
     expect(evaluateAsync).not.toHaveBeenCalled();
+  });
+  it('creates the case with the requested mode and intake channel from the shared vocabularies', async () => {
+    renderWizard();
+    expect(
+      Array.from(
+        screen.getByLabelText('Family relationship (optional)').querySelectorAll('option'),
+      ).map((option) => option.value),
+    ).toEqual(['', ...MHD_LEAVE_FAMILY_RELATIONSHIPS]);
+    expect(
+      Array.from(screen.getByLabelText('Requested mode').querySelectorAll('option')).map(
+        (option) => option.value,
+      ),
+    ).toEqual([...MHD_LEAVE_REQUESTED_MODES]);
+    const channel = screen.getByLabelText('Intake channel');
+    expect(Array.from(channel.querySelectorAll('option')).map((option) => option.value)).toEqual([
+      ...MHD_LEAVE_ADMIN_INTAKE_CHANNELS,
+    ]);
+    expect(screen.getByRole('option', { name: 'Manager Referral' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Subject person'), { target: { value: 'person-1' } });
+    fireEvent.change(screen.getByLabelText('Reason category'), {
+      target: { value: 'Family care' },
+    });
+    fireEvent.change(screen.getByLabelText('Requested mode'), {
+      target: { value: 'REDUCED_SCHEDULE' },
+    });
+    fireEvent.change(channel, { target: { value: 'MANAGER_REFERRAL' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(createAsync).toHaveBeenCalledTimes(1));
+    expect(createAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        personId: 'person-1',
+        requestedMode: 'REDUCED_SCHEDULE',
+        intakeChannel: 'MANAGER_REFERRAL',
+      }),
+    );
+  });
+
+  it('offers the intake channel only to administrators', async () => {
+    authRoles.current = ['Employee'];
+    renderWizard();
+    expect(screen.queryByLabelText('Intake channel')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Subject person'), { target: { value: 'person-1' } });
+    fireEvent.change(screen.getByLabelText('Reason category'), {
+      target: { value: 'Medical leave' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(createAsync).toHaveBeenCalledTimes(1));
+    expect(createAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ requestedMode: 'CONTINUOUS', intakeChannel: null }),
+    );
+  });
+
+  it('no longer asks whether a designated person was selected', () => {
+    renderWizard('/leaves/case-1/intake');
+    expect(screen.queryByLabelText(/designated person selected/i)).not.toBeInTheDocument();
   });
 });

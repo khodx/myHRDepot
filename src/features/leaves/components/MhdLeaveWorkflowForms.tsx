@@ -4,18 +4,34 @@ import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import {
+  MHD_LEAVE_BENEFIT_FREQUENCIES,
   MHD_LEAVE_BENEFIT_RECORDABLE_TRANSACTION_TYPES,
+  MHD_LEAVE_BENEFIT_TYPES,
+  MHD_LEAVE_CONTINUATION_BASES,
+  MHD_LEAVE_GROUP_HEALTH_BENEFIT_TYPES,
+  MHD_LEAVE_HEALTH_PREMIUM_MIN_GRACE_DAYS,
+  MHD_LEAVE_REINSTATEMENT_OUTCOMES,
   MHD_LEAVE_SEGMENT_MODES,
   MHD_LEAVE_SEGMENT_STATUSES,
   mhdReversibleBenefitTransactions,
+  type MhdLeaveBenefitFrequency,
   type MhdLeaveBenefitObligationInput,
   type MhdLeaveBenefitTransactionInput,
   type MhdLeaveBenefitTransactionType,
+  type MhdLeaveBenefitType,
+  type MhdLeaveContinuationBasis,
+  type MhdLeaveReinstatementOutcome,
+  type MhdLeaveReturnToWorkInput,
   type MhdLeaveSegmentInput,
   type MhdLeaveSegmentMode,
   type MhdLeaveSegmentStatus,
   type MhdLeaveWorkflow,
 } from '../WorkflowTypes';
+import {
+  MHD_LEAVE_CONTINUATION_BASIS_LABELS,
+  mhdLeaveEnumLabel,
+  mhdLeavePick,
+} from './mhdLeaveLabels';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -156,9 +172,9 @@ export function MhdLeaveSegmentForm({
 }
 
 /**
- * Privileged-only. The database does not restrict benefit type or frequency to a list
- * (only amounts, dates and status carry CHECKs), so both are free text rather than a
- * vocabulary the schema would not enforce.
+ * Privileged-only. Benefit type, frequency and continuation basis are the database's
+ * vocabularies (mhd_leave_benefit_types / mhd_leave_benefit_frequencies / leave_benefit_rules);
+ * the free-text Description is kept alongside the controlled type as `benefit_label`.
  */
 export function MhdLeaveBenefitObligationForm({
   caseId,
@@ -169,14 +185,26 @@ export function MhdLeaveBenefitObligationForm({
   isPending: boolean;
   onSubmit: (input: MhdLeaveBenefitObligationInput) => Promise<boolean>;
 }) {
-  const [benefitType, setBenefitType] = useState('');
-  const [frequency, setFrequency] = useState('');
+  const [benefitType, setBenefitType] = useState<MhdLeaveBenefitType | ''>('');
+  const [frequency, setFrequency] = useState<MhdLeaveBenefitFrequency | ''>('');
   const [coverageStart, setCoverageStart] = useState('');
   const [coverageEnd, setCoverageEnd] = useState('');
   const [employer, setEmployer] = useState('');
   const [employee, setEmployee] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [gracePeriod, setGracePeriod] = useState('');
+  const [chosenBasis, setChosenBasis] = useState<MhdLeaveContinuationBasis | ''>('');
+  const [seniorityThrough, setSeniorityThrough] = useState('');
+  const [description, setDescription] = useState('');
+
+  // A continuation basis exists only for group health coverage, so it is derived away
+  // (never sent stale) when the type changes to anything else.
+  const isGroupHealth =
+    benefitType !== '' && MHD_LEAVE_GROUP_HEALTH_BENEFIT_TYPES.includes(benefitType);
+  const continuationBasis = isGroupHealth ? chosenBasis : '';
 
   async function submit() {
+    if (!benefitType || !frequency) return;
     const saved = await onSubmit({
       caseId,
       benefitType,
@@ -185,6 +213,11 @@ export function MhdLeaveBenefitObligationForm({
       coverageEnd: coverageEnd || null,
       employerAmount: Number(employer),
       employeeAmount: Number(employee),
+      dueDate: dueDate || null,
+      gracePeriodDays: optionalNumber(gracePeriod),
+      continuationBasis: continuationBasis || null,
+      seniorityCreditThrough: seniorityThrough || null,
+      benefitLabel: description || null,
     });
     if (!saved) return;
     setBenefitType('');
@@ -193,29 +226,60 @@ export function MhdLeaveBenefitObligationForm({
     setCoverageEnd('');
     setEmployer('');
     setEmployee('');
+    setDueDate('');
+    setGracePeriod('');
+    setChosenBasis('');
+    setSeniorityThrough('');
+    setDescription('');
   }
 
   return (
     <MhdCard className="space-y-3">
-      <MhdCardHeader title="Record benefit obligation" />
+      <MhdCardHeader title="Record Benefit Obligation" />
       <MhdFormFieldStack>
-        <label className="text-xs">
+        <label className="block text-xs">
           Benefit type
-          <input
+          <select
             className={`mt-1 ${inputClass}`}
             value={benefitType}
-            onChange={(e) => setBenefitType(e.target.value)}
-          />
+            onChange={(e) =>
+              setBenefitType(mhdLeavePick(MHD_LEAVE_BENEFIT_TYPES, e.target.value) ?? '')
+            }
+          >
+            <option value="">Select a benefit type</option>
+            {MHD_LEAVE_BENEFIT_TYPES.map((value) => (
+              <option key={value} value={value}>
+                {mhdLeaveEnumLabel(value)}
+              </option>
+            ))}
+          </select>
         </label>
-        <label className="text-xs">
-          Contribution frequency
+        <label className="block text-xs">
+          Description (optional)
           <input
             className={`mt-1 ${inputClass}`}
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value)}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
           />
         </label>
-        <label className="text-xs">
+        <label className="block text-xs">
+          Contribution frequency
+          <select
+            className={`mt-1 ${inputClass}`}
+            value={frequency}
+            onChange={(e) =>
+              setFrequency(mhdLeavePick(MHD_LEAVE_BENEFIT_FREQUENCIES, e.target.value) ?? '')
+            }
+          >
+            <option value="">Select a frequency</option>
+            {MHD_LEAVE_BENEFIT_FREQUENCIES.map((value) => (
+              <option key={value} value={value}>
+                {mhdLeaveEnumLabel(value)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-xs">
           Coverage start
           <MhdDateField
             className={`mt-1 ${inputClass}`}
@@ -223,7 +287,7 @@ export function MhdLeaveBenefitObligationForm({
             onChange={setCoverageStart}
           />
         </label>
-        <label className="text-xs">
+        <label className="block text-xs">
           Coverage end (optional)
           <MhdDateField
             className={`mt-1 ${inputClass}`}
@@ -231,7 +295,7 @@ export function MhdLeaveBenefitObligationForm({
             onChange={setCoverageEnd}
           />
         </label>
-        <label className="text-xs">
+        <label className="block text-xs">
           Employer amount
           <input
             className={`mt-1 ${inputClass}`}
@@ -242,7 +306,7 @@ export function MhdLeaveBenefitObligationForm({
             onChange={(e) => setEmployer(e.target.value)}
           />
         </label>
-        <label className="text-xs">
+        <label className="block text-xs">
           Employee amount
           <input
             className={`mt-1 ${inputClass}`}
@@ -253,12 +317,59 @@ export function MhdLeaveBenefitObligationForm({
             onChange={(e) => setEmployee(e.target.value)}
           />
         </label>
+        <label className="block text-xs">
+          Due date (optional)
+          <MhdDateField className={`mt-1 ${inputClass}`} value={dueDate} onChange={setDueDate} />
+        </label>
+        <label className="block text-xs">
+          Grace period in days (optional)
+          <input
+            className={`mt-1 ${inputClass}`}
+            type="number"
+            min="0"
+            step="1"
+            value={gracePeriod}
+            onChange={(e) => setGracePeriod(e.target.value)}
+          />
+        </label>
+        <div>
+          <label className="block text-xs">
+            Continuation basis
+            <select
+              className={`mt-1 ${inputClass}`}
+              value={continuationBasis}
+              disabled={!isGroupHealth}
+              onChange={(e) =>
+                setChosenBasis(mhdLeavePick(MHD_LEAVE_CONTINUATION_BASES, e.target.value) ?? '')
+              }
+            >
+              <option value="">Not applicable</option>
+              {MHD_LEAVE_CONTINUATION_BASES.map((value) => (
+                <option key={value} value={value}>
+                  {MHD_LEAVE_CONTINUATION_BASIS_LABELS[value]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Offered for medical, dental and vision coverage. Group health premiums keep a grace
+            period of at least {MHD_LEAVE_HEALTH_PREMIUM_MIN_GRACE_DAYS} days.
+          </p>
+        </div>
+        <label className="block text-xs">
+          Seniority credit through (optional)
+          <MhdDateField
+            className={`mt-1 ${inputClass}`}
+            value={seniorityThrough}
+            onChange={setSeniorityThrough}
+          />
+        </label>
       </MhdFormFieldStack>
       <Button
         disabled={
           isPending ||
-          !benefitType.trim() ||
-          !frequency.trim() ||
+          !benefitType ||
+          !frequency ||
           !coverageStart ||
           employer === '' ||
           employee === ''
@@ -266,6 +377,164 @@ export function MhdLeaveBenefitObligationForm({
         onClick={() => void submit()}
       >
         {isPending ? 'Recording…' : 'Record Obligation'}
+      </Button>
+    </MhdCard>
+  );
+}
+
+/**
+ * Privileged-only. Opens on the recorded plan (if any) so an update starts from what is on
+ * file. A return-to-work certification may be required only under a uniformly applied company
+ * policy; without one the database refuses it and the caller shows that refusal.
+ */
+export function MhdLeaveReturnToWorkForm({
+  caseId,
+  current,
+  uniformCertificationPolicy,
+  isPending,
+  onSubmit,
+}: {
+  caseId: string;
+  current: MhdLeaveWorkflow['return_to_work'];
+  uniformCertificationPolicy: boolean;
+  isPending: boolean;
+  onSubmit: (input: MhdLeaveReturnToWorkInput) => Promise<boolean>;
+}) {
+  const [expectedReturn, setExpectedReturn] = useState(current?.expected_return_date ?? '');
+  const [actualReturn, setActualReturn] = useState(current?.actual_return_date ?? '');
+  const [outcome, setOutcome] = useState<MhdLeaveReinstatementOutcome | ''>(
+    current?.reinstatement_outcome ?? '',
+  );
+  const [exceptionReason, setExceptionReason] = useState(
+    current?.reinstatement_exception_reason ?? '',
+  );
+  const [fitnessRequired, setFitnessRequired] = useState(current?.fitness_required ?? false);
+  const [certRequestedOn, setCertRequestedOn] = useState(
+    current?.rtw_certification_requested_on ?? '',
+  );
+  const [certReceivedOn, setCertReceivedOn] = useState(
+    current?.rtw_certification_received_on ?? '',
+  );
+  const [restrictions, setRestrictions] = useState(current?.restrictions_present ?? false);
+  const [note, setNote] = useState('');
+
+  async function submit() {
+    const saved = await onSubmit({
+      caseId,
+      expectedReturnDate: expectedReturn,
+      actualReturnDate: actualReturn || null,
+      // The outcome answers "same or comparable job": either position is a return to one.
+      sameOrComparableJob: outcome === '' ? null : outcome !== 'NOT_REINSTATED',
+      fitnessRequired,
+      restrictionsPresent: restrictions,
+      accommodationReferralRequired: restrictions,
+      reinstatementNote: note || null,
+      reinstatementOutcome: outcome || null,
+      exceptionReason: exceptionReason || null,
+      rtwCertificationRequestedOn: certRequestedOn || null,
+      rtwCertificationReceivedOn: certReceivedOn || null,
+    });
+    if (saved) setNote('');
+  }
+
+  return (
+    <MhdCard className="space-y-3">
+      <MhdCardHeader title="Return-To-Work Plan" />
+      <p className="text-xs text-muted-foreground">
+        {uniformCertificationPolicy
+          ? 'Return-to-work certifications are required under a uniformly applied company policy.'
+          : 'This company has no uniformly applied return-to-work certification policy, so requiring a certification will be refused.'}
+      </p>
+      <MhdFormFieldStack>
+        <label className="block text-xs">
+          Expected return date
+          <MhdDateField
+            className={`mt-1 ${inputClass}`}
+            value={expectedReturn}
+            onChange={setExpectedReturn}
+          />
+        </label>
+        <label className="block text-xs">
+          Actual return date (optional)
+          <MhdDateField
+            className={`mt-1 ${inputClass}`}
+            value={actualReturn}
+            onChange={setActualReturn}
+          />
+        </label>
+        <label className="block text-xs">
+          Reinstatement outcome (optional)
+          <select
+            className={`mt-1 ${inputClass}`}
+            value={outcome}
+            onChange={(e) =>
+              setOutcome(mhdLeavePick(MHD_LEAVE_REINSTATEMENT_OUTCOMES, e.target.value) ?? '')
+            }
+          >
+            <option value="">Not yet decided</option>
+            {MHD_LEAVE_REINSTATEMENT_OUTCOMES.map((value) => (
+              <option key={value} value={value}>
+                {mhdLeaveEnumLabel(value)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div>
+          <label className="block text-xs">
+            Exception reason
+            <textarea
+              className={`mt-1 min-h-16 ${inputClass}`}
+              value={exceptionReason}
+              onChange={(e) => setExceptionReason(e.target.value)}
+            />
+          </label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Required for a pregnancy-disability comparable position or any non-reinstatement.
+          </p>
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={fitnessRequired}
+            onChange={(e) => setFitnessRequired(e.target.checked)}
+          />
+          Fitness-For-Duty Certification Required
+        </label>
+        <label className="block text-xs">
+          Certification requested on (optional)
+          <MhdDateField
+            className={`mt-1 ${inputClass}`}
+            value={certRequestedOn}
+            onChange={setCertRequestedOn}
+          />
+        </label>
+        <label className="block text-xs">
+          Certification received on (optional)
+          <MhdDateField
+            className={`mt-1 ${inputClass}`}
+            value={certReceivedOn}
+            onChange={setCertReceivedOn}
+          />
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={restrictions}
+            onChange={(e) => setRestrictions(e.target.checked)}
+          />
+          Work Restrictions Present; Begin Accommodation Referral
+        </label>
+        <label className="block text-xs">
+          Reinstatement note (optional)
+          <textarea
+            className={`mt-1 min-h-16 ${inputClass}`}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </label>
+      </MhdFormFieldStack>
+      <Button disabled={isPending || !expectedReturn} onClick={() => void submit()}>
+        {isPending ? 'Saving…' : 'Save Return-To-Work Plan'}
       </Button>
     </MhdCard>
   );
@@ -402,7 +671,11 @@ export function MhdLeaveBenefitTransactionForm({
       </MhdFormFieldStack>
       <Button
         disabled={
-          isPending || !obligationId || amount.trim() === '' || !effectiveDate || (isReversal && !target)
+          isPending ||
+          !obligationId ||
+          amount.trim() === '' ||
+          !effectiveDate ||
+          (isReversal && !target)
         }
         onClick={() => void submit()}
       >

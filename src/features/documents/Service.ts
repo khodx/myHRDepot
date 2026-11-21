@@ -52,6 +52,7 @@ const MHD_ALLOWED_UPLOAD_MIME_TYPES = [
 type MhdDocumentTemplateRow = {
   id: string;
   reference_id: string;
+  template_key: string | null;
   company_id: string | null;
   name: string;
   template_type: string;
@@ -119,6 +120,7 @@ function mapTemplateRow(row: MhdDocumentTemplateRow): MhdDocumentTemplate {
   return {
     id: row.id,
     referenceId: row.reference_id as MhdDocumentTemplate['referenceId'],
+    templateKey: row.template_key,
     companyId: row.company_id,
     name: row.name,
     templateType: row.template_type as MhdDocumentTemplate['templateType'],

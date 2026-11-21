@@ -93,6 +93,13 @@ export interface MhdDocumentMergeFieldCatalogEntry {
 export interface MhdDocumentTemplate {
   id: MhdDocumentTemplateId;
   referenceId: MhdDocumentTemplateReferenceId;
+  /**
+   * The template's stable key (`document_templates.template_key`, e.g. a seeded notice
+   * key). It survives new versions and company overrides, so records that must name the
+   * template they used (a leave notice) store this, never the row id or the display name.
+   * Null for an ad hoc template that was never given a key.
+   */
+  templateKey: string | null;
   /** Null = platform-level/shared template (Platform-Admin-authored only). */
   companyId: string | null;
   name: string;

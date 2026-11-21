@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
+import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
@@ -36,12 +37,24 @@ import {
 import { MhdLeaveBalancePanel } from './MhdLeaveBalancePanel';
 import { MhdLeaveCertificationPanel } from './MhdLeaveCertificationPanel';
 import { MhdLeaveStatusBadge } from './MhdLeaveStatusBadge';
-import { useMhdLeaveWorkflow } from '../WorkflowHook';
+import { useMhdLeaveCertificationClearDates, useMhdLeaveWorkflow } from '../WorkflowHook';
+import type { MhdLeavePolicy } from '../WorkflowTypes';
 import { MhdLeaveWorkflowPanel } from './MhdLeaveWorkflowPanel';
+import { mhdLeaveEnumLabel } from './mhdLeaveLabels';
 
 const REQUIRE_REASON: readonly MhdLeaveCaseStatus[] = ['DENIED', 'CANCELLED'];
 
 const LEAVE_STATUS_TRANSITION_ID = 'leave-status-transition';
+
+/**
+ * The company's 12-month leave-year method (`method_text_key` from mhd_leave_policy_get).
+ * Without a recorded election the method most favorable to the employee applies.
+ */
+function leaveYearText(policy: MhdLeavePolicy): string {
+  if (!policy.election_recorded || !policy.year_method)
+    return 'Leave Year: Most Favorable To The Employee';
+  return `Leave Year: ${mhdLeaveEnumLabel(policy.year_method)}`;
+}
 
 const INPUT_CLASSES =
   'rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -94,6 +107,10 @@ export function MhdLeaveCaseDetailPage() {
   const recordCert = useMhdRecordCertification();
   const markCert = useMhdMarkCertificationSufficient(caseId);
   const updateCertStatus = useMhdUpdateCertificationStatus(caseId);
+  const clearCertDates = useMhdLeaveCertificationClearDates(caseId);
+  const overdueDeadlines = (workflow.data?.deadlines ?? []).filter(
+    (deadline) => deadline.is_overdue,
+  ).length;
 
   // ----- Designation-set editor state -----
   // The editor seeds from the persisted set at the moment the user opens it (in
@@ -225,7 +242,10 @@ export function MhdLeaveCaseDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Link to={`/leaves/${caseId}/intake`} className="rounded-md border border-border px-3 py-2 text-sm font-medium">
+        <Link
+          to={`/leaves/${caseId}/intake`}
+          className="rounded-md border border-border px-3 py-2 text-sm font-medium"
+        >
           Guided evaluation
         </Link>
       </div>
@@ -234,12 +254,22 @@ export function MhdLeaveCaseDetailPage() {
         backTo="/leaves"
         backLabel="all leaves"
         title={leaveCase.personDisplayName}
-        chips={<MhdLeaveStatusBadge status={leaveCase.status} />}
+        chips={
+          <>
+            <MhdLeaveStatusBadge status={leaveCase.status} />
+            {overdueDeadlines > 0 ? (
+              <MhdBadge variant="error">
+                {overdueDeadlines} Overdue {overdueDeadlines === 1 ? 'Deadline' : 'Deadlines'}
+              </MhdBadge>
+            ) : null}
+          </>
+        }
         description={
           <>
             <span className="font-mono">{leaveCase.referenceId}</span> · {leaveCase.reasonCategory}
             {leaveCase.requestedStart ? ` · ${leaveCase.requestedStart}` : ''}
             {leaveCase.requestedEnd ? ` → ${leaveCase.requestedEnd}` : ''}
+            {workflow.data ? ` · ${leaveYearText(workflow.data.policy)}` : ''}
           </>
         }
         actions={
@@ -265,49 +295,49 @@ export function MhdLeaveCaseDetailPage() {
           <MhdCardHeader title="Status" className="mb-0" />
           {effectiveNewStatus === null ? (
             <p className="text-sm text-muted-foreground">
-              This case is {mhdFormatLeaveCaseStatus(leaveCase.status).toLowerCase()}; no further status
-              changes are available.
+              This case is {mhdFormatLeaveCaseStatus(leaveCase.status).toLowerCase()}; no further
+              status changes are available.
             </p>
           ) : (
-          <div className="flex flex-wrap items-end gap-3">
-            <div>
-              <label htmlFor="newStatus" className="block text-sm font-medium text-foreground">
-                Move to
-              </label>
-              <select
-                id="newStatus"
-                value={effectiveNewStatus}
-                onChange={(event) => setNewStatus(event.target.value as MhdLeaveCaseStatus)}
-                className={`mt-1 ${INPUT_CLASSES}`}
-              >
-                {nextStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {mhdFormatLeaveCaseStatus(status)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {REQUIRE_REASON.includes(effectiveNewStatus) ? (
-              <div className="flex-1">
-                <label
-                  htmlFor="decisionReason"
-                  className="block text-sm font-medium text-foreground"
-                >
-                  Reason <span className="font-normal text-muted-foreground">(required)</span>
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label htmlFor="newStatus" className="block text-sm font-medium text-foreground">
+                  Move to
                 </label>
-                <input
-                  id="decisionReason"
-                  type="text"
-                  value={decisionReason}
-                  onChange={(event) => setDecisionReason(event.target.value)}
-                  className={`mt-1 w-full ${INPUT_CLASSES}`}
-                />
+                <select
+                  id="newStatus"
+                  value={effectiveNewStatus}
+                  onChange={(event) => setNewStatus(event.target.value as MhdLeaveCaseStatus)}
+                  className={`mt-1 ${INPUT_CLASSES}`}
+                >
+                  {nextStatuses.map((status) => (
+                    <option key={status} value={status}>
+                      {mhdFormatLeaveCaseStatus(status)}
+                    </option>
+                  ))}
+                </select>
               </div>
-            ) : null}
-            <Button disabled={transition.isPending} onClick={() => void submitTransition()}>
-              {transition.isPending ? 'Saving…' : 'Update status'}
-            </Button>
-          </div>
+              {REQUIRE_REASON.includes(effectiveNewStatus) ? (
+                <div className="flex-1">
+                  <label
+                    htmlFor="decisionReason"
+                    className="block text-sm font-medium text-foreground"
+                  >
+                    Reason <span className="font-normal text-muted-foreground">(required)</span>
+                  </label>
+                  <input
+                    id="decisionReason"
+                    type="text"
+                    value={decisionReason}
+                    onChange={(event) => setDecisionReason(event.target.value)}
+                    className={`mt-1 w-full ${INPUT_CLASSES}`}
+                  />
+                </div>
+              ) : null}
+              <Button disabled={transition.isPending} onClick={() => void submitTransition()}>
+                {transition.isPending ? 'Saving…' : 'Update status'}
+              </Button>
+            </div>
           )}
           {transitionError ? <p className="text-xs text-rose-600">{transitionError}</p> : null}
         </MhdCard>
@@ -526,7 +556,12 @@ export function MhdLeaveCaseDetailPage() {
         workflowCertifications={workflow.data?.certifications}
         canSeeMedical={canSeeMedical}
         isLoading={certifications.isLoading}
-        isSubmitting={recordCert.isPending || markCert.isPending || updateCertStatus.isPending}
+        isSubmitting={
+          recordCert.isPending ||
+          markCert.isPending ||
+          updateCertStatus.isPending ||
+          clearCertDates.isPending
+        }
         onRecord={async (input) => {
           await recordCert.mutateAsync(input);
         }}
@@ -535,6 +570,9 @@ export function MhdLeaveCaseDetailPage() {
         }}
         onUpdateStatus={async (input) => {
           await updateCertStatus.mutateAsync(input);
+        }}
+        onClearDates={async (input) => {
+          await clearCertDates.mutateAsync(input);
         }}
       />
 

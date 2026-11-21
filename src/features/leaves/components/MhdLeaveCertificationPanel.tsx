@@ -13,7 +13,12 @@ import {
   type MhdRecordCertificationInput,
   type MhdUpdateCertificationStatusInput,
 } from '../Types';
-import type { MhdLeaveWorkflow } from '../WorkflowTypes';
+import {
+  MHD_LEAVE_CERTIFICATION_CLEARABLE_DATES,
+  type MhdLeaveCertificationClearableDate,
+  type MhdLeaveCertificationClearDatesInput,
+  type MhdLeaveWorkflow,
+} from '../WorkflowTypes';
 
 interface Props {
   caseId: string;
@@ -34,7 +39,15 @@ interface Props {
   onRecord: (input: MhdRecordCertificationInput) => Promise<void>;
   onMarkSufficient: (input: MhdMarkCertificationInput) => Promise<void>;
   onUpdateStatus: (input: MhdUpdateCertificationStatusInput) => Promise<void>;
+  /** Removes recorded dates with a reason (medical roles only; the RPC re-checks the gate). */
+  onClearDates: (input: MhdLeaveCertificationClearDatesInput) => Promise<void>;
 }
+
+const CLEARABLE_DATE_LABELS: Readonly<Record<MhdLeaveCertificationClearableDate, string>> = {
+  received_at: 'Received Date',
+  deficiency_notified_at: 'Deficiency Notified Date (And Its Cure Date)',
+  requested_at: 'Requested Date',
+};
 
 const INPUT_CLASSES =
   'rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -71,6 +84,7 @@ export function MhdLeaveCertificationPanel({
   onRecord,
   onMarkSufficient,
   onUpdateStatus,
+  onClearDates,
 }: Props) {
   const operationalById = new Map(workflowCertifications.map((item) => [item.id, item]));
   const [isRecording, setIsRecording] = useState(false);
@@ -87,6 +101,7 @@ export function MhdLeaveCertificationPanel({
   // record supplies it, and stays blank (a deliberate choice) when it does not.
   const [statusId, setStatusId] = useState<string | null>(null);
   const [newStatus, setNewStatus] = useState<MhdLeaveCertificationStatus | ''>('');
+  const [requestedAt, setRequestedAt] = useState('');
   const [receivedAt, setReceivedAt] = useState('');
   const [deficiencyNotifiedAt, setDeficiencyNotifiedAt] = useState('');
   const [cureDueDate, setCureDueDate] = useState('');
@@ -96,6 +111,7 @@ export function MhdLeaveCertificationPanel({
   function closeStatusForm() {
     setStatusId(null);
     setNewStatus('');
+    setRequestedAt('');
     setReceivedAt('');
     setDeficiencyNotifiedAt('');
     setCureDueDate('');
@@ -124,11 +140,41 @@ export function MhdLeaveCertificationPanel({
         deficiencyNotifiedAt: deficiencyNotifiedAt || null,
         cureDueDate: cureDueDate || null,
         reviewNote: reviewNote.trim() || null,
+        requestedAt: requestedAt || null,
       });
       closeStatusForm();
     } catch (caught) {
       // The server's own refusal (for example the cure-date rule) is shown verbatim.
       setStatusError(caught instanceof Error ? caught.message : 'Unable to update the status.');
+    }
+  }
+
+  // Clear-a-date state: which certification, which dates, and the required reason.
+  const [clearingId, setClearingId] = useState<string | null>(null);
+  const [clearFields, setClearFields] = useState<MhdLeaveCertificationClearableDate[]>([]);
+  const [clearReason, setClearReason] = useState('');
+  const [clearError, setClearError] = useState<string | null>(null);
+
+  function closeClearForm() {
+    setClearingId(null);
+    setClearFields([]);
+    setClearReason('');
+    setClearError(null);
+  }
+
+  function toggleClearField(field: MhdLeaveCertificationClearableDate, checked: boolean) {
+    setClearFields((current) =>
+      checked ? [...current, field] : current.filter((item) => item !== field),
+    );
+  }
+
+  async function submitClear(certificationId: string) {
+    setClearError(null);
+    try {
+      await onClearDates({ certificationId, fields: clearFields, reason: clearReason });
+      closeClearForm();
+    } catch (caught) {
+      setClearError(caught instanceof Error ? caught.message : 'Unable to clear the dates.');
     }
   }
 
@@ -245,9 +291,7 @@ export function MhdLeaveCertificationPanel({
                     {cert.receivedAt ? ` · received ${cert.receivedAt}` : ' · not yet received'}
                   </p>
                   {operationalById.get(cert.id) ? (
-                    <MhdCertificationOperationalFacts
-                      facts={operationalById.get(cert.id)!}
-                    />
+                    <MhdCertificationOperationalFacts facts={operationalById.get(cert.id)!} />
                   ) : null}
                 </div>
                 <MhdBadge
@@ -348,7 +392,10 @@ export function MhdLeaveCertificationPanel({
                   <div className="mt-3 space-y-2 border-t border-border pt-3">
                     <div className="flex flex-wrap items-end gap-3">
                       <div>
-                        <label htmlFor={`status-${cert.id}`} className="block text-sm font-medium text-foreground">
+                        <label
+                          htmlFor={`status-${cert.id}`}
+                          className="block text-sm font-medium text-foreground"
+                        >
                           Certification status
                         </label>
                         <select
@@ -368,7 +415,24 @@ export function MhdLeaveCertificationPanel({
                         </select>
                       </div>
                       <div>
-                        <label htmlFor={`received-${cert.id}`} className="block text-sm font-medium text-foreground">
+                        <label
+                          htmlFor={`requested-${cert.id}`}
+                          className="block text-sm font-medium text-foreground"
+                        >
+                          Requested On
+                        </label>
+                        <MhdDateField
+                          id={`requested-${cert.id}`}
+                          value={requestedAt}
+                          onChange={setRequestedAt}
+                          className={`mt-1 ${INPUT_CLASSES}`}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor={`received-${cert.id}`}
+                          className="block text-sm font-medium text-foreground"
+                        >
                           Received date
                         </label>
                         <MhdDateField
@@ -379,7 +443,10 @@ export function MhdLeaveCertificationPanel({
                         />
                       </div>
                       <div>
-                        <label htmlFor={`deficiency-${cert.id}`} className="block text-sm font-medium text-foreground">
+                        <label
+                          htmlFor={`deficiency-${cert.id}`}
+                          className="block text-sm font-medium text-foreground"
+                        >
                           Deficiency notified date
                         </label>
                         <MhdDateField
@@ -390,7 +457,10 @@ export function MhdLeaveCertificationPanel({
                         />
                       </div>
                       <div>
-                        <label htmlFor={`cure-${cert.id}`} className="block text-sm font-medium text-foreground">
+                        <label
+                          htmlFor={`cure-${cert.id}`}
+                          className="block text-sm font-medium text-foreground"
+                        >
                           Cure due date
                         </label>
                         <MhdDateField
@@ -401,7 +471,10 @@ export function MhdLeaveCertificationPanel({
                         />
                       </div>
                     </div>
-                    <label htmlFor={`review-note-${cert.id}`} className="block text-sm font-medium text-foreground">
+                    <label
+                      htmlFor={`review-note-${cert.id}`}
+                      className="block text-sm font-medium text-foreground"
+                    >
                       Operational note{' '}
                       <span className="font-normal text-muted-foreground">
                         (optional; no diagnosis or medical detail)
@@ -440,6 +513,69 @@ export function MhdLeaveCertificationPanel({
                     className="mt-3 ml-4 text-sm font-medium text-accent hover:text-accent-hover"
                   >
                     Update status
+                  </button>
+                )
+              ) : null}
+
+              {canSeeMedical ? (
+                clearingId === cert.id ? (
+                  <div className="mt-3 space-y-2 border-t border-border pt-3">
+                    <fieldset>
+                      <legend className="text-sm font-medium text-foreground">
+                        Dates To Clear
+                      </legend>
+                      {MHD_LEAVE_CERTIFICATION_CLEARABLE_DATES.map((field) => (
+                        <label key={field} className="mt-1 flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={clearFields.includes(field)}
+                            onChange={(event) => toggleClearField(field, event.target.checked)}
+                          />
+                          {CLEARABLE_DATE_LABELS[field]}
+                        </label>
+                      ))}
+                    </fieldset>
+                    <label
+                      htmlFor={`clear-reason-${cert.id}`}
+                      className="block text-sm font-medium text-foreground"
+                    >
+                      Reason for clearing
+                    </label>
+                    <textarea
+                      id={`clear-reason-${cert.id}`}
+                      rows={2}
+                      maxLength={2000}
+                      value={clearReason}
+                      onChange={(event) => setClearReason(event.target.value)}
+                      className={`w-full ${INPUT_CLASSES}`}
+                    />
+                    {clearError ? (
+                      <p role="alert" className="text-sm text-rose-700">
+                        {clearError}
+                      </p>
+                    ) : null}
+                    <div className="flex justify-end gap-2">
+                      <Button variant="secondary" onClick={closeClearForm}>
+                        Cancel
+                      </Button>
+                      <Button
+                        disabled={isSubmitting || clearFields.length === 0 || !clearReason.trim()}
+                        onClick={() => void submitClear(cert.id)}
+                      >
+                        Clear Dates
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeClearForm();
+                      setClearingId(cert.id);
+                    }}
+                    className="mt-3 ml-4 text-sm font-medium text-accent hover:text-accent-hover"
+                  >
+                    Clear A Date
                   </button>
                 )
               ) : null}
