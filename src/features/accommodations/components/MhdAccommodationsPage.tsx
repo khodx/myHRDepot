@@ -168,9 +168,7 @@ export function MhdAccommodationsPage() {
                   <MhdTd>{mhdFormatAccommodationValue(item.requestSource)}</MhdTd>
                   <MhdTd>{mhdFormatAccommodationValue(item.status)}</MhdTd>
                   <MhdTd>{item.reviewDueDate ?? '—'}</MhdTd>
-                  <MhdTd>
-                    <MhdTableActions viewTo={`/accommodations/${item.id}`} />
-                  </MhdTd>
+                  <MhdTableActions viewTo={`/accommodations/${item.id}`} />
                 </MhdTr>
               ))}
             </tbody>
