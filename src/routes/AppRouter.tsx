@@ -460,6 +460,10 @@ const MhdLeaveTypeLibraryPage = lazyPage(
   () => import('@/features/leaves/components/MhdLeaveTypeLibraryPage'),
   'MhdLeaveTypeLibraryPage',
 );
+const MhdLeavePolicySettingsPage = lazyPage(
+  () => import('@/features/leaves/components/MhdLeavePolicySettingsPage'),
+  'MhdLeavePolicySettingsPage',
+);
 const MhdLeaveCaseDetailPage = lazyPage(
   () => import('@/features/leaves/components/MhdLeaveCaseDetailPage'),
   'MhdLeaveCaseDetailPage',
@@ -955,6 +959,7 @@ function MhdAppRoutes() {
                   medical-certification note is masked server-side to all but
                   Platform Admin / HR Partner. */}
                 <Route path="/leaves/policy-library" element={<MhdLeaveTypeLibraryPage />} />
+                <Route path="/leaves/settings" element={<MhdLeavePolicySettingsPage />} />
                 <Route path="/leaves/new/intake" element={<MhdLeaveIntakeWizard />} />
                 <Route path="/leaves/:caseId/intake" element={<MhdLeaveIntakeWizard />} />
                 <Route path="/leaves" element={<MhdLeavesPage />} />

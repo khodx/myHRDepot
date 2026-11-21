@@ -37,6 +37,20 @@ describe('leaves route access', () => {
     }
   });
 
+  it('admits only the policy-election roles to /leaves/settings', () => {
+    for (const role of [
+      'Platform Admin',
+      'HR Partner',
+      'HR Admin',
+      'Client Admin',
+    ] as MhdAuthRoleName[]) {
+      expect(mhdCanAccessRoute('/leaves/settings', [role])).toBe(true);
+    }
+    for (const role of ['Employee', 'Viewer', 'HR Specialist'] as MhdAuthRoleName[]) {
+      expect(mhdCanAccessRoute('/leaves/settings', [role])).toBe(false);
+    }
+  });
+
   it('mhdLeavesIsPrivileged is Platform Admin / HR Partner / Client Admin only', () => {
     for (const role of ['Platform Admin', 'HR Partner', 'Client Admin'] as MhdAuthRoleName[]) {
       expect(mhdLeavesIsPrivileged([role])).toBe(true);

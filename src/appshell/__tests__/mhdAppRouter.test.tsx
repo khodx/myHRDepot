@@ -189,6 +189,9 @@ vi.mock('@/features/timeattendance/components/MhdScheduleTemplatePage', () => ({
 vi.mock('@/features/leaves/components/MhdLeavesPage', () => ({
   MhdLeavesPage: () => <div>Leaves Page</div>,
 }));
+vi.mock('@/features/leaves/components/MhdLeavePolicySettingsPage', () => ({
+  MhdLeavePolicySettingsPage: () => <div>Leave Policy Settings Page</div>,
+}));
 vi.mock('@/features/leaves/components/MhdLeaveCaseDetailPage', () => ({
   MhdLeaveCaseDetailPage: () => <div>Leave Case Detail Page</div>,
 }));
@@ -762,6 +765,32 @@ describe('MhdAppRouter', () => {
       expect(screen.getByText('Page Not Found')).toBeInTheDocument();
       expect(window.location.pathname).toBe('/404');
     });
+
+    it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin'])(
+      'renders the leave policy settings route for %s',
+      async (role) => {
+        mockAuth({ isAuthenticated: true, roles: [role] });
+        setUrl('/leaves/settings');
+
+        render(<MhdAppRouter />);
+
+        expect(await screen.findByText('Leave Policy Settings Page')).toBeInTheDocument();
+        expect(window.location.pathname).toBe('/leaves/settings');
+      },
+    );
+
+    it.each<MhdAuthRoleName>(['Employee', 'Viewer'])(
+      'redirects %s away from the leave policy settings route to "/404"',
+      (role) => {
+        mockAuth({ isAuthenticated: true, roles: [role] });
+        setUrl('/leaves/settings');
+
+        render(<MhdAppRouter />);
+
+        expect(screen.queryByText('Leave Policy Settings Page')).not.toBeInTheDocument();
+        expect(window.location.pathname).toBe('/404');
+      },
+    );
 
     it.each<MhdAuthRoleName>(['Platform Admin', 'HR Partner', 'Client Admin'])(
       'renders the accommodation case detail route for %s',

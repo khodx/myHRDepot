@@ -343,6 +343,12 @@ export const MHD_ROUTE_ACCESS: MhdRouteAccessRule[] = [
     path: '/leaves/policy-library',
     roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin', 'Executive Leadership', 'Director'],
   },
+  // Company leave policy settings (12-month method election); mhd_leave_policy_set admits
+  // exactly these roles. Must precede the general '/leaves' rule.
+  {
+    path: '/leaves/settings',
+    roles: ['Platform Admin', 'HR Partner', 'HR Admin', 'Client Admin'],
+  },
   {
     path: '/leaves',
     roles: [
