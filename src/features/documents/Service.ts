@@ -55,6 +55,7 @@ type MhdDocumentTemplateRow = {
   template_key: string | null;
   company_id: string | null;
   name: string;
+  template_key: string | null;
   template_type: string;
   applicable_entity_type: string | null;
   description: string | null;
@@ -123,6 +124,7 @@ function mapTemplateRow(row: MhdDocumentTemplateRow): MhdDocumentTemplate {
     templateKey: row.template_key,
     companyId: row.company_id,
     name: row.name,
+    templateKey: row.template_key,
     templateType: row.template_type as MhdDocumentTemplate['templateType'],
     applicableEntityType: row.applicable_entity_type,
     description: row.description,

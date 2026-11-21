@@ -103,6 +103,11 @@ export interface MhdDocumentTemplate {
   /** Null = platform-level/shared template (Platform-Admin-authored only). */
   companyId: string | null;
   name: string;
+  /** The stable `template_key` (e.g. ACCOMMODATION_DENIAL_LETTER) that seeded
+   *  and module-default templates carry. Records that must name a template
+   *  durably (notices) store this key, never the id or the display name. Null
+   *  for an ad hoc template authored without a key. */
+  templateKey: string | null;
   templateType: MhdDocumentTemplateType;
   /** The entity_type a module-embedded MhdDocumentGenerationPanel filters
    *  by (e.g. TASK, CONDUCT_ACTION, OFFBOARDING_CASE, PERFORMANCE_REVIEW,

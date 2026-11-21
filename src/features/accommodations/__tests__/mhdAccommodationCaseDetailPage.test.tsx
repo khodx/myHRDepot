@@ -1,11 +1,16 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
 import {
+  MHD_ACCOMMODATION_DENIAL_REASON_RULES,
   MHD_ACCOMMODATION_DENIAL_REASONS,
   MHD_ACCOMMODATION_OPTION_TYPES,
+  mhdFormatAccommodationValue,
+  type MhdAccommodationDenialReasonCode,
   type MhdAccommodationDetail,
+  type MhdAccommodationProviderCertification,
   type MhdComplianceReadiness,
 } from '../Types';
 
@@ -19,8 +24,18 @@ const {
   addOptionMock,
   reviewMock,
   interactionMock,
+  decideMock,
+  equipmentMock,
+  providerRevealMock,
+  profileRef,
+  denialCodesRef,
 } = vi.hoisted(() => ({
   rolesRef: { current: [] as MhdAuthRoleName[] },
+  profileRef: { current: null as { companyId: string; personId: string | null } | null },
+  denialCodesRef: { current: [] as unknown[] },
+  decideMock: vi.fn(),
+  equipmentMock: vi.fn(),
+  providerRevealMock: vi.fn(),
   detailRef: { current: null as unknown },
   readinessRef: { current: null as unknown },
   implementMock: vi.fn(),
@@ -32,7 +47,11 @@ const {
 }));
 
 vi.mock('@/features/authentication/Hook', () => ({
-  useMhdAuth: () => ({ roles: rolesRef.current }),
+  useMhdAuth: () => ({ roles: rolesRef.current, profile: profileRef.current }),
+}));
+
+vi.mock('@/features/tasks/Service', () => ({
+  mhdTaskService: { listAssignableUsers: vi.fn().mockResolvedValue([]) },
 }));
 
 function mutation(mutateAsync: (input: never) => Promise<unknown>) {
@@ -45,7 +64,16 @@ vi.mock('../Hook', () => ({
   useMhdAccommodationTransition: () => mutation(vi.fn()),
   useMhdAccommodationInteraction: () => mutation(interactionMock),
   useMhdAccommodationOption: () => mutation(addOptionMock),
-  useMhdAccommodationDecision: () => mutation(vi.fn()),
+  useMhdAccommodationDecision: () => mutation(decideMock),
+  useMhdAccommodationRequestDetails: () => mutation(vi.fn()),
+  useMhdAccommodationEmployeeCertify: () => mutation(vi.fn()),
+  useMhdAccommodationProviderCertification: () => mutation(vi.fn()),
+  useMhdAccommodationProviderCertificationReveal: () => ({
+    ...mutation(providerRevealMock),
+    reset: vi.fn(),
+  }),
+  useMhdAccommodationEquipment: () => mutation(equipmentMock),
+  useMhdAccommodationDenialReasonCodes: () => ({ data: denialCodesRef.current }),
   useMhdAccommodationImplementation: () => mutation(implementMock),
   useMhdAccommodationReview: () => mutation(reviewMock),
   useMhdAccommodationMedicalRecord: () => mutation(recordMedicalMock),
@@ -138,18 +166,28 @@ function detail(overrides: Partial<MhdAccommodationDetail> = {}): MhdAccommodati
 }
 
 function renderPage() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <MemoryRouter initialEntries={['/accommodations/case-1']}>
-      <Routes>
-        <Route path="/accommodations/:caseId" element={<MhdAccommodationCaseDetailPage />} />
-      </Routes>
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={['/accommodations/case-1']}>
+        <Routes>
+          <Route path="/accommodations/:caseId" element={<MhdAccommodationCaseDetailPage />} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
+}
+
+function withStatus(status: MhdAccommodationDetail['case']['status']): MhdAccommodationDetail {
+  const base = detail();
+  return { ...base, case: { ...base.case, status } };
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
   rolesRef.current = ['Platform Admin'];
+  profileRef.current = null;
+  denialCodesRef.current = [];
   readinessRef.current = null;
   detailRef.current = detail();
 });
@@ -181,7 +219,7 @@ describe('implementation resolves the option from the active decision', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
 
-    expect(screen.getByText('Implement selected option')).toBeInTheDocument();
+    expect(screen.getByText('Implement Selected Option')).toBeInTheDocument();
     expect(screen.getByText(OPTION_GOOD.description)).toBeInTheDocument();
   });
 
@@ -207,7 +245,7 @@ describe('implementation resolves the option from the active decision', () => {
     renderPage();
 
     fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
-    expect(screen.queryByText('Implement selected option')).not.toBeInTheDocument();
+    expect(screen.queryByText('Implement Selected Option')).not.toBeInTheDocument();
   });
 });
 
@@ -216,8 +254,13 @@ describe('implementation resolves the option from the active decision', () => {
 /* ------------------------------------------------------------------ */
 
 describe('the decision gate is visible before it is enforced', () => {
+  beforeEach(() => {
+    // A decision can be recorded only from EVALUATION (mhd_accommodation_transition graph).
+    detailRef.current = withStatus('EVALUATION');
+  });
+
   it('blocks and explains a decision recorded before any interaction', () => {
-    detailRef.current = detail({ interactions: [] });
+    detailRef.current = { ...withStatus('EVALUATION'), interactions: [] };
     renderPage();
 
     fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
@@ -248,6 +291,9 @@ describe('the decision gate is visible before it is enforced', () => {
     fireEvent.change(screen.getByPlaceholderText('Decision summary'), {
       target: { value: 'Not granted.' },
     });
+    // A denial now also needs at least one reason; choose one that needs no specifics so this
+    // test isolates the individualized-analysis rule.
+    fireEvent.click(screen.getByLabelText('Ineffective'));
 
     expect(
       screen.getByText(
@@ -282,14 +328,19 @@ describe('option and denial pickers match the database vocabulary', () => {
   });
 
   it('offers exactly the allowed denial reasons, never NO_REASONABLE_OPTION', () => {
+    // The single denial select became combinable checkboxes (one per reason). While the
+    // vocabulary query is loading the field falls back to the validation constant.
+    detailRef.current = withStatus('EVALUATION');
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
     fireEvent.change(screen.getByDisplayValue('Approved'), { target: { value: 'DENIED' } });
 
-    const picker = screen.getByDisplayValue('Undue Hardship') as HTMLSelectElement;
-    const values = [...picker.options].map((option) => option.value);
-    expect(values).toEqual([...MHD_ACCOMMODATION_DENIAL_REASONS]);
-    expect(values).not.toContain('NO_REASONABLE_OPTION');
+    const reasons = within(
+      screen.getByRole('group', { name: 'Reasons For The Denial' }),
+    ).getAllByRole('checkbox');
+    const labels = reasons.map((checkbox) => checkbox.closest('label')?.textContent);
+    expect(labels).toEqual(MHD_ACCOMMODATION_DENIAL_REASONS.map(mhdFormatAccommodationValue));
+    expect(labels).not.toContain(mhdFormatAccommodationValue('NO_REASONABLE_OPTION'));
   });
 
   it('sends the essential functions an option touches and whether it removes one', () => {
@@ -683,5 +734,373 @@ describe('interaction employee visibility', () => {
     });
     renderPage();
     expect(screen.getByText('Staff only')).toBeInTheDocument();
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Provider certification: the medical partition, absent not hidden    */
+/* ------------------------------------------------------------------ */
+
+const PROVIDER_CERTIFICATION: MhdAccommodationProviderCertification = {
+  id: crypto.randomUUID(),
+  certified_at: '2026-07-30',
+  disability_verified: true,
+  limitation_duration: 'TEMPORARY',
+  limitation_end_date: '2026-12-31',
+  accommodation_begin_on: '2026-08-01',
+  accommodation_end_on: null,
+  accommodation_continuous: true,
+  job_duty_statement_sent_at: '2026-07-22',
+  has_provider_name: true,
+  has_recommendation: true,
+  has_attachment: false,
+};
+
+describe('the provider certification panel', () => {
+  it.each(['Client Admin', 'HR Specialist', 'Director', 'Employee'] as MhdAuthRoleName[])(
+    'is absent from the DOM for %s',
+    (role) => {
+      rolesRef.current = [role];
+      detailRef.current = detail({ provider_certification: PROVIDER_CERTIFICATION });
+      renderPage();
+
+      expect(
+        screen.queryByRole('tab', { name: /provider certification/i }),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/Reveal Provider And Recommendation/i)).not.toBeInTheDocument();
+      expect(screen.queryByText('Record Provider Certification')).not.toBeInTheDocument();
+    },
+  );
+
+  it.each(['Platform Admin', 'HR Partner', 'HR Admin'] as MhdAuthRoleName[])(
+    'is offered to the medical role %s',
+    (role) => {
+      rolesRef.current = [role];
+      detailRef.current = detail({ provider_certification: PROVIDER_CERTIFICATION });
+      renderPage();
+
+      fireEvent.click(screen.getByRole('tab', { name: /provider certification/i }));
+      expect(screen.getByText('Record Provider Certification')).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Reveal Provider And Recommendation' }),
+      ).toBeInTheDocument();
+    },
+  );
+
+  it('reveals the provider and recommendation only after the button is clicked', async () => {
+    rolesRef.current = ['HR Admin'];
+    detailRef.current = detail({ provider_certification: PROVIDER_CERTIFICATION });
+    providerRevealMock.mockResolvedValue({
+      provider_name: 'Dr. Imani Okafor',
+      recommendation: 'Seated workstation with a break every hour.',
+    });
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /provider certification/i }));
+
+    expect(providerRevealMock).not.toHaveBeenCalled();
+    expect(screen.queryByText('Dr. Imani Okafor')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reveal Provider And Recommendation' }));
+    expect(await screen.findByText('Dr. Imani Okafor')).toBeInTheDocument();
+    expect(providerRevealMock).toHaveBeenCalledTimes(1);
+    expect(providerRevealMock).toHaveBeenCalledWith(PROVIDER_CERTIFICATION.id);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Decision and implementation are offered only in their status        */
+/* ------------------------------------------------------------------ */
+
+describe('status gating for decide and implement', () => {
+  const activeDecision = {
+    id: 'decision-1',
+    outcome: 'APPROVED' as const,
+    selected_option_id: OPTION_GOOD.id,
+    denial_reason_code: null,
+    denial_reasons: [],
+    decision_summary: 'Granted the later start.',
+    alternatives_considered: true,
+    interactive_process_continues: false,
+    decided_at: '2026-07-24T17:00:00.000Z',
+    superseded_at: null,
+  };
+
+  it.each(['INTERACTIVE_PROCESS', 'DOCUMENTATION_PENDING', 'DECIDED', 'ACTIVE'] as const)(
+    'offers no decision form while the case is %s, and says why',
+    (status) => {
+      detailRef.current = withStatus(status);
+      renderPage();
+      fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+
+      expect(screen.queryByRole('button', { name: /record decision/i })).not.toBeInTheDocument();
+      expect(
+        screen.getByText(/A decision is recorded while the case is in Evaluation/),
+      ).toHaveTextContent(mhdFormatAccommodationValue(status));
+    },
+  );
+
+  it('offers the decision form in EVALUATION', () => {
+    detailRef.current = withStatus('EVALUATION');
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+    expect(screen.getByRole('button', { name: /record decision/i })).toBeInTheDocument();
+  });
+
+  it.each(['EVALUATION', 'IMPLEMENTING', 'ACTIVE'] as const)(
+    'offers no implementation form while the case is %s',
+    (status) => {
+      detailRef.current = { ...withStatus(status), decisions: [activeDecision] };
+      renderPage();
+      fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
+
+      expect(screen.queryByText('Implement Selected Option')).not.toBeInTheDocument();
+      expect(screen.getByText(/implemented once the case is Decided/)).toBeInTheDocument();
+    },
+  );
+
+  it('sends the equipment fields and warns that the case waits for ordered equipment', async () => {
+    detailRef.current = { ...withStatus('DECIDED'), decisions: [activeDecision] };
+    implementMock.mockResolvedValue('implementation-1');
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
+
+    fireEvent.change(screen.getByPlaceholderText(/Manager-safe implementation instruction/i), {
+      target: { value: 'Seated workstation at the register.' },
+    });
+    expect(screen.queryByText(/Waiting For Equipment/)).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Equipment Ordered On'), {
+      target: { value: '08/03/2026' },
+    });
+    expect(screen.getByText(/Waiting For Equipment/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Activate Accommodation' }));
+    await waitFor(() =>
+      expect(implementMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          optionId: OPTION_GOOD.id,
+          equipmentOrderedOn: '2026-08-03',
+          equipmentOrderedBy: null,
+          equipmentReceivedOn: null,
+        }),
+      ),
+    );
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Combinable denial reasons                                           */
+/* ------------------------------------------------------------------ */
+
+const DENIAL_VOCABULARY: MhdAccommodationDenialReasonCode[] = MHD_ACCOMMODATION_DENIAL_REASONS.map(
+  (code, index) => ({
+    code,
+    label:
+      code === 'UNDUE_HARDSHIP'
+        ? 'Accommodation would cause undue hardship'
+        : mhdFormatAccommodationValue(code),
+    sortOrder: (index + 1) * 10,
+    requiresDetail: MHD_ACCOMMODATION_DENIAL_REASON_RULES[code].requiresDetail,
+    detailPrompt: code === 'UNDUE_HARDSHIP' ? 'Identify the hardship' : 'Identify the reason',
+    requiresAlternative: MHD_ACCOMMODATION_DENIAL_REASON_RULES[code].requiresAlternative,
+    alternativePrompt:
+      code === 'EMPLOYEE_REJECTED_ALTERNATIVE' ? 'The accommodation offered' : null,
+  }),
+);
+
+describe('the denial form', () => {
+  beforeEach(() => {
+    denialCodesRef.current = DENIAL_VOCABULARY;
+    detailRef.current = withStatus('EVALUATION');
+  });
+
+  function startDenial() {
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+    fireEvent.change(screen.getByDisplayValue('Approved'), { target: { value: 'DENIED' } });
+    fireEvent.change(screen.getByPlaceholderText('Decision summary'), {
+      target: { value: 'Not granted as requested.' },
+    });
+    fireEvent.change(
+      screen.getByPlaceholderText('Individualized analysis and alternatives considered'),
+      { target: { value: 'Remote work and reassignment were costed and evaluated.' } },
+    );
+  }
+
+  it('renders the labels from the vocabulary table', () => {
+    startDenial();
+    expect(screen.getByLabelText('Accommodation would cause undue hardship')).toBeInTheDocument();
+  });
+
+  it('blocks the decision until every checked reason has its specifics', () => {
+    startDenial();
+    const record = screen.getByRole('button', { name: /record decision/i });
+    expect(record).toBeDisabled();
+
+    fireEvent.click(screen.getByLabelText('Accommodation would cause undue hardship'));
+    expect(record).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Identify the hardship'), {
+      target: { value: 'A second register would cost more than the store budget allows.' },
+    });
+    expect(record).not.toBeDisabled();
+
+    fireEvent.click(screen.getByLabelText('Employee Rejected Alternative'));
+    expect(record).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Identify the reason'), {
+      target: { value: 'Preferred to keep the current shift.' },
+    });
+    expect(record).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('The accommodation offered'), {
+      target: { value: 'A stool at the register.' },
+    });
+    expect(record).not.toBeDisabled();
+  });
+
+  it('forces and locks Interactive Process Continues for undue hardship and sends every reason', async () => {
+    decideMock.mockResolvedValue('decision-2');
+    startDenial();
+    const continues = screen.getByLabelText(/Interactive Process Continues/);
+    expect(continues).not.toBeChecked();
+    expect(continues).toBeEnabled();
+
+    fireEvent.click(screen.getByLabelText('Accommodation would cause undue hardship'));
+    expect(continues).toBeChecked();
+    expect(continues).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText('Identify the hardship'), {
+      target: { value: 'A second register would cost more than the store budget allows.' },
+    });
+    fireEvent.click(screen.getByLabelText('Ineffective'));
+    fireEvent.click(screen.getByRole('button', { name: /record decision/i }));
+
+    await waitFor(() => expect(decideMock).toHaveBeenCalledTimes(1));
+    expect(decideMock.mock.calls[0][0]).toMatchObject({
+      outcome: 'DENIED',
+      interactiveProcessContinues: true,
+      denialReasons: [
+        {
+          code: 'UNDUE_HARDSHIP',
+          detail: 'A second register would cost more than the store budget allows.',
+        },
+        { code: 'INEFFECTIVE' },
+      ],
+    });
+    expect(decideMock.mock.calls[0][0]).not.toHaveProperty('denialReasonCode');
+  });
+
+  it('asks for reasons on a partial approval too', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+    fireEvent.change(screen.getByDisplayValue('Approved'), {
+      target: { value: 'PARTIALLY_APPROVED' },
+    });
+    expect(screen.getByRole('group', { name: 'Reasons For The Denial' })).toBeInTheDocument();
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Equipment on an existing implementation                             */
+/* ------------------------------------------------------------------ */
+
+describe('updating equipment on an implementation', () => {
+  const implementation = {
+    id: crypto.randomUUID(),
+    option_id: OPTION_GOOD.id,
+    status: 'IN_PROGRESS',
+    start_date: '2026-08-01',
+    end_date: null,
+    manager_instruction: 'Seated workstation at the register.',
+    review_due_date: null,
+    equipment_ordered_on: '2026-08-03',
+    equipment_ordered_by: null,
+    equipment_received_on: null,
+  };
+
+  function openImplementation() {
+    detailRef.current = { ...withStatus('IMPLEMENTING'), implementations: [implementation] };
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
+  }
+
+  it('shows the waiting note for ordered but not received equipment', () => {
+    openImplementation();
+    expect(screen.getByText(/Waiting For Equipment/)).toBeInTheDocument();
+  });
+
+  it('rejects a received date before the order date with the schema message', () => {
+    openImplementation();
+    fireEvent.change(screen.getByLabelText('Equipment Received On'), {
+      target: { value: '08/01/2026' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Update Equipment' }));
+
+    expect(
+      screen.getByText('Equipment cannot be received before it was ordered.'),
+    ).toBeInTheDocument();
+    expect(equipmentMock).not.toHaveBeenCalled();
+  });
+
+  it('records the receipt date', async () => {
+    equipmentMock.mockResolvedValue(undefined);
+    openImplementation();
+    fireEvent.change(screen.getByLabelText('Equipment Received On'), {
+      target: { value: '08/12/2026' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Update Equipment' }));
+
+    await waitFor(() =>
+      expect(equipmentMock).toHaveBeenCalledWith({
+        implementationId: implementation.id,
+        orderedOn: '2026-08-03',
+        orderedBy: null,
+        receivedOn: '2026-08-12',
+      }),
+    );
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Request details and documentation type                              */
+/* ------------------------------------------------------------------ */
+
+describe('request details and documentation type', () => {
+  it('opens Section A for the employee on their own case with the certify button', () => {
+    rolesRef.current = ['Employee'];
+    profileRef.current = { companyId: 'company-1', personId: 'person-1' };
+    detailRef.current = detail({
+      request_details: {
+        id: crypto.randomUUID(),
+        limitation_duration: 'PERMANENT',
+        anticipated_recovery_date: null,
+        workers_comp_claim: false,
+        workers_comp_claim_filed_on: null,
+        leave_requested: false,
+        leave_request_details: null,
+        employee_certified_at: null,
+        employee_certified_method: null,
+        contact_phone: null,
+        contact_email: null,
+        work_location: null,
+        supervisor_name: null,
+        supervisor_person_id: null,
+      },
+    });
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /request details/i }));
+
+    expect(
+      screen.getByRole('button', {
+        name: 'I Certify That I Have A Disability That Requires Reasonable Accommodation',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Record Employee Certification' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers Employee Statement as a documentation type', () => {
+    rolesRef.current = ['HR Partner'];
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /documentation status/i }));
+    expect(screen.getByRole('option', { name: 'Employee Statement' })).toBeInTheDocument();
   });
 });
