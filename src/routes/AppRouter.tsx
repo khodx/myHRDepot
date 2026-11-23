@@ -468,10 +468,6 @@ const MhdLeaveCaseDetailPage = lazyPage(
   () => import('@/features/leaves/components/MhdLeaveCaseDetailPage'),
   'MhdLeaveCaseDetailPage',
 );
-const MhdLeaveIntakeWizard = lazyPage(
-  () => import('@/features/leaves/components/MhdLeaveIntakeWizard'),
-  'MhdLeaveIntakeWizard',
-);
 const MhdLeaveCaseMessagesPage = lazyPage(
   () => import('@/features/messaging/components/MhdLeaveCaseMessagesPage'),
   'MhdLeaveCaseMessagesPage',
@@ -479,10 +475,6 @@ const MhdLeaveCaseMessagesPage = lazyPage(
 const MhdLeaveCaseCorrespondencePage = lazyPage(
   () => import('@/features/correspondence/components/MhdLeaveCaseCorrespondencePage'),
   'MhdLeaveCaseCorrespondencePage',
-);
-const MhdAccommodationIntakeWizard = lazyPage(
-  () => import('@/features/accommodations/components/MhdAccommodationIntakeWizard'),
-  'MhdAccommodationIntakeWizard',
 );
 const MhdAccommodationsPage = lazyPage(
   () => import('@/features/accommodations/components/MhdAccommodationsPage'),
@@ -819,9 +811,18 @@ function MhdAppRoutes() {
                 <Route path="/esignature/:requestId" element={<MhdEsignatureDetailPage />} />
                 <Route path="/communications" element={<MhdCommunicationsPage />} />
                 <Route path="/communications/announcements" element={<MhdAnnouncementsPage />} />
-                <Route path="/communications/announcements/new" element={<MhdAnnouncementFormPage />} />
-                <Route path="/communications/announcements/:announcementId/edit" element={<MhdAnnouncementFormPage />} />
-                <Route path="/communications/announcements/:announcementId" element={<MhdAnnouncementDetailPage />} />
+                <Route
+                  path="/communications/announcements/new"
+                  element={<MhdAnnouncementFormPage />}
+                />
+                <Route
+                  path="/communications/announcements/:announcementId/edit"
+                  element={<MhdAnnouncementFormPage />}
+                />
+                <Route
+                  path="/communications/announcements/:announcementId"
+                  element={<MhdAnnouncementDetailPage />}
+                />
                 <Route path="/communications/messaging" element={<MhdMessagingPage />} />
                 <Route path="/communications/inbox" element={<MhdCorrespondenceInboxPage />} />
                 <Route
@@ -855,7 +856,10 @@ function MhdAppRoutes() {
                   path="/employees/:personId/files/new"
                   element={<MhdEmployeeFileNewRecordPage />}
                 />
-                <Route path="/employees/requirements" element={<MhdEmployeeFileRequirementsPage />} />
+                <Route
+                  path="/employees/requirements"
+                  element={<MhdEmployeeFileRequirementsPage />}
+                />
                 <Route path="/employees/:personId" element={<MhdEmployeeFileCabinetPage />} />
                 <Route path="/people" element={<MhdPeoplePage />} />
                 <Route path="/people/org-chart" element={<MhdOrgChartPage />} />
@@ -936,7 +940,10 @@ function MhdAppRoutes() {
                   never a filtered /jobs — see mhdRouteAccess. */}
                 <Route path="/jobs" element={<MhdJobsPage />} />
                 <Route path="/compensation" element={<MhdCompensationClassificationWizard />} />
-                <Route path="/contractor-classification" element={<MhdContractorClassificationWizard />} />
+                <Route
+                  path="/contractor-classification"
+                  element={<MhdContractorClassificationWizard />}
+                />
                 <Route path="/jobs/competencies" element={<MhdCompetencyLibraryPage />} />
                 <Route path="/jobs/disclaimers" element={<MhdJobDescriptionDisclaimersPage />} />
                 <Route path="/jobs/new" element={<MhdJobDescriptionWizard />} />
@@ -960,24 +967,30 @@ function MhdAppRoutes() {
                   Platform Admin / HR Partner. */}
                 <Route path="/leaves/policy-library" element={<MhdLeaveTypeLibraryPage />} />
                 <Route path="/leaves/settings" element={<MhdLeavePolicySettingsPage />} />
-                <Route path="/leaves/new/intake" element={<MhdLeaveIntakeWizard />} />
-                <Route path="/leaves/:caseId/intake" element={<MhdLeaveIntakeWizard />} />
                 <Route path="/leaves" element={<MhdLeavesPage />} />
                 <Route path="/leaves/:caseId" element={<MhdLeaveCaseDetailPage />} />
                 <Route path="/leaves/:caseId/messages" element={<MhdLeaveCaseMessagesPage />} />
-                <Route path="/leaves/:caseId/correspondence" element={<MhdLeaveCaseCorrespondencePage />} />
+                <Route
+                  path="/leaves/:caseId/correspondence"
+                  element={<MhdLeaveCaseCorrespondencePage />}
+                />
                 <Route
                   path="/accommodations/option-library"
                   element={<MhdAccommodationOptionCatalogPage />}
                 />
-                <Route path="/accommodations/new" element={<MhdAccommodationIntakeWizard />} />
                 <Route path="/accommodations" element={<MhdAccommodationsPage />} />
                 <Route path="/certificates" element={<MhdCertificatesPage />} />
                 <Route path="/legal-search" element={<MhdLegalSearchPage />} />
                 <Route path="/knowledge-center" element={<MhdKnowledgeCenterPage />} />
-                <Route path="/knowledge-center/articles/:slug" element={<MhdKnowledgeCenterArticlePage />} />
+                <Route
+                  path="/knowledge-center/articles/:slug"
+                  element={<MhdKnowledgeCenterArticlePage />}
+                />
                 <Route path="/knowledge-center/functions" element={<MhdFunctionsReferencePage />} />
-                <Route path="/knowledge-center/admin" element={<MhdKnowledgeCenterAdminEditorPage />} />
+                <Route
+                  path="/knowledge-center/admin"
+                  element={<MhdKnowledgeCenterAdminEditorPage />}
+                />
                 <Route
                   path="/knowledge-center/company"
                   element={<MhdKnowledgeCenterCompanyGuidancePage />}
@@ -1057,9 +1070,15 @@ function MhdAppRoutes() {
                 <Route path="/training/compliance" element={<MhdComplianceAdminPage />} />
                 <Route path="/training/engagement" element={<MhdEngagementAdminPage />} />
                 <Route path="/training/lifecycle" element={<MhdLifecycleAccessAdminPage />} />
-                <Route path="/training/courses/:courseId" element={<MhdTrainingCourseDetailPage />} />
+                <Route
+                  path="/training/courses/:courseId"
+                  element={<MhdTrainingCourseDetailPage />}
+                />
                 <Route path="/my-training" element={<MhdMyTrainingRoutePage />} />
-                <Route path="/my-training/course/:assignmentId" element={<MhdTrainingCourseShellPage />} />
+                <Route
+                  path="/my-training/course/:assignmentId"
+                  element={<MhdTrainingCourseShellPage />}
+                />
                 {/* Handbook Engine. Two SEPARATE routes, never one filtered surface:
                   /handbooks is the admin wizard + acknowledgment board (the
                   privileged handbook set), /handbooks/:handbookId is the
@@ -1090,7 +1109,10 @@ function MhdAppRoutes() {
                 />
                 <Route path="/my-handbooks" element={<MhdMyHandbooksRoutePage />} />
                 <Route path="/checklists" element={<MhdChecklistLibraryPage />} />
-                <Route path="/checklists/:instanceId" element={<MhdChecklistInstanceDetailPage />} />
+                <Route
+                  path="/checklists/:instanceId"
+                  element={<MhdChecklistInstanceDetailPage />}
+                />
                 <Route path="/my-checklists" element={<MhdMyChecklistsPage />} />
                 <Route path="/policies" element={<MhdPolicyLibraryPage />} />
                 <Route path="/my-policies" element={<MhdMyPoliciesPage />} />

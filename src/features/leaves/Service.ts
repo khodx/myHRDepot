@@ -1,9 +1,6 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import type {
   MhdAdjustLeaveInput,
-  MhdCreateLeaveCaseFromSubmissionInput,
-  MhdCreateLeaveCaseSelfInput,
-  MhdCreateLeaveCaseInput,
   MhdCreateLeaveTypeInput,
   MhdCreateLeaveTypeResult,
   MhdDesignateLeaveInput,
@@ -16,13 +13,11 @@ import type {
   MhdLeaveCertificationRpcRow,
   MhdLeaveLedgerEntry,
   MhdLeaveLedgerEntryRpcRow,
-  MhdLeaveMutationRpcRow,
   MhdLeaveType,
   MhdLeaveTypeId,
   MhdLeaveTypeMutationRpcRow,
   MhdLeaveTypeRpcRow,
   MhdMarkCertificationInput,
-  MhdMutationResult,
   MhdRecordCertificationInput,
   MhdUpdateCertificationStatusInput,
   MhdSetLeaveCaseBasesInput,
@@ -207,87 +202,6 @@ export const mhdLeavesService = {
     });
     if (error) throw error;
     return ((data ?? []) as MhdLeaveCaseRpcRow[]).map(mapCaseSummary);
-  },
-
-  async createCase(input: MhdCreateLeaveCaseInput): Promise<MhdMutationResult> {
-    const { data, error } = await supabaseClient.rpc('mhd_leave_case_create', {
-      p_company_id: input.companyId,
-      p_person_id: input.personId,
-      p_reason_category: input.reasonCategory.trim(),
-      p_file_category: input.fileCategory,
-      p_requested_start: input.requestedStart ?? undefined,
-      p_requested_end: input.requestedEnd ?? undefined,
-      p_is_intermittent: input.isIntermittent ?? false,
-      p_requested_mode: input.requestedMode ?? undefined,
-      p_intake_channel: input.intakeChannel ?? undefined,
-    });
-    if (error) throw error;
-    const row = ((data ?? []) as Array<{ id: string; reference_id: string }>)[0];
-    if (!row) throw new Error('Leave case creation returned no row.');
-    return { id: row.id, referenceId: row.reference_id };
-  },
-
-  /**
-   * Self-service leave request (mhd_leave_case_create_self, migration
-   * 0203): the caller's own company/person are derived server-side, never
-   * sent from here — this is what makes it safe for any authenticated
-   * user to call, unlike createCase above (which is privileged-only and
-   * takes an explicit target person).
-   */
-  async createCaseSelf(input: MhdCreateLeaveCaseSelfInput): Promise<MhdMutationResult> {
-    const { data, error } = await supabaseClient.rpc('mhd_leave_case_create_self', {
-      p_reason_category: input.reasonCategory.trim(),
-      p_file_category: input.fileCategory,
-      p_requested_start: input.requestedStart ?? undefined,
-      p_requested_end: input.requestedEnd ?? undefined,
-      p_is_intermittent: input.isIntermittent ?? false,
-    });
-    if (error) throw error;
-    const row = ((data ?? []) as Array<{ id: string; reference_id: string }>)[0];
-    if (!row) throw new Error('Leave request creation returned no row.');
-    return { id: row.id, referenceId: row.reference_id };
-  },
-
-  /**
-   * Form-driven Leaves intake (0188): open a case from a completed form
-   * submission instead of the direct fields above. This is an ADDITIONAL entry
-   * point — `createCase` above is untouched and remains the primary path.
-   *
-   * `mhd_create_leave_case_from_submission` re-derives reasonCategory /
-   * requestedStart / requestedEnd / isIntermittent / the subject person out of
-   * `input.values` (falling back to the submission's own
-   * `employee_file_person_id`) and then calls the SAME `mhd_leave_case_create`
-   * the direct path uses, so the two entry points stay behaviorally identical.
-   * `input.values` must be the exact values object the submit flow already
-   * holds right after submission completes — never re-fetched or re-derived
-   * (see `MhdCreateLeaveCaseFromSubmissionInput`).
-   *
-   * KNOWN GAP (documented, not a partial implementation of this method — this
-   * RPC call itself is complete): nothing in this codebase currently CALLS
-   * this method after a real form submission. `MhdFormRenderer.onSubmitted`
-   * (src/features/forms/components/MhdFormRenderer.tsx) only forwards
-   * `(submissionId, form)`, not the submitted `values`, and there is no
-   * per-form "this is a Leaves intake form" designation yet for
-   * `MhdFormRendererPage.handleSubmissionSuccess` to branch on (mirroring how
-   * it already branches on `onboardingPersonId`/`onboardingDocumentKey` to
-   * call `mhdOnboardingService`). Wiring that branch requires edits inside
-   * `src/features/forms/`, which is out of scope here — see the "New Leave
-   * Case (via Form)" action in MhdLeavesPage.tsx for the current, honest
-   * entry point (it opens the Forms Library; it does not yet open a case).
-   */
-  async createCaseFromSubmission(
-    input: MhdCreateLeaveCaseFromSubmissionInput,
-  ): Promise<MhdMutationResult> {
-    const { data, error } = await supabaseClient
-      .rpc('mhd_create_leave_case_from_submission', {
-        p_submission_id: input.submissionId,
-        p_values: input.values,
-      })
-      .returns<MhdLeaveMutationRpcRow[]>();
-    if (error) throw error;
-    const row = data?.[0];
-    if (!row) throw new Error('Leave case creation from submission returned no row.');
-    return { id: row.id, referenceId: row.reference_id };
   },
 
   /**

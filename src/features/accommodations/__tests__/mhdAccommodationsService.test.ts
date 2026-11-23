@@ -20,52 +20,6 @@ beforeEach(() => {
 /* ------------------------------------------------------------------ */
 
 describe('mhdAccommodationsService — verbal, self-service intake', () => {
-  it('opens a case from a VERBAL request with no form and no attachment', async () => {
-    rpcMock.mockResolvedValueOnce({
-      data: [{ id: 'case-9', reference_id: 'RA-0009' }],
-      error: null,
-    });
-
-    const created = await mhdAccommodationsService.create({
-      companyId: 'company-1',
-      personId: 'person-1',
-      requestSource: 'SELF',
-      requestChannel: 'VERBAL',
-      requestedAt: '2026-07-25T17:00:00.000Z',
-      requestSummary: 'Asked in the hallway for a seated workstation.',
-    });
-
-    expect(rpcMock).toHaveBeenCalledWith('mhd_accommodation_case_create', {
-      p_company_id: 'company-1',
-      p_person_id: 'person-1',
-      p_request_source: 'SELF',
-      p_request_channel: 'VERBAL',
-      p_requested_at: '2026-07-25T17:00:00.000Z',
-      p_request_summary: 'Asked in the hallway for a seated workstation.',
-      p_leave_case_id: undefined,
-    });
-    expect(created).toEqual({ id: 'case-9', referenceId: 'RA-0009' });
-  });
-
-  it('surfaces the 42501 a Client User hits when opening a case for someone else', async () => {
-    // mhd_accommodation_case_create: "Employees may open only their own
-    // accommodation request". The client never gets to decide this.
-    rpcMock.mockResolvedValueOnce({
-      error: { code: '42501', message: 'Employees may open only their own accommodation request' },
-    });
-
-    await expect(
-      mhdAccommodationsService.create({
-        companyId: 'company-1',
-        personId: 'someone-else',
-        requestSource: 'SELF',
-        requestChannel: 'VERBAL',
-        requestedAt: '2026-07-25T17:00:00.000Z',
-        requestSummary: 'A seated workstation.',
-      }),
-    ).rejects.toMatchObject({ code: '42501' });
-  });
-
   it('lists a Client User own-case view by passing their own person id as the filter', async () => {
     rpcMock.mockResolvedValueOnce({ data: [], error: null });
     await mhdAccommodationsService.list('company-1', 'ALL', 'person-1');

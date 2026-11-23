@@ -282,16 +282,6 @@ export interface MhdAccommodationDetail {
   provider_certification: MhdAccommodationProviderCertification | null;
 }
 
-export interface MhdCreateAccommodationInput {
-  companyId: string;
-  personId: string;
-  requestSource: MhdAccommodationRequestSource;
-  requestChannel: MhdAccommodationRequestChannel;
-  requestedAt: string;
-  requestSummary: string;
-  leaveCaseId?: string | null;
-}
-
 // The release gate is a platform concern shared with Leaves, so its type lives
 // in @/types/mhdCompliance. Re-exported here so the feature's public contract
 // stays complete for callers of mhdAccommodationsService.readiness().

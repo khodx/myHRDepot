@@ -1,14 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
-import {
-  Accessibility,
-  BadgeDollarSign,
-  BookOpen,
-  Briefcase,
-  CalendarClock,
-  ClipboardCheck,
-  GraduationCap,
-} from 'lucide-react';
+import { BadgeDollarSign, BookOpen, Briefcase, ClipboardCheck, GraduationCap } from 'lucide-react';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
@@ -38,10 +30,10 @@ const WIZARD_DEFINITIONS: WizardDefinition[] = [
     icon: Briefcase,
   },
   {
-    label: 'Leave Intake Wizard',
-    description: 'Open a new leave-of-absence case and run the eligibility determination.',
-    route: '/leaves/new/intake',
-    icon: CalendarClock,
+    label: 'Leave Or Accommodation Request',
+    description: 'Start a leave or reasonable-accommodation request.',
+    route: '/leaves?startRequest=1',
+    icon: ClipboardCheck,
   },
   {
     label: 'Compensation Classification Wizard',
@@ -63,15 +55,10 @@ const WIZARD_DEFINITIONS: WizardDefinition[] = [
   },
   {
     label: 'Handbook Wizard',
-    description: 'Assemble an Employee or Safety handbook from jurisdiction-required sections, then publish.',
+    description:
+      'Assemble an Employee or Safety handbook from jurisdiction-required sections, then publish.',
     route: '/handbooks/new',
     icon: BookOpen,
-  },
-  {
-    label: 'Accommodation Intake Wizard',
-    description: 'Open a reasonable-accommodation process and start the interactive dialogue.',
-    route: '/accommodations/new',
-    icon: Accessibility,
   },
 ];
 
@@ -80,12 +67,13 @@ export function MhdWizardsPage() {
 
   // mhdCanAccessRoute, not mhdRouteRoles: mhdRouteRoles does an exact-path
   // lookup and falls back to 'ALL' for any path without its own literal
-  // entry in MHD_ROUTE_ACCESS (e.g. /jobs/new, /leaves/new/intake) --
+  // entry in MHD_ROUTE_ACCESS (e.g. /jobs/new) --
   // mhdCanAccessRoute does the same prefix-matching MhdRoleGuardedRoute
   // actually enforces, so a card here agrees with whether clicking it would
   // really work.
   const visibleWizards = WIZARD_DEFINITIONS.filter((wizard) =>
-    mhdCanAccessRoute(wizard.route, roles),
+    // Strip any query string: route access is defined per path, not per query.
+    mhdCanAccessRoute(wizard.route.split('?')[0]!, roles),
   );
 
   return (

@@ -1,6 +1,4 @@
-import type { MhdLeaveAdminIntakeChannel, MhdLeaveRequestedMode } from './WorkflowTypes';
 import type { MhdEmployeeFileTypeKey } from '@/features/employee-files/Types';
-import type { Json } from '@/types/database.types';
 
 // ---------------------------------------------------------------------------
 // RPC row shapes (local snake_case interfaces)
@@ -91,18 +89,6 @@ export interface MhdLeaveCertificationRpcRow {
   sufficient: boolean | null;
   provider_note: string | null;
   drive_file_id: string | null;
-}
-
-/** Row shape returned by the create RPCs that mint a reference: `(id, reference_id)`. */
-export interface MhdLeaveMutationRpcRow {
-  id: string;
-  reference_id: string;
-}
-
-/** Mapped result of a create RPC that mints a reference. */
-export interface MhdMutationResult {
-  id: string;
-  referenceId: string;
 }
 
 /**
@@ -366,53 +352,6 @@ export interface MhdForkLeaveTypeInput {
 // ---------------------------------------------------------------------------
 // Inputs and filters
 // ---------------------------------------------------------------------------
-
-export interface MhdCreateLeaveCaseInput {
-  companyId: string;
-  personId: string;
-  reasonCategory: string;
-  fileCategory: MhdEmployeeFileTypeKey;
-  requestedStart?: string | null;
-  requestedEnd?: string | null;
-  isIntermittent?: boolean;
-  /** Defaults from isIntermittent. REDUCED_SCHEDULE has no other writer. */
-  requestedMode?: MhdLeaveRequestedMode | null;
-  /** HR_ENTRY (default), MANAGER_REFERRAL or OTHER; SELF_SERVICE is the employee's own request. */
-  intakeChannel?: MhdLeaveAdminIntakeChannel | null;
-}
-
-/**
- * Self-service leave request (mhd_leave_case_create_self, migration 0203):
- * no companyId/personId — both are derived server-side from the caller's
- * own linked person, never client-supplied, so this is deliberately a
- * narrower shape than MhdCreateLeaveCaseInput above, not the same input
- * with fields omitted.
- */
-export interface MhdCreateLeaveCaseSelfInput {
-  reasonCategory: string;
-  fileCategory: MhdEmployeeFileTypeKey;
-  requestedStart?: string | null;
-  requestedEnd?: string | null;
-  isIntermittent?: boolean;
-}
-
-/**
- * Form-driven Leaves intake (migration 0188): calls
- * `mhd_create_leave_case_from_submission`, which re-derives the same case
- * fields `mhd_leave_case_create` takes directly, out of a completed
- * submission's own `values` — and then delegates to that same RPC, so a
- * form-opened case and a directly-opened case are behaviorally identical.
- * `values` must be the SAME object the submit flow already holds right after
- * `mhdFormService.submitForm` resolves (its `MhdFormSubmission.values`) —
- * never re-fetched or re-derived, per the RPC's own header comment. The RPC
- * also requires the caller to be the submission's own submitter
- * (`submitter_id = current actor`), so this can only be invoked by the same
- * authenticated user who just submitted the form.
- */
-export interface MhdCreateLeaveCaseFromSubmissionInput {
-  submissionId: string;
-  values: Json;
-}
 
 /**
  * The designation set — where concurrency is committed. In v1 the administrator

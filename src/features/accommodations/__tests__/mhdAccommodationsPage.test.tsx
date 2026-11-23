@@ -35,8 +35,13 @@ vi.mock('../components/MhdAccommodationTeamPanel', () => ({
   MhdAccommodationTeamPanel: () => null,
 }));
 
-vi.mock('@/features/forms/Hook', () => ({
-  useMhdFormIntakeDefault: () => ({ default: null }),
+vi.mock('@/features/benefit-intake/Hook', () => ({
+  useMhdBenefitIntakeDrafts: () => ({ data: [] }),
+}));
+
+vi.mock('@/components/ui/MhdBenefitIntakeButton', () => ({
+  MhdBenefitIntakeButton: () => <button type="button">Start Request</button>,
+  default: () => <button type="button">Start Request</button>,
 }));
 
 const { MhdAccommodationsPage } = await import('../components/MhdAccommodationsPage');

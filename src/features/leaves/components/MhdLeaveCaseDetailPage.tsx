@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
@@ -161,14 +161,6 @@ export function MhdLeaveCaseDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <Link
-          to={`/leaves/${caseId}/intake`}
-          className="rounded-md border border-border px-3 py-2 text-sm font-medium"
-        >
-          Guided evaluation
-        </Link>
-      </div>
       {/* ----- Case facts ----- */}
       <MhdPageHeader
         backTo="/leaves"
@@ -186,8 +178,8 @@ export function MhdLeaveCaseDetailPage() {
         }
         description={
           <>
-            <span className="font-mono">{leaveCase.referenceId}</span> · {leaveCase.reasonCategory} ·{' '}
-            {mhdEmployeeFileLabelForKey(leaveCase.fileCategory)}
+            <span className="font-mono">{leaveCase.referenceId}</span> · {leaveCase.reasonCategory}{' '}
+            · {mhdEmployeeFileLabelForKey(leaveCase.fileCategory)}
             {leaveCase.requestedStart ? ` · ${leaveCase.requestedStart}` : ''}
             {leaveCase.requestedEnd ? ` → ${leaveCase.requestedEnd}` : ''}
             {workflow.data ? ` · ${leaveYearText(workflow.data.policy)}` : ''}

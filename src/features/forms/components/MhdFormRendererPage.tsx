@@ -5,11 +5,8 @@ import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanSubmitForms } from '@/appshell/mhdRouteAccess';
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
-import type { Json } from '@/types/database.types';
 import { mhdEsignatureService } from '@/features/esignature/Service';
 import { mhdOnboardingService } from '@/features/onboarding/Service';
-import { mhdLeavesService } from '@/features/leaves/Service';
-import { mhdAccommodationsService } from '@/features/accommodations/Service';
 import {
   MHD_ONBOARDING_PACKET_BY_KEY,
   mhdIsOnboardingDocumentKey,
@@ -17,10 +14,7 @@ import {
 import { mhdIsEmployeeFileTypeKey } from '@/features/employee-files/Types';
 import { mhdPersonService } from '@/features/people/Service';
 import { mhdPersonTaxIdentityService } from '@/features/person-tax-identity/Service';
-import type {
-  MhdCitizenshipStatus,
-  MhdW4FilingStatus,
-} from '@/features/person-tax-identity/Types';
+import type { MhdCitizenshipStatus, MhdW4FilingStatus } from '@/features/person-tax-identity/Types';
 import type { MhdForm, MhdFormField, MhdFormSubmission } from '../Types';
 import { mhdFormService } from '../Service';
 import { MhdFormRenderer } from './MhdFormRenderer';
@@ -91,7 +85,10 @@ async function syncPersonTaxIdentityFromSubmission(
 
   const fieldByKey = new Map<string, MhdFormField>();
   for (const field of submittedForm.definition.fields) {
-    if (field.fieldKey?.startsWith(I9_FIELD_KEY_PREFIX) || field.fieldKey?.startsWith(W4_FIELD_KEY_PREFIX)) {
+    if (
+      field.fieldKey?.startsWith(I9_FIELD_KEY_PREFIX) ||
+      field.fieldKey?.startsWith(W4_FIELD_KEY_PREFIX)
+    ) {
       fieldByKey.set(field.fieldKey, field);
     }
   }
@@ -118,12 +115,18 @@ async function syncPersonTaxIdentityFromSubmission(
         mailingAddressStreet: stringFromSubmission(
           valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressStreet`),
         ),
-        mailingAddressApt: stringFromSubmission(valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressApt`)),
-        mailingAddressCity: stringFromSubmission(valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressCity`)),
+        mailingAddressApt: stringFromSubmission(
+          valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressApt`),
+        ),
+        mailingAddressCity: stringFromSubmission(
+          valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressCity`),
+        ),
         mailingAddressState: stringFromSubmission(
           valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressState`),
         ),
-        mailingAddressZip: stringFromSubmission(valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressZip`)),
+        mailingAddressZip: stringFromSubmission(
+          valueFor(`${I9_FIELD_KEY_PREFIX}mailingAddressZip`),
+        ),
         citizenshipStatus,
         lawfulPermanentResidentNumber: stringFromSubmission(
           valueFor(`${I9_FIELD_KEY_PREFIX}lawfulPermanentResidentNumber`),
@@ -145,9 +148,8 @@ async function syncPersonTaxIdentityFromSubmission(
 
   const hasW4Fields = [...fieldByKey.keys()].some((key) => key.startsWith(W4_FIELD_KEY_PREFIX));
   if (hasW4Fields) {
-    const filingStatus = stringFromSubmission(
-      valueFor(`${W4_FIELD_KEY_PREFIX}filingStatus`),
-    ) as MhdW4FilingStatus | undefined;
+    const filingStatus = stringFromSubmission(valueFor(`${W4_FIELD_KEY_PREFIX}filingStatus`)) as
+      MhdW4FilingStatus | undefined;
     // filingStatus is required by mhd_person_w4_withholding_upsert; same
     // guard rationale as citizenshipStatus above.
     if (filingStatus) {
@@ -155,15 +157,21 @@ async function syncPersonTaxIdentityFromSubmission(
         personId,
         taxYear: new Date().getFullYear(),
         filingStatus,
-        multipleJobsCheckbox: booleanFromSubmission(valueFor(`${W4_FIELD_KEY_PREFIX}multipleJobsCheckbox`)),
+        multipleJobsCheckbox: booleanFromSubmission(
+          valueFor(`${W4_FIELD_KEY_PREFIX}multipleJobsCheckbox`),
+        ),
         qualifyingChildrenCount: numberFromSubmission(
           valueFor(`${W4_FIELD_KEY_PREFIX}qualifyingChildrenCount`),
         ),
         otherDependentsCount: numberFromSubmission(
           valueFor(`${W4_FIELD_KEY_PREFIX}otherDependentsCount`),
         ),
-        otherCreditsAmount: numberFromSubmission(valueFor(`${W4_FIELD_KEY_PREFIX}otherCreditsAmount`)),
-        otherIncomeAmount: numberFromSubmission(valueFor(`${W4_FIELD_KEY_PREFIX}otherIncomeAmount`)),
+        otherCreditsAmount: numberFromSubmission(
+          valueFor(`${W4_FIELD_KEY_PREFIX}otherCreditsAmount`),
+        ),
+        otherIncomeAmount: numberFromSubmission(
+          valueFor(`${W4_FIELD_KEY_PREFIX}otherIncomeAmount`),
+        ),
         deductionsAmount: numberFromSubmission(valueFor(`${W4_FIELD_KEY_PREFIX}deductionsAmount`)),
         extraWithholdingAmount: numberFromSubmission(
           valueFor(`${W4_FIELD_KEY_PREFIX}extraWithholdingAmount`),
@@ -268,19 +276,6 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
   const employeeFileCategory = mhdIsEmployeeFileTypeKey(employeeFileCategoryValue)
     ? employeeFileCategoryValue
     : null;
-  // Generic cross-module intake hook (2026-08-19, Multi-Tenant Library
-  // Architecture): a form launched with ?intakeAction=leaveCase or
-  // ?intakeAction=accommodationCase will, on successful submission, call the
-  // matching mhd_create_*_case_from_submission RPC and redirect to the new
-  // record — the same "submission triggers a follow-up side effect" shape
-  // already established by the onboarding checklist sync below, generalized
-  // so other modules don't need their own copy of this page. Deliberately
-  // additive: forms launched without this param behave exactly as before.
-  const intakeActionValue = searchParams.get('intakeAction');
-  const intakeAction =
-    intakeActionValue === 'leaveCase' || intakeActionValue === 'accommodationCase'
-      ? intakeActionValue
-      : null;
   const onboardingPersonId = searchParams.get('personId') ?? undefined;
   const onboardingPersonName = searchParams.get('personName') ?? undefined;
   const onboardingDocumentKeyValue = searchParams.get('documentKey');
@@ -425,42 +420,6 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
       } catch (error) {
         setSyncError(
           error instanceof Error ? error.message : 'Unable to sync onboarding checklist.',
-        );
-      }
-    }
-
-    if (intakeAction === 'leaveCase') {
-      try {
-        const created = await mhdLeavesService.createCaseFromSubmission({
-          submissionId: nextSubmissionId,
-          // Form values are plain JSON-serializable data by construction;
-          // Record<string, unknown> vs. the generated Json type is a type-
-          // system gap, not a real mismatch (same idiom used elsewhere in
-          // this codebase for RPC jsonb params).
-          values: submittedValues as Json,
-        });
-        setMessage('Submission submitted and leave case opened.');
-        navigate(`/leaves/${created.id}`);
-        return;
-      } catch (error) {
-        setSyncError(
-          error instanceof Error ? error.message : 'Unable to open a leave case from this submission.',
-        );
-      }
-    } else if (intakeAction === 'accommodationCase') {
-      try {
-        const created = await mhdAccommodationsService.createCaseFromSubmission(
-          nextSubmissionId,
-          submittedValues as Json,
-        );
-        setMessage('Submission submitted and accommodation case opened.');
-        navigate(`/accommodations/${created.id}`);
-        return;
-      } catch (error) {
-        setSyncError(
-          error instanceof Error
-            ? error.message
-            : 'Unable to open an accommodation case from this submission.',
         );
       }
     }
@@ -623,9 +582,9 @@ export function MhdFormRendererPage({ embedded = false }: MhdFormRendererPagePro
             </p>
             {shouldRouteToEsignature ? (
               <p className="mt-2">
-                This packet item also requires a generated document plus an e-signature
-                request. If this form has not been configured with the Builder&apos;s
-                &quot;Requires E-Signature&quot; option yet, route it manually from the{' '}
+                This packet item also requires a generated document plus an e-signature request. If
+                this form has not been configured with the Builder&apos;s &quot;Requires
+                E-Signature&quot; option yet, route it manually from the{' '}
                 <Link
                   to={`/esignature?personId=${encodeURIComponent(onboardingPersonId)}&personName=${encodeURIComponent(onboardingPersonName ?? 'Person')}`}
                   className="font-semibold text-accent underline hover:text-accent-hover"

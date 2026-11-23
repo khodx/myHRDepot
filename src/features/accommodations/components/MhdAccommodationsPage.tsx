@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Accessibility } from 'lucide-react';
-import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
@@ -28,17 +27,21 @@ import {
 import { MhdAccommodationBoard } from './MhdAccommodationBoard';
 import { MhdAccommodationTeamPanel } from './MhdAccommodationTeamPanel';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
-import { useMhdFormIntakeDefault } from '@/features/forms/Hook';
+import MhdBenefitIntakeButton from '@/components/ui/MhdBenefitIntakeButton';
+import {
+  MhdBenefitIntakeDraftsPanel,
+  MhdBenefitIntakeTabs,
+  type MhdBenefitIntakeTab,
+} from '@/components/ui/MhdBenefitIntakeTabs';
+import { mhdBenefitIntakeBucket } from '@/features/benefit-intake/Types';
 
 const MHD_ACCOMMODATIONS_VIEW_KEY = 'mhd:accommodations:view';
 
 export function MhdAccommodationsPage() {
-  const location = useLocation();
   const { profile, roles } = useMhdAuth();
   const companyId = profile?.companyId ?? '';
   const selfPersonId = profile?.personId ?? null;
   const isPrivileged = mhdAccommodationsIsPrivileged(roles);
-  const accommodationIntake = useMhdFormIntakeDefault(companyId || null, 'accommodationCase');
   const [status, setStatus] = useState<MhdAccommodationStatus | 'ALL'>('ALL');
   const [personId, setPersonId] = useState(isPrivileged ? '' : (selfPersonId ?? ''));
   const [viewMode, setViewMode] = useState<MhdViewMode>(() =>
@@ -51,6 +54,19 @@ export function MhdAccommodationsPage() {
   }
 
   const cases = useMhdAccommodationCases(companyId || null, status, personId || null);
+  const [tab, setTab] = useState<MhdBenefitIntakeTab>('ALL');
+  const allCases = cases.data ?? [];
+  const bucketOf = (item: (typeof allCases)[number]) =>
+    mhdBenefitIntakeBucket('ACCOMMODATION', item.status);
+  const caseList =
+    tab === 'IN_PROGRESS' || tab === 'SUBMITTED_CURRENT'
+      ? allCases.filter((item) => bucketOf(item) === tab)
+      : allCases;
+  const counts = {
+    ALL: allCases.length,
+    IN_PROGRESS: allCases.filter((item) => bucketOf(item) === 'IN_PROGRESS').length,
+    SUBMITTED_CURRENT: allCases.filter((item) => bucketOf(item) === 'SUBMITTED_CURRENT').length,
+  };
   const people = useMhdAccommodationPeople(isPrivileged ? companyId || null : null);
   const readiness = useMhdAccommodationReadiness();
   const peopleOptions = useMemo(
@@ -75,34 +91,14 @@ export function MhdAccommodationsPage() {
             >
               Option Library
             </Link>
-            {/*
-             * Additive entry point only — never a replacement for "Open
-             * Request" below or for verbal/observed/representative-made
-             * intake, which this standing domain rule (CLAUDE.md) requires to
-             * The Option Library can designate the company's default intake form.
-             */}
-            <Link
-              to={
-                accommodationIntake.default
-                  ? `/forms/${accommodationIntake.default.formId}/render?intakeAction=accommodationCase`
-                  : '/forms/library'
-              }
-              state={accommodationIntake.default ? { backgroundLocation: location } : undefined}
-              className="inline-flex h-9 items-center rounded-md border border-border bg-card px-3 text-[16.8px] font-semibold text-foreground hover:bg-accent-tint"
-            >
-              Submit Via Form
-            </Link>
-            <Link
-              to="/accommodations/new"
-              className={`${buttonBaseClasses} ${buttonVariantClasses.primary} h-9 px-3 text-[16.8px]`}
-            >
-              Open Request
-            </Link>
+            <MhdBenefitIntakeButton />
           </>
         }
       />
       <MhdComplianceGateBanner readiness={readiness.data} />
       {!isPrivileged ? <MhdAccommodationTeamPanel managerPersonId={selfPersonId} /> : null}
+
+      <MhdBenefitIntakeTabs value={tab} onChange={setTab} counts={counts} />
 
       <MhdFilterBar>
         {isPrivileged ? (
@@ -137,16 +133,18 @@ export function MhdAccommodationsPage() {
         <MhdViewToggle value={viewMode} onChange={handleViewModeChange} />
       </div>
 
-      {cases.isLoading ? (
+      {tab === 'DRAFTS' ? (
+        <MhdBenefitIntakeDraftsPanel />
+      ) : cases.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading accommodation cases…</p>
-      ) : (cases.data ?? []).length === 0 ? (
+      ) : caseList.length === 0 ? (
         <MhdEmptyState
           icon={Accessibility}
           title="No accommodation cases"
           description="Requests will appear here whether they begin verbally, in writing, or through another workflow."
         />
       ) : viewMode === 'board' ? (
-        <MhdAccommodationBoard cases={cases.data ?? []} isLoading={cases.isLoading} />
+        <MhdAccommodationBoard cases={caseList} isLoading={cases.isLoading} />
       ) : (
         <MhdCard className="overflow-hidden p-0">
           <MhdTable>
@@ -161,7 +159,7 @@ export function MhdAccommodationsPage() {
               </tr>
             </thead>
             <tbody>
-              {(cases.data ?? []).map((item) => (
+              {caseList.map((item) => (
                 <MhdTr key={item.id} to={`/accommodations/${item.id}`}>
                   <MhdTd className="font-mono">{item.referenceId}</MhdTd>
                   <MhdTd>{item.personDisplayName}</MhdTd>

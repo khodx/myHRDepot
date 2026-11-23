@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
@@ -7,9 +7,7 @@ import type { MhdLeaveCaseFilters, MhdLeaveCaseSummary } from '../Types';
 const EMPLOYEE_PERSON_ID = crypto.randomUUID();
 const COMPANY_ID = crypto.randomUUID();
 
-const { rolesRef, casesRef, casesHookMock, createCaseMock, createSelfMock } = vi.hoisted(() => ({
-  createCaseMock: vi.fn(),
-  createSelfMock: vi.fn(),
+const { rolesRef, casesRef, casesHookMock } = vi.hoisted(() => ({
   rolesRef: { current: [] as MhdAuthRoleName[] },
   casesRef: { current: [] as unknown[] },
   casesHookMock: vi.fn(),
@@ -44,8 +42,6 @@ vi.mock('../Hook', () => ({
     casesHookMock(filters);
     return { data: casesRef.current, isLoading: false };
   },
-  useMhdCreateLeaveCase: () => ({ mutateAsync: createCaseMock, isPending: false }),
-  useMhdCreateLeaveCaseSelf: () => ({ mutateAsync: createSelfMock, isPending: false }),
 }));
 
 vi.mock('@/features/people/Hook', () => ({
@@ -54,8 +50,13 @@ vi.mock('@/features/people/Hook', () => ({
   }),
 }));
 
-vi.mock('@/features/forms/Hook', () => ({
-  useMhdFormIntakeDefault: () => ({ default: null }),
+vi.mock('@/features/benefit-intake/Hook', () => ({
+  useMhdBenefitIntakeDrafts: () => ({ data: [] }),
+}));
+
+vi.mock('@/components/ui/MhdBenefitIntakeButton', () => ({
+  MhdBenefitIntakeButton: () => <button type="button">Start Request</button>,
+  default: () => <button type="button">Start Request</button>,
 }));
 
 vi.mock('@/components/ui/MhdDocumentMergeBatchLauncher', () => ({
@@ -126,6 +127,8 @@ describe('MhdLeavesPage as an Employee', () => {
     expect(screen.queryByLabelText('Employee')).not.toBeInTheDocument();
     for (const name of [
       'Open Leave Case',
+      'Request Leave',
+      'Submit Via Form',
       'Start guided intake',
       'Policy Library',
       'Leave Policy',
@@ -134,8 +137,8 @@ describe('MhdLeavesPage as an Employee', () => {
       expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
       expect(screen.queryByRole('link', { name })).not.toBeInTheDocument();
     }
-    // The employee's one action is requesting leave for themselves.
-    expect(screen.getByRole('button', { name: 'Request Leave' })).toBeInTheDocument();
+    // The one way in for everyone is the intake modal.
+    expect(screen.getAllByRole('button', { name: 'Start Request' })).toHaveLength(1);
   });
 
   it('links each case to its detail page and offers no edit link', () => {
@@ -167,66 +170,7 @@ describe('MhdLeavesPage as an administrator', () => {
     expect(casesHookMock).toHaveBeenCalledWith(expect.objectContaining({ personId: null }));
     expect(screen.getByRole('columnheader', { name: 'Employee' })).toBeInTheDocument();
     expect(screen.getAllByText('Tobias Lindqvist').length).toBeGreaterThan(0);
-    expect(screen.getByRole('button', { name: 'Open Leave Case' })).toBeInTheDocument();
-  });
-});
-
-describe('MhdLeavesPage input popups', () => {
-  it('opens Request Leave as a dialog, saves a draft, resumes it and discards it on submit', async () => {
-    rolesRef.current = ['Employee'];
-    draftController.current.draft = {
-      payload: { reasonCategory: 'Bonding', isIntermittent: true },
-      stepKey: null,
-      updatedAt: '2026-11-20T10:00:00Z',
-    };
-    createSelfMock.mockResolvedValue({ id: 'case-new' });
-    renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'Request Leave' }));
-    const dialog = screen.getByRole('dialog', { name: 'Request Leave' });
-
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
-    expect(within(dialog).getByLabelText('Reason')).toHaveValue('Bonding');
-
-    // The category is one of the nine employee file categories, filed under HR unless changed.
-    const category = within(dialog).getByLabelText('Category');
-    expect(within(category).getAllByRole('option')).toHaveLength(9);
-    expect(category).toHaveValue('hr');
-    fireEvent.change(category, { target: { value: 'medical' } });
-
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));
-    await waitFor(() => expect(draftController.current.save).toHaveBeenCalledTimes(1));
-    expect(draftController.current.save.mock.calls[0][0].payload).toMatchObject({
-      reasonCategory: 'Bonding',
-      fileCategory: 'medical',
-      isIntermittent: true,
-    });
-
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Request Leave' }));
-    await waitFor(() => expect(createSelfMock).toHaveBeenCalledTimes(1));
-    expect(createSelfMock.mock.calls[0][0]).toMatchObject({ fileCategory: 'medical' });
-    await waitFor(() => expect(draftController.current.discard).toHaveBeenCalled());
-  });
-
-  it('opens Open Leave Case as a dialog for an administrator and restores the employee', async () => {
-    rolesRef.current = ['HR Partner'];
-    draftController.current.draft = {
-      payload: { personId: 'person-9', reasonCategory: 'Caregiver' },
-      stepKey: null,
-      updatedAt: '2026-11-20T10:00:00Z',
-    };
-    createCaseMock.mockResolvedValue({ id: 'case-new' });
-    renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'Open Leave Case' }));
-    const dialog = screen.getByRole('dialog', { name: 'Open Leave Case' });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
-    expect(within(dialog).getByLabelText('Employee')).toHaveValue('person-9');
-    expect(within(dialog).getByLabelText('Reason')).toHaveValue('Caregiver');
-
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));
-    await waitFor(() => expect(draftController.current.save).toHaveBeenCalledTimes(1));
-
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Open Case' }));
-    await waitFor(() => expect(createCaseMock).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(draftController.current.discard).toHaveBeenCalled());
+    expect(screen.getAllByRole('button', { name: 'Start Request' })).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Open Leave Case' })).not.toBeInTheDocument();
   });
 });

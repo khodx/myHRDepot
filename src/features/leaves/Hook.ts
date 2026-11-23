@@ -1,9 +1,6 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   MhdAdjustLeaveInput,
-  MhdCreateLeaveCaseFromSubmissionInput,
-  MhdCreateLeaveCaseInput,
-  MhdCreateLeaveCaseSelfInput,
   MhdCreateLeaveTypeInput,
   MhdDesignateLeaveInput,
   MhdForkLeaveTypeInput,
@@ -105,46 +102,6 @@ export function useMhdLeaveCases(filters: MhdLeaveCaseFilters) {
     queryKey: mhdLeavesQueryKeys.cases(filters),
     queryFn: () => mhdLeavesService.listCases(filters),
     enabled: Boolean(filters.companyId),
-  });
-}
-
-export function useMhdCreateLeaveCase(_companyId: string | null) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (input: MhdCreateLeaveCaseInput) => mhdLeavesService.createCase(input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['mhd-leaves', 'cases'] });
-    },
-  });
-}
-
-/**
- * Self-service leave request — any authenticated user with a linked
- * person may call this, unlike useMhdCreateLeaveCase above.
- */
-export function useMhdCreateLeaveCaseSelf() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (input: MhdCreateLeaveCaseSelfInput) => mhdLeavesService.createCaseSelf(input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['mhd-leaves', 'cases'] });
-    },
-  });
-}
-
-/**
- * Form-driven Leaves intake (0188) — see `mhdLeavesService.createCaseFromSubmission`
- * for the full contract and the documented gap in what currently calls it.
- * Additive to `useMhdCreateLeaveCase` above, never a replacement.
- */
-export function useMhdCreateLeaveCaseFromSubmission() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (input: MhdCreateLeaveCaseFromSubmissionInput) =>
-      mhdLeavesService.createCaseFromSubmission(input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['mhd-leaves', 'cases'] });
-    },
   });
 }
 

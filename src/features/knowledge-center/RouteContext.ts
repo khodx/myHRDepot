@@ -4,8 +4,8 @@ import type { MhdKbArticleListItem } from './Types';
  * Does an article's `routeContext` cover this page?
  *
  * An entry matches its own path exactly. A `/*`-suffixed entry means "this page
- * and everything below it", so `/leaves/*` matches `/leaves` as well as
- * `/leaves/123/intake`. It does not match a sibling that merely shares a prefix
+ * and everything below it", so `/leaves/*` matches `/leaves` and its case pages.
+ * It does not match a sibling that merely shares a prefix
  * (`/leaves-archive`).
  */
 export function mhdKbArticleMatchesPath(

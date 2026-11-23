@@ -9,7 +9,6 @@ import type {
   MhdAccommodationProviderCertificationInput,
   MhdAccommodationRequestDetailsInput,
   MhdAccommodationStatus,
-  MhdCreateAccommodationInput,
   MhdCreateAccommodationOptionCatalogEntryInput,
   MhdRecordAccommodationMedicalInput,
   MhdUpdateAccommodationOptionCatalogEntryInput,
@@ -103,14 +102,6 @@ export function useMhdAccommodationReadiness() {
   return useQuery({
     queryKey: mhdAccommodationQueryKeys.readiness(),
     queryFn: () => mhdAccommodationsService.readiness(),
-  });
-}
-
-export function useMhdCreateAccommodation() {
-  const invalidate = useInvalidateAccommodationCase();
-  return useMutation({
-    mutationFn: (input: MhdCreateAccommodationInput) => mhdAccommodationsService.create(input),
-    onSuccess: () => invalidate(),
   });
 }
 

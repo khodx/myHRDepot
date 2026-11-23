@@ -1,5 +1,4 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
-import type { Json } from '@/types/database.types';
 import type {
   MhdAccommodationDenialReasonCode,
   MhdAccommodationDenialReasonInput,
@@ -19,7 +18,6 @@ import type {
   MhdAccommodationSummary,
   MhdAccommodationSummaryRpcRow,
   MhdComplianceReadiness,
-  MhdCreateAccommodationInput,
   MhdCreateAccommodationOptionCatalogEntryInput,
   MhdRecordAccommodationMedicalInput,
   MhdUpdateAccommodationOptionCatalogEntryInput,
@@ -129,39 +127,6 @@ export const mhdAccommodationsService = {
       p_status: input.status,
     } as never);
     if (error) throw error;
-  },
-
-  async create(input: MhdCreateAccommodationInput): Promise<{ id: string; referenceId: string }> {
-    const { data, error } = await supabaseClient.rpc('mhd_accommodation_case_create', {
-      p_company_id: input.companyId,
-      p_person_id: input.personId,
-      p_request_source: input.requestSource,
-      p_request_channel: input.requestChannel,
-      p_requested_at: input.requestedAt,
-      p_request_summary: input.requestSummary.trim(),
-      p_leave_case_id: input.leaveCaseId ?? undefined,
-    });
-    if (error) throw error;
-    const row = ((data ?? []) as Array<{ id: string; reference_id: string }>)[0];
-    if (!row) throw new Error('Accommodation creation returned no row.');
-    return { id: row.id, referenceId: row.reference_id };
-  },
-
-  async createCaseFromSubmission(
-    submissionId: string,
-    values: Json,
-  ): Promise<{ id: string; referenceId: string }> {
-    const { data, error } = await supabaseClient.rpc(
-      'mhd_create_accommodation_case_from_submission',
-      {
-        p_submission_id: submissionId,
-        p_values: values,
-      },
-    );
-    if (error) throw error;
-    const row = ((data ?? []) as Array<{ id: string; reference_id: string }>)[0];
-    if (!row) throw new Error('Accommodation case creation from submission returned no row.');
-    return { id: row.id, referenceId: row.reference_id };
   },
 
   async transition(caseId: string, status: MhdAccommodationStatus, reason?: string | null) {

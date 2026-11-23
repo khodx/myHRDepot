@@ -1,4 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { mhdDraftService } from '@/features/drafts/Service';
+import { MHD_DRAFT_KINDS } from '@/features/drafts/Types';
 import { mhdBenefitIntakeService } from './Service';
 import type {
   MhdBenefitCaseType,
@@ -23,6 +25,12 @@ export function useMhdSubmitBenefitIntake() {
         qc.invalidateQueries({ queryKey: ['mhd-drafts'] }),
       ]);
     },
+  });
+}
+export function useMhdBenefitIntakeDrafts() {
+  return useQuery({
+    queryKey: ['mhd-drafts', 'list', MHD_DRAFT_KINDS.benefitIntake],
+    queryFn: () => mhdDraftService.list(MHD_DRAFT_KINDS.benefitIntake),
   });
 }
 export function useMhdInformationRequests(caseType: MhdBenefitCaseType, caseId: string) {

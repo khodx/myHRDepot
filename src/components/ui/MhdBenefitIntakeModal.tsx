@@ -12,15 +12,18 @@ import { useMhdDraft } from '@/features/drafts/Hook';
 import { MHD_DRAFT_KINDS, MHD_DRAFT_NEW_KEY, type MhdDraftPayload } from '@/features/drafts/Types';
 import { useMhdPeoplePicker } from '@/features/people/Hook';
 import { noMedicalDetail } from '@/features/accommodations/Schemas';
-import { useMhdBenefitIntakeRoute, useMhdSubmitBenefitIntake } from '../Hook';
-import { mhdBenefitIntakePayloadSchema } from '../Schemas';
+import {
+  useMhdBenefitIntakeRoute,
+  useMhdSubmitBenefitIntake,
+} from '@/features/benefit-intake/Hook';
+import { mhdBenefitIntakePayloadSchema } from '@/features/benefit-intake/Schemas';
 import {
   MHD_BENEFIT_INTAKE_REASONS,
   type MhdBenefitIntakeOutcome,
   type MhdBenefitIntakePayload,
   type MhdBenefitIntakeReason,
   type MhdBenefitIntakeResult,
-} from '../Types';
+} from '@/features/benefit-intake/Types';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground';

@@ -1,3 +1,5 @@
+import type { MhdAccommodationStatus } from '@/features/accommodations/Types';
+import type { MhdLeaveCaseStatus } from '@/features/leaves/Types';
 export const MHD_BENEFIT_INTAKE_REASONS = [
   'Your own health condition',
   'Caring for a family member',
@@ -77,4 +79,22 @@ export interface MhdInformationRequestInput {
 export interface MhdInformationResponseInput {
   activityId: string;
   response: string;
+}
+
+export type MhdBenefitIntakeBucket = 'IN_PROGRESS' | 'SUBMITTED_CURRENT';
+
+export function mhdBenefitIntakeBucket(
+  caseType: 'LEAVE' | 'ACCOMMODATION',
+  status: MhdLeaveCaseStatus | MhdAccommodationStatus,
+): MhdBenefitIntakeBucket {
+  if (
+    (caseType === 'LEAVE' && status === 'REQUESTED') ||
+    (caseType === 'ACCOMMODATION' &&
+      ['INTAKE', 'INTERACTIVE_PROCESS', 'DOCUMENTATION_PENDING', 'EVALUATION', 'DECIDED'].includes(
+        status,
+      ))
+  ) {
+    return 'IN_PROGRESS';
+  }
+  return 'SUBMITTED_CURRENT';
 }

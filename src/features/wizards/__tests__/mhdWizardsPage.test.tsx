@@ -33,29 +33,23 @@ describe('MhdWizardsPage', () => {
       'href',
       '/jobs/new',
     );
-    expect(screen.getByRole('link', { name: /Leave Intake Wizard/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Leave Or Accommodation Request/ })).toHaveAttribute(
       'href',
-      '/leaves/new/intake',
+      '/leaves?startRequest=1',
     );
-    expect(screen.getByRole('link', { name: /Compensation Classification Wizard/ })).toHaveAttribute(
-      'href',
-      '/compensation',
-    );
+    expect(
+      screen.getByRole('link', { name: /Compensation Classification Wizard/ }),
+    ).toHaveAttribute('href', '/compensation');
     expect(screen.getByRole('link', { name: /Contractor Classification Wizard/ })).toHaveAttribute(
       'href',
       '/contractor-classification',
     );
-    expect(screen.getByRole('link', { name: /Course\/Curriculum\/Program Wizard/ })).toHaveAttribute(
-      'href',
-      '/training',
-    );
+    expect(
+      screen.getByRole('link', { name: /Course\/Curriculum\/Program Wizard/ }),
+    ).toHaveAttribute('href', '/training');
     expect(screen.getByRole('link', { name: /Handbook Wizard/ })).toHaveAttribute(
       'href',
       '/handbooks/new',
-    );
-    expect(screen.getByRole('link', { name: /Accommodation Intake Wizard/ })).toHaveAttribute(
-      'href',
-      '/accommodations/new',
     );
   });
 
@@ -66,11 +60,9 @@ describe('MhdWizardsPage', () => {
     const EMBEDDED = new Set(['MhdTrainingContentWizard']); // step inside the Course/Curriculum/Program wizard
     const HUB_COMPONENTS: Record<string, string> = {
       MhdJobDescriptionWizard: 'Job Description Wizard',
-      MhdLeaveIntakeWizard: 'Leave Intake Wizard',
       MhdCompensationClassificationWizard: 'Compensation Classification Wizard',
       MhdContractorClassificationWizard: 'Contractor Classification Wizard',
       MhdHandbookWizard: 'Handbook Wizard',
-      MhdAccommodationIntakeWizard: 'Accommodation Intake Wizard',
     };
     const found = Object.keys(import.meta.glob('/src/features/**/components/*Wizard.tsx')).map(
       (path) => path.split('/').pop()!.replace('.tsx', ''),
@@ -87,7 +79,8 @@ describe('MhdWizardsPage', () => {
         <MhdWizardsPage />
       </MemoryRouter>,
     );
-    for (const label of Object.values(HUB_COMPONENTS)) {
+    // The leave / accommodation intake is a modal (MhdBenefitIntakeModal), not a *Wizard page, so its hub card is listed here.
+    for (const label of [...Object.values(HUB_COMPONENTS), 'Leave Or Accommodation Request']) {
       expect(screen.getByRole('link', { name: new RegExp(label) })).toBeInTheDocument();
     }
   });
