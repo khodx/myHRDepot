@@ -1,7 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
+import type { MhdDraftController } from '@/features/drafts/Hook';
 import { mhdLeaveTypeFormSchema, type MhdLeaveTypeFormValues } from '../Schemas';
 import {
   MHD_LEAVE_JURISDICTIONS,
@@ -21,6 +23,8 @@ interface Props {
   onSubmit: (values: MhdLeaveTypeFormValues) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+  /** Server-side save and resume; the caller discards the draft after a successful submit. */
+  draft?: MhdDraftController;
 }
 
 /**
@@ -45,12 +49,15 @@ export function MhdLeaveTypeForm({
   onSubmit,
   onCancel,
   isSubmitting,
+  draft,
 }: Props) {
   const isEdit = Boolean(leaveType);
 
   const {
     register,
     handleSubmit,
+    getValues,
+    reset,
     formState: { errors },
   } = useForm<z.input<typeof mhdLeaveTypeFormSchema>, unknown, MhdLeaveTypeFormValues>({
     resolver: zodResolver(mhdLeaveTypeFormSchema),
@@ -71,6 +78,12 @@ export function MhdLeaveTypeForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {draft ? (
+        <MhdDraftBanner
+          draft={draft}
+          onRestore={(payload) => reset({ ...getValues(), ...payload } as never)}
+        />
+      ) : null}
       <input type="hidden" value={companyId} {...register('companyId')} readOnly />
       {leaveType ? (
         <input type="hidden" value={leaveType.id} {...register('typeId')} readOnly />
@@ -255,7 +268,8 @@ export function MhdLeaveTypeForm({
         Requires medical certification
       </label>
 
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
+        {draft ? <MhdSaveDraftButton draft={draft} getValues={() => ({ ...getValues() })} /> : null}
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>

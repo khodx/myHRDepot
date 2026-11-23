@@ -1,14 +1,17 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
-import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
+import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { useMhdDraft } from '@/features/drafts/Hook';
+import { MHD_DRAFT_KINDS, MHD_DRAFT_NEW_KEY, type MhdDraftPayload } from '@/features/drafts/Types';
 import { useMhdPeoplePicker } from '@/features/people/Hook';
 import { useMhdCreateLeaveCase } from '../Hook';
 import {
@@ -25,6 +28,7 @@ import {
   type MhdLeaveAdminIntakeChannel,
   type MhdLeaveRequestedMode,
 } from '../WorkflowTypes';
+import { MhdLeavesPage } from './MhdLeavesPage';
 import {
   MHD_LEAVE_INTAKE_CHANNEL_LABELS,
   mhdLeaveEnumLabel,
@@ -34,6 +38,8 @@ import {
 
 export interface MhdLeaveIntakeWizardProps {
   caseId?: string;
+  /** Render the Leaves list behind the popup so the wizard reads as a dialog over the list. Default true. */
+  withBackdrop?: boolean;
 }
 
 interface EligibilityResult {
@@ -295,7 +301,15 @@ function ResultsList({ results }: { results: EligibilityResult[] }) {
   );
 }
 
-export function MhdLeaveIntakeWizard({ caseId: caseIdProp }: MhdLeaveIntakeWizardProps) {
+/**
+ * Guided intake, shown as a popup over the Leaves list on both routes (/leaves/new/intake and
+ * /leaves/:caseId/intake). Save and resume: the draft is keyed 'new' until the case is created mid-way, then by
+ * the case id; the reason evaluation code and override reasons are left out of the draft (no medical detail).
+ */
+export function MhdLeaveIntakeWizard({
+  caseId: caseIdProp,
+  withBackdrop = true,
+}: MhdLeaveIntakeWizardProps) {
   const params = useParams<{ caseId: string }>();
   const navigate = useNavigate();
   const { profile, roles } = useMhdAuth();
@@ -324,7 +338,20 @@ export function MhdLeaveIntakeWizard({ caseId: caseIdProp }: MhdLeaveIntakeWizar
   const confirmEligibility = useMhdConfirmLeaveEligibility(caseId);
   const overrideEligibility = useMhdOverrideLeaveEligibility(caseId);
   const readiness = useMhdLeaveReadiness();
-  const createStarted = useRef(false);
+  const newDraft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.leaveIntake,
+    draftKey: MHD_DRAFT_NEW_KEY,
+    companyId: companyId || null,
+    enabled: isNewEntry && !caseId,
+  });
+  const caseDraft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.leaveIntake,
+    draftKey: caseId || MHD_DRAFT_NEW_KEY,
+    companyId: companyId || null,
+    enabled: Boolean(caseId),
+  });
+  const draft = caseId ? caseDraft : newDraft;
+  const createStarted = useRef(Boolean(caseId));
   const evaluateStarted = useRef(false);
 
   const steps = useMemo<MhdStep[]>(
@@ -361,6 +388,8 @@ export function MhdLeaveIntakeWizard({ caseId: caseIdProp }: MhdLeaveIntakeWizar
           intakeChannel: isAdministrator ? basics.intakeChannel : null,
         });
         setCaseId(created.id);
+        // The case now exists: the pre-creation draft is spent; later drafts are keyed by the case.
+        await newDraft.discard();
       } catch (cause) {
         createStarted.current = false;
         setError(cause instanceof Error ? cause.message : 'Unable to create the leave case.');
@@ -550,34 +579,94 @@ export function MhdLeaveIntakeWizard({ caseId: caseIdProp }: MhdLeaveIntakeWizar
     return <ResultsList results={results} />;
   }
 
-  function handleSubmit() {
+  function getDraftValues(): MhdDraftPayload {
+    return {
+      // The evaluation reason code and the override reasons are medical-adjacent free choices: never drafted.
+      basics: { ...basics, reasonCode: undefined },
+      facts,
+      results,
+      snapshotId,
+      confirmed,
+      confirmationStale,
+    };
+  }
+
+  function restoreDraft(payload: MhdDraftPayload, stepKey: string | null) {
+    const saved = payload as {
+      basics?: Partial<CaseBasicsState>;
+      facts?: Partial<FactsState>;
+      results?: EligibilityResult[];
+      snapshotId?: string;
+      confirmed?: boolean;
+      confirmationStale?: boolean;
+    };
+    setBasics((current) => ({ ...current, ...saved.basics }));
+    setFacts((current) => ({ ...current, ...saved.facts }));
+    if (saved.results?.length) {
+      setResults(saved.results);
+      evaluateStarted.current = true;
+    }
+    setSnapshotId(saved.snapshotId ?? '');
+    setConfirmed(Boolean(saved.confirmed));
+    setConfirmationStale(Boolean(saved.confirmationStale));
+    const stepIndex = steps.findIndex((step) => step.id === stepKey);
+    if (stepIndex >= 0) setCurrentStepIndex(stepIndex);
+  }
+
+  // A stable onClose: MhdModal's focus trap re-runs (and refocuses the close button) whenever onClose changes identity.
+  const routeCaseId = caseIdProp ?? params.caseId;
+  const handleClose = useCallback(() => {
+    navigate(routeCaseId ? `/leaves/${routeCaseId}` : '/leaves');
+  }, [navigate, routeCaseId]);
+
+  async function handleSubmit() {
+    await draft.discard();
     navigate(`/leaves/${caseId}`);
   }
 
   return (
-    <div className="space-y-6">
-      <MhdComplianceGateBanner readiness={readiness.data} />
-      <MhdPageHeader
-        title="Guided leave intake"
+    <>
+      {withBackdrop ? <MhdLeavesPage /> : null}
+      <MhdFormModal
+        title="Guided Leave Intake"
         description="Evaluate leave eligibility and record a documented decision."
-      />
-      <MhdStepper
-        steps={steps}
-        currentStepIndex={currentStepIndex}
-        onNavigate={(nextIndex) => void handleNavigate(nextIndex)}
-        validateCurrentStep={validateCurrentStep}
-        onSubmit={handleSubmit}
-        isSubmitting={createCase.isPending || evaluate.isPending}
-      />
-      <MhdCard>
-        <h2 className="text-lg font-semibold">{currentStep.title}</h2>
-        <div className="mt-4">{renderStep()}</div>
-        {error ? (
-          <p role="alert" className="mt-4 text-sm text-destructive">
-            {error}
+        size="xl"
+        onClose={handleClose}
+      >
+        <div className="space-y-6">
+          <MhdComplianceGateBanner readiness={readiness.data} />
+          <MhdDraftBanner draft={draft} onRestore={restoreDraft} />
+          <MhdStepper
+            steps={steps}
+            currentStepIndex={currentStepIndex}
+            onNavigate={(nextIndex) => void handleNavigate(nextIndex)}
+            validateCurrentStep={validateCurrentStep}
+            onSubmit={() => void handleSubmit()}
+            isSubmitting={createCase.isPending || evaluate.isPending}
+          />
+          <MhdCard>
+            <h3 className="text-lg font-semibold">{currentStep.title}</h3>
+            <div className="mt-4">{renderStep()}</div>
+            {error ? (
+              <p role="alert" className="mt-4 text-sm text-destructive">
+                {error}
+              </p>
+            ) : null}
+          </MhdCard>
+          <div className="flex flex-wrap items-center gap-2">
+            <MhdSaveDraftButton
+              draft={draft}
+              getValues={getDraftValues}
+              stepKey={currentStep.id}
+              title="Leave Intake"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Medical details are not saved in drafts. The evaluation reason code and override reasons
+            are re-entered after you resume.
           </p>
-        ) : null}
-      </MhdCard>
-    </div>
+        </div>
+      </MhdFormModal>
+    </>
   );
 }

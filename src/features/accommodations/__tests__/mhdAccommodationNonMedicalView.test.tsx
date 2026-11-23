@@ -23,6 +23,18 @@ vi.mock('@/features/tasks/Service', () => ({
   mhdTaskService: { listAssignableUsers: vi.fn().mockResolvedValue([]) },
 }));
 
+vi.mock('@/features/drafts/Hook', () => ({
+  useMhdDraft: () => ({
+    draft: null,
+    isLoading: false,
+    isSaving: false,
+    savedAt: null,
+    saveError: null,
+    save: vi.fn().mockResolvedValue(undefined),
+    discard: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 function mutation(mutateAsync: (input: never) => Promise<unknown>) {
   return { mutateAsync, isPending: false };
 }
@@ -156,6 +168,7 @@ describe('the compliance refusal on an accommodation write', () => {
     interactionMock.mockRejectedValue(refusal);
     renderPage();
 
+    fireEvent.click(screen.getByRole('button', { name: 'Record Interaction' }));
     fireEvent.change(screen.getByPlaceholderText('What was discussed and understood?'), {
       target: { value: 'Walked through the seating options with the employee.' },
     });

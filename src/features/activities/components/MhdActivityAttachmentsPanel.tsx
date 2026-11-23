@@ -1,12 +1,16 @@
-import { Paperclip } from 'lucide-react';
+import { Paperclip, Upload } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml } from '@/components/ui/MhdRichTextUtils';
 import { useMhdAttachments } from '@/features/attachments/Hook';
 import { mhdFormatFileSize, type MhdAttachment } from '@/features/attachments/Types';
 import { MhdAttachmentUploader } from '@/components/ui/MhdAttachmentUploader';
+import { useMhdDraft } from '@/features/drafts/Hook';
+import { MHD_DRAFT_KINDS } from '@/features/drafts/Types';
 import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
 
 interface Props {
@@ -25,6 +29,13 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
     downloadAttachment,
   } = useMhdAttachments('ACTIVITY', activityId);
 
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const draft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.activityAttachment,
+    draftKey: activityId,
+    enabled: isUploadOpen,
+  });
+
   async function handleDelete(attachment: MhdAttachment) {
     if (!window.confirm(`Delete "${attachment.originalFileName}"? This cannot be undone.`)) return;
     try {
@@ -35,9 +46,14 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
   }
 
   function handleUpload(file: File, descriptionRichText: unknown, descriptionPlainText: string) {
-    uploadAttachment(file, descriptionRichText, descriptionPlainText).catch(() => {
-      // Surfaced through the hook's error state.
-    });
+    uploadAttachment(file, descriptionRichText, descriptionPlainText)
+      .then(async () => {
+        await draft.discard();
+        setIsUploadOpen(false);
+      })
+      .catch(() => {
+        // Surfaced through the hook's error state.
+      });
   }
 
   if (isLoading) {
@@ -56,8 +72,21 @@ export function MhdActivityAttachmentsPanel({ activityId, readOnly = false }: Pr
           You have read-only access to activity attachments.
         </div>
       ) : (
-        <MhdAttachmentUploader isUploading={isUploading} onUpload={handleUpload} />
+        <Button type="button" className="gap-1.5" onClick={() => setIsUploadOpen(true)}>
+          <Upload className="h-4 w-4" />
+          Upload Attachment
+        </Button>
       )}
+
+      {isUploadOpen && !readOnly ? (
+        <MhdFormModal
+          title="Upload Attachment"
+          description="Add a file to this activity with a short description."
+          onClose={() => setIsUploadOpen(false)}
+        >
+          <MhdAttachmentUploader isUploading={isUploading} onUpload={handleUpload} draft={draft} />
+        </MhdFormModal>
+      ) : null}
 
       {attachments.length === 0 ? (
         <MhdCard className="border border-dashed border-border">

@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 
 const MHD_DEFAULT_FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -10,6 +10,10 @@ const MHD_DEFAULT_FOCUSABLE_SELECTOR =
  * MhdSidebar's MhdMobileNavDrawer each independently hand-rolled this
  * identical effect (MhdModal's own comment already noted it "intentionally
  * mirrors" the drawer's version rather than reusing it).
+ *
+ * `onClose` is read through a ref, so callers may pass an inline closure: the
+ * effect runs once per activation, not on every parent render (which would
+ * refocus the first control and drop the user's typing in a form modal).
  */
 export function useMhdFocusTrap(
   containerRef: RefObject<HTMLElement | null>,
@@ -22,6 +26,11 @@ export function useMhdFocusTrap(
     initialFocusRef?: RefObject<HTMLElement | null>;
   },
 ) {
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const container = containerRef.current;
@@ -35,7 +44,7 @@ export function useMhdFocusTrap(
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== 'Tab') return;
@@ -59,6 +68,6 @@ export function useMhdFocusTrap(
       document.body.style.overflow = '';
       previouslyFocused?.focus();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- matches the original per-component effect's deps of [onClose]; containerRef/options are expected stable
-  }, [onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- activation-scoped; onClose is read via ref, containerRef/options are expected stable
+  }, []);
 }

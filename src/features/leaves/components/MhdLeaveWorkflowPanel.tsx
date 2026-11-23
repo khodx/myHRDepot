@@ -4,14 +4,12 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
-import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdDetailField } from '@/components/ui/MhdDetailField';
-import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdTabs } from '@/components/ui/MhdTabs';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdDocumentService } from '@/features/documents/Service';
-import { mhdFormatDate, mhdFormatDateTime, mhdToIsoDateString } from '@/utils/mhdDateFormat';
+import { mhdFormatDate, mhdFormatDateTime } from '@/utils/mhdDateFormat';
 import {
   useMhdConfirmLeaveEligibility,
   useMhdLeaveBenefitObligation,
@@ -36,25 +34,22 @@ import {
   useMhdLeaveWorkflow,
   useMhdOverrideLeaveEligibility,
 } from '../WorkflowHook';
-import {
-  MHD_LEAVE_BONDING_EVENT_TYPES,
-  MHD_LEAVE_FAMILY_RELATIONSHIPS,
-  MHD_LEAVE_NOTICE_TYPES,
-  MHD_LEAVE_REASON_CODES,
-  type MhdLeaveBondingEventType,
-  type MhdLeaveDeadline,
-  type MhdLeaveDeadlineKind,
-  type MhdLeaveNoticeType,
-} from '../WorkflowTypes';
+import type { MhdLeaveDeadlineKind, MhdLeaveNoticeType } from '../WorkflowTypes';
+import { MhdLeaveActionModal } from './MhdLeaveActionModal';
 import { MhdLeaveBenefitTransactionList } from './MhdLeaveBenefitTransactionList';
 import { MhdLeaveCaseControlsPanel } from './MhdLeaveCaseControlsPanel';
 import { MhdLeaveChecklistPanel } from './MhdLeaveChecklistPanel';
-import { MhdLeaveDeadlineBadge } from './MhdLeaveDeadlineBadge';
 import { MhdLeaveDesignatedPersonPanel } from './MhdLeaveDesignatedPersonPanel';
 import { MhdLeavePayCoordinationPanel } from './MhdLeavePayCoordinationPanel';
 import {
   MhdLeaveBenefitObligationForm,
   MhdLeaveBenefitTransactionForm,
+  MhdLeaveBondingEventForm,
+  MhdLeaveContactForm,
+  MhdLeaveDeadlineStrip,
+  MhdLeaveEligibilityEvaluateForm,
+  MhdLeaveEligibilityOverrideForm,
+  MhdLeaveNoticeForm,
   MhdLeaveReturnToWorkForm,
   MhdLeaveSegmentForm,
 } from './MhdLeaveWorkflowForms';
@@ -67,11 +62,8 @@ import {
   MHD_LEAVE_NOTICE_DEADLINE_KINDS,
   mhdLeaveEnumLabel,
   mhdLeaveFindingMessage,
-  mhdLeavePick,
 } from './mhdLeaveLabels';
 
-const inputClass =
-  'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 type Tab =
   | 'eligibility'
   | 'checklist'
@@ -83,14 +75,6 @@ type Tab =
   | 'return'
   | 'controls';
 
-/** Yes / No / Unknown for an adult child's self-care; Unknown sends nothing. */
-const SELF_CARE_ANSWERS = ['UNKNOWN', 'YES', 'NO'] as const;
-type SelfCareAnswer = (typeof SELF_CARE_ANSWERS)[number];
-
-/** The outcomes a documented override may record (mhd_leave_eligibility_override). */
-const OVERRIDE_OUTCOMES = ['ELIGIBLE', 'INELIGIBLE', 'UNDETERMINED'] as const;
-type OverrideOutcome = (typeof OVERRIDE_OUTCOMES)[number];
-
 /** Every deadline kind an issued notice can close, for the Notices tab's deadline strip. */
 const NOTICE_DEADLINE_KINDS: ReadonlySet<MhdLeaveDeadlineKind> = new Set(
   Object.values(MHD_LEAVE_NOTICE_DEADLINE_KINDS).flat(),
@@ -100,17 +84,11 @@ function findingCode(finding: Record<string, unknown>): string {
   return typeof finding.code === 'string' ? finding.code : 'Review finding';
 }
 
-function DeadlineStrip({ deadlines, empty }: { deadlines: MhdLeaveDeadline[]; empty: string }) {
-  if (!deadlines.length) return <p className="text-sm text-muted-foreground">{empty}</p>;
-  return (
-    <div className="flex flex-wrap gap-2">
-      {deadlines.map((deadline) => (
-        <MhdLeaveDeadlineBadge key={deadline.id} deadline={deadline} />
-      ))}
-    </div>
-  );
-}
-
+/**
+ * The leave workflow tabs. Each tab shows its recorded facts inline; every add, record or edit
+ * opens in an MhdLeaveActionModal, which shows the server's refusal and keeps a draft. The
+ * error line here is for the one-click actions (confirm, mark delivered, pay status).
+ */
 export function MhdLeaveWorkflowPanel({
   caseId,
   privileged,
@@ -148,40 +126,18 @@ export function MhdLeaveWorkflowPanel({
   const keyEmployee = useMhdLeaveKeyEmployee(caseId);
   const essentialFunctions = useMhdLeaveEssentialFunctions(caseId);
   const [tab, setTab] = useState<Tab>('eligibility');
-  // null = not chosen yet, so the case's own recorded value is used.
+  // null = not chosen yet, so the case's own recorded value is used. Kept here rather than in
+  // the evaluate form because the chosen reason and relationship also decide whether the
+  // bonding and designated-person cards show.
   const [reasonChoice, setReasonChoice] = useState<string | null>(null);
   const [relationshipChoice, setRelationshipChoice] = useState<string | null>(null);
-  const [selfCare, setSelfCare] = useState<SelfCareAnswer>('UNKNOWN');
-  const [bondingDateChoice, setBondingDateChoice] = useState<string | null>(null);
-  const [bondingTypeChoice, setBondingTypeChoice] = useState<MhdLeaveBondingEventType | '' | null>(
-    null,
-  );
-  const [employerAgreedBonding, setEmployerAgreedBonding] = useState(false);
-  const [employerCount, setEmployerCount] = useState('');
-  const [worksiteCount, setWorksiteCount] = useState('');
-  const [months, setMonths] = useState('');
-  const [hours, setHours] = useState('');
-  const [weeklyHours, setWeeklyHours] = useState('');
-  const [coveredEmployerOverride, setCoveredEmployerOverride] = useState(false);
-  const [eventSummary, setEventSummary] = useState('');
-  const [overriding, setOverriding] = useState<string | null>(null);
-  const [overrideOutcome, setOverrideOutcome] = useState<OverrideOutcome>('ELIGIBLE');
-  const [overrideReason, setOverrideReason] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [newNoticeOpen, setNewNoticeOpen] = useState(false);
-  const [noticeType, setNoticeType] = useState<MhdLeaveNoticeType>('ELIGIBILITY');
-  const [templateKey, setTemplateKey] = useState('');
 
   const record = workflow.data;
-  const countFactsEntered = [employerCount, worksiteCount, months, hours].every(
-    (value) => value.trim() !== '' && Number.isFinite(Number(value)) && Number(value) >= 0,
-  );
-  const factsComplete = countFactsEntered && weeklyHours.trim() !== '' && Number(weeklyHours) > 0;
   if (workflow.isLoading) return <p className="text-sm text-muted-foreground">Loading workflow…</p>;
   if (!record) return null;
 
-  // Resolves the action's value, or null after showing the refusal, so a form can keep its
-  // input when the RPC says no.
+  // Resolves the action's value, or null after showing the refusal.
   async function attempt<T>(action: () => Promise<T>): Promise<{ value: T } | null> {
     setError(null);
     try {
@@ -195,10 +151,10 @@ export function MhdLeaveWorkflowPanel({
     return (await attempt(action)) !== null;
   }
 
+  const companyId = record.case.company_id;
+  const modalScope = { caseId, companyId };
   const reasonCode = reasonChoice ?? record.case.reason_code ?? 'OWN_SERIOUS_HEALTH_CONDITION';
   const relationship = relationshipChoice ?? record.case.family_relationship ?? '';
-  const bondingDate = bondingDateChoice ?? record.case.bonding_event_date ?? '';
-  const bondingType = bondingTypeChoice ?? record.case.bonding_event_type ?? '';
   const intermittent = record.case.is_intermittent || record.case.requested_mode === 'INTERMITTENT';
   const isBonding = reasonCode === 'BONDING';
   const showDesignatedPersons =
@@ -208,10 +164,28 @@ export function MhdLeaveWorkflowPanel({
   const noticeDeadlines = record.deadlines.filter((deadline) =>
     NOTICE_DEADLINE_KINDS.has(deadline.deadline_kind),
   );
-  const closedBySelectedNotice = MHD_LEAVE_NOTICE_DEADLINE_KINDS[noticeType] ?? [];
-  const selectedNoticeDeadlines = record.deadlines.filter((deadline) =>
-    closedBySelectedNotice.includes(deadline.deadline_kind),
-  );
+
+  async function createNotice(input: { noticeType: MhdLeaveNoticeType; templateKey: string }) {
+    const template = keyedTemplates.find((item) => item.templateKey === input.templateKey);
+    if (!template?.templateKey) throw new Error('Select a document template.');
+    const generation = await mhdDocumentService.generateAndPoll(
+      {
+        templateId: template.id,
+        companyId: profile!.companyId,
+        entityType: 'LEAVE_CASE',
+        entityId: caseId,
+        mergeData: {},
+      },
+      { actorUserId: authUserId! },
+    );
+    await recordNotice.mutateAsync({
+      caseId,
+      noticeType: input.noticeType,
+      templateKey: template.templateKey,
+      templateVersion: template.version,
+      documentGenerationId: generation.id,
+    });
+  }
 
   const tabs = [
     { value: 'eligibility' as const, label: 'Eligibility', count: record.eligibility.length },
@@ -240,6 +214,29 @@ export function MhdLeaveWorkflowPanel({
 
       {tab === 'eligibility' ? (
         <div className="space-y-3">
+          {privileged ? (
+            <div className="flex justify-end">
+              <MhdLeaveActionModal
+                {...modalScope}
+                action="eligibility-evaluate"
+                title="Evaluate Current Facts"
+                launchLabel="Evaluate Eligibility"
+                launchVariant="primary"
+                medicalFields
+              >
+                <MhdLeaveEligibilityEvaluateForm
+                  caseId={caseId}
+                  reasonCode={reasonCode}
+                  onReasonChange={setReasonChoice}
+                  relationship={relationship}
+                  onRelationshipChange={setRelationshipChoice}
+                  intermittent={intermittent}
+                  isPending={evaluate.isPending}
+                  onSubmit={(input) => evaluate.mutateAsync(input)}
+                />
+              </MhdLeaveActionModal>
+            </div>
+          ) : null}
           {record.eligibility.map((item) => (
             <MhdCard key={item.id}>
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -261,13 +258,19 @@ export function MhdLeaveWorkflowPanel({
                     >
                       Confirm Determination
                     </Button>
-                    <Button
-                      variant="secondary"
-                      disabled={override.isPending}
-                      onClick={() => setOverriding(overriding === item.id ? null : item.id)}
+                    <MhdLeaveActionModal
+                      {...modalScope}
+                      action={`eligibility-override:${item.id}`}
+                      title={`Override ${item.type_key} Determination`}
+                      size="md"
+                      launchLabel="Override"
                     >
-                      Override
-                    </Button>
+                      <MhdLeaveEligibilityOverrideForm
+                        determinationId={item.id}
+                        isPending={override.isPending}
+                        onSubmit={(input) => override.mutateAsync(input)}
+                      />
+                    </MhdLeaveActionModal>
                   </div>
                 ) : null}
               </div>
@@ -304,53 +307,6 @@ export function MhdLeaveWorkflowPanel({
                   className="mt-2"
                 />
               </dl>
-              {privileged && overriding === item.id ? (
-                <div className="mt-3 space-y-2 rounded-md border border-border p-3">
-                  <p className="text-xs text-muted-foreground">
-                    An override is a documented human decision. The evaluated outcome, findings, and
-                    rule-set version remain on the record.
-                  </p>
-                  <select
-                    className={inputClass}
-                    value={overrideOutcome}
-                    onChange={(e) =>
-                      setOverrideOutcome(
-                        mhdLeavePick(OVERRIDE_OUTCOMES, e.target.value) ?? 'ELIGIBLE',
-                      )
-                    }
-                    aria-label="Override outcome"
-                  >
-                    {OVERRIDE_OUTCOMES.map((value) => (
-                      <option key={value} value={value}>
-                        {mhdLeaveEnumLabel(value)}
-                      </option>
-                    ))}
-                  </select>
-                  <textarea
-                    className={`min-h-20 ${inputClass}`}
-                    value={overrideReason}
-                    onChange={(e) => setOverrideReason(e.target.value)}
-                    placeholder="Why the determination is being overridden"
-                    aria-label="Override reason"
-                  />
-                  <Button
-                    disabled={override.isPending || !overrideReason.trim()}
-                    onClick={() =>
-                      void run(async () => {
-                        await override.mutateAsync({
-                          determinationId: item.id,
-                          effectiveOutcome: overrideOutcome,
-                          overrideReason,
-                        });
-                        setOverrideReason('');
-                        setOverriding(null);
-                      })
-                    }
-                  >
-                    Record Override
-                  </Button>
-                </div>
-              ) : null}
             </MhdCard>
           ))}
 
@@ -376,52 +332,20 @@ export function MhdLeaveWorkflowPanel({
                 />
               </dl>
               {privileged ? (
-                <div className="space-y-3 border-t border-border pt-3">
-                  <MhdFormFieldStack>
-                    <label className="block text-xs">
-                      Bonding event date
-                      <MhdDateField
-                        className={`mt-1 ${inputClass}`}
-                        value={bondingDate}
-                        onChange={setBondingDateChoice}
-                      />
-                    </label>
-                    <label className="block text-xs">
-                      Bonding event type
-                      <select
-                        className={`mt-1 ${inputClass}`}
-                        value={bondingType}
-                        onChange={(e) =>
-                          setBondingTypeChoice(
-                            mhdLeavePick(MHD_LEAVE_BONDING_EVENT_TYPES, e.target.value) ?? '',
-                          )
-                        }
-                      >
-                        <option value="">Select an event type</option>
-                        {MHD_LEAVE_BONDING_EVENT_TYPES.map((value) => (
-                          <option key={value} value={value}>
-                            {mhdLeaveEnumLabel(value)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </MhdFormFieldStack>
-                  <Button
-                    disabled={bondingEvent.isPending || !bondingDate || !bondingType}
-                    onClick={() => {
-                      if (!bondingType) return;
-                      void run(() =>
-                        bondingEvent.mutateAsync({
-                          caseId,
-                          eventDate: bondingDate,
-                          eventType: bondingType,
-                        }),
-                      );
-                    }}
-                  >
-                    Save Bonding Event
-                  </Button>
-                </div>
+                <MhdLeaveActionModal
+                  {...modalScope}
+                  action="bonding-event"
+                  title="Bonding Event"
+                  size="md"
+                  launchLabel="Edit Bonding Event"
+                >
+                  <MhdLeaveBondingEventForm
+                    caseId={caseId}
+                    current={record.case}
+                    isPending={bondingEvent.isPending}
+                    onSubmit={(input) => bondingEvent.mutateAsync(input)}
+                  />
+                </MhdLeaveActionModal>
               ) : null}
             </MhdCard>
           ) : null}
@@ -429,175 +353,15 @@ export function MhdLeaveWorkflowPanel({
           {showDesignatedPersons ? (
             <MhdLeaveDesignatedPersonPanel
               caseId={caseId}
+              companyId={companyId}
               persons={record.designated_persons}
               familyRelationship={relationship}
               limitDesignatedPerson={record.policy.limit_designated_person}
               privileged={privileged}
               isPending={designatedPerson.isPending || voidDesignatedPerson.isPending}
-              onRecord={(input) => run(() => designatedPerson.mutateAsync(input))}
-              onVoid={(input) => run(() => voidDesignatedPerson.mutateAsync(input))}
+              onRecord={(input) => designatedPerson.mutateAsync(input)}
+              onVoid={(input) => voidDesignatedPerson.mutateAsync(input)}
             />
-          ) : null}
-
-          {privileged ? (
-            <MhdCard className="space-y-3">
-              <MhdCardHeader title="Evaluate Current Facts" />
-              <p className="text-xs text-muted-foreground">
-                The engine evaluates each legal basis separately. CFRA does not use a 75-mile test;
-                that count is used only for FMLA. A human must confirm every result.
-              </p>
-              <MhdFormFieldStack>
-                <label className="block text-xs">
-                  Leave reason
-                  <select
-                    className={`mt-1 ${inputClass}`}
-                    value={reasonCode}
-                    onChange={(e) => setReasonChoice(e.target.value)}
-                  >
-                    {MHD_LEAVE_REASON_CODES.map((value) => (
-                      <option key={value} value={value}>
-                        {mhdLeaveEnumLabel(value)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block text-xs">
-                  Family relationship
-                  <select
-                    className={`mt-1 ${inputClass}`}
-                    value={relationship}
-                    onChange={(e) => setRelationshipChoice(e.target.value)}
-                  >
-                    <option value="">No family relationship</option>
-                    {MHD_LEAVE_FAMILY_RELATIONSHIPS.map((value) => (
-                      <option key={value} value={value}>
-                        {mhdLeaveEnumLabel(value)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {relationship === 'CHILD_ADULT' ? (
-                  <div>
-                    <label className="block text-xs">
-                      Incapable Of Self-Care
-                      <select
-                        className={`mt-1 ${inputClass}`}
-                        value={selfCare}
-                        onChange={(e) =>
-                          setSelfCare(mhdLeavePick(SELF_CARE_ANSWERS, e.target.value) ?? 'UNKNOWN')
-                        }
-                      >
-                        {SELF_CARE_ANSWERS.map((value) => (
-                          <option key={value} value={value}>
-                            {mhdLeaveEnumLabel(value)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      FMLA covers care of an adult child only when the child is incapable of
-                      self-care. Leave it Unknown until that is established.
-                    </p>
-                  </div>
-                ) : null}
-                {isBonding && intermittent ? (
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={employerAgreedBonding}
-                      onChange={(e) => setEmployerAgreedBonding(e.target.checked)}
-                    />
-                    Employer Agrees To Intermittent Bonding
-                  </label>
-                ) : null}
-                <label className="block text-xs">
-                  Scheduled weekly hours
-                  <input
-                    className={`mt-1 ${inputClass}`}
-                    type="number"
-                    value={weeklyHours}
-                    onChange={(e) => setWeeklyHours(e.target.value)}
-                  />
-                </label>
-                <label className="block text-xs">
-                  Employer employee count
-                  <input
-                    className={`mt-1 ${inputClass}`}
-                    type="number"
-                    value={employerCount}
-                    onChange={(e) => setEmployerCount(e.target.value)}
-                  />
-                </label>
-                <label className="block text-xs">
-                  FMLA worksite count within 75 miles
-                  <input
-                    className={`mt-1 ${inputClass}`}
-                    type="number"
-                    value={worksiteCount}
-                    onChange={(e) => setWorksiteCount(e.target.value)}
-                  />
-                </label>
-                <label className="block text-xs">
-                  Months of service
-                  <input
-                    className={`mt-1 ${inputClass}`}
-                    type="number"
-                    value={months}
-                    onChange={(e) => setMonths(e.target.value)}
-                  />
-                </label>
-                <label className="block text-xs">
-                  Hours worked in prior 12 months
-                  <input
-                    className={`mt-1 ${inputClass}`}
-                    type="number"
-                    value={hours}
-                    onChange={(e) => setHours(e.target.value)}
-                  />
-                </label>
-              </MhdFormFieldStack>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={coveredEmployerOverride}
-                  onChange={(e) => setCoveredEmployerOverride(e.target.checked)}
-                />{' '}
-                Covered employer override (record only for a verified public agency/school or other
-                covered-employer basis)
-              </label>
-              {!factsComplete ? (
-                <p className="text-xs text-muted-foreground">
-                  Enter every employer and service fact (weekly hours above zero); none are assumed.
-                </p>
-              ) : null}
-              <Button
-                disabled={evaluate.isPending || !factsComplete}
-                onClick={() =>
-                  void run(() =>
-                    evaluate.mutateAsync({
-                      caseId,
-                      asOfDate: mhdToIsoDateString(),
-                      employerEmployeeCount: Number(employerCount),
-                      monthsOfService: Number(months),
-                      hoursWorked12Months: Number(hours),
-                      worksiteEmployeeCount75: Number(worksiteCount),
-                      scheduledWeeklyHours: Number(weeklyHours),
-                      reasonCode,
-                      familyRelationship: relationship || null,
-                      coveredEmployerOverride,
-                      ...(relationship === 'CHILD_ADULT' && selfCare !== 'UNKNOWN'
-                        ? { incapableOfSelfCare: selfCare === 'YES' }
-                        : {}),
-                      ...(isBonding && intermittent
-                        ? { employerAgreedIntermittentBonding: employerAgreedBonding }
-                        : {}),
-                    }),
-                  )
-                }
-              >
-                Evaluate All Bases
-              </Button>
-            </MhdCard>
           ) : null}
         </div>
       ) : null}
@@ -606,7 +370,7 @@ export function MhdLeaveWorkflowPanel({
         <div className="space-y-3">
           <MhdCard className="space-y-3">
             <MhdCardHeader title="Legal Deadlines" />
-            <DeadlineStrip
+            <MhdLeaveDeadlineStrip
               deadlines={record.deadlines}
               empty="No legal deadlines have been opened on this case."
             />
@@ -619,106 +383,28 @@ export function MhdLeaveWorkflowPanel({
         <div className="space-y-2">
           <MhdCard className="space-y-3">
             <MhdCardHeader title="Notice Deadlines" />
-            <DeadlineStrip
+            <MhdLeaveDeadlineStrip
               deadlines={noticeDeadlines}
               empty="No notice deadline is open on this case."
             />
           </MhdCard>
           {privileged ? (
             <div className="flex justify-end">
-              <Button variant="secondary" onClick={() => setNewNoticeOpen((open) => !open)}>
-                New Notice
-              </Button>
-            </div>
-          ) : null}
-          {privileged && newNoticeOpen ? (
-            <MhdCard className="space-y-3">
-              <MhdCardHeader title="New Leave Notice" />
-              <MhdFormFieldStack>
-                <label className="block text-xs">
-                  Notice type
-                  <select
-                    className={`mt-1 ${inputClass}`}
-                    value={noticeType}
-                    onChange={(event) =>
-                      setNoticeType(
-                        mhdLeavePick(MHD_LEAVE_NOTICE_TYPES, event.target.value) ?? 'ELIGIBILITY',
-                      )
-                    }
-                  >
-                    {MHD_LEAVE_NOTICE_TYPES.map((value) => (
-                      <option key={value} value={value}>
-                        {mhdLeaveEnumLabel(value)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block text-xs">
-                  Document template
-                  <select
-                    className={`mt-1 ${inputClass}`}
-                    value={templateKey}
-                    onChange={(event) => setTemplateKey(event.target.value)}
-                  >
-                    <option value="">Select a document template</option>
-                    {keyedTemplates.map((template) => (
-                      <option key={template.id} value={template.templateKey ?? ''}>
-                        {template.name} (v{template.version})
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </MhdFormFieldStack>
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">
-                  The due date comes from the case&apos;s legal deadline, not from this form.
-                  Issuing this notice closes:
-                </p>
-                <DeadlineStrip
-                  deadlines={selectedNoticeDeadlines}
-                  empty="This notice type closes no open deadline."
+              <MhdLeaveActionModal
+                {...modalScope}
+                action="notice"
+                title="New Leave Notice"
+                launchLabel="New Notice"
+              >
+                <MhdLeaveNoticeForm
+                  templates={keyedTemplates}
+                  deadlines={record.deadlines}
+                  isPending={recordNotice.isPending}
+                  canSubmit={Boolean(authUserId && profile?.companyId)}
+                  onSubmit={createNotice}
                 />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  disabled={
-                    recordNotice.isPending || !templateKey || !authUserId || !profile?.companyId
-                  }
-                  onClick={() =>
-                    void run(async () => {
-                      const template = keyedTemplates.find(
-                        (item) => item.templateKey === templateKey,
-                      );
-                      if (!template?.templateKey) throw new Error('Select a document template.');
-                      const generation = await mhdDocumentService.generateAndPoll(
-                        {
-                          templateId: template.id,
-                          companyId: profile!.companyId,
-                          entityType: 'LEAVE_CASE',
-                          entityId: caseId,
-                          mergeData: {},
-                        },
-                        { actorUserId: authUserId! },
-                      );
-                      await recordNotice.mutateAsync({
-                        caseId,
-                        noticeType,
-                        templateKey: template.templateKey,
-                        templateVersion: template.version,
-                        documentGenerationId: generation.id,
-                      });
-                      setNewNoticeOpen(false);
-                      setTemplateKey('');
-                    })
-                  }
-                >
-                  {recordNotice.isPending ? 'Recording…' : 'Create Notice'}
-                </Button>
-                <Button variant="secondary" onClick={() => setNewNoticeOpen(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </MhdCard>
+              </MhdLeaveActionModal>
+            </div>
           ) : null}
           {record.notices.length ? (
             record.notices.map((item) => (
@@ -763,6 +449,22 @@ export function MhdLeaveWorkflowPanel({
 
       {tab === 'schedule' ? (
         <div className="space-y-2">
+          {privileged ? (
+            <div className="flex justify-end">
+              <MhdLeaveActionModal
+                {...modalScope}
+                action="segment"
+                title="Record Leave Segment"
+                launchLabel="Add Segment"
+              >
+                <MhdLeaveSegmentForm
+                  caseId={caseId}
+                  isPending={recordSegment.isPending}
+                  onSubmit={(input) => recordSegment.mutateAsync(input)}
+                />
+              </MhdLeaveActionModal>
+            </div>
+          ) : null}
           {record.segments.length ? (
             record.segments.map((item) => (
               <MhdCard key={item.id}>
@@ -776,9 +478,10 @@ export function MhdLeaveWorkflowPanel({
                 <MhdDetailField label="Status" value={item.status} />
                 {privileged ? (
                   <MhdLeaveSegmentStatusControl
+                    {...modalScope}
                     segment={item}
                     isPending={updateSegmentStatus.isPending}
-                    onSubmit={(input) => run(() => updateSegmentStatus.mutateAsync(input))}
+                    onSubmit={(input) => updateSegmentStatus.mutateAsync(input)}
                   />
                 ) : null}
               </MhdCard>
@@ -786,18 +489,35 @@ export function MhdLeaveWorkflowPanel({
           ) : (
             <p className="text-sm text-muted-foreground">No leave segments recorded.</p>
           )}
-          {privileged ? (
-            <MhdLeaveSegmentForm
-              caseId={caseId}
-              isPending={recordSegment.isPending}
-              onSubmit={(input) => run(() => recordSegment.mutateAsync(input))}
-            />
-          ) : null}
         </div>
       ) : null}
 
       {tab === 'communications' ? (
         <div className="space-y-3">
+          {privileged ? (
+            <div className="flex justify-end">
+              <MhdLeaveActionModal
+                {...modalScope}
+                action="contact"
+                title="Record Contact"
+                size="md"
+                launchLabel="Add Contact"
+              >
+                <MhdLeaveContactForm
+                  isPending={event.isPending}
+                  onSubmit={(summary) =>
+                    event.mutateAsync({
+                      caseId,
+                      eventType: 'CONTACT',
+                      channel: 'OTHER',
+                      summary,
+                      visibility: 'EMPLOYEE',
+                    })
+                  }
+                />
+              </MhdLeaveActionModal>
+            </div>
+          ) : null}
           {record.events.map((item) => (
             <MhdCard key={item.id}>
               <MhdDetailField label="Contact type" value={item.event_type.replaceAll('_', ' ')} />
@@ -810,46 +530,17 @@ export function MhdLeaveWorkflowPanel({
               <MhdDetailField label="Channel" value={item.channel} className="mt-2" />
             </MhdCard>
           ))}
-          {privileged ? (
-            <MhdCard className="space-y-2">
-              <textarea
-                className={`min-h-20 ${inputClass}`}
-                value={eventSummary}
-                onChange={(e) => setEventSummary(e.target.value)}
-                placeholder="Operational contact summary—no medical details"
-              />
-              <Button
-                disabled={event.isPending || !eventSummary.trim()}
-                onClick={() =>
-                  void run(async () => {
-                    await event.mutateAsync({
-                      caseId,
-                      eventType: 'CONTACT',
-                      channel: 'OTHER',
-                      summary: eventSummary,
-                      visibility: 'EMPLOYEE',
-                    });
-                    setEventSummary('');
-                  })
-                }
-              >
-                Record Contact
-              </Button>
-            </MhdCard>
-          ) : null}
         </div>
       ) : null}
 
       {tab === 'pay' ? (
         <MhdLeavePayCoordinationPanel
           caseId={caseId}
+          companyId={companyId}
           paySources={record.pay_sources}
           privileged={privileged}
           isPending={paySource.isPending || paySourceStatus.isPending}
-          onRecord={async (input) =>
-            (await attempt(async () => (await paySource.mutateAsync(input)).warnings))?.value ??
-            null
-          }
+          onRecord={async (input) => (await paySource.mutateAsync(input)).warnings}
           onUpdateStatus={async (input) =>
             (await attempt(() => paySourceStatus.mutateAsync(input)))?.value ?? null
           }
@@ -858,6 +549,36 @@ export function MhdLeaveWorkflowPanel({
 
       {tab === 'benefits' ? (
         <div className="space-y-2">
+          {privileged ? (
+            <div className="flex flex-wrap justify-end gap-2">
+              <MhdLeaveActionModal
+                {...modalScope}
+                action="benefit-obligation"
+                title="Record Benefit Obligation"
+                launchLabel="Add Obligation"
+              >
+                <MhdLeaveBenefitObligationForm
+                  caseId={caseId}
+                  isPending={recordObligation.isPending}
+                  onSubmit={(input) => recordObligation.mutateAsync(input)}
+                />
+              </MhdLeaveActionModal>
+              {record.benefits.length ? (
+                <MhdLeaveActionModal
+                  {...modalScope}
+                  action="benefit-transaction"
+                  title="Record Benefit Transaction"
+                  launchLabel="Add Transaction"
+                >
+                  <MhdLeaveBenefitTransactionForm
+                    obligations={record.benefits}
+                    isPending={recordTransaction.isPending}
+                    onSubmit={(input) => recordTransaction.mutateAsync(input)}
+                  />
+                </MhdLeaveActionModal>
+              ) : null}
+            </div>
+          ) : null}
           <MhdCard className="space-y-3">
             <MhdCardHeader title="Health Coverage Continuation" />
             {record.health_continuation.length ? (
@@ -925,9 +646,10 @@ export function MhdLeaveWorkflowPanel({
                 </dl>
                 {privileged ? (
                   <MhdLeaveBenefitObligationStatusControl
+                    {...modalScope}
                     obligation={item}
                     isPending={updateObligationStatus.isPending}
-                    onSubmit={(input) => run(() => updateObligationStatus.mutateAsync(input))}
+                    onSubmit={(input) => updateObligationStatus.mutateAsync(input)}
                   />
                 ) : null}
                 <MhdLeaveBenefitTransactionList transactions={item.transactions} />
@@ -938,22 +660,6 @@ export function MhdLeaveWorkflowPanel({
               No benefit-maintenance obligation recorded.
             </p>
           )}
-          {privileged ? (
-            <>
-              <MhdLeaveBenefitObligationForm
-                caseId={caseId}
-                isPending={recordObligation.isPending}
-                onSubmit={(input) => run(() => recordObligation.mutateAsync(input))}
-              />
-              {record.benefits.length ? (
-                <MhdLeaveBenefitTransactionForm
-                  obligations={record.benefits}
-                  isPending={recordTransaction.isPending}
-                  onSubmit={(input) => run(() => recordTransaction.mutateAsync(input))}
-                />
-              ) : null}
-            </>
-          ) : null}
         </div>
       ) : null}
 
@@ -962,11 +668,9 @@ export function MhdLeaveWorkflowPanel({
           caseData={record.case}
           privileged={privileged}
           isPending={workersComp.isPending || keyEmployee.isPending || essentialFunctions.isPending}
-          onWorkersComp={(input) => run(() => workersComp.mutateAsync(input))}
-          onKeyEmployee={(input) => run(() => keyEmployee.mutateAsync(input))}
-          onEssentialFunctions={(providedOn) =>
-            run(() => essentialFunctions.mutateAsync(providedOn))
-          }
+          onWorkersComp={(input) => workersComp.mutateAsync(input)}
+          onKeyEmployee={(input) => keyEmployee.mutateAsync(input)}
+          onEssentialFunctions={(providedOn) => essentialFunctions.mutateAsync(providedOn)}
         />
       ) : null}
 
@@ -977,6 +681,27 @@ export function MhdLeaveWorkflowPanel({
               ? 'Return-to-work certifications are required under a uniformly applied company policy.'
               : 'No uniformly applied return-to-work certification policy is recorded for this company.'}
           </p>
+          {privileged ? (
+            <div className="flex justify-end">
+              <MhdLeaveActionModal
+                {...modalScope}
+                action="return-to-work"
+                title="Return-To-Work Plan"
+                launchLabel={
+                  record.return_to_work ? 'Edit Return-To-Work Plan' : 'Add Return-To-Work Plan'
+                }
+                medicalFields
+              >
+                <MhdLeaveReturnToWorkForm
+                  caseId={caseId}
+                  current={record.return_to_work}
+                  uniformCertificationPolicy={record.policy.rtw_certification_uniform_policy}
+                  isPending={returnToWork.isPending}
+                  onSubmit={(input) => returnToWork.mutateAsync(input)}
+                />
+              </MhdLeaveActionModal>
+            </div>
+          ) : null}
           {record.return_to_work ? (
             <MhdCard className="space-y-2">
               <dl className="grid gap-2 sm:grid-cols-2">
@@ -1033,16 +758,6 @@ export function MhdLeaveWorkflowPanel({
           ) : (
             <p className="text-sm text-muted-foreground">No return-to-work plan recorded.</p>
           )}
-          {privileged ? (
-            <MhdLeaveReturnToWorkForm
-              key={record.return_to_work?.id ?? 'new'}
-              caseId={caseId}
-              current={record.return_to_work}
-              uniformCertificationPolicy={record.policy.rtw_certification_uniform_policy}
-              isPending={returnToWork.isPending}
-              onSubmit={(input) => run(() => returnToWork.mutateAsync(input))}
-            />
-          ) : null}
         </div>
       ) : null}
     </section>

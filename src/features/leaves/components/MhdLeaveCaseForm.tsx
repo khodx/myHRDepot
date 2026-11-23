@@ -1,8 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
+import type { MhdDraftController } from '@/features/drafts/Hook';
 import { mhdLeaveCaseFormSchema, type MhdLeaveCaseFormValues } from '../Schemas';
 import type { z } from 'zod';
 
@@ -17,6 +19,8 @@ interface Props {
   onSubmit: (values: MhdLeaveCaseFormValues) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+  /** Server-side save and resume; the caller discards the draft after a successful submit. */
+  draft?: MhdDraftController;
 }
 
 /**
@@ -29,11 +33,20 @@ interface Props {
  * form deliberately thin is what stops medical narrative from landing on the
  * case record.
  */
-export function MhdLeaveCaseForm({ companyId, people, onSubmit, onCancel, isSubmitting }: Props) {
+export function MhdLeaveCaseForm({
+  companyId,
+  people,
+  onSubmit,
+  onCancel,
+  isSubmitting,
+  draft,
+}: Props) {
   const {
     register,
     control,
     handleSubmit,
+    getValues,
+    reset,
     formState: { errors },
   } = useForm<z.input<typeof mhdLeaveCaseFormSchema>, unknown, MhdLeaveCaseFormValues>({
     resolver: zodResolver(mhdLeaveCaseFormSchema),
@@ -49,6 +62,12 @@ export function MhdLeaveCaseForm({ companyId, people, onSubmit, onCancel, isSubm
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {draft ? (
+        <MhdDraftBanner
+          draft={draft}
+          onRestore={(payload) => reset({ ...getValues(), ...payload } as never)}
+        />
+      ) : null}
       <input type="hidden" value={companyId} {...register('companyId')} readOnly />
 
       <div>
@@ -138,12 +157,13 @@ export function MhdLeaveCaseForm({ companyId, people, onSubmit, onCancel, isSubm
         Intermittent leave (taken in separate blocks)
       </label>
 
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
+        {draft ? <MhdSaveDraftButton draft={draft} getValues={() => ({ ...getValues() })} /> : null}
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Opening…' : 'Open case'}
+          {isSubmitting ? 'Opening…' : 'Open Case'}
         </Button>
       </div>
     </form>

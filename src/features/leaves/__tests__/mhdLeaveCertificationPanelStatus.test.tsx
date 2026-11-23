@@ -1,7 +1,12 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MhdLeaveCertificationPanel } from '../components/MhdLeaveCertificationPanel';
 import type { MhdLeaveCertification } from '../Types';
+import { mhdLeaveDraftServiceMock as drafts, mhdRenderWithQueryClient } from './leaveDraftTestKit';
+
+vi.mock('@/features/drafts/Service', async () => ({
+  mhdDraftService: (await import('./leaveDraftTestKit')).mhdLeaveDraftServiceMock,
+}));
 
 const cert: MhdLeaveCertification = {
   id: 'cert-1',
@@ -18,7 +23,7 @@ function renderPanel(
   onUpdateStatus = vi.fn().mockResolvedValue(undefined),
   onClearDates = vi.fn().mockResolvedValue(undefined),
 ) {
-  render(
+  mhdRenderWithQueryClient(
     <MhdLeaveCertificationPanel
       caseId="case-1"
       certifications={[cert]}
@@ -35,12 +40,12 @@ function renderPanel(
 describe('MhdLeaveCertificationPanel status update', () => {
   it('offers no status control to a viewer who cannot see medical detail', () => {
     renderPanel(false);
-    expect(screen.queryByRole('button', { name: 'Update status' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Update Status' })).not.toBeInTheDocument();
   });
 
   it('lists exactly the database statuses and carries no diagnosis field', () => {
     renderPanel(true);
-    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Update Status' }));
     const options = Array.from(
       screen.getByLabelText('Certification status').querySelectorAll('option'),
     ).map((option) => option.value);
@@ -60,7 +65,7 @@ describe('MhdLeaveCertificationPanel status update', () => {
 
   it('requires a status before saving', async () => {
     const onUpdateStatus = renderPanel(true);
-    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Update Status' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save Status' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Select the new certification status.',
@@ -70,7 +75,7 @@ describe('MhdLeaveCertificationPanel status update', () => {
 
   it('records a deficiency with notice date, cure date and operational note', async () => {
     const onUpdateStatus = renderPanel(true);
-    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Update Status' }));
     fireEvent.change(screen.getByLabelText('Certification status'), {
       target: { value: 'INCOMPLETE' },
     });
@@ -104,7 +109,7 @@ describe('MhdLeaveCertificationPanel status update', () => {
       .fn()
       .mockRejectedValue(new Error('Certification not found or medical access denied'));
     renderPanel(true, onUpdateStatus);
-    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Update Status' }));
     fireEvent.change(screen.getByLabelText('Certification status'), {
       target: { value: 'RECEIVED' },
     });
@@ -132,7 +137,7 @@ describe('MhdLeaveCertificationPanel operational status display', () => {
     workflowCertifications: (typeof operational)[] | undefined,
     canSeeMedical = true,
   ) {
-    return render(
+    return mhdRenderWithQueryClient(
       <MhdLeaveCertificationPanel
         caseId="case-1"
         certifications={[cert]}
@@ -163,21 +168,21 @@ describe('MhdLeaveCertificationPanel operational status display', () => {
 
   it('opens the status form on the current status', () => {
     renderWith([operational]);
-    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Update Status' }));
     expect(screen.getByLabelText('Certification status')).toHaveValue('INCOMPLETE');
   });
 
   it('works without a workflow record', () => {
     renderWith(undefined);
     expect(screen.queryByText('Cure due')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Update Status' }));
     expect(screen.getByLabelText('Certification status')).toHaveValue('');
   });
 
   it('ignores a workflow certification that matches no row', () => {
     renderWith([{ ...operational, id: 'other-cert' }]);
     expect(screen.queryByText('Cure due')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Update Status' }));
     expect(screen.getByLabelText('Certification status')).toHaveValue('');
   });
 });
@@ -185,7 +190,7 @@ describe('MhdLeaveCertificationPanel operational status display', () => {
 describe('MhdLeaveCertificationPanel requested date and date clearing', () => {
   it('sends the Requested On date with a status update', async () => {
     const onUpdateStatus = renderPanel(true);
-    fireEvent.click(screen.getByRole('button', { name: 'Update status' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Update Status' }));
     fireEvent.change(screen.getByLabelText('Certification status'), {
       target: { value: 'REQUESTED' },
     });
@@ -239,5 +244,65 @@ describe('MhdLeaveCertificationPanel requested date and date clearing', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Clear Dates' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Medical access denied');
     expect(screen.getByLabelText('Requested Date')).toBeChecked();
+  });
+});
+
+describe('MhdLeaveCertificationPanel modals keep no medical draft', () => {
+  it('opens Record Certification as a dialog with no Save Draft and no draft lookup', async () => {
+    const onRecord = vi.fn().mockResolvedValue(undefined);
+    mhdRenderWithQueryClient(
+      <MhdLeaveCertificationPanel
+        caseId="case-1"
+        certifications={[]}
+        canSeeMedical
+        onRecord={onRecord}
+        onMarkSufficient={vi.fn()}
+        onUpdateStatus={vi.fn()}
+        onClearDates={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Record Certification' }));
+    expect(screen.getByRole('dialog')).toHaveAccessibleName('Record Certification');
+    expect(screen.getByText('Medical details are not saved in drafts.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save Draft' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }));
+    await waitFor(() =>
+      expect(onRecord).toHaveBeenCalledWith({
+        caseId: 'case-1',
+        certificationType: 'INITIAL',
+        dueDate: null,
+      }),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(drafts.get).not.toHaveBeenCalled();
+    expect(drafts.discard).not.toHaveBeenCalled();
+  });
+
+  it('records a sufficiency review with the restricted provider note', async () => {
+    const onMarkSufficient = vi.fn().mockResolvedValue(undefined);
+    mhdRenderWithQueryClient(
+      <MhdLeaveCertificationPanel
+        caseId="case-1"
+        certifications={[cert]}
+        canSeeMedical
+        onRecord={vi.fn()}
+        onMarkSufficient={onMarkSufficient}
+        onUpdateStatus={vi.fn()}
+        onClearDates={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Review Sufficiency' }));
+    expect(screen.queryByRole('button', { name: 'Save Draft' })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/Provider note/), {
+      target: { value: 'Duration section left blank' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Mark Insufficient' }));
+    await waitFor(() =>
+      expect(onMarkSufficient).toHaveBeenCalledWith({
+        certId: 'cert-1',
+        sufficient: false,
+        providerNote: 'Duration section left blank',
+      }),
+    );
   });
 });

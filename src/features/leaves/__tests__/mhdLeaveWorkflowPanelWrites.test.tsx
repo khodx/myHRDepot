@@ -7,6 +7,11 @@ import type {
   MhdLeaveBenefitTransaction,
   MhdLeaveWorkflow,
 } from '../WorkflowTypes';
+import {
+  mhdLeaveDraftServiceMock as drafts,
+  mhdResetLeaveDraftService,
+  mhdTestLeaveDraft,
+} from './leaveDraftTestKit';
 import { mhdTestLeaveWorkflow } from './leaveWorkflowFixture';
 
 const CASE_ID = 'e7a13c94-5d20-4b86-8f31-2c9b06d4a715';
@@ -47,6 +52,10 @@ vi.mock('@/features/authentication/Hook', () => ({
 
 vi.mock('@/features/documents/Service', () => ({
   mhdDocumentService: { listTemplates, generateAndPoll },
+}));
+
+vi.mock('@/features/drafts/Service', async () => ({
+  mhdDraftService: (await import('./leaveDraftTestKit')).mhdLeaveDraftServiceMock,
 }));
 
 vi.mock('../WorkflowHook', async () => {
@@ -120,8 +129,14 @@ function openTab(name: RegExp) {
   fireEvent.click(screen.getByRole('tab', { name }));
 }
 
+function launch(name: string) {
+  fireEvent.click(screen.getByRole('button', { name }));
+  return screen.getByRole('dialog');
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  mhdResetLeaveDraftService();
   workflowData.current = workflow();
   segmentAsync.mockResolvedValue('seg-1');
   segmentStatusAsync.mockResolvedValue(undefined);
@@ -139,13 +154,15 @@ describe('Schedule tab', () => {
     workflowData.current = { ...workflow(), segments: [segmentRow] };
     renderPanel(false);
     openTab(/Schedule/);
-    expect(screen.queryByRole('button', { name: 'Record Segment' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Update Status' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add Segment' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Change Status' })).not.toBeInTheDocument();
   });
 
-  it('records a requested segment and clears the form', async () => {
+  it('records a requested segment in a dialog, discards the draft and closes', async () => {
     renderPanel();
     openTab(/Schedule/);
+    expect(screen.queryByLabelText('Segment start')).not.toBeInTheDocument();
+    expect(launch('Add Segment')).toHaveAccessibleName('Record Leave Segment');
     expect(screen.getByRole('button', { name: 'Record Segment' })).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Segment start'), {
       target: { value: '2026-08-03T08:00' },
@@ -164,13 +181,17 @@ describe('Schedule tab', () => {
         startAt: new Date('2026-08-03T08:00').toISOString(),
       }),
     );
-    await waitFor(() => expect(screen.getByLabelText('Segment start')).toHaveValue(''));
+    await waitFor(() =>
+      expect(drafts.discard).toHaveBeenCalledWith('LEAVE_CASE_ACTION', `${CASE_ID}:segment`),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
   it('shows the exact server refusal for a taken segment and keeps what was typed', async () => {
     segmentAsync.mockRejectedValueOnce(new Error('Hours exceed the remaining balance of 12'));
     renderPanel();
     openTab(/Schedule/);
+    launch('Add Segment');
     fireEvent.change(screen.getByLabelText('Segment status'), { target: { value: 'TAKEN' } });
     expect(
       screen.getByLabelText('Actual hours (required for a taken segment)'),
@@ -191,6 +212,7 @@ describe('Schedule tab', () => {
     segmentStatusAsync.mockRejectedValueOnce(new Error('The eligibility basis is not confirmed'));
     renderPanel();
     openTab(/Schedule/);
+    launch('Change Status');
     fireEvent.change(screen.getByLabelText('New status'), { target: { value: 'TAKEN' } });
     fireEvent.change(screen.getByLabelText('Actual Hours'), { target: { value: '40' } });
     fireEvent.click(screen.getByRole('button', { name: 'Update Status' }));
@@ -204,14 +226,16 @@ describe('Benefits tab', () => {
     workflowData.current = workflow([obligationRow]);
     renderPanel(false);
     openTab(/Benefits/);
-    expect(screen.queryByRole('button', { name: 'Record Obligation' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Record Transaction' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add Obligation' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add Transaction' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Change Status' })).not.toBeInTheDocument();
   });
 
   it('records an obligation from the benefit type and frequency vocabularies', async () => {
     renderPanel();
     openTab(/Benefits/);
-    expect(screen.queryByRole('button', { name: 'Record Transaction' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add Transaction' })).not.toBeInTheDocument();
+    launch('Add Obligation');
     expect(screen.getByRole('button', { name: 'Record Obligation' })).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Benefit type'), {
       target: { value: 'DENTAL' },
@@ -248,6 +272,7 @@ describe('Benefits tab', () => {
     workflowData.current = workflow([obligationRow]);
     renderPanel();
     openTab(/Benefits/);
+    launch('Add Transaction');
     const typeSelect = screen.getByLabelText('Transaction type');
     expect(Array.from(typeSelect.querySelectorAll('option')).map((option) => option.value)).toEqual(
       ['CHARGE', 'PAYMENT', 'ADJUSTMENT'],
@@ -276,6 +301,7 @@ describe('Benefits tab', () => {
     transactionAsync.mockRejectedValueOnce(new Error('Benefit obligation not found'));
     renderPanel();
     openTab(/Benefits/);
+    launch('Add Transaction');
     fireEvent.change(screen.getByLabelText('Obligation'), { target: { value: 'obl-1' } });
     fireEvent.change(screen.getByLabelText('Amount'), { target: { value: '10' } });
     fireEvent.change(screen.getByLabelText('Effective date'), { target: { value: '08/15/2026' } });
@@ -338,6 +364,7 @@ describe('Benefit transaction reversals', () => {
     withTransactions([]);
     renderPanel();
     openTab(/Benefits/);
+    launch('Add Transaction');
     fireEvent.change(screen.getByLabelText('Obligation'), { target: { value: 'obl-1' } });
     expect(reversalTypeOffered()).toBe(false);
   });
@@ -346,6 +373,7 @@ describe('Benefit transaction reversals', () => {
     withTransactions([charge, reversalOfCharge]);
     renderPanel();
     openTab(/Benefits/);
+    launch('Add Transaction');
     fireEvent.change(screen.getByLabelText('Obligation'), { target: { value: 'obl-1' } });
     expect(reversalTypeOffered()).toBe(false);
   });
@@ -354,6 +382,7 @@ describe('Benefit transaction reversals', () => {
     withTransactions([charge, payment, reversalOfCharge]);
     renderPanel();
     openTab(/Benefits/);
+    launch('Add Transaction');
     fireEvent.change(screen.getByLabelText('Obligation'), { target: { value: 'obl-1' } });
     expect(reversalTypeOffered()).toBe(true);
     fireEvent.change(screen.getByLabelText('Transaction type'), { target: { value: 'REVERSAL' } });
@@ -387,6 +416,7 @@ describe('Benefit transaction reversals', () => {
     withTransactions([charge]);
     renderPanel();
     openTab(/Benefits/);
+    launch('Add Transaction');
     fireEvent.change(screen.getByLabelText('Obligation'), { target: { value: 'obl-1' } });
     fireEvent.change(screen.getByLabelText('Transaction type'), { target: { value: 'REVERSAL' } });
     fireEvent.change(screen.getByLabelText('Effective date'), { target: { value: '08/20/2026' } });
@@ -399,6 +429,7 @@ describe('Benefit transaction reversals', () => {
     transactionAsync.mockRejectedValueOnce(new Error('That transaction has already been reversed'));
     renderPanel();
     openTab(/Benefits/);
+    launch('Add Transaction');
     fireEvent.change(screen.getByLabelText('Obligation'), { target: { value: 'obl-1' } });
     fireEvent.change(screen.getByLabelText('Transaction type'), { target: { value: 'REVERSAL' } });
     fireEvent.change(screen.getByLabelText('Transaction being reversed'), {
@@ -423,6 +454,7 @@ describe('Benefits tab: continuation and health caps', () => {
   it('offers a continuation basis only for group health coverage and sends it', async () => {
     renderPanel();
     openTab(/Benefits/);
+    launch('Add Obligation');
     const basis = screen.getByLabelText('Continuation basis');
     expect(basis).toBeDisabled();
     expect(
@@ -580,6 +612,7 @@ describe('Return To Work tab', () => {
     });
     renderPanel();
     openTab(/Return To Work/);
+    launch('Add Return-To-Work Plan');
     expect(
       screen.getAllByText(
         'Return-to-work certifications are required under a uniformly applied company policy.',
@@ -627,6 +660,95 @@ describe('Return To Work tab', () => {
   it('explains that a certification will be refused without a uniform policy', () => {
     renderPanel();
     openTab(/Return To Work/);
+    launch('Add Return-To-Work Plan');
     expect(screen.getByText(/requiring a certification will be refused/)).toBeInTheDocument();
+  });
+});
+
+describe('Leave workflow action drafts', () => {
+  it('keeps return-to-work certification and restriction facts out of the draft', async () => {
+    renderPanel();
+    openTab(/Return To Work/);
+    launch('Add Return-To-Work Plan');
+    expect(screen.getByText('Medical details are not saved in drafts.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Expected return date'), {
+      target: { value: '09/14/2026' },
+    });
+    fireEvent.blur(screen.getByLabelText('Expected return date'));
+    fireEvent.click(screen.getByLabelText('Fitness-For-Duty Certification Required'));
+    fireEvent.click(
+      screen.getByLabelText('Work Restrictions Present; Begin Accommodation Referral'),
+    );
+    fireEvent.change(screen.getByLabelText('Exception reason'), {
+      target: { value: 'Comparable position on the day shift' },
+    });
+    fireEvent.change(screen.getByLabelText('Reinstatement note (optional)'), {
+      target: { value: 'Same pay grade' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
+    await waitFor(() => expect(drafts.save).toHaveBeenCalledTimes(1));
+    expect(drafts.save.mock.calls[0][0]).toMatchObject({
+      draftKey: `${CASE_ID}:return-to-work`,
+      payload: {
+        expectedReturn: '2026-09-14',
+        actualReturn: '',
+        outcome: '',
+        note: 'Same pay grade',
+      },
+    });
+    const payload = drafts.save.mock.calls[0][0].payload as Record<string, unknown>;
+    expect(Object.keys(payload).sort()).toEqual([
+      'actualReturn',
+      'expectedReturn',
+      'note',
+      'outcome',
+    ]);
+  });
+
+  it('resumes a saved benefit obligation draft', async () => {
+    drafts.get.mockResolvedValue(
+      mhdTestLeaveDraft(`${CASE_ID}:benefit-obligation`, {
+        benefitType: 'DENTAL',
+        frequency: 'MONTHLY',
+        employerAmount: '38.4',
+        description: 'Delta Dental PPO',
+      }),
+    );
+    renderPanel();
+    openTab(/Benefits/);
+    launch('Add Obligation');
+    fireEvent.click(await screen.findByRole('button', { name: 'Resume Draft' }));
+    expect(screen.getByLabelText('Benefit type')).toHaveValue('DENTAL');
+    expect(screen.getByLabelText('Contribution frequency')).toHaveValue('MONTHLY');
+    expect(screen.getByLabelText('Employer amount')).toHaveValue(38.4);
+    expect(screen.getByLabelText('Description (optional)')).toHaveValue('Delta Dental PPO');
+  });
+
+  it('saves the chosen notice type and template as a draft', async () => {
+    renderPanel();
+    openTab(/Notices/);
+    launch('New Notice');
+    fireEvent.change(screen.getByLabelText('Notice type'), { target: { value: 'DESIGNATION' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
+    await waitFor(() => expect(drafts.save).toHaveBeenCalledTimes(1));
+    expect(drafts.save.mock.calls[0][0]).toMatchObject({
+      draftKind: 'LEAVE_CASE_ACTION',
+      draftKey: `${CASE_ID}:notice`,
+      payload: { noticeType: 'DESIGNATION', templateKey: '' },
+    });
+  });
+
+  it('records an operational contact in a dialog and discards its draft', async () => {
+    renderPanel();
+    openTab(/Contacts/);
+    launch('Add Contact');
+    fireEvent.change(screen.getByLabelText('Contact summary'), {
+      target: { value: 'Called to confirm the expected return week' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Record Contact' }));
+    await waitFor(() =>
+      expect(drafts.discard).toHaveBeenCalledWith('LEAVE_CASE_ACTION', `${CASE_ID}:contact`),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
-import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import {
   MHD_LEAVE_CERTIFICATION_STATUSES,
@@ -19,9 +18,12 @@ import {
   type MhdLeaveCertificationClearDatesInput,
   type MhdLeaveWorkflow,
 } from '../WorkflowTypes';
+import { MhdLeaveActionButtons, MhdLeaveActionModal } from './MhdLeaveActionModal';
+import { useMhdLeaveAction } from './mhdLeaveActionContext';
 
 interface Props {
   caseId: string;
+  companyId?: string | null;
   certifications: MhdLeaveCertification[];
   /**
    * The workflow record's certifications, matched to the rows above by id. They carry the
@@ -36,6 +38,7 @@ interface Props {
   canSeeMedical: boolean;
   isLoading?: boolean;
   isSubmitting?: boolean;
+  /** Each rejects with the server's refusal, which the action modal shows verbatim. */
   onRecord: (input: MhdRecordCertificationInput) => Promise<void>;
   onMarkSufficient: (input: MhdMarkCertificationInput) => Promise<void>;
   onUpdateStatus: (input: MhdUpdateCertificationStatusInput) => Promise<void>;
@@ -73,9 +76,13 @@ const INPUT_CLASSES =
  * Everyone who can view the case still learns THAT a certification exists and
  * its status (required / received / sufficient / due) — that part is not
  * medical. Only the content stays behind the gate.
+ *
+ * Recording, reviewing, status updates and date clearing each open in an action modal that
+ * keeps NO draft: every field here belongs to the medical partition.
  */
 export function MhdLeaveCertificationPanel({
   caseId,
+  companyId = null,
   certifications,
   workflowCertifications = [],
   canSeeMedical,
@@ -87,119 +94,7 @@ export function MhdLeaveCertificationPanel({
   onClearDates,
 }: Props) {
   const operationalById = new Map(workflowCertifications.map((item) => [item.id, item]));
-  const [isRecording, setIsRecording] = useState(false);
-  const [certType, setCertType] =
-    useState<(typeof MHD_LEAVE_CERTIFICATION_TYPES)[number]>('INITIAL');
-  const [dueDate, setDueDate] = useState('');
-
-  // Per-row review state (mark sufficient / insufficient + optional note). Only
-  // ever shown to a PA/HRP viewer.
-  const [reviewingId, setReviewingId] = useState<string | null>(null);
-  const [note, setNote] = useState('');
-
-  // Status update state. The select opens on the case's current status when the workflow
-  // record supplies it, and stays blank (a deliberate choice) when it does not.
-  const [statusId, setStatusId] = useState<string | null>(null);
-  const [newStatus, setNewStatus] = useState<MhdLeaveCertificationStatus | ''>('');
-  const [requestedAt, setRequestedAt] = useState('');
-  const [receivedAt, setReceivedAt] = useState('');
-  const [deficiencyNotifiedAt, setDeficiencyNotifiedAt] = useState('');
-  const [cureDueDate, setCureDueDate] = useState('');
-  const [reviewNote, setReviewNote] = useState('');
-  const [statusError, setStatusError] = useState<string | null>(null);
-
-  function closeStatusForm() {
-    setStatusId(null);
-    setNewStatus('');
-    setRequestedAt('');
-    setReceivedAt('');
-    setDeficiencyNotifiedAt('');
-    setCureDueDate('');
-    setReviewNote('');
-    setStatusError(null);
-  }
-
-  function openStatusForm(certId: string, currentStatus: string | undefined) {
-    closeStatusForm();
-    setStatusId(certId);
-    const known = MHD_LEAVE_CERTIFICATION_STATUSES.find((status) => status === currentStatus);
-    if (known) setNewStatus(known);
-  }
-
-  async function submitStatus(certId: string) {
-    if (!newStatus) {
-      setStatusError('Select the new certification status.');
-      return;
-    }
-    setStatusError(null);
-    try {
-      await onUpdateStatus({
-        certId,
-        status: newStatus,
-        receivedAt: receivedAt || null,
-        deficiencyNotifiedAt: deficiencyNotifiedAt || null,
-        cureDueDate: cureDueDate || null,
-        reviewNote: reviewNote.trim() || null,
-        requestedAt: requestedAt || null,
-      });
-      closeStatusForm();
-    } catch (caught) {
-      // The server's own refusal (for example the cure-date rule) is shown verbatim.
-      setStatusError(caught instanceof Error ? caught.message : 'Unable to update the status.');
-    }
-  }
-
-  // Clear-a-date state: which certification, which dates, and the required reason.
-  const [clearingId, setClearingId] = useState<string | null>(null);
-  const [clearFields, setClearFields] = useState<MhdLeaveCertificationClearableDate[]>([]);
-  const [clearReason, setClearReason] = useState('');
-  const [clearError, setClearError] = useState<string | null>(null);
-
-  function closeClearForm() {
-    setClearingId(null);
-    setClearFields([]);
-    setClearReason('');
-    setClearError(null);
-  }
-
-  function toggleClearField(field: MhdLeaveCertificationClearableDate, checked: boolean) {
-    setClearFields((current) =>
-      checked ? [...current, field] : current.filter((item) => item !== field),
-    );
-  }
-
-  async function submitClear(certificationId: string) {
-    setClearError(null);
-    try {
-      await onClearDates({ certificationId, fields: clearFields, reason: clearReason });
-      closeClearForm();
-    } catch (caught) {
-      setClearError(caught instanceof Error ? caught.message : 'Unable to clear the dates.');
-    }
-  }
-
-  async function submitRecord() {
-    await onRecord({
-      caseId,
-      certificationType: certType,
-      dueDate: dueDate || null,
-    });
-    setIsRecording(false);
-    setDueDate('');
-    setCertType('INITIAL');
-  }
-
-  async function submitReview(certId: string, sufficient: boolean) {
-    await onMarkSufficient({
-      certId,
-      sufficient,
-      // The provider note is restricted medical detail; it is only ever
-      // collected on this PA/HRP-only path and never surfaced elsewhere.
-      providerNote: note.trim() || null,
-    });
-    setReviewingId(null);
-    setNote('');
-  }
+  const scope = { caseId, companyId, draftable: false, size: 'md' as const };
 
   return (
     <section className="space-y-4">
@@ -216,60 +111,20 @@ export function MhdLeaveCertificationPanel({
             those controls exist only for a viewer who can see medical detail —
             the RPCs re-check the gate regardless. */}
         {canSeeMedical ? (
-          <Button variant="secondary" onClick={() => setIsRecording(true)}>
-            Record certification
-          </Button>
+          <MhdLeaveActionModal
+            {...scope}
+            action="certification"
+            title="Record Certification"
+            launchLabel="Record Certification"
+          >
+            <RecordCertificationForm
+              caseId={caseId}
+              isSubmitting={isSubmitting}
+              onSubmit={onRecord}
+            />
+          </MhdLeaveActionModal>
         ) : null}
       </div>
-
-      {isRecording && canSeeMedical ? (
-        <MhdCard className="space-y-3">
-          <div className="flex flex-wrap items-end gap-3">
-            <div>
-              <label htmlFor="certType" className="block text-sm font-medium text-foreground">
-                Type
-              </label>
-              <select
-                id="certType"
-                value={certType}
-                onChange={(event) =>
-                  setCertType(event.target.value as (typeof MHD_LEAVE_CERTIFICATION_TYPES)[number])
-                }
-                className={`mt-1 ${INPUT_CLASSES}`}
-              >
-                {MHD_LEAVE_CERTIFICATION_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {mhdFormatLeaveCertificationType(type)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="certDue" className="block text-sm font-medium text-foreground">
-                Due date <span className="font-normal text-muted-foreground">(optional)</span>
-              </label>
-              <MhdDateField
-                id="certDue"
-                value={dueDate}
-                onChange={(nextValue) => setDueDate(nextValue)}
-                className={`mt-1 ${INPUT_CLASSES}`}
-              />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Statutory timelines (15 days to return, 7 to cure, 30-day recertification cadence) are
-            tracked here as due dates, not enforced automatically.
-          </p>
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setIsRecording(false)}>
-              Cancel
-            </Button>
-            <Button disabled={isSubmitting} onClick={() => void submitRecord()}>
-              {isSubmitting ? 'Saving…' : 'Record'}
-            </Button>
-          </div>
-        </MhdCard>
-      ) : null}
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading certifications…</p>
@@ -329,261 +184,358 @@ export function MhdLeaveCertificationPanel({
               </div>
 
               {canSeeMedical ? (
-                reviewingId === cert.id ? (
-                  <div className="mt-3 space-y-2 border-t border-border pt-3">
-                    <label
-                      htmlFor={`note-${cert.id}`}
-                      className="block text-sm font-medium text-foreground"
-                    >
-                      Provider note{' '}
-                      <span className="font-normal text-muted-foreground">
-                        (restricted, optional)
-                      </span>
-                    </label>
-                    <textarea
-                      id={`note-${cert.id}`}
-                      rows={2}
-                      value={note}
-                      onChange={(event) => setNote(event.target.value)}
-                      className={`w-full ${INPUT_CLASSES}`}
-                    />
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="secondary"
-                        onClick={() => {
-                          setReviewingId(null);
-                          setNote('');
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <button
-                        type="button"
-                        disabled={isSubmitting}
-                        onClick={() => void submitReview(cert.id, false)}
-                        className="rounded-md border border-rose-300 px-3 py-1.5 text-sm font-medium text-rose-700 disabled:opacity-50"
-                      >
-                        Mark insufficient
-                      </button>
-                      <Button
-                        disabled={isSubmitting}
-                        onClick={() => void submitReview(cert.id, true)}
-                      >
-                        {isSubmitting ? 'Saving…' : 'Mark sufficient'}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReviewingId(cert.id);
-                      setNote('');
-                    }}
-                    className="mt-3 text-sm font-medium text-accent hover:text-accent-hover"
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <MhdLeaveActionModal
+                    {...scope}
+                    action={`certification-review:${cert.id}`}
+                    title="Review Sufficiency"
+                    launchLabel="Review Sufficiency"
                   >
-                    Review sufficiency
-                  </button>
-                )
-              ) : null}
-
-              {canSeeMedical ? (
-                statusId === cert.id ? (
-                  <div className="mt-3 space-y-2 border-t border-border pt-3">
-                    <div className="flex flex-wrap items-end gap-3">
-                      <div>
-                        <label
-                          htmlFor={`status-${cert.id}`}
-                          className="block text-sm font-medium text-foreground"
-                        >
-                          Certification status
-                        </label>
-                        <select
-                          id={`status-${cert.id}`}
-                          value={newStatus}
-                          onChange={(event) =>
-                            setNewStatus(event.target.value as MhdLeaveCertificationStatus | '')
-                          }
-                          className={`mt-1 ${INPUT_CLASSES}`}
-                        >
-                          <option value="">Select a status</option>
-                          {MHD_LEAVE_CERTIFICATION_STATUSES.map((status) => (
-                            <option key={status} value={status}>
-                              {status.replaceAll('_', ' ')}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label
-                          htmlFor={`requested-${cert.id}`}
-                          className="block text-sm font-medium text-foreground"
-                        >
-                          Requested On
-                        </label>
-                        <MhdDateField
-                          id={`requested-${cert.id}`}
-                          value={requestedAt}
-                          onChange={setRequestedAt}
-                          className={`mt-1 ${INPUT_CLASSES}`}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor={`received-${cert.id}`}
-                          className="block text-sm font-medium text-foreground"
-                        >
-                          Received date
-                        </label>
-                        <MhdDateField
-                          id={`received-${cert.id}`}
-                          value={receivedAt}
-                          onChange={setReceivedAt}
-                          className={`mt-1 ${INPUT_CLASSES}`}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor={`deficiency-${cert.id}`}
-                          className="block text-sm font-medium text-foreground"
-                        >
-                          Deficiency notified date
-                        </label>
-                        <MhdDateField
-                          id={`deficiency-${cert.id}`}
-                          value={deficiencyNotifiedAt}
-                          onChange={setDeficiencyNotifiedAt}
-                          className={`mt-1 ${INPUT_CLASSES}`}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor={`cure-${cert.id}`}
-                          className="block text-sm font-medium text-foreground"
-                        >
-                          Cure due date
-                        </label>
-                        <MhdDateField
-                          id={`cure-${cert.id}`}
-                          value={cureDueDate}
-                          onChange={setCureDueDate}
-                          className={`mt-1 ${INPUT_CLASSES}`}
-                        />
-                      </div>
-                    </div>
-                    <label
-                      htmlFor={`review-note-${cert.id}`}
-                      className="block text-sm font-medium text-foreground"
-                    >
-                      Operational note{' '}
-                      <span className="font-normal text-muted-foreground">
-                        (optional; no diagnosis or medical detail)
-                      </span>
-                    </label>
-                    <textarea
-                      id={`review-note-${cert.id}`}
-                      rows={2}
-                      maxLength={2000}
-                      value={reviewNote}
-                      onChange={(event) => setReviewNote(event.target.value)}
-                      className={`w-full ${INPUT_CLASSES}`}
+                    <ReviewSufficiencyForm
+                      certId={cert.id}
+                      isSubmitting={isSubmitting}
+                      onSubmit={onMarkSufficient}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      A date left blank keeps the date already on record. A cure due date needs a
-                      deficiency notice date.
-                    </p>
-                    {statusError ? (
-                      <p role="alert" className="text-sm text-rose-700">
-                        {statusError}
-                      </p>
-                    ) : null}
-                    <div className="flex justify-end gap-2">
-                      <Button variant="secondary" onClick={closeStatusForm}>
-                        Cancel
-                      </Button>
-                      <Button disabled={isSubmitting} onClick={() => void submitStatus(cert.id)}>
-                        {isSubmitting ? 'Saving…' : 'Save Status'}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => openStatusForm(cert.id, operationalById.get(cert.id)?.status)}
-                    className="mt-3 ml-4 text-sm font-medium text-accent hover:text-accent-hover"
+                  </MhdLeaveActionModal>
+                  <MhdLeaveActionModal
+                    {...scope}
+                    action={`certification-status:${cert.id}`}
+                    title="Update Certification Status"
+                    launchLabel="Update Status"
                   >
-                    Update status
-                  </button>
-                )
-              ) : null}
-
-              {canSeeMedical ? (
-                clearingId === cert.id ? (
-                  <div className="mt-3 space-y-2 border-t border-border pt-3">
-                    <fieldset>
-                      <legend className="text-sm font-medium text-foreground">
-                        Dates To Clear
-                      </legend>
-                      {MHD_LEAVE_CERTIFICATION_CLEARABLE_DATES.map((field) => (
-                        <label key={field} className="mt-1 flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={clearFields.includes(field)}
-                            onChange={(event) => toggleClearField(field, event.target.checked)}
-                          />
-                          {CLEARABLE_DATE_LABELS[field]}
-                        </label>
-                      ))}
-                    </fieldset>
-                    <label
-                      htmlFor={`clear-reason-${cert.id}`}
-                      className="block text-sm font-medium text-foreground"
-                    >
-                      Reason for clearing
-                    </label>
-                    <textarea
-                      id={`clear-reason-${cert.id}`}
-                      rows={2}
-                      maxLength={2000}
-                      value={clearReason}
-                      onChange={(event) => setClearReason(event.target.value)}
-                      className={`w-full ${INPUT_CLASSES}`}
+                    <CertificationStatusForm
+                      certId={cert.id}
+                      currentStatus={operationalById.get(cert.id)?.status}
+                      isSubmitting={isSubmitting}
+                      onSubmit={onUpdateStatus}
                     />
-                    {clearError ? (
-                      <p role="alert" className="text-sm text-rose-700">
-                        {clearError}
-                      </p>
-                    ) : null}
-                    <div className="flex justify-end gap-2">
-                      <Button variant="secondary" onClick={closeClearForm}>
-                        Cancel
-                      </Button>
-                      <Button
-                        disabled={isSubmitting || clearFields.length === 0 || !clearReason.trim()}
-                        onClick={() => void submitClear(cert.id)}
-                      >
-                        Clear Dates
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      closeClearForm();
-                      setClearingId(cert.id);
-                    }}
-                    className="mt-3 ml-4 text-sm font-medium text-accent hover:text-accent-hover"
+                  </MhdLeaveActionModal>
+                  <MhdLeaveActionModal
+                    {...scope}
+                    action={`certification-clear:${cert.id}`}
+                    title="Clear A Date"
+                    launchLabel="Clear A Date"
                   >
-                    Clear A Date
-                  </button>
-                )
+                    <ClearDatesForm
+                      certificationId={cert.id}
+                      isSubmitting={isSubmitting}
+                      onSubmit={onClearDates}
+                    />
+                  </MhdLeaveActionModal>
+                </div>
               ) : null}
             </li>
           ))}
         </ul>
       )}
     </section>
+  );
+}
+
+function RecordCertificationForm({
+  caseId,
+  isSubmitting,
+  onSubmit,
+}: {
+  caseId: string;
+  isSubmitting: boolean;
+  onSubmit: (input: MhdRecordCertificationInput) => Promise<void>;
+}) {
+  const [certType, setCertType] =
+    useState<(typeof MHD_LEAVE_CERTIFICATION_TYPES)[number]>('INITIAL');
+  const [dueDate, setDueDate] = useState('');
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <label htmlFor="certType" className="block text-sm font-medium text-foreground">
+            Type
+          </label>
+          <select
+            id="certType"
+            value={certType}
+            onChange={(event) =>
+              setCertType(event.target.value as (typeof MHD_LEAVE_CERTIFICATION_TYPES)[number])
+            }
+            className={`mt-1 ${INPUT_CLASSES}`}
+          >
+            {MHD_LEAVE_CERTIFICATION_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {mhdFormatLeaveCertificationType(type)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="certDue" className="block text-sm font-medium text-foreground">
+            Due date <span className="font-normal text-muted-foreground">(optional)</span>
+          </label>
+          <MhdDateField
+            id="certDue"
+            value={dueDate}
+            onChange={(nextValue) => setDueDate(nextValue)}
+            className={`mt-1 ${INPUT_CLASSES}`}
+          />
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Statutory timelines (15 days to return, 7 to cure, 30-day recertification cadence) are
+        tracked here as due dates, not enforced automatically.
+      </p>
+      <MhdLeaveActionButtons
+        submitLabel="Record"
+        disabled={isSubmitting}
+        onSubmit={() => onSubmit({ caseId, certificationType: certType, dueDate: dueDate || null })}
+      />
+    </div>
+  );
+}
+
+function ReviewSufficiencyForm({
+  certId,
+  isSubmitting,
+  onSubmit,
+}: {
+  certId: string;
+  isSubmitting: boolean;
+  onSubmit: (input: MhdMarkCertificationInput) => Promise<void>;
+}) {
+  const { submit, isSubmitting: isSaving } = useMhdLeaveAction();
+  const [note, setNote] = useState('');
+  const review = (sufficient: boolean) =>
+    onSubmit({
+      certId,
+      sufficient,
+      // The provider note is restricted medical detail; it is only ever
+      // collected on this PA/HRP-only path and never surfaced elsewhere.
+      providerNote: note.trim() || null,
+    });
+
+  return (
+    <div className="space-y-2">
+      <label htmlFor={`note-${certId}`} className="block text-sm font-medium text-foreground">
+        Provider note{' '}
+        <span className="font-normal text-muted-foreground">(restricted, optional)</span>
+      </label>
+      <textarea
+        id={`note-${certId}`}
+        rows={2}
+        value={note}
+        onChange={(event) => setNote(event.target.value)}
+        className={`w-full ${INPUT_CLASSES}`}
+      />
+      <MhdLeaveActionButtons
+        submitLabel="Mark Sufficient"
+        disabled={isSubmitting}
+        onSubmit={() => review(true)}
+      >
+        <Button
+          variant="secondary"
+          disabled={isSubmitting || isSaving}
+          onClick={() => void submit(() => review(false))}
+          className="border-rose-300 text-rose-700"
+        >
+          Mark Insufficient
+        </Button>
+      </MhdLeaveActionButtons>
+    </div>
+  );
+}
+
+function CertificationStatusForm({
+  certId,
+  currentStatus,
+  isSubmitting,
+  onSubmit,
+}: {
+  certId: string;
+  currentStatus: string | undefined;
+  isSubmitting: boolean;
+  onSubmit: (input: MhdUpdateCertificationStatusInput) => Promise<void>;
+}) {
+  // Opens on the case's current status when the workflow record supplies it, and stays blank
+  // (a deliberate choice) when it does not.
+  const [newStatus, setNewStatus] = useState<MhdLeaveCertificationStatus | ''>(
+    MHD_LEAVE_CERTIFICATION_STATUSES.find((status) => status === currentStatus) ?? '',
+  );
+  const [requestedAt, setRequestedAt] = useState('');
+  const [receivedAt, setReceivedAt] = useState('');
+  const [deficiencyNotifiedAt, setDeficiencyNotifiedAt] = useState('');
+  const [cureDueDate, setCureDueDate] = useState('');
+  const [reviewNote, setReviewNote] = useState('');
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <label htmlFor={`status-${certId}`} className="block text-sm font-medium text-foreground">
+            Certification status
+          </label>
+          <select
+            id={`status-${certId}`}
+            value={newStatus}
+            onChange={(event) =>
+              setNewStatus(event.target.value as MhdLeaveCertificationStatus | '')
+            }
+            className={`mt-1 ${INPUT_CLASSES}`}
+          >
+            <option value="">Select a status</option>
+            {MHD_LEAVE_CERTIFICATION_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {status.replaceAll('_', ' ')}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label
+            htmlFor={`requested-${certId}`}
+            className="block text-sm font-medium text-foreground"
+          >
+            Requested On
+          </label>
+          <MhdDateField
+            id={`requested-${certId}`}
+            value={requestedAt}
+            onChange={setRequestedAt}
+            className={`mt-1 ${INPUT_CLASSES}`}
+          />
+        </div>
+        <div>
+          <label
+            htmlFor={`received-${certId}`}
+            className="block text-sm font-medium text-foreground"
+          >
+            Received date
+          </label>
+          <MhdDateField
+            id={`received-${certId}`}
+            value={receivedAt}
+            onChange={setReceivedAt}
+            className={`mt-1 ${INPUT_CLASSES}`}
+          />
+        </div>
+        <div>
+          <label
+            htmlFor={`deficiency-${certId}`}
+            className="block text-sm font-medium text-foreground"
+          >
+            Deficiency notified date
+          </label>
+          <MhdDateField
+            id={`deficiency-${certId}`}
+            value={deficiencyNotifiedAt}
+            onChange={setDeficiencyNotifiedAt}
+            className={`mt-1 ${INPUT_CLASSES}`}
+          />
+        </div>
+        <div>
+          <label htmlFor={`cure-${certId}`} className="block text-sm font-medium text-foreground">
+            Cure due date
+          </label>
+          <MhdDateField
+            id={`cure-${certId}`}
+            value={cureDueDate}
+            onChange={setCureDueDate}
+            className={`mt-1 ${INPUT_CLASSES}`}
+          />
+        </div>
+      </div>
+      <label
+        htmlFor={`review-note-${certId}`}
+        className="block text-sm font-medium text-foreground"
+      >
+        Operational note{' '}
+        <span className="font-normal text-muted-foreground">
+          (optional; no diagnosis or medical detail)
+        </span>
+      </label>
+      <textarea
+        id={`review-note-${certId}`}
+        rows={2}
+        maxLength={2000}
+        value={reviewNote}
+        onChange={(event) => setReviewNote(event.target.value)}
+        className={`w-full ${INPUT_CLASSES}`}
+      />
+      <p className="text-xs text-muted-foreground">
+        A date left blank keeps the date already on record. A cure due date needs a deficiency
+        notice date.
+      </p>
+      <MhdLeaveActionButtons
+        submitLabel="Save Status"
+        disabled={isSubmitting}
+        onSubmit={async () => {
+          if (!newStatus) throw new Error('Select the new certification status.');
+          await onSubmit({
+            certId,
+            status: newStatus,
+            receivedAt: receivedAt || null,
+            deficiencyNotifiedAt: deficiencyNotifiedAt || null,
+            cureDueDate: cureDueDate || null,
+            reviewNote: reviewNote.trim() || null,
+            requestedAt: requestedAt || null,
+          });
+        }}
+      />
+    </div>
+  );
+}
+
+function ClearDatesForm({
+  certificationId,
+  isSubmitting,
+  onSubmit,
+}: {
+  certificationId: string;
+  isSubmitting: boolean;
+  onSubmit: (input: MhdLeaveCertificationClearDatesInput) => Promise<void>;
+}) {
+  const [fields, setFields] = useState<MhdLeaveCertificationClearableDate[]>([]);
+  const [reason, setReason] = useState('');
+
+  function toggleField(field: MhdLeaveCertificationClearableDate, checked: boolean) {
+    setFields((current) =>
+      checked ? [...current, field] : current.filter((item) => item !== field),
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <fieldset>
+        <legend className="text-sm font-medium text-foreground">Dates To Clear</legend>
+        {MHD_LEAVE_CERTIFICATION_CLEARABLE_DATES.map((field) => (
+          <label key={field} className="mt-1 flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={fields.includes(field)}
+              onChange={(event) => toggleField(field, event.target.checked)}
+            />
+            {CLEARABLE_DATE_LABELS[field]}
+          </label>
+        ))}
+      </fieldset>
+      <label
+        htmlFor={`clear-reason-${certificationId}`}
+        className="block text-sm font-medium text-foreground"
+      >
+        Reason for clearing
+      </label>
+      <textarea
+        id={`clear-reason-${certificationId}`}
+        rows={2}
+        maxLength={2000}
+        value={reason}
+        onChange={(event) => setReason(event.target.value)}
+        className={`w-full ${INPUT_CLASSES}`}
+      />
+      <MhdLeaveActionButtons
+        submitLabel="Clear Dates"
+        disabled={isSubmitting || fields.length === 0 || !reason.trim()}
+        onSubmit={() => onSubmit({ certificationId, fields, reason })}
+      />
+    </div>
   );
 }
 

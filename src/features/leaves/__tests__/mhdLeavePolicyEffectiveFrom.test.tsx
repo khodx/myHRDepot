@@ -12,6 +12,17 @@ vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => ({ profile: { companyId: COMPANY_ID }, roles: ['Client Admin'] }),
 }));
 
+const getDraft = vi.fn();
+const saveDraft = vi.fn();
+const discardDraft = vi.fn();
+vi.mock('@/features/drafts/Service', () => ({
+  mhdDraftService: {
+    get: (...args: unknown[]) => getDraft(...args),
+    save: (...args: unknown[]) => saveDraft(...args),
+    discard: (...args: unknown[]) => discardDraft(...args),
+  },
+}));
+
 const getPolicy = vi.fn();
 const setPolicy = vi.fn();
 vi.mock('../PolicyService', () => ({
@@ -47,6 +58,11 @@ const election = {
   created_at: '2026-01-12T16:30:00Z',
 };
 
+async function openElectionForm(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole('button', { name: 'Record An Election' }));
+  return screen.findByRole('dialog', { name: 'Record An Election' });
+}
+
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -62,6 +78,9 @@ describe('MhdLeavePolicySettingsPage effective date and history', () => {
   beforeEach(() => {
     getPolicy.mockReset();
     setPolicy.mockReset();
+    getDraft.mockReset().mockResolvedValue(null);
+    saveDraft.mockReset();
+    discardDraft.mockReset().mockResolvedValue(undefined);
   });
 
   it('sends the typed effective date with the election', async () => {
@@ -69,7 +88,7 @@ describe('MhdLeavePolicySettingsPage effective date and history', () => {
     setPolicy.mockResolvedValue(crypto.randomUUID());
     const user = userEvent.setup();
     renderPage();
-    await screen.findByLabelText('Leave-Year Method');
+    await openElectionForm(user);
 
     await user.selectOptions(screen.getByLabelText('Leave-Year Method'), 'FIXED_YEAR');
     await user.selectOptions(screen.getByLabelText('Anchor Month'), '9');
@@ -94,7 +113,7 @@ describe('MhdLeavePolicySettingsPage effective date and history', () => {
     setPolicy.mockResolvedValue(crypto.randomUUID());
     const user = userEvent.setup();
     renderPage();
-    await screen.findByLabelText('Leave-Year Method');
+    await openElectionForm(user);
     await user.click(screen.getByRole('button', { name: 'Record Election' }));
 
     await waitFor(() => expect(setPolicy).toHaveBeenCalledTimes(1));

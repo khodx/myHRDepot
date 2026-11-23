@@ -7,7 +7,17 @@ const SELF_PERSON_ID = '5f3c8a52-6d1e-4c0b-9a7e-2b64d1f0a9c3';
 const OTHER_PERSON_ID = 'c1a4e7b9-3f52-48d6-8b0a-71e9d2c5f4a8';
 const NEW_CASE_ID = '9d2e6b14-a7c3-4f58-b1e0-3c8a5d7f2e46';
 
-const { authRef, createMock, detailsMock } = vi.hoisted(() => ({
+const { authRef, createMock, detailsMock, mockDraft, draftOptionsLog } = vi.hoisted(() => ({
+  mockDraft: {
+    draft: null as unknown,
+    isLoading: false,
+    isSaving: false,
+    savedAt: null as string | null,
+    saveError: null as string | null,
+    save: vi.fn(),
+    discard: vi.fn(),
+  },
+  draftOptionsLog: [] as { draftKind: string; draftKey: string; companyId?: string | null }[],
   authRef: {
     current: { profile: null, roles: [] } as {
       profile: { companyId: string; personId: string | null } | null;
@@ -20,6 +30,18 @@ const { authRef, createMock, detailsMock } = vi.hoisted(() => ({
 
 vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => authRef.current,
+}));
+
+vi.mock('@/features/drafts/Hook', () => ({
+  useMhdDraft: (options: { draftKind: string; draftKey: string; companyId?: string | null }) => {
+    draftOptionsLog.push(options);
+    return mockDraft;
+  },
+}));
+
+// The wizard renders over the Accommodations list; the list has its own tests.
+vi.mock('../components/MhdAccommodationsPage', () => ({
+  MhdAccommodationsPage: () => <p>Accommodations list</p>,
 }));
 
 vi.mock('../Hook', () => ({
@@ -38,6 +60,7 @@ function renderWizard() {
     <MemoryRouter initialEntries={['/accommodations/new']}>
       <Routes>
         <Route path="/accommodations/new" element={<MhdAccommodationIntakeWizard />} />
+        <Route path="/accommodations" element={<p>Back on the list</p>} />
         <Route path="/accommodations/:caseId" element={<p>Case opened</p>} />
       </Routes>
     </MemoryRouter>,
@@ -50,6 +73,10 @@ function clickNext() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockDraft.draft = null;
+  mockDraft.save.mockResolvedValue(undefined);
+  mockDraft.discard.mockResolvedValue(undefined);
+  draftOptionsLog.length = 0;
   createMock.mockResolvedValue({ id: NEW_CASE_ID, referenceId: 'ACC-2026-0007' });
   detailsMock.mockResolvedValue(NEW_CASE_ID);
 });
@@ -215,6 +242,103 @@ describe('MhdAccommodationIntakeWizard', () => {
       'Request ACC-2026-0007 was opened, but its request details were not saved: The employee has certified this request.',
     );
     fireEvent.click(screen.getByRole('button', { name: 'Open Request' }));
+    expect(await screen.findByText('Case opened')).toBeInTheDocument();
+  });
+});
+
+describe('MhdAccommodationIntakeWizard as a modal with save and resume', () => {
+  beforeEach(() => {
+    authRef.current = {
+      profile: { companyId: 'company-a', personId: SELF_PERSON_ID },
+      roles: ['HR Partner'],
+    };
+  });
+
+  it('opens as a dialog over the Accommodations list and closes back to it', async () => {
+    renderWizard();
+    expect(screen.getByText('Accommodations list')).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog', { name: 'Guided Accommodation Intake' });
+    expect(
+      within(dialog).getByText('Medical details are not saved in drafts.'),
+    ).toBeInTheDocument();
+    expect(draftOptionsLog.at(-1)).toMatchObject({
+      draftKind: 'ACCOMMODATION_INTAKE',
+      draftKey: 'new',
+      companyId: 'company-a',
+    });
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    expect(await screen.findByText('Back on the list')).toBeInTheDocument();
+  });
+
+  it('saves the answers and the current step, but never the limitation duration', async () => {
+    renderWizard();
+    fireEvent.change(screen.getByLabelText('Person'), { target: { value: OTHER_PERSON_ID } });
+    clickNext();
+    clickNext();
+    fireEvent.change(screen.getByLabelText(/Requested workplace change/), {
+      target: { value: 'Later start time so the morning commute is manageable.' },
+    });
+    clickNext();
+    fireEvent.click(screen.getByLabelText('Temporary'));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
+
+    await waitFor(() => expect(mockDraft.save).toHaveBeenCalledTimes(1));
+    const saved = mockDraft.save.mock.calls[0][0];
+    expect(saved.stepKey).toBe('details');
+    expect(saved.payload).toMatchObject({
+      personId: OTHER_PERSON_ID,
+      requestSource: 'SELF',
+      requestChannel: 'VERBAL',
+      requestSummary: 'Later start time so the morning commute is manageable.',
+    });
+    expect(saved.payload).not.toHaveProperty('limitationDuration');
+  });
+
+  it('restores every answer and reopens the saved step on Resume Draft', () => {
+    mockDraft.draft = {
+      id: crypto.randomUUID(),
+      draftKind: 'ACCOMMODATION_INTAKE',
+      draftKey: 'new',
+      title: 'Accommodation request',
+      stepKey: 'request',
+      payload: {
+        personId: OTHER_PERSON_ID,
+        requestSource: 'SELF',
+        requestChannel: 'EMAIL',
+        requestSummary: 'A quieter workstation away from the loading dock.',
+        workersCompClaim: false,
+        leaveRequested: false,
+        leaveRequestDetails: '',
+      },
+      updatedAt: '2026-11-20T15:00:00Z',
+      expiresAt: '2026-12-20T15:00:00Z',
+    };
+    renderWizard();
+    fireEvent.click(screen.getByRole('button', { name: 'Resume Draft' }));
+
+    expect(screen.getByLabelText(/Requested workplace change/)).toHaveValue(
+      'A quieter workstation away from the loading dock.',
+    );
+    fireEvent.click(screen.getByRole('button', { name: /back|previous/i }));
+    expect(screen.getByDisplayValue('Email')).toBeInTheDocument();
+  });
+
+  it('discards the draft once the case is created', async () => {
+    renderWizard();
+    fireEvent.change(screen.getByLabelText('Person'), { target: { value: OTHER_PERSON_ID } });
+    clickNext();
+    clickNext();
+    fireEvent.change(screen.getByLabelText(/Requested workplace change/), {
+      target: { value: 'Later start time so the morning commute is manageable.' },
+    });
+    clickNext();
+    clickNext();
+
+    await waitFor(() => expect(mockDraft.discard).toHaveBeenCalledTimes(1));
+    expect(createMock.mock.invocationCallOrder[0]).toBeLessThan(
+      mockDraft.discard.mock.invocationCallOrder[0],
+    );
     expect(await screen.findByText('Case opened')).toBeInTheDocument();
   });
 });

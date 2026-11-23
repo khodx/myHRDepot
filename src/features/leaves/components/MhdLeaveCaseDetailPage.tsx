@@ -31,20 +31,24 @@ import {
   mhdFormatLeaveHours,
   mhdFormatLeaveJurisdiction,
   mhdFormatLeaveLedgerEntryType,
+  type MhdAdjustLeaveInput,
+  type MhdDesignateLeaveInput,
   type MhdLeaveBalanceRow,
   type MhdLeaveCaseStatus,
+  type MhdLeaveType,
+  type MhdTransitionLeaveCaseInput,
 } from '../Types';
+import { MhdLeaveActionButtons, MhdLeaveActionModal } from './MhdLeaveActionModal';
 import { MhdLeaveBalancePanel } from './MhdLeaveBalancePanel';
 import { MhdLeaveCertificationPanel } from './MhdLeaveCertificationPanel';
 import { MhdLeaveStatusBadge } from './MhdLeaveStatusBadge';
 import { useMhdLeaveCertificationClearDates, useMhdLeaveWorkflow } from '../WorkflowHook';
 import type { MhdLeavePolicy } from '../WorkflowTypes';
 import { MhdLeaveWorkflowPanel } from './MhdLeaveWorkflowPanel';
+import { useMhdLeaveDraftField } from './mhdLeaveActionContext';
 import { mhdLeaveEnumLabel } from './mhdLeaveLabels';
 
 const REQUIRE_REASON: readonly MhdLeaveCaseStatus[] = ['DENIED', 'CANCELLED'];
-
-const LEAVE_STATUS_TRANSITION_ID = 'leave-status-transition';
 
 /**
  * The company's 12-month leave-year method (`method_text_key` from mhd_leave_policy_get).
@@ -73,6 +77,8 @@ const INPUT_CLASSES =
  * the append-only ledger and the certification partition. There is no dedicated
  * "get case" RPC in v1, so the case facts are resolved from the (cached) case
  * list; the designated bases come from the `mhd_leave_case_get_bases` contract.
+ * Status changes, the basis set, designation and adjustments each open in an
+ * MhdLeaveActionModal with a saved draft.
  */
 export function MhdLeaveCaseDetailPage() {
   const { caseId = '' } = useParams<{ caseId: string }>();
@@ -96,6 +102,8 @@ export function MhdLeaveCaseDetailPage() {
   const certifications = useMhdLeaveCertifications(caseId);
   // Same query key as the workflow panel, so this shares its cache entry rather than fetching twice.
   const workflow = useMhdLeaveWorkflow(caseId);
+  // The case's own company scopes its drafts; the viewer's company stands in until it loads.
+  const caseCompanyId = workflow.data?.case.company_id ?? (companyId || null);
 
   const designatedIds = useMemo(() => caseBases.data ?? [], [caseBases.data]);
   const balanceQueries = useMhdLeaveBalances(personId, designatedIds);
@@ -112,39 +120,11 @@ export function MhdLeaveCaseDetailPage() {
     (deadline) => deadline.is_overdue,
   ).length;
 
-  // ----- Designation-set editor state -----
-  // The editor seeds from the persisted set at the moment the user opens it (in
-  // toggleEditingBases), not via an effect — so a background refetch of the bases
-  // never clobbers an in-progress edit, and there is no setState-in-effect.
+  // The basis editor and the status modal are each launched from more than one place, so
+  // their open state lives here. The status modal can open preset to CANCELLED (Cancel Case).
   const [isEditingBases, setIsEditingBases] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  function toggleEditingBases() {
-    setIsEditingBases((editing) => {
-      if (!editing) setSelectedIds(designatedIds);
-      return !editing;
-    });
-  }
-
-  // ----- Designate-hours form state -----
-  const [designateHours, setDesignateHours] = useState('');
-  const [designateDate, setDesignateDate] = useState(new Date().toISOString().slice(0, 10));
-  const [designateError, setDesignateError] = useState<string | null>(null);
-
-  // ----- Transition form state -----
-  const [newStatus, setNewStatus] = useState<MhdLeaveCaseStatus>('APPROVED');
-  // The chosen status only counts while it is still a legal next state for this case.
-  const effectiveNewStatus: MhdLeaveCaseStatus | null = nextStatuses.includes(newStatus)
-    ? newStatus
-    : (nextStatuses[0] ?? null);
-  const [decisionReason, setDecisionReason] = useState('');
-  const [transitionError, setTransitionError] = useState<string | null>(null);
-
-  // ----- Adjustment form state -----
-  const [adjustTypeId, setAdjustTypeId] = useState('');
-  const [adjustHours, setAdjustHours] = useState('');
-  const [adjustReason, setAdjustReason] = useState('');
-  const [adjustError, setAdjustError] = useState<string | null>(null);
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [presetStatus, setPresetStatus] = useState<MhdLeaveCaseStatus | null>(null);
 
   // Map the designated bases to full type records + their (parallel) balances.
   // Aligned by index because useMhdLeaveBalances iterates designatedIds in order.
@@ -162,82 +142,21 @@ export function MhdLeaveCaseDetailPage() {
   const balancesLoading =
     caseBases.isLoading || leaveTypes.isLoading || balanceQueries.some((query) => query.isLoading);
 
-  function toggleSelected(id: string) {
-    setSelectedIds((previous) =>
-      previous.includes(id) ? previous.filter((value) => value !== id) : [...previous, id],
-    );
+  function openStatus(preset: MhdLeaveCaseStatus | null) {
+    setPresetStatus(preset);
+    setStatusOpen(true);
   }
 
-  async function saveBases() {
-    await setBases.mutateAsync({ caseId, leaveTypeIds: selectedIds });
-    setIsEditingBases(false);
-  }
-
-  async function submitDesignate() {
-    const hours = Number.parseFloat(designateHours);
-    if (!Number.isFinite(hours) || hours <= 0) {
-      setDesignateError('Designated hours must be positive.');
-      return;
-    }
-    setDesignateError(null);
-    await designate.mutateAsync({ caseId, hours, effectiveDate: designateDate });
-    setDesignateHours('');
-  }
-
-  async function submitTransition() {
-    if (!effectiveNewStatus) return;
-    if (REQUIRE_REASON.includes(effectiveNewStatus) && !decisionReason.trim()) {
-      setTransitionError('Denying or cancelling a leave requires a recorded reason.');
-      return;
-    }
-    setTransitionError(null);
-    await transition.mutateAsync({
-      caseId,
-      newStatus: effectiveNewStatus,
-      decisionReason: decisionReason.trim() || null,
-    });
-    setDecisionReason('');
-  }
-
-  // Opens the existing status-transition panel preset to CANCELLED, rather than
-  // performing any delete — the panel already requires a typed reason before it
-  // will submit (see REQUIRE_REASON / submitTransition above).
+  // Opens the status modal preset to CANCELLED rather than performing any delete — the
+  // modal already requires a typed reason before it will submit (see REQUIRE_REASON).
   function openCancelFlow() {
-    setNewStatus('CANCELLED');
-    setTransitionError(null);
-    document
-      .getElementById(LEAVE_STATUS_TRANSITION_ID)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  async function submitAdjust() {
-    const hours = Number.parseFloat(adjustHours);
-    if (!adjustTypeId) {
-      setAdjustError('Choose a legal basis to adjust.');
-      return;
-    }
-    if (!Number.isFinite(hours) || hours === 0) {
-      setAdjustError('Enter a non-zero number of hours.');
-      return;
-    }
-    if (!adjustReason.trim()) {
-      setAdjustError('A manual adjustment requires a reason.');
-      return;
-    }
-    if (!personId) return;
-    setAdjustError(null);
-    await adjust.mutateAsync({
-      personId,
-      leaveTypeId: adjustTypeId,
-      hoursDelta: hours,
-      reason: adjustReason.trim(),
-    });
-    setAdjustHours('');
-    setAdjustReason('');
+    openStatus('CANCELLED');
   }
 
   if (cases.isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (!leaveCase) return <p className="text-sm text-muted-foreground">Leave case not found.</p>;
+
+  const modalScope = { caseId, companyId: caseCompanyId };
 
   return (
     <div className="space-y-6">
@@ -274,8 +193,8 @@ export function MhdLeaveCaseDetailPage() {
         }
         actions={
           isPrivileged ? (
-            <Button variant="warning" onClick={toggleEditingBases}>
-              {isEditingBases ? 'Cancel Edit Bases' : 'Edit Bases'}
+            <Button variant="warning" onClick={() => setIsEditingBases(true)}>
+              Edit Bases
             </Button>
           ) : undefined
         }
@@ -291,55 +210,39 @@ export function MhdLeaveCaseDetailPage() {
 
       {/* ----- Status transition (privileged) ----- */}
       {isPrivileged ? (
-        <MhdCard id={LEAVE_STATUS_TRANSITION_ID} className="space-y-3">
+        <MhdCard className="space-y-3">
           <MhdCardHeader title="Status" className="mb-0" />
-          {effectiveNewStatus === null ? (
+          {nextStatuses.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               This case is {mhdFormatLeaveCaseStatus(leaveCase.status).toLowerCase()}; no further
               status changes are available.
             </p>
           ) : (
-            <div className="flex flex-wrap items-end gap-3">
-              <div>
-                <label htmlFor="newStatus" className="block text-sm font-medium text-foreground">
-                  Move to
-                </label>
-                <select
-                  id="newStatus"
-                  value={effectiveNewStatus}
-                  onChange={(event) => setNewStatus(event.target.value as MhdLeaveCaseStatus)}
-                  className={`mt-1 ${INPUT_CLASSES}`}
-                >
-                  {nextStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {mhdFormatLeaveCaseStatus(status)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {REQUIRE_REASON.includes(effectiveNewStatus) ? (
-                <div className="flex-1">
-                  <label
-                    htmlFor="decisionReason"
-                    className="block text-sm font-medium text-foreground"
-                  >
-                    Reason <span className="font-normal text-muted-foreground">(required)</span>
-                  </label>
-                  <input
-                    id="decisionReason"
-                    type="text"
-                    value={decisionReason}
-                    onChange={(event) => setDecisionReason(event.target.value)}
-                    className={`mt-1 w-full ${INPUT_CLASSES}`}
-                  />
-                </div>
-              ) : null}
-              <Button disabled={transition.isPending} onClick={() => void submitTransition()}>
-                {transition.isPending ? 'Saving…' : 'Update status'}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                Currently {mhdFormatLeaveCaseStatus(leaveCase.status)}.
+              </p>
+              <Button variant="secondary" onClick={() => openStatus(null)}>
+                Change Status
               </Button>
             </div>
           )}
-          {transitionError ? <p className="text-xs text-rose-600">{transitionError}</p> : null}
+          <MhdLeaveActionModal
+            {...modalScope}
+            action="status"
+            title="Change Leave Status"
+            size="md"
+            open={statusOpen && nextStatuses.length > 0}
+            onOpenChange={setStatusOpen}
+          >
+            <StatusTransitionForm
+              caseId={caseId}
+              nextStatuses={nextStatuses}
+              presetStatus={presetStatus}
+              isPending={transition.isPending}
+              onSubmit={(input) => transition.mutateAsync(input)}
+            />
+          </MhdLeaveActionModal>
         </MhdCard>
       ) : null}
 
@@ -363,39 +266,30 @@ export function MhdLeaveCaseDetailPage() {
             </p>
           </div>
           {isPrivileged ? (
-            <Button variant="secondary" onClick={toggleEditingBases}>
-              {isEditingBases ? 'Cancel' : 'Edit bases'}
+            <Button variant="secondary" onClick={() => setIsEditingBases(true)}>
+              Edit Bases
             </Button>
           ) : null}
         </div>
 
-        {isEditingBases && isPrivileged ? (
-          <MhdCard className="space-y-3">
-            <ul className="space-y-1">
-              {(leaveTypes.data ?? []).map((type) => (
-                <li key={type.id}>
-                  <label className="flex items-center gap-2 text-sm text-foreground">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(type.id)}
-                      onChange={() => toggleSelected(type.id)}
-                      className="rounded border-border"
-                    />
-                    <span className="font-medium">{type.typeName}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {mhdFormatLeaveJurisdiction(type.jurisdiction)} ·{' '}
-                      {mhdFormatLeaveHours(type.entitlementHours)}
-                    </span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-            <div className="flex justify-end">
-              <Button disabled={setBases.isPending} onClick={() => void saveBases()}>
-                {setBases.isPending ? 'Saving…' : 'Save bases'}
-              </Button>
-            </div>
-          </MhdCard>
+        {isPrivileged ? (
+          <MhdLeaveActionModal
+            {...modalScope}
+            action="bases"
+            title="Edit Designated Legal Bases"
+            open={isEditingBases}
+            onOpenChange={setIsEditingBases}
+          >
+            {/* Seeds from the persisted set when the modal opens, so a background refetch
+                of the bases never clobbers an in-progress edit. */}
+            <BasesForm
+              caseId={caseId}
+              leaveTypes={leaveTypes.data ?? []}
+              designatedIds={designatedIds}
+              isPending={setBases.isPending}
+              onSubmit={(input) => setBases.mutateAsync(input)}
+            />
+          </MhdLeaveActionModal>
         ) : null}
       </section>
 
@@ -414,46 +308,28 @@ export function MhdLeaveCaseDetailPage() {
             Records hours taken against the whole basis set at once — one ledger row per basis. This
             is the manual v1 decrement.
           </p>
-          <div className="flex flex-wrap items-end gap-3">
-            <div>
-              <label htmlFor="designateHours" className="block text-sm font-medium text-foreground">
-                Hours
-              </label>
-              <input
-                id="designateHours"
-                type="number"
-                min={0}
-                value={designateHours}
-                onChange={(event) => setDesignateHours(event.target.value)}
-                className={`mt-1 w-32 ${INPUT_CLASSES}`}
-              />
-            </div>
-            <div>
-              <label htmlFor="designateDate" className="block text-sm font-medium text-foreground">
-                Effective date
-              </label>
-              <MhdDateField
-                id="designateDate"
-                value={designateDate}
-                onChange={(nextValue) => setDesignateDate(nextValue)}
-                className={`mt-1 ${INPUT_CLASSES}`}
-              />
-            </div>
-            <Button
-              // Disabled with no bases: the RPC refuses to decrement a case that
-              // has no designated bases, so there is nothing to designate against.
-              disabled={designate.isPending || designatedIds.length === 0}
-              onClick={() => void submitDesignate()}
-            >
-              {designate.isPending ? 'Recording…' : 'Designate'}
-            </Button>
-          </div>
+          <MhdLeaveActionModal
+            {...modalScope}
+            action="designate-hours"
+            title="Designate Hours"
+            size="md"
+            launchLabel="Designate Hours"
+            launchVariant="primary"
+            // Disabled with no bases: the RPC refuses to decrement a case that
+            // has no designated bases, so there is nothing to designate against.
+            launchDisabled={designatedIds.length === 0}
+          >
+            <DesignateHoursForm
+              caseId={caseId}
+              isPending={designate.isPending}
+              onSubmit={(input) => designate.mutateAsync(input)}
+            />
+          </MhdLeaveActionModal>
           {designatedIds.length === 0 ? (
             <p className="text-xs text-amber-700">
               Designate at least one legal basis above before recording hours.
             </p>
           ) : null}
-          {designateError ? <p className="text-xs text-rose-600">{designateError}</p> : null}
         </MhdCard>
       ) : null}
 
@@ -506,52 +382,30 @@ export function MhdLeaveCaseDetailPage() {
         </p>
 
         {/* Manual adjustment — every adjustment requires a reason at the RPC. */}
-        {isPrivileged ? (
-          <MhdCard className="mt-3 space-y-2">
-            <h3 className="text-sm font-medium text-foreground">Adjust a basis</h3>
-            <div className="flex flex-wrap items-end gap-3">
-              <select
-                value={adjustTypeId}
-                onChange={(event) => setAdjustTypeId(event.target.value)}
-                className={INPUT_CLASSES}
-              >
-                <option value="">Legal basis…</option>
-                {(leaveTypes.data ?? []).map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.typeName}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="number"
-                value={adjustHours}
-                placeholder="± hours"
-                onChange={(event) => setAdjustHours(event.target.value)}
-                className={`w-28 ${INPUT_CLASSES}`}
+        {isPrivileged && personId ? (
+          <div className="mt-3 flex justify-end">
+            <MhdLeaveActionModal
+              {...modalScope}
+              action="adjust"
+              title="Adjust A Basis"
+              size="md"
+              launchLabel="Adjust A Basis"
+            >
+              <AdjustBasisForm
+                personId={personId}
+                leaveTypes={leaveTypes.data ?? []}
+                isPending={adjust.isPending}
+                onSubmit={(input) => adjust.mutateAsync(input)}
               />
-              <input
-                type="text"
-                value={adjustReason}
-                placeholder="Reason (required)"
-                onChange={(event) => setAdjustReason(event.target.value)}
-                className={`flex-1 ${INPUT_CLASSES}`}
-              />
-              <Button
-                variant="secondary"
-                disabled={adjust.isPending}
-                onClick={() => void submitAdjust()}
-              >
-                {adjust.isPending ? 'Saving…' : 'Adjust'}
-              </Button>
-            </div>
-            {adjustError ? <p className="text-xs text-rose-600">{adjustError}</p> : null}
-          </MhdCard>
+            </MhdLeaveActionModal>
+          </div>
         ) : null}
       </section>
 
       {/* ----- Certification partition ----- */}
       <MhdLeaveCertificationPanel
         caseId={caseId}
+        companyId={caseCompanyId}
         certifications={certifications.data ?? []}
         workflowCertifications={workflow.data?.certifications}
         canSeeMedical={canSeeMedical}
@@ -578,12 +432,272 @@ export function MhdLeaveCaseDetailPage() {
 
       {isPrivileged ? (
         <div className="flex justify-end gap-3 border-t border-border pt-4">
-          <Button variant="warning" onClick={toggleEditingBases}>
-            {isEditingBases ? 'Cancel Edit Bases' : 'Edit Bases'}
+          <Button variant="warning" onClick={() => setIsEditingBases(true)}>
+            Edit Bases
           </Button>
           <MhdDetailActions onDelete={openCancelFlow} deleteLabel="Cancel Case" skipConfirm />
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function StatusTransitionForm({
+  caseId,
+  nextStatuses,
+  presetStatus,
+  isPending,
+  onSubmit,
+}: {
+  caseId: string;
+  nextStatuses: readonly MhdLeaveCaseStatus[];
+  presetStatus: MhdLeaveCaseStatus | null;
+  isPending: boolean;
+  onSubmit: (input: MhdTransitionLeaveCaseInput) => Promise<unknown>;
+}) {
+  const [newStatus, setNewStatus] = useMhdLeaveDraftField<MhdLeaveCaseStatus>(
+    'newStatus',
+    presetStatus ?? 'APPROVED',
+  );
+  const [decisionReason, setDecisionReason] = useMhdLeaveDraftField('decisionReason', '');
+  // The chosen status only counts while it is still a legal next state for this case.
+  const effectiveNewStatus: MhdLeaveCaseStatus | null = nextStatuses.includes(newStatus)
+    ? newStatus
+    : (nextStatuses[0] ?? null);
+  if (effectiveNewStatus === null) return null;
+  const reasonRequired = REQUIRE_REASON.includes(effectiveNewStatus);
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label htmlFor="newStatus" className="block text-sm font-medium text-foreground">
+          Move to
+        </label>
+        <select
+          id="newStatus"
+          value={effectiveNewStatus}
+          onChange={(event) => setNewStatus(event.target.value as MhdLeaveCaseStatus)}
+          className={`mt-1 ${INPUT_CLASSES}`}
+        >
+          {nextStatuses.map((status) => (
+            <option key={status} value={status}>
+              {mhdFormatLeaveCaseStatus(status)}
+            </option>
+          ))}
+        </select>
+      </div>
+      {reasonRequired ? (
+        <div>
+          <label htmlFor="decisionReason" className="block text-sm font-medium text-foreground">
+            Reason <span className="font-normal text-muted-foreground">(required)</span>
+          </label>
+          <input
+            id="decisionReason"
+            type="text"
+            value={decisionReason}
+            onChange={(event) => setDecisionReason(event.target.value)}
+            className={`mt-1 w-full ${INPUT_CLASSES}`}
+          />
+        </div>
+      ) : null}
+      <MhdLeaveActionButtons
+        submitLabel="Update Status"
+        disabled={isPending}
+        onSubmit={async () => {
+          if (reasonRequired && !decisionReason.trim()) {
+            throw new Error('Denying or cancelling a leave requires a recorded reason.');
+          }
+          await onSubmit({
+            caseId,
+            newStatus: effectiveNewStatus,
+            decisionReason: decisionReason.trim() || null,
+          });
+        }}
+      />
+    </div>
+  );
+}
+
+function BasesForm({
+  caseId,
+  leaveTypes,
+  designatedIds,
+  isPending,
+  onSubmit,
+}: {
+  caseId: string;
+  leaveTypes: MhdLeaveType[];
+  designatedIds: string[];
+  isPending: boolean;
+  onSubmit: (input: { caseId: string; leaveTypeIds: string[] }) => Promise<unknown>;
+}) {
+  const [selectedIds, setSelectedIds] = useMhdLeaveDraftField('leaveTypeIds', designatedIds);
+
+  function toggleSelected(id: string) {
+    setSelectedIds((previous) =>
+      previous.includes(id) ? previous.filter((value) => value !== id) : [...previous, id],
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <ul className="space-y-1">
+        {leaveTypes.map((type) => (
+          <li key={type.id}>
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(type.id)}
+                onChange={() => toggleSelected(type.id)}
+                className="rounded border-border"
+              />
+              <span className="font-medium">{type.typeName}</span>
+              <span className="text-xs text-muted-foreground">
+                {mhdFormatLeaveJurisdiction(type.jurisdiction)} ·{' '}
+                {mhdFormatLeaveHours(type.entitlementHours)}
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+      <MhdLeaveActionButtons
+        submitLabel="Save Bases"
+        disabled={isPending}
+        onSubmit={() => onSubmit({ caseId, leaveTypeIds: selectedIds })}
+      />
+    </div>
+  );
+}
+
+function DesignateHoursForm({
+  caseId,
+  isPending,
+  onSubmit,
+}: {
+  caseId: string;
+  isPending: boolean;
+  onSubmit: (input: MhdDesignateLeaveInput) => Promise<unknown>;
+}) {
+  const [hours, setHours] = useMhdLeaveDraftField('hours', '');
+  const [effectiveDate, setEffectiveDate] = useMhdLeaveDraftField(
+    'effectiveDate',
+    new Date().toISOString().slice(0, 10),
+  );
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <label htmlFor="designateHours" className="block text-sm font-medium text-foreground">
+            Hours
+          </label>
+          <input
+            id="designateHours"
+            type="number"
+            min={0}
+            value={hours}
+            onChange={(event) => setHours(event.target.value)}
+            className={`mt-1 w-32 ${INPUT_CLASSES}`}
+          />
+        </div>
+        <div>
+          <label htmlFor="designateDate" className="block text-sm font-medium text-foreground">
+            Effective date
+          </label>
+          <MhdDateField
+            id="designateDate"
+            value={effectiveDate}
+            onChange={(nextValue) => setEffectiveDate(nextValue)}
+            className={`mt-1 ${INPUT_CLASSES}`}
+          />
+        </div>
+      </div>
+      <MhdLeaveActionButtons
+        submitLabel="Designate"
+        pendingLabel="Recording…"
+        disabled={isPending}
+        onSubmit={async () => {
+          const parsed = Number.parseFloat(hours);
+          if (!Number.isFinite(parsed) || parsed <= 0) {
+            throw new Error('Designated hours must be positive.');
+          }
+          await onSubmit({ caseId, hours: parsed, effectiveDate });
+        }}
+      />
+    </div>
+  );
+}
+
+function AdjustBasisForm({
+  personId,
+  leaveTypes,
+  isPending,
+  onSubmit,
+}: {
+  personId: string;
+  leaveTypes: MhdLeaveType[];
+  isPending: boolean;
+  onSubmit: (input: MhdAdjustLeaveInput) => Promise<unknown>;
+}) {
+  const [typeId, setTypeId] = useMhdLeaveDraftField('leaveTypeId', '');
+  const [hours, setHours] = useMhdLeaveDraftField('hoursDelta', '');
+  const [reason, setReason] = useMhdLeaveDraftField('reason', '');
+
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-medium text-foreground">
+        Legal basis
+        <select
+          value={typeId}
+          onChange={(event) => setTypeId(event.target.value)}
+          className={`mt-1 w-full ${INPUT_CLASSES}`}
+        >
+          <option value="">Legal basis…</option>
+          {leaveTypes.map((type) => (
+            <option key={type.id} value={type.id}>
+              {type.typeName}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="block text-sm font-medium text-foreground">
+        Hours
+        <input
+          type="number"
+          value={hours}
+          placeholder="± hours"
+          onChange={(event) => setHours(event.target.value)}
+          className={`mt-1 w-full ${INPUT_CLASSES}`}
+        />
+      </label>
+      <label className="block text-sm font-medium text-foreground">
+        Reason
+        <input
+          type="text"
+          value={reason}
+          placeholder="Reason (required)"
+          onChange={(event) => setReason(event.target.value)}
+          className={`mt-1 w-full ${INPUT_CLASSES}`}
+        />
+      </label>
+      <MhdLeaveActionButtons
+        submitLabel="Adjust"
+        disabled={isPending}
+        onSubmit={async () => {
+          const parsed = Number.parseFloat(hours);
+          if (!typeId) throw new Error('Choose a legal basis to adjust.');
+          if (!Number.isFinite(parsed) || parsed === 0) {
+            throw new Error('Enter a non-zero number of hours.');
+          }
+          if (!reason.trim()) throw new Error('A manual adjustment requires a reason.');
+          await onSubmit({
+            personId,
+            leaveTypeId: typeId,
+            hoursDelta: parsed,
+            reason: reason.trim(),
+          });
+        }}
+      />
     </div>
   );
 }

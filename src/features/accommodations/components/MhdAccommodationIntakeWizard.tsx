@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
+import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
-import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
 import { mhdAccommodationsIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { useMhdDraft } from '@/features/drafts/Hook';
+import { MHD_DRAFT_KINDS, MHD_DRAFT_NEW_KEY, type MhdDraftPayload } from '@/features/drafts/Types';
 import {
   useMhdAccommodationPeople,
   useMhdAccommodationReadiness,
@@ -28,6 +31,8 @@ import {
   type MhdAccommodationRequestChannel,
   type MhdAccommodationRequestSource,
 } from '../Types';
+import { MHD_ACCOMMODATION_MEDICAL_DRAFT_NOTICE } from './MhdAccommodationDraftModal';
+import { MhdAccommodationsPage } from './MhdAccommodationsPage';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -77,7 +82,10 @@ function YesNoRadios({
 /**
  * `/accommodations/new` — guided intake that opens a reasonable-accommodation
  * process. Same create RPC and request schema the list page's inline form used
- * (that form now links here instead of duplicating it).
+ * (that form now links here instead of duplicating it). The route keeps its own
+ * URL but renders as a modal over the Accommodations list; closing it returns to
+ * `/accommodations`. Save Draft keeps the answers and the current step; the
+ * limitation duration describes the condition and is never drafted.
  *
  * A request may be verbal, representative-made, observed, or triggered by leave
  * exhaustion / return-to-work, and no form or special wording is a prerequisite;
@@ -113,6 +121,12 @@ export function MhdAccommodationIntakeWizard() {
   // The case id exists only after creation. The mutation input carries it; the hook's id is used
   // solely to invalidate that case's cached detail, which does not exist before the case does.
   const saveRequestDetails = useMhdAccommodationRequestDetails(openedCaseId ?? '');
+  const draft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.accommodationIntake,
+    draftKey: MHD_DRAFT_NEW_KEY,
+    companyId: companyId || null,
+    enabled: true,
+  });
 
   const peopleOptions = useMemo(
     () =>
@@ -124,6 +138,45 @@ export function MhdAccommodationIntakeWizard() {
   );
 
   const subjectPersonId = isPrivileged ? personId : (selfPersonId ?? '');
+
+  function close() {
+    navigate('/accommodations');
+  }
+
+  function getDraftValues(): MhdDraftPayload {
+    return {
+      // Only a privileged role chooses the subject; everyone else always files for themselves.
+      personId: isPrivileged ? personId : '',
+      requestSource,
+      requestChannel,
+      requestSummary,
+      workersCompClaim,
+      leaveRequested,
+      leaveRequestDetails,
+    };
+  }
+
+  function restoreDraft(payload: MhdDraftPayload, stepKey: string | null) {
+    const text = (value: unknown) => (typeof value === 'string' ? value : '');
+    if (isPrivileged) {
+      const savedPersonId = text(payload.personId);
+      setPersonId(peopleOptions.some((person) => person.id === savedPersonId) ? savedPersonId : '');
+    }
+    if (MHD_ACCOMMODATION_REQUEST_SOURCES.includes(payload.requestSource as never)) {
+      setRequestSource(payload.requestSource as MhdAccommodationRequestSource);
+    }
+    if (MHD_ACCOMMODATION_REQUEST_CHANNELS.includes(payload.requestChannel as never)) {
+      setRequestChannel(payload.requestChannel as MhdAccommodationRequestChannel);
+    }
+    setRequestSummary(text(payload.requestSummary));
+    setWorkersCompClaim(payload.workersCompClaim === true);
+    const leave = payload.leaveRequested === true;
+    setLeaveRequested(leave);
+    setLeaveRequestDetails(leave ? text(payload.leaveRequestDetails) : '');
+    const savedStep = STEPS.findIndex((step) => step.id === stepKey);
+    setStepIndex(savedStep >= 0 ? savedStep : 0);
+    setError(null);
+  }
 
   function validateCurrentStep(): boolean {
     if (STEPS[stepIndex].id === 'person') {
@@ -209,6 +262,17 @@ export function MhdAccommodationIntakeWizard() {
       return;
     }
     setOpenedCaseId(created.id);
+
+    // The case exists now, so the intake draft is spent: resuming it would open a second case.
+    try {
+      await draft.discard();
+    } catch (caught) {
+      const reason = caught instanceof Error ? caught.message : 'the draft could not be removed';
+      setError(
+        `Request ${created.referenceId} was opened, but its saved intake draft was not removed: ${reason}. Open the request to continue.`,
+      );
+      return;
+    }
 
     try {
       const details = mhdAccommodationRequestDetailsSchema.safeParse({
@@ -364,49 +428,63 @@ export function MhdAccommodationIntakeWizard() {
   }
 
   return (
-    <div className="space-y-6">
-      <MhdPageHeader
-        title="Guided accommodation intake"
+    <>
+      <MhdAccommodationsPage />
+      <MhdFormModal
+        title="Guided Accommodation Intake"
         description="A request may be verbal and does not require this form or any special words. Record the workplace change or assistance requested—never a diagnosis or medical history."
-        backTo="/accommodations"
-        backLabel="Reasonable Accommodations"
-      />
-      <MhdComplianceGateBanner readiness={readiness.data} />
+        size="xl"
+        onClose={close}
+      >
+        <div className="space-y-6">
+          <MhdComplianceGateBanner readiness={readiness.data} />
+          <p className="text-xs text-muted-foreground">{MHD_ACCOMMODATION_MEDICAL_DRAFT_NOTICE}</p>
+          <MhdDraftBanner draft={draft} onRestore={restoreDraft} />
 
-      <MhdStepper
-        steps={STEPS}
-        currentStepIndex={stepIndex}
-        onNavigate={setStepIndex}
-        validateCurrentStep={validateCurrentStep}
-        onSubmit={() => void handleSubmit()}
-        isSubmitting={createCase.isPending || saveRequestDetails.isPending}
-      />
+          <MhdStepper
+            steps={STEPS}
+            currentStepIndex={stepIndex}
+            onNavigate={setStepIndex}
+            validateCurrentStep={validateCurrentStep}
+            onSubmit={() => void handleSubmit()}
+            isSubmitting={createCase.isPending || saveRequestDetails.isPending}
+          />
 
-      <MhdCard>
-        <h2 className="text-lg font-semibold text-foreground">{STEPS[stepIndex].title}</h2>
-        <div className="mt-4">{renderStep()}</div>
-        {error ? (
-          <p role="alert" className="mt-4 text-sm text-rose-700">
-            {error}
-          </p>
-        ) : null}
-        {openedCaseId && error ? (
-          <Button
-            className="mt-3"
-            variant="secondary"
-            onClick={() => navigate(`/accommodations/${openedCaseId}`)}
-          >
-            Open Request
-          </Button>
-        ) : null}
-      </MhdCard>
+          <MhdCard>
+            <h3 className="text-lg font-semibold text-foreground">{STEPS[stepIndex].title}</h3>
+            <div className="mt-4">{renderStep()}</div>
+            {error ? (
+              <p role="alert" className="mt-4 text-sm text-rose-700">
+                {error}
+              </p>
+            ) : null}
+            {openedCaseId && error ? (
+              <Button
+                className="mt-3"
+                variant="secondary"
+                onClick={() => navigate(`/accommodations/${openedCaseId}`)}
+              >
+                Open Request
+              </Button>
+            ) : null}
+          </MhdCard>
 
-      <div>
-        <Button variant="secondary" onClick={() => navigate('/accommodations')}>
-          Cancel
-        </Button>
-      </div>
-    </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {openedCaseId ? null : (
+              <MhdSaveDraftButton
+                draft={draft}
+                getValues={getDraftValues}
+                stepKey={STEPS[stepIndex].id}
+                title="Accommodation request"
+              />
+            )}
+            <Button variant="secondary" onClick={close}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </MhdFormModal>
+    </>
   );
 }
 

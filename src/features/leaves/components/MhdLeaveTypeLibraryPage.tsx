@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Library } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdActionsTh, MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdIsPlatformAdminOrHrPartner, mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
+import { useMhdDraft } from '@/features/drafts/Hook';
+import { MHD_DRAFT_KINDS, MHD_DRAFT_NEW_KEY } from '@/features/drafts/Types';
 import {
   useMhdCreateLeaveType,
   useMhdForkLeaveType,
@@ -58,6 +61,17 @@ export function MhdLeaveTypeLibraryPage() {
   const createType = useMhdCreateLeaveType();
   const updateType = useMhdUpdateLeaveType();
   const forkType = useMhdForkLeaveType();
+  // One draft per leave type being edited, plus one for the type being created.
+  const draft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.leaveTypeForm,
+    draftKey: editingType?.id ?? MHD_DRAFT_NEW_KEY,
+    companyId: companyId || null,
+    enabled: isCreating || editingType !== null,
+  });
+
+  // A stable onClose: MhdModal's focus trap re-runs (and refocuses the close button) whenever onClose changes identity.
+  const closeCreate = useCallback(() => setIsCreating(false), []);
+  const closeEdit = useCallback(() => setEditingType(null), []);
 
   function canEditRow(type: MhdLeaveType): boolean {
     return type.isGlobal ? canManageGlobal : canManageCompany;
@@ -80,6 +94,7 @@ export function MhdLeaveTypeLibraryPage() {
         requiresCertification: values.requiresCertification,
         citation: values.citation,
       });
+      await draft.discard();
       setIsCreating(false);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to create leave type.');
@@ -99,6 +114,7 @@ export function MhdLeaveTypeLibraryPage() {
         requiresCertification: values.requiresCertification,
         citation: values.citation,
       });
+      await draft.discard();
       setEditingType(null);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to update leave type.');
@@ -235,34 +251,31 @@ export function MhdLeaveTypeLibraryPage() {
       )}
 
       {isCreating && canManageCompany && companyId ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-foreground">New Leave Type</h2>
-            <MhdLeaveTypeForm
-              companyId={companyId}
-              canPublishGlobal={canManageGlobal}
-              onSubmit={handleCreate}
-              onCancel={() => setIsCreating(false)}
-              isSubmitting={createType.isPending}
-            />
-          </div>
-        </div>
+        <MhdFormModal title="New Leave Type" size="lg" onClose={closeCreate}>
+          <MhdLeaveTypeForm
+            companyId={companyId}
+            canPublishGlobal={canManageGlobal}
+            onSubmit={handleCreate}
+            onCancel={closeCreate}
+            isSubmitting={createType.isPending}
+            draft={draft}
+          />
+        </MhdFormModal>
       ) : null}
 
       {editingType ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-foreground">Edit Leave Type</h2>
-            <MhdLeaveTypeForm
-              companyId={companyId}
-              canPublishGlobal={canManageGlobal}
-              leaveType={editingType}
-              onSubmit={handleEdit}
-              onCancel={() => setEditingType(null)}
-              isSubmitting={updateType.isPending}
-            />
-          </div>
-        </div>
+        <MhdFormModal title="Edit Leave Type" size="lg" onClose={closeEdit}>
+          <MhdLeaveTypeForm
+            key={editingType.id}
+            companyId={companyId}
+            canPublishGlobal={canManageGlobal}
+            leaveType={editingType}
+            onSubmit={handleEdit}
+            onCancel={closeEdit}
+            isSubmitting={updateType.isPending}
+            draft={draft}
+          />
+        </MhdFormModal>
       ) : null}
     </div>
   );

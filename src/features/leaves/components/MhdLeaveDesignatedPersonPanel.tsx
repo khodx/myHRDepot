@@ -1,5 +1,3 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
@@ -11,6 +9,8 @@ import type {
   MhdLeaveDesignatedPersonInput,
   MhdLeaveDesignatedPersonVoidInput,
 } from '../WorkflowTypes';
+import { MhdLeaveActionButtons, MhdLeaveActionModal } from './MhdLeaveActionModal';
+import { useMhdLeaveDraftField } from './mhdLeaveActionContext';
 import { mhdLeaveEnumLabel } from './mhdLeaveLabels';
 
 const inputClass =
@@ -18,24 +18,26 @@ const inputClass =
 
 export interface MhdLeaveDesignatedPersonPanelProps {
   caseId: string;
+  companyId: string | null;
   persons: MhdLeaveDesignatedPerson[];
   /** The relationship the leave is being evaluated under (normally DESIGNATED_PERSON). */
   familyRelationship: string;
   limitDesignatedPerson: boolean;
   privileged: boolean;
-  /** Resolve true once saved; false when the caller showed a refusal. */
-  onRecord: (input: MhdLeaveDesignatedPersonInput) => Promise<boolean>;
-  onVoid: (input: MhdLeaveDesignatedPersonVoidInput) => Promise<boolean>;
+  /** Reject with the server's refusal, which the action modal shows. */
+  onRecord: (input: MhdLeaveDesignatedPersonInput) => Promise<unknown>;
+  onVoid: (input: MhdLeaveDesignatedPersonVoidInput) => Promise<unknown>;
   isPending: boolean;
 }
 
 /**
  * A designated person is a recorded fact (who, when, attested when), replacing the old
  * "designated person selected" checkbox. The company's one-per-12-months limit, when elected,
- * is enforced by the database; its refusal is shown by the caller.
+ * is enforced by the database; its refusal is shown in the action modal.
  */
 export function MhdLeaveDesignatedPersonPanel({
   caseId,
+  companyId,
   persons,
   familyRelationship,
   limitDesignatedPerson,
@@ -44,32 +46,6 @@ export function MhdLeaveDesignatedPersonPanel({
   onVoid,
   isPending,
 }: MhdLeaveDesignatedPersonPanelProps) {
-  const [name, setName] = useState('');
-  const [note, setNote] = useState('');
-  const [attestedOn, setAttestedOn] = useState('');
-  const [voidingId, setVoidingId] = useState<string | null>(null);
-  const [voidReason, setVoidReason] = useState('');
-
-  async function record() {
-    const saved = await onRecord({
-      caseId,
-      designatedName: name,
-      relationshipNote: note || null,
-      pflAttestedOn: attestedOn || null,
-    });
-    if (!saved) return;
-    setName('');
-    setNote('');
-    setAttestedOn('');
-  }
-
-  async function voidDesignation(designatedPersonId: string) {
-    const saved = await onVoid({ designatedPersonId, reason: voidReason });
-    if (!saved) return;
-    setVoidingId(null);
-    setVoidReason('');
-  }
-
   return (
     <MhdCard className="space-y-3">
       <MhdCardHeader title="Designated Person" />
@@ -109,45 +85,20 @@ export function MhdLeaveDesignatedPersonPanel({
                 />
               </dl>
               {privileged && !person.voided_at ? (
-                voidingId === person.id ? (
-                  <div className="space-y-2 border-t border-border pt-2">
-                    <label className="block text-xs">
-                      Void reason
-                      <input
-                        className={`mt-1 ${inputClass}`}
-                        value={voidReason}
-                        onChange={(event) => setVoidReason(event.target.value)}
-                      />
-                    </label>
-                    <div className="flex gap-2">
-                      <Button
-                        disabled={isPending || !voidReason.trim()}
-                        onClick={() => void voidDesignation(person.id)}
-                      >
-                        Confirm Void
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        onClick={() => {
-                          setVoidingId(null);
-                          setVoidReason('');
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setVoidingId(person.id);
-                      setVoidReason('');
-                    }}
-                  >
-                    Void Designation
-                  </Button>
-                )
+                <MhdLeaveActionModal
+                  caseId={caseId}
+                  action={`designated-person-void:${person.id}`}
+                  companyId={companyId}
+                  title={`Void Designation Of ${person.designated_name}`}
+                  size="md"
+                  launchLabel="Void Designation"
+                >
+                  <VoidDesignationForm
+                    designatedPersonId={person.id}
+                    isPending={isPending}
+                    onSubmit={onVoid}
+                  />
+                </MhdLeaveActionModal>
               ) : null}
             </li>
           ))}
@@ -157,43 +108,111 @@ export function MhdLeaveDesignatedPersonPanel({
       )}
 
       {privileged ? (
-        <div className="space-y-3 border-t border-border pt-3">
-          <MhdFormFieldStack>
-            <label className="block text-xs">
-              Designated person name
-              <input
-                className={`mt-1 ${inputClass}`}
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </label>
-            <label className="block text-xs">
-              Relationship note
-              <input
-                className={`mt-1 ${inputClass}`}
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-              />
-            </label>
-            <div>
-              <label className="block text-xs">
-                PFL Attestation Date
-                <MhdDateField
-                  className={`mt-1 ${inputClass}`}
-                  value={attestedOn}
-                  onChange={setAttestedOn}
-                />
-              </label>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Required for Paid Family Leave claims filed on or after July 1, 2028.
-              </p>
-            </div>
-          </MhdFormFieldStack>
-          <Button disabled={isPending || !name.trim()} onClick={() => void record()}>
-            {isPending ? 'Recording…' : 'Record Designated Person'}
-          </Button>
+        <div className="border-t border-border pt-3">
+          <MhdLeaveActionModal
+            caseId={caseId}
+            action="designated-person"
+            companyId={companyId}
+            title="Record Designated Person"
+            size="md"
+            launchLabel="Add Designated Person"
+          >
+            <DesignatedPersonForm caseId={caseId} isPending={isPending} onSubmit={onRecord} />
+          </MhdLeaveActionModal>
         </div>
       ) : null}
     </MhdCard>
+  );
+}
+
+function DesignatedPersonForm({
+  caseId,
+  isPending,
+  onSubmit,
+}: {
+  caseId: string;
+  isPending: boolean;
+  onSubmit: (input: MhdLeaveDesignatedPersonInput) => Promise<unknown>;
+}) {
+  const [name, setName] = useMhdLeaveDraftField('designatedName', '');
+  const [note, setNote] = useMhdLeaveDraftField('relationshipNote', '');
+  const [attestedOn, setAttestedOn] = useMhdLeaveDraftField('pflAttestedOn', '');
+
+  return (
+    <div className="space-y-3">
+      <MhdFormFieldStack>
+        <label className="block text-xs">
+          Designated person name
+          <input
+            className={`mt-1 ${inputClass}`}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </label>
+        <label className="block text-xs">
+          Relationship note
+          <input
+            className={`mt-1 ${inputClass}`}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+          />
+        </label>
+        <div>
+          <label className="block text-xs">
+            PFL Attestation Date
+            <MhdDateField
+              className={`mt-1 ${inputClass}`}
+              value={attestedOn}
+              onChange={setAttestedOn}
+            />
+          </label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Required for Paid Family Leave claims filed on or after July 1, 2028.
+          </p>
+        </div>
+      </MhdFormFieldStack>
+      <MhdLeaveActionButtons
+        submitLabel="Record Designated Person"
+        pendingLabel="Recording…"
+        disabled={isPending || !name.trim()}
+        onSubmit={() =>
+          onSubmit({
+            caseId,
+            designatedName: name,
+            relationshipNote: note || null,
+            pflAttestedOn: attestedOn || null,
+          })
+        }
+      />
+    </div>
+  );
+}
+
+function VoidDesignationForm({
+  designatedPersonId,
+  isPending,
+  onSubmit,
+}: {
+  designatedPersonId: string;
+  isPending: boolean;
+  onSubmit: (input: MhdLeaveDesignatedPersonVoidInput) => Promise<unknown>;
+}) {
+  const [reason, setReason] = useMhdLeaveDraftField('reason', '');
+  return (
+    <div className="space-y-2">
+      <label className="block text-xs">
+        Void reason
+        <input
+          className={`mt-1 ${inputClass}`}
+          value={reason}
+          onChange={(event) => setReason(event.target.value)}
+        />
+      </label>
+      <MhdLeaveActionButtons
+        submitLabel="Confirm Void"
+        disabled={isPending || !reason.trim()}
+        onSubmit={() => onSubmit({ designatedPersonId, reason })}
+      />
+    </div>
   );
 }

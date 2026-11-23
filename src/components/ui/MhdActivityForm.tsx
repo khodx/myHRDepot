@@ -3,6 +3,7 @@ import { Lock, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdRichTextEditor } from '@/components/ui/MhdRichText';
 import { mhdDocumentToRichHtml, mhdPlainTextToRichHtml } from '@/components/ui/MhdRichTextUtils';
@@ -18,6 +19,7 @@ import {
   mhdFormatActivityParticipantRole,
   mhdFormatActivityType,
 } from '@/features/activities/Types';
+import type { MhdDraftController } from '@/features/drafts/Hook';
 import type { z } from 'zod';
 
 type ParticipantKind = 'USER' | 'PERSON';
@@ -36,6 +38,9 @@ interface Props {
   /** Create mode only: pre-selects "Supports Task" (e.g. opened from a task's
    *  own Activities button), so linking back is automatic rather than manual. */
   defaultParentTaskId?: string;
+  /** Server-side save and resume (useMhdDraft). When given, the form shows the resume banner and a Save Draft
+   *  button; the caller calls draft.discard() after a successful submit. */
+  draft?: MhdDraftController;
 }
 
 function toDateTimeLocalValue(iso: string | null | undefined): string {
@@ -57,12 +62,15 @@ export function MhdActivityForm({
   onCancel,
   isSubmitting,
   defaultParentTaskId,
+  draft,
 }: Props) {
   const {
     register,
     control,
     handleSubmit,
     setValue,
+    getValues,
+    reset,
     formState: { errors },
   } = useForm<z.input<typeof mhdActivityFormSchema>, unknown, MhdActivityFormSchemaInput>({
     resolver: zodResolver(mhdActivityFormSchema),
@@ -117,6 +125,16 @@ export function MhdActivityForm({
     setValue(`participants.${index}.personId`, undefined);
   }
 
+  function getDraftValues() {
+    return { form: getValues(), checklistTitles };
+  }
+
+  function restoreDraft(payload: Record<string, unknown>) {
+    const saved = payload as { form?: Record<string, unknown>; checklistTitles?: string[] };
+    if (saved.form) reset({ ...getValues(), ...saved.form } as z.input<typeof mhdActivityFormSchema>);
+    setChecklistTitles(saved.checklistTitles ?? []);
+  }
+
   function handleAddChecklistTitle() {
     const title = newChecklistTitle.trim();
     if (!title) return;
@@ -130,6 +148,7 @@ export function MhdActivityForm({
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit((data) => onSubmit(data, checklistTitles))}>
+      {draft ? <MhdDraftBanner draft={draft} onRestore={restoreDraft} /> : null}
       <MhdFormFieldStack>
         <div>
           <label htmlFor="activityType" className="mb-1 block text-sm font-medium">
@@ -449,6 +468,13 @@ export function MhdActivityForm({
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving…' : mode === 'create' ? 'Create Activity' : 'Save Changes'}
         </Button>
+        {draft ? (
+          <MhdSaveDraftButton
+            draft={draft}
+            getValues={getDraftValues}
+            title={getValues('title') || undefined}
+          />
+        ) : null}
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>

@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
+import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 import {
   MHD_LEAVE_BENEFIT_FREQUENCIES,
   MHD_LEAVE_BENEFIT_RECORDABLE_TRANSACTION_TYPES,
   MHD_LEAVE_BENEFIT_TYPES,
+  MHD_LEAVE_BONDING_EVENT_TYPES,
   MHD_LEAVE_CONTINUATION_BASES,
+  MHD_LEAVE_FAMILY_RELATIONSHIPS,
   MHD_LEAVE_GROUP_HEALTH_BENEFIT_TYPES,
   MHD_LEAVE_HEALTH_PREMIUM_MIN_GRACE_DAYS,
+  MHD_LEAVE_NOTICE_TYPES,
+  MHD_LEAVE_REASON_CODES,
   MHD_LEAVE_REINSTATEMENT_OUTCOMES,
   MHD_LEAVE_SEGMENT_MODES,
   MHD_LEAVE_SEGMENT_STATUSES,
@@ -19,7 +22,12 @@ import {
   type MhdLeaveBenefitTransactionInput,
   type MhdLeaveBenefitTransactionType,
   type MhdLeaveBenefitType,
+  type MhdLeaveBondingEventInput,
+  type MhdLeaveBondingEventType,
   type MhdLeaveContinuationBasis,
+  type MhdLeaveDeadline,
+  type MhdLeaveEligibilityInput,
+  type MhdLeaveNoticeType,
   type MhdLeaveReinstatementOutcome,
   type MhdLeaveReturnToWorkInput,
   type MhdLeaveSegmentInput,
@@ -27,8 +35,12 @@ import {
   type MhdLeaveSegmentStatus,
   type MhdLeaveWorkflow,
 } from '../WorkflowTypes';
+import { MhdLeaveActionButtons } from './MhdLeaveActionModal';
+import { MhdLeaveDeadlineBadge } from './MhdLeaveDeadlineBadge';
+import { useMhdLeaveDraftBinding, useMhdLeaveDraftField } from './mhdLeaveActionContext';
 import {
   MHD_LEAVE_CONTINUATION_BASIS_LABELS,
+  MHD_LEAVE_NOTICE_DEADLINE_KINDS,
   mhdLeaveEnumLabel,
   mhdLeavePick,
 } from './mhdLeaveLabels';
@@ -46,12 +58,487 @@ const optionalNumber = (value: string) => (value.trim() === '' ? null : Number(v
 const localToIso = (value: string) => (value ? new Date(value).toISOString() : '');
 
 /*
- * Each form's onSubmit resolves true only when the record was saved. The caller shows
- * any refusal (the exact server text) and resolves false, so a form keeps what the
- * user typed when the RPC says no and clears itself only on success.
+ * Every form here renders inside MhdLeaveActionModal. Its onSubmit rejects with the server's
+ * own refusal, which the modal shows while the form keeps what was typed; on success the
+ * modal discards the draft and closes. Fields declared with useMhdLeaveDraftField are kept by
+ * Save Draft; medical-tier fields use plain useState so they never reach a draft.
  */
 
-/** Privileged-only. The RPC's own refusal (eligibility, balance ceiling) is shown by the caller. */
+export function MhdLeaveDeadlineStrip({
+  deadlines,
+  empty,
+}: {
+  deadlines: MhdLeaveDeadline[];
+  empty: string;
+}) {
+  if (!deadlines.length) return <p className="text-sm text-muted-foreground">{empty}</p>;
+  return (
+    <div className="flex flex-wrap gap-2">
+      {deadlines.map((deadline) => (
+        <MhdLeaveDeadlineBadge key={deadline.id} deadline={deadline} />
+      ))}
+    </div>
+  );
+}
+
+/** Yes / No / Unknown for an adult child's self-care; Unknown sends nothing. */
+const SELF_CARE_ANSWERS = ['UNKNOWN', 'YES', 'NO'] as const;
+type SelfCareAnswer = (typeof SELF_CARE_ANSWERS)[number];
+
+/**
+ * Privileged-only. The leave reason and family relationship are owned by the panel (they also
+ * decide whether the bonding and designated-person cards show), so they arrive controlled. The
+ * self-care answer is a functional-limitation fact and is never kept in a draft.
+ */
+export function MhdLeaveEligibilityEvaluateForm({
+  caseId,
+  reasonCode,
+  onReasonChange,
+  relationship,
+  onRelationshipChange,
+  intermittent,
+  isPending,
+  onSubmit,
+}: {
+  caseId: string;
+  reasonCode: string;
+  onReasonChange: (value: string) => void;
+  relationship: string;
+  onRelationshipChange: (value: string) => void;
+  intermittent: boolean;
+  isPending: boolean;
+  onSubmit: (input: MhdLeaveEligibilityInput) => Promise<unknown>;
+}) {
+  useMhdLeaveDraftBinding('reasonCode', reasonCode, onReasonChange);
+  useMhdLeaveDraftBinding('familyRelationship', relationship, onRelationshipChange);
+  const [selfCare, setSelfCare] = useState<SelfCareAnswer>('UNKNOWN');
+  const [employerAgreedBonding, setEmployerAgreedBonding] = useMhdLeaveDraftField(
+    'employerAgreedBonding',
+    false,
+  );
+  const [employerCount, setEmployerCount] = useMhdLeaveDraftField('employerCount', '');
+  const [worksiteCount, setWorksiteCount] = useMhdLeaveDraftField('worksiteCount', '');
+  const [months, setMonths] = useMhdLeaveDraftField('months', '');
+  const [hours, setHours] = useMhdLeaveDraftField('hours', '');
+  const [weeklyHours, setWeeklyHours] = useMhdLeaveDraftField('weeklyHours', '');
+  const [coveredEmployerOverride, setCoveredEmployerOverride] = useMhdLeaveDraftField(
+    'coveredEmployerOverride',
+    false,
+  );
+
+  const isBonding = reasonCode === 'BONDING';
+  const countFactsEntered = [employerCount, worksiteCount, months, hours].every(
+    (value) => value.trim() !== '' && Number.isFinite(Number(value)) && Number(value) >= 0,
+  );
+  const factsComplete = countFactsEntered && weeklyHours.trim() !== '' && Number(weeklyHours) > 0;
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        The engine evaluates each legal basis separately. CFRA does not use a 75-mile test; that
+        count is used only for FMLA. A human must confirm every result.
+      </p>
+      <MhdFormFieldStack>
+        <label className="block text-xs">
+          Leave reason
+          <select
+            className={`mt-1 ${inputClass}`}
+            value={reasonCode}
+            onChange={(e) => onReasonChange(e.target.value)}
+          >
+            {MHD_LEAVE_REASON_CODES.map((value) => (
+              <option key={value} value={value}>
+                {mhdLeaveEnumLabel(value)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-xs">
+          Family relationship
+          <select
+            className={`mt-1 ${inputClass}`}
+            value={relationship}
+            onChange={(e) => onRelationshipChange(e.target.value)}
+          >
+            <option value="">No family relationship</option>
+            {MHD_LEAVE_FAMILY_RELATIONSHIPS.map((value) => (
+              <option key={value} value={value}>
+                {mhdLeaveEnumLabel(value)}
+              </option>
+            ))}
+          </select>
+        </label>
+        {relationship === 'DESIGNATED_PERSON' ? (
+          <p className="text-xs text-muted-foreground">
+            Record who the designated person is in the Designated Person card.
+          </p>
+        ) : null}
+        {relationship === 'CHILD_ADULT' ? (
+          <div>
+            <label className="block text-xs">
+              Incapable Of Self-Care
+              <select
+                className={`mt-1 ${inputClass}`}
+                value={selfCare}
+                onChange={(e) =>
+                  setSelfCare(mhdLeavePick(SELF_CARE_ANSWERS, e.target.value) ?? 'UNKNOWN')
+                }
+              >
+                {SELF_CARE_ANSWERS.map((value) => (
+                  <option key={value} value={value}>
+                    {mhdLeaveEnumLabel(value)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              FMLA covers care of an adult child only when the child is incapable of self-care.
+              Leave it Unknown until that is established.
+            </p>
+          </div>
+        ) : null}
+        {isBonding && intermittent ? (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={employerAgreedBonding}
+              onChange={(e) => setEmployerAgreedBonding(e.target.checked)}
+            />
+            Employer Agrees To Intermittent Bonding
+          </label>
+        ) : null}
+        <label className="block text-xs">
+          Scheduled weekly hours
+          <input
+            className={`mt-1 ${inputClass}`}
+            type="number"
+            value={weeklyHours}
+            onChange={(e) => setWeeklyHours(e.target.value)}
+          />
+        </label>
+        <label className="block text-xs">
+          Employer employee count
+          <input
+            className={`mt-1 ${inputClass}`}
+            type="number"
+            value={employerCount}
+            onChange={(e) => setEmployerCount(e.target.value)}
+          />
+        </label>
+        <label className="block text-xs">
+          FMLA worksite count within 75 miles
+          <input
+            className={`mt-1 ${inputClass}`}
+            type="number"
+            value={worksiteCount}
+            onChange={(e) => setWorksiteCount(e.target.value)}
+          />
+        </label>
+        <label className="block text-xs">
+          Months of service
+          <input
+            className={`mt-1 ${inputClass}`}
+            type="number"
+            value={months}
+            onChange={(e) => setMonths(e.target.value)}
+          />
+        </label>
+        <label className="block text-xs">
+          Hours worked in prior 12 months
+          <input
+            className={`mt-1 ${inputClass}`}
+            type="number"
+            value={hours}
+            onChange={(e) => setHours(e.target.value)}
+          />
+        </label>
+      </MhdFormFieldStack>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={coveredEmployerOverride}
+          onChange={(e) => setCoveredEmployerOverride(e.target.checked)}
+        />{' '}
+        Covered employer override (record only for a verified public agency/school or other
+        covered-employer basis)
+      </label>
+      {!factsComplete ? (
+        <p className="text-xs text-muted-foreground">
+          Enter every employer and service fact (weekly hours above zero); none are assumed.
+        </p>
+      ) : null}
+      <MhdLeaveActionButtons
+        submitLabel="Evaluate All Bases"
+        pendingLabel="Evaluating…"
+        disabled={isPending || !factsComplete}
+        onSubmit={() =>
+          onSubmit({
+            caseId,
+            asOfDate: mhdToIsoDateString(),
+            employerEmployeeCount: Number(employerCount),
+            monthsOfService: Number(months),
+            hoursWorked12Months: Number(hours),
+            worksiteEmployeeCount75: Number(worksiteCount),
+            scheduledWeeklyHours: Number(weeklyHours),
+            reasonCode,
+            familyRelationship: relationship || null,
+            coveredEmployerOverride,
+            ...(relationship === 'CHILD_ADULT' && selfCare !== 'UNKNOWN'
+              ? { incapableOfSelfCare: selfCare === 'YES' }
+              : {}),
+            ...(isBonding && intermittent
+              ? { employerAgreedIntermittentBonding: employerAgreedBonding }
+              : {}),
+          })
+        }
+      />
+    </div>
+  );
+}
+
+/** The outcomes a documented override may record (mhd_leave_eligibility_override). */
+const OVERRIDE_OUTCOMES = ['ELIGIBLE', 'INELIGIBLE', 'UNDETERMINED'] as const;
+type OverrideOutcome = (typeof OVERRIDE_OUTCOMES)[number];
+
+/** Privileged-only. A documented human override of one determination. */
+export function MhdLeaveEligibilityOverrideForm({
+  determinationId,
+  isPending,
+  onSubmit,
+}: {
+  determinationId: string;
+  isPending: boolean;
+  onSubmit: (input: {
+    determinationId: string;
+    effectiveOutcome: OverrideOutcome;
+    overrideReason: string;
+  }) => Promise<unknown>;
+}) {
+  const [outcome, setOutcome] = useMhdLeaveDraftField<OverrideOutcome>('outcome', 'ELIGIBLE');
+  const [reason, setReason] = useMhdLeaveDraftField('reason', '');
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-muted-foreground">
+        An override is a documented human decision. The evaluated outcome, findings, and rule-set
+        version remain on the record.
+      </p>
+      <select
+        className={inputClass}
+        value={outcome}
+        onChange={(e) => setOutcome(mhdLeavePick(OVERRIDE_OUTCOMES, e.target.value) ?? 'ELIGIBLE')}
+        aria-label="Override outcome"
+      >
+        {OVERRIDE_OUTCOMES.map((value) => (
+          <option key={value} value={value}>
+            {mhdLeaveEnumLabel(value)}
+          </option>
+        ))}
+      </select>
+      <textarea
+        className={`min-h-20 ${inputClass}`}
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        placeholder="Why the determination is being overridden"
+        aria-label="Override reason"
+      />
+      <MhdLeaveActionButtons
+        submitLabel="Record Override"
+        disabled={isPending || !reason.trim()}
+        onSubmit={() =>
+          onSubmit({ determinationId, effectiveOutcome: outcome, overrideReason: reason })
+        }
+      />
+    </div>
+  );
+}
+
+/** Privileged-only. Opens on the recorded bonding event, if any. */
+export function MhdLeaveBondingEventForm({
+  caseId,
+  current,
+  isPending,
+  onSubmit,
+}: {
+  caseId: string;
+  current: MhdLeaveWorkflow['case'];
+  isPending: boolean;
+  onSubmit: (input: MhdLeaveBondingEventInput) => Promise<unknown>;
+}) {
+  const [eventDate, setEventDate] = useMhdLeaveDraftField(
+    'eventDate',
+    current.bonding_event_date ?? '',
+  );
+  const [eventType, setEventType] = useMhdLeaveDraftField<MhdLeaveBondingEventType | ''>(
+    'eventType',
+    current.bonding_event_type ?? '',
+  );
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Bonding leave runs from the birth, adoption or foster placement and must be taken within 12
+        months of it.
+      </p>
+      <MhdFormFieldStack>
+        <label className="block text-xs">
+          Bonding event date
+          <MhdDateField
+            className={`mt-1 ${inputClass}`}
+            value={eventDate}
+            onChange={setEventDate}
+          />
+        </label>
+        <label className="block text-xs">
+          Bonding event type
+          <select
+            className={`mt-1 ${inputClass}`}
+            value={eventType}
+            onChange={(e) =>
+              setEventType(mhdLeavePick(MHD_LEAVE_BONDING_EVENT_TYPES, e.target.value) ?? '')
+            }
+          >
+            <option value="">Select an event type</option>
+            {MHD_LEAVE_BONDING_EVENT_TYPES.map((value) => (
+              <option key={value} value={value}>
+                {mhdLeaveEnumLabel(value)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </MhdFormFieldStack>
+      <MhdLeaveActionButtons
+        submitLabel="Save Bonding Event"
+        disabled={isPending || !eventDate || !eventType}
+        onSubmit={async () => {
+          if (!eventType) return;
+          await onSubmit({ caseId, eventDate, eventType });
+        }}
+      />
+    </div>
+  );
+}
+
+export interface MhdLeaveNoticeTemplateOption {
+  id: string;
+  name: string;
+  version: number;
+  templateKey: string | null;
+}
+
+/**
+ * Privileged-only. Only templates with a stable key are offered (the database refuses a uuid).
+ * The due date comes from the case's legal deadline, never from this form.
+ */
+export function MhdLeaveNoticeForm({
+  templates,
+  deadlines,
+  isPending,
+  canSubmit,
+  onSubmit,
+}: {
+  templates: MhdLeaveNoticeTemplateOption[];
+  deadlines: MhdLeaveDeadline[];
+  isPending: boolean;
+  /** False until the viewer's user and company are known. */
+  canSubmit: boolean;
+  onSubmit: (input: { noticeType: MhdLeaveNoticeType; templateKey: string }) => Promise<unknown>;
+}) {
+  const [noticeType, setNoticeType] = useMhdLeaveDraftField<MhdLeaveNoticeType>(
+    'noticeType',
+    'ELIGIBILITY',
+  );
+  const [templateKey, setTemplateKey] = useMhdLeaveDraftField('templateKey', '');
+  const closedBySelectedNotice = MHD_LEAVE_NOTICE_DEADLINE_KINDS[noticeType] ?? [];
+  const selectedNoticeDeadlines = deadlines.filter((deadline) =>
+    closedBySelectedNotice.includes(deadline.deadline_kind),
+  );
+
+  return (
+    <div className="space-y-3">
+      <MhdFormFieldStack>
+        <label className="block text-xs">
+          Notice type
+          <select
+            className={`mt-1 ${inputClass}`}
+            value={noticeType}
+            onChange={(event) =>
+              setNoticeType(
+                mhdLeavePick(MHD_LEAVE_NOTICE_TYPES, event.target.value) ?? 'ELIGIBILITY',
+              )
+            }
+          >
+            {MHD_LEAVE_NOTICE_TYPES.map((value) => (
+              <option key={value} value={value}>
+                {mhdLeaveEnumLabel(value)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-xs">
+          Document template
+          <select
+            className={`mt-1 ${inputClass}`}
+            value={templateKey}
+            onChange={(event) => setTemplateKey(event.target.value)}
+          >
+            <option value="">Select a document template</option>
+            {templates.map((template) => (
+              <option key={template.id} value={template.templateKey ?? ''}>
+                {template.name} (v{template.version})
+              </option>
+            ))}
+          </select>
+        </label>
+      </MhdFormFieldStack>
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground">
+          The due date comes from the case&apos;s legal deadline, not from this form. Issuing this
+          notice closes:
+        </p>
+        <MhdLeaveDeadlineStrip
+          deadlines={selectedNoticeDeadlines}
+          empty="This notice type closes no open deadline."
+        />
+      </div>
+      <MhdLeaveActionButtons
+        submitLabel="Create Notice"
+        pendingLabel="Recording…"
+        disabled={isPending || !templateKey || !canSubmit}
+        onSubmit={() => onSubmit({ noticeType, templateKey })}
+      />
+    </div>
+  );
+}
+
+/** Privileged-only. An operational contact; the summary carries no medical detail. */
+export function MhdLeaveContactForm({
+  isPending,
+  onSubmit,
+}: {
+  isPending: boolean;
+  onSubmit: (summary: string) => Promise<unknown>;
+}) {
+  const [summary, setSummary] = useMhdLeaveDraftField('summary', '');
+  return (
+    <div className="space-y-2">
+      <textarea
+        className={`min-h-20 ${inputClass}`}
+        value={summary}
+        onChange={(e) => setSummary(e.target.value)}
+        placeholder="Operational contact summary—no medical details"
+        aria-label="Contact summary"
+      />
+      <MhdLeaveActionButtons
+        submitLabel="Record Contact"
+        disabled={isPending || !summary.trim()}
+        onSubmit={() => onSubmit(summary)}
+      />
+    </div>
+  );
+}
+
+/** Privileged-only. The RPC's own refusal (eligibility, balance ceiling) is shown by the modal. */
 export function MhdLeaveSegmentForm({
   caseId,
   isPending,
@@ -59,35 +546,17 @@ export function MhdLeaveSegmentForm({
 }: {
   caseId: string;
   isPending: boolean;
-  onSubmit: (input: MhdLeaveSegmentInput) => Promise<boolean>;
+  onSubmit: (input: MhdLeaveSegmentInput) => Promise<unknown>;
 }) {
-  const [mode, setMode] = useState<MhdLeaveSegmentMode>('CONTINUOUS');
-  const [status, setStatus] = useState<MhdLeaveSegmentStatus>('REQUESTED');
-  const [start, setStart] = useState('');
-  const [end, setEnd] = useState('');
-  const [planned, setPlanned] = useState('');
-  const [actual, setActual] = useState('');
-
-  async function submit() {
-    const saved = await onSubmit({
-      caseId,
-      segmentMode: mode,
-      startAt: localToIso(start),
-      endAt: end ? localToIso(end) : null,
-      plannedHours: optionalNumber(planned),
-      actualHours: optionalNumber(actual),
-      status,
-    });
-    if (!saved) return;
-    setStart('');
-    setEnd('');
-    setPlanned('');
-    setActual('');
-  }
+  const [mode, setMode] = useMhdLeaveDraftField<MhdLeaveSegmentMode>('segmentMode', 'CONTINUOUS');
+  const [status, setStatus] = useMhdLeaveDraftField<MhdLeaveSegmentStatus>('status', 'REQUESTED');
+  const [start, setStart] = useMhdLeaveDraftField('start', '');
+  const [end, setEnd] = useMhdLeaveDraftField('end', '');
+  const [planned, setPlanned] = useMhdLeaveDraftField('plannedHours', '');
+  const [actual, setActual] = useMhdLeaveDraftField('actualHours', '');
 
   return (
-    <MhdCard className="space-y-3">
-      <MhdCardHeader title="Record leave segment" />
+    <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
         A taken segment needs actual hours and debits the balance, so it is also checked against
         confirmed eligibility and the remaining hours.
@@ -164,10 +633,23 @@ export function MhdLeaveSegmentForm({
           />
         </label>
       </MhdFormFieldStack>
-      <Button disabled={isPending || !start} onClick={() => void submit()}>
-        {isPending ? 'Recording…' : 'Record Segment'}
-      </Button>
-    </MhdCard>
+      <MhdLeaveActionButtons
+        submitLabel="Record Segment"
+        pendingLabel="Recording…"
+        disabled={isPending || !start}
+        onSubmit={() =>
+          onSubmit({
+            caseId,
+            segmentMode: mode,
+            startAt: localToIso(start),
+            endAt: end ? localToIso(end) : null,
+            plannedHours: optionalNumber(planned),
+            actualHours: optionalNumber(actual),
+            status,
+          })
+        }
+      />
+    </div>
   );
 }
 
@@ -183,19 +665,28 @@ export function MhdLeaveBenefitObligationForm({
 }: {
   caseId: string;
   isPending: boolean;
-  onSubmit: (input: MhdLeaveBenefitObligationInput) => Promise<boolean>;
+  onSubmit: (input: MhdLeaveBenefitObligationInput) => Promise<unknown>;
 }) {
-  const [benefitType, setBenefitType] = useState<MhdLeaveBenefitType | ''>('');
-  const [frequency, setFrequency] = useState<MhdLeaveBenefitFrequency | ''>('');
-  const [coverageStart, setCoverageStart] = useState('');
-  const [coverageEnd, setCoverageEnd] = useState('');
-  const [employer, setEmployer] = useState('');
-  const [employee, setEmployee] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [gracePeriod, setGracePeriod] = useState('');
-  const [chosenBasis, setChosenBasis] = useState<MhdLeaveContinuationBasis | ''>('');
-  const [seniorityThrough, setSeniorityThrough] = useState('');
-  const [description, setDescription] = useState('');
+  const [benefitType, setBenefitType] = useMhdLeaveDraftField<MhdLeaveBenefitType | ''>(
+    'benefitType',
+    '',
+  );
+  const [frequency, setFrequency] = useMhdLeaveDraftField<MhdLeaveBenefitFrequency | ''>(
+    'frequency',
+    '',
+  );
+  const [coverageStart, setCoverageStart] = useMhdLeaveDraftField('coverageStart', '');
+  const [coverageEnd, setCoverageEnd] = useMhdLeaveDraftField('coverageEnd', '');
+  const [employer, setEmployer] = useMhdLeaveDraftField('employerAmount', '');
+  const [employee, setEmployee] = useMhdLeaveDraftField('employeeAmount', '');
+  const [dueDate, setDueDate] = useMhdLeaveDraftField('dueDate', '');
+  const [gracePeriod, setGracePeriod] = useMhdLeaveDraftField('gracePeriodDays', '');
+  const [chosenBasis, setChosenBasis] = useMhdLeaveDraftField<MhdLeaveContinuationBasis | ''>(
+    'continuationBasis',
+    '',
+  );
+  const [seniorityThrough, setSeniorityThrough] = useMhdLeaveDraftField('seniorityThrough', '');
+  const [description, setDescription] = useMhdLeaveDraftField('description', '');
 
   // A continuation basis exists only for group health coverage, so it is derived away
   // (never sent stale) when the type changes to anything else.
@@ -203,39 +694,8 @@ export function MhdLeaveBenefitObligationForm({
     benefitType !== '' && MHD_LEAVE_GROUP_HEALTH_BENEFIT_TYPES.includes(benefitType);
   const continuationBasis = isGroupHealth ? chosenBasis : '';
 
-  async function submit() {
-    if (!benefitType || !frequency) return;
-    const saved = await onSubmit({
-      caseId,
-      benefitType,
-      frequency,
-      coverageStart,
-      coverageEnd: coverageEnd || null,
-      employerAmount: Number(employer),
-      employeeAmount: Number(employee),
-      dueDate: dueDate || null,
-      gracePeriodDays: optionalNumber(gracePeriod),
-      continuationBasis: continuationBasis || null,
-      seniorityCreditThrough: seniorityThrough || null,
-      benefitLabel: description || null,
-    });
-    if (!saved) return;
-    setBenefitType('');
-    setFrequency('');
-    setCoverageStart('');
-    setCoverageEnd('');
-    setEmployer('');
-    setEmployee('');
-    setDueDate('');
-    setGracePeriod('');
-    setChosenBasis('');
-    setSeniorityThrough('');
-    setDescription('');
-  }
-
   return (
-    <MhdCard className="space-y-3">
-      <MhdCardHeader title="Record Benefit Obligation" />
+    <div className="space-y-3">
       <MhdFormFieldStack>
         <label className="block text-xs">
           Benefit type
@@ -365,7 +825,9 @@ export function MhdLeaveBenefitObligationForm({
           />
         </label>
       </MhdFormFieldStack>
-      <Button
+      <MhdLeaveActionButtons
+        submitLabel="Record Obligation"
+        pendingLabel="Recording…"
         disabled={
           isPending ||
           !benefitType ||
@@ -374,18 +836,35 @@ export function MhdLeaveBenefitObligationForm({
           employer === '' ||
           employee === ''
         }
-        onClick={() => void submit()}
-      >
-        {isPending ? 'Recording…' : 'Record Obligation'}
-      </Button>
-    </MhdCard>
+        onSubmit={async () => {
+          if (!benefitType || !frequency) return;
+          await onSubmit({
+            caseId,
+            benefitType,
+            frequency,
+            coverageStart,
+            coverageEnd: coverageEnd || null,
+            employerAmount: Number(employer),
+            employeeAmount: Number(employee),
+            dueDate: dueDate || null,
+            gracePeriodDays: optionalNumber(gracePeriod),
+            continuationBasis: continuationBasis || null,
+            seniorityCreditThrough: seniorityThrough || null,
+            benefitLabel: description || null,
+          });
+        }}
+      />
+    </div>
   );
 }
 
 /**
  * Privileged-only. Opens on the recorded plan (if any) so an update starts from what is on
  * file. A return-to-work certification may be required only under a uniformly applied company
- * policy; without one the database refuses it and the caller shows that refusal.
+ * policy; without one the database refuses it and the modal shows that refusal.
+ *
+ * Fitness-for-duty, certification dates, work restrictions and the reinstatement exception
+ * are certification or medical-adjacent facts, so they use plain state and never reach a draft.
  */
 export function MhdLeaveReturnToWorkForm({
   caseId,
@@ -398,11 +877,18 @@ export function MhdLeaveReturnToWorkForm({
   current: MhdLeaveWorkflow['return_to_work'];
   uniformCertificationPolicy: boolean;
   isPending: boolean;
-  onSubmit: (input: MhdLeaveReturnToWorkInput) => Promise<boolean>;
+  onSubmit: (input: MhdLeaveReturnToWorkInput) => Promise<unknown>;
 }) {
-  const [expectedReturn, setExpectedReturn] = useState(current?.expected_return_date ?? '');
-  const [actualReturn, setActualReturn] = useState(current?.actual_return_date ?? '');
-  const [outcome, setOutcome] = useState<MhdLeaveReinstatementOutcome | ''>(
+  const [expectedReturn, setExpectedReturn] = useMhdLeaveDraftField(
+    'expectedReturn',
+    current?.expected_return_date ?? '',
+  );
+  const [actualReturn, setActualReturn] = useMhdLeaveDraftField(
+    'actualReturn',
+    current?.actual_return_date ?? '',
+  );
+  const [outcome, setOutcome] = useMhdLeaveDraftField<MhdLeaveReinstatementOutcome | ''>(
+    'outcome',
     current?.reinstatement_outcome ?? '',
   );
   const [exceptionReason, setExceptionReason] = useState(
@@ -416,30 +902,10 @@ export function MhdLeaveReturnToWorkForm({
     current?.rtw_certification_received_on ?? '',
   );
   const [restrictions, setRestrictions] = useState(current?.restrictions_present ?? false);
-  const [note, setNote] = useState('');
-
-  async function submit() {
-    const saved = await onSubmit({
-      caseId,
-      expectedReturnDate: expectedReturn,
-      actualReturnDate: actualReturn || null,
-      // The outcome answers "same or comparable job": either position is a return to one.
-      sameOrComparableJob: outcome === '' ? null : outcome !== 'NOT_REINSTATED',
-      fitnessRequired,
-      restrictionsPresent: restrictions,
-      accommodationReferralRequired: restrictions,
-      reinstatementNote: note || null,
-      reinstatementOutcome: outcome || null,
-      exceptionReason: exceptionReason || null,
-      rtwCertificationRequestedOn: certRequestedOn || null,
-      rtwCertificationReceivedOn: certReceivedOn || null,
-    });
-    if (saved) setNote('');
-  }
+  const [note, setNote] = useMhdLeaveDraftField('note', '');
 
   return (
-    <MhdCard className="space-y-3">
-      <MhdCardHeader title="Return-To-Work Plan" />
+    <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
         {uniformCertificationPolicy
           ? 'Return-to-work certifications are required under a uniformly applied company policy.'
@@ -533,10 +999,28 @@ export function MhdLeaveReturnToWorkForm({
           />
         </label>
       </MhdFormFieldStack>
-      <Button disabled={isPending || !expectedReturn} onClick={() => void submit()}>
-        {isPending ? 'Saving…' : 'Save Return-To-Work Plan'}
-      </Button>
-    </MhdCard>
+      <MhdLeaveActionButtons
+        submitLabel="Save Return-To-Work Plan"
+        disabled={isPending || !expectedReturn}
+        onSubmit={() =>
+          onSubmit({
+            caseId,
+            expectedReturnDate: expectedReturn,
+            actualReturnDate: actualReturn || null,
+            // The outcome answers "same or comparable job": either position is a return to one.
+            sameOrComparableJob: outcome === '' ? null : outcome !== 'NOT_REINSTATED',
+            fitnessRequired,
+            restrictionsPresent: restrictions,
+            accommodationReferralRequired: restrictions,
+            reinstatementNote: note || null,
+            reinstatementOutcome: outcome || null,
+            exceptionReason: exceptionReason || null,
+            rtwCertificationRequestedOn: certRequestedOn || null,
+            rtwCertificationReceivedOn: certReceivedOn || null,
+          })
+        }
+      />
+    </div>
   );
 }
 
@@ -552,14 +1036,17 @@ export function MhdLeaveBenefitTransactionForm({
 }: {
   obligations: MhdLeaveWorkflow['benefits'];
   isPending: boolean;
-  onSubmit: (input: MhdLeaveBenefitTransactionInput) => Promise<boolean>;
+  onSubmit: (input: MhdLeaveBenefitTransactionInput) => Promise<unknown>;
 }) {
-  const [obligationId, setObligationId] = useState('');
-  const [chosenType, setChosenType] = useState<MhdLeaveBenefitTransactionType>('CHARGE');
-  const [chosenTarget, setChosenTarget] = useState('');
-  const [chosenAmount, setChosenAmount] = useState('');
-  const [effectiveDate, setEffectiveDate] = useState('');
-  const [note, setNote] = useState('');
+  const [obligationId, setObligationId] = useMhdLeaveDraftField('obligationId', '');
+  const [chosenType, setChosenType] = useMhdLeaveDraftField<MhdLeaveBenefitTransactionType>(
+    'transactionType',
+    'CHARGE',
+  );
+  const [chosenTarget, setChosenTarget] = useMhdLeaveDraftField('reversalOf', '');
+  const [chosenAmount, setChosenAmount] = useMhdLeaveDraftField('amount', '');
+  const [effectiveDate, setEffectiveDate] = useMhdLeaveDraftField('effectiveDate', '');
+  const [note, setNote] = useMhdLeaveDraftField('referenceNote', '');
 
   // Everything below derives from the obligation and the typed choices, so switching the
   // obligation can never leave a stale reversal type or target selected.
@@ -575,25 +1062,8 @@ export function MhdLeaveBenefitTransactionForm({
   const target = isReversal ? reversible.find((item) => item.id === chosenTarget) : undefined;
   const amount = isReversal ? (target ? String(Number(target.amount)) : '') : chosenAmount;
 
-  async function submit() {
-    const saved = await onSubmit({
-      obligationId,
-      transactionType: type,
-      amount: Number(amount),
-      effectiveDate,
-      referenceNote: note || null,
-      ...(isReversal ? { reversalOf: chosenTarget } : {}),
-    });
-    if (!saved) return;
-    setChosenAmount('');
-    setChosenTarget('');
-    setEffectiveDate('');
-    setNote('');
-  }
-
   return (
-    <MhdCard className="space-y-3">
-      <MhdCardHeader title="Record benefit transaction" />
+    <div className="space-y-3">
       <MhdFormFieldStack>
         <label className="text-xs">
           Obligation
@@ -669,7 +1139,9 @@ export function MhdLeaveBenefitTransactionForm({
           />
         </label>
       </MhdFormFieldStack>
-      <Button
+      <MhdLeaveActionButtons
+        submitLabel="Record Transaction"
+        pendingLabel="Recording…"
         disabled={
           isPending ||
           !obligationId ||
@@ -677,10 +1149,17 @@ export function MhdLeaveBenefitTransactionForm({
           !effectiveDate ||
           (isReversal && !target)
         }
-        onClick={() => void submit()}
-      >
-        {isPending ? 'Recording…' : 'Record Transaction'}
-      </Button>
-    </MhdCard>
+        onSubmit={() =>
+          onSubmit({
+            obligationId,
+            transactionType: type,
+            amount: Number(amount),
+            effectiveDate,
+            referenceNote: note || null,
+            ...(isReversal ? { reversalOf: chosenTarget } : {}),
+          })
+        }
+      />
+    </div>
   );
 }

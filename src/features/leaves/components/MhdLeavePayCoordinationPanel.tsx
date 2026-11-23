@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
 import { MhdBadge, type MhdBadgeVariant } from '@/components/ui/MhdBadge';
-import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
+import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
@@ -16,6 +15,8 @@ import {
   type MhdLeavePaySourceStatusInput,
   type MhdLeavePaySourceWarning,
 } from '../WorkflowTypes';
+import { MhdLeaveActionButtons, MhdLeaveActionModal } from './MhdLeaveActionModal';
+import { useMhdLeaveDraftField } from './mhdLeaveActionContext';
 import {
   MHD_LEAVE_PAY_SOURCE_WARNING_MESSAGES,
   mhdLeaveEnumLabel,
@@ -37,14 +38,16 @@ const STATUS_VARIANTS: Readonly<Record<MhdLeavePaySourceStatus, MhdBadgeVariant>
 };
 
 /**
- * The write callbacks resolve the RPC's non-blocking warnings on success and `null` when the
- * caller showed a refusal, so the form keeps what was typed and clears itself only once saved.
+ * Recording a pay source opens in an action modal: `onRecord` resolves the RPC's non-blocking
+ * warnings and rejects with its refusal, which the modal shows. The inline status select keeps
+ * the older contract: warnings on success, `null` once the caller has shown a refusal.
  */
 export interface MhdLeavePayCoordinationPanelProps {
   caseId: string;
+  companyId: string | null;
   paySources: MhdLeavePaySource[];
   privileged: boolean;
-  onRecord: (input: MhdLeavePaySourceInput) => Promise<MhdLeavePaySourceWarning[] | null>;
+  onRecord: (input: MhdLeavePaySourceInput) => Promise<MhdLeavePaySourceWarning[]>;
   onUpdateStatus: (
     input: MhdLeavePaySourceStatusInput,
   ) => Promise<MhdLeavePaySourceWarning[] | null>;
@@ -53,48 +56,18 @@ export interface MhdLeavePayCoordinationPanelProps {
 
 export function MhdLeavePayCoordinationPanel({
   caseId,
+  companyId,
   paySources,
   privileged,
   onRecord,
   onUpdateStatus,
   isPending,
 }: MhdLeavePayCoordinationPanelProps) {
-  const [sourceKey, setSourceKey] = useState<MhdLeavePaySourceKey>('PTO');
-  const [status, setStatus] = useState<MhdLeavePaySourceStatus>('EXPECTED');
-  const [claimRef, setClaimRef] = useState('');
-  const [paidFrom, setPaidFrom] = useState('');
-  const [paidTo, setPaidTo] = useState('');
-  const [employerRequired, setEmployerRequired] = useState(false);
-  const [employeeAgrees, setEmployeeAgrees] = useState(false);
   const [warnings, setWarnings] = useState<MhdLeavePaySourceWarning[]>([]);
 
   // The recorded rows carry the kind's display label; a key not yet recorded falls back to words.
   const sourceLabel = (key: MhdLeavePaySourceKey) =>
     paySources.find((item) => item.source_key === key)?.label || mhdLeaveEnumLabel(key);
-
-  const draft: MhdLeavePaySourceInput = {
-    caseId,
-    sourceKey,
-    status,
-    claimRef: claimRef || null,
-    paidFrom: paidFrom || null,
-    paidTo: paidTo || null,
-    employerRequired,
-    mutualAgreement: sourceKey === 'EMPLOYER_SICK' ? employeeAgrees : false,
-  };
-  const invalid = mhdValidateLeavePaySource(draft);
-
-  async function record() {
-    const returned = await onRecord(draft);
-    if (returned === null) return;
-    setWarnings(returned);
-    setClaimRef('');
-    setPaidFrom('');
-    setPaidTo('');
-    setEmployerRequired(false);
-    setEmployeeAgrees(false);
-    setStatus('EXPECTED');
-  }
 
   async function changeStatus(item: MhdLeavePaySource, value: string) {
     const next = mhdLeavePick(MHD_LEAVE_PAY_SOURCE_STATUSES, value);
@@ -110,6 +83,26 @@ export function MhdLeavePayCoordinationPanel({
           {warnings.map((warning) => (
             <p key={warning}>{MHD_LEAVE_PAY_SOURCE_WARNING_MESSAGES[warning] ?? warning}</p>
           ))}
+        </div>
+      ) : null}
+
+      {privileged ? (
+        <div className="flex justify-end">
+          <MhdLeaveActionModal
+            caseId={caseId}
+            action="pay-source"
+            companyId={companyId}
+            title="Record Pay Source"
+            size="md"
+            launchLabel="Add Pay Source"
+          >
+            <PaySourceForm
+              caseId={caseId}
+              sourceLabel={sourceLabel}
+              isPending={isPending}
+              onSubmit={async (input) => setWarnings(await onRecord(input))}
+            />
+          </MhdLeaveActionModal>
         </div>
       ) : null}
 
@@ -156,99 +149,129 @@ export function MhdLeavePayCoordinationPanel({
       ) : (
         <p className="text-sm text-muted-foreground">No pay sources recorded.</p>
       )}
+    </div>
+  );
+}
 
-      {privileged ? (
-        <MhdCard className="space-y-3">
-          <MhdCardHeader title="Record Pay Source" />
-          <p className="text-xs text-muted-foreground">
-            Statutory California paid sick leave is always the employee&apos;s choice. Only paid
-            time off, and employer sick leave for the employee&apos;s own condition or by agreement,
-            can be required.
-          </p>
-          <MhdFormFieldStack>
-            <label className="block text-xs">
-              Pay source
-              <select
-                className={`mt-1 ${inputClass}`}
-                value={sourceKey}
-                onChange={(event) =>
-                  setSourceKey(mhdLeavePick(MHD_LEAVE_PAY_SOURCE_KEYS, event.target.value) ?? 'PTO')
-                }
-              >
-                {MHD_LEAVE_PAY_SOURCE_KEYS.map((value) => (
-                  <option key={value} value={value}>
-                    {sourceLabel(value)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-xs">
-              Status
-              <select
-                className={`mt-1 ${inputClass}`}
-                value={status}
-                onChange={(event) =>
-                  setStatus(
-                    mhdLeavePick(MHD_LEAVE_PAY_SOURCE_STATUSES, event.target.value) ?? 'EXPECTED',
-                  )
-                }
-              >
-                {MHD_LEAVE_PAY_SOURCE_STATUSES.map((value) => (
-                  <option key={value} value={value}>
-                    {mhdLeaveEnumLabel(value)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-xs">
-              Claim reference
-              <input
-                className={`mt-1 ${inputClass}`}
-                value={claimRef}
-                onChange={(event) => setClaimRef(event.target.value)}
-              />
-            </label>
-            <label className="block text-xs">
-              Paid from
-              <MhdDateField
-                className={`mt-1 ${inputClass}`}
-                value={paidFrom}
-                onChange={setPaidFrom}
-              />
-            </label>
-            <label className="block text-xs">
-              Paid to
-              <MhdDateField className={`mt-1 ${inputClass}`} value={paidTo} onChange={setPaidTo} />
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={employerRequired}
-                onChange={(event) => setEmployerRequired(event.target.checked)}
-              />
-              Employer Is Requiring This
-            </label>
-            {sourceKey === 'EMPLOYER_SICK' ? (
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={employeeAgrees}
-                  onChange={(event) => setEmployeeAgrees(event.target.checked)}
-                />
-                Employee Agrees
-              </label>
-            ) : null}
-          </MhdFormFieldStack>
-          {invalid ? (
-            <p role="alert" className="text-sm text-rose-700">
-              {invalid}
-            </p>
-          ) : null}
-          <Button disabled={isPending || Boolean(invalid)} onClick={() => void record()}>
-            {isPending ? 'Recording…' : 'Record Pay Source'}
-          </Button>
-        </MhdCard>
+function PaySourceForm({
+  caseId,
+  sourceLabel,
+  isPending,
+  onSubmit,
+}: {
+  caseId: string;
+  sourceLabel: (key: MhdLeavePaySourceKey) => string;
+  isPending: boolean;
+  onSubmit: (input: MhdLeavePaySourceInput) => Promise<unknown>;
+}) {
+  const [sourceKey, setSourceKey] = useMhdLeaveDraftField<MhdLeavePaySourceKey>('sourceKey', 'PTO');
+  const [status, setStatus] = useMhdLeaveDraftField<MhdLeavePaySourceStatus>('status', 'EXPECTED');
+  const [claimRef, setClaimRef] = useMhdLeaveDraftField('claimRef', '');
+  const [paidFrom, setPaidFrom] = useMhdLeaveDraftField('paidFrom', '');
+  const [paidTo, setPaidTo] = useMhdLeaveDraftField('paidTo', '');
+  const [employerRequired, setEmployerRequired] = useMhdLeaveDraftField('employerRequired', false);
+  const [employeeAgrees, setEmployeeAgrees] = useMhdLeaveDraftField('employeeAgrees', false);
+
+  const input: MhdLeavePaySourceInput = {
+    caseId,
+    sourceKey,
+    status,
+    claimRef: claimRef || null,
+    paidFrom: paidFrom || null,
+    paidTo: paidTo || null,
+    employerRequired,
+    mutualAgreement: sourceKey === 'EMPLOYER_SICK' ? employeeAgrees : false,
+  };
+  const invalid = mhdValidateLeavePaySource(input);
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Statutory California paid sick leave is always the employee&apos;s choice. Only paid time
+        off, and employer sick leave for the employee&apos;s own condition or by agreement, can be
+        required.
+      </p>
+      <MhdFormFieldStack>
+        <label className="block text-xs">
+          Pay source
+          <select
+            className={`mt-1 ${inputClass}`}
+            value={sourceKey}
+            onChange={(event) =>
+              setSourceKey(mhdLeavePick(MHD_LEAVE_PAY_SOURCE_KEYS, event.target.value) ?? 'PTO')
+            }
+          >
+            {MHD_LEAVE_PAY_SOURCE_KEYS.map((value) => (
+              <option key={value} value={value}>
+                {sourceLabel(value)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-xs">
+          Status
+          <select
+            className={`mt-1 ${inputClass}`}
+            value={status}
+            onChange={(event) =>
+              setStatus(
+                mhdLeavePick(MHD_LEAVE_PAY_SOURCE_STATUSES, event.target.value) ?? 'EXPECTED',
+              )
+            }
+          >
+            {MHD_LEAVE_PAY_SOURCE_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {mhdLeaveEnumLabel(value)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-xs">
+          Claim reference
+          <input
+            className={`mt-1 ${inputClass}`}
+            value={claimRef}
+            onChange={(event) => setClaimRef(event.target.value)}
+          />
+        </label>
+        <label className="block text-xs">
+          Paid from
+          <MhdDateField className={`mt-1 ${inputClass}`} value={paidFrom} onChange={setPaidFrom} />
+        </label>
+        <label className="block text-xs">
+          Paid to
+          <MhdDateField className={`mt-1 ${inputClass}`} value={paidTo} onChange={setPaidTo} />
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={employerRequired}
+            onChange={(event) => setEmployerRequired(event.target.checked)}
+          />
+          Employer Is Requiring This
+        </label>
+        {sourceKey === 'EMPLOYER_SICK' ? (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={employeeAgrees}
+              onChange={(event) => setEmployeeAgrees(event.target.checked)}
+            />
+            Employee Agrees
+          </label>
+        ) : null}
+      </MhdFormFieldStack>
+      {invalid ? (
+        <p role="alert" className="text-sm text-rose-700">
+          {invalid}
+        </p>
       ) : null}
+      <MhdLeaveActionButtons
+        submitLabel="Record Pay Source"
+        pendingLabel="Recording…"
+        disabled={isPending || Boolean(invalid)}
+        onSubmit={() => onSubmit(input)}
+      />
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
+import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
+import type { MhdDraftController } from '@/features/drafts/Hook';
 import { mhdLeaveCaseSelfFormSchema, type MhdLeaveCaseSelfFormValues } from '../Schemas';
 import type { z } from 'zod';
 
@@ -10,6 +12,8 @@ interface Props {
   onSubmit: (values: MhdLeaveCaseSelfFormValues) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+  /** Server-side save and resume; the caller discards the draft after a successful submit. */
+  draft?: MhdDraftController;
 }
 
 /**
@@ -20,11 +24,13 @@ interface Props {
  * reason field for the same reason: medical detail belongs in the
  * partitioned certification store, never on the case.
  */
-export function MhdLeaveCaseSelfForm({ onSubmit, onCancel, isSubmitting }: Props) {
+export function MhdLeaveCaseSelfForm({ onSubmit, onCancel, isSubmitting, draft }: Props) {
   const {
     register,
     control,
     handleSubmit,
+    getValues,
+    reset,
     formState: { errors },
   } = useForm<z.input<typeof mhdLeaveCaseSelfFormSchema>, unknown, MhdLeaveCaseSelfFormValues>({
     resolver: zodResolver(mhdLeaveCaseSelfFormSchema),
@@ -38,6 +44,12 @@ export function MhdLeaveCaseSelfForm({ onSubmit, onCancel, isSubmitting }: Props
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {draft ? (
+        <MhdDraftBanner
+          draft={draft}
+          onRestore={(payload) => reset({ ...getValues(), ...payload } as never)}
+        />
+      ) : null}
       <div>
         <label htmlFor="reasonCategory" className="block text-sm font-medium text-foreground">
           Reason category
@@ -102,12 +114,13 @@ export function MhdLeaveCaseSelfForm({ onSubmit, onCancel, isSubmitting }: Props
         Intermittent leave (taken in separate blocks)
       </label>
 
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
+        {draft ? <MhdSaveDraftButton draft={draft} getValues={() => ({ ...getValues() })} /> : null}
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting…' : 'Request leave'}
+          {isSubmitting ? 'Submitting…' : 'Request Leave'}
         </Button>
       </div>
     </form>

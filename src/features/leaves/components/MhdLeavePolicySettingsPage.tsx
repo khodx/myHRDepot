@@ -1,13 +1,17 @@
-import { useState, type FormEvent } from 'react';
+import { useCallback, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
+import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { MhdTable, MhdTd, MhdTh, MhdTr } from '@/components/ui/MhdTable';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { useMhdDraft } from '@/features/drafts/Hook';
+import { MHD_DRAFT_KINDS, MHD_DRAFT_NEW_KEY } from '@/features/drafts/Types';
 import { mhdFormatDate } from '@/utils/mhdDateFormat';
 import { useMhdLeavePolicy, useMhdSetLeavePolicy } from '../PolicyHook';
 import {
@@ -117,6 +121,13 @@ export function MhdLeavePolicySettingsPage() {
   const [rtwUniform, setRtwUniform] = useState(false);
   const [reason, setReason] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const draft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.leavePolicySettings,
+    draftKey: MHD_DRAFT_NEW_KEY,
+    companyId,
+    enabled: isRecording,
+  });
 
   const policy = policyQuery.data;
   const history = [...(policy?.history ?? [])].sort(
@@ -126,7 +137,7 @@ export function MhdLeavePolicySettingsPage() {
   const reasonRequired = history.length > 0;
   const anchorEnabled = yearMethod === 'FIXED_YEAR';
 
-  function clearForm() {
+  const clearForm = useCallback(() => {
     setYearMethod('CALENDAR_YEAR');
     setAnchorMonth('');
     setAnchorDay('');
@@ -134,6 +145,36 @@ export function MhdLeavePolicySettingsPage() {
     setLimitDesignatedPerson(false);
     setRtwUniform(false);
     setReason('');
+  }, []);
+
+  // A stable onClose: MhdModal's focus trap re-runs (and refocuses the close button) whenever onClose changes identity.
+  const closeForm = useCallback(() => {
+    setIsRecording(false);
+    setErrorMessage(null);
+    clearForm();
+  }, [clearForm]);
+
+  function getDraftValues() {
+    return {
+      yearMethod,
+      anchorMonth,
+      anchorDay,
+      effectiveFrom,
+      limitDesignatedPerson,
+      rtwUniform,
+      reason,
+    };
+  }
+
+  function restoreDraft(payload: Record<string, unknown>) {
+    const saved = payload as Partial<ReturnType<typeof getDraftValues>>;
+    if (saved.yearMethod) setYearMethod(saved.yearMethod);
+    setAnchorMonth(saved.anchorMonth ?? '');
+    setAnchorDay(saved.anchorDay ?? '');
+    setEffectiveFrom(saved.effectiveFrom ?? '');
+    setLimitDesignatedPerson(Boolean(saved.limitDesignatedPerson));
+    setRtwUniform(Boolean(saved.rtwUniform));
+    setReason(saved.reason ?? '');
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -161,7 +202,8 @@ export function MhdLeavePolicySettingsPage() {
     }
     try {
       await setPolicy.mutateAsync(input);
-      clearForm();
+      await draft.discard();
+      closeForm();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to record the election.');
     }
@@ -174,6 +216,7 @@ export function MhdLeavePolicySettingsPage() {
         backLabel="Leaves of absence"
         title="Leave Policy Settings"
         description="The company's election of how the 12-month leave year is measured, plus two related policy flags."
+        actions={<Button onClick={() => setIsRecording(true)}>Record An Election</Button>}
       />
 
       {policyQuery.isLoading ? (
@@ -210,136 +253,6 @@ export function MhdLeavePolicySettingsPage() {
           ) : null}
         </MhdCard>
       ) : null}
-
-      <MhdCard className="p-6">
-        <h2 className="mb-4 text-base font-semibold text-foreground">Record An Election</h2>
-        <form onSubmit={(event) => void handleSubmit(event)} className="space-y-4">
-          <MhdFormFieldStack>
-            <div>
-              <label
-                htmlFor="leaveYearMethod"
-                className="block text-sm font-medium text-foreground"
-              >
-                Leave-Year Method
-              </label>
-              <select
-                id="leaveYearMethod"
-                value={yearMethod}
-                onChange={(event) => setYearMethod(event.target.value as MhdLeaveYearMethod)}
-                className={FIELD_CLASS}
-              >
-                {MHD_LEAVE_YEAR_METHODS.map((method) => (
-                  <option key={method} value={method}>
-                    {YEAR_METHOD_LABELS[method]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="anchorMonth" className="block text-sm font-medium text-foreground">
-                Anchor Month
-              </label>
-              <select
-                id="anchorMonth"
-                value={anchorMonth}
-                disabled={!anchorEnabled}
-                onChange={(event) => setAnchorMonth(event.target.value)}
-                className={`${FIELD_CLASS} ${DISABLED_FIELD_CLASS}`}
-              >
-                <option value="">Select A Month</option>
-                {MONTHS.map((month) => (
-                  <option key={month} value={month}>
-                    {monthName(month)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="anchorDay" className="block text-sm font-medium text-foreground">
-                Anchor Day
-              </label>
-              <input
-                id="anchorDay"
-                type="number"
-                min={1}
-                max={31}
-                value={anchorDay}
-                disabled={!anchorEnabled}
-                onChange={(event) => setAnchorDay(event.target.value)}
-                className={`${FIELD_CLASS} ${DISABLED_FIELD_CLASS}`}
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                The anchor applies only to a Fixed Leave Year.
-              </p>
-            </div>
-
-            <div>
-              <label htmlFor="effectiveFrom" className="block text-sm font-medium text-foreground">
-                Effective From
-              </label>
-              <MhdDateField id="effectiveFrom" value={effectiveFrom} onChange={setEffectiveFrom} />
-            </div>
-
-            <label className="flex items-start gap-2 text-sm text-foreground">
-              <input
-                type="checkbox"
-                checked={limitDesignatedPerson}
-                onChange={(event) => setLimitDesignatedPerson(event.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-border"
-              />
-              <span>Limit Designated Person To One Per 12 Months</span>
-            </label>
-
-            <label className="flex items-start gap-2 text-sm text-foreground">
-              <input
-                type="checkbox"
-                checked={rtwUniform}
-                onChange={(event) => setRtwUniform(event.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-border"
-              />
-              <span>Uniform Return-To-Work Certification Policy</span>
-            </label>
-
-            <div>
-              <label htmlFor="policyReason" className="block text-sm font-medium text-foreground">
-                Reason{' '}
-                {reasonRequired ? null : (
-                  <span className="font-normal text-muted-foreground">(optional)</span>
-                )}
-              </label>
-              <textarea
-                id="policyReason"
-                rows={3}
-                value={reason}
-                onChange={(event) => setReason(event.target.value)}
-                className={FIELD_CLASS}
-              />
-            </div>
-          </MhdFormFieldStack>
-
-          <p className="text-xs text-muted-foreground">
-            Changing the leave-year method needs 60 days&apos; notice. Changing only a flag takes
-            effect on the date you choose.
-          </p>
-
-          {errorMessage ? (
-            <div
-              role="alert"
-              className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-            >
-              {errorMessage}
-            </div>
-          ) : null}
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={!companyId || setPolicy.isPending}>
-              {setPolicy.isPending ? 'Saving…' : 'Record Election'}
-            </Button>
-          </div>
-        </form>
-      </MhdCard>
 
       <MhdCard className="overflow-hidden p-0">
         <h2 className="px-6 pt-6 text-base font-semibold text-foreground">Election History</h2>
@@ -378,6 +291,149 @@ export function MhdLeavePolicySettingsPage() {
           </MhdTable>
         )}
       </MhdCard>
+
+      {isRecording ? (
+        <MhdFormModal title="Record An Election" size="lg" onClose={closeForm}>
+          <form onSubmit={(event) => void handleSubmit(event)} className="space-y-4">
+            <MhdDraftBanner draft={draft} onRestore={restoreDraft} />
+            <MhdFormFieldStack>
+              <div>
+                <label
+                  htmlFor="leaveYearMethod"
+                  className="block text-sm font-medium text-foreground"
+                >
+                  Leave-Year Method
+                </label>
+                <select
+                  id="leaveYearMethod"
+                  value={yearMethod}
+                  onChange={(event) => setYearMethod(event.target.value as MhdLeaveYearMethod)}
+                  className={FIELD_CLASS}
+                >
+                  {MHD_LEAVE_YEAR_METHODS.map((method) => (
+                    <option key={method} value={method}>
+                      {YEAR_METHOD_LABELS[method]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="anchorMonth" className="block text-sm font-medium text-foreground">
+                  Anchor Month
+                </label>
+                <select
+                  id="anchorMonth"
+                  value={anchorMonth}
+                  disabled={!anchorEnabled}
+                  onChange={(event) => setAnchorMonth(event.target.value)}
+                  className={`${FIELD_CLASS} ${DISABLED_FIELD_CLASS}`}
+                >
+                  <option value="">Select A Month</option>
+                  {MONTHS.map((month) => (
+                    <option key={month} value={month}>
+                      {monthName(month)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="anchorDay" className="block text-sm font-medium text-foreground">
+                  Anchor Day
+                </label>
+                <input
+                  id="anchorDay"
+                  type="number"
+                  min={1}
+                  max={31}
+                  value={anchorDay}
+                  disabled={!anchorEnabled}
+                  onChange={(event) => setAnchorDay(event.target.value)}
+                  className={`${FIELD_CLASS} ${DISABLED_FIELD_CLASS}`}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  The anchor applies only to a Fixed Leave Year.
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="effectiveFrom"
+                  className="block text-sm font-medium text-foreground"
+                >
+                  Effective From
+                </label>
+                <MhdDateField
+                  id="effectiveFrom"
+                  value={effectiveFrom}
+                  onChange={setEffectiveFrom}
+                />
+              </div>
+
+              <label className="flex items-start gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={limitDesignatedPerson}
+                  onChange={(event) => setLimitDesignatedPerson(event.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border"
+                />
+                <span>Limit Designated Person To One Per 12 Months</span>
+              </label>
+
+              <label className="flex items-start gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={rtwUniform}
+                  onChange={(event) => setRtwUniform(event.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border"
+                />
+                <span>Uniform Return-To-Work Certification Policy</span>
+              </label>
+
+              <div>
+                <label htmlFor="policyReason" className="block text-sm font-medium text-foreground">
+                  Reason{' '}
+                  {reasonRequired ? null : (
+                    <span className="font-normal text-muted-foreground">(optional)</span>
+                  )}
+                </label>
+                <textarea
+                  id="policyReason"
+                  rows={3}
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
+                  className={FIELD_CLASS}
+                />
+              </div>
+            </MhdFormFieldStack>
+
+            <p className="text-xs text-muted-foreground">
+              Changing the leave-year method needs 60 days&apos; notice. Changing only a flag takes
+              effect on the date you choose.
+            </p>
+
+            {errorMessage ? (
+              <div
+                role="alert"
+                className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+              >
+                {errorMessage}
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <MhdSaveDraftButton draft={draft} getValues={getDraftValues} />
+              <Button variant="secondary" onClick={closeForm}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!companyId || setPolicy.isPending}>
+                {setPolicy.isPending ? 'Saving…' : 'Record Election'}
+              </Button>
+            </div>
+          </form>
+        </MhdFormModal>
+      ) : null}
     </div>
   );
 }

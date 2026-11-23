@@ -16,6 +16,22 @@ const overrideAsync = vi.fn();
 const navigate = vi.fn();
 const authRoles = vi.hoisted(() => ({ current: ['HR Partner'] as string[] }));
 
+const draftController = vi.hoisted(() => ({
+  current: {
+    draft: null as null | {
+      payload: Record<string, unknown>;
+      stepKey: string | null;
+      updatedAt: string;
+    },
+    isLoading: false,
+    isSaving: false,
+    savedAt: null as string | null,
+    saveError: null as string | null,
+    save: vi.fn(),
+    discard: vi.fn(),
+  },
+}));
+vi.mock('@/features/drafts/Hook', () => ({ useMhdDraft: () => draftController.current }));
 vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => ({ profile: { companyId: 'company-1' }, roles: authRoles.current }),
 }));
@@ -33,6 +49,7 @@ vi.mock('../WorkflowHook', () => ({
   useMhdOverrideLeaveEligibility: () => ({ mutateAsync: overrideAsync, isPending: false }),
   useMhdLeaveReadiness: () => ({ data: null }),
 }));
+vi.mock('../components/MhdLeavesPage', () => ({ MhdLeavesPage: () => null }));
 vi.mock('@/components/ui/MhdComplianceGateBanner', () => ({ MhdComplianceGateBanner: () => null }));
 vi.mock('@/components/ui/MhdPageHeader', () => ({
   MhdPageHeader: ({ title }: { title: string }) => <h1>{title}</h1>,
@@ -63,8 +80,11 @@ function renderWizard(initialEntry = '/leaves/new/intake') {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
       <Routes>
-        <Route path="/leaves/new/intake" element={<MhdLeaveIntakeWizard />} />
-        <Route path="/leaves/:caseId/intake" element={<MhdLeaveIntakeWizard />} />
+        <Route path="/leaves/new/intake" element={<MhdLeaveIntakeWizard withBackdrop={false} />} />
+        <Route
+          path="/leaves/:caseId/intake"
+          element={<MhdLeaveIntakeWizard withBackdrop={false} />}
+        />
       </Routes>
     </MemoryRouter>,
   );
@@ -91,6 +111,10 @@ describe('MhdLeaveIntakeWizard', () => {
     evaluateAsync.mockResolvedValue([result]);
     confirmAsync.mockResolvedValue(undefined);
     overrideAsync.mockResolvedValue(undefined);
+    draftController.current.draft = null;
+    draftController.current.savedAt = null;
+    draftController.current.save.mockResolvedValue(undefined);
+    draftController.current.discard.mockResolvedValue(undefined);
   });
 
   it('uses the same wizard with Basics for a new case and without Basics for an existing case', () => {
@@ -248,5 +272,85 @@ describe('MhdLeaveIntakeWizard', () => {
   it('no longer asks whether a designated person was selected', () => {
     renderWizard('/leaves/case-1/intake');
     expect(screen.queryByLabelText(/designated person selected/i)).not.toBeInTheDocument();
+  });
+
+  describe('as a popup with save and resume', () => {
+    it('opens as a dialog over the page', () => {
+      renderWizard();
+      expect(screen.getByRole('dialog', { name: 'Guided Leave Intake' })).toBeInTheDocument();
+    });
+
+    it('saves the step and values, leaving the evaluation reason code out', async () => {
+      renderWizard();
+      fireEvent.change(screen.getByLabelText('Subject person'), { target: { value: 'person-1' } });
+      fireEvent.change(screen.getByLabelText('Reason category'), {
+        target: { value: 'Family care' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
+      await waitFor(() => expect(draftController.current.save).toHaveBeenCalledTimes(1));
+      const saved = draftController.current.save.mock.calls[0][0];
+      expect(saved.stepKey).toBe('basics');
+      expect(saved.payload.basics).toMatchObject({
+        personId: 'person-1',
+        reasonCategory: 'Family care',
+      });
+      expect(saved.payload.basics.reasonCode).toBeUndefined();
+      expect(screen.getByText(/Medical details are not saved in drafts/)).toBeInTheDocument();
+    });
+
+    it('resumes the saved values on the saved step', () => {
+      draftController.current.draft = {
+        payload: {
+          facts: { employerEmployeeCount: '75', scheduledWeeklyHours: '32' },
+          results: [result],
+          snapshotId: 'snapshot-1',
+        },
+        stepKey: 'confirm',
+        updatedAt: '2026-11-20T10:00:00Z',
+      };
+      renderWizard('/leaves/case-1/intake');
+      fireEvent.click(screen.getByRole('button', { name: 'Resume Draft' }));
+      expect(screen.getByRole('button', { name: 'Confirm all as evaluated' })).toBeInTheDocument();
+      expect(screen.getByText(/snapshot-1/)).toBeInTheDocument();
+    });
+
+    it('restores entered facts when resuming on the facts step', () => {
+      draftController.current.draft = {
+        payload: { facts: { employerEmployeeCount: '75', scheduledWeeklyHours: '32' } },
+        stepKey: 'facts',
+        updatedAt: '2026-11-20T10:00:00Z',
+      };
+      renderWizard('/leaves/case-1/intake');
+      expect(screen.getByLabelText('Employer employee count')).toHaveValue(null);
+      fireEvent.click(screen.getByRole('button', { name: 'Resume Draft' }));
+      expect(screen.getByLabelText('Employer employee count')).toHaveValue(75);
+      expect(screen.getByLabelText('Scheduled weekly hours')).toHaveValue(32);
+    });
+
+    it('discards the draft when the intake is completed', async () => {
+      renderWizard('/leaves/case-1/intake');
+      enterFacts();
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      await waitFor(() => expect(evaluateAsync).toHaveBeenCalledTimes(1));
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Confirm all as evaluated' }));
+      await waitFor(() => expect(confirmAsync).toHaveBeenCalled());
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+      await waitFor(() => expect(draftController.current.discard).toHaveBeenCalled());
+      await waitFor(() => expect(navigate).toHaveBeenCalledWith('/leaves/case-1'));
+    });
+
+    it('closes back to the case for an existing case and to the list for a new one', () => {
+      const { unmount } = renderWizard('/leaves/case-1/intake');
+      fireEvent.click(screen.getByRole('button', { name: 'Close dialog' }));
+      expect(navigate).toHaveBeenLastCalledWith('/leaves/case-1');
+      unmount();
+      renderWizard();
+      fireEvent.click(screen.getByRole('button', { name: 'Close dialog' }));
+      expect(navigate).toHaveBeenLastCalledWith('/leaves');
+    });
   });
 });

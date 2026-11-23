@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CalendarOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { buttonBaseClasses, buttonVariantClasses } from '@/components/ui/buttonStyles';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { cn } from '@/utils/cn';
@@ -28,6 +29,8 @@ import {
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanAccessRoute, mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
 import { useMhdCreateLeaveCase, useMhdCreateLeaveCaseSelf, useMhdLeaveCases } from '../Hook';
+import { useMhdDraft } from '@/features/drafts/Hook';
+import { MHD_DRAFT_KINDS, MHD_DRAFT_NEW_KEY } from '@/features/drafts/Types';
 import { useMhdPeoplePicker } from '@/features/people/Hook';
 import type { MhdLeaveCaseFormValues, MhdLeaveCaseSelfFormValues } from '../Schemas';
 import {
@@ -77,6 +80,10 @@ export function MhdLeavesPage() {
   const [selectedCaseIds, setSelectedCaseIds] = useState<Set<string>>(new Set());
   const [launcherOpen, setLauncherOpen] = useState(false);
 
+  // A stable onClose: MhdModal's focus trap re-runs (and refocuses the close button) whenever onClose changes identity.
+  const closeCreate = useCallback(() => setIsCreating(false), []);
+  const closeSelf = useCallback(() => setIsRequestingSelf(false), []);
+
   function handleViewModeChange(mode: MhdViewMode) {
     setViewMode(mode);
     mhdWritePersistedViewMode(MHD_LEAVES_VIEW_KEY, mode);
@@ -90,6 +97,18 @@ export function MhdLeavesPage() {
   const people = useMhdPeoplePicker(isPrivileged ? companyId || null : null);
   const createCase = useMhdCreateLeaveCase(companyId || null);
   const createCaseSelf = useMhdCreateLeaveCaseSelf();
+  const hrDraft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.leaveCaseHr,
+    draftKey: MHD_DRAFT_NEW_KEY,
+    companyId: companyId || null,
+    enabled: isCreating,
+  });
+  const selfDraft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.leaveCaseSelf,
+    draftKey: MHD_DRAFT_NEW_KEY,
+    companyId: companyId || null,
+    enabled: isRequestingSelf,
+  });
   const visibleCases = pagination.sliceItems(casesData);
   const visibleCaseIds = visibleCases.map((leaveCase) => leaveCase.id);
   const allVisibleCasesSelected =
@@ -130,6 +149,7 @@ export function MhdLeavesPage() {
       requestedEnd: values.requestedEnd ?? null,
       isIntermittent: values.isIntermittent,
     });
+    await hrDraft.discard();
     setIsCreating(false);
     navigate(`/leaves/${result.id}`);
   }
@@ -141,6 +161,7 @@ export function MhdLeavesPage() {
       requestedEnd: values.requestedEnd ?? null,
       isIntermittent: values.isIntermittent,
     });
+    await selfDraft.discard();
     setIsRequestingSelf(false);
     navigate(`/leaves/${result.id}`);
   }
@@ -378,31 +399,27 @@ export function MhdLeavesPage() {
       )}
 
       {isCreating && isPrivileged && companyId ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-foreground">Open leave case</h2>
-            <MhdLeaveCaseForm
-              companyId={companyId}
-              people={peopleOptions}
-              onSubmit={handleCreate}
-              onCancel={() => setIsCreating(false)}
-              isSubmitting={createCase.isPending}
-            />
-          </div>
-        </div>
+        <MhdFormModal title="Open Leave Case" size="md" onClose={closeCreate}>
+          <MhdLeaveCaseForm
+            companyId={companyId}
+            people={peopleOptions}
+            onSubmit={handleCreate}
+            onCancel={closeCreate}
+            isSubmitting={createCase.isPending}
+            draft={hrDraft}
+          />
+        </MhdFormModal>
       ) : null}
 
       {isRequestingSelf && selfPersonId ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-foreground">Request leave</h2>
-            <MhdLeaveCaseSelfForm
-              onSubmit={handleCreateSelf}
-              onCancel={() => setIsRequestingSelf(false)}
-              isSubmitting={createCaseSelf.isPending}
-            />
-          </div>
-        </div>
+        <MhdFormModal title="Request Leave" size="md" onClose={closeSelf}>
+          <MhdLeaveCaseSelfForm
+            onSubmit={handleCreateSelf}
+            onCancel={closeSelf}
+            isSubmitting={createCaseSelf.isPending}
+            draft={selfDraft}
+          />
+        </MhdFormModal>
       ) : null}
     </div>
   );

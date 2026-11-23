@@ -1,9 +1,20 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MhdLeavePayCoordinationPanel } from '../components/MhdLeavePayCoordinationPanel';
 import type { MhdLeavePaySource, MhdLeavePaySourceWarning } from '../WorkflowTypes';
+import {
+  mhdLeaveDraftServiceMock as drafts,
+  mhdRenderWithQueryClient,
+  mhdResetLeaveDraftService,
+  mhdTestLeaveDraft,
+} from './leaveDraftTestKit';
+
+vi.mock('@/features/drafts/Service', async () => ({
+  mhdDraftService: (await import('./leaveDraftTestKit')).mhdLeaveDraftServiceMock,
+}));
 
 const CASE_ID = '3e8b1f52-6c07-4d9a-b2e4-71a5c0d8f936';
+const COMPANY_ID = '9b5e2c71-3d84-4f1a-a6c0-58d27e4f1b93';
 
 const sdi: MhdLeavePaySource = {
   id: 'pay-1',
@@ -33,12 +44,13 @@ const endedPto: MhdLeavePaySource = {
 function renderPanel({
   paySources = [sdi, endedPto],
   privileged = true,
-  onRecord = vi.fn<(input: unknown) => Promise<MhdLeavePaySourceWarning[] | null>>(),
+  onRecord = vi.fn<(input: unknown) => Promise<MhdLeavePaySourceWarning[]>>().mockResolvedValue([]),
   onUpdateStatus = vi.fn<(input: unknown) => Promise<MhdLeavePaySourceWarning[] | null>>(),
 } = {}) {
-  render(
+  mhdRenderWithQueryClient(
     <MhdLeavePayCoordinationPanel
       caseId={CASE_ID}
+      companyId={COMPANY_ID}
       paySources={paySources}
       privileged={privileged}
       onRecord={onRecord}
@@ -49,6 +61,15 @@ function renderPanel({
   return { onRecord, onUpdateStatus };
 }
 
+function openRecord() {
+  fireEvent.click(screen.getByRole('button', { name: 'Add Pay Source' }));
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mhdResetLeaveDraftService();
+});
+
 describe('MhdLeavePayCoordinationPanel', () => {
   it('lists every pay source with its dates, claim reference and employer requirement', () => {
     renderPanel({ privileged: false });
@@ -56,7 +77,7 @@ describe('MhdLeavePayCoordinationPanel', () => {
     expect(screen.getByText('DI-55102938')).toBeInTheDocument();
     expect(screen.getByText('Required By Employer')).toBeInTheDocument();
     expect(screen.getByText('Paying')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Record Pay Source' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add Pay Source' })).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Pay status')).not.toBeInTheDocument();
   });
 
@@ -65,8 +86,16 @@ describe('MhdLeavePayCoordinationPanel', () => {
     expect(screen.getByText('No pay sources recorded.')).toBeInTheDocument();
   });
 
+  it('opens the record form as a dialog', () => {
+    renderPanel();
+    expect(screen.queryByLabelText('Pay source')).not.toBeInTheDocument();
+    openRecord();
+    expect(screen.getByRole('dialog')).toHaveAccessibleName('Record Pay Source');
+  });
+
   it('shows the client validator message inline when statutory sick leave is required', () => {
     renderPanel();
+    openRecord();
     fireEvent.change(screen.getByLabelText('Pay source'), { target: { value: 'CA_PAID_SICK' } });
     fireEvent.click(screen.getByLabelText('Employer Is Requiring This'));
     expect(screen.getByRole('alert')).toHaveTextContent(
@@ -77,6 +106,7 @@ describe('MhdLeavePayCoordinationPanel', () => {
 
   it('refuses to require a wage-replacement source', () => {
     renderPanel();
+    openRecord();
     fireEvent.change(screen.getByLabelText('Pay source'), { target: { value: 'PFL' } });
     fireEvent.click(screen.getByLabelText('Employer Is Requiring This'));
     expect(screen.getByRole('alert')).toHaveTextContent(
@@ -86,16 +116,18 @@ describe('MhdLeavePayCoordinationPanel', () => {
 
   it('asks whether the employee agrees only for employer sick leave', () => {
     renderPanel();
+    openRecord();
     expect(screen.queryByLabelText('Employee Agrees')).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Pay source'), { target: { value: 'EMPLOYER_SICK' } });
     expect(screen.getByLabelText('Employee Agrees')).toBeInTheDocument();
   });
 
-  it('records a pay source and shows the overlap warning the database returns', async () => {
+  it('records a pay source, discards the draft and shows the overlap warning', async () => {
     const onRecord = vi
-      .fn<(input: unknown) => Promise<MhdLeavePaySourceWarning[] | null>>()
+      .fn<(input: unknown) => Promise<MhdLeavePaySourceWarning[]>>()
       .mockResolvedValue(['SDI_PFL_OVERLAP']);
     renderPanel({ onRecord });
+    openRecord();
     fireEvent.change(screen.getByLabelText('Pay source'), { target: { value: 'PFL' } });
     fireEvent.change(screen.getByLabelText('Claim reference'), { target: { value: 'FC-20931' } });
     fireEvent.click(screen.getByRole('button', { name: 'Record Pay Source' }));
@@ -110,21 +142,51 @@ describe('MhdLeavePayCoordinationPanel', () => {
       employerRequired: false,
       mutualAgreement: false,
     });
-    expect(await screen.findByRole('status')).toHaveTextContent(
+    await waitFor(() =>
+      expect(drafts.discard).toHaveBeenCalledWith('LEAVE_CASE_ACTION', `${CASE_ID}:pay-source`),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByRole('status')).toHaveTextContent(
       'SDI and Paid Family Leave cannot be paid for the same period.',
     );
-    expect(screen.getByLabelText('Claim reference')).toHaveValue('');
   });
 
-  it('keeps the typed values when the record is refused', async () => {
+  it('keeps the typed values and shows the refusal when the record is refused', async () => {
     const onRecord = vi
-      .fn<(input: unknown) => Promise<MhdLeavePaySourceWarning[] | null>>()
-      .mockResolvedValue(null);
+      .fn<(input: unknown) => Promise<MhdLeavePaySourceWarning[]>>()
+      .mockRejectedValue(new Error('Paid time off is already recorded for this period'));
     renderPanel({ onRecord });
+    openRecord();
     fireEvent.change(screen.getByLabelText('Claim reference'), { target: { value: 'PTO-88' } });
     fireEvent.click(screen.getByRole('button', { name: 'Record Pay Source' }));
-    await waitFor(() => expect(onRecord).toHaveBeenCalledTimes(1));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Paid time off is already recorded for this period',
+    );
     expect(screen.getByLabelText('Claim reference')).toHaveValue('PTO-88');
+  });
+
+  it('saves the typed pay source as a draft', async () => {
+    renderPanel();
+    openRecord();
+    fireEvent.change(screen.getByLabelText('Pay source'), { target: { value: 'SDI' } });
+    fireEvent.change(screen.getByLabelText('Claim reference'), { target: { value: 'DI-60014' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
+    await waitFor(() => expect(drafts.save).toHaveBeenCalledTimes(1));
+    expect(drafts.save.mock.calls[0][0]).toMatchObject({
+      draftKey: `${CASE_ID}:pay-source`,
+      payload: expect.objectContaining({ sourceKey: 'SDI', claimRef: 'DI-60014' }),
+    });
+  });
+
+  it('resumes a saved pay-source draft', async () => {
+    drafts.get.mockResolvedValue(
+      mhdTestLeaveDraft(`${CASE_ID}:pay-source`, { sourceKey: 'PFL', claimRef: 'FC-71145' }),
+    );
+    renderPanel();
+    openRecord();
+    fireEvent.click(await screen.findByRole('button', { name: 'Resume Draft' }));
+    expect(screen.getByLabelText('Pay source')).toHaveValue('PFL');
+    expect(screen.getByLabelText('Claim reference')).toHaveValue('FC-71145');
   });
 
   it('changes an open row status and disables a terminal row', async () => {

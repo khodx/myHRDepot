@@ -13,6 +13,7 @@ import {
   type MhdAccommodationProviderCertificationInput,
   type MhdAccommodationProviderCertificationReveal,
 } from '../Types';
+import { MhdAccommodationDraftModal } from './MhdAccommodationDraftModal';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -29,6 +30,8 @@ type ProviderField =
 
 interface MhdAccommodationProviderCertPanelProps {
   caseId: string;
+  /** The case's company, stamped on any draft saved from the record modal. */
+  companyId: string | null;
   certification: MhdAccommodationProviderCertification | null;
   onSave: (input: MhdAccommodationProviderCertificationInput) => Promise<unknown>;
   isPending: boolean;
@@ -46,6 +49,7 @@ function yesNo(value: boolean): string {
  */
 export function MhdAccommodationProviderCertPanel({
   caseId,
+  companyId,
   certification,
   onSave,
   isPending,
@@ -80,6 +84,7 @@ export function MhdAccommodationProviderCertPanel({
     certification?.job_duty_statement_sent_at ?? '',
   );
   const [errors, setErrors] = useState<Partial<Record<ProviderField, string>>>({});
+  const [recording, setRecording] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   // The revealed strings live only in this component; leaving the panel discards them.
@@ -98,6 +103,7 @@ export function MhdAccommodationProviderCertPanel({
     }
   }
 
+  /** Resolves false when validation stops the save; a server refusal is thrown to the modal. */
   async function handleSave() {
     setFormError(null);
     const draft = {
@@ -133,12 +139,8 @@ export function MhdAccommodationProviderCertPanel({
         'A recommendation is on file. Reveal or re-enter it before saving, or saving will erase it.';
     }
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length) return;
-    try {
-      await onSave(draft);
-    } catch (caught) {
-      setFormError(caught instanceof Error ? caught.message : 'The certification was not saved.');
-    }
+    if (Object.keys(nextErrors).length) return false;
+    return onSave(draft);
   }
 
   function fieldError(field: ProviderField) {
@@ -222,147 +224,177 @@ export function MhdAccommodationProviderCertPanel({
         </div>
       ) : null}
 
-      <div className="space-y-3 border-t border-border pt-4">
-        <MhdCardHeader title="Record Provider Certification" />
-        <div className="grid gap-3 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium" htmlFor="mhd-provider-job-duty-sent">
-              Job-Duty Statement Sent On
-            </label>
-            <MhdDateField
-              id="mhd-provider-job-duty-sent"
-              className={`mt-1 ${inputClass}`}
-              value={jobDutyStatementSentAt}
-              onChange={setJobDutyStatementSentAt}
-            />
-            {fieldError('jobDutyStatementSentAt')}
-          </div>
-          <div>
-            <label className="block text-sm font-medium" htmlFor="mhd-provider-name">
-              Provider Name
-            </label>
-            <input
-              id="mhd-provider-name"
-              className={`mt-1 ${inputClass}`}
-              value={providerName}
-              onChange={(event) => setProviderName(event.target.value)}
-            />
-            {fieldError('providerName')}
-          </div>
-          <div>
-            <label className="block text-sm font-medium" htmlFor="mhd-provider-certified-at">
-              Certified On
-            </label>
-            <MhdDateField
-              id="mhd-provider-certified-at"
-              className={`mt-1 ${inputClass}`}
-              value={certifiedAt}
-              onChange={setCertifiedAt}
-            />
-            {fieldError('certifiedAt')}
-          </div>
-          <div>
-            <label className="block text-sm font-medium" htmlFor="mhd-provider-duration">
-              Duration
-            </label>
-            <select
-              id="mhd-provider-duration"
-              className={`mt-1 ${inputClass}`}
-              value={limitationDuration}
-              onChange={(event) => {
-                const next = event.target.value as MhdAccommodationLimitationDuration | '';
-                setLimitationDuration(next);
-                if (next !== 'TEMPORARY') setLimitationEndDate('');
-              }}
-            >
-              <option value="">Not Recorded</option>
-              {MHD_ACCOMMODATION_LIMITATION_DURATIONS.map((value) => (
-                <option key={value} value={value}>
-                  {mhdFormatAccommodationValue(value)}
-                </option>
-              ))}
-            </select>
-            {fieldError('limitationDuration')}
-          </div>
-          <div>
-            <label className="block text-sm font-medium" htmlFor="mhd-provider-limitation-end">
-              Limitation End Date
-            </label>
-            <MhdDateField
-              id="mhd-provider-limitation-end"
-              className={`mt-1 ${inputClass}`}
-              value={limitationEndDate}
-              disabled={limitationDuration !== 'TEMPORARY'}
-              onChange={setLimitationEndDate}
-            />
-            {fieldError('limitationEndDate')}
-          </div>
-          <div>
-            <label className="block text-sm font-medium" htmlFor="mhd-provider-begin">
-              Accommodation Begins On
-            </label>
-            <MhdDateField
-              id="mhd-provider-begin"
-              className={`mt-1 ${inputClass}`}
-              value={accommodationBeginOn}
-              onChange={setAccommodationBeginOn}
-            />
-            {fieldError('accommodationBeginOn')}
-          </div>
-          <div>
-            <label className="block text-sm font-medium" htmlFor="mhd-provider-end">
-              Accommodation Ends On
-            </label>
-            <MhdDateField
-              id="mhd-provider-end"
-              className={`mt-1 ${inputClass}`}
-              value={accommodationEndOn}
-              disabled={accommodationContinuous}
-              onChange={setAccommodationEndOn}
-            />
-            {fieldError('accommodationEndOn')}
-          </div>
-        </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={disabilityVerified}
-            onChange={(event) => setDisabilityVerified(event.target.checked)}
-          />
-          Disability Verified
-        </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={accommodationContinuous}
-            onChange={(event) => {
-              setAccommodationContinuous(event.target.checked);
-              if (event.target.checked) setAccommodationEndOn('');
-            }}
-          />
-          Accommodation Is Continuous
-        </label>
-        <div>
-          <label className="block text-sm font-medium" htmlFor="mhd-provider-recommendation">
-            Recommendation
-          </label>
-          <p id="mhd-provider-recommendation-help" className="text-xs text-muted-foreground">
-            Do not enter a diagnosis, cause, genetic information, or medical records. Record the
-            functional recommendation only.
-          </p>
-          <textarea
-            id="mhd-provider-recommendation"
-            aria-describedby="mhd-provider-recommendation-help"
-            className={`mt-1 min-h-20 ${inputClass}`}
-            value={recommendation}
-            onChange={(event) => setRecommendation(event.target.value)}
-          />
-          {fieldError('recommendation')}
-        </div>
-        <Button disabled={isPending} onClick={() => void handleSave()}>
-          {isPending ? 'Saving…' : 'Save Provider Certification'}
+      <div className="border-t border-border pt-4">
+        <Button
+          onClick={() => {
+            setFormError(null);
+            setRecording(true);
+          }}
+        >
+          Record Provider Certification
         </Button>
       </div>
+
+      {recording ? (
+        <MhdAccommodationDraftModal
+          title="Record Provider Certification"
+          description="Restricted to medical administrators. The provider's name and recommendation are encrypted at rest."
+          draftKey={`${caseId}:provider-certification`}
+          companyId={companyId}
+          // Section B is the provider's certification, so only the date the job-duty statement went
+          // out (a workflow fact) is drafted; every certification field is re-entered on resume.
+          getDraftValues={() => ({ jobDutyStatementSentAt })}
+          onRestore={(payload) =>
+            setJobDutyStatementSentAt(
+              typeof payload.jobDutyStatementSentAt === 'string'
+                ? payload.jobDutyStatementSentAt
+                : '',
+            )
+          }
+          excludesMedical
+          submitLabel="Save Provider Certification"
+          pendingLabel="Saving…"
+          isSubmitting={isPending}
+          onSubmit={handleSave}
+          onClose={() => setRecording(false)}
+        >
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium" htmlFor="mhd-provider-job-duty-sent">
+                Job-Duty Statement Sent On
+              </label>
+              <MhdDateField
+                id="mhd-provider-job-duty-sent"
+                className={`mt-1 ${inputClass}`}
+                value={jobDutyStatementSentAt}
+                onChange={setJobDutyStatementSentAt}
+              />
+              {fieldError('jobDutyStatementSentAt')}
+            </div>
+            <div>
+              <label className="block text-sm font-medium" htmlFor="mhd-provider-name">
+                Provider Name
+              </label>
+              <input
+                id="mhd-provider-name"
+                className={`mt-1 ${inputClass}`}
+                value={providerName}
+                onChange={(event) => setProviderName(event.target.value)}
+              />
+              {fieldError('providerName')}
+            </div>
+            <div>
+              <label className="block text-sm font-medium" htmlFor="mhd-provider-certified-at">
+                Certified On
+              </label>
+              <MhdDateField
+                id="mhd-provider-certified-at"
+                className={`mt-1 ${inputClass}`}
+                value={certifiedAt}
+                onChange={setCertifiedAt}
+              />
+              {fieldError('certifiedAt')}
+            </div>
+            <div>
+              <label className="block text-sm font-medium" htmlFor="mhd-provider-duration">
+                Duration
+              </label>
+              <select
+                id="mhd-provider-duration"
+                className={`mt-1 ${inputClass}`}
+                value={limitationDuration}
+                onChange={(event) => {
+                  const next = event.target.value as MhdAccommodationLimitationDuration | '';
+                  setLimitationDuration(next);
+                  if (next !== 'TEMPORARY') setLimitationEndDate('');
+                }}
+              >
+                <option value="">Not Recorded</option>
+                {MHD_ACCOMMODATION_LIMITATION_DURATIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {mhdFormatAccommodationValue(value)}
+                  </option>
+                ))}
+              </select>
+              {fieldError('limitationDuration')}
+            </div>
+            <div>
+              <label className="block text-sm font-medium" htmlFor="mhd-provider-limitation-end">
+                Limitation End Date
+              </label>
+              <MhdDateField
+                id="mhd-provider-limitation-end"
+                className={`mt-1 ${inputClass}`}
+                value={limitationEndDate}
+                disabled={limitationDuration !== 'TEMPORARY'}
+                onChange={setLimitationEndDate}
+              />
+              {fieldError('limitationEndDate')}
+            </div>
+            <div>
+              <label className="block text-sm font-medium" htmlFor="mhd-provider-begin">
+                Accommodation Begins On
+              </label>
+              <MhdDateField
+                id="mhd-provider-begin"
+                className={`mt-1 ${inputClass}`}
+                value={accommodationBeginOn}
+                onChange={setAccommodationBeginOn}
+              />
+              {fieldError('accommodationBeginOn')}
+            </div>
+            <div>
+              <label className="block text-sm font-medium" htmlFor="mhd-provider-end">
+                Accommodation Ends On
+              </label>
+              <MhdDateField
+                id="mhd-provider-end"
+                className={`mt-1 ${inputClass}`}
+                value={accommodationEndOn}
+                disabled={accommodationContinuous}
+                onChange={setAccommodationEndOn}
+              />
+              {fieldError('accommodationEndOn')}
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={disabilityVerified}
+              onChange={(event) => setDisabilityVerified(event.target.checked)}
+            />
+            Disability Verified
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={accommodationContinuous}
+              onChange={(event) => {
+                setAccommodationContinuous(event.target.checked);
+                if (event.target.checked) setAccommodationEndOn('');
+              }}
+            />
+            Accommodation Is Continuous
+          </label>
+          <div>
+            <label className="block text-sm font-medium" htmlFor="mhd-provider-recommendation">
+              Recommendation
+            </label>
+            <p id="mhd-provider-recommendation-help" className="text-xs text-muted-foreground">
+              Do not enter a diagnosis, cause, genetic information, or medical records. Record the
+              functional recommendation only.
+            </p>
+            <textarea
+              id="mhd-provider-recommendation"
+              aria-describedby="mhd-provider-recommendation-help"
+              className={`mt-1 min-h-20 ${inputClass}`}
+              value={recommendation}
+              onChange={(event) => setRecommendation(event.target.value)}
+            />
+            {fieldError('recommendation')}
+          </div>
+        </MhdAccommodationDraftModal>
+      ) : null}
     </MhdCard>
   );
 }

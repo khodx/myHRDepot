@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdComplianceReadiness } from '@/types/mhdCompliance';
 import type { MhdLeaveDeadline, MhdLeaveWorkflow } from '../WorkflowTypes';
+import { mhdResetLeaveDraftService } from './leaveDraftTestKit';
 import { mhdTestLeaveWorkflow } from './leaveWorkflowFixture';
 
 const CASE_ID = crypto.randomUUID();
@@ -25,6 +26,10 @@ vi.mock('@/features/authentication/Hook', () => ({
 
 vi.mock('@/features/documents/Service', () => ({
   mhdDocumentService: { listTemplates: vi.fn().mockResolvedValue([]) },
+}));
+
+vi.mock('@/features/drafts/Service', async () => ({
+  mhdDraftService: (await import('./leaveDraftTestKit')).mhdLeaveDraftServiceMock,
 }));
 
 vi.mock('../WorkflowHook', async () => {
@@ -79,6 +84,7 @@ function openTab(name: RegExp) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mhdResetLeaveDraftService();
   readinessData.current = undefined;
   setWorkflow();
 });
@@ -142,15 +148,15 @@ describe('MhdLeaveWorkflowPanel for the employee who owns the case', () => {
     openTab(/^Notices/);
     expect(screen.queryByRole('button', { name: 'New Notice' })).toBeNull();
     openTab(/^Schedule/);
-    expect(screen.queryByRole('button', { name: /record/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /record|add|change status/i })).toBeNull();
     openTab(/^Benefits/);
-    expect(screen.queryByRole('button', { name: /record/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /record|add|change status/i })).toBeNull();
   });
 
   it('shows no pay-source form, and no key-employee or workers compensation form', () => {
     renderPanel(false);
     openTab(/^Pay/);
-    expect(screen.queryByRole('button', { name: 'Record Pay Source' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Add Pay Source' })).toBeNull();
     expect(screen.queryByLabelText('Pay source')).toBeNull();
 
     openTab(/^Controls/);
@@ -171,6 +177,7 @@ describe('MhdLeaveWorkflowPanel pay refusals', () => {
     paySourceAsync.mockRejectedValue(refusal);
     renderPanel(true);
     openTab(/^Pay/);
+    fireEvent.click(screen.getByRole('button', { name: 'Add Pay Source' }));
 
     fireEvent.change(screen.getByLabelText('Pay source'), { target: { value: 'PTO' } });
     fireEvent.click(screen.getByRole('button', { name: 'Record Pay Source' }));
@@ -215,6 +222,7 @@ describe('MhdLeaveWorkflowPanel compliance gate', () => {
     paySourceAsync.mockRejectedValue(refusal);
     renderPanel(true);
     openTab(/^Pay/);
+    fireEvent.click(screen.getByRole('button', { name: 'Add Pay Source' }));
     fireEvent.click(screen.getByRole('button', { name: 'Record Pay Source' }));
     expect(await screen.findByText(refusal.message)).toBeInTheDocument();
   });

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { MhdModal } from '@/components/ui/MhdModal';
+import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdCompanyId } from '@/features/companies/Types';
+import { useMhdDraft } from '@/features/drafts/Hook';
+import { MHD_DRAFT_KINDS } from '@/features/drafts/Types';
 import type { Json } from '@/types/database.types';
 import {
   useMhdActivityActions,
@@ -48,6 +50,13 @@ export function MhdTaskActivitiesSection({
   const usersQuery = useMhdActivityUsers(companyId, isCreating);
   const tasksQuery = useMhdActivityTasks(companyId, isCreating);
 
+  const draft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.activityCreate,
+    draftKey: `task:${taskId}`,
+    companyId,
+    enabled: isCreating,
+  });
+
   async function handleCreate(input: MhdActivityFormSchemaInput, checklistTitles: string[]) {
     setActionError(null);
     try {
@@ -69,6 +78,7 @@ export function MhdTaskActivitiesSection({
           );
         }
       }
+      await draft.discard();
       setIsCreating(false);
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to create activity.');
@@ -94,7 +104,7 @@ export function MhdTaskActivitiesSection({
       )}
 
       {isCreating && canMutate && (
-        <MhdModal onClose={() => setIsCreating(false)} title="Add Activity">
+        <MhdFormModal title="Add Activity" size="xl" onClose={() => setIsCreating(false)}>
           <MhdActivityForm
             mode="create"
             companyId={companyId}
@@ -115,8 +125,9 @@ export function MhdTaskActivitiesSection({
             onSubmit={handleCreate}
             onCancel={() => setIsCreating(false)}
             isSubmitting={actions.createActivity.isPending}
+            draft={draft}
           />
-        </MhdModal>
+        </MhdFormModal>
       )}
 
       <MhdTaskActivitiesPanel taskId={taskId} companyId={companyId} />

@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
+import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
+import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { MhdDetailActions } from '@/components/ui/MhdDetailActions';
 import { MhdSystemFieldsCard } from '@/components/ui/MhdSystemFieldsCard';
 import { MhdRichTextEditor, MhdRichTextRenderer } from '@/components/ui/MhdRichText';
@@ -17,6 +19,8 @@ import { MhdActivityRecordTabs } from '@/appshell/components/MhdActivityRecordTa
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
 import { mhdCanMutateActivities } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { useMhdDraft, type MhdDraftController } from '@/features/drafts/Hook';
+import { MHD_DRAFT_KINDS } from '@/features/drafts/Types';
 import {
   mhdCompleteActivitySchema,
   mhdCreateFollowUpTaskSchema,
@@ -64,14 +68,18 @@ function MhdCompleteActivityForm({
   onSubmit,
   onCancel,
   isSubmitting,
+  draft,
 }: {
   onSubmit: (input: MhdCompleteActivitySchemaInput) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+  draft: MhdDraftController;
 }) {
   const {
     register,
     handleSubmit,
+    getValues,
+    reset,
     formState: { errors },
   } = useForm<MhdCompleteActivitySchemaInput>({
     resolver: zodResolver(mhdCompleteActivitySchema),
@@ -79,6 +87,12 @@ function MhdCompleteActivityForm({
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <MhdDraftBanner
+        draft={draft}
+        onRestore={(payload) =>
+          reset({ ...getValues(), ...payload } as MhdCompleteActivitySchemaInput)
+        }
+      />
       <MhdFormFieldStack>
         <div>
           <label className="mb-1 block text-sm font-medium">Occurred Date &amp; Time</label>
@@ -113,10 +127,12 @@ function MhdCompleteActivityForm({
           {...register('outcomeSummary')}
         />
       </div>
-      <div className="flex gap-3">
+      <p className="text-xs text-muted-foreground">Medical details are not saved in drafts.</p>
+      <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Completing…' : 'Mark Completed'}
         </Button>
+        <MhdSaveDraftButton draft={draft} getValues={() => ({ ...getValues() })} />
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
@@ -129,16 +145,20 @@ function MhdFollowUpTaskForm({
   onSubmit,
   onCancel,
   isSubmitting,
+  draft,
 }: {
   onSubmit: (input: MhdCreateFollowUpTaskSchemaInput) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+  draft: MhdDraftController;
 }) {
   const {
     register,
     handleSubmit,
     control,
     setValue,
+    getValues,
+    reset,
     formState: { errors },
   } = useForm<MhdCreateFollowUpTaskSchemaInput>({
     resolver: zodResolver(mhdCreateFollowUpTaskSchema),
@@ -148,6 +168,12 @@ function MhdFollowUpTaskForm({
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <MhdDraftBanner
+        draft={draft}
+        onRestore={(payload) =>
+          reset({ ...getValues(), ...payload } as MhdCreateFollowUpTaskSchemaInput)
+        }
+      />
       <div>
         <label className="mb-1 block text-sm font-medium">Follow-up Task Title</label>
         <input
@@ -171,10 +197,12 @@ function MhdFollowUpTaskForm({
           minHeightClassName="min-h-28"
         />
       </div>
-      <div className="flex gap-3">
+      <p className="text-xs text-muted-foreground">Medical details are not saved in drafts.</p>
+      <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Creating…' : 'Create Follow-up Task'}
         </Button>
+        <MhdSaveDraftButton draft={draft} getValues={() => ({ ...getValues() })} />
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
@@ -191,6 +219,7 @@ export function MhdActivityDetailPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [isAddingParticipant, setIsAddingParticipant] = useState(false);
   const [isCreatingFollowUp, setIsCreatingFollowUp] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [newParticipantKind, setNewParticipantKind] = useState<ParticipantKind>('USER');
@@ -211,6 +240,32 @@ export function MhdActivityDetailPage() {
   const usersQuery = useMhdActivityUsers(activity?.companyId ?? null, Boolean(activity?.companyId));
   const tasksQuery = useMhdActivityTasks(activity?.companyId ?? null, Boolean(activity?.companyId));
 
+  const draftKey = activityId ?? '';
+  const editDraft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.activityEdit,
+    draftKey,
+    companyId: activity?.companyId,
+    enabled: isEditing,
+  });
+  const completeDraft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.activityComplete,
+    draftKey,
+    companyId: activity?.companyId,
+    enabled: isCompleting,
+  });
+  const followUpDraft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.activityFollowUp,
+    draftKey,
+    companyId: activity?.companyId,
+    enabled: isCreatingFollowUp,
+  });
+  const participantDraft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.activityParticipant,
+    draftKey,
+    companyId: activity?.companyId,
+    enabled: isAddingParticipant,
+  });
+
   const participants = participantsQuery.data ?? [];
   const subActivities = subActivitiesQuery.data ?? [];
   const isTerminal =
@@ -226,6 +281,7 @@ export function MhdActivityDetailPage() {
         activityId: activity.id,
         input: toActivityMutationInput(input),
       });
+      await editDraft.discard();
       setIsEditing(false);
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to update activity.');
@@ -256,6 +312,7 @@ export function MhdActivityDetailPage() {
           isConfidential: activity.isConfidential,
         },
       });
+      await completeDraft.discard();
       setIsCompleting(false);
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to complete activity.');
@@ -274,6 +331,7 @@ export function MhdActivityDetailPage() {
         },
         context: { actorUserId: profile.userId },
       });
+      await followUpDraft.discard();
       setIsCreatingFollowUp(false);
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to create follow-up task.');
@@ -308,7 +366,9 @@ export function MhdActivityDetailPage() {
           role: newParticipantRole,
         },
       });
+      await participantDraft.discard();
       setNewParticipantSubjectId('');
+      setIsAddingParticipant(false);
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to add participant.');
     }
@@ -390,9 +450,7 @@ export function MhdActivityDetailPage() {
   if (activityQuery.error || !activity) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3">
-        <p className="text-sm text-red-600">
-          Activity not found or you do not have access to it.
-        </p>
+        <p className="text-sm text-red-600">Activity not found or you do not have access to it.</p>
         <button
           type="button"
           onClick={() => navigate('/activities')}
@@ -444,8 +502,8 @@ export function MhdActivityDetailPage() {
         actions={
           canMutate ? (
             <>
-              <Button variant="warning" onClick={() => setIsEditing((current) => !current)}>
-                {isEditing ? 'Close Edit' : 'Edit Activity'}
+              <Button variant="warning" onClick={() => setIsEditing(true)}>
+                Edit Activity
               </Button>
               <MhdDetailActions
                 onDelete={handleDelete}
@@ -463,7 +521,9 @@ export function MhdActivityDetailPage() {
               type="button"
               variant="secondary"
               className="h-9 gap-1.5 px-3 text-[16.8px]"
-              onClick={() => window.open(activity.linkUrl as string, '_blank', 'noopener,noreferrer')}
+              onClick={() =>
+                window.open(activity.linkUrl as string, '_blank', 'noopener,noreferrer')
+              }
             >
               {activity.linkLabel}
             </Button>
@@ -472,17 +532,75 @@ export function MhdActivityDetailPage() {
 
         <dl className="mt-4">
           <MhdFormFieldStack>
-            <MhdDetailField label="Person" value={activity.personId ? <Link to={`/people/${activity.personId}`} className="text-accent hover:text-accent-hover">{activity.personDisplayName ?? 'View person'}</Link> : undefined} />
-            <MhdDetailField label="Supports task" value={activity.parentTaskId ? <Link to={`/tasks/${activity.parentTaskId}`} className="text-accent hover:text-accent-hover">View task</Link> : undefined} />
-            <MhdDetailField label="Scheduled" value={mhdFormatDateTime(activity.scheduledAt, 'Not scheduled')} />
-            <MhdDetailField label="Occurred" value={mhdFormatDateTime(activity.occurredAt, 'Not yet recorded')} />
-            <MhdDetailField label="Duration" value={activity.durationMinutes != null ? `${activity.durationMinutes} minutes` : undefined} />
+            <MhdDetailField
+              label="Person"
+              value={
+                activity.personId ? (
+                  <Link
+                    to={`/people/${activity.personId}`}
+                    className="text-accent hover:text-accent-hover"
+                  >
+                    {activity.personDisplayName ?? 'View person'}
+                  </Link>
+                ) : undefined
+              }
+            />
+            <MhdDetailField
+              label="Supports task"
+              value={
+                activity.parentTaskId ? (
+                  <Link
+                    to={`/tasks/${activity.parentTaskId}`}
+                    className="text-accent hover:text-accent-hover"
+                  >
+                    View task
+                  </Link>
+                ) : undefined
+              }
+            />
+            <MhdDetailField
+              label="Scheduled"
+              value={mhdFormatDateTime(activity.scheduledAt, 'Not scheduled')}
+            />
+            <MhdDetailField
+              label="Occurred"
+              value={mhdFormatDateTime(activity.occurredAt, 'Not yet recorded')}
+            />
+            <MhdDetailField
+              label="Duration"
+              value={
+                activity.durationMinutes != null ? `${activity.durationMinutes} minutes` : undefined
+              }
+            />
             <MhdDetailField label="Location" value={activity.location} />
-            <MhdDetailField label="Description" value={<MhdRichTextRenderer html={mhdDocumentToRichHtml(activity.descriptionRichText, activity.descriptionPlainText ?? '')} className="text-foreground" />} />
+            <MhdDetailField
+              label="Description"
+              value={
+                <MhdRichTextRenderer
+                  html={mhdDocumentToRichHtml(
+                    activity.descriptionRichText,
+                    activity.descriptionPlainText ?? '',
+                  )}
+                  className="text-foreground"
+                />
+              }
+            />
             <MhdDetailField label="Outcome" value={activity.outcomeSummary} />
             <MhdDetailField label="Link title" value={activity.linkLabel} />
             <MhdDetailField label="Link URL" value={activity.linkUrl} />
-            <MhdDetailField label="Follow-up task" value={activity.followUpTaskId ? <Link to={`/tasks/${activity.followUpTaskId}`} className="text-accent hover:text-accent-hover">View task</Link> : undefined} />
+            <MhdDetailField
+              label="Follow-up task"
+              value={
+                activity.followUpTaskId ? (
+                  <Link
+                    to={`/tasks/${activity.followUpTaskId}`}
+                    className="text-accent hover:text-accent-hover"
+                  >
+                    View task
+                  </Link>
+                ) : undefined
+              }
+            />
           </MhdFormFieldStack>
         </dl>
 
@@ -493,8 +611,7 @@ export function MhdActivityDetailPage() {
       </MhdCard>
 
       {isEditing && canMutate ? (
-        <MhdCard className="p-6">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Edit Activity</h2>
+        <MhdFormModal title="Edit Activity" size="xl" onClose={() => setIsEditing(false)}>
           <MhdActivityForm
             mode="edit"
             companyId={activity.companyId}
@@ -515,8 +632,9 @@ export function MhdActivityDetailPage() {
             onSubmit={handleUpdate}
             onCancel={() => setIsEditing(false)}
             isSubmitting={actions.updateActivity.isPending}
+            draft={editDraft}
           />
-        </MhdCard>
+        </MhdFormModal>
       ) : null}
 
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
@@ -535,73 +653,109 @@ export function MhdActivityDetailPage() {
             </div>
 
             {canMutate ? (
-              <form
-                className="mt-4 flex flex-wrap items-center gap-2"
-                onSubmit={handleAddParticipant}
+              <Button type="button" className="mt-4" onClick={() => setIsAddingParticipant(true)}>
+                Add Participant
+              </Button>
+            ) : null}
+
+            {isAddingParticipant && canMutate ? (
+              <MhdFormModal
+                title="Add Participant"
+                size="md"
+                onClose={() => setIsAddingParticipant(false)}
               >
-                <select
-                  value={newParticipantKind}
-                  onChange={(event) => {
-                    setNewParticipantKind(event.target.value as ParticipantKind);
-                    setNewParticipantSubjectId('');
+                <MhdDraftBanner
+                  draft={participantDraft}
+                  onRestore={(payload) => {
+                    setNewParticipantKind(payload.kind === 'PERSON' ? 'PERSON' : 'USER');
+                    setNewParticipantSubjectId(String(payload.subjectId ?? ''));
+                    const role = MHD_ACTIVITY_PARTICIPANT_ROLES.find(
+                      (item) => item === payload.role,
+                    );
+                    setNewParticipantRole(role ?? 'PARTICIPANT');
                   }}
-                  className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  aria-label="Participant kind"
-                >
-                  <option value="USER">Internal user</option>
-                  <option value="PERSON">Person</option>
-                </select>
+                />
+                <form className="flex flex-wrap items-center gap-2" onSubmit={handleAddParticipant}>
+                  <select
+                    value={newParticipantKind}
+                    onChange={(event) => {
+                      setNewParticipantKind(event.target.value as ParticipantKind);
+                      setNewParticipantSubjectId('');
+                    }}
+                    className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    aria-label="Participant kind"
+                  >
+                    <option value="USER">Internal user</option>
+                    <option value="PERSON">Person</option>
+                  </select>
 
-                <select
-                  value={newParticipantSubjectId}
-                  onChange={(event) => setNewParticipantSubjectId(event.target.value)}
-                  className="min-w-48 rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  aria-label={
-                    newParticipantKind === 'USER' ? 'Participant user' : 'Participant person'
-                  }
-                >
-                  <option value="">
-                    {newParticipantKind === 'USER' ? 'Select user…' : 'Select person…'}
-                  </option>
-                  {(newParticipantKind === 'USER'
-                    ? (usersQuery.data ?? []).map((user) => ({
-                        id: user.id,
-                        label: user.displayName,
-                      }))
-                    : (peopleQuery.data ?? []).map((person) => ({
-                        id: person.id,
-                        label: person.displayName,
-                      }))
-                  ).map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
+                  <select
+                    value={newParticipantSubjectId}
+                    onChange={(event) => setNewParticipantSubjectId(event.target.value)}
+                    className="min-w-48 rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    aria-label={
+                      newParticipantKind === 'USER' ? 'Participant user' : 'Participant person'
+                    }
+                  >
+                    <option value="">
+                      {newParticipantKind === 'USER' ? 'Select user…' : 'Select person…'}
                     </option>
-                  ))}
-                </select>
+                    {(newParticipantKind === 'USER'
+                      ? (usersQuery.data ?? []).map((user) => ({
+                          id: user.id,
+                          label: user.displayName,
+                        }))
+                      : (peopleQuery.data ?? []).map((person) => ({
+                          id: person.id,
+                          label: person.displayName,
+                        }))
+                    ).map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
 
-                <select
-                  value={newParticipantRole}
-                  onChange={(event) =>
-                    setNewParticipantRole(event.target.value as MhdActivityParticipantRole)
-                  }
-                  className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  aria-label="Participant role"
-                >
-                  {MHD_ACTIVITY_PARTICIPANT_ROLES.map((role) => (
-                    <option key={role} value={role}>
-                      {mhdFormatActivityParticipantRole(role)}
-                    </option>
-                  ))}
-                </select>
+                  <select
+                    value={newParticipantRole}
+                    onChange={(event) =>
+                      setNewParticipantRole(event.target.value as MhdActivityParticipantRole)
+                    }
+                    className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    aria-label="Participant role"
+                  >
+                    {MHD_ACTIVITY_PARTICIPANT_ROLES.map((role) => (
+                      <option key={role} value={role}>
+                        {mhdFormatActivityParticipantRole(role)}
+                      </option>
+                    ))}
+                  </select>
 
-                <Button
-                  type="submit"
-                  className="px-3"
-                  disabled={actions.addParticipant.isPending || !newParticipantSubjectId}
-                >
-                  {actions.addParticipant.isPending ? 'Adding…' : 'Add Participant'}
-                </Button>
-              </form>
+                  <Button
+                    type="submit"
+                    className="px-3"
+                    disabled={actions.addParticipant.isPending || !newParticipantSubjectId}
+                  >
+                    {actions.addParticipant.isPending ? 'Adding…' : 'Add Participant'}
+                  </Button>
+                  <MhdSaveDraftButton
+                    draft={participantDraft}
+                    disabled={!newParticipantSubjectId}
+                    getValues={() => ({
+                      kind: newParticipantKind,
+                      subjectId: newParticipantSubjectId,
+                      role: newParticipantRole,
+                    })}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setIsAddingParticipant(false)}
+                  >
+                    Cancel
+                  </Button>
+                </form>
+              </MhdFormModal>
             ) : null}
           </MhdCard>
 
@@ -612,6 +766,7 @@ export function MhdActivityDetailPage() {
             </h2>
             <div className="mt-4">
               <MhdSubActivityChecklist
+                activityId={activity.id}
                 subActivities={subActivities}
                 canMutate={canMutate}
                 isSubmitting={subActivityMutating}
@@ -639,43 +794,44 @@ export function MhdActivityDetailPage() {
 
             {canMutate ? (
               <div className="mt-4 space-y-4">
-                {!isTerminal && !isCompleting ? (
-                  <Button
-                    onClick={() => {
-                      setIsCreatingFollowUp(false);
-                      setIsCompleting(true);
-                    }}
-                  >
-                    Mark Completed
-                  </Button>
+                {!isTerminal ? (
+                  <Button onClick={() => setIsCompleting(true)}>Mark Completed</Button>
                 ) : null}
 
                 {isCompleting ? (
-                  <MhdCompleteActivityForm
-                    onSubmit={handleComplete}
-                    onCancel={() => setIsCompleting(false)}
-                    isSubmitting={actions.updateActivity.isPending}
-                  />
+                  <MhdFormModal
+                    title="Mark Activity Completed"
+                    size="md"
+                    onClose={() => setIsCompleting(false)}
+                  >
+                    <MhdCompleteActivityForm
+                      onSubmit={handleComplete}
+                      onCancel={() => setIsCompleting(false)}
+                      isSubmitting={actions.updateActivity.isPending}
+                      draft={completeDraft}
+                    />
+                  </MhdFormModal>
                 ) : null}
 
-                {!activity.followUpTaskId && !isCreatingFollowUp ? (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setIsCompleting(false);
-                      setIsCreatingFollowUp(true);
-                    }}
-                  >
+                {!activity.followUpTaskId ? (
+                  <Button variant="secondary" onClick={() => setIsCreatingFollowUp(true)}>
                     Create Follow-up Task
                   </Button>
                 ) : null}
 
                 {isCreatingFollowUp ? (
-                  <MhdFollowUpTaskForm
-                    onSubmit={handleCreateFollowUp}
-                    onCancel={() => setIsCreatingFollowUp(false)}
-                    isSubmitting={actions.createFollowUpTask.isPending}
-                  />
+                  <MhdFormModal
+                    title="Create Follow-up Task"
+                    size="md"
+                    onClose={() => setIsCreatingFollowUp(false)}
+                  >
+                    <MhdFollowUpTaskForm
+                      onSubmit={handleCreateFollowUp}
+                      onCancel={() => setIsCreatingFollowUp(false)}
+                      isSubmitting={actions.createFollowUpTask.isPending}
+                      draft={followUpDraft}
+                    />
+                  </MhdFormModal>
                 ) : null}
               </div>
             ) : null}

@@ -1,9 +1,20 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MhdLeaveDesignatedPersonPanel } from '../components/MhdLeaveDesignatedPersonPanel';
 import type { MhdLeaveDesignatedPerson } from '../WorkflowTypes';
+import {
+  mhdLeaveDraftServiceMock as drafts,
+  mhdRenderWithQueryClient,
+  mhdResetLeaveDraftService,
+  mhdTestLeaveDraft,
+} from './leaveDraftTestKit';
+
+vi.mock('@/features/drafts/Service', async () => ({
+  mhdDraftService: (await import('./leaveDraftTestKit')).mhdLeaveDraftServiceMock,
+}));
 
 const CASE_ID = '7d24c9e1-0b5a-4f83-9c16-e2a8b4f07d51';
+const COMPANY_ID = '9b5e2c71-3d84-4f1a-a6c0-58d27e4f1b93';
 
 const active: MhdLeaveDesignatedPerson = {
   id: 'designation-1',
@@ -27,12 +38,13 @@ function renderPanel({
   persons = [active, voided],
   privileged = true,
   limitDesignatedPerson = false,
-  onRecord = vi.fn<(input: unknown) => Promise<boolean>>().mockResolvedValue(true),
-  onVoid = vi.fn<(input: unknown) => Promise<boolean>>().mockResolvedValue(true),
+  onRecord = vi.fn<(input: unknown) => Promise<unknown>>().mockResolvedValue('designation-2'),
+  onVoid = vi.fn<(input: unknown) => Promise<unknown>>().mockResolvedValue(undefined),
 } = {}) {
-  render(
+  mhdRenderWithQueryClient(
     <MhdLeaveDesignatedPersonPanel
       caseId={CASE_ID}
+      companyId={COMPANY_ID}
       persons={persons}
       familyRelationship="DESIGNATED_PERSON"
       limitDesignatedPerson={limitDesignatedPerson}
@@ -44,6 +56,11 @@ function renderPanel({
   );
   return { onRecord, onVoid };
 }
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mhdResetLeaveDraftService();
+});
 
 describe('MhdLeaveDesignatedPersonPanel', () => {
   it('shows recorded persons with their dates and voided state, read-only for an employee', () => {
@@ -62,8 +79,11 @@ describe('MhdLeaveDesignatedPersonPanel', () => {
     expect(screen.getByText(/one designated person in a 12-month period/)).toBeInTheDocument();
   });
 
-  it('records a designated person with the PFL attestation date', async () => {
+  it('records a designated person with the PFL attestation date in a dialog', async () => {
     const { onRecord } = renderPanel({ persons: [] });
+    expect(screen.queryByLabelText('Designated person name')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Add Designated Person' }));
+    expect(screen.getByRole('dialog')).toHaveAccessibleName('Record Designated Person');
     expect(
       screen.getByText('Required for Paid Family Leave claims filed on or after July 1, 2028.'),
     ).toBeInTheDocument();
@@ -87,7 +107,43 @@ describe('MhdLeaveDesignatedPersonPanel', () => {
         pflAttestedOn: '2026-08-04',
       }),
     );
-    await waitFor(() => expect(screen.getByLabelText('Designated person name')).toHaveValue(''));
+    await waitFor(() =>
+      expect(drafts.discard).toHaveBeenCalledWith(
+        'LEAVE_CASE_ACTION',
+        `${CASE_ID}:designated-person`,
+      ),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('saves the typed designation as a draft and resumes it', async () => {
+    renderPanel({ persons: [] });
+    fireEvent.click(screen.getByRole('button', { name: 'Add Designated Person' }));
+    fireEvent.change(screen.getByLabelText('Designated person name'), {
+      target: { value: 'Ifeoma Adeyemi' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
+    await waitFor(() => expect(drafts.save).toHaveBeenCalledTimes(1));
+    expect(drafts.save.mock.calls[0][0]).toMatchObject({
+      draftKind: 'LEAVE_CASE_ACTION',
+      draftKey: `${CASE_ID}:designated-person`,
+      companyId: COMPANY_ID,
+      payload: { designatedName: 'Ifeoma Adeyemi', relationshipNote: '', pflAttestedOn: '' },
+    });
+  });
+
+  it('restores a saved designation draft', async () => {
+    drafts.get.mockResolvedValue(
+      mhdTestLeaveDraft(`${CASE_ID}:designated-person`, {
+        designatedName: 'Ifeoma Adeyemi',
+        relationshipNote: 'Godmother to the employee',
+      }),
+    );
+    renderPanel({ persons: [] });
+    fireEvent.click(screen.getByRole('button', { name: 'Add Designated Person' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Resume Draft' }));
+    expect(screen.getByLabelText('Designated person name')).toHaveValue('Ifeoma Adeyemi');
+    expect(screen.getByLabelText('Relationship note')).toHaveValue('Godmother to the employee');
   });
 
   it('voids an active designation only with a reason', async () => {
@@ -105,5 +161,21 @@ describe('MhdLeaveDesignatedPersonPanel', () => {
         reason: 'Employee chose a different person',
       }),
     );
+  });
+
+  it('shows the limit refusal inside the dialog and keeps the name', async () => {
+    const onRecord = vi
+      .fn<(input: unknown) => Promise<unknown>>()
+      .mockRejectedValue(new Error('One designated person per 12-month period'));
+    renderPanel({ persons: [], onRecord });
+    fireEvent.click(screen.getByRole('button', { name: 'Add Designated Person' }));
+    fireEvent.change(screen.getByLabelText('Designated person name'), {
+      target: { value: 'Ifeoma Adeyemi' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Record Designated Person' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'One designated person per 12-month period',
+    );
+    expect(screen.getByLabelText('Designated person name')).toHaveValue('Ifeoma Adeyemi');
   });
 });

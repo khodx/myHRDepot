@@ -56,7 +56,9 @@ describe('MhdAccommodationTeamPanel', () => {
 
   it('carries no medical vocabulary or reason for the accommodation', () => {
     const { container } = render(<MhdAccommodationTeamPanel managerPersonId={MANAGER_PERSON_ID} />);
-    expect(container.textContent ?? '').not.toMatch(/diagnos|medical record|limitation|request source|option type/i);
+    expect(container.textContent ?? '').not.toMatch(
+      /diagnos|medical record|limitation|request source|option type/i,
+    );
     expect(container.textContent ?? '').not.toMatch(/SCHEDULE_CHANGE/);
   });
 

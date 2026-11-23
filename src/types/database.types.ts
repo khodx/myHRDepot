@@ -25093,85 +25093,46 @@ export type Database = {
           },
         ]
       }
-      training_audit_statements_2026_09: {
-        Row: {
-          actor_person_id: string
-          client_timestamp: string
-          company_id: string
-          context: Json | null
-          id: string
-          object_id: string
-          object_type: string
-          result: Json | null
-          server_timestamp: string
-          verb: string
-        }
-        Insert: {
-          actor_person_id: string
-          client_timestamp?: string
-          company_id: string
-          context?: Json | null
-          id?: string
-          object_id: string
-          object_type: string
-          result?: Json | null
-          server_timestamp?: string
-          verb: string
-        }
-        Update: {
-          actor_person_id?: string
-          client_timestamp?: string
-          company_id?: string
-          context?: Json | null
-          id?: string
-          object_id?: string
-          object_type?: string
-          result?: Json | null
-          server_timestamp?: string
-          verb?: string
-        }
-        Relationships: []
-      }
-      training_audit_statements_2026_10: {
-        Row: {
-          actor_person_id: string
-          client_timestamp: string
-          company_id: string
-          context: Json | null
-          id: string
-          object_id: string
-          object_type: string
-          result: Json | null
-          server_timestamp: string
-          verb: string
-        }
-        Insert: {
-          actor_person_id: string
-          client_timestamp?: string
-          company_id: string
-          context?: Json | null
-          id?: string
-          object_id: string
-          object_type: string
-          result?: Json | null
-          server_timestamp?: string
-          verb: string
-        }
-        Update: {
-          actor_person_id?: string
-          client_timestamp?: string
-          company_id?: string
-          context?: Json | null
-          id?: string
-          object_id?: string
-          object_type?: string
-          result?: Json | null
-          server_timestamp?: string
-          verb?: string
-        }
-        Relationships: []
-      }
       training_audit_statements_2026_11: {
+        Row: {
+          actor_person_id: string
+          client_timestamp: string
+          company_id: string
+          context: Json | null
+          id: string
+          object_id: string
+          object_type: string
+          result: Json | null
+          server_timestamp: string
+          verb: string
+        }
+        Insert: {
+          actor_person_id: string
+          client_timestamp?: string
+          company_id: string
+          context?: Json | null
+          id?: string
+          object_id: string
+          object_type: string
+          result?: Json | null
+          server_timestamp?: string
+          verb: string
+        }
+        Update: {
+          actor_person_id?: string
+          client_timestamp?: string
+          company_id?: string
+          context?: Json | null
+          id?: string
+          object_id?: string
+          object_type?: string
+          result?: Json | null
+          server_timestamp?: string
+          verb?: string
+        }
+        Relationships: []
+      }
+      training_audit_statements_2026_12: {
         Row: {
           actor_person_id: string
           client_timestamp: string
@@ -27030,6 +26991,69 @@ export type Database = {
           {
             foreignKeyName: "training_video_assets_uploaded_by_fkey"
             columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_drafts: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          draft_key: string
+          draft_kind: string
+          expires_at: string
+          id: string
+          owner_user_id: string
+          payload: Json
+          step_key: string | null
+          subject_id: string | null
+          subject_type: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          draft_key: string
+          draft_kind: string
+          expires_at?: string
+          id?: string
+          owner_user_id: string
+          payload?: Json
+          step_key?: string | null
+          subject_id?: string | null
+          subject_type?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          draft_key?: string
+          draft_kind?: string
+          expires_at?: string
+          id?: string
+          owner_user_id?: string
+          payload?: Json
+          step_key?: string | null
+          subject_id?: string | null
+          subject_type?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_drafts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_drafts_owner_user_id_fkey"
+            columns: ["owner_user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -30465,6 +30489,91 @@ export type Database = {
           template_key: string
           version: number
         }[]
+      }
+      mhd_draft_discard: {
+        Args: { p_draft_key: string; p_draft_kind: string }
+        Returns: boolean
+      }
+      mhd_draft_get: {
+        Args: { p_draft_key: string; p_draft_kind: string }
+        Returns: {
+          company_id: string | null
+          created_at: string
+          draft_key: string
+          draft_kind: string
+          expires_at: string
+          id: string
+          owner_user_id: string
+          payload: Json
+          step_key: string | null
+          subject_id: string | null
+          subject_type: string | null
+          title: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "user_drafts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mhd_draft_list: {
+        Args: { p_draft_kind?: string; p_limit?: number }
+        Returns: {
+          company_id: string | null
+          created_at: string
+          draft_key: string
+          draft_kind: string
+          expires_at: string
+          id: string
+          owner_user_id: string
+          payload: Json
+          step_key: string | null
+          subject_id: string | null
+          subject_type: string | null
+          title: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "user_drafts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      mhd_draft_save: {
+        Args: {
+          p_company_id?: string
+          p_draft_key: string
+          p_draft_kind: string
+          p_payload: Json
+          p_step_key?: string
+          p_subject_id?: string
+          p_subject_type?: string
+          p_title?: string
+        }
+        Returns: {
+          company_id: string | null
+          created_at: string
+          draft_key: string
+          draft_kind: string
+          expires_at: string
+          id: string
+          owner_user_id: string
+          payload: Json
+          step_key: string | null
+          subject_id: string | null
+          subject_type: string | null
+          title: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_drafts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       mhd_edit_message: {
         Args: { p_body: string; p_message_id: string }
@@ -35684,6 +35793,7 @@ export type Database = {
         }
         Returns: string
       }
+      mhd_platform_content_actor: { Args: never; Returns: string }
       mhd_policy_ack_board: {
         Args: { p_policy_version_id: string }
         Returns: {

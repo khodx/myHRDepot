@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
+import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { MhdRichTextEditor, MhdRichTextRenderer } from '@/components/ui/MhdRichText';
 import {
   mhdDocumentToRichHtml,
@@ -10,6 +12,8 @@ import {
   mhdRichTextToDocument,
 } from '@/components/ui/MhdRichTextUtils';
 import { useMhdAuth } from '@/features/authentication/Hook';
+import { useMhdDraft, type MhdDraftController } from '@/features/drafts/Hook';
+import { MHD_DRAFT_KINDS } from '@/features/drafts/Types';
 import { useMhdNotes } from '@/features/notes/Hook';
 import {
   MHD_NOTE_VISIBILITY_COPY,
@@ -30,6 +34,7 @@ function MhdActivityNoteEditor({
   isSaving,
   onSave,
   onCancel,
+  draft,
 }: {
   initialText?: string;
   initialRichText?: unknown;
@@ -41,6 +46,7 @@ function MhdActivityNoteEditor({
     visibility: MhdNoteVisibility,
   ) => Promise<void>;
   onCancel?: () => void;
+  draft?: MhdDraftController;
 }) {
   const [notePlainText, setNotePlainText] = useState(initialText);
   const [noteHtml, setNoteHtml] = useState(
@@ -51,6 +57,23 @@ function MhdActivityNoteEditor({
   const [noteRichText, setNoteRichText] = useState<unknown>(initialRichText ?? null);
   const [visibility, setVisibility] = useState<MhdNoteVisibility>(initialVisibility);
   const [localError, setLocalError] = useState<string | null>(null);
+
+  function getDraftValues() {
+    return { noteRichText, notePlainText, visibility };
+  }
+
+  function restoreDraft(payload: Record<string, unknown>) {
+    const plainText = typeof payload.notePlainText === 'string' ? payload.notePlainText : '';
+    const document = payload.noteRichText ?? null;
+    setNotePlainText(plainText);
+    setNoteRichText(document);
+    setNoteHtml(
+      document ? mhdDocumentToRichHtml(document, plainText) : mhdPlainTextToRichHtml(plainText),
+    );
+    if (typeof payload.visibility === 'string' && payload.visibility in MHD_NOTE_VISIBILITY_COPY) {
+      setVisibility(payload.visibility as MhdNoteVisibility);
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -66,19 +89,11 @@ function MhdActivityNoteEditor({
       trimmed,
       visibility,
     );
-    if (!onCancel) {
-      setNotePlainText('');
-      setNoteHtml('');
-      setNoteRichText(null);
-      setVisibility('PUBLIC');
-    }
   }
 
   return (
-    <form
-      className="space-y-3 rounded-md border border-border bg-muted p-4"
-      onSubmit={(event) => void handleSubmit(event)}
-    >
+    <form className="space-y-3" onSubmit={(event) => void handleSubmit(event)}>
+      {draft ? <MhdDraftBanner draft={draft} onRestore={restoreDraft} /> : null}
       <div>
         <MhdRichTextEditor
           label="Note"
@@ -113,15 +128,68 @@ function MhdActivityNoteEditor({
           {isSaving ? 'Saving…' : 'Save Note'}
         </Button>
 
+        {draft ? (
+          <MhdSaveDraftButton
+            draft={draft}
+            getValues={getDraftValues}
+            disabled={!notePlainText.trim()}
+          />
+        ) : null}
+
         {onCancel ? (
           <Button variant="secondary" onClick={onCancel}>
             Cancel
           </Button>
         ) : null}
       </div>
+      <p className="text-xs text-muted-foreground">Medical details are not saved in drafts.</p>
 
       {localError ? <p className="text-sm text-red-700">{localError}</p> : null}
     </form>
+  );
+}
+
+function MhdActivityNoteModal({
+  title,
+  draftKey,
+  initialText,
+  initialRichText,
+  initialVisibility,
+  isSaving,
+  onSave,
+  onClose,
+}: {
+  title: string;
+  draftKey: string;
+  initialText?: string;
+  initialRichText?: unknown;
+  initialVisibility?: MhdNoteVisibility;
+  isSaving: boolean;
+  onSave: (
+    noteRichText: unknown,
+    notePlainText: string,
+    visibility: MhdNoteVisibility,
+  ) => Promise<void>;
+  onClose: () => void;
+}) {
+  // Mounted only while open, so the draft loads when the modal opens.
+  const draft = useMhdDraft({ draftKind: MHD_DRAFT_KINDS.activityNote, draftKey });
+  return (
+    <MhdFormModal title={title} onClose={onClose}>
+      <MhdActivityNoteEditor
+        initialText={initialText}
+        initialRichText={initialRichText}
+        initialVisibility={initialVisibility}
+        isSaving={isSaving}
+        draft={draft}
+        onSave={async (noteRichText, notePlainText, visibility) => {
+          await onSave(noteRichText, notePlainText, visibility);
+          await draft.discard();
+          onClose();
+        }}
+        onCancel={onClose}
+      />
+    </MhdFormModal>
   );
 }
 
@@ -155,22 +223,6 @@ function MhdActivityNoteItem({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
-
-  if (isEditing) {
-    return (
-      <MhdActivityNoteEditor
-        initialText={note.notePlainText}
-        initialRichText={note.noteRichText}
-        initialVisibility={note.visibility}
-        isSaving={isSaving}
-        onSave={async (noteRichText, notePlainText, visibility) => {
-          await onUpdate(note.id, noteRichText, notePlainText, visibility);
-          setIsEditing(false);
-        }}
-        onCancel={() => setIsEditing(false)}
-      />
-    );
-  }
 
   return (
     <MhdCard>
@@ -222,17 +274,31 @@ function MhdActivityNoteItem({
         className="mt-3 text-foreground"
       />
 
+      {isEditing ? (
+        <MhdActivityNoteModal
+          title="Edit Note"
+          draftKey={note.id}
+          initialText={note.notePlainText}
+          initialRichText={note.noteRichText}
+          initialVisibility={note.visibility}
+          isSaving={isSaving}
+          onSave={(noteRichText, notePlainText, visibility) =>
+            onUpdate(note.id, noteRichText, notePlainText, visibility)
+          }
+          onClose={() => setIsEditing(false)}
+        />
+      ) : null}
+
       {!isReply && onReply && isReplying ? (
-        <div className="mt-3">
-          <MhdActivityNoteEditor
-            isSaving={isSaving}
-            onSave={async (noteRichText, notePlainText, visibility) => {
-              await onReply(note.id, noteRichText, notePlainText, visibility);
-              setIsReplying(false);
-            }}
-            onCancel={() => setIsReplying(false)}
-          />
-        </div>
+        <MhdActivityNoteModal
+          title="Reply To Note"
+          draftKey={`${note.id}:reply`}
+          isSaving={isSaving}
+          onSave={(noteRichText, notePlainText, visibility) =>
+            onReply(note.id, noteRichText, notePlainText, visibility)
+          }
+          onClose={() => setIsReplying(false)}
+        />
       ) : null}
     </MhdCard>
   );
@@ -241,6 +307,7 @@ function MhdActivityNoteItem({
 export function MhdActivityNotesPanel({ activityId, readOnly = false }: Props) {
   const { profile } = useMhdAuth();
   const notesState = useMhdNotes('ACTIVITY', activityId, Boolean(profile?.userId));
+  const [isAddingNote, setIsAddingNote] = useState(false);
 
   async function handleCreate(
     noteRichText: unknown,
@@ -302,8 +369,21 @@ export function MhdActivityNotesPanel({ activityId, readOnly = false }: Props) {
           You have read-only access to activity notes.
         </div>
       ) : (
-        <MhdActivityNoteEditor isSaving={notesState.isSaving} onSave={handleCreate} />
+        <Button type="button" className="gap-1.5" onClick={() => setIsAddingNote(true)}>
+          <Plus className="h-4 w-4" />
+          Add Note
+        </Button>
       )}
+
+      {isAddingNote && !readOnly ? (
+        <MhdActivityNoteModal
+          title="Add Note"
+          draftKey={`${activityId}:new`}
+          isSaving={notesState.isSaving}
+          onSave={handleCreate}
+          onClose={() => setIsAddingNote(false)}
+        />
+      ) : null}
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">

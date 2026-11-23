@@ -29,7 +29,19 @@ const {
   providerRevealMock,
   profileRef,
   denialCodesRef,
+  mockDraft,
+  draftOptionsLog,
 } = vi.hoisted(() => ({
+  mockDraft: {
+    draft: null as unknown,
+    isLoading: false,
+    isSaving: false,
+    savedAt: null as string | null,
+    saveError: null as string | null,
+    save: vi.fn(),
+    discard: vi.fn(),
+  },
+  draftOptionsLog: [] as { draftKind: string; draftKey: string; companyId?: string | null }[],
   rolesRef: { current: [] as MhdAuthRoleName[] },
   profileRef: { current: null as { companyId: string; personId: string | null } | null },
   denialCodesRef: { current: [] as unknown[] },
@@ -52,6 +64,13 @@ vi.mock('@/features/authentication/Hook', () => ({
 
 vi.mock('@/features/tasks/Service', () => ({
   mhdTaskService: { listAssignableUsers: vi.fn().mockResolvedValue([]) },
+}));
+
+vi.mock('@/features/drafts/Hook', () => ({
+  useMhdDraft: (options: { draftKind: string; draftKey: string; companyId?: string | null }) => {
+    draftOptionsLog.push(options);
+    return mockDraft;
+  },
 }));
 
 function mutation(mutateAsync: (input: never) => Promise<unknown>) {
@@ -183,8 +202,18 @@ function withStatus(status: MhdAccommodationDetail['case']['status']): MhdAccomm
   return { ...base, case: { ...base.case, status } };
 }
 
+/** Every input form opens in a modal from an action button; this opens one and returns the dialog. */
+function openForm(launcher: string | RegExp) {
+  fireEvent.click(screen.getByRole('button', { name: launcher }));
+  return screen.getByRole('dialog');
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  mockDraft.draft = null;
+  mockDraft.save.mockResolvedValue(undefined);
+  mockDraft.discard.mockResolvedValue(undefined);
+  draftOptionsLog.length = 0;
   rolesRef.current = ['Platform Admin'];
   profileRef.current = null;
   denialCodesRef.current = [];
@@ -219,22 +248,27 @@ describe('implementation resolves the option from the active decision', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
 
-    expect(screen.getByText('Implement Selected Option')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Implement Accommodation' })).toBeInTheDocument();
     expect(screen.getByText(OPTION_GOOD.description)).toBeInTheDocument();
+    const dialog = openForm('Implement Accommodation');
+    expect(within(dialog).getByText('Implement Selected Option')).toBeInTheDocument();
   });
 
-  it('sends the decided option id to the implement RPC', () => {
+  it('sends the decided option id to the implement RPC', async () => {
     detailRef.current = detail({ decisions: [activeDecision] });
     renderPage();
 
     fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
+    openForm('Implement Accommodation');
     fireEvent.change(screen.getByPlaceholderText(/Manager-safe implementation instruction/i), {
       target: { value: 'Start at 10:00; five-minute break each hour.' },
     });
     fireEvent.click(screen.getByRole('button', { name: /activate accommodation/i }));
 
-    expect(implementMock).toHaveBeenCalledWith(
-      expect.objectContaining({ caseId: 'case-1', optionId: OPTION_GOOD.id }),
+    await waitFor(() =>
+      expect(implementMock).toHaveBeenCalledWith(
+        expect.objectContaining({ caseId: 'case-1', optionId: OPTION_GOOD.id }),
+      ),
     );
   });
 
@@ -245,7 +279,9 @@ describe('implementation resolves the option from the active decision', () => {
     renderPage();
 
     fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
-    expect(screen.queryByText('Implement Selected Option')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Implement Accommodation' }),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -264,6 +300,7 @@ describe('the decision gate is visible before it is enforced', () => {
     renderPage();
 
     fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+    openForm('Decide Request');
     fireEvent.change(screen.getByPlaceholderText('Decision summary'), {
       target: { value: 'Granted.' },
     });
@@ -277,6 +314,7 @@ describe('the decision gate is visible before it is enforced', () => {
   it('marks an option that removes an essential function unselectable', () => {
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+    openForm('Decide Request');
 
     const removing = screen.getByRole('option', {
       name: new RegExp(OPTION_REMOVES_ESSENTIAL.description, 'i'),
@@ -287,6 +325,7 @@ describe('the decision gate is visible before it is enforced', () => {
   it('requires an individualized analysis before a denial can be recorded', () => {
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+    openForm('Decide Request');
     fireEvent.change(screen.getByDisplayValue('Approved'), { target: { value: 'DENIED' } });
     fireEvent.change(screen.getByPlaceholderText('Decision summary'), {
       target: { value: 'Not granted.' },
@@ -318,6 +357,7 @@ describe('option and denial pickers match the database vocabulary', () => {
   it('offers exactly the allowed option types, never a legacy value', () => {
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /option/i }));
+    openForm('Evaluate An Option');
 
     const picker = screen.getByDisplayValue('Job Restructuring') as HTMLSelectElement;
     const values = [...picker.options].map((option) => option.value);
@@ -333,6 +373,7 @@ describe('option and denial pickers match the database vocabulary', () => {
     detailRef.current = withStatus('EVALUATION');
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+    openForm('Decide Request');
     fireEvent.change(screen.getByDisplayValue('Approved'), { target: { value: 'DENIED' } });
 
     const reasons = within(
@@ -343,10 +384,11 @@ describe('option and denial pickers match the database vocabulary', () => {
     expect(labels).not.toContain(mhdFormatAccommodationValue('NO_REASONABLE_OPTION'));
   });
 
-  it('sends the essential functions an option touches and whether it removes one', () => {
+  it('sends the essential functions an option touches and whether it removes one', async () => {
     addOptionMock.mockResolvedValue('new-option');
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /option/i }));
+    openForm('Evaluate An Option');
 
     fireEvent.change(screen.getByPlaceholderText('Option description'), {
       target: { value: 'Reassign the cash-handling duty to a colleague.' },
@@ -358,7 +400,7 @@ describe('option and denial pickers match the database vocabulary', () => {
     fireEvent.click(screen.getByLabelText(/would remove an essential function/i));
     fireEvent.click(screen.getByRole('button', { name: /add option/i }));
 
-    expect(addOptionMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(addOptionMock).toHaveBeenCalledTimes(1));
     expect(addOptionMock.mock.calls[0][0]).toMatchObject({
       caseId: 'case-1',
       essentialFunctionIds: ['ef-1'],
@@ -434,6 +476,7 @@ describe('the restricted medical surface is Platform Admin / HR Partner only', (
     detailRef.current = detail({ medical_status: [] });
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /documentation status/i }));
+    openForm('Record Restricted Medical Status');
 
     const requested = screen.getByLabelText(/Documentation requested/i);
     fireEvent.click(requested);
@@ -446,11 +489,12 @@ describe('the restricted medical surface is Platform Admin / HR Partner only', (
     expect(requested).toBeDisabled();
   });
 
-  it('records only the functional limitation and accommodation need', () => {
+  it('records only the functional limitation and accommodation need', async () => {
     rolesRef.current = ['HR Partner'];
     detailRef.current = detail({ medical_status: [] });
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /documentation status/i }));
+    openForm('Record Restricted Medical Status');
 
     fireEvent.change(screen.getByLabelText('Functional limitation'), {
       target: { value: 'Cannot stand longer than 20 minutes.' },
@@ -460,6 +504,7 @@ describe('the restricted medical surface is Platform Admin / HR Partner only', (
     });
     fireEvent.click(screen.getByRole('button', { name: /record restricted status/i }));
 
+    await waitFor(() => expect(recordMedicalMock).toHaveBeenCalledTimes(1));
     expect(recordMedicalMock).toHaveBeenCalledWith({
       caseId: 'case-1',
       documentationType: 'SIMPLE_CERTIFICATION',
@@ -478,6 +523,7 @@ describe('the restricted medical surface is Platform Admin / HR Partner only', (
     detailRef.current = detail({ medical_status: [] });
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /documentation status/i }));
+    openForm('Record Restricted Medical Status');
 
     fireEvent.change(screen.getByLabelText('Functional limitation'), {
       target: { value: 'Her diagnosis is multiple sclerosis.' },
@@ -576,6 +622,7 @@ describe('effectiveness review completion', () => {
     detailRef.current = detail({ reviews: [openReview] });
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
+    openForm('Complete Effectiveness Review');
   }
 
   function typeSummary(text: string) {
@@ -686,6 +733,7 @@ describe('effectiveness review completion', () => {
 
 describe('interaction employee visibility', () => {
   function fillInteraction() {
+    if (!screen.queryByRole('dialog')) openForm('Record Interaction');
     fireEvent.change(screen.getByPlaceholderText('What was discussed and understood?'), {
       target: { value: 'Reviewed scheduling alternatives.' },
     });
@@ -694,6 +742,7 @@ describe('interaction employee visibility', () => {
   it('defaults to visible and passes employeeVisible true', async () => {
     interactionMock.mockResolvedValue('int-2');
     renderPage();
+    openForm('Record Interaction');
     expect(screen.getByLabelText('Visible To The Employee')).toBeChecked();
     fillInteraction();
     fireEvent.click(screen.getByRole('button', { name: 'Add Interaction' }));
@@ -707,6 +756,7 @@ describe('interaction employee visibility', () => {
   it('passes employeeVisible false when the box is cleared', async () => {
     interactionMock.mockResolvedValue('int-2');
     renderPage();
+    openForm('Record Interaction');
     fireEvent.click(screen.getByLabelText('Visible To The Employee'));
     fillInteraction();
     fireEvent.click(screen.getByRole('button', { name: 'Add Interaction' }));
@@ -843,7 +893,8 @@ describe('status gating for decide and implement', () => {
     detailRef.current = withStatus('EVALUATION');
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
-    expect(screen.getByRole('button', { name: /record decision/i })).toBeInTheDocument();
+    const dialog = openForm('Decide Request');
+    expect(within(dialog).getByRole('button', { name: /record decision/i })).toBeInTheDocument();
   });
 
   it.each(['EVALUATION', 'IMPLEMENTING', 'ACTIVE'] as const)(
@@ -853,7 +904,9 @@ describe('status gating for decide and implement', () => {
       renderPage();
       fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
 
-      expect(screen.queryByText('Implement Selected Option')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Implement Accommodation' }),
+      ).not.toBeInTheDocument();
       expect(screen.getByText(/implemented once the case is Decided/)).toBeInTheDocument();
     },
   );
@@ -863,6 +916,7 @@ describe('status gating for decide and implement', () => {
     implementMock.mockResolvedValue('implementation-1');
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
+    openForm('Implement Accommodation');
 
     fireEvent.change(screen.getByPlaceholderText(/Manager-safe implementation instruction/i), {
       target: { value: 'Seated workstation at the register.' },
@@ -916,6 +970,7 @@ describe('the denial form', () => {
   function startDenial() {
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+    openForm('Decide Request');
     fireEvent.change(screen.getByDisplayValue('Approved'), { target: { value: 'DENIED' } });
     fireEvent.change(screen.getByPlaceholderText('Decision summary'), {
       target: { value: 'Not granted as requested.' },
@@ -990,6 +1045,7 @@ describe('the denial form', () => {
   it('asks for reasons on a partial approval too', () => {
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+    openForm('Decide Request');
     fireEvent.change(screen.getByDisplayValue('Approved'), {
       target: { value: 'PARTIALLY_APPROVED' },
     });
@@ -1021,31 +1077,37 @@ describe('updating equipment on an implementation', () => {
     fireEvent.click(screen.getByRole('tab', { name: /implementation/i }));
   }
 
+  function openEquipmentForm() {
+    openImplementation();
+    openForm('Update Equipment');
+  }
+
   it('shows the waiting note for ordered but not received equipment', () => {
     openImplementation();
     expect(screen.getByText(/Waiting For Equipment/)).toBeInTheDocument();
   });
 
-  it('rejects a received date before the order date with the schema message', () => {
-    openImplementation();
+  it('rejects a received date before the order date with the schema message', async () => {
+    openEquipmentForm();
     fireEvent.change(screen.getByLabelText('Equipment Received On'), {
       target: { value: '08/01/2026' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Update Equipment' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Equipment Dates' }));
 
     expect(
-      screen.getByText('Equipment cannot be received before it was ordered.'),
+      await screen.findByText('Equipment cannot be received before it was ordered.'),
     ).toBeInTheDocument();
     expect(equipmentMock).not.toHaveBeenCalled();
+    expect(mockDraft.discard).not.toHaveBeenCalled();
   });
 
   it('records the receipt date', async () => {
     equipmentMock.mockResolvedValue(undefined);
-    openImplementation();
+    openEquipmentForm();
     fireEvent.change(screen.getByLabelText('Equipment Received On'), {
       target: { value: '08/12/2026' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Update Equipment' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Equipment Dates' }));
 
     await waitFor(() =>
       expect(equipmentMock).toHaveBeenCalledWith({
@@ -1101,6 +1163,153 @@ describe('request details and documentation type', () => {
     rolesRef.current = ['HR Partner'];
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /documentation status/i }));
+    openForm('Record Restricted Medical Status');
     expect(screen.getByRole('option', { name: 'Employee Statement' })).toBeInTheDocument();
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Save and resume drafts on the case modals                           */
+/* ------------------------------------------------------------------ */
+
+describe('case action modals save and resume drafts', () => {
+  it('opens Record Interaction as a dialog and saves its values under the case key', async () => {
+    renderPage();
+    const dialog = openForm('Record Interaction');
+    fireEvent.change(within(dialog).getByPlaceholderText('What was discussed and understood?'), {
+      target: { value: 'Talked through a later start time.' },
+    });
+    fireEvent.change(within(dialog).getByPlaceholderText('Next step'), {
+      target: { value: 'Confirm with the shift lead.' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));
+
+    await waitFor(() => expect(mockDraft.save).toHaveBeenCalledTimes(1));
+    expect(mockDraft.save.mock.calls[0][0].payload).toEqual({
+      interactionChannel: 'VERBAL',
+      summary: 'Talked through a later start time.',
+      nextStep: 'Confirm with the shift lead.',
+      employeeVisible: true,
+    });
+    expect(draftOptionsLog.at(-1)).toMatchObject({
+      draftKind: 'ACCOMMODATION_CASE_ACTION',
+      draftKey: 'case-1:interaction',
+      companyId: 'company-1',
+    });
+  });
+
+  it('restores a saved interaction draft on Resume Draft', () => {
+    mockDraft.draft = {
+      id: crypto.randomUUID(),
+      draftKind: 'ACCOMMODATION_CASE_ACTION',
+      draftKey: 'case-1:interaction',
+      title: null,
+      stepKey: null,
+      payload: {
+        interactionChannel: 'PHONE',
+        summary: 'Walked the floor to find a seated station.',
+        nextStep: 'Order the stool.',
+        employeeVisible: false,
+      },
+      updatedAt: '2026-11-20T15:00:00Z',
+      expiresAt: '2026-12-20T15:00:00Z',
+    };
+    renderPage();
+    const dialog = openForm('Record Interaction');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
+
+    expect(within(dialog).getByPlaceholderText('What was discussed and understood?')).toHaveValue(
+      'Walked the floor to find a seated station.',
+    );
+    expect(within(dialog).getByPlaceholderText('Next step')).toHaveValue('Order the stool.');
+    expect(within(dialog).getByLabelText('Visible To The Employee')).not.toBeChecked();
+    expect(within(dialog).getByDisplayValue('Phone')).toBeInTheDocument();
+  });
+
+  it('discards the draft and closes the dialog after a successful submit', async () => {
+    interactionMock.mockResolvedValue('int-3');
+    renderPage();
+    const dialog = openForm('Record Interaction');
+    fireEvent.change(within(dialog).getByPlaceholderText('What was discussed and understood?'), {
+      target: { value: 'Agreed on the seated station.' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Add Interaction' }));
+
+    await waitFor(() => expect(mockDraft.discard).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('keeps the dialog and the draft when the server refuses the action', async () => {
+    interactionMock.mockRejectedValue(new Error('The case is closed.'));
+    renderPage();
+    const dialog = openForm('Record Interaction');
+    fireEvent.change(within(dialog).getByPlaceholderText('What was discussed and understood?'), {
+      target: { value: 'Agreed on the seated station.' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Add Interaction' }));
+
+    expect(await within(dialog).findByText('The case is closed.')).toBeInTheDocument();
+    expect(mockDraft.discard).not.toHaveBeenCalled();
+  });
+
+  it('never puts the functional limitation or accommodation need in the medical-status draft', async () => {
+    rolesRef.current = ['HR Partner'];
+    detailRef.current = detail({ medical_status: [] });
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /documentation status/i }));
+    const dialog = openForm('Record Restricted Medical Status');
+    expect(
+      within(dialog).getByText('Medical details are not saved in drafts.'),
+    ).toBeInTheDocument();
+
+    fireEvent.change(within(dialog).getByLabelText('Functional limitation'), {
+      target: { value: 'Cannot stand longer than 20 minutes.' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Accommodation need'), {
+      target: { value: 'Seated workstation.' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));
+
+    await waitFor(() => expect(mockDraft.save).toHaveBeenCalledTimes(1));
+    const payload = mockDraft.save.mock.calls[0][0].payload;
+    expect(payload).toMatchObject({
+      documentationType: 'SIMPLE_CERTIFICATION',
+      documentationStatus: 'NOT_NEEDED',
+    });
+    expect(payload).not.toHaveProperty('functionalLimitation');
+    expect(payload).not.toHaveProperty('accommodationNeed');
+    expect(JSON.stringify(payload)).not.toMatch(/stand longer|Seated workstation/);
+  });
+
+  it('restores a decision draft, including its denial reasons', () => {
+    detailRef.current = withStatus('EVALUATION');
+    mockDraft.draft = {
+      id: crypto.randomUUID(),
+      draftKind: 'ACCOMMODATION_CASE_ACTION',
+      draftKey: 'case-1:decision',
+      title: null,
+      stepKey: null,
+      payload: {
+        outcome: 'DENIED',
+        selectedOptionId: '',
+        analysis: 'Reassignment and remote work were evaluated.',
+        denialReasons: [{ code: 'INEFFECTIVE' }, { code: 'NOT_A_REAL_CODE' }],
+        processContinues: true,
+        decisionSummary: 'Not granted as requested.',
+      },
+      updatedAt: '2026-11-20T15:00:00Z',
+      expiresAt: '2026-12-20T15:00:00Z',
+    };
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /decision/i }));
+    const dialog = openForm('Decide Request');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
+
+    expect(within(dialog).getByLabelText('Decision Outcome')).toHaveValue('DENIED');
+    expect(within(dialog).getByPlaceholderText('Decision summary')).toHaveValue(
+      'Not granted as requested.',
+    );
+    expect(within(dialog).getByLabelText('Ineffective')).toBeChecked();
+    expect(within(dialog).getByRole('button', { name: /record decision/i })).not.toBeDisabled();
   });
 });

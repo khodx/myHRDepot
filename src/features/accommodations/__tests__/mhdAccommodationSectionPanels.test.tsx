@@ -12,22 +12,40 @@ import {
   type MhdAccommodationRequestDetails,
 } from '../Types';
 
-const { revealMock, resetMock, listTemplatesMock, generateMock, recordNoticeMock, authRef } =
-  vi.hoisted(() => ({
-    revealMock: vi.fn(),
-    resetMock: vi.fn(),
-    listTemplatesMock: vi.fn(),
-    generateMock: vi.fn(),
-    recordNoticeMock: vi.fn(),
-    authRef: {
-      current: {
-        authUserId: 'auth-user-1',
-        profile: { companyId: 'company-1', personId: null as string | null },
-      },
+const {
+  revealMock,
+  resetMock,
+  listTemplatesMock,
+  generateMock,
+  recordNoticeMock,
+  authRef,
+  mockDraft,
+} = vi.hoisted(() => ({
+  mockDraft: {
+    draft: null as unknown,
+    isLoading: false,
+    isSaving: false,
+    savedAt: null as string | null,
+    saveError: null as string | null,
+    save: vi.fn(),
+    discard: vi.fn(),
+  },
+  revealMock: vi.fn(),
+  resetMock: vi.fn(),
+  listTemplatesMock: vi.fn(),
+  generateMock: vi.fn(),
+  recordNoticeMock: vi.fn(),
+  authRef: {
+    current: {
+      authUserId: 'auth-user-1',
+      profile: { companyId: 'company-1', personId: null as string | null },
     },
-  }));
+  },
+}));
 
 vi.mock('@/features/authentication/Hook', () => ({ useMhdAuth: () => authRef.current }));
+
+vi.mock('@/features/drafts/Hook', () => ({ useMhdDraft: () => mockDraft }));
 
 vi.mock('@/features/documents/Service', () => ({
   mhdDocumentService: { listTemplates: listTemplatesMock, generateAndPoll: generateMock },
@@ -55,9 +73,32 @@ const { MhdAccommodationDenialReasonsField } =
 const { MhdAccommodationNoticesPanel } = await import('../components/MhdAccommodationNoticesPanel');
 
 const CASE_ID = crypto.randomUUID();
+const COMPANY_ID = crypto.randomUUID();
+
+function savedDraft(payload: Record<string, unknown>) {
+  return {
+    id: crypto.randomUUID(),
+    draftKind: 'ACCOMMODATION_CASE_ACTION',
+    draftKey: CASE_ID,
+    title: null,
+    stepKey: null,
+    payload,
+    updatedAt: '2026-11-20T15:00:00Z',
+    expiresAt: '2026-12-20T15:00:00Z',
+  };
+}
+
+/** Input forms open in a modal from an action button; this opens one and returns the dialog. */
+function openForm(launcher: string) {
+  fireEvent.click(screen.getByRole('button', { name: launcher }));
+  return screen.getByRole('dialog');
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockDraft.draft = null;
+  mockDraft.save.mockResolvedValue(undefined);
+  mockDraft.discard.mockResolvedValue(undefined);
 });
 
 /* ------------------------------------------------------------------ */
@@ -94,6 +135,7 @@ function renderRequestDetails(
   render(
     <MhdAccommodationRequestDetailsPanel
       caseId={CASE_ID}
+      companyId={COMPANY_ID}
       details={null}
       caseStatus="INTERACTIVE_PROCESS"
       isOwnCase={false}
@@ -110,6 +152,7 @@ function renderRequestDetails(
 describe('MhdAccommodationRequestDetailsPanel', () => {
   it('enables the recovery date only for a temporary limitation', () => {
     renderRequestDetails();
+    openForm('Edit Request Details');
     const recovery = screen.getByLabelText('Anticipated Recovery Date');
     expect(recovery).toBeDisabled();
 
@@ -125,6 +168,7 @@ describe('MhdAccommodationRequestDetailsPanel', () => {
 
   it('collects every Section A field and saves the validated values', async () => {
     const { onSave } = renderRequestDetails();
+    openForm('Edit Request Details');
     fireEvent.click(screen.getByLabelText('Temporary'));
     fireEvent.change(screen.getByLabelText('Anticipated Recovery Date'), {
       target: { value: '12/31/2026' },
@@ -171,8 +215,9 @@ describe('MhdAccommodationRequestDetailsPanel', () => {
     );
   });
 
-  it('shows schema field errors and does not save', () => {
+  it('shows schema field errors and does not save', async () => {
     const { onSave } = renderRequestDetails();
+    openForm('Edit Request Details');
     fireEvent.change(screen.getByLabelText('Contact Email'), { target: { value: 'not-an-email' } });
     fireEvent.change(screen.getByLabelText('Work Location'), {
       target: { value: 'Near the clinic that made the diagnosis' },
@@ -182,7 +227,7 @@ describe('MhdAccommodationRequestDetailsPanel', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Save Request Details' }));
 
-    expect(screen.getByText('Enter a valid email address.')).toBeInTheDocument();
+    expect(await screen.findByText('Enter a valid email address.')).toBeInTheDocument();
     expect(screen.getByText('Say what leave was requested and when.')).toBeInTheDocument();
     expect(screen.getByText(/Do not enter a diagnosis, causation statement/)).toBeInTheDocument();
     expect(onSave).not.toHaveBeenCalled();
@@ -212,8 +257,7 @@ describe('MhdAccommodationRequestDetailsPanel', () => {
       isOwnCase: true,
       canAdminister: false,
     });
-    expect(screen.getByLabelText('Contact Phone')).toBeDisabled();
-    expect(screen.getByLabelText('Permanent')).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Edit Request Details' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Save Request Details' })).toBeNull();
     expect(screen.queryByRole('button', { name: /I Certify/ })).toBeNull();
     expect(screen.getByText(/Self-Service/)).toBeInTheDocument();
@@ -226,6 +270,7 @@ describe('MhdAccommodationRequestDetailsPanel', () => {
         employee_certified_method: 'SELF_SERVICE',
       }),
     });
+    openForm('Edit Request Details');
     expect(screen.getByLabelText('Contact Phone')).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Save Request Details' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Record Employee Certification' })).toBeNull();
@@ -234,6 +279,7 @@ describe('MhdAccommodationRequestDetailsPanel', () => {
   it('lets an administrator record a paper or e-signature certification', async () => {
     const { onCertify } = renderRequestDetails({ details: requestDetails() });
     expect(screen.queryByRole('button', { name: /I Certify/ })).toBeNull();
+    openForm('Record Employee Certification');
     const method = screen.getByLabelText('Certification Method');
     expect(
       within(method)
@@ -241,13 +287,14 @@ describe('MhdAccommodationRequestDetailsPanel', () => {
         .map((option) => option.textContent),
     ).toEqual(['In-Person Paper', 'E-Signature']);
     fireEvent.change(method, { target: { value: 'E_SIGNATURE' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Record Employee Certification' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Certification' }));
     await waitFor(() => expect(onCertify).toHaveBeenCalledWith('E_SIGNATURE'));
+    await waitFor(() => expect(mockDraft.discard).toHaveBeenCalledTimes(1));
   });
 
   it('is read-only for everyone while the case is closed', () => {
     renderRequestDetails({ details: requestDetails(), caseStatus: 'CLOSED' });
-    expect(screen.getByLabelText('Contact Phone')).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Edit Request Details' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Save Request Details' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Record Employee Certification' })).toBeNull();
   });
@@ -255,8 +302,75 @@ describe('MhdAccommodationRequestDetailsPanel', () => {
   it('shows the server refusal text', async () => {
     const onSave = vi.fn().mockRejectedValue(new Error('A closed case cannot be edited'));
     renderRequestDetails({ onSave });
+    openForm('Edit Request Details');
     fireEvent.click(screen.getByRole('button', { name: 'Save Request Details' }));
     expect(await screen.findByText('A closed case cannot be edited')).toBeInTheDocument();
+    expect(mockDraft.discard).not.toHaveBeenCalled();
+  });
+
+  it('shows the saved details read-only on the panel', () => {
+    renderRequestDetails({
+      details: requestDetails({
+        contact_phone: '(510) 555-0142',
+        work_location: 'Oakland warehouse',
+      }),
+    });
+    expect(screen.getByText('(510) 555-0142')).toBeInTheDocument();
+    expect(screen.getByText('Oakland warehouse')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('drafts the work facts but never the limitation or recovery date', async () => {
+    renderRequestDetails();
+    const dialog = openForm('Edit Request Details');
+    expect(
+      within(dialog).getByText('Medical details are not saved in drafts.'),
+    ).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByLabelText('Temporary'));
+    fireEvent.change(within(dialog).getByLabelText('Anticipated Recovery Date'), {
+      target: { value: '12/31/2026' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Contact Phone'), {
+      target: { value: '(510) 555-0142' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Work Location'), {
+      target: { value: 'Oakland warehouse' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));
+
+    await waitFor(() => expect(mockDraft.save).toHaveBeenCalledTimes(1));
+    const payload = mockDraft.save.mock.calls[0][0].payload;
+    expect(payload).toMatchObject({
+      contactPhone: '(510) 555-0142',
+      workLocation: 'Oakland warehouse',
+    });
+    expect(payload).not.toHaveProperty('limitationDuration');
+    expect(payload).not.toHaveProperty('anticipatedRecoveryDate');
+  });
+
+  it('restores the drafted work facts on Resume Draft and discards the draft once saved', async () => {
+    mockDraft.draft = savedDraft({
+      contactEmail: 'renata.alvarez@example.org',
+      supervisorName: 'Marcus Lindqvist',
+      leaveRequested: true,
+      leaveRequestDetails: 'Two weeks from September 1.',
+    });
+    const { onSave } = renderRequestDetails();
+    const dialog = openForm('Edit Request Details');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
+
+    expect(within(dialog).getByLabelText('Contact Email')).toHaveValue(
+      'renata.alvarez@example.org',
+    );
+    expect(within(dialog).getByLabelText('Supervisor Name')).toHaveValue('Marcus Lindqvist');
+    expect(within(dialog).getByLabelText('Leave Request Details')).toHaveValue(
+      'Two weeks from September 1.',
+    );
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Request Details' }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockDraft.discard).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 });
 
@@ -284,6 +398,7 @@ function renderProvider(certification: MhdAccommodationProviderCertification | n
   const view = render(
     <MhdAccommodationProviderCertPanel
       caseId={CASE_ID}
+      companyId={COMPANY_ID}
       certification={certification}
       onSave={onSave}
       isPending={false}
@@ -306,6 +421,7 @@ describe('MhdAccommodationProviderCertPanel', () => {
     expect(await screen.findByText('Dr. Imani Okafor')).toBeInTheDocument();
     expect(revealMock).toHaveBeenCalledWith(CERTIFICATION.id);
     // The revealed values also fill the form, so a later save keeps them instead of erasing them.
+    openForm('Record Provider Certification');
     expect(screen.getByLabelText('Provider Name')).toHaveValue('Dr. Imani Okafor');
     expect(screen.getByLabelText('Recommendation')).toHaveValue(
       'Seated workstation with an hourly break.',
@@ -329,31 +445,37 @@ describe('MhdAccommodationProviderCertPanel', () => {
 
   it('carries the functional-wording helper text on the recommendation', () => {
     renderProvider(null);
+    openForm('Record Provider Certification');
     expect(screen.getByLabelText('Recommendation')).toHaveAccessibleDescription(
       /Do not enter a diagnosis, cause, genetic information, or medical records/,
     );
   });
 
-  it('refuses to save over an encrypted value that was not revealed or re-entered', () => {
+  it('refuses to save over an encrypted value that was not revealed or re-entered', async () => {
     const { onSave } = renderProvider(CERTIFICATION);
+    openForm('Record Provider Certification');
     fireEvent.click(screen.getByRole('button', { name: 'Save Provider Certification' }));
-    expect(screen.getByText(/A provider name is on file/)).toBeInTheDocument();
+    expect(await screen.findByText(/A provider name is on file/)).toBeInTheDocument();
     expect(screen.getByText(/A recommendation is on file/)).toBeInTheDocument();
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  it('rejects prohibited medical detail in the recommendation', () => {
+  it('rejects prohibited medical detail in the recommendation', async () => {
     const { onSave } = renderProvider(null);
+    openForm('Record Provider Certification');
     fireEvent.change(screen.getByLabelText('Recommendation'), {
       target: { value: 'Symptoms caused by a prior injury.' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Save Provider Certification' }));
-    expect(screen.getByText(/Do not enter a diagnosis, causation statement/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Do not enter a diagnosis, causation statement/),
+    ).toBeInTheDocument();
     expect(onSave).not.toHaveBeenCalled();
   });
 
   it('enables the limitation end date only for a temporary limitation and saves', async () => {
     const { onSave } = renderProvider(null);
+    openForm('Record Provider Certification');
     const endDate = screen.getByLabelText('Limitation End Date');
     expect(endDate).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Duration'), { target: { value: 'TEMPORARY' } });
@@ -386,6 +508,39 @@ describe('MhdAccommodationProviderCertPanel', () => {
         jobDutyStatementSentAt: null,
       }),
     );
+    await waitFor(() => expect(mockDraft.discard).toHaveBeenCalledTimes(1));
+  });
+
+  it('drafts only the job-duty statement date, never the certification content', async () => {
+    renderProvider(null);
+    const dialog = openForm('Record Provider Certification');
+    expect(
+      within(dialog).getByText('Medical details are not saved in drafts.'),
+    ).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByLabelText('Job-Duty Statement Sent On'), {
+      target: { value: '07/22/2026' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Provider Name'), {
+      target: { value: 'Dr. Imani Okafor' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Recommendation'), {
+      target: { value: 'Seated workstation with an hourly break.' },
+    });
+    fireEvent.click(within(dialog).getByLabelText('Disability Verified'));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));
+
+    await waitFor(() => expect(mockDraft.save).toHaveBeenCalledTimes(1));
+    expect(mockDraft.save.mock.calls[0][0].payload).toEqual({
+      jobDutyStatementSentAt: '2026-07-22',
+    });
+  });
+
+  it('restores the drafted job-duty statement date on Resume Draft', () => {
+    mockDraft.draft = savedDraft({ jobDutyStatementSentAt: '2026-07-22' });
+    renderProvider(null);
+    const dialog = openForm('Record Provider Certification');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
+    expect(within(dialog).getByLabelText('Job-Duty Statement Sent On')).toHaveValue('07/22/2026');
   });
 });
 
@@ -599,6 +754,31 @@ describe('MhdAccommodationNoticesPanel', () => {
         templateVersion: 3,
         documentGenerationId: 'generation-1',
       }),
+    );
+    await waitFor(() => expect(mockDraft.discard).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+
+  it('opens New Notice as a dialog that saves and resumes the notice type and template', async () => {
+    const denial = template({});
+    listTemplatesMock.mockResolvedValue([denial]);
+    mockDraft.draft = savedDraft({ noticeType: 'DECISION', templateId: denial.id });
+    renderNotices();
+
+    const dialog = openForm('New Notice');
+    await within(dialog).findByRole('option', { name: 'Accommodation Denial Letter (v3)' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
+    expect(within(dialog).getByLabelText('Notice Type')).toHaveValue('DECISION');
+    expect(within(dialog).getByLabelText('Document Template')).toHaveValue(denial.id);
+
+    fireEvent.change(within(dialog).getByLabelText('Notice Type'), {
+      target: { value: 'FOLLOW_UP' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));
+    await waitFor(() =>
+      expect(mockDraft.save).toHaveBeenCalledWith(
+        expect.objectContaining({ payload: { noticeType: 'FOLLOW_UP', templateId: denial.id } }),
+      ),
     );
   });
 });

@@ -32,6 +32,18 @@ vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => mockUseMhdAuth(),
 }));
 
+vi.mock('@/features/drafts/Hook', () => ({
+  useMhdDraft: () => ({
+    draft: null,
+    isLoading: false,
+    isSaving: false,
+    savedAt: null,
+    saveError: null,
+    save: vi.fn(),
+    discard: vi.fn(),
+  }),
+}));
+
 vi.mock('@/features/companies/Hook', () => ({
   useMhdCompanies: (...args: unknown[]) => mockUseMhdCompanies(...args),
 }));

@@ -2,11 +2,14 @@ import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
+import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import type { Json } from '@/types/database.types';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdCanMutateActivities, mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
 import { useMhdCompanies } from '@/features/companies/Hook';
+import { useMhdDraft } from '@/features/drafts/Hook';
+import { MHD_DRAFT_KINDS, MHD_DRAFT_NEW_KEY } from '@/features/drafts/Types';
 import { mhdActivityBoardFilterSchema, type MhdActivityFormSchemaInput } from '../Schemas';
 import {
   useMhdActivities,
@@ -57,6 +60,12 @@ export function MhdActivitiesPage() {
   const peopleQuery = useMhdActivityPeople(selectedCompanyId);
   const usersQuery = useMhdActivityUsers(selectedCompanyId);
   const tasksQuery = useMhdActivityTasks(selectedCompanyId);
+  const draft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.activityCreate,
+    draftKey: MHD_DRAFT_NEW_KEY,
+    companyId: selectedCompanyId,
+    enabled: isCreating,
+  });
 
   const activities = activitiesQuery.data ?? [];
   async function handleCreate(input: MhdActivityFormSchemaInput, checklistTitles: string[]) {
@@ -80,6 +89,7 @@ export function MhdActivitiesPage() {
           );
         }
       }
+      await draft.discard();
       setIsCreating(false);
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to create activity.');
@@ -97,9 +107,9 @@ export function MhdActivitiesPage() {
         description="Interactions around the work: sessions, calls, visits, and events with participants, notes, and outcomes."
         actions={
           canMutate ? (
-            <Button onClick={() => setIsCreating((current) => !current)} className="gap-1.5">
+            <Button onClick={() => setIsCreating(true)} className="gap-1.5">
               <Plus className="h-4 w-4" />
-              {isCreating ? 'Close Form' : 'New Activity'}
+              New Activity
             </Button>
           ) : undefined
         }
@@ -119,8 +129,7 @@ export function MhdActivitiesPage() {
       ) : null}
 
       {isCreating && canMutate && selectedCompanyId ? (
-        <MhdCard className="p-6">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">New Activity</h2>
+        <MhdFormModal title="New Activity" size="xl" onClose={() => setIsCreating(false)}>
           <MhdActivityForm
             mode="create"
             companyId={selectedCompanyId}
@@ -140,8 +149,9 @@ export function MhdActivitiesPage() {
             onSubmit={handleCreate}
             onCancel={() => setIsCreating(false)}
             isSubmitting={actions.createActivity.isPending}
+            draft={draft}
           />
-        </MhdCard>
+        </MhdFormModal>
       ) : null}
 
       <MhdActivityFilterBar

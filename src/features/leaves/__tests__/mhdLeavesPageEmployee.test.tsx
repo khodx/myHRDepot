@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
@@ -7,11 +7,30 @@ import type { MhdLeaveCaseFilters, MhdLeaveCaseSummary } from '../Types';
 const EMPLOYEE_PERSON_ID = crypto.randomUUID();
 const COMPANY_ID = crypto.randomUUID();
 
-const { rolesRef, casesRef, casesHookMock } = vi.hoisted(() => ({
+const { rolesRef, casesRef, casesHookMock, createCaseMock, createSelfMock } = vi.hoisted(() => ({
+  createCaseMock: vi.fn(),
+  createSelfMock: vi.fn(),
   rolesRef: { current: [] as MhdAuthRoleName[] },
   casesRef: { current: [] as unknown[] },
   casesHookMock: vi.fn(),
 }));
+
+const draftController = vi.hoisted(() => ({
+  current: {
+    draft: null as null | {
+      payload: Record<string, unknown>;
+      stepKey: string | null;
+      updatedAt: string;
+    },
+    isLoading: false,
+    isSaving: false,
+    savedAt: null as string | null,
+    saveError: null as string | null,
+    save: vi.fn(),
+    discard: vi.fn(),
+  },
+}));
+vi.mock('@/features/drafts/Hook', () => ({ useMhdDraft: () => draftController.current }));
 
 vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => ({
@@ -25,12 +44,14 @@ vi.mock('../Hook', () => ({
     casesHookMock(filters);
     return { data: casesRef.current, isLoading: false };
   },
-  useMhdCreateLeaveCase: () => ({ mutateAsync: vi.fn(), isPending: false }),
-  useMhdCreateLeaveCaseSelf: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useMhdCreateLeaveCase: () => ({ mutateAsync: createCaseMock, isPending: false }),
+  useMhdCreateLeaveCaseSelf: () => ({ mutateAsync: createSelfMock, isPending: false }),
 }));
 
 vi.mock('@/features/people/Hook', () => ({
-  useMhdPeoplePicker: () => ({ data: [] }),
+  useMhdPeoplePicker: () => ({
+    data: [{ id: 'person-9', firstName: 'Tobias', lastName: 'Lindqvist' }],
+  }),
 }));
 
 vi.mock('@/features/forms/Hook', () => ({
@@ -69,6 +90,10 @@ function renderPage() {
 beforeEach(() => {
   vi.clearAllMocks();
   casesRef.current = [];
+  draftController.current.draft = null;
+  draftController.current.savedAt = null;
+  draftController.current.save.mockResolvedValue(undefined);
+  draftController.current.discard.mockResolvedValue(undefined);
 });
 
 describe('MhdLeavesPage as an Employee', () => {
@@ -140,7 +165,59 @@ describe('MhdLeavesPage as an administrator', () => {
 
     expect(casesHookMock).toHaveBeenCalledWith(expect.objectContaining({ personId: null }));
     expect(screen.getByRole('columnheader', { name: 'Employee' })).toBeInTheDocument();
-    expect(screen.getByText('Tobias Lindqvist')).toBeInTheDocument();
+    expect(screen.getAllByText('Tobias Lindqvist').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: 'Open Leave Case' })).toBeInTheDocument();
+  });
+});
+
+describe('MhdLeavesPage input popups', () => {
+  it('opens Request Leave as a dialog, saves a draft, resumes it and discards it on submit', async () => {
+    rolesRef.current = ['Employee'];
+    draftController.current.draft = {
+      payload: { reasonCategory: 'Bonding', isIntermittent: true },
+      stepKey: null,
+      updatedAt: '2026-11-20T10:00:00Z',
+    };
+    createSelfMock.mockResolvedValue({ id: 'case-new' });
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Request Leave' }));
+    const dialog = screen.getByRole('dialog', { name: 'Request Leave' });
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
+    expect(within(dialog).getByLabelText('Reason category')).toHaveValue('Bonding');
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));
+    await waitFor(() => expect(draftController.current.save).toHaveBeenCalledTimes(1));
+    expect(draftController.current.save.mock.calls[0][0].payload).toMatchObject({
+      reasonCategory: 'Bonding',
+      isIntermittent: true,
+    });
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Request Leave' }));
+    await waitFor(() => expect(createSelfMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(draftController.current.discard).toHaveBeenCalled());
+  });
+
+  it('opens Open Leave Case as a dialog for an administrator and restores the employee', async () => {
+    rolesRef.current = ['HR Partner'];
+    draftController.current.draft = {
+      payload: { personId: 'person-9', reasonCategory: 'Caregiver' },
+      stepKey: null,
+      updatedAt: '2026-11-20T10:00:00Z',
+    };
+    createCaseMock.mockResolvedValue({ id: 'case-new' });
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Open Leave Case' }));
+    const dialog = screen.getByRole('dialog', { name: 'Open Leave Case' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
+    expect(within(dialog).getByLabelText('Employee')).toHaveValue('person-9');
+    expect(within(dialog).getByLabelText('Reason category')).toHaveValue('Caregiver');
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));
+    await waitFor(() => expect(draftController.current.save).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Open Case' }));
+    await waitFor(() => expect(createCaseMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(draftController.current.discard).toHaveBeenCalled());
   });
 });

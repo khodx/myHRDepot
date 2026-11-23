@@ -1,11 +1,16 @@
 import { ArrowDown, ArrowUp, CheckCircle2, Circle, ListChecks, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
+import { MhdFormModal } from '@/components/ui/MhdFormModal';
+import { useMhdDraft } from '@/features/drafts/Hook';
+import { MHD_DRAFT_KINDS } from '@/features/drafts/Types';
 import type { MhdSubActivity } from '../Types';
 import { mhdFormatSubActivityStatus } from '../Types';
 import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
 
 interface Props {
+  activityId: string;
   subActivities: MhdSubActivity[];
   canMutate: boolean;
   isSubmitting: boolean;
@@ -16,6 +21,7 @@ interface Props {
 }
 
 export function MhdSubActivityChecklist({
+  activityId,
   subActivities,
   canMutate,
   isSubmitting,
@@ -25,6 +31,12 @@ export function MhdSubActivityChecklist({
   onReorder,
 }: Props) {
   const [newTitle, setNewTitle] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
+  const draft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.activityChecklistItem,
+    draftKey: activityId,
+    enabled: isAdding,
+  });
 
   const ordered = [...subActivities].sort((a, b) => a.sortOrder - b.sortOrder);
   const doneCount = ordered.filter((item) => item.status === 'COMPLETED').length;
@@ -34,7 +46,9 @@ export function MhdSubActivityChecklist({
     const title = newTitle.trim();
     if (!title) return;
     await onAdd(title);
+    await draft.discard();
     setNewTitle('');
+    setIsAdding(false);
   }
 
   return (
@@ -138,22 +152,51 @@ export function MhdSubActivityChecklist({
       ) : null}
 
       {canMutate ? (
-        <form className="flex items-center gap-2" onSubmit={handleAdd}>
-          <input
-            value={newTitle}
-            onChange={(event) => setNewTitle(event.target.value)}
-            placeholder="Add agenda / action item…"
-            className="flex-1 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        <Button type="button" className="gap-1 px-3 py-2" onClick={() => setIsAdding(true)}>
+          <Plus className="h-4 w-4" />
+          Add Checklist Item
+        </Button>
+      ) : null}
+
+      {isAdding && canMutate ? (
+        <MhdFormModal
+          title="Add Checklist Item"
+          description="Add an agenda or action item to this activity."
+          size="md"
+          onClose={() => setIsAdding(false)}
+        >
+          <MhdDraftBanner
+            draft={draft}
+            onRestore={(payload) => setNewTitle(String(payload.title ?? ''))}
           />
-          <Button
-            type="submit"
-            disabled={isSubmitting || newTitle.trim().length === 0}
-            className="gap-1 px-3 py-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add
-          </Button>
-        </form>
+          <form className="space-y-4" onSubmit={handleAdd}>
+            <div>
+              <label htmlFor="mhd-checklist-item-title" className="mb-1 block text-sm font-medium">
+                Item
+              </label>
+              <input
+                id="mhd-checklist-item-title"
+                value={newTitle}
+                onChange={(event) => setNewTitle(event.target.value)}
+                placeholder="Add agenda / action item…"
+                className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button type="submit" disabled={isSubmitting || newTitle.trim().length === 0}>
+                Add Item
+              </Button>
+              <MhdSaveDraftButton
+                draft={draft}
+                getValues={() => ({ title: newTitle })}
+                disabled={newTitle.trim().length === 0}
+              />
+              <Button type="button" variant="secondary" onClick={() => setIsAdding(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </MhdFormModal>
       ) : null}
     </div>
   );

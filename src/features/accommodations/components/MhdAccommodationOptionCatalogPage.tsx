@@ -2,13 +2,14 @@ import { useMemo, useState } from 'react';
 import { Library } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
-import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdEmptyState } from '@/components/ui/MhdEmptyState';
 import { MhdFilterBar, MhdFilterSelect } from '@/components/ui/MhdFilterBar';
+import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
 import { MhdFormIntakeDefaultPanel } from '@/components/ui/MhdFormIntakeDefaultPanel';
+import { MHD_DRAFT_KINDS, MHD_DRAFT_NEW_KEY } from '@/features/drafts/Types';
 import {
   useMhdAccommodationOptionCatalog,
   useMhdCreateAccommodationOptionCatalogEntry,
@@ -22,6 +23,7 @@ import {
   type MhdAccommodationOptionCatalogCategory,
   type MhdAccommodationOptionCatalogEntry,
 } from '../Types';
+import { MhdAccommodationDraftModal } from './MhdAccommodationDraftModal';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -35,7 +37,6 @@ interface NewEntryDraft {
   sortOrder: string;
   isGlobal: boolean;
 }
-import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 
 const EMPTY_DRAFT: NewEntryDraft = {
   optionType: '',
@@ -57,6 +58,70 @@ interface EditDraft {
 }
 
 /**
+ * A saved draft is the person's own earlier entry, but it is still checked against the current
+ * vocabulary before it goes back into the form, so a retired category or tag is never restored.
+ */
+function restoredCategory(
+  value: unknown,
+  fallback: MhdAccommodationOptionCatalogCategory,
+): MhdAccommodationOptionCatalogCategory {
+  return MHD_ACCOMMODATION_OPTION_CATALOG_CATEGORIES.includes(
+    value as MhdAccommodationOptionCatalogCategory,
+  )
+    ? (value as MhdAccommodationOptionCatalogCategory)
+    : fallback;
+}
+
+function restoredTags(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (tag): tag is string =>
+      typeof tag === 'string' &&
+      (MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS as readonly string[]).includes(tag),
+  );
+}
+
+function restoredText(value: unknown, fallback: string): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+/**
+ * The functional-limitation checkboxes shared by the create and edit modals. The tags describe
+ * what a catalog entry addresses in general, never a person, so they are safe to draft.
+ */
+function FunctionalLimitationTagsField({
+  value,
+  onChange,
+}: {
+  value: string[];
+  onChange: (next: string[]) => void;
+}) {
+  return (
+    <fieldset>
+      <legend className="text-sm font-medium">Functional limitations addressed (optional)</legend>
+      <MhdFormFieldStack className="mt-2">
+        {MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS.map((tag) => (
+          <label key={tag} className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={value.includes(tag)}
+              onChange={(event) =>
+                onChange(
+                  event.target.checked
+                    ? [...value, tag]
+                    : value.filter((selectedTag) => selectedTag !== tag),
+                )
+              }
+            />
+            {mhdFormatAccommodationValue(tag)}
+          </label>
+        ))}
+      </MhdFormFieldStack>
+    </fieldset>
+  );
+}
+
+/**
  * `/accommodations/option-library` — the reusable accommodation-option
  * catalog (0186_accommodation_option_catalog.sql). Entirely separate from a
  * case's own `accommodation_options`, which stays free-text and
@@ -68,7 +133,8 @@ interface EditDraft {
  * Edit gating mirrors `mhd_can_manage_accommodation_option_catalog`
  * server-side (Platform Admin/HR Partner for global rows, +Client Admin for
  * their own company's rows) — the RPC re-checks regardless, this only
- * governs which affordances render.
+ * governs which affordances render. Creating and editing an entry each open
+ * in a modal with save and resume.
  */
 export function MhdAccommodationOptionCatalogPage() {
   const { profile, roles } = useMhdAuth();
@@ -103,6 +169,8 @@ export function MhdAccommodationOptionCatalogPage() {
     return Array.from(map.entries());
   }, [catalog.data]);
 
+  const editingEntry = (catalog.data ?? []).find((entry) => entry.id === editingId) ?? null;
+
   function canManageEntry(entry: MhdAccommodationOptionCatalogEntry): boolean {
     return entry.isLibrary ? isPlatformAdminOrHrPartner : canManageOwnCompanyEntries;
   }
@@ -117,23 +185,32 @@ export function MhdAccommodationOptionCatalogPage() {
   }
 
   async function submitNewEntry() {
-    if (!companyId) return;
+    if (!companyId) return false;
     if (!draft.optionType.trim() || !draft.descriptionTemplate.trim()) {
-      setError('Enter both an option type and a description template.');
-      return;
+      throw new Error('Enter both an option type and a description template.');
     }
-    await run(async () => {
-      await createEntry.mutateAsync({
-        companyId: draft.isGlobal ? null : companyId,
-        optionType: draft.optionType,
-        descriptionTemplate: draft.descriptionTemplate,
-        category: draft.category,
-        functionalLimitationTags: draft.functionalLimitationTags,
-        typicalCostRange: draft.typicalCostRange.trim() || null,
-        sortOrder: draft.sortOrder.trim() ? Number(draft.sortOrder) : undefined,
-      });
-      setDraft(EMPTY_DRAFT);
-      setCreating(false);
+    await createEntry.mutateAsync({
+      companyId: draft.isGlobal ? null : companyId,
+      optionType: draft.optionType,
+      descriptionTemplate: draft.descriptionTemplate,
+      category: draft.category,
+      functionalLimitationTags: draft.functionalLimitationTags,
+      typicalCostRange: draft.typicalCostRange.trim() || null,
+      sortOrder: draft.sortOrder.trim() ? Number(draft.sortOrder) : undefined,
+    });
+    setDraft(EMPTY_DRAFT);
+  }
+
+  function restoreNewEntry(payload: Record<string, unknown>) {
+    setDraft({
+      optionType: restoredText(payload.optionType, ''),
+      descriptionTemplate: restoredText(payload.descriptionTemplate, ''),
+      category: restoredCategory(payload.category, EMPTY_DRAFT.category),
+      functionalLimitationTags: restoredTags(payload.functionalLimitationTags),
+      typicalCostRange: restoredText(payload.typicalCostRange, ''),
+      sortOrder: restoredText(payload.sortOrder, EMPTY_DRAFT.sortOrder),
+      // Only a role that may publish to the global library gets the flag back.
+      isGlobal: isPlatformAdminOrHrPartner && payload.isGlobal === true,
     });
   }
 
@@ -150,21 +227,40 @@ export function MhdAccommodationOptionCatalogPage() {
     setError(null);
   }
 
+  function stopEditing() {
+    setEditingId(null);
+    setEditDraft(null);
+  }
+
   async function submitEdit() {
-    if (!editingId || !editDraft) return;
-    await run(async () => {
-      await updateEntry.mutateAsync({
-        entryId: editingId,
-        descriptionTemplate: editDraft.descriptionTemplate,
-        category: editDraft.category,
-        functionalLimitationTags: editDraft.functionalLimitationTags,
-        typicalCostRange: editDraft.typicalCostRange.trim() || null,
-        sortOrder: editDraft.sortOrder.trim() ? Number(editDraft.sortOrder) : undefined,
-        isActive: editDraft.isActive,
-      });
-      setEditingId(null);
-      setEditDraft(null);
+    if (!editingId || !editDraft) return false;
+    await updateEntry.mutateAsync({
+      entryId: editingId,
+      descriptionTemplate: editDraft.descriptionTemplate,
+      category: editDraft.category,
+      functionalLimitationTags: editDraft.functionalLimitationTags,
+      typicalCostRange: editDraft.typicalCostRange.trim() || null,
+      sortOrder: editDraft.sortOrder.trim() ? Number(editDraft.sortOrder) : undefined,
+      isActive: editDraft.isActive,
     });
+  }
+
+  function restoreEdit(payload: Record<string, unknown>) {
+    setEditDraft((value) =>
+      value
+        ? {
+            descriptionTemplate: restoredText(
+              payload.descriptionTemplate,
+              value.descriptionTemplate,
+            ),
+            category: restoredCategory(payload.category, value.category),
+            functionalLimitationTags: restoredTags(payload.functionalLimitationTags),
+            typicalCostRange: restoredText(payload.typicalCostRange, value.typicalCostRange),
+            sortOrder: restoredText(payload.sortOrder, value.sortOrder),
+            isActive: typeof payload.isActive === 'boolean' ? payload.isActive : value.isActive,
+          }
+        : value,
+    );
   }
 
   async function fork(entry: MhdAccommodationOptionCatalogEntry) {
@@ -181,10 +277,7 @@ export function MhdAccommodationOptionCatalogPage() {
         description="Reusable accommodation-type starting points a case's option-evaluation step can copy from and then edit. Never a constraint on the case — individualized analysis is still required for every decision."
         actions={
           companyId ? (
-            <Button
-              onClick={() => setCreating((value) => !value)}
-              className="h-9 px-3 text-[16.8px]"
-            >
+            <Button onClick={() => setCreating(true)} className="h-9 px-3 text-[16.8px]">
               New Entry
             </Button>
           ) : undefined
@@ -199,8 +292,23 @@ export function MhdAccommodationOptionCatalogPage() {
       ) : null}
 
       {creating && companyId ? (
-        <MhdCard className="space-y-3">
-          <MhdCardHeader title="Add a catalog entry" />
+        <MhdAccommodationDraftModal
+          title="Add A Catalog Entry"
+          draftKind={MHD_DRAFT_KINDS.accommodationOptionCatalog}
+          draftKey={MHD_DRAFT_NEW_KEY}
+          companyId={companyId}
+          draftTitle={draft.optionType.trim() || undefined}
+          getDraftValues={() => ({ ...draft })}
+          onRestore={restoreNewEntry}
+          submitLabel="Add Entry"
+          pendingLabel="Adding…"
+          isSubmitting={createEntry.isPending}
+          onSubmit={submitNewEntry}
+          onClose={() => {
+            setCreating(false);
+            setDraft(EMPTY_DRAFT);
+          }}
+        >
           <MhdFormFieldStack>
             <label className="text-sm font-medium">
               Option type / title
@@ -269,30 +377,10 @@ export function MhdAccommodationOptionCatalogPage() {
               />
             </label>
           </MhdFormFieldStack>
-          <fieldset>
-            <legend className="text-sm font-medium">
-              Functional limitations addressed (optional)
-            </legend>
-            <MhdFormFieldStack className="mt-2">
-              {MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS.map((tag) => (
-                <label key={tag} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={draft.functionalLimitationTags.includes(tag)}
-                    onChange={(event) =>
-                      setDraft((value) => ({
-                        ...value,
-                        functionalLimitationTags: event.target.checked
-                          ? [...value.functionalLimitationTags, tag]
-                          : value.functionalLimitationTags.filter((selectedTag) => selectedTag !== tag),
-                      }))
-                    }
-                  />
-                  {mhdFormatAccommodationValue(tag)}
-                </label>
-              ))}
-            </MhdFormFieldStack>
-          </fieldset>
+          <FunctionalLimitationTagsField
+            value={draft.functionalLimitationTags}
+            onChange={(next) => setDraft((value) => ({ ...value, functionalLimitationTags: next }))}
+          />
           {isPlatformAdminOrHrPartner ? (
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -305,23 +393,108 @@ export function MhdAccommodationOptionCatalogPage() {
               Add to the global library (visible to every company)
             </label>
           ) : null}
-          {error ? <p className="text-sm text-rose-700">{error}</p> : null}
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setCreating(false);
-                setDraft(EMPTY_DRAFT);
-                setError(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button disabled={createEntry.isPending} onClick={() => void submitNewEntry()}>
-              {createEntry.isPending ? 'Adding…' : 'Add Entry'}
-            </Button>
-          </div>
-        </MhdCard>
+        </MhdAccommodationDraftModal>
+      ) : null}
+
+      {editingId && editDraft ? (
+        <MhdAccommodationDraftModal
+          title={editingEntry ? `Edit ${editingEntry.optionType}` : 'Edit Catalog Entry'}
+          draftKind={MHD_DRAFT_KINDS.accommodationOptionCatalog}
+          draftKey={editingId}
+          companyId={companyId}
+          getDraftValues={() => ({ ...editDraft })}
+          onRestore={restoreEdit}
+          submitLabel="Save Changes"
+          pendingLabel="Saving…"
+          isSubmitting={updateEntry.isPending}
+          onSubmit={submitEdit}
+          onClose={stopEditing}
+        >
+          <MhdFormFieldStack>
+            <label className="text-sm font-medium">
+              Category
+              <select
+                className={`mt-1 ${inputClass}`}
+                value={editDraft.category}
+                onChange={(event) =>
+                  setEditDraft((value) =>
+                    value
+                      ? {
+                          ...value,
+                          category: event.target.value as MhdAccommodationOptionCatalogCategory,
+                        }
+                      : value,
+                  )
+                }
+              >
+                {MHD_ACCOMMODATION_OPTION_CATALOG_CATEGORIES.map((value) => (
+                  <option key={value} value={value}>
+                    {mhdFormatAccommodationValue(value)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm font-medium">
+              Typical cost range
+              <input
+                className={`mt-1 ${inputClass}`}
+                value={editDraft.typicalCostRange}
+                onChange={(event) =>
+                  setEditDraft((value) =>
+                    value ? { ...value, typicalCostRange: event.target.value } : value,
+                  )
+                }
+              />
+            </label>
+          </MhdFormFieldStack>
+          <label className="block text-sm font-medium">
+            Description template
+            <textarea
+              className={`mt-1 min-h-20 ${inputClass}`}
+              value={editDraft.descriptionTemplate}
+              onChange={(event) =>
+                setEditDraft((value) =>
+                  value ? { ...value, descriptionTemplate: event.target.value } : value,
+                )
+              }
+            />
+          </label>
+          <FunctionalLimitationTagsField
+            value={editDraft.functionalLimitationTags}
+            onChange={(next) =>
+              setEditDraft((value) =>
+                value ? { ...value, functionalLimitationTags: next } : value,
+              )
+            }
+          />
+          <MhdFormFieldStack>
+            <label className="text-sm font-medium">
+              Sort order
+              <input
+                type="number"
+                className={`mt-1 ${inputClass}`}
+                value={editDraft.sortOrder}
+                onChange={(event) =>
+                  setEditDraft((value) =>
+                    value ? { ...value, sortOrder: event.target.value } : value,
+                  )
+                }
+              />
+            </label>
+            <label className="mt-6 flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={editDraft.isActive}
+                onChange={(event) =>
+                  setEditDraft((value) =>
+                    value ? { ...value, isActive: event.target.checked } : value,
+                  )
+                }
+              />
+              Active
+            </label>
+          </MhdFormFieldStack>
+        </MhdAccommodationDraftModal>
       ) : null}
 
       <MhdFilterBar>
@@ -341,7 +514,7 @@ export function MhdAccommodationOptionCatalogPage() {
         </MhdFilterSelect>
       </MhdFilterBar>
 
-      {!creating && error ? <p className="text-sm text-rose-700">{error}</p> : null}
+      {error ? <p className="text-sm text-rose-700">{error}</p> : null}
 
       {catalog.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading option library…</p>
@@ -420,139 +593,6 @@ export function MhdAccommodationOptionCatalogPage() {
                         ) : null}
                       </div>
                     </div>
-
-                    {editingId === entry.id && editDraft ? (
-                      <div className="mt-4 space-y-3 border-t border-border pt-3">
-                        <MhdFormFieldStack>
-                          <label className="text-sm font-medium">
-                            Category
-                            <select
-                              className={`mt-1 ${inputClass}`}
-                              value={editDraft.category}
-                              onChange={(event) =>
-                                setEditDraft((value) =>
-                                  value
-                                    ? {
-                                        ...value,
-                                        category: event.target
-                                          .value as MhdAccommodationOptionCatalogCategory,
-                                      }
-                                    : value,
-                                )
-                              }
-                            >
-                              {MHD_ACCOMMODATION_OPTION_CATALOG_CATEGORIES.map((value) => (
-                                <option key={value} value={value}>
-                                  {mhdFormatAccommodationValue(value)}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <label className="text-sm font-medium">
-                            Typical cost range
-                            <input
-                              className={`mt-1 ${inputClass}`}
-                              value={editDraft.typicalCostRange}
-                              onChange={(event) =>
-                                setEditDraft((value) =>
-                                  value
-                                    ? { ...value, typicalCostRange: event.target.value }
-                                    : value,
-                                )
-                              }
-                            />
-                          </label>
-                        </MhdFormFieldStack>
-                        <label className="block text-sm font-medium">
-                          Description template
-                          <textarea
-                            className={`mt-1 min-h-20 ${inputClass}`}
-                            value={editDraft.descriptionTemplate}
-                            onChange={(event) =>
-                              setEditDraft((value) =>
-                                value
-                                  ? { ...value, descriptionTemplate: event.target.value }
-                                  : value,
-                              )
-                            }
-                          />
-                        </label>
-                        <fieldset>
-                          <legend className="text-sm font-medium">
-                            Functional limitations addressed (optional)
-                          </legend>
-                          <MhdFormFieldStack className="mt-2">
-                            {MHD_ACCOMMODATION_FUNCTIONAL_LIMITATION_TAGS.map((tag) => (
-                              <label key={tag} className="flex items-center gap-2 text-sm">
-                                <input
-                                  type="checkbox"
-                                  checked={editDraft.functionalLimitationTags.includes(tag)}
-                                  onChange={(event) =>
-                                    setEditDraft((value) =>
-                                      value
-                                        ? {
-                                            ...value,
-                                            functionalLimitationTags: event.target.checked
-                                              ? [...value.functionalLimitationTags, tag]
-                                              : value.functionalLimitationTags.filter(
-                                                  (selectedTag) => selectedTag !== tag,
-                                                ),
-                                          }
-                                        : value,
-                                    )
-                                  }
-                                />
-                                {mhdFormatAccommodationValue(tag)}
-                              </label>
-                            ))}
-                          </MhdFormFieldStack>
-                        </fieldset>
-                        <MhdFormFieldStack>
-                          <label className="text-sm font-medium">
-                            Sort order
-                            <input
-                              type="number"
-                              className={`mt-1 ${inputClass}`}
-                              value={editDraft.sortOrder}
-                              onChange={(event) =>
-                                setEditDraft((value) =>
-                                  value ? { ...value, sortOrder: event.target.value } : value,
-                                )
-                              }
-                            />
-                          </label>
-                          <label className="mt-6 flex items-center gap-2 text-sm">
-                            <input
-                              type="checkbox"
-                              checked={editDraft.isActive}
-                              onChange={(event) =>
-                                setEditDraft((value) =>
-                                  value ? { ...value, isActive: event.target.checked } : value,
-                                )
-                              }
-                            />
-                            Active
-                          </label>
-                        </MhdFormFieldStack>
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="secondary"
-                            onClick={() => {
-                              setEditingId(null);
-                              setEditDraft(null);
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            disabled={updateEntry.isPending}
-                            onClick={() => void submitEdit()}
-                          >
-                            {updateEntry.isPending ? 'Saving…' : 'Save Changes'}
-                          </Button>
-                        </div>
-                      </div>
-                    ) : null}
                   </li>
                 ))}
               </ul>
