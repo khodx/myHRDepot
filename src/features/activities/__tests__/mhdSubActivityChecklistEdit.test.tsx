@@ -77,14 +77,29 @@ describe('mhdCanEditActivityChecklist', () => {
 });
 
 describe('Activity checklist item editing', () => {
-  it('hides the edit action when the role cannot edit', () => {
+  it('hides edit, delete and add when the role cannot edit, keeping reorder', () => {
     renderChecklist({ canEdit: false });
     expect(
       screen.queryByRole('button', { name: 'Edit Review onboarding paperwork' }),
     ).not.toBeInTheDocument();
     expect(
+      screen.queryByRole('button', { name: 'Delete Review onboarding paperwork' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add Checklist Item' })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Move Review onboarding paperwork down' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows edit, delete and add to the editing roles', () => {
+    renderChecklist({ canEdit: true });
+    expect(
+      screen.getByRole('button', { name: 'Edit Review onboarding paperwork' }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole('button', { name: 'Delete Review onboarding paperwork' }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add Checklist Item' })).toBeInTheDocument();
   });
 
   it('opens a modal prefilled with the item, resumes a draft and saves it', async () => {

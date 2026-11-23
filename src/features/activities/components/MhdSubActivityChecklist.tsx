@@ -22,7 +22,7 @@ interface Props {
   activityId: string;
   subActivities: MhdSubActivity[];
   canMutate: boolean;
-  /** Admin/HR roles that may edit an item's content (see mhdCanEditActivityChecklist). */
+  /** Admin/HR roles that may add, edit and delete items (see mhdCanEditActivityChecklist). */
   canEdit?: boolean;
   isSubmitting: boolean;
   onToggleComplete: (subActivity: MhdSubActivity) => void;
@@ -261,7 +261,7 @@ export function MhdSubActivityChecklist({
                   ) : null}
                 </div>
 
-                {canMutate || (canEdit && onEdit) ? (
+                {canMutate || canEdit ? (
                   <div className="flex items-center gap-1">
                     {canEdit && onEdit ? (
                       <button
@@ -294,16 +294,18 @@ export function MhdSubActivityChecklist({
                         >
                           <ArrowDown className="h-4 w-4" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => onDelete(item)}
-                          disabled={isSubmitting}
-                          aria-label={`Delete ${item.title}`}
-                          className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
                       </>
+                    ) : null}
+                    {canEdit ? (
+                      <button
+                        type="button"
+                        onClick={() => onDelete(item)}
+                        disabled={isSubmitting}
+                        aria-label={`Delete ${item.title}`}
+                        className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     ) : null}
                   </div>
                 ) : null}
@@ -313,14 +315,14 @@ export function MhdSubActivityChecklist({
         </ol>
       ) : null}
 
-      {canMutate ? (
+      {canEdit ? (
         <Button type="button" className="gap-1 px-3 py-2" onClick={() => setIsAdding(true)}>
           <Plus className="h-4 w-4" />
           Add Checklist Item
         </Button>
       ) : null}
 
-      {isAdding && canMutate ? (
+      {isAdding && canEdit ? (
         <MhdFormModal
           title="Add Checklist Item"
           description="Add an agenda or action item to this activity."

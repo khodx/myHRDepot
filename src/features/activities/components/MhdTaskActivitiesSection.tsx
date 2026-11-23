@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MhdFormModal } from '@/components/ui/MhdFormModal';
+import { mhdCanEditActivityChecklist } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import type { MhdCompanyId } from '@/features/companies/Types';
 import { useMhdDraft } from '@/features/drafts/Hook';
@@ -41,7 +42,7 @@ export function MhdTaskActivitiesSection({
   companyId,
   canMutate,
 }: MhdTaskActivitiesSectionProps) {
-  const { profile } = useMhdAuth();
+  const { profile, roles } = useMhdAuth();
   const [isCreating, setIsCreating] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -107,6 +108,7 @@ export function MhdTaskActivitiesSection({
         <MhdFormModal title="Add Activity" size="xl" onClose={() => setIsCreating(false)}>
           <MhdActivityForm
             mode="create"
+            canAddChecklist={mhdCanEditActivityChecklist(roles)}
             companyId={companyId}
             currentUserId={profile?.userId ?? ''}
             defaultParentTaskId={taskId}

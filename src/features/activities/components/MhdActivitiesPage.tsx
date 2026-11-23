@@ -6,7 +6,11 @@ import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { MhdPageHeader } from '@/components/ui/MhdPageHeader';
 import type { Json } from '@/types/database.types';
 import { useMhdAuth } from '@/features/authentication/Hook';
-import { mhdCanMutateActivities, mhdIsPlatformAdminOrHrPartner } from '@/appshell/mhdRouteAccess';
+import {
+  mhdCanEditActivityChecklist,
+  mhdCanMutateActivities,
+  mhdIsPlatformAdminOrHrPartner,
+} from '@/appshell/mhdRouteAccess';
 import { useMhdCompanies } from '@/features/companies/Hook';
 import { useMhdDraft } from '@/features/drafts/Hook';
 import { MHD_DRAFT_KINDS, MHD_DRAFT_NEW_KEY } from '@/features/drafts/Types';
@@ -132,6 +136,7 @@ export function MhdActivitiesPage() {
         <MhdFormModal title="New Activity" size="xl" onClose={() => setIsCreating(false)}>
           <MhdActivityForm
             mode="create"
+            canAddChecklist={mhdCanEditActivityChecklist(roles)}
             companyId={selectedCompanyId}
             currentUserId={profile?.userId ?? ''}
             people={(peopleQuery.data ?? []).map((person) => ({

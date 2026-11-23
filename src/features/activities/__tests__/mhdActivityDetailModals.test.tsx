@@ -44,7 +44,7 @@ const {
 vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => ({
     profile: { userId: 'user-1', companyId: 'company-1' },
-    roles: ['Employee'],
+    roles: ['HR Admin'],
   }),
 }));
 

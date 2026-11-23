@@ -35,6 +35,8 @@ interface Props {
   onSubmit: (input: MhdActivityFormSchemaInput, checklistTitles: string[]) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+  /** Create mode: whether the caller may add checklist items (Platform Admin, HR Partner, HR Admin, Client Admin). */
+  canAddChecklist?: boolean;
   /** Create mode only: pre-selects "Supports Task" (e.g. opened from a task's
    *  own Activities button), so linking back is automatic rather than manual. */
   defaultParentTaskId?: string;
@@ -61,6 +63,7 @@ export function MhdActivityForm({
   onSubmit,
   onCancel,
   isSubmitting,
+  canAddChecklist = true,
   defaultParentTaskId,
   draft,
 }: Props) {
@@ -407,7 +410,7 @@ export function MhdActivityForm({
         </fieldset>
       ) : null}
 
-      {mode === 'create' ? (
+      {mode === 'create' && canAddChecklist ? (
         <fieldset className="space-y-2 rounded-md border border-border p-3">
           <legend className="px-1 text-sm font-medium">Checklist</legend>
           <p className="text-xs text-muted-foreground">
