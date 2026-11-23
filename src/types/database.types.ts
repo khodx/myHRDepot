@@ -3003,6 +3003,67 @@ export type Database = {
           },
         ]
       }
+      benefit_case_links: {
+        Row: {
+          activity_id: string | null
+          case_id: string
+          case_type: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          link_kind: string
+          subject_visible: boolean
+          task_id: string | null
+        }
+        Insert: {
+          activity_id?: string | null
+          case_id: string
+          case_type: string
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          link_kind: string
+          subject_visible?: boolean
+          task_id?: string | null
+        }
+        Update: {
+          activity_id?: string | null
+          case_id?: string
+          case_type?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          link_kind?: string
+          subject_visible?: boolean
+          task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "benefit_case_links_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benefit_case_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benefit_case_links_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ca_ab5_exemption_categories: {
         Row: {
           category_label: string
@@ -4108,6 +4169,65 @@ export type Database = {
             columns: ["set_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_worksites: {
+        Row: {
+          address_city: string
+          address_state: string
+          address_street: string
+          address_zip: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          latitude: number
+          longitude: number
+          updated_at: string
+          updated_by: string | null
+          worksite_name: string
+        }
+        Insert: {
+          address_city: string
+          address_state: string
+          address_street: string
+          address_zip: string
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          latitude: number
+          longitude: number
+          updated_at?: string
+          updated_by?: string | null
+          worksite_name: string
+        }
+        Update: {
+          address_city?: string
+          address_state?: string
+          address_street?: string
+          address_zip?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          latitude?: number
+          longitude?: number
+          updated_at?: string
+          updated_by?: string | null
+          worksite_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_worksites_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -15189,6 +15309,80 @@ export type Database = {
           },
         ]
       }
+      leave_payroll_hours_records: {
+        Row: {
+          attachment_id: string
+          company_id: string
+          entered_at: string
+          entered_by: string
+          hours_worked_12_months: number
+          id: string
+          leave_case_id: string
+          note: string | null
+          period_end: string
+          period_start: string
+          person_id: string
+          superseded_at: string | null
+        }
+        Insert: {
+          attachment_id: string
+          company_id: string
+          entered_at?: string
+          entered_by: string
+          hours_worked_12_months: number
+          id?: string
+          leave_case_id: string
+          note?: string | null
+          period_end: string
+          period_start: string
+          person_id: string
+          superseded_at?: string | null
+        }
+        Update: {
+          attachment_id?: string
+          company_id?: string
+          entered_at?: string
+          entered_by?: string
+          hours_worked_12_months?: number
+          id?: string
+          leave_case_id?: string
+          note?: string | null
+          period_end?: string
+          period_start?: string
+          person_id?: string
+          superseded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_payroll_hours_records_attachment_id_fkey"
+            columns: ["attachment_id"]
+            isOneToOne: false
+            referencedRelation: "attachments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_payroll_hours_records_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_payroll_hours_records_leave_case_id_fkey"
+            columns: ["leave_case_id"]
+            isOneToOne: false
+            referencedRelation: "leave_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_payroll_hours_records_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_return_to_work: {
         Row: {
           accommodation_case_id: string | null
@@ -22466,6 +22660,61 @@ export type Database = {
           },
         ]
       }
+      person_worksite_assignments: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          person_id: string
+          worksite_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          person_id: string
+          worksite_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          person_id?: string
+          worksite_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_worksite_assignments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_worksite_assignments_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_worksite_assignments_worksite_id_fkey"
+            columns: ["worksite_id"]
+            isOneToOne: false
+            referencedRelation: "company_worksites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       policies: {
         Row: {
           category: string
@@ -28680,6 +28929,16 @@ export type Database = {
           name: string
         }[]
       }
+      mhd_benefit_case_company: {
+        Args: { p_case_id: string; p_case_type: string }
+        Returns: string
+      }
+      mhd_benefit_case_person: {
+        Args: { p_case_id: string; p_case_type: string }
+        Returns: string
+      }
+      mhd_benefit_intake_route: { Args: { p_answers: Json }; Returns: string }
+      mhd_benefit_intake_submit: { Args: { p_payload: Json }; Returns: Json }
       mhd_bulk_update_task_fields: {
         Args: {
           p_actor_user_id?: string
@@ -29125,6 +29384,25 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      mhd_company_record_can_manage: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
+      mhd_company_worksite_save: {
+        Args: {
+          p_address_city: string
+          p_address_state: string
+          p_address_street: string
+          p_address_zip: string
+          p_company_id: string
+          p_is_active?: boolean
+          p_latitude: number
+          p_longitude: number
+          p_worksite_id: string
+          p_worksite_name: string
+        }
+        Returns: string
       }
       mhd_compensation_is_privileged: { Args: never; Returns: boolean }
       mhd_competency_list: {
@@ -30635,6 +30913,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      mhd_draft_kind_is_sensitive: {
+        Args: { p_kind: string }
+        Returns: boolean
+      }
       mhd_draft_list: {
         Args: { p_draft_kind?: string; p_limit?: number }
         Returns: {
@@ -30675,6 +30957,10 @@ export type Database = {
           updated_at: string
         }[]
       }
+      mhd_draft_open: {
+        Args: { p_kind: string; p_payload: Json }
+        Returns: Json
+      }
       mhd_draft_save: {
         Args: {
           p_company_id?: string
@@ -30707,6 +30993,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      mhd_draft_seal: {
+        Args: { p_kind: string; p_payload: Json }
+        Returns: Json
       }
       mhd_edit_message: {
         Args: { p_body: string; p_message_id: string }
@@ -30840,6 +31130,10 @@ export type Database = {
         Returns: string[]
       }
       mhd_generate_mfa_recovery_codes: { Args: never; Returns: string[] }
+      mhd_geo_distance_miles: {
+        Args: { p_lat1: number; p_lat2: number; p_lon1: number; p_lon2: number }
+        Returns: number
+      }
       mhd_get_active_notice_packet_version: {
         Args: { p_company_id?: string; p_packet_key: string }
         Returns: string
@@ -31998,6 +32292,28 @@ export type Database = {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: boolean
       }
+      mhd_information_request_create: {
+        Args: {
+          p_case_id: string
+          p_case_type: string
+          p_due_date: string
+          p_question: string
+        }
+        Returns: Json
+      }
+      mhd_information_request_respond: {
+        Args: { p_activity_id: string; p_response: string }
+        Returns: undefined
+      }
+      mhd_information_request_thread: {
+        Args: { p_activity_id: string }
+        Returns: {
+          author_user_id: string
+          created_at: string
+          note_id: string
+          note_plain_text: string
+        }[]
+      }
       mhd_interview_can_access_interview: {
         Args: { p_interview_id: string }
         Returns: boolean
@@ -33076,6 +33392,10 @@ export type Database = {
           deadline_id: string
         }[]
       }
+      mhd_leave_derive_company_facts: {
+        Args: { p_as_of: string; p_person_id: string }
+        Returns: Json
+      }
       mhd_leave_designate: {
         Args: { p_case_id: string; p_effective_date: string; p_hours: number }
         Returns: number
@@ -33140,6 +33460,31 @@ export type Database = {
           type_key: string
         }[]
       }
+      mhd_leave_eligibility_evaluate_core: {
+        Args: {
+          p_as_of_date: string
+          p_case_id: string
+          p_designated_person_selected?: boolean
+          p_eligibility_context?: Json
+          p_employer_employee_count: number
+          p_facts_source?: string
+          p_family_relationship?: string
+          p_hours_worked_12_months: number
+          p_months_of_service: number
+          p_reason_code: string
+          p_scheduled_weekly_hours: number
+          p_worksite_employee_count_75: number
+        }
+        Returns: {
+          determination_id: string
+          entitlement_hours: number
+          evaluated_outcome: string
+          findings: Json
+          leave_type_id: string
+          snapshot_id: string
+          type_key: string
+        }[]
+      }
       mhd_leave_eligibility_override: {
         Args: {
           p_determination_id: string
@@ -33147,6 +33492,14 @@ export type Database = {
           p_override_reason: string
         }
         Returns: undefined
+      }
+      mhd_leave_eligibility_run: {
+        Args: { p_as_of?: string; p_case_id: string }
+        Returns: Json
+      }
+      mhd_leave_eligibility_run_core: {
+        Args: { p_as_of?: string; p_case_id: string }
+        Returns: Json
       }
       mhd_leave_event_record: {
         Args: {
@@ -33264,6 +33617,30 @@ export type Database = {
         }
         Returns: string[]
       }
+      mhd_leave_payroll_hours_get: {
+        Args: { p_case_id: string }
+        Returns: {
+          attachment_id: string
+          entered_at: string
+          entered_by: string
+          hours_worked_12_months: number
+          note: string
+          period_end: string
+          period_start: string
+          record_id: string
+        }[]
+      }
+      mhd_leave_payroll_hours_record: {
+        Args: {
+          p_attachment_id: string
+          p_case_id: string
+          p_hours_worked_12_months: number
+          p_note?: string
+          p_period_end: string
+          p_period_start: string
+        }
+        Returns: Json
+      }
       mhd_leave_policy_get: {
         Args: { p_as_of?: string; p_company_id: string }
         Returns: Json
@@ -33359,6 +33736,7 @@ export type Database = {
         }[]
       }
       mhd_leaves_can_see_medical: { Args: never; Returns: boolean }
+      mhd_leaves_is_hr: { Args: never; Returns: boolean }
       mhd_leaves_is_privileged: { Args: never; Returns: boolean }
       mhd_leaves_status_category: {
         Args: { p_status: string }
@@ -36031,6 +36409,14 @@ export type Database = {
           p_person_id: string
           p_qualifying_children_count: number
           p_tax_year: number
+        }
+        Returns: string
+      }
+      mhd_person_worksite_assign: {
+        Args: {
+          p_effective_from: string
+          p_person_id: string
+          p_worksite_id: string
         }
         Returns: string
       }
