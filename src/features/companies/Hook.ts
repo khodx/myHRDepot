@@ -44,3 +44,33 @@ export function useMhdUpdateCompany(companyId: string) {
     },
   });
 }
+export function useMhdCompanyWorksites(companyId: string) {
+  return useQuery({
+    queryKey: ['mhd-companies', 'worksites', companyId],
+    queryFn: () => mhdCompanyService.listWorksites(companyId),
+    enabled: Boolean(companyId),
+  });
+}
+export function useMhdSaveWorksite() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: import('./Types').MhdCompanyWorksiteInput) =>
+      mhdCompanyService.saveWorksite(input),
+    onSuccess: async (_, input) => {
+      await qc.invalidateQueries({ queryKey: ['mhd-companies', 'worksites', input.companyId] });
+    },
+  });
+}
+export function useMhdCompanyWorksiteAssignments(companyId: string) {
+  return useQuery({
+    queryKey: ['mhd-companies', 'worksite-assignments', companyId],
+    queryFn: () => mhdCompanyService.listAssignments(companyId),
+    enabled: Boolean(companyId),
+  });
+}
+export function useMhdAssignWorksite() {
+  return useMutation({
+    mutationFn: (input: import('./Types').MhdPersonWorksiteAssignmentInput) =>
+      mhdCompanyService.assignWorksite(input),
+  });
+}

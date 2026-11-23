@@ -16,7 +16,7 @@ import {
 export const prohibitedMedicalDetail =
   /\b(diagnos(?:is|ed|es)|medical records?|caused by|genetic information|genetic (?:tests?|testing|screening|data|markers?)|genetics|genome|dna|family (?:medical )?history)\b/i;
 
-const noMedicalDetail = (value: string) => !prohibitedMedicalDetail.test(value);
+export const noMedicalDetail = (value: string) => !prohibitedMedicalDetail.test(value);
 const PROHIBITED_MESSAGE =
   'Do not enter a diagnosis, causation statement, genetic information, or medical record.';
 

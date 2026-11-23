@@ -4,6 +4,7 @@
  * `^[A-Z][A-Z0-9_]{2,63}$` (migration 0393).
  */
 export const MHD_DRAFT_KINDS = {
+  benefitIntake: 'BENEFIT_INTAKE',
   leaveIntake: 'LEAVE_INTAKE',
   leaveCaseHr: 'LEAVE_CASE_HR',
   leaveCaseSelf: 'LEAVE_CASE_SELF',

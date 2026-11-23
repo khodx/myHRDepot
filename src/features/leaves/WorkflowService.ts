@@ -80,6 +80,44 @@ function mhdLeaveChecklistLabel(label: string): string {
 // types remain fully checked.
 
 export const mhdLeaveWorkflowService = {
+  async getPayrollHours(caseId: string) {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_payroll_hours_get', {
+      p_case_id: caseId,
+    });
+    if (error) throw new Error(error.message);
+    const row = data?.[0];
+    return row
+      ? {
+          recordId: row.record_id,
+          hoursWorked12Months: row.hours_worked_12_months,
+          periodStart: row.period_start,
+          periodEnd: row.period_end,
+          attachmentId: row.attachment_id,
+          note: row.note,
+          enteredBy: row.entered_by,
+          enteredAt: row.entered_at,
+        }
+      : null;
+  },
+  async recordPayrollHours(input: import('./WorkflowTypes').MhdLeavePayrollHoursInput) {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_payroll_hours_record', {
+      p_case_id: input.caseId,
+      p_hours_worked_12_months: input.hoursWorked12Months,
+      p_period_start: input.periodStart,
+      p_period_end: input.periodEnd,
+      p_attachment_id: input.attachmentId,
+      p_note: input.note ?? undefined,
+    });
+    if (error) throw new Error(error.message);
+    return data;
+  },
+  async runEligibility(caseId: string) {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_eligibility_run', {
+      p_case_id: caseId,
+    });
+    if (error) throw new Error(error.message);
+    return data;
+  },
   async get(caseId: string): Promise<MhdLeaveWorkflow> {
     const { data, error } = await supabaseClient.rpc('mhd_leave_workflow_get', {
       p_case_id: caseId,

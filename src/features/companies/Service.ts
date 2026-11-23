@@ -49,6 +49,68 @@ function mapCompanyRow(row: MhdCompanyRow): MhdCompany {
 }
 
 export const mhdCompanyService = {
+  async listWorksites(companyId: string) {
+    const { data, error } = await supabaseClient
+      .from('company_worksites')
+      .select(
+        'id, company_id, worksite_name, address_street, address_city, address_state, address_zip, latitude, longitude, is_active',
+      )
+      .eq('company_id', companyId);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      companyId: r.company_id,
+      worksiteName: r.worksite_name,
+      addressStreet: r.address_street,
+      addressCity: r.address_city,
+      addressState: r.address_state,
+      addressZip: r.address_zip,
+      latitude: r.latitude,
+      longitude: r.longitude,
+      isActive: r.is_active,
+    }));
+  },
+  async saveWorksite(input: import('./Types').MhdCompanyWorksiteInput) {
+    const { data, error } = await supabaseClient.rpc('mhd_company_worksite_save', {
+      p_company_id: input.companyId,
+      // SQL NULL means "create"; generated RPC types omit null for non-defaulted uuid arguments.
+      p_worksite_id: (input.worksiteId ?? null) as string,
+      p_worksite_name: input.worksiteName,
+      p_address_street: input.addressStreet,
+      p_address_city: input.addressCity,
+      p_address_state: input.addressState,
+      p_address_zip: input.addressZip,
+      p_latitude: input.latitude,
+      p_longitude: input.longitude,
+      p_is_active: input.isActive ?? true,
+    });
+    if (error) throw new Error(error.message);
+    return data;
+  },
+  async listAssignments(companyId: string) {
+    const { data, error } = await supabaseClient
+      .from('person_worksite_assignments')
+      .select('id, company_id, person_id, worksite_id, effective_from, effective_to')
+      .eq('company_id', companyId);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      companyId: r.company_id,
+      personId: r.person_id,
+      worksiteId: r.worksite_id,
+      effectiveFrom: r.effective_from,
+      effectiveTo: r.effective_to,
+    }));
+  },
+  async assignWorksite(input: import('./Types').MhdPersonWorksiteAssignmentInput) {
+    const { data, error } = await supabaseClient.rpc('mhd_person_worksite_assign', {
+      p_person_id: input.personId,
+      p_worksite_id: input.worksiteId,
+      p_effective_from: input.effectiveFrom,
+    });
+    if (error) throw new Error(error.message);
+    return data;
+  },
   async listCompanies(filters: MhdCompanyListFilters): Promise<MhdCompany[]> {
     let query = supabaseClient
       .from('companies')

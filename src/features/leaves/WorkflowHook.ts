@@ -20,6 +20,28 @@ export function useMhdLeaveReadiness() {
     queryFn: () => mhdLeaveWorkflowService.readiness(),
   });
 }
+export function useMhdLeavePayrollHours(caseId: string) {
+  return useQuery({
+    queryKey: [...key(caseId), 'payroll-hours'],
+    queryFn: () => mhdLeaveWorkflowService.getPayrollHours(caseId),
+    enabled: Boolean(caseId),
+  });
+}
+export function useMhdRecordLeavePayrollHours(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: import('./WorkflowTypes').MhdLeavePayrollHoursInput) =>
+      mhdLeaveWorkflowService.recordPayrollHours(input),
+    onSuccess: refresh,
+  });
+}
+export function useMhdRunLeaveEligibility(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: () => mhdLeaveWorkflowService.runEligibility(caseId),
+    onSuccess: refresh,
+  });
+}
 
 function useRefresh(caseId: string) {
   const queryClient = useQueryClient();

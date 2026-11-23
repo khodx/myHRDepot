@@ -122,6 +122,20 @@ export const mhdLeaveCaseSelfFormSchema = z
     },
   );
 
+export const mhdLeavePayrollHoursSchema = z
+  .object({
+    caseId: z.string().uuid(),
+    hoursWorked12Months: z.number().min(0).max(8760),
+    periodStart: isoDate,
+    periodEnd: isoDate,
+    attachmentId: z.string().uuid(),
+    note: z.string().trim().optional().nullable(),
+  })
+  .refine((value) => value.periodEnd > value.periodStart, {
+    message: 'The period end must be after the period start.',
+    path: ['periodEnd'],
+  });
+
 /**
  * The designation set. An empty array is permitted here — the RPC treats it as
  * "clear the set" — but `mhd_leave_designate` then refuses to decrement a case

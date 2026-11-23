@@ -47,3 +47,40 @@ export interface MhdUpdateCompanyInput {
 export interface MhdCompanyListFilters {
   searchTerm: string;
 }
+export interface MhdCompanyWorksite {
+  id: string;
+  companyId: string;
+  worksiteName: string;
+  addressStreet: string;
+  addressCity: string;
+  addressState: string;
+  addressZip: string;
+  latitude: number;
+  longitude: number;
+  isActive: boolean;
+}
+export interface MhdPersonWorksiteAssignment {
+  id: string;
+  companyId: string;
+  personId: string;
+  worksiteId: string;
+  effectiveFrom: string;
+  effectiveTo: string | null;
+}
+export interface MhdCompanyWorksiteInput {
+  companyId: string;
+  worksiteId?: string | null;
+  worksiteName: string;
+  addressStreet: string;
+  addressCity: string;
+  addressState: string;
+  addressZip: string;
+  latitude: number;
+  longitude: number;
+  isActive?: boolean;
+}
+export interface MhdPersonWorksiteAssignmentInput {
+  personId: string;
+  worksiteId: string;
+  effectiveFrom: string;
+}

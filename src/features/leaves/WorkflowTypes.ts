@@ -262,6 +262,26 @@ export interface MhdLeaveEligibilityInput {
   employerAgreedIntermittentBonding?: boolean;
 }
 
+export interface MhdLeavePayrollHours {
+  recordId: string;
+  hoursWorked12Months: number;
+  periodStart: string;
+  periodEnd: string;
+  attachmentId: string;
+  note: string | null;
+  enteredBy: string;
+  enteredAt: string;
+}
+
+export interface MhdLeavePayrollHoursInput {
+  caseId: string;
+  hoursWorked12Months: number;
+  periodStart: string;
+  periodEnd: string;
+  attachmentId: string;
+  note?: string | null;
+}
+
 // Vocabularies below mirror the database CHECK constraints named beside each list, so a
 // picker can never offer a value the RPC would refuse.
 

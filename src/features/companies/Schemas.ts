@@ -32,6 +32,23 @@ export const mhdUpdateCompanySchema = z.object({
 export const mhdCompanyListFilterSchema = z.object({
   searchTerm: z.string().trim().max(100).default(''),
 });
+export const mhdCompanyWorksiteSchema = z.object({
+  companyId: z.string().uuid(),
+  worksiteId: z.string().uuid().nullable().optional(),
+  worksiteName: z.string().trim().min(1),
+  addressStreet: z.string().trim().min(1),
+  addressCity: z.string().trim().min(1),
+  addressState: z.string().regex(/^[A-Za-z]{2}$/),
+  addressZip: z.string().trim().min(1),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  isActive: z.boolean().default(true),
+});
+export const mhdPersonWorksiteAssignmentSchema = z.object({
+  personId: z.string().uuid(),
+  worksiteId: z.string().uuid(),
+  effectiveFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
 
 export type MhdCreateCompanyFormValues = z.infer<typeof mhdCreateCompanySchema>;
 export type MhdUpdateCompanyFormValues = z.infer<typeof mhdUpdateCompanySchema>;
