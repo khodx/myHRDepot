@@ -1,23 +1,26 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { MHD_LEAVE_FAMILY_RELATIONSHIPS, type MhdLeaveWorkflow } from '../WorkflowTypes';
+import type { MhdLeaveWorkflow } from '../WorkflowTypes';
 import {
   mhdLeaveDraftServiceMock as drafts,
   mhdResetLeaveDraftService,
-  mhdTestLeaveDraft,
 } from './leaveDraftTestKit';
 import { mhdTestLeaveWorkflow } from './leaveWorkflowFixture';
 
 const CASE_ID = 'd4b91e60-2c73-4a58-9e1f-6a0c8d35b27e';
 
-const { evaluateAsync, bondingAsync, designateAsync, workflowData } = vi.hoisted(() => ({
-  evaluateAsync: vi.fn(),
-  bondingAsync: vi.fn(),
-  designateAsync: vi.fn(),
-  workflowData: { current: null as unknown },
-}));
+const { runAsync, answersAsync, bondingAsync, designateAsync, workflowData, factsRef, runData } =
+  vi.hoisted(() => ({
+    runAsync: vi.fn(),
+    answersAsync: vi.fn(),
+    bondingAsync: vi.fn(),
+    designateAsync: vi.fn(),
+    workflowData: { current: null as unknown },
+    factsRef: { current: null as unknown },
+    runData: { current: undefined as unknown },
+  }));
 
 vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => ({ authUserId: 'user-1', profile: { companyId: null }, roles: ['HR Partner'] }),
@@ -36,21 +39,19 @@ vi.mock('../WorkflowHook', async () => {
   return {
     ...mhdIdleLeaveWorkflowHooks(),
     useMhdLeaveWorkflow: () => ({ isLoading: false, data: workflowData.current }),
-    useMhdLeaveEligibility: () => ({ mutateAsync: evaluateAsync, isPending: false }),
+    useMhdRunLeaveEligibility: () => ({
+      mutateAsync: runAsync,
+      isPending: false,
+      data: runData.current,
+    }),
+    useMhdLeaveEligibilityFacts: () => ({ data: factsRef.current }),
+    useMhdSetLeaveCaseAnswers: () => ({ mutateAsync: answersAsync, isPending: false }),
     useMhdLeaveBondingEvent: () => ({ mutateAsync: bondingAsync, isPending: false }),
     useMhdLeaveDesignatedPerson: () => ({ mutateAsync: designateAsync, isPending: false }),
   };
 });
 
 const { MhdLeaveWorkflowPanel } = await import('../components/MhdLeaveWorkflowPanel');
-
-const LABELS = {
-  weekly: 'Scheduled weekly hours',
-  employer: 'Employer employee count',
-  worksite: 'FMLA worksite count within 75 miles',
-  months: 'Months of service',
-  hours: 'Hours worked in prior 12 months',
-};
 
 function setWorkflow(
   overrides: Partial<MhdLeaveWorkflow> = {},
@@ -70,202 +71,132 @@ function renderPanel(privileged = true) {
   );
 }
 
-function openEvaluate() {
-  fireEvent.click(screen.getByRole('button', { name: 'Evaluate Eligibility' }));
-  return screen.getByRole('dialog');
-}
-
-function enterFacts() {
-  fireEvent.change(screen.getByLabelText(LABELS.weekly), { target: { value: '30' } });
-  fireEvent.change(screen.getByLabelText(LABELS.employer), { target: { value: '62' } });
-  fireEvent.change(screen.getByLabelText(LABELS.worksite), { target: { value: '58' } });
-  fireEvent.change(screen.getByLabelText(LABELS.months), { target: { value: '19' } });
-  fireEvent.change(screen.getByLabelText(LABELS.hours), { target: { value: '1310' } });
-}
-
-async function evaluateAndWaitForClose(calls: number) {
-  fireEvent.click(screen.getByRole('button', { name: 'Evaluate All Bases' }));
-  await waitFor(() => expect(evaluateAsync).toHaveBeenCalledTimes(calls));
-  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-}
+const FACTS = {
+  snapshotId: 'snap-1',
+  asOfDate: '2026-11-23',
+  employerEmployeeCount: 64,
+  monthsOfService: 31.5,
+  hoursWorked12Months: 1412,
+  worksiteEmployeeCount75: 58,
+  scheduledWeeklyHours: 40,
+  provenance: {
+    source: 'COMPANY_RECORDS',
+    worksite_name: 'Sacramento Distribution Center',
+    worksite_employees_near_boundary: 3,
+    worksite_confirmation_needed: true,
+    employees_without_worksite: 2,
+  },
+  createdAt: '2026-11-23T17:00:00Z',
+  adultChildIncapableOfSelfCare: null,
+  employerAgreedIntermittentBonding: null,
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
   mhdResetLeaveDraftService();
   setWorkflow();
-  evaluateAsync.mockResolvedValue([]);
+  factsRef.current = null;
+  runData.current = undefined;
+  runAsync.mockResolvedValue({ ran: true, snapshotId: 'snap-1', blockers: [] });
+  answersAsync.mockResolvedValue(undefined);
   bondingAsync.mockResolvedValue(undefined);
   designateAsync.mockResolvedValue('designation-1');
 });
 
-describe('MhdLeaveWorkflowPanel eligibility facts', () => {
-  it('opens the evaluation as a dialog and offers no launch to a non-administrator', () => {
+describe('MhdLeaveWorkflowPanel evaluation', () => {
+  it('offers no evaluation to a non-administrator, who sees the verification status instead', () => {
     renderPanel(false);
-    expect(screen.queryByRole('button', { name: 'Evaluate Eligibility' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Run Evaluation' })).not.toBeInTheDocument();
+    expect(screen.getByText('Awaiting HR verification')).toBeInTheDocument();
   });
 
-  it('assumes no employer or service fact and cannot evaluate until each is entered', () => {
+  it('runs the evaluation with no typed facts', async () => {
     renderPanel();
-    expect(screen.queryByLabelText(LABELS.weekly)).not.toBeInTheDocument();
-    const dialog = openEvaluate();
-    expect(dialog).toHaveAccessibleName('Evaluate Current Facts');
-    for (const label of Object.values(LABELS)) {
-      expect(within(dialog).getByLabelText(label)).toHaveValue(null);
-    }
-    expect(screen.getByText(/none are assumed/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Evaluate All Bases' })).toBeDisabled();
+    expect(screen.queryByLabelText(/months of service|hours worked|employee count/i)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Run Evaluation' }));
+    await waitFor(() => expect(runAsync).toHaveBeenCalledTimes(1));
+    expect(runAsync).toHaveBeenCalledWith();
   });
 
-  it('stays disabled for a negative count or zero weekly hours', () => {
+  it('explains in plain language why an evaluation could not run', () => {
+    runData.current = { ran: false, snapshotId: null, blockers: ['SCHEDULE_ASSIGNMENT_REQUIRED'] };
     renderPanel();
-    openEvaluate();
-    enterFacts();
-    expect(screen.getByRole('button', { name: 'Evaluate All Bases' })).not.toBeDisabled();
-    fireEvent.change(screen.getByLabelText(LABELS.months), { target: { value: '-1' } });
-    expect(screen.getByRole('button', { name: 'Evaluate All Bases' })).toBeDisabled();
-    fireEvent.change(screen.getByLabelText(LABELS.months), { target: { value: '19' } });
-    fireEvent.change(screen.getByLabelText(LABELS.weekly), { target: { value: '0' } });
-    expect(screen.getByRole('button', { name: 'Evaluate All Bases' })).toBeDisabled();
+    expect(screen.getByText(/schedule assignment is required/i)).toBeInTheDocument();
   });
 
-  it('sends exactly the facts that were entered and discards the draft', async () => {
+  it('shows HR the facts the evaluation used, with the 75-mile boundary warning', () => {
+    factsRef.current = FACTS;
     renderPanel();
-    openEvaluate();
-    enterFacts();
-    await evaluateAndWaitForClose(1);
-    expect(evaluateAsync.mock.calls[0][0]).toMatchObject({
-      caseId: CASE_ID,
-      employerEmployeeCount: 62,
-      worksiteEmployeeCount75: 58,
-      monthsOfService: 19,
-      hoursWorked12Months: 1310,
-      scheduledWeeklyHours: 30,
-    });
-    expect(drafts.discard).toHaveBeenCalledWith(
-      'LEAVE_CASE_ACTION',
-      `${CASE_ID}:eligibility-evaluate`,
+    expect(screen.getByText('Facts Used In This Evaluation')).toBeInTheDocument();
+    expect(screen.getByText('1412')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Employees within 75 miles of Sacramento Distribution Center/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/HR confirmation needed: 3 employees are near the 75-mile boundary/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/2 employees have no worksite assignment/)).toBeInTheDocument();
+  });
+
+  it('shows no facts card when no evaluation has run', () => {
+    renderPanel();
+    expect(screen.queryByText('Facts Used In This Evaluation')).not.toBeInTheDocument();
+  });
+});
+
+describe('MhdLeaveWorkflowPanel eligibility answers', () => {
+  it('asks the adult-child question only for an adult-child relationship and saves the answer', async () => {
+    setWorkflow(
+      {},
+      { reason_code: 'FAMILY_SERIOUS_HEALTH_CONDITION', family_relationship: 'CHILD_ADULT' },
     );
-  });
-
-  it('shows the refusal inside the dialog and keeps the facts', async () => {
-    evaluateAsync.mockRejectedValueOnce(new Error('No active rule set for CFRA'));
     renderPanel();
-    openEvaluate();
-    enterFacts();
-    fireEvent.click(screen.getByRole('button', { name: 'Evaluate All Bases' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('No active rule set for CFRA');
-    expect(screen.getByLabelText(LABELS.employer)).toHaveValue(62);
-  });
-
-  it('saves the facts as a draft, the self-care answer included', async () => {
-    renderPanel();
-    openEvaluate();
-    expect(screen.queryByText(/not saved in drafts/)).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Family relationship'), {
-      target: { value: 'CHILD_ADULT' },
-    });
-    fireEvent.change(screen.getByLabelText('Incapable Of Self-Care'), {
-      target: { value: 'YES' },
-    });
-    enterFacts();
-    fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
-    await waitFor(() => expect(drafts.save).toHaveBeenCalledTimes(1));
-    const saved = drafts.save.mock.calls[0][0];
-    expect(saved).toMatchObject({
-      draftKind: 'LEAVE_CASE_ACTION',
-      draftKey: `${CASE_ID}:eligibility-evaluate`,
-      companyId: '9b5e2c71-3d84-4f1a-a6c0-58d27e4f1b93',
-      payload: {
-        reasonCode: 'OWN_SERIOUS_HEALTH_CONDITION',
-        familyRelationship: 'CHILD_ADULT',
-        weeklyHours: '30',
-        employerCount: '62',
-        worksiteCount: '58',
-        months: '19',
-        hours: '1310',
-        employerAgreedBonding: false,
-        coveredEmployerOverride: false,
-        selfCare: 'YES',
-      },
-    });
-  });
-
-  it('resumes a saved evaluation draft, including the reason and relationship', async () => {
-    drafts.get.mockResolvedValue(
-      mhdTestLeaveDraft(`${CASE_ID}:eligibility-evaluate`, {
-        reasonCode: 'FAMILY_SERIOUS_HEALTH_CONDITION',
-        familyRelationship: 'PARENT',
-        weeklyHours: '32',
-        employerCount: '140',
+    const select = screen.getByLabelText(/unable to care for themself/i);
+    expect(select).toHaveValue('UNKNOWN');
+    fireEvent.change(select, { target: { value: 'YES' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Answers' }));
+    await waitFor(() =>
+      expect(answersAsync).toHaveBeenCalledWith({
+        adultChildIncapableOfSelfCare: true,
+        employerAgreedIntermittentBonding: null,
       }),
     );
-    renderPanel();
-    openEvaluate();
-    fireEvent.click(await screen.findByRole('button', { name: 'Resume Draft' }));
-    expect(screen.getByLabelText('Leave reason')).toHaveValue('FAMILY_SERIOUS_HEALTH_CONDITION');
-    expect(screen.getByLabelText('Family relationship')).toHaveValue('PARENT');
-    expect(screen.getByLabelText(LABELS.weekly)).toHaveValue(32);
-    expect(screen.getByLabelText(LABELS.employer)).toHaveValue(140);
   });
 
-  it('resumes the saved self-care answer', async () => {
-    drafts.get.mockResolvedValue(
-      mhdTestLeaveDraft(`${CASE_ID}:eligibility-evaluate`, {
-        familyRelationship: 'CHILD_ADULT',
-        selfCare: 'YES',
+  it('asks about employer agreement only for intermittent bonding leave', async () => {
+    setWorkflow({}, { reason_code: 'BONDING', is_intermittent: true });
+    renderPanel();
+    expect(screen.queryByLabelText(/unable to care for themself/i)).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/Employer agrees to intermittent bonding/i), {
+      target: { value: 'NO' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Answers' }));
+    await waitFor(() =>
+      expect(answersAsync).toHaveBeenCalledWith({
+        adultChildIncapableOfSelfCare: null,
+        employerAgreedIntermittentBonding: false,
       }),
     );
+  });
+
+  it('shows the saved answers from the latest evaluation', () => {
+    factsRef.current = { ...FACTS, adultChildIncapableOfSelfCare: false };
+    setWorkflow(
+      {},
+      { reason_code: 'FAMILY_SERIOUS_HEALTH_CONDITION', family_relationship: 'CHILD_ADULT' },
+    );
     renderPanel();
-    openEvaluate();
-    fireEvent.click(await screen.findByRole('button', { name: 'Resume Draft' }));
-    expect(screen.getByLabelText('Incapable Of Self-Care')).toHaveValue('YES');
+    expect(screen.getByLabelText(/unable to care for themself/i)).toHaveValue('NO');
+  });
+
+  it('asks neither question for an ordinary own-health leave', () => {
+    renderPanel();
+    expect(screen.queryByText('Eligibility Answers')).not.toBeInTheDocument();
   });
 });
 
 describe('MhdLeaveWorkflowPanel relationships and bonding', () => {
-  it('offers exactly the shared family-relationship vocabulary, labelled in words', () => {
-    renderPanel();
-    openEvaluate();
-    const options = Array.from(
-      screen.getByLabelText('Family relationship').querySelectorAll('option'),
-    );
-    expect(options.map((option) => option.value)).toEqual(['', ...MHD_LEAVE_FAMILY_RELATIONSHIPS]);
-    expect(options.find((option) => option.value === 'PARENT_IN_LAW')).toHaveTextContent(
-      'Parent In Law',
-    );
-  });
-
-  it('asks the adult-child self-care question only for CHILD_ADULT and sends the answer', async () => {
-    renderPanel();
-    openEvaluate();
-    expect(screen.queryByLabelText('Incapable Of Self-Care')).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Family relationship'), {
-      target: { value: 'CHILD_ADULT' },
-    });
-    expect(screen.getByLabelText('Incapable Of Self-Care')).toHaveValue('UNKNOWN');
-    enterFacts();
-    await evaluateAndWaitForClose(1);
-    expect(evaluateAsync.mock.calls[0][0]).not.toHaveProperty('incapableOfSelfCare');
-
-    // The relationship is the panel's choice, so it is still chosen on reopening.
-    openEvaluate();
-    expect(screen.getByLabelText('Family relationship')).toHaveValue('CHILD_ADULT');
-    fireEvent.change(screen.getByLabelText('Incapable Of Self-Care'), { target: { value: 'YES' } });
-    enterFacts();
-    await evaluateAndWaitForClose(2);
-    expect(evaluateAsync.mock.calls[1][0]).toMatchObject({
-      familyRelationship: 'CHILD_ADULT',
-      incapableOfSelfCare: true,
-    });
-
-    openEvaluate();
-    fireEvent.change(screen.getByLabelText('Incapable Of Self-Care'), { target: { value: 'NO' } });
-    enterFacts();
-    await evaluateAndWaitForClose(3);
-    expect(evaluateAsync.mock.calls[2][0]).toMatchObject({ incapableOfSelfCare: false });
-  });
-
-  it('records the bonding event and sends employer agreement for intermittent bonding', async () => {
+  it('records the bonding event', async () => {
     setWorkflow({}, { reason_code: 'BONDING', is_intermittent: true });
     renderPanel();
     fireEvent.click(screen.getByRole('button', { name: 'Edit Bonding Event' }));
@@ -289,36 +220,18 @@ describe('MhdLeaveWorkflowPanel relationships and bonding', () => {
       }),
     );
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-
-    openEvaluate();
-    fireEvent.click(screen.getByLabelText('Employer Agrees To Intermittent Bonding'));
-    enterFacts();
-    await evaluateAndWaitForClose(1);
-    expect(evaluateAsync.mock.calls[0][0]).toMatchObject({
-      reasonCode: 'BONDING',
-      employerAgreedIntermittentBonding: true,
-    });
   });
 
-  it('does not offer the intermittent-bonding agreement for continuous bonding leave', () => {
+  it('does not offer the bonding agreement or answers for continuous bonding leave', () => {
     setWorkflow({}, { reason_code: 'BONDING' });
     renderPanel();
     expect(screen.getByRole('button', { name: 'Edit Bonding Event' })).toBeInTheDocument();
-    openEvaluate();
-    expect(
-      screen.queryByLabelText('Employer Agrees To Intermittent Bonding'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Eligibility Answers')).not.toBeInTheDocument();
   });
 
-  it('replaces the designated-person checkbox with the designated-person record', async () => {
+  it('shows the designated-person record when the relationship is a designated person', async () => {
+    setWorkflow({}, { family_relationship: 'DESIGNATED_PERSON' });
     renderPanel();
-    expect(screen.queryByLabelText(/designated person selected/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Designated Person' })).not.toBeInTheDocument();
-    openEvaluate();
-    fireEvent.change(screen.getByLabelText('Family relationship'), {
-      target: { value: 'DESIGNATED_PERSON' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByRole('heading', { name: 'Designated Person' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Add Designated Person' }));
     fireEvent.change(screen.getByLabelText('Designated person name'), {
@@ -333,11 +246,6 @@ describe('MhdLeaveWorkflowPanel relationships and bonding', () => {
         pflAttestedOn: null,
       }),
     );
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    openEvaluate();
-    enterFacts();
-    await evaluateAndWaitForClose(1);
-    expect(evaluateAsync.mock.calls[0][0]).not.toHaveProperty('designatedPersonSelected');
   });
 
   it('renders a readable line per finding and the raw code for an unknown one', () => {

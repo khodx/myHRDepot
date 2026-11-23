@@ -75,7 +75,11 @@ export function mhdIdleLeaveWorkflowHooks() {
   const idle = () => ({ mutateAsync: vi.fn().mockResolvedValue(undefined), isPending: false });
   return {
     useMhdLeaveReadiness: () => ({ data: undefined }),
-    useMhdLeaveEligibility: idle,
+    useMhdRunLeaveEligibility: idle,
+    useMhdRecordLeavePayrollHours: idle,
+    useMhdSetLeaveCaseAnswers: idle,
+    useMhdLeaveEligibilityFacts: () => ({ data: null }),
+    useMhdLeavePayrollHours: () => ({ data: null, isLoading: false }),
     useMhdConfirmLeaveEligibility: idle,
     useMhdOverrideLeaveEligibility: idle,
     useMhdLeaveEvent: idle,

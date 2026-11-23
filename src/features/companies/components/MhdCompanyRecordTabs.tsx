@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 
-export type MhdCompanyRecordTab = 'detail';
+export type MhdCompanyRecordTab = 'detail' | 'worksites';
 
 interface MhdCompanyRecordTabsProps {
   companyId: string;
@@ -17,6 +17,7 @@ interface MhdCompanyRecordTabsProps {
 export function MhdCompanyRecordTabs({ companyId, active, className }: MhdCompanyRecordTabsProps) {
   const tabs: Array<{ key: MhdCompanyRecordTab; label: string; to: string }> = [
     { key: 'detail', label: 'Detail', to: `/companies/${companyId}` },
+    { key: 'worksites', label: 'Worksites', to: `/companies/${companyId}/worksites` },
   ];
 
   return (

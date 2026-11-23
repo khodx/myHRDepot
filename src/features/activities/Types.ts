@@ -31,6 +31,7 @@ export type MhdActivityType =
   | 'COMPANY_EVENT'
   | 'EXIT_INTERVIEW'
   | 'FORM_SUBMISSION'
+  | 'INFORMATION_REQUEST'
   | 'OTHER';
 
 export type MhdActivityStatus = 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
@@ -191,6 +192,7 @@ export const MHD_ACTIVITY_TYPES = [
   'COMPANY_EVENT',
   'EXIT_INTERVIEW',
   'FORM_SUBMISSION',
+  'INFORMATION_REQUEST',
   'OTHER',
 ] as const satisfies readonly MhdActivityType[];
 
@@ -226,6 +228,7 @@ export function mhdFormatActivityType(activityType: MhdActivityType): string {
     COMPANY_EVENT: 'Company Event',
     EXIT_INTERVIEW: 'Exit Interview',
     FORM_SUBMISSION: 'Form Submission',
+    INFORMATION_REQUEST: 'Information Request',
     OTHER: 'Other',
   };
 

@@ -82,6 +82,14 @@ vi.mock('../Hook', () => ({
   useMhdUpdateCertificationStatus: idle,
 }));
 
+vi.mock('../components/MhdLeavePayrollHoursPanel', () => ({
+  MhdLeavePayrollHoursPanel: () => null,
+}));
+
+vi.mock('@/components/ui/MhdInformationRequestPanel', () => ({
+  MhdInformationRequestPanel: () => null,
+}));
+
 vi.mock('../WorkflowHook', () => ({
   useMhdLeaveWorkflow: () => ({ isLoading: false, data: mhdTestLeaveWorkflow(CASE_ID) }),
   useMhdLeaveCertificationClearDates: () => ({ mutateAsync: vi.fn(), isPending: false }),

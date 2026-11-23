@@ -58,6 +58,12 @@ export interface MhdInformationRequest {
   createdAt: string;
   followUpTaskId: string | null;
 }
+export interface MhdInformationRequestThreadNote {
+  noteId: string;
+  authorUserId: string;
+  text: string;
+  createdAt: string;
+}
 export interface MhdBenefitCaseLink {
   id: string;
   companyId: string;

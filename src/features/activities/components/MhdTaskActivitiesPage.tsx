@@ -16,7 +16,11 @@ export function MhdTaskActivitiesPage() {
   const { roles } = useMhdAuth();
   const canMutate = mhdCanMutateActivities(roles);
 
-  const { data: task, isLoading, error } = useQuery({
+  const {
+    data: task,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['mhd-task', taskId],
     queryFn: () => mhdTaskService.getTaskById(taskId!),
     enabled: !!taskId,
@@ -42,7 +46,11 @@ export function MhdTaskActivitiesPage() {
           {(error as Error)?.message ?? 'Task not found'}
         </p>
       ) : (
-        <MhdTaskActivitiesSection taskId={task.id} companyId={task.companyId} canMutate={canMutate} />
+        <MhdTaskActivitiesSection
+          taskId={task.id}
+          companyId={task.companyId}
+          canMutate={canMutate}
+        />
       )}
     </div>
   );

@@ -46,6 +46,8 @@ import { useMhdLeaveCertificationClearDates, useMhdLeaveWorkflow } from '../Work
 import type { MhdLeavePolicy } from '../WorkflowTypes';
 import { mhdEmployeeFileLabelForKey } from '@/features/employee-files/Types';
 import { MhdLeaveWorkflowPanel } from './MhdLeaveWorkflowPanel';
+import { MhdLeavePayrollHoursPanel } from './MhdLeavePayrollHoursPanel';
+import { MhdInformationRequestPanel } from '@/components/ui/MhdInformationRequestPanel';
 import { useMhdLeaveDraftField } from './mhdLeaveActionContext';
 import { mhdLeaveEnumLabel } from './mhdLeaveLabels';
 
@@ -293,6 +295,8 @@ export function MhdLeaveCaseDetailPage() {
       </MhdCard>
 
       <MhdLeaveWorkflowPanel caseId={caseId} privileged={isPrivileged} />
+      <MhdLeavePayrollHoursPanel caseId={caseId} />
+      <MhdInformationRequestPanel caseType="LEAVE" caseId={caseId} personId={leaveCase.personId} />
 
       {/* ----- Designate hours ----- */}
       {isPrivileged ? (

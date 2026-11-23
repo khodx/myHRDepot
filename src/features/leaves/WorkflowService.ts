@@ -12,7 +12,6 @@ import type {
   MhdLeaveChecklistStatusInput,
   MhdLeaveDesignatedPersonInput,
   MhdLeaveDesignatedPersonVoidInput,
-  MhdLeaveEligibilityInput,
   MhdLeaveKeyEmployeeInput,
   MhdLeavePaySourceInput,
   MhdLeavePaySourceStatusInput,
@@ -79,6 +78,21 @@ function mhdLeaveChecklistLabel(label: string): string {
 // A direct call instantiates only the matching overload, so argument and return
 // types remain fully checked.
 
+function toRunResult(data: unknown): import('./WorkflowTypes').MhdLeaveEligibilityRunResult {
+  const r = (data ?? {}) as {
+    ran?: boolean;
+    snapshot_id?: string | null;
+    blockers?: string[];
+    record_id?: string;
+  };
+  return {
+    ran: r.ran === true,
+    snapshotId: r.snapshot_id ?? null,
+    blockers: r.blockers ?? [],
+    recordId: r.record_id,
+  };
+}
+
 export const mhdLeaveWorkflowService = {
   async getPayrollHours(caseId: string) {
     const { data, error } = await supabaseClient.rpc('mhd_leave_payroll_hours_get', {
@@ -109,14 +123,49 @@ export const mhdLeaveWorkflowService = {
       p_note: input.note ?? undefined,
     });
     if (error) throw new Error(error.message);
-    return data;
+    return toRunResult(data);
+  },
+  async getEligibilityFacts(caseId: string) {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_eligibility_facts', {
+      p_case_id: caseId,
+    });
+    if (error) throw new Error(error.message);
+    const row = data?.[0];
+    if (!row) return null;
+    return {
+      snapshotId: row.snapshot_id,
+      asOfDate: row.as_of_date,
+      employerEmployeeCount: row.employer_employee_count,
+      monthsOfService: row.months_of_service,
+      hoursWorked12Months: row.hours_worked_12_months,
+      worksiteEmployeeCount75: row.worksite_employee_count_75,
+      scheduledWeeklyHours: row.scheduled_weekly_hours,
+      provenance: (row.derived_facts ??
+        null) as import('./WorkflowTypes').MhdLeaveEligibilityFacts['provenance'],
+      createdAt: row.created_at,
+      adultChildIncapableOfSelfCare: row.adult_child_incapable_of_self_care,
+      employerAgreedIntermittentBonding: row.employer_agreed_intermittent_bonding,
+    } satisfies import('./WorkflowTypes').MhdLeaveEligibilityFacts;
+  },
+  async setCaseAnswers(input: {
+    caseId: string;
+    adultChildIncapableOfSelfCare: boolean | null;
+    employerAgreedIntermittentBonding: boolean | null;
+  }) {
+    // SQL NULL means "not yet known"; generated RPC types omit null for non-defaulted arguments.
+    const { error } = await supabaseClient.rpc('mhd_leave_case_answers_set', {
+      p_case_id: input.caseId,
+      p_adult_child_incapable_of_self_care: input.adultChildIncapableOfSelfCare as boolean,
+      p_employer_agreed_intermittent_bonding: input.employerAgreedIntermittentBonding as boolean,
+    });
+    if (error) throw new Error(error.message);
   },
   async runEligibility(caseId: string) {
     const { data, error } = await supabaseClient.rpc('mhd_leave_eligibility_run', {
       p_case_id: caseId,
     });
     if (error) throw new Error(error.message);
-    return data;
+    return toRunResult(data);
   },
   async get(caseId: string): Promise<MhdLeaveWorkflow> {
     const { data, error } = await supabaseClient.rpc('mhd_leave_workflow_get', {
@@ -124,35 +173,6 @@ export const mhdLeaveWorkflowService = {
     });
     if (error) throw error;
     return data as unknown as MhdLeaveWorkflow;
-  },
-
-  async evaluate(input: MhdLeaveEligibilityInput) {
-    const { data, error } = await supabaseClient.rpc('mhd_leave_eligibility_evaluate', {
-      p_case_id: input.caseId,
-      p_as_of_date: input.asOfDate,
-      p_employer_employee_count: input.employerEmployeeCount,
-      p_months_of_service: input.monthsOfService,
-      p_hours_worked_12_months: input.hoursWorked12Months,
-      p_worksite_employee_count_75: input.worksiteEmployeeCount75,
-      p_scheduled_weekly_hours: input.scheduledWeeklyHours,
-      p_reason_code: input.reasonCode,
-      p_family_relationship: input.familyRelationship || undefined,
-      p_designated_person_selected: input.designatedPersonSelected ?? false,
-      p_facts_source: 'ADMIN_ENTERED',
-      p_eligibility_context: {
-        covered_employer_override: input.coveredEmployerOverride,
-        // Facts the 0382 rules read: an adult child's self-care and employer agreement to
-        // intermittent bonding. Left out when unknown, so the engine reports UNDETERMINED.
-        ...(input.incapableOfSelfCare == null
-          ? {}
-          : { incapable_of_self_care: input.incapableOfSelfCare }),
-        ...(input.employerAgreedIntermittentBonding == null
-          ? {}
-          : { employer_agreed_intermittent_bonding: input.employerAgreedIntermittentBonding }),
-      },
-    });
-    if (error) throw error;
-    return data;
   },
 
   /**

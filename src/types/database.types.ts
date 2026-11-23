@@ -14311,12 +14311,14 @@ export type Database = {
         Row: {
           actual_end: string | null
           actual_start: string | null
+          adult_child_incapable_of_self_care: boolean | null
           bonding_event_date: string | null
           bonding_event_type: string | null
           company_id: string
           created_at: string | null
           created_by: string
           decision_reason: string | null
+          employer_agreed_intermittent_bonding: boolean | null
           essential_functions_description_id: string | null
           essential_functions_provided_on: string | null
           family_relationship: string | null
@@ -14347,12 +14349,14 @@ export type Database = {
         Insert: {
           actual_end?: string | null
           actual_start?: string | null
+          adult_child_incapable_of_self_care?: boolean | null
           bonding_event_date?: string | null
           bonding_event_type?: string | null
           company_id: string
           created_at?: string | null
           created_by: string
           decision_reason?: string | null
+          employer_agreed_intermittent_bonding?: boolean | null
           essential_functions_description_id?: string | null
           essential_functions_provided_on?: string | null
           family_relationship?: string | null
@@ -14383,12 +14387,14 @@ export type Database = {
         Update: {
           actual_end?: string | null
           actual_start?: string | null
+          adult_child_incapable_of_self_care?: boolean | null
           bonding_event_date?: string | null
           bonding_event_type?: string | null
           company_id?: string
           created_at?: string | null
           created_by?: string
           decision_reason?: string | null
+          employer_agreed_intermittent_bonding?: boolean | null
           essential_functions_description_id?: string | null
           essential_functions_provided_on?: string | null
           family_relationship?: string | null
@@ -33102,6 +33108,14 @@ export type Database = {
         Returns: string
       }
       mhd_leave_benefit_types: { Args: never; Returns: string[] }
+      mhd_leave_case_answers_set: {
+        Args: {
+          p_adult_child_incapable_of_self_care: boolean
+          p_case_id: string
+          p_employer_agreed_intermittent_bonding: boolean
+        }
+        Returns: undefined
+      }
       mhd_leave_case_clock_laws: {
         Args: { p_case_id: string }
         Returns: string[]
@@ -33273,12 +33287,14 @@ export type Database = {
         Returns: {
           actual_end: string | null
           actual_start: string | null
+          adult_child_incapable_of_self_care: boolean | null
           bonding_event_date: string | null
           bonding_event_type: string | null
           company_id: string
           created_at: string | null
           created_by: string
           decision_reason: string | null
+          employer_agreed_intermittent_bonding: boolean | null
           essential_functions_description_id: string | null
           essential_functions_provided_on: string | null
           family_relationship: string | null
@@ -33483,6 +33499,22 @@ export type Database = {
           leave_type_id: string
           snapshot_id: string
           type_key: string
+        }[]
+      }
+      mhd_leave_eligibility_facts: {
+        Args: { p_case_id: string }
+        Returns: {
+          adult_child_incapable_of_self_care: boolean
+          as_of_date: string
+          created_at: string
+          derived_facts: Json
+          employer_agreed_intermittent_bonding: boolean
+          employer_employee_count: number
+          hours_worked_12_months: number
+          months_of_service: number
+          scheduled_weekly_hours: number
+          snapshot_id: string
+          worksite_employee_count_75: number
         }[]
       }
       mhd_leave_eligibility_override: {

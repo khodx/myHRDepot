@@ -7,6 +7,7 @@ import type {
   MhdBenefitIntakeResult,
   MhdInformationRequest,
   MhdInformationRequestInput,
+  MhdInformationRequestThreadNote,
   MhdInformationResponseInput,
 } from './Types';
 export const mhdBenefitIntakeService = {
@@ -114,27 +115,39 @@ export const mhdBenefitIntakeService = {
     })) as MhdBenefitCaseLink[];
   },
   async listInformationRequests(caseType: MhdBenefitCaseType, caseId: string) {
-    const links = await this.listCaseLinks(caseType, caseId);
-    const result: MhdInformationRequest[] = [];
-    for (const link of links.filter(
+    const links = (await this.listCaseLinks(caseType, caseId)).filter(
       (item) => item.linkKind === 'INFORMATION_REQUEST' && item.activityId,
-    )) {
-      const { data, error } = await supabaseClient
-        .from('activities')
-        .select('id, title, description_plain_text, status, scheduled_at, created_at')
-        .eq('id', link.activityId!)
-        .single();
-      if (error) throw new Error(error.message);
-      result.push({
-        activityId: data.id,
-        title: data.title,
-        question: data.description_plain_text ?? '',
-        status: data.status,
-        dueAt: data.scheduled_at ?? '',
-        createdAt: data.created_at ?? '',
-        followUpTaskId: link.taskId,
-      });
-    }
-    return result;
+    );
+    if (links.length === 0) return [] as MhdInformationRequest[];
+    const { data, error } = await supabaseClient
+      .from('activities')
+      .select('id, title, description_plain_text, status, scheduled_at, created_at')
+      .in(
+        'id',
+        links.map((link) => link.activityId!),
+      )
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row): MhdInformationRequest => ({
+      activityId: row.id,
+      title: row.title,
+      question: row.description_plain_text ?? '',
+      status: row.status,
+      dueAt: row.scheduled_at ?? '',
+      createdAt: row.created_at ?? '',
+      followUpTaskId: links.find((link) => link.activityId === row.id)?.taskId ?? null,
+    }));
+  },
+  async listInformationRequestThread(activityId: string) {
+    const { data, error } = await supabaseClient.rpc('mhd_information_request_thread', {
+      p_activity_id: activityId,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row): MhdInformationRequestThreadNote => ({
+      noteId: row.note_id,
+      authorUserId: row.author_user_id,
+      text: row.note_plain_text,
+      createdAt: row.created_at,
+    }));
   },
 };

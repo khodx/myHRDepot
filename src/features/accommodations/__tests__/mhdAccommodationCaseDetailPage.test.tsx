@@ -62,6 +62,10 @@ vi.mock('@/features/authentication/Hook', () => ({
   useMhdAuth: () => ({ roles: rolesRef.current, profile: profileRef.current }),
 }));
 
+vi.mock('@/components/ui/MhdInformationRequestPanel', () => ({
+  MhdInformationRequestPanel: () => null,
+}));
+
 vi.mock('@/features/tasks/Service', () => ({
   mhdTaskService: { listAssignableUsers: vi.fn().mockResolvedValue([]) },
 }));

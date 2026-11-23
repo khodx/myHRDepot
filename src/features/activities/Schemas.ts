@@ -48,7 +48,11 @@ export const mhdActivityFormSchema = z
     location: z.string().max(300).optional().nullable(),
     outcomeSummary: z.string().max(10000).optional().nullable(),
     followUpTaskId: z.string().optional().nullable(),
-    linkLabel: z.string().max(200, 'Link title cannot exceed 200 characters.').optional().nullable(),
+    linkLabel: z
+      .string()
+      .max(200, 'Link title cannot exceed 200 characters.')
+      .optional()
+      .nullable(),
     linkUrl: z.string().max(2000, 'Link URL cannot exceed 2,000 characters.').optional().nullable(),
     isConfidential: z.boolean().default(false),
     participants: z.array(mhdActivityParticipantRowSchema).default([]),

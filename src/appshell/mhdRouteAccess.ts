@@ -1053,6 +1053,22 @@ export function mhdLeavesIsPrivileged(userRoles: MhdAuthRoleName[]): boolean {
 }
 
 /**
+ * The HR roles that may enter payroll hours and read the facts an eligibility evaluation used
+ * (mirrors the SQL mhd_leaves_is_hr). Narrower than MHD_LEAVES_PRIVILEGED_ROLES: Client Admin is
+ * excluded because payroll values are HR-only.
+ */
+export const MHD_LEAVES_HR_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'HR Admin',
+  'HR Specialist',
+];
+
+export function mhdLeavesIsHr(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_LEAVES_HR_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
  * Roles that may see leave medical-certification content. Narrower than
  * MHD_LEAVES_PRIVILEGED_ROLES: Platform Admin and HR Partner ONLY — Client Admin
  * is deliberately excluded (29 CFR 825.500(g), the certification confidentiality

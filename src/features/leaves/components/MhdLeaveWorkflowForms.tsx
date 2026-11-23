@@ -1,17 +1,14 @@
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
-import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
 import {
   MHD_LEAVE_BENEFIT_FREQUENCIES,
   MHD_LEAVE_BENEFIT_RECORDABLE_TRANSACTION_TYPES,
   MHD_LEAVE_BENEFIT_TYPES,
   MHD_LEAVE_BONDING_EVENT_TYPES,
   MHD_LEAVE_CONTINUATION_BASES,
-  MHD_LEAVE_FAMILY_RELATIONSHIPS,
   MHD_LEAVE_GROUP_HEALTH_BENEFIT_TYPES,
   MHD_LEAVE_HEALTH_PREMIUM_MIN_GRACE_DAYS,
   MHD_LEAVE_NOTICE_TYPES,
-  MHD_LEAVE_REASON_CODES,
   MHD_LEAVE_REINSTATEMENT_OUTCOMES,
   MHD_LEAVE_SEGMENT_MODES,
   MHD_LEAVE_SEGMENT_STATUSES,
@@ -25,7 +22,6 @@ import {
   type MhdLeaveBondingEventType,
   type MhdLeaveContinuationBasis,
   type MhdLeaveDeadline,
-  type MhdLeaveEligibilityInput,
   type MhdLeaveNoticeType,
   type MhdLeaveReinstatementOutcome,
   type MhdLeaveReturnToWorkInput,
@@ -36,7 +32,7 @@ import {
 } from '../WorkflowTypes';
 import { MhdLeaveActionButtons } from './MhdLeaveActionModal';
 import { MhdLeaveDeadlineBadge } from './MhdLeaveDeadlineBadge';
-import { useMhdLeaveDraftBinding, useMhdLeaveDraftField } from './mhdLeaveActionContext';
+import { useMhdLeaveDraftField } from './mhdLeaveActionContext';
 import {
   MHD_LEAVE_CONTINUATION_BASIS_LABELS,
   MHD_LEAVE_NOTICE_DEADLINE_KINDS,
@@ -81,219 +77,6 @@ export function MhdLeaveDeadlineStrip({
 }
 
 /** Yes / No / Unknown for an adult child's self-care; Unknown sends nothing. */
-const SELF_CARE_ANSWERS = ['UNKNOWN', 'YES', 'NO'] as const;
-type SelfCareAnswer = (typeof SELF_CARE_ANSWERS)[number];
-
-/**
- * Privileged-only. The leave reason and family relationship are owned by the panel (they also
- * decide whether the bonding and designated-person cards show), so they arrive controlled.
- */
-export function MhdLeaveEligibilityEvaluateForm({
-  caseId,
-  reasonCode,
-  onReasonChange,
-  relationship,
-  onRelationshipChange,
-  intermittent,
-  isPending,
-  onSubmit,
-}: {
-  caseId: string;
-  reasonCode: string;
-  onReasonChange: (value: string) => void;
-  relationship: string;
-  onRelationshipChange: (value: string) => void;
-  intermittent: boolean;
-  isPending: boolean;
-  onSubmit: (input: MhdLeaveEligibilityInput) => Promise<unknown>;
-}) {
-  useMhdLeaveDraftBinding('reasonCode', reasonCode, onReasonChange);
-  useMhdLeaveDraftBinding('familyRelationship', relationship, onRelationshipChange);
-  const [selfCare, setSelfCare] = useMhdLeaveDraftField<SelfCareAnswer>('selfCare', 'UNKNOWN');
-  const [employerAgreedBonding, setEmployerAgreedBonding] = useMhdLeaveDraftField(
-    'employerAgreedBonding',
-    false,
-  );
-  const [employerCount, setEmployerCount] = useMhdLeaveDraftField('employerCount', '');
-  const [worksiteCount, setWorksiteCount] = useMhdLeaveDraftField('worksiteCount', '');
-  const [months, setMonths] = useMhdLeaveDraftField('months', '');
-  const [hours, setHours] = useMhdLeaveDraftField('hours', '');
-  const [weeklyHours, setWeeklyHours] = useMhdLeaveDraftField('weeklyHours', '');
-  const [coveredEmployerOverride, setCoveredEmployerOverride] = useMhdLeaveDraftField(
-    'coveredEmployerOverride',
-    false,
-  );
-
-  const isBonding = reasonCode === 'BONDING';
-  const countFactsEntered = [employerCount, worksiteCount, months, hours].every(
-    (value) => value.trim() !== '' && Number.isFinite(Number(value)) && Number(value) >= 0,
-  );
-  const factsComplete = countFactsEntered && weeklyHours.trim() !== '' && Number(weeklyHours) > 0;
-
-  return (
-    <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">
-        The engine evaluates each legal basis separately. CFRA does not use a 75-mile test; that
-        count is used only for FMLA. A human must confirm every result.
-      </p>
-      <MhdFormFieldStack>
-        <label className="block text-xs">
-          Leave reason
-          <select
-            className={`mt-1 ${inputClass}`}
-            value={reasonCode}
-            onChange={(e) => onReasonChange(e.target.value)}
-          >
-            {MHD_LEAVE_REASON_CODES.map((value) => (
-              <option key={value} value={value}>
-                {mhdLeaveEnumLabel(value)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-xs">
-          Family relationship
-          <select
-            className={`mt-1 ${inputClass}`}
-            value={relationship}
-            onChange={(e) => onRelationshipChange(e.target.value)}
-          >
-            <option value="">No family relationship</option>
-            {MHD_LEAVE_FAMILY_RELATIONSHIPS.map((value) => (
-              <option key={value} value={value}>
-                {mhdLeaveEnumLabel(value)}
-              </option>
-            ))}
-          </select>
-        </label>
-        {relationship === 'DESIGNATED_PERSON' ? (
-          <p className="text-xs text-muted-foreground">
-            Record who the designated person is in the Designated Person card.
-          </p>
-        ) : null}
-        {relationship === 'CHILD_ADULT' ? (
-          <div>
-            <label className="block text-xs">
-              Incapable Of Self-Care
-              <select
-                className={`mt-1 ${inputClass}`}
-                value={selfCare}
-                onChange={(e) =>
-                  setSelfCare(mhdLeavePick(SELF_CARE_ANSWERS, e.target.value) ?? 'UNKNOWN')
-                }
-              >
-                {SELF_CARE_ANSWERS.map((value) => (
-                  <option key={value} value={value}>
-                    {mhdLeaveEnumLabel(value)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <p className="mt-1 text-xs text-muted-foreground">
-              FMLA covers care of an adult child only when the child is incapable of self-care.
-              Leave it Unknown until that is established.
-            </p>
-          </div>
-        ) : null}
-        {isBonding && intermittent ? (
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={employerAgreedBonding}
-              onChange={(e) => setEmployerAgreedBonding(e.target.checked)}
-            />
-            Employer Agrees To Intermittent Bonding
-          </label>
-        ) : null}
-        <label className="block text-xs">
-          Scheduled weekly hours
-          <input
-            className={`mt-1 ${inputClass}`}
-            type="number"
-            value={weeklyHours}
-            onChange={(e) => setWeeklyHours(e.target.value)}
-          />
-        </label>
-        <label className="block text-xs">
-          Employer employee count
-          <input
-            className={`mt-1 ${inputClass}`}
-            type="number"
-            value={employerCount}
-            onChange={(e) => setEmployerCount(e.target.value)}
-          />
-        </label>
-        <label className="block text-xs">
-          FMLA worksite count within 75 miles
-          <input
-            className={`mt-1 ${inputClass}`}
-            type="number"
-            value={worksiteCount}
-            onChange={(e) => setWorksiteCount(e.target.value)}
-          />
-        </label>
-        <label className="block text-xs">
-          Months of service
-          <input
-            className={`mt-1 ${inputClass}`}
-            type="number"
-            value={months}
-            onChange={(e) => setMonths(e.target.value)}
-          />
-        </label>
-        <label className="block text-xs">
-          Hours worked in prior 12 months
-          <input
-            className={`mt-1 ${inputClass}`}
-            type="number"
-            value={hours}
-            onChange={(e) => setHours(e.target.value)}
-          />
-        </label>
-      </MhdFormFieldStack>
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={coveredEmployerOverride}
-          onChange={(e) => setCoveredEmployerOverride(e.target.checked)}
-        />{' '}
-        Covered employer override (record only for a verified public agency/school or other
-        covered-employer basis)
-      </label>
-      {!factsComplete ? (
-        <p className="text-xs text-muted-foreground">
-          Enter every employer and service fact (weekly hours above zero); none are assumed.
-        </p>
-      ) : null}
-      <MhdLeaveActionButtons
-        submitLabel="Evaluate All Bases"
-        pendingLabel="Evaluating…"
-        disabled={isPending || !factsComplete}
-        onSubmit={() =>
-          onSubmit({
-            caseId,
-            asOfDate: mhdToIsoDateString(),
-            employerEmployeeCount: Number(employerCount),
-            monthsOfService: Number(months),
-            hoursWorked12Months: Number(hours),
-            worksiteEmployeeCount75: Number(worksiteCount),
-            scheduledWeeklyHours: Number(weeklyHours),
-            reasonCode,
-            familyRelationship: relationship || null,
-            coveredEmployerOverride,
-            ...(relationship === 'CHILD_ADULT' && selfCare !== 'UNKNOWN'
-              ? { incapableOfSelfCare: selfCare === 'YES' }
-              : {}),
-            ...(isBonding && intermittent
-              ? { employerAgreedIntermittentBonding: employerAgreedBonding }
-              : {}),
-          })
-        }
-      />
-    </div>
-  );
-}
-
 /** The outcomes a documented override may record (mhd_leave_eligibility_override). */
 const OVERRIDE_OUTCOMES = ['ELIGIBLE', 'INELIGIBLE', 'UNDETERMINED'] as const;
 type OverrideOutcome = (typeof OVERRIDE_OUTCOMES)[number];

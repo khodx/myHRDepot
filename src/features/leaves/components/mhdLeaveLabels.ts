@@ -112,5 +112,11 @@ const FINDING_MESSAGES: Readonly<Record<string, string>> = {
 
 /** The finding's readable line, or its raw code when the code is not yet known here. */
 export function mhdLeaveFindingMessage(code: string): string {
+  if (code === 'PAYROLL_HOURS_RECORD_REQUIRED') {
+    return 'Payroll hours must be recorded before eligibility can be completed.';
+  }
+  if (code === 'WORKSITE_ASSIGNMENT_REQUIRED') {
+    return 'A worksite assignment is required before eligibility can be completed.';
+  }
   return FINDING_MESSAGES[code] ?? code;
 }

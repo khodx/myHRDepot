@@ -61,6 +61,7 @@ import {
   type MhdAccommodationStatus,
 } from '../Types';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
+import { MhdInformationRequestPanel } from '@/components/ui/MhdInformationRequestPanel';
 import { MhdAccommodationDenialReasonsField } from './MhdAccommodationDenialReasonsField';
 import { MhdAccommodationDraftModal } from './MhdAccommodationDraftModal';
 import { draftChoice, draftText } from './mhdAccommodationDraftValues';
@@ -1596,6 +1597,11 @@ export function MhdAccommodationCaseDetailPage() {
           <MhdDetailActions deleteLabel="Close Case" onDelete={() => open('close')} skipConfirm />
         </div>
       ) : null}
+      <MhdInformationRequestPanel
+        caseType="ACCOMMODATION"
+        caseId={caseId}
+        personId={record.case.person_id}
+      />
     </div>
   );
 }

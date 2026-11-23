@@ -335,6 +335,10 @@ const MhdCompanyFormPage = lazyPage(
   () => import('@/features/companies/components/MhdCompanyFormPage'),
   'MhdCompanyFormPage',
 );
+const MhdCompanyWorksitesPage = lazyPage(
+  () => import('@/appshell/components/MhdCompanyWorksitesPage'),
+  'MhdCompanyWorksitesPage',
+);
 const MhdCompanyDetailPage = lazyPage(
   () => import('@/appshell/components/MhdCompanyDetailPage'),
   'MhdCompanyDetailPage',
@@ -873,6 +877,10 @@ function MhdAppRoutes() {
                 <Route path="/companies" element={<MhdCompaniesPage />} />
                 <Route path="/companies/new" element={<MhdCompanyFormPage />} />
                 <Route path="/companies/:companyId/edit" element={<MhdCompanyFormPage />} />
+                <Route
+                  path="/companies/:companyId/worksites"
+                  element={<MhdCompanyWorksitesPage />}
+                />
                 <Route path="/companies/:companyId" element={<MhdCompanyDetailPage />} />
                 <Route path="/approvals" element={<MhdApprovalsPage />} />
                 <Route path="/approvals/:approvalId" element={<MhdApprovalDetailPage />} />

@@ -19,7 +19,7 @@ import {
   useMhdLeaveBondingEvent,
   useMhdLeaveDesignatedPerson,
   useMhdLeaveDesignatedPersonVoid,
-  useMhdLeaveEligibility,
+  useMhdRunLeaveEligibility,
   useMhdLeaveEssentialFunctions,
   useMhdLeaveEvent,
   useMhdLeaveKeyEmployee,
@@ -41,6 +41,7 @@ import { MhdLeaveBenefitTransactionList } from './MhdLeaveBenefitTransactionList
 import { MhdLeaveCaseControlsPanel } from './MhdLeaveCaseControlsPanel';
 import { MhdLeaveChecklistPanel } from './MhdLeaveChecklistPanel';
 import { MhdLeaveDesignatedPersonPanel } from './MhdLeaveDesignatedPersonPanel';
+import { MhdLeaveEligibilityFactsCard } from './MhdLeaveEligibilityFactsCard';
 import { MhdLeavePayCoordinationPanel } from './MhdLeavePayCoordinationPanel';
 import {
   MhdLeaveBenefitObligationForm,
@@ -48,7 +49,6 @@ import {
   MhdLeaveBondingEventForm,
   MhdLeaveContactForm,
   MhdLeaveDeadlineStrip,
-  MhdLeaveEligibilityEvaluateForm,
   MhdLeaveEligibilityOverrideForm,
   MhdLeaveNoticeForm,
   MhdLeaveReturnToWorkForm,
@@ -106,7 +106,7 @@ export function MhdLeaveWorkflowPanel({
     enabled: Boolean(profile?.companyId),
   });
   const readiness = useMhdLeaveReadiness();
-  const evaluate = useMhdLeaveEligibility(caseId);
+  const runEligibility = useMhdRunLeaveEligibility(caseId);
   const confirm = useMhdConfirmLeaveEligibility(caseId);
   const override = useMhdOverrideLeaveEligibility(caseId);
   const event = useMhdLeaveEvent(caseId);
@@ -127,11 +127,6 @@ export function MhdLeaveWorkflowPanel({
   const keyEmployee = useMhdLeaveKeyEmployee(caseId);
   const essentialFunctions = useMhdLeaveEssentialFunctions(caseId);
   const [tab, setTab] = useState<Tab>('eligibility');
-  // null = not chosen yet, so the case's own recorded value is used. Kept here rather than in
-  // the evaluate form because the chosen reason and relationship also decide whether the
-  // bonding and designated-person cards show.
-  const [reasonChoice, setReasonChoice] = useState<string | null>(null);
-  const [relationshipChoice, setRelationshipChoice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const record = workflow.data;
@@ -154,10 +149,8 @@ export function MhdLeaveWorkflowPanel({
 
   const companyId = record.case.company_id;
   const modalScope = { caseId, companyId };
-  const reasonCode = reasonChoice ?? record.case.reason_code ?? 'OWN_SERIOUS_HEALTH_CONDITION';
-  const relationship = relationshipChoice ?? record.case.family_relationship ?? '';
-  const intermittent = record.case.is_intermittent || record.case.requested_mode === 'INTERMITTENT';
-  const isBonding = reasonCode === 'BONDING';
+  const relationship = record.case.family_relationship ?? '';
+  const isBonding = record.case.reason_code === 'BONDING';
   const showDesignatedPersons =
     relationship === 'DESIGNATED_PERSON' || record.designated_persons.length > 0;
   // Templates without a stable key cannot be named by a notice (the database refuses a uuid).
@@ -217,26 +210,40 @@ export function MhdLeaveWorkflowPanel({
         <div className="space-y-3">
           {privileged ? (
             <div className="flex justify-end">
-              <MhdLeaveActionModal
-                {...modalScope}
-                action="eligibility-evaluate"
-                title="Evaluate Current Facts"
-                launchLabel="Evaluate Eligibility"
-                launchVariant="primary"
+              <Button
+                disabled={runEligibility.isPending}
+                onClick={() => void run(() => runEligibility.mutateAsync())}
               >
-                <MhdLeaveEligibilityEvaluateForm
-                  caseId={caseId}
-                  reasonCode={reasonCode}
-                  onReasonChange={setReasonChoice}
-                  relationship={relationship}
-                  onRelationshipChange={setRelationshipChoice}
-                  intermittent={intermittent}
-                  isPending={evaluate.isPending}
-                  onSubmit={(input) => evaluate.mutateAsync(input)}
-                />
-              </MhdLeaveActionModal>
+                {runEligibility.isPending ? 'Running Evaluation…' : 'Run Evaluation'}
+              </Button>
             </div>
+          ) : (
+            <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
+              Awaiting HR verification
+            </p>
+          )}
+          {runEligibility.data?.blockers?.length ? (
+            <MhdCard className="space-y-2">
+              <MhdCardHeader title="Evaluation Blockers" />
+              <ul className="list-disc space-y-1 pl-5 text-sm">
+                {runEligibility.data.blockers.map((blocker: string) => (
+                  <li key={blocker}>
+                    {blocker === 'SCHEDULE_ASSIGNMENT_REQUIRED'
+                      ? 'A schedule assignment is required before eligibility can be evaluated.'
+                      : blocker === 'REASON_CODE_REQUIRED'
+                        ? 'A leave reason is required before eligibility can be evaluated.'
+                        : 'The eligibility evaluation could not be completed.'}
+                  </li>
+                ))}
+              </ul>
+            </MhdCard>
           ) : null}
+          <MhdLeaveEligibilityFactsCard
+            caseId={caseId}
+            familyRelationship={record.case.family_relationship}
+            reasonCode={record.case.reason_code}
+            isIntermittent={record.case.is_intermittent}
+          />
           {record.eligibility.map((item) => (
             <MhdCard key={item.id}>
               <div className="flex flex-wrap items-center justify-between gap-3">

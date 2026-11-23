@@ -273,6 +273,35 @@ export interface MhdLeavePayrollHours {
   enteredAt: string;
 }
 
+/** The facts the latest evaluation used; HR only (they include payroll hours). */
+export interface MhdLeaveEligibilityFacts {
+  snapshotId: string;
+  asOfDate: string;
+  employerEmployeeCount: number | null;
+  monthsOfService: number | null;
+  hoursWorked12Months: number | null;
+  worksiteEmployeeCount75: number | null;
+  scheduledWeeklyHours: number | null;
+  provenance: {
+    source?: string;
+    worksite_name?: string | null;
+    worksite_employees_near_boundary?: number;
+    worksite_confirmation_needed?: boolean;
+    employees_without_worksite?: number;
+  } | null;
+  createdAt: string;
+  adultChildIncapableOfSelfCare: boolean | null;
+  employerAgreedIntermittentBonding: boolean | null;
+}
+
+/** Result of an eligibility run (also returned when payroll hours are recorded). */
+export interface MhdLeaveEligibilityRunResult {
+  ran: boolean;
+  snapshotId: string | null;
+  blockers: string[];
+  recordId?: string;
+}
+
 export interface MhdLeavePayrollHoursInput {
   caseId: string;
   hoursWorked12Months: number;

@@ -62,39 +62,6 @@ describe('vocabularies added by migrations 0381-0386', () => {
   });
 });
 
-describe('evaluation facts', () => {
-  const input = {
-    caseId: CASE,
-    asOfDate: '2026-11-20',
-    employerEmployeeCount: 60,
-    monthsOfService: 24,
-    hoursWorked12Months: 1500,
-    worksiteEmployeeCount75: 60,
-    scheduledWeeklyHours: 40,
-    reasonCode: 'FAMILY_SERIOUS_HEALTH_CONDITION',
-    familyRelationship: 'CHILD_ADULT',
-    coveredEmployerOverride: false,
-  };
-
-  it('sends the adult-child and intermittent-bonding facts only when they are known', async () => {
-    rpcMock.mockResolvedValue({ data: [], error: null });
-    await mhdLeaveWorkflowService.evaluate({
-      ...input,
-      incapableOfSelfCare: true,
-      employerAgreedIntermittentBonding: false,
-    });
-    expect(rpcMock.mock.calls[0][1].p_eligibility_context).toEqual({
-      covered_employer_override: false,
-      incapable_of_self_care: true,
-      employer_agreed_intermittent_bonding: false,
-    });
-    await mhdLeaveWorkflowService.evaluate(input);
-    expect(rpcMock.mock.calls[1][1].p_eligibility_context).toEqual({
-      covered_employer_override: false,
-    });
-  });
-});
-
 describe('designated person and bonding writers', () => {
   it('records a trimmed designated person and returns the id', async () => {
     rpcMock.mockResolvedValueOnce({ data: 'dp-1', error: null });

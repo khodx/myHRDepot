@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdLeaveWorkflowService } from './WorkflowService';
-import type { MhdLeaveEligibilityInput } from './WorkflowTypes';
 
 export const mhdLeaveWorkflowQueryKey = (caseId: string | null) =>
   ['mhd-leaves', 'workflow', caseId ?? ''] as const;
@@ -27,6 +26,23 @@ export function useMhdLeavePayrollHours(caseId: string) {
     enabled: Boolean(caseId),
   });
 }
+export function useMhdLeaveEligibilityFacts(caseId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: [...key(caseId), 'eligibility-facts'],
+    queryFn: () => mhdLeaveWorkflowService.getEligibilityFacts(caseId),
+    enabled: Boolean(caseId) && enabled,
+  });
+}
+export function useMhdSetLeaveCaseAnswers(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: {
+      adultChildIncapableOfSelfCare: boolean | null;
+      employerAgreedIntermittentBonding: boolean | null;
+    }) => mhdLeaveWorkflowService.setCaseAnswers({ caseId, ...input }),
+    onSuccess: refresh,
+  });
+}
 export function useMhdRecordLeavePayrollHours(caseId: string) {
   const refresh = useRefresh(caseId);
   return useMutation({
@@ -49,14 +65,6 @@ function useRefresh(caseId: string) {
     void queryClient.invalidateQueries({ queryKey: key(caseId) });
     void queryClient.invalidateQueries({ queryKey: ['mhd-leaves', 'cases'] });
   };
-}
-
-export function useMhdLeaveEligibility(caseId: string) {
-  const refresh = useRefresh(caseId);
-  return useMutation({
-    mutationFn: (input: MhdLeaveEligibilityInput) => mhdLeaveWorkflowService.evaluate(input),
-    onSuccess: refresh,
-  });
 }
 
 export function useMhdConfirmLeaveEligibility(caseId: string) {

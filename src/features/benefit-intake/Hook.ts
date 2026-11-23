@@ -40,15 +40,26 @@ export function useMhdInformationRequests(caseType: MhdBenefitCaseType, caseId: 
     enabled: Boolean(caseId),
   });
 }
+export function useMhdInformationRequestThread(activityId: string | null) {
+  return useQuery({
+    queryKey: ['mhd-information-requests', 'thread', activityId ?? ''],
+    queryFn: () => mhdBenefitIntakeService.listInformationRequestThread(activityId!),
+    enabled: Boolean(activityId),
+  });
+}
 export function useMhdCreateInformationRequest() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: MhdInformationRequestInput) =>
       mhdBenefitIntakeService.createInformationRequest(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['mhd-information-requests'] }),
   });
 }
 export function useMhdRespondToInformationRequest() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: MhdInformationResponseInput) =>
       mhdBenefitIntakeService.respondToInformationRequest(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['mhd-information-requests'] }),
   });
 }
