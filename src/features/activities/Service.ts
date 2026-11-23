@@ -349,13 +349,18 @@ export const mhdActivityService = {
     const { error } = await supabaseClient.rpc('mhd_update_sub_activity', {
       p_sub_activity_id: subActivityId,
       ...(trimmedOrUndefined(input.title) ? { p_title: trimmedOrUndefined(input.title) } : {}),
-      ...(trimmedOrUndefined(input.descriptionPlainText)
-        ? { p_description_plain_text: trimmedOrUndefined(input.descriptionPlainText) }
-        : {}),
+      // Omitted leaves the field as it is; null or blank clears it (migration 0397).
+      ...(input.descriptionPlainText === undefined
+        ? {}
+        : trimmedOrUndefined(input.descriptionPlainText)
+          ? { p_description_plain_text: trimmedOrUndefined(input.descriptionPlainText) }
+          : { p_clear_description: true }),
       ...(input.status ? { p_status: input.status } : {}),
-      ...(trimmedOrUndefined(input.scheduledAt)
-        ? { p_scheduled_at: trimmedOrUndefined(input.scheduledAt) }
-        : {}),
+      ...(input.scheduledAt === undefined
+        ? {}
+        : trimmedOrUndefined(input.scheduledAt)
+          ? { p_scheduled_at: trimmedOrUndefined(input.scheduledAt) }
+          : { p_clear_scheduled_at: true }),
       ...(input.sortOrder !== undefined ? { p_sort_order: input.sortOrder } : {}),
     });
 

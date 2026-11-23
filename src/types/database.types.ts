@@ -28049,6 +28049,10 @@ export type Database = {
         Args: { p_status: string }
         Returns: string
       }
+      mhd_activity_checklist_can_edit: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
       mhd_add_activity_participant: {
         Args: {
           p_activity_id: string
@@ -39097,6 +39101,8 @@ export type Database = {
       }
       mhd_update_sub_activity: {
         Args: {
+          p_clear_description?: boolean
+          p_clear_scheduled_at?: boolean
           p_description_plain_text?: string
           p_scheduled_at?: string
           p_sort_order?: number

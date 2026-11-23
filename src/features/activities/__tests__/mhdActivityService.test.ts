@@ -158,3 +158,44 @@ describe('mhdActivityService', () => {
     expect(result.followUpTaskId).toBe('task-9');
   });
 });
+
+describe('mhdActivityService.updateSubActivity', () => {
+  beforeEach(() => {
+    rpcMock.mockReset();
+    rpcMock.mockResolvedValue({ data: null, error: null });
+  });
+
+  it('clears the description and scheduled date when they are sent blank or null', async () => {
+    await mhdActivityService.updateSubActivity('sub-1', {
+      title: 'Collect signed offer letter',
+      descriptionPlainText: null,
+      scheduledAt: '  ',
+    });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_update_sub_activity', {
+      p_sub_activity_id: 'sub-1',
+      p_title: 'Collect signed offer letter',
+      p_clear_description: true,
+      p_clear_scheduled_at: true,
+    });
+  });
+
+  it('leaves the description and date alone when they are omitted, as a status change does', async () => {
+    await mhdActivityService.updateSubActivity('sub-1', { status: 'COMPLETED' });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_update_sub_activity', {
+      p_sub_activity_id: 'sub-1',
+      p_status: 'COMPLETED',
+    });
+  });
+
+  it('sets a new description and date when values are given', async () => {
+    await mhdActivityService.updateSubActivity('sub-1', {
+      descriptionPlainText: ' Original and one copy ',
+      scheduledAt: '2026-12-01T17:00:00.000Z',
+    });
+    expect(rpcMock).toHaveBeenCalledWith('mhd_update_sub_activity', {
+      p_sub_activity_id: 'sub-1',
+      p_description_plain_text: 'Original and one copy',
+      p_scheduled_at: '2026-12-01T17:00:00.000Z',
+    });
+  });
+});
