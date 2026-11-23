@@ -805,6 +805,23 @@ export function mhdCanMutateActivities(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_ACTIVITY_MUTATING_ROLES.some((role) => userRoles.includes(role));
 }
 
+/**
+ * Roles that may edit the content of an Activity checklist item (title, notes, schedule).
+ * Checklist items vary from one activity to the next and are not always covered by defaults,
+ * so admin and HR roles must be able to correct them. Narrower than the roles that may
+ * add, complete, reorder or delete items.
+ */
+export const MHD_ACTIVITY_CHECKLIST_EDITING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'HR Admin',
+  'Client Admin',
+];
+
+export function mhdCanEditActivityChecklist(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_ACTIVITY_CHECKLIST_EDITING_ROLES.some((role) => userRoles.includes(role));
+}
+
 export const MHD_PERFORMANCE_MUTATING_ROLES: MhdAuthRoleName[] = [
   'Platform Admin',
   'HR Partner',
@@ -1049,6 +1066,23 @@ export const MHD_LEAVES_MEDICAL_ROLES: MhdAuthRoleName[] = ['Platform Admin', 'H
 
 export function mhdLeavesCanSeeMedical(userRoles: MhdAuthRoleName[]): boolean {
   return MHD_LEAVES_MEDICAL_ROLES.some((role) => userRoles.includes(role));
+}
+
+/**
+ * Roles that may adjust a leave case's documentation checklist (add, edit, mark Done or Not
+ * Applicable, remove an added item). Cases vary in ways the generated defaults do not factor
+ * in, so admin and HR roles adjust them per case. Mirrors mhd_leave_checklist_can_edit (0395),
+ * which re-checks the role and the company server-side.
+ */
+export const MHD_LEAVE_CHECKLIST_EDITING_ROLES: MhdAuthRoleName[] = [
+  'Platform Admin',
+  'HR Partner',
+  'HR Admin',
+  'Client Admin',
+];
+
+export function mhdCanEditLeaveChecklist(userRoles: MhdAuthRoleName[]): boolean {
+  return MHD_LEAVE_CHECKLIST_EDITING_ROLES.some((role) => userRoles.includes(role));
 }
 
 export const MHD_ACCOMMODATIONS_PRIVILEGED_ROLES: MhdAuthRoleName[] = [

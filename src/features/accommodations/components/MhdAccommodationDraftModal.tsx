@@ -5,9 +5,6 @@ import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { useMhdDraft } from '@/features/drafts/Hook';
 import { MHD_DRAFT_KINDS, type MhdDraftKind, type MhdDraftPayload } from '@/features/drafts/Types';
 
-/** Shown in every accommodation modal whose form carries medical fields that are left out of the draft. */
-export const MHD_ACCOMMODATION_MEDICAL_DRAFT_NOTICE = 'Medical details are not saved in drafts.';
-
 interface MhdAccommodationDraftModalProps {
   title: string;
   description?: string;
@@ -20,14 +17,11 @@ interface MhdAccommodationDraftModalProps {
   /** Title stored with the draft so a drafts list can name it. */
   draftTitle?: string;
   /**
-   * The form's NON-MEDICAL values. Functional limitations, accommodation need, provider certification
-   * content and anything diagnosis-adjacent never go into a draft; the server also refuses diagnosis
-   * terms (23514).
+   * Every value of the form, medical fields included (functional limitations, accommodation need,
+   * provider certification content); the draft is owner-only and restores the whole screen.
    */
   getDraftValues: () => MhdDraftPayload;
   onRestore: (payload: MhdDraftPayload) => void;
-  /** The form has medical fields that the draft leaves out; says so under the heading. */
-  excludesMedical?: boolean;
   submitLabel: string;
   pendingLabel?: string;
   submitDisabled?: boolean;
@@ -58,7 +52,6 @@ export function MhdAccommodationDraftModal({
   draftTitle,
   getDraftValues,
   onRestore,
-  excludesMedical = false,
   submitLabel,
   pendingLabel,
   submitDisabled = false,
@@ -93,9 +86,6 @@ export function MhdAccommodationDraftModal({
   return (
     <MhdFormModal title={title} description={description} size={size} onClose={onClose}>
       <div className="space-y-3">
-        {excludesMedical ? (
-          <p className="text-xs text-muted-foreground">{MHD_ACCOMMODATION_MEDICAL_DRAFT_NOTICE}</p>
-        ) : null}
         <MhdDraftBanner draft={draft} onRestore={(payload) => onRestore(payload)} />
         {children}
         {error ? (

@@ -31,7 +31,7 @@ import {
   type MhdAccommodationRequestChannel,
   type MhdAccommodationRequestSource,
 } from '../Types';
-import { MHD_ACCOMMODATION_MEDICAL_DRAFT_NOTICE } from './MhdAccommodationDraftModal';
+import { draftChoice } from './mhdAccommodationDraftValues';
 import { MhdAccommodationsPage } from './MhdAccommodationsPage';
 
 const inputClass =
@@ -84,8 +84,8 @@ function YesNoRadios({
  * process. Same create RPC and request schema the list page's inline form used
  * (that form now links here instead of duplicating it). The route keeps its own
  * URL but renders as a modal over the Accommodations list; closing it returns to
- * `/accommodations`. Save Draft keeps the answers and the current step; the
- * limitation duration describes the condition and is never drafted.
+ * `/accommodations`. Save Draft keeps every answer, the limitation duration
+ * included, and the current step.
  *
  * A request may be verbal, representative-made, observed, or triggered by leave
  * exhaustion / return-to-work, and no form or special wording is a prerequisite;
@@ -150,6 +150,7 @@ export function MhdAccommodationIntakeWizard() {
       requestSource,
       requestChannel,
       requestSummary,
+      limitationDuration,
       workersCompClaim,
       leaveRequested,
       leaveRequestDetails,
@@ -169,6 +170,13 @@ export function MhdAccommodationIntakeWizard() {
       setRequestChannel(payload.requestChannel as MhdAccommodationRequestChannel);
     }
     setRequestSummary(text(payload.requestSummary));
+    setLimitationDuration(
+      draftChoice<MhdAccommodationLimitationDuration | ''>(
+        payload.limitationDuration,
+        MHD_ACCOMMODATION_LIMITATION_DURATIONS,
+        '',
+      ),
+    );
     setWorkersCompClaim(payload.workersCompClaim === true);
     const leave = payload.leaveRequested === true;
     setLeaveRequested(leave);
@@ -438,7 +446,6 @@ export function MhdAccommodationIntakeWizard() {
       >
         <div className="space-y-6">
           <MhdComplianceGateBanner readiness={readiness.data} />
-          <p className="text-xs text-muted-foreground">{MHD_ACCOMMODATION_MEDICAL_DRAFT_NOTICE}</p>
           <MhdDraftBanner draft={draft} onRestore={restoreDraft} />
 
           <MhdStepper

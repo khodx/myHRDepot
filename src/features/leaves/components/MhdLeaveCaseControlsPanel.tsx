@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdDetailField } from '@/components/ui/MhdDetailField';
@@ -113,7 +112,6 @@ export function MhdLeaveCaseControlsPanel({
                 title="Workers' Compensation"
                 size="md"
                 launchLabel="Edit Workers' Compensation"
-                medicalFields
               >
                 <WorkersCompForm
                   caseId={caseData.id}
@@ -235,7 +233,6 @@ function KeyEmployeeForm({
   );
 }
 
-/** The light-duty note can describe work restrictions, so it is never kept in a draft. */
 function WorkersCompForm({
   caseId,
   current,
@@ -253,7 +250,10 @@ function WorkersCompForm({
     'concurrentDesignatedOn',
     current.concurrent_designated_on ?? '',
   );
-  const [lightDutyNote, setLightDutyNote] = useState(current.light_duty_declined_note ?? '');
+  const [lightDutyNote, setLightDutyNote] = useMhdLeaveDraftField(
+    'lightDutyNote',
+    current.light_duty_declined_note ?? '',
+  );
 
   return (
     <div className="space-y-3">

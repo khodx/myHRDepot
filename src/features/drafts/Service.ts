@@ -1,5 +1,12 @@
 import { supabaseClient } from '@/lib/supabase/supabaseClient';
-import type { MhdDraft, MhdDraftPayload, MhdSaveDraftInput } from './Types';
+import type { MhdDraft, MhdDraftPayload, MhdSaveDraftInput, MhdSharedDraft } from './Types';
+
+interface SharedDraftRow extends Omit<DraftRow, 'title' | 'step_key'> {
+  owner_user_id: string;
+  owner_name: string;
+  title: string | null;
+  step_key: string | null;
+}
 
 interface DraftRow {
   id: string;
@@ -25,6 +32,10 @@ function toDraft(row: DraftRow): MhdDraft {
   };
 }
 
+function toSharedDraft(row: SharedDraftRow): MhdSharedDraft {
+  return { ...toDraft(row), ownerUserId: row.owner_user_id, ownerName: row.owner_name };
+}
+
 // supabaseClient.rpc is called directly rather than bound to a local alias (see leaves/WorkflowService.ts).
 export const mhdDraftService = {
   async get(draftKind: string, draftKey: string): Promise<MhdDraft | null> {
@@ -35,6 +46,16 @@ export const mhdDraftService = {
     if (error) throw error;
     const row = (data as DraftRow[] | null)?.[0];
     return row ? toDraft(row) : null;
+  },
+
+  /** Other people's live drafts for this screen instance that the caller's role may see (migration 0394). */
+  async listShared(draftKind: string, draftKey: string): Promise<MhdSharedDraft[]> {
+    const { data, error } = await supabaseClient.rpc('mhd_draft_list_shared', {
+      p_draft_kind: draftKind,
+      p_draft_key: draftKey,
+    });
+    if (error) throw error;
+    return ((data as SharedDraftRow[] | null) ?? []).map(toSharedDraft);
   },
 
   async list(draftKind?: string): Promise<MhdDraft[]> {

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
 import { mhdToIsoDateString } from '@/utils/mhdDateFormat';
@@ -60,8 +59,8 @@ const localToIso = (value: string) => (value ? new Date(value).toISOString() : '
 /*
  * Every form here renders inside MhdLeaveActionModal. Its onSubmit rejects with the server's
  * own refusal, which the modal shows while the form keeps what was typed; on success the
- * modal discards the draft and closes. Fields declared with useMhdLeaveDraftField are kept by
- * Save Draft; medical-tier fields use plain useState so they never reach a draft.
+ * modal discards the draft and closes. Every input field is declared with useMhdLeaveDraftField,
+ * medical-tier fields included, so Save Draft keeps the whole screen and Resume Draft restores it.
  */
 
 export function MhdLeaveDeadlineStrip({
@@ -87,8 +86,7 @@ type SelfCareAnswer = (typeof SELF_CARE_ANSWERS)[number];
 
 /**
  * Privileged-only. The leave reason and family relationship are owned by the panel (they also
- * decide whether the bonding and designated-person cards show), so they arrive controlled. The
- * self-care answer is a functional-limitation fact and is never kept in a draft.
+ * decide whether the bonding and designated-person cards show), so they arrive controlled.
  */
 export function MhdLeaveEligibilityEvaluateForm({
   caseId,
@@ -111,7 +109,7 @@ export function MhdLeaveEligibilityEvaluateForm({
 }) {
   useMhdLeaveDraftBinding('reasonCode', reasonCode, onReasonChange);
   useMhdLeaveDraftBinding('familyRelationship', relationship, onRelationshipChange);
-  const [selfCare, setSelfCare] = useState<SelfCareAnswer>('UNKNOWN');
+  const [selfCare, setSelfCare] = useMhdLeaveDraftField<SelfCareAnswer>('selfCare', 'UNKNOWN');
   const [employerAgreedBonding, setEmployerAgreedBonding] = useMhdLeaveDraftField(
     'employerAgreedBonding',
     false,
@@ -862,9 +860,6 @@ export function MhdLeaveBenefitObligationForm({
  * Privileged-only. Opens on the recorded plan (if any) so an update starts from what is on
  * file. A return-to-work certification may be required only under a uniformly applied company
  * policy; without one the database refuses it and the modal shows that refusal.
- *
- * Fitness-for-duty, certification dates, work restrictions and the reinstatement exception
- * are certification or medical-adjacent facts, so they use plain state and never reach a draft.
  */
 export function MhdLeaveReturnToWorkForm({
   caseId,
@@ -891,17 +886,26 @@ export function MhdLeaveReturnToWorkForm({
     'outcome',
     current?.reinstatement_outcome ?? '',
   );
-  const [exceptionReason, setExceptionReason] = useState(
+  const [exceptionReason, setExceptionReason] = useMhdLeaveDraftField(
+    'exceptionReason',
     current?.reinstatement_exception_reason ?? '',
   );
-  const [fitnessRequired, setFitnessRequired] = useState(current?.fitness_required ?? false);
-  const [certRequestedOn, setCertRequestedOn] = useState(
+  const [fitnessRequired, setFitnessRequired] = useMhdLeaveDraftField(
+    'fitnessRequired',
+    current?.fitness_required ?? false,
+  );
+  const [certRequestedOn, setCertRequestedOn] = useMhdLeaveDraftField(
+    'certRequestedOn',
     current?.rtw_certification_requested_on ?? '',
   );
-  const [certReceivedOn, setCertReceivedOn] = useState(
+  const [certReceivedOn, setCertReceivedOn] = useMhdLeaveDraftField(
+    'certReceivedOn',
     current?.rtw_certification_received_on ?? '',
   );
-  const [restrictions, setRestrictions] = useState(current?.restrictions_present ?? false);
+  const [restrictions, setRestrictions] = useMhdLeaveDraftField(
+    'restrictionsPresent',
+    current?.restrictions_present ?? false,
+  );
   const [note, setNote] = useMhdLeaveDraftField('note', '');
 
   return (

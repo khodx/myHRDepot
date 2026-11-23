@@ -14436,6 +14436,112 @@ export type Database = {
           },
         ]
       }
+      leave_checklist_adjustments: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          due_at: string | null
+          id: string
+          item_key: string
+          kind: string
+          label: string | null
+          leave_case_id: string
+          note: string | null
+          removed_at: string | null
+          removed_by: string | null
+          stage_key: string | null
+          status_override: string | null
+          status_set_at: string | null
+          status_set_by: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          due_at?: string | null
+          id?: string
+          item_key: string
+          kind: string
+          label?: string | null
+          leave_case_id: string
+          note?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          stage_key?: string | null
+          status_override?: string | null
+          status_set_at?: string | null
+          status_set_by?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          due_at?: string | null
+          id?: string
+          item_key?: string
+          kind?: string
+          label?: string | null
+          leave_case_id?: string
+          note?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          stage_key?: string | null
+          status_override?: string | null
+          status_set_at?: string | null
+          status_set_by?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_checklist_adjustments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_checklist_adjustments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_checklist_adjustments_leave_case_id_fkey"
+            columns: ["leave_case_id"]
+            isOneToOne: false
+            referencedRelation: "leave_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_checklist_adjustments_removed_by_fkey"
+            columns: ["removed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_checklist_adjustments_status_set_by_fkey"
+            columns: ["status_set_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_checklist_adjustments_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_deadline_rules: {
         Row: {
           citation: string
@@ -30490,6 +30596,10 @@ export type Database = {
           version: number
         }[]
       }
+      mhd_draft_can_view: {
+        Args: { p_company: string; p_kind: string; p_owner: string }
+        Returns: boolean
+      }
       mhd_draft_discard: {
         Args: { p_draft_key: string; p_draft_kind: string }
         Returns: boolean
@@ -30541,6 +30651,22 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      mhd_draft_list_shared: {
+        Args: { p_draft_key: string; p_draft_kind: string }
+        Returns: {
+          company_id: string
+          draft_key: string
+          draft_kind: string
+          expires_at: string
+          id: string
+          owner_name: string
+          owner_user_id: string
+          payload: Json
+          step_key: string
+          title: string
+          updated_at: string
+        }[]
       }
       mhd_draft_save: {
         Args: {
@@ -32802,6 +32928,103 @@ export type Database = {
         }
         Returns: undefined
       }
+      mhd_leave_checklist_add_item: {
+        Args: {
+          p_case_id: string
+          p_due_at?: string
+          p_label: string
+          p_note?: string
+          p_stage_key: string
+        }
+        Returns: string
+      }
+      mhd_leave_checklist_can_edit: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
+      mhd_leave_checklist_case_for_edit: {
+        Args: { p_case_id: string }
+        Returns: {
+          actual_end: string | null
+          actual_start: string | null
+          bonding_event_date: string | null
+          bonding_event_type: string | null
+          company_id: string
+          created_at: string | null
+          created_by: string
+          decision_reason: string | null
+          essential_functions_description_id: string | null
+          essential_functions_provided_on: string | null
+          family_relationship: string | null
+          id: string
+          intake_channel: string
+          is_intermittent: boolean
+          key_employee_determined_on: string | null
+          key_employee_notice_on: string | null
+          key_employee_restoration_denied_notice_on: string | null
+          key_employee_status: string
+          light_duty_declined_note: string | null
+          opened_by: string
+          person_id: string
+          reason_category: string
+          reason_code: string | null
+          reference_id: string
+          requested_end: string | null
+          requested_mode: string
+          requested_start: string | null
+          source_submission_id: string | null
+          status: string
+          updated_at: string | null
+          wc_concurrent_designated_on: string | null
+          workers_comp_claim: boolean
+          workers_comp_claim_filed_on: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_cases"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mhd_leave_checklist_edit_item: {
+        Args: {
+          p_case_id: string
+          p_due_at?: string
+          p_item_key: string
+          p_label: string
+          p_note?: string
+          p_stage_key: string
+        }
+        Returns: undefined
+      }
+      mhd_leave_checklist_generated: {
+        Args: { p_case_id: string }
+        Returns: {
+          due_at: string
+          item_key: string
+          label: string
+          stage_key: string
+          stage_no: number
+          status: string
+        }[]
+      }
+      mhd_leave_checklist_remove_item: {
+        Args: { p_case_id: string; p_item_key: string }
+        Returns: undefined
+      }
+      mhd_leave_checklist_set_status: {
+        Args: {
+          p_action: string
+          p_case_id: string
+          p_item_key: string
+          p_note?: string
+        }
+        Returns: undefined
+      }
+      mhd_leave_checklist_stage_no: {
+        Args: { p_stage_key: string }
+        Returns: number
+      }
       mhd_leave_checklist_status: {
         Args: {
           p_applicable: boolean
@@ -32863,11 +33086,18 @@ export type Database = {
         Args: { p_case_id: string }
         Returns: {
           due_at: string
+          due_overridden: boolean
+          generated_status: string
+          is_custom: boolean
+          is_overridden: boolean
           item_key: string
           label: string
+          note: string
           stage_key: string
           stage_no: number
           status: string
+          status_set_at: string
+          status_set_by_name: string
         }[]
       }
       mhd_leave_eligibility_confirm: {

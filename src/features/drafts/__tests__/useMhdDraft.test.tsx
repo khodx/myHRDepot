@@ -39,18 +39,39 @@ function renderDraft(enabled = true) {
   );
 }
 
+/** Answer each RPC by name, so the order of the hook's parallel queries does not matter. */
+function answer(handlers: Record<string, unknown>) {
+  rpc.mockImplementation(async (name: string) => handlers[name] ?? { data: [], error: null });
+}
+
 describe('useMhdDraft', () => {
   beforeEach(() => {
     rpc.mockReset();
   });
 
   it('loads the live draft for the screen instance', async () => {
-    rpc.mockResolvedValueOnce({ data: [row], error: null });
+    answer({ mhd_draft_get: { data: [row], error: null } });
     const { result } = renderDraft();
     await waitFor(() => expect(result.current.draft).not.toBeNull());
     const draft = result.current.draft as MhdDraft;
     expect(draft.payload).toEqual(row.payload);
     expect(rpc).toHaveBeenCalledWith('mhd_draft_get', {
+      p_draft_kind: 'ACTIVITY_CREATE',
+      p_draft_key: 'new',
+    });
+  });
+
+  it('loads the drafts of other people on the same screen that the caller may see', async () => {
+    const shared = { ...row, owner_user_id: crypto.randomUUID(), owner_name: 'Priya Raman' };
+    rpc.mockImplementation(async (name: string) =>
+      name === 'mhd_draft_list_shared'
+        ? { data: [shared], error: null }
+        : { data: [], error: null },
+    );
+    const { result } = renderDraft();
+    await waitFor(() => expect(result.current.shared).toHaveLength(1));
+    expect(result.current.shared?.[0].ownerName).toBe('Priya Raman');
+    expect(rpc).toHaveBeenCalledWith('mhd_draft_list_shared', {
       p_draft_kind: 'ACTIVITY_CREATE',
       p_draft_key: 'new',
     });
@@ -64,9 +85,7 @@ describe('useMhdDraft', () => {
   });
 
   it('saves with the kind, key and company and records the save time', async () => {
-    rpc
-      .mockResolvedValueOnce({ data: [], error: null })
-      .mockResolvedValueOnce({ data: row, error: null });
+    answer({ mhd_draft_save: { data: row, error: null } });
     const { result } = renderDraft();
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     await act(async () => {
@@ -88,9 +107,7 @@ describe('useMhdDraft', () => {
   });
 
   it("forgets this session's save when the screen closes so the resume banner can return", async () => {
-    rpc
-      .mockResolvedValueOnce({ data: [], error: null })
-      .mockResolvedValueOnce({ data: row, error: null });
+    answer({ mhd_draft_save: { data: row, error: null } });
     const { result, rerender } = renderDraft();
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     await act(async () => {
@@ -102,9 +119,10 @@ describe('useMhdDraft', () => {
   });
 
   it('discards the draft and clears it from the cache', async () => {
-    rpc
-      .mockResolvedValueOnce({ data: [row], error: null })
-      .mockResolvedValueOnce({ data: true, error: null });
+    answer({
+      mhd_draft_get: { data: [row], error: null },
+      mhd_draft_discard: { data: true, error: null },
+    });
     const { result } = renderDraft();
     await waitFor(() => expect(result.current.draft).not.toBeNull());
     await act(async () => {
@@ -118,15 +136,13 @@ describe('useMhdDraft', () => {
   });
 
   it('surfaces a refused save without throwing out of the controller state', async () => {
-    rpc
-      .mockResolvedValueOnce({ data: [], error: null })
-      .mockResolvedValueOnce({ data: null, error: new Error('Drafts cannot hold medical detail') });
+    answer({ mhd_draft_save: { data: null, error: new Error('Draft is too large to save') } });
     const { result } = renderDraft();
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     await act(async () => {
       await result.current.save({ payload: {} }).catch(() => undefined);
     });
-    await waitFor(() => expect(result.current.saveError).toBe('Drafts cannot hold medical detail'));
+    await waitFor(() => expect(result.current.saveError).toBe('Draft is too large to save'));
     expect(result.current.savedAt).toBeNull();
   });
 });

@@ -6,6 +6,10 @@ import type {
   MhdLeaveBenefitTransactionInput,
   MhdLeaveBondingEventInput,
   MhdLeaveCertificationClearDatesInput,
+  MhdLeaveChecklistEditInput,
+  MhdLeaveChecklistItemInput,
+  MhdLeaveChecklistRemoveInput,
+  MhdLeaveChecklistStatusInput,
   MhdLeaveDesignatedPersonInput,
   MhdLeaveDesignatedPersonVoidInput,
   MhdLeaveEligibilityInput,
@@ -34,6 +38,40 @@ import {
   mhdValidateLeaveSegmentStatus,
   mhdValidateLeaveWorkersComp,
 } from './WorkflowValidation';
+
+const MHD_DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * A checklist due date picked as a calendar day becomes the end of that day in the viewer's
+ * time zone, so the item turns overdue only once the day has passed. Null when no date.
+ */
+export function mhdLeaveChecklistDueAt(dueDate: string | null | undefined): string | null {
+  const value = dueDate?.trim();
+  if (!value) return null;
+  if (!MHD_DATE_INPUT_PATTERN.test(value)) {
+    throw new Error('Enter the due date as a calendar date.');
+  }
+  const end = new Date(`${value}T23:59:59.999`);
+  if (Number.isNaN(end.getTime())) throw new Error('Enter the due date as a calendar date.');
+  return end.toISOString();
+}
+
+/** The calendar day (YYYY-MM-DD, viewer's time zone) of a checklist due timestamp, for a date input. */
+export function mhdLeaveChecklistDueDate(dueAt: string | null | undefined): string {
+  if (!dueAt) return '';
+  const date = new Date(dueAt);
+  if (Number.isNaN(date.getTime())) return '';
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function mhdLeaveChecklistLabel(label: string): string {
+  const value = label.trim();
+  if (!value) throw new Error('Enter a label for the checklist item.');
+  if (value.length > 300) throw new Error('Keep the checklist item label to 300 characters.');
+  return value;
+}
 
 // supabaseClient.rpc is called directly rather than bound to a local alias.
 // Binding instantiates the whole generated rpc overload set at once, which now
@@ -401,6 +439,55 @@ export const mhdLeaveWorkflowService = {
       p_certification_id: input.certificationId,
       p_fields: input.fields,
       p_reason: input.reason.trim(),
+    });
+    if (error) throw error;
+  },
+
+  /** Adds an item the rules do not generate to this case's checklist; returns its item key. */
+  async addChecklistItem(input: MhdLeaveChecklistItemInput): Promise<string> {
+    const { data, error } = await supabaseClient.rpc('mhd_leave_checklist_add_item', {
+      p_case_id: input.caseId,
+      p_stage_key: input.stageKey,
+      p_label: mhdLeaveChecklistLabel(input.label),
+      p_due_at: mhdLeaveChecklistDueAt(input.dueDate) ?? undefined,
+      p_note: input.note?.trim() || undefined,
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Edits an item's label, stage, due date and note. For a generated item a value equal to the
+   * generated one (or no due date) keeps the generated value.
+   */
+  async editChecklistItem(input: MhdLeaveChecklistEditInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_leave_checklist_edit_item', {
+      p_case_id: input.caseId,
+      p_item_key: input.itemKey,
+      p_stage_key: input.stageKey,
+      p_label: mhdLeaveChecklistLabel(input.label),
+      p_due_at: mhdLeaveChecklistDueAt(input.dueDate) ?? undefined,
+      p_note: input.note?.trim() || undefined,
+    });
+    if (error) throw error;
+  },
+
+  /** Mark Done / Reopen (any item), Mark Not Applicable / Restore (generated items). */
+  async setChecklistStatus(input: MhdLeaveChecklistStatusInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_leave_checklist_set_status', {
+      p_case_id: input.caseId,
+      p_item_key: input.itemKey,
+      p_action: input.action,
+      p_note: input.note?.trim() || undefined,
+    });
+    if (error) throw error;
+  },
+
+  /** Removes an item HR added; generated items are marked Not Applicable instead. */
+  async removeChecklistItem(input: MhdLeaveChecklistRemoveInput): Promise<void> {
+    const { error } = await supabaseClient.rpc('mhd_leave_checklist_remove_item', {
+      p_case_id: input.caseId,
+      p_item_key: input.itemKey,
     });
     if (error) throw error;
   },

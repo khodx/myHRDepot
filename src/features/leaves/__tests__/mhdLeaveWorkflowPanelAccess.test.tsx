@@ -10,6 +10,16 @@ import { mhdTestLeaveWorkflow } from './leaveWorkflowFixture';
 
 const CASE_ID = crypto.randomUUID();
 
+/** The adjustment fields (0395) of a generated checklist item nobody has adjusted. */
+const GENERATED_ITEM = {
+  is_custom: false,
+  is_overridden: false,
+  due_overridden: false,
+  note: null,
+  status_set_by_name: null,
+  status_set_at: null,
+} as const;
+
 const { paySourceAsync, workflowData, readinessData } = vi.hoisted(() => ({
   paySourceAsync: vi.fn(),
   workflowData: { current: null as unknown },
@@ -100,6 +110,8 @@ describe('MhdLeaveWorkflowPanel for the employee who owns the case', () => {
           label: 'Notice of eligibility and rights issued',
           status: 'OVERDUE',
           due_at: '2026-08-10T15:00:00Z',
+          ...GENERATED_ITEM,
+          generated_status: 'OVERDUE',
         },
         {
           stage_no: 4,
@@ -108,6 +120,8 @@ describe('MhdLeaveWorkflowPanel for the employee who owns the case', () => {
           label: 'Certification received',
           status: 'DONE',
           due_at: null,
+          ...GENERATED_ITEM,
+          generated_status: 'DONE',
         },
       ],
       deadlines: [

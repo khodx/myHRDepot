@@ -320,12 +320,10 @@ describe('MhdAccommodationRequestDetailsPanel', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('drafts the work facts but never the limitation or recovery date', async () => {
+  it('drafts every field, the limitation and recovery date included', async () => {
     renderRequestDetails();
     const dialog = openForm('Edit Request Details');
-    expect(
-      within(dialog).getByText('Medical details are not saved in drafts.'),
-    ).toBeInTheDocument();
+    expect(within(dialog).queryByText(/not saved in drafts/)).not.toBeInTheDocument();
     fireEvent.click(within(dialog).getByLabelText('Temporary'));
     fireEvent.change(within(dialog).getByLabelText('Anticipated Recovery Date'), {
       target: { value: '12/31/2026' },
@@ -341,15 +339,17 @@ describe('MhdAccommodationRequestDetailsPanel', () => {
     await waitFor(() => expect(mockDraft.save).toHaveBeenCalledTimes(1));
     const payload = mockDraft.save.mock.calls[0][0].payload;
     expect(payload).toMatchObject({
+      limitationDuration: 'TEMPORARY',
+      anticipatedRecoveryDate: '2026-12-31',
       contactPhone: '(510) 555-0142',
       workLocation: 'Oakland warehouse',
     });
-    expect(payload).not.toHaveProperty('limitationDuration');
-    expect(payload).not.toHaveProperty('anticipatedRecoveryDate');
   });
 
-  it('restores the drafted work facts on Resume Draft and discards the draft once saved', async () => {
+  it('restores every drafted field on Resume Draft and discards the draft once saved', async () => {
     mockDraft.draft = savedDraft({
+      limitationDuration: 'TEMPORARY',
+      anticipatedRecoveryDate: '2026-12-31',
       contactEmail: 'renata.alvarez@example.org',
       supervisorName: 'Marcus Lindqvist',
       leaveRequested: true,
@@ -359,6 +359,8 @@ describe('MhdAccommodationRequestDetailsPanel', () => {
     const dialog = openForm('Edit Request Details');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
 
+    expect(within(dialog).getByLabelText('Temporary')).toBeChecked();
+    expect(within(dialog).getByLabelText('Anticipated Recovery Date')).toHaveValue('12/31/2026');
     expect(within(dialog).getByLabelText('Contact Email')).toHaveValue(
       'renata.alvarez@example.org',
     );
@@ -511,12 +513,10 @@ describe('MhdAccommodationProviderCertPanel', () => {
     await waitFor(() => expect(mockDraft.discard).toHaveBeenCalledTimes(1));
   });
 
-  it('drafts only the job-duty statement date, never the certification content', async () => {
+  it('drafts every certification field, provider and recommendation included', async () => {
     renderProvider(null);
     const dialog = openForm('Record Provider Certification');
-    expect(
-      within(dialog).getByText('Medical details are not saved in drafts.'),
-    ).toBeInTheDocument();
+    expect(within(dialog).queryByText(/not saved in drafts/)).not.toBeInTheDocument();
     fireEvent.change(within(dialog).getByLabelText('Job-Duty Statement Sent On'), {
       target: { value: '07/22/2026' },
     });
@@ -532,15 +532,38 @@ describe('MhdAccommodationProviderCertPanel', () => {
     await waitFor(() => expect(mockDraft.save).toHaveBeenCalledTimes(1));
     expect(mockDraft.save.mock.calls[0][0].payload).toEqual({
       jobDutyStatementSentAt: '2026-07-22',
+      providerName: 'Dr. Imani Okafor',
+      certifiedAt: '',
+      disabilityVerified: true,
+      limitationDuration: '',
+      limitationEndDate: '',
+      accommodationBeginOn: '',
+      accommodationEndOn: '',
+      accommodationContinuous: false,
+      recommendation: 'Seated workstation with an hourly break.',
     });
   });
 
-  it('restores the drafted job-duty statement date on Resume Draft', () => {
-    mockDraft.draft = savedDraft({ jobDutyStatementSentAt: '2026-07-22' });
+  it('restores every drafted certification field on Resume Draft', () => {
+    mockDraft.draft = savedDraft({
+      jobDutyStatementSentAt: '2026-07-22',
+      providerName: 'Dr. Imani Okafor',
+      disabilityVerified: true,
+      limitationDuration: 'TEMPORARY',
+      limitationEndDate: '2026-12-31',
+      recommendation: 'Seated workstation with an hourly break.',
+    });
     renderProvider(null);
     const dialog = openForm('Record Provider Certification');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
     expect(within(dialog).getByLabelText('Job-Duty Statement Sent On')).toHaveValue('07/22/2026');
+    expect(within(dialog).getByLabelText('Provider Name')).toHaveValue('Dr. Imani Okafor');
+    expect(within(dialog).getByLabelText('Disability Verified')).toBeChecked();
+    expect(within(dialog).getByLabelText('Duration')).toHaveValue('TEMPORARY');
+    expect(within(dialog).getByLabelText('Limitation End Date')).toHaveValue('12/31/2026');
+    expect(within(dialog).getByLabelText('Recommendation')).toHaveValue(
+      'Seated workstation with an hourly break.',
+    );
   });
 });
 

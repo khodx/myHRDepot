@@ -1252,15 +1252,13 @@ describe('case action modals save and resume drafts', () => {
     expect(mockDraft.discard).not.toHaveBeenCalled();
   });
 
-  it('never puts the functional limitation or accommodation need in the medical-status draft', async () => {
+  it('puts the functional limitation and accommodation need in the medical-status draft', async () => {
     rolesRef.current = ['HR Partner'];
     detailRef.current = detail({ medical_status: [] });
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /documentation status/i }));
     const dialog = openForm('Record Restricted Medical Status');
-    expect(
-      within(dialog).getByText('Medical details are not saved in drafts.'),
-    ).toBeInTheDocument();
+    expect(within(dialog).queryByText(/not saved in drafts/)).not.toBeInTheDocument();
 
     fireEvent.change(within(dialog).getByLabelText('Functional limitation'), {
       target: { value: 'Cannot stand longer than 20 minutes.' },
@@ -1275,10 +1273,39 @@ describe('case action modals save and resume drafts', () => {
     expect(payload).toMatchObject({
       documentationType: 'SIMPLE_CERTIFICATION',
       documentationStatus: 'NOT_NEEDED',
+      functionalLimitation: 'Cannot stand longer than 20 minutes.',
+      accommodationNeed: 'Seated workstation.',
     });
-    expect(payload).not.toHaveProperty('functionalLimitation');
-    expect(payload).not.toHaveProperty('accommodationNeed');
-    expect(JSON.stringify(payload)).not.toMatch(/stand longer|Seated workstation/);
+  });
+
+  it('restores the functional limitation and accommodation need on Resume Draft', () => {
+    rolesRef.current = ['HR Partner'];
+    detailRef.current = detail({ medical_status: [] });
+    mockDraft.draft = {
+      id: crypto.randomUUID(),
+      draftKind: 'ACCOMMODATION_CASE_ACTION',
+      draftKey: 'case-1:medical-status',
+      title: null,
+      stepKey: null,
+      payload: {
+        documentationType: 'SIMPLE_CERTIFICATION',
+        documentationStatus: 'NOT_NEEDED',
+        needIsObvious: false,
+        documentationRequested: false,
+        functionalLimitation: 'Cannot stand longer than 20 minutes.',
+        accommodationNeed: 'Seated workstation.',
+      },
+      updatedAt: '2026-11-20T15:00:00Z',
+      expiresAt: '2026-12-20T15:00:00Z',
+    };
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /documentation status/i }));
+    const dialog = openForm('Record Restricted Medical Status');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
+    expect(within(dialog).getByLabelText('Functional limitation')).toHaveValue(
+      'Cannot stand longer than 20 minutes.',
+    );
+    expect(within(dialog).getByLabelText('Accommodation need')).toHaveValue('Seated workstation.');
   });
 
   it('restores a decision draft, including its denial reasons', () => {

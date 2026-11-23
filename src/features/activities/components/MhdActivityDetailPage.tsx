@@ -17,7 +17,7 @@ import type { Json } from '@/types/database.types';
 import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
 import { MhdActivityRecordTabs } from '@/appshell/components/MhdActivityRecordTabs';
 import { MhdBreadcrumb } from '@/appshell/components/MhdBreadcrumb';
-import { mhdCanMutateActivities } from '@/appshell/mhdRouteAccess';
+import { mhdCanEditActivityChecklist, mhdCanMutateActivities } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdDraft, type MhdDraftController } from '@/features/drafts/Hook';
 import { MHD_DRAFT_KINDS } from '@/features/drafts/Types';
@@ -42,6 +42,7 @@ import {
   type MhdActivityParticipantRole,
   type MhdSubActivity,
   type MhdUpdateActivityInput,
+  type MhdUpdateSubActivityInput,
   mhdFormatActivityParticipantRole,
 } from '../Types';
 import { MhdActivityAttachmentsPanel } from './MhdActivityAttachmentsPanel';
@@ -127,7 +128,6 @@ function MhdCompleteActivityForm({
           {...register('outcomeSummary')}
         />
       </div>
-      <p className="text-xs text-muted-foreground">Medical details are not saved in drafts.</p>
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Completing…' : 'Mark Completed'}
@@ -197,7 +197,6 @@ function MhdFollowUpTaskForm({
           minHeightClassName="min-h-28"
         />
       </div>
-      <p className="text-xs text-muted-foreground">Medical details are not saved in drafts.</p>
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Creating…' : 'Create Follow-up Task'}
@@ -216,6 +215,7 @@ export function MhdActivityDetailPage() {
   const navigate = useNavigate();
   const { profile, roles } = useMhdAuth();
   const canMutate = mhdCanMutateActivities(roles);
+  const canEditChecklist = mhdCanEditActivityChecklist(roles);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -393,6 +393,13 @@ export function MhdActivityDetailPage() {
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unable to update checklist item.');
     }
+  }
+
+  async function handleEditSubActivity(
+    subActivity: MhdSubActivity,
+    input: MhdUpdateSubActivityInput,
+  ): Promise<void> {
+    await actions.updateSubActivity.mutateAsync({ subActivityId: subActivity.id, input });
   }
 
   async function handleAddSubActivity(title: string) {
@@ -769,9 +776,11 @@ export function MhdActivityDetailPage() {
                 activityId={activity.id}
                 subActivities={subActivities}
                 canMutate={canMutate}
+                canEdit={canEditChecklist}
                 isSubmitting={subActivityMutating}
                 onToggleComplete={handleToggleSubActivity}
                 onAdd={handleAddSubActivity}
+                onEdit={handleEditSubActivity}
                 onDelete={handleDeleteSubActivity}
                 onReorder={handleReorderSubActivity}
               />

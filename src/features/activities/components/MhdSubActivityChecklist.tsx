@@ -1,11 +1,20 @@
-import { ArrowDown, ArrowUp, CheckCircle2, Circle, ListChecks, Plus, Trash2 } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  CheckCircle2,
+  Circle,
+  ListChecks,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
 import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { useMhdDraft } from '@/features/drafts/Hook';
 import { MHD_DRAFT_KINDS } from '@/features/drafts/Types';
-import type { MhdSubActivity } from '../Types';
+import type { MhdSubActivity, MhdUpdateSubActivityInput } from '../Types';
 import { mhdFormatSubActivityStatus } from '../Types';
 import { mhdFormatDateTime } from '@/utils/mhdDateFormat';
 
@@ -13,25 +22,163 @@ interface Props {
   activityId: string;
   subActivities: MhdSubActivity[];
   canMutate: boolean;
+  /** Admin/HR roles that may edit an item's content (see mhdCanEditActivityChecklist). */
+  canEdit?: boolean;
   isSubmitting: boolean;
   onToggleComplete: (subActivity: MhdSubActivity) => void;
   onAdd: (title: string) => Promise<void>;
+  onEdit?: (subActivity: MhdSubActivity, input: MhdUpdateSubActivityInput) => Promise<void>;
   onDelete: (subActivity: MhdSubActivity) => void;
   onReorder: (subActivity: MhdSubActivity, direction: 'up' | 'down') => void;
+}
+
+function toLocalInputValue(iso: string | null): string {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+const INPUT_CLASS =
+  'w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
+
+interface EditModalProps {
+  activityId: string;
+  item: MhdSubActivity;
+  isSubmitting: boolean;
+  onClose: () => void;
+  onSubmit: (input: MhdUpdateSubActivityInput) => Promise<void>;
+}
+
+function MhdEditChecklistItemModal({
+  activityId,
+  item,
+  isSubmitting,
+  onClose,
+  onSubmit,
+}: EditModalProps) {
+  const [title, setTitle] = useState(item.title);
+  const [description, setDescription] = useState(item.descriptionPlainText ?? '');
+  const [scheduledAt, setScheduledAt] = useState(toLocalInputValue(item.scheduledAt));
+  const [error, setError] = useState<string | null>(null);
+  const draft = useMhdDraft({
+    draftKind: MHD_DRAFT_KINDS.activityChecklistItem,
+    draftKey: `${activityId}:edit:${item.id}`,
+    enabled: true,
+  });
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    setError(null);
+    try {
+      await onSubmit({
+        title: trimmed,
+        descriptionPlainText: description.trim() || null,
+        scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+      });
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to update checklist item.');
+      return;
+    }
+    await draft.discard();
+    onClose();
+  }
+
+  return (
+    <MhdFormModal
+      title="Edit Checklist Item"
+      description={`Update ${item.referenceId}.`}
+      size="md"
+      onClose={onClose}
+    >
+      <MhdDraftBanner
+        draft={draft}
+        onRestore={(payload) => {
+          setTitle(String(payload.title ?? ''));
+          setDescription(String(payload.descriptionPlainText ?? ''));
+          setScheduledAt(String(payload.scheduledAt ?? ''));
+        }}
+      />
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <div>
+          <label htmlFor="mhd-checklist-edit-title" className="mb-1 block text-sm font-medium">
+            Item
+          </label>
+          <input
+            id="mhd-checklist-edit-title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            className={INPUT_CLASS}
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="mhd-checklist-edit-description"
+            className="mb-1 block text-sm font-medium"
+          >
+            Notes
+          </label>
+          <textarea
+            id="mhd-checklist-edit-description"
+            rows={3}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            className={INPUT_CLASS}
+          />
+        </div>
+        <div>
+          <label htmlFor="mhd-checklist-edit-scheduled" className="mb-1 block text-sm font-medium">
+            Scheduled For
+          </label>
+          <input
+            id="mhd-checklist-edit-scheduled"
+            type="datetime-local"
+            value={scheduledAt}
+            onChange={(event) => setScheduledAt(event.target.value)}
+            className={INPUT_CLASS}
+          />
+        </div>
+        {error ? (
+          <p role="alert" className="text-sm text-red-600">
+            {error}
+          </p>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" disabled={isSubmitting || title.trim().length === 0}>
+            Save Changes
+          </Button>
+          <MhdSaveDraftButton
+            draft={draft}
+            getValues={() => ({ title, descriptionPlainText: description, scheduledAt })}
+            disabled={title.trim().length === 0}
+          />
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </MhdFormModal>
+  );
 }
 
 export function MhdSubActivityChecklist({
   activityId,
   subActivities,
   canMutate,
+  canEdit = false,
   isSubmitting,
   onToggleComplete,
   onAdd,
+  onEdit,
   onDelete,
   onReorder,
 }: Props) {
   const [newTitle, setNewTitle] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [editingItem, setEditingItem] = useState<MhdSubActivity | null>(null);
   const draft = useMhdDraft({
     draftKind: MHD_DRAFT_KINDS.activityChecklistItem,
     draftKey: activityId,
@@ -114,35 +261,50 @@ export function MhdSubActivityChecklist({
                   ) : null}
                 </div>
 
-                {canMutate ? (
+                {canMutate || (canEdit && onEdit) ? (
                   <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => onReorder(item, 'up')}
-                      disabled={isSubmitting || index === 0}
-                      aria-label={`Move ${item.title} up`}
-                      className="rounded p-1 text-muted-foreground hover:bg-muted disabled:opacity-30"
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onReorder(item, 'down')}
-                      disabled={isSubmitting || index === ordered.length - 1}
-                      aria-label={`Move ${item.title} down`}
-                      className="rounded p-1 text-muted-foreground hover:bg-muted disabled:opacity-30"
-                    >
-                      <ArrowDown className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onDelete(item)}
-                      disabled={isSubmitting}
-                      aria-label={`Delete ${item.title}`}
-                      className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    {canEdit && onEdit ? (
+                      <button
+                        type="button"
+                        onClick={() => setEditingItem(item)}
+                        disabled={isSubmitting}
+                        aria-label={`Edit ${item.title}`}
+                        className="rounded p-1 text-muted-foreground hover:bg-muted disabled:opacity-30"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    ) : null}
+                    {canMutate ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onReorder(item, 'up')}
+                          disabled={isSubmitting || index === 0}
+                          aria-label={`Move ${item.title} up`}
+                          className="rounded p-1 text-muted-foreground hover:bg-muted disabled:opacity-30"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onReorder(item, 'down')}
+                          disabled={isSubmitting || index === ordered.length - 1}
+                          aria-label={`Move ${item.title} down`}
+                          className="rounded p-1 text-muted-foreground hover:bg-muted disabled:opacity-30"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onDelete(item)}
+                          disabled={isSubmitting}
+                          aria-label={`Delete ${item.title}`}
+                          className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </>
+                    ) : null}
                   </div>
                 ) : null}
               </li>
@@ -197,6 +359,15 @@ export function MhdSubActivityChecklist({
             </div>
           </form>
         </MhdFormModal>
+      ) : null}
+      {editingItem && canEdit && onEdit ? (
+        <MhdEditChecklistItemModal
+          activityId={activityId}
+          item={editingItem}
+          isSubmitting={isSubmitting}
+          onClose={() => setEditingItem(null)}
+          onSubmit={(input) => onEdit(editingItem, input)}
+        />
       ) : null}
     </div>
   );

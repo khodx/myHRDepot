@@ -120,10 +120,10 @@ describe('MhdLeaveCaseControlsPanel', () => {
     expect(screen.getByLabelText('Determination date')).toHaveValue('08/12/2026');
   });
 
-  it("records a workers' compensation claim and never drafts the light-duty note", async () => {
+  it("records a workers' compensation claim and drafts the light-duty note", async () => {
     const { onWorkersComp } = renderPanel();
     fireEvent.click(screen.getByRole('button', { name: "Edit Workers' Compensation" }));
-    expect(screen.getByText('Medical details are not saved in drafts.')).toBeInTheDocument();
+    expect(screen.queryByText(/not saved in drafts/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByLabelText("Workers' Compensation Claim"));
     fireEvent.change(screen.getByLabelText('Date filed'), { target: { value: '08/06/2026' } });
     fireEvent.blur(screen.getByLabelText('Date filed'));
@@ -136,6 +136,7 @@ describe('MhdLeaveCaseControlsPanel', () => {
       claim: true,
       filedOn: '2026-08-06',
       concurrentDesignatedOn: '',
+      lightDutyNote: 'Declined modified duty at the Fresno warehouse',
     });
     fireEvent.click(screen.getByRole('button', { name: "Save Workers' Compensation" }));
     await waitFor(() =>
@@ -146,6 +147,21 @@ describe('MhdLeaveCaseControlsPanel', () => {
         concurrentDesignatedOn: null,
         lightDutyDeclinedNote: 'Declined modified duty at the Fresno warehouse',
       }),
+    );
+  });
+
+  it("restores a saved light-duty note in the workers' compensation draft", async () => {
+    drafts.get.mockResolvedValue(
+      mhdTestLeaveDraft(`${CASE_ID}:workers-comp`, {
+        claim: true,
+        lightDutyNote: 'Declined modified duty at the Fresno warehouse',
+      }),
+    );
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: "Edit Workers' Compensation" }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Resume Draft' }));
+    expect(screen.getByLabelText('Light-duty note')).toHaveValue(
+      'Declined modified duty at the Fresno warehouse',
     );
   });
 

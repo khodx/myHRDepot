@@ -666,11 +666,11 @@ describe('Return To Work tab', () => {
 });
 
 describe('Leave workflow action drafts', () => {
-  it('keeps return-to-work certification and restriction facts out of the draft', async () => {
+  it('drafts every return-to-work field, certification and restriction facts included', async () => {
     renderPanel();
     openTab(/Return To Work/);
     launch('Add Return-To-Work Plan');
-    expect(screen.getByText('Medical details are not saved in drafts.')).toBeInTheDocument();
+    expect(screen.queryByText(/not saved in drafts/)).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Expected return date'), {
       target: { value: '09/14/2026' },
     });
@@ -693,16 +693,35 @@ describe('Leave workflow action drafts', () => {
         expectedReturn: '2026-09-14',
         actualReturn: '',
         outcome: '',
+        exceptionReason: 'Comparable position on the day shift',
+        fitnessRequired: true,
+        certRequestedOn: '',
+        certReceivedOn: '',
+        restrictionsPresent: true,
         note: 'Same pay grade',
       },
     });
-    const payload = drafts.save.mock.calls[0][0].payload as Record<string, unknown>;
-    expect(Object.keys(payload).sort()).toEqual([
-      'actualReturn',
-      'expectedReturn',
-      'note',
-      'outcome',
-    ]);
+  });
+
+  it('restores the return-to-work fitness, restriction and exception facts on Resume Draft', async () => {
+    drafts.get.mockResolvedValue(
+      mhdTestLeaveDraft(`${CASE_ID}:return-to-work`, {
+        fitnessRequired: true,
+        restrictionsPresent: true,
+        exceptionReason: 'Comparable position on the day shift',
+      }),
+    );
+    renderPanel();
+    openTab(/Return To Work/);
+    launch('Add Return-To-Work Plan');
+    fireEvent.click(await screen.findByRole('button', { name: 'Resume Draft' }));
+    expect(screen.getByLabelText('Fitness-For-Duty Certification Required')).toBeChecked();
+    expect(
+      screen.getByLabelText('Work Restrictions Present; Begin Accommodation Referral'),
+    ).toBeChecked();
+    expect(screen.getByLabelText('Exception reason')).toHaveValue(
+      'Comparable position on the day shift',
+    );
   });
 
   it('resumes a saved benefit obligation draft', async () => {

@@ -280,7 +280,7 @@ describe('MhdLeaveIntakeWizard', () => {
       expect(screen.getByRole('dialog', { name: 'Guided Leave Intake' })).toBeInTheDocument();
     });
 
-    it('saves the step and values, leaving the evaluation reason code out', async () => {
+    it('saves the step and every value, the evaluation reason code included', async () => {
       renderWizard();
       fireEvent.change(screen.getByLabelText('Subject person'), { target: { value: 'person-1' } });
       fireEvent.change(screen.getByLabelText('Reason category'), {
@@ -293,9 +293,29 @@ describe('MhdLeaveIntakeWizard', () => {
       expect(saved.payload.basics).toMatchObject({
         personId: 'person-1',
         reasonCategory: 'Family care',
+        reasonCode: 'OWN_SERIOUS_HEALTH_CONDITION',
       });
-      expect(saved.payload.basics.reasonCode).toBeUndefined();
-      expect(screen.getByText(/Medical details are not saved in drafts/)).toBeInTheDocument();
+      expect(saved.payload).toMatchObject({ overrideReasons: {}, overrideOutcomes: {} });
+      expect(screen.queryByText(/not saved in drafts/)).not.toBeInTheDocument();
+    });
+
+    it('restores the override reason and outcome on Resume Draft', () => {
+      draftController.current.draft = {
+        payload: {
+          results: [result],
+          snapshotId: 'snapshot-1',
+          overrideReasons: { [result.determination_id]: 'Hours log corrected by payroll' },
+          overrideOutcomes: { [result.determination_id]: 'INELIGIBLE' },
+        },
+        stepKey: 'confirm',
+        updatedAt: '2026-11-20T10:00:00Z',
+      };
+      renderWizard('/leaves/case-1/intake');
+      fireEvent.click(screen.getByRole('button', { name: 'Resume Draft' }));
+      expect(screen.getByPlaceholderText('Reason for override')).toHaveValue(
+        'Hours log corrected by payroll',
+      );
+      expect(screen.getByDisplayValue('INELIGIBLE')).toBeInTheDocument();
     });
 
     it('resumes the saved values on the saved step', () => {

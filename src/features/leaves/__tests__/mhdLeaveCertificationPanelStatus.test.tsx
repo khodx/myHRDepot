@@ -1,12 +1,23 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MhdLeaveCertificationPanel } from '../components/MhdLeaveCertificationPanel';
 import type { MhdLeaveCertification } from '../Types';
-import { mhdLeaveDraftServiceMock as drafts, mhdRenderWithQueryClient } from './leaveDraftTestKit';
+import {
+  mhdLeaveDraftServiceMock as drafts,
+  mhdRenderWithQueryClient,
+  mhdResetLeaveDraftService,
+  mhdTestLeaveDraft,
+} from './leaveDraftTestKit';
 
 vi.mock('@/features/drafts/Service', async () => ({
   mhdDraftService: (await import('./leaveDraftTestKit')).mhdLeaveDraftServiceMock,
 }));
+
+// Every certification modal keeps a draft, so each test starts with no saved draft.
+beforeEach(() => {
+  vi.clearAllMocks();
+  mhdResetLeaveDraftService();
+});
 
 const cert: MhdLeaveCertification = {
   id: 'cert-1',
@@ -247,54 +258,61 @@ describe('MhdLeaveCertificationPanel requested date and date clearing', () => {
   });
 });
 
-describe('MhdLeaveCertificationPanel modals keep no medical draft', () => {
-  it('opens Record Certification as a dialog with no Save Draft and no draft lookup', async () => {
-    const onRecord = vi.fn().mockResolvedValue(undefined);
-    mhdRenderWithQueryClient(
-      <MhdLeaveCertificationPanel
-        caseId="case-1"
-        certifications={[]}
-        canSeeMedical
-        onRecord={onRecord}
-        onMarkSufficient={vi.fn()}
-        onUpdateStatus={vi.fn()}
-        onClearDates={vi.fn()}
-      />,
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'Record Certification' }));
-    expect(screen.getByRole('dialog')).toHaveAccessibleName('Record Certification');
-    expect(screen.getByText('Medical details are not saved in drafts.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Save Draft' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Record' }));
-    await waitFor(() =>
-      expect(onRecord).toHaveBeenCalledWith({
-        caseId: 'case-1',
-        certificationType: 'INITIAL',
-        dueDate: null,
-      }),
-    );
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    expect(drafts.get).not.toHaveBeenCalled();
-    expect(drafts.discard).not.toHaveBeenCalled();
-  });
-
-  it('records a sufficiency review with the restricted provider note', async () => {
-    const onMarkSufficient = vi.fn().mockResolvedValue(undefined);
+describe('MhdLeaveCertificationPanel modals save and resume every field', () => {
+  function renderCertificationPanel(
+    overrides: Partial<Parameters<typeof MhdLeaveCertificationPanel>[0]> = {},
+  ) {
     mhdRenderWithQueryClient(
       <MhdLeaveCertificationPanel
         caseId="case-1"
         certifications={[cert]}
         canSeeMedical
-        onRecord={vi.fn()}
-        onMarkSufficient={onMarkSufficient}
-        onUpdateStatus={vi.fn()}
-        onClearDates={vi.fn()}
+        onRecord={vi.fn().mockResolvedValue(undefined)}
+        onMarkSufficient={vi.fn().mockResolvedValue(undefined)}
+        onUpdateStatus={vi.fn().mockResolvedValue(undefined)}
+        onClearDates={vi.fn().mockResolvedValue(undefined)}
+        {...overrides}
       />,
     );
+  }
+
+  it('drafts Record Certification and discards the draft once recorded', async () => {
+    const onRecord = vi.fn().mockResolvedValue(undefined);
+    renderCertificationPanel({ certifications: [], onRecord });
+    fireEvent.click(screen.getByRole('button', { name: 'Record Certification' }));
+    expect(screen.getByRole('dialog')).toHaveAccessibleName('Record Certification');
+    expect(screen.queryByText(/not saved in drafts/)).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'RECERTIFICATION' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
+    await waitFor(() => expect(drafts.save).toHaveBeenCalledTimes(1));
+    expect(drafts.save.mock.calls[0][0]).toMatchObject({
+      draftKind: 'LEAVE_CASE_ACTION',
+      draftKey: 'case-1:certification',
+      payload: { certificationType: 'RECERTIFICATION', dueDate: '' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }));
+    await waitFor(() =>
+      expect(onRecord).toHaveBeenCalledWith({
+        caseId: 'case-1',
+        certificationType: 'RECERTIFICATION',
+        dueDate: null,
+      }),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(drafts.discard).toHaveBeenCalledWith('LEAVE_CASE_ACTION', 'case-1:certification');
+  });
+
+  it('drafts and restores the restricted provider note in the sufficiency review', async () => {
+    const onMarkSufficient = vi.fn().mockResolvedValue(undefined);
+    renderCertificationPanel({ onMarkSufficient });
     fireEvent.click(screen.getByRole('button', { name: 'Review Sufficiency' }));
-    expect(screen.queryByRole('button', { name: 'Save Draft' })).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/Provider note/), {
       target: { value: 'Duration section left blank' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
+    await waitFor(() => expect(drafts.save).toHaveBeenCalledTimes(1));
+    expect(drafts.save.mock.calls[0][0].payload).toEqual({
+      providerNote: 'Duration section left blank',
     });
     fireEvent.click(screen.getByRole('button', { name: 'Mark Insufficient' }));
     await waitFor(() =>
@@ -303,6 +321,51 @@ describe('MhdLeaveCertificationPanel modals keep no medical draft', () => {
         sufficient: false,
         providerNote: 'Duration section left blank',
       }),
+    );
+  });
+
+  it('restores a saved provider note on Resume Draft', async () => {
+    mhdResetLeaveDraftService(
+      mhdTestLeaveDraft('case-1:certification-review:cert-1', {
+        providerNote: 'Duration section left blank',
+      }),
+    );
+    renderCertificationPanel();
+    fireEvent.click(screen.getByRole('button', { name: 'Review Sufficiency' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Resume Draft' }));
+    expect(screen.getByLabelText(/Provider note/)).toHaveValue('Duration section left blank');
+  });
+
+  it('drafts and restores every status-update field', async () => {
+    renderCertificationPanel();
+    fireEvent.click(screen.getByRole('button', { name: 'Update Status' }));
+    fireEvent.change(screen.getByLabelText('Certification status'), {
+      target: { value: 'INCOMPLETE' },
+    });
+    fireEvent.change(screen.getByLabelText(/Operational note/), {
+      target: { value: 'Provider section unsigned' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
+    await waitFor(() => expect(drafts.save).toHaveBeenCalledTimes(1));
+    expect(drafts.save.mock.calls[0][0].payload).toMatchObject({
+      status: 'INCOMPLETE',
+      reviewNote: 'Provider section unsigned',
+    });
+  });
+
+  it('restores the dates to clear and the reason on Resume Draft', async () => {
+    mhdResetLeaveDraftService(
+      mhdTestLeaveDraft('case-1:certification-clear:cert-1', {
+        datesToClear: ['received_at'],
+        reason: 'Entered against the wrong certification',
+      }),
+    );
+    renderCertificationPanel();
+    fireEvent.click(screen.getByRole('button', { name: 'Clear A Date' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Resume Draft' }));
+    expect(screen.getByLabelText('Received Date')).toBeChecked();
+    expect(screen.getByLabelText('Reason for clearing')).toHaveValue(
+      'Entered against the wrong certification',
     );
   });
 });

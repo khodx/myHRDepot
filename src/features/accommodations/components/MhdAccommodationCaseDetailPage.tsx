@@ -63,6 +63,7 @@ import {
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
 import { MhdAccommodationDenialReasonsField } from './MhdAccommodationDenialReasonsField';
 import { MhdAccommodationDraftModal } from './MhdAccommodationDraftModal';
+import { draftChoice, draftText } from './mhdAccommodationDraftValues';
 import {
   MhdAccommodationEquipmentFields,
   type MhdAccommodationEquipmentErrors,
@@ -104,15 +105,6 @@ const EMPTY_EQUIPMENT: MhdAccommodationEquipmentValue = {
 
 const WAITING_FOR_EQUIPMENT_MESSAGE =
   'Waiting For Equipment — the case stays in Implementing until it arrives.';
-
-/** Draft payloads come back as unknown JSON; these read a field back only when it has the expected shape. */
-function draftText(value: unknown, fallback = ''): string {
-  return typeof value === 'string' ? value : fallback;
-}
-
-function draftChoice<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
-  return allowed.includes(value as T) ? (value as T) : fallback;
-}
 
 function draftEquipment(value: unknown): MhdAccommodationEquipmentValue {
   const saved = (value ?? {}) as Record<string, unknown>;
@@ -267,7 +259,7 @@ const MHD_ACCOMMODATION_CLOSABLE_STATUSES: readonly MhdAccommodationStatus[] = [
  * One accommodation case. The page shows the recorded process read-only; every input form
  * (close, status change, interaction, option, decision, implementation, equipment, review,
  * restricted medical status, request details, provider certification, notices) opens in a
- * modal with save and resume. Medical fields are never part of a draft.
+ * modal with save and resume. A draft keeps every field of its form, medical fields included.
  */
 export function MhdAccommodationCaseDetailPage() {
   const { caseId = '' } = useParams<{ caseId: string }>();
@@ -1438,8 +1430,6 @@ export function MhdAccommodationCaseDetailPage() {
           draftKey={`${caseId}:medical-status`}
           companyId={caseCompanyId}
           draftTitle={`${reference} documentation status`}
-          // The documentation workflow facts only; the functional limitation and accommodation
-          // need are medical and are never written to a draft.
           getDraftValues={() => ({
             documentationType,
             documentationStatus,
@@ -1447,6 +1437,8 @@ export function MhdAccommodationCaseDetailPage() {
             documentationRequested,
             documentationRequestedAt,
             documentationDueDate,
+            functionalLimitation,
+            accommodationNeed,
           })}
           onRestore={(payload) => {
             setDocumentationType(
@@ -1471,8 +1463,9 @@ export function MhdAccommodationCaseDetailPage() {
               draftText(payload.documentationRequestedAt, documentationRequestedAt),
             );
             setDocumentationDueDate(draftText(payload.documentationDueDate));
+            setFunctionalLimitation(draftText(payload.functionalLimitation));
+            setAccommodationNeed(draftText(payload.accommodationNeed));
           }}
-          excludesMedical
           submitLabel="Record Restricted Status"
           submitDisabled={medicalBlockers.length > 0}
           isSubmitting={recordMedical.isPending}

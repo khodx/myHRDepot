@@ -96,5 +96,9 @@ export function mhdIdleLeaveWorkflowHooks() {
     useMhdLeaveKeyEmployee: idle,
     useMhdLeaveEssentialFunctions: idle,
     useMhdLeaveCertificationClearDates: idle,
+    useMhdLeaveChecklistAdd: idle,
+    useMhdLeaveChecklistEdit: idle,
+    useMhdLeaveChecklistStatus: idle,
+    useMhdLeaveChecklistRemove: idle,
   };
 }

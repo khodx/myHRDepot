@@ -15,6 +15,7 @@ import {
   type MhdAccommodationStatus,
 } from '../Types';
 import { MhdAccommodationDraftModal } from './MhdAccommodationDraftModal';
+import { draftChoice, draftFlag, draftText } from './mhdAccommodationDraftValues';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-muted';
@@ -148,10 +149,10 @@ export function MhdAccommodationRequestDetailsPanel({
   const [editing, setEditing] = useState(false);
   const [recordingCertification, setRecordingCertification] = useState(false);
 
-  // The limitation duration and recovery date describe the condition itself, so they stay out of
-  // the draft; the rest of Section A is work-related contact and leave facts.
   function getDraftValues() {
     return {
+      limitationDuration,
+      anticipatedRecoveryDate,
       workersCompClaim,
       workersCompClaimFiledOn,
       leaveRequested,
@@ -164,15 +165,22 @@ export function MhdAccommodationRequestDetailsPanel({
   }
 
   function restoreDraft(payload: Record<string, unknown>) {
-    const text = (value: unknown) => (typeof value === 'string' ? value : '');
-    setWorkersCompClaim(payload.workersCompClaim === true);
-    setWorkersCompClaimFiledOn(text(payload.workersCompClaimFiledOn));
-    setLeaveRequested(payload.leaveRequested === true);
-    setLeaveRequestDetails(text(payload.leaveRequestDetails));
-    setContactPhone(text(payload.contactPhone));
-    setContactEmail(text(payload.contactEmail));
-    setWorkLocation(text(payload.workLocation));
-    setSupervisorName(text(payload.supervisorName));
+    setLimitationDuration(
+      draftChoice<MhdAccommodationLimitationDuration | ''>(
+        payload.limitationDuration,
+        MHD_ACCOMMODATION_LIMITATION_DURATIONS,
+        '',
+      ),
+    );
+    setAnticipatedRecoveryDate(draftText(payload.anticipatedRecoveryDate));
+    setWorkersCompClaim(draftFlag(payload.workersCompClaim));
+    setWorkersCompClaimFiledOn(draftText(payload.workersCompClaimFiledOn));
+    setLeaveRequested(draftFlag(payload.leaveRequested));
+    setLeaveRequestDetails(draftText(payload.leaveRequestDetails));
+    setContactPhone(draftText(payload.contactPhone));
+    setContactEmail(draftText(payload.contactEmail));
+    setWorkLocation(draftText(payload.workLocation));
+    setSupervisorName(draftText(payload.supervisorName));
   }
 
   /** Resolves false when the schema refuses the entries; a server refusal is thrown to the modal. */
@@ -303,7 +311,6 @@ export function MhdAccommodationRequestDetailsPanel({
           companyId={companyId}
           getDraftValues={getDraftValues}
           onRestore={restoreDraft}
-          excludesMedical
           submitLabel="Save Request Details"
           pendingLabel="Saving…"
           isSubmitting={isPending}

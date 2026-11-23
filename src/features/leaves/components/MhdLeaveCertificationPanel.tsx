@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MhdBadge } from '@/components/ui/MhdBadge';
 import { MhdDateField } from '@/components/ui/MhdDateField';
@@ -19,7 +18,7 @@ import {
   type MhdLeaveWorkflow,
 } from '../WorkflowTypes';
 import { MhdLeaveActionButtons, MhdLeaveActionModal } from './MhdLeaveActionModal';
-import { useMhdLeaveAction } from './mhdLeaveActionContext';
+import { useMhdLeaveAction, useMhdLeaveDraftField } from './mhdLeaveActionContext';
 
 interface Props {
   caseId: string;
@@ -77,8 +76,8 @@ const INPUT_CLASSES =
  * its status (required / received / sufficient / due) — that part is not
  * medical. Only the content stays behind the gate.
  *
- * Recording, reviewing, status updates and date clearing each open in an action modal that
- * keeps NO draft: every field here belongs to the medical partition.
+ * Recording, reviewing, status updates and date clearing each open in an action modal with
+ * save and resume; the draft keeps every field, provider note included.
  */
 export function MhdLeaveCertificationPanel({
   caseId,
@@ -94,7 +93,7 @@ export function MhdLeaveCertificationPanel({
   onClearDates,
 }: Props) {
   const operationalById = new Map(workflowCertifications.map((item) => [item.id, item]));
-  const scope = { caseId, companyId, draftable: false, size: 'md' as const };
+  const scope = { caseId, companyId, size: 'md' as const };
 
   return (
     <section className="space-y-4">
@@ -241,9 +240,10 @@ function RecordCertificationForm({
   isSubmitting: boolean;
   onSubmit: (input: MhdRecordCertificationInput) => Promise<void>;
 }) {
-  const [certType, setCertType] =
-    useState<(typeof MHD_LEAVE_CERTIFICATION_TYPES)[number]>('INITIAL');
-  const [dueDate, setDueDate] = useState('');
+  const [certType, setCertType] = useMhdLeaveDraftField<
+    (typeof MHD_LEAVE_CERTIFICATION_TYPES)[number]
+  >('certificationType', 'INITIAL');
+  const [dueDate, setDueDate] = useMhdLeaveDraftField('dueDate', '');
 
   return (
     <div className="space-y-3">
@@ -302,13 +302,13 @@ function ReviewSufficiencyForm({
   onSubmit: (input: MhdMarkCertificationInput) => Promise<void>;
 }) {
   const { submit, isSubmitting: isSaving } = useMhdLeaveAction();
-  const [note, setNote] = useState('');
+  const [note, setNote] = useMhdLeaveDraftField('providerNote', '');
   const review = (sufficient: boolean) =>
     onSubmit({
       certId,
       sufficient,
-      // The provider note is restricted medical detail; it is only ever
-      // collected on this PA/HRP-only path and never surfaced elsewhere.
+      // The provider note is restricted medical detail; it is only ever collected on this
+      // PA/HRP-only path and surfaced elsewhere only in the reviewer's own owner-only draft.
       providerNote: note.trim() || null,
     });
 
@@ -356,14 +356,18 @@ function CertificationStatusForm({
 }) {
   // Opens on the case's current status when the workflow record supplies it, and stays blank
   // (a deliberate choice) when it does not.
-  const [newStatus, setNewStatus] = useState<MhdLeaveCertificationStatus | ''>(
+  const [newStatus, setNewStatus] = useMhdLeaveDraftField<MhdLeaveCertificationStatus | ''>(
+    'status',
     MHD_LEAVE_CERTIFICATION_STATUSES.find((status) => status === currentStatus) ?? '',
   );
-  const [requestedAt, setRequestedAt] = useState('');
-  const [receivedAt, setReceivedAt] = useState('');
-  const [deficiencyNotifiedAt, setDeficiencyNotifiedAt] = useState('');
-  const [cureDueDate, setCureDueDate] = useState('');
-  const [reviewNote, setReviewNote] = useState('');
+  const [requestedAt, setRequestedAt] = useMhdLeaveDraftField('requestedAt', '');
+  const [receivedAt, setReceivedAt] = useMhdLeaveDraftField('receivedAt', '');
+  const [deficiencyNotifiedAt, setDeficiencyNotifiedAt] = useMhdLeaveDraftField(
+    'deficiencyNotifiedAt',
+    '',
+  );
+  const [cureDueDate, setCureDueDate] = useMhdLeaveDraftField('cureDueDate', '');
+  const [reviewNote, setReviewNote] = useMhdLeaveDraftField('reviewNote', '');
 
   return (
     <div className="space-y-2">
@@ -492,8 +496,11 @@ function ClearDatesForm({
   isSubmitting: boolean;
   onSubmit: (input: MhdLeaveCertificationClearDatesInput) => Promise<void>;
 }) {
-  const [fields, setFields] = useState<MhdLeaveCertificationClearableDate[]>([]);
-  const [reason, setReason] = useState('');
+  const [fields, setFields] = useMhdLeaveDraftField<MhdLeaveCertificationClearableDate[]>(
+    'datesToClear',
+    [],
+  );
+  const [reason, setReason] = useMhdLeaveDraftField('reason', '');
 
   function toggleField(field: MhdLeaveCertificationClearableDate, checked: boolean) {
     setFields((current) =>

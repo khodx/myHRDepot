@@ -40,6 +40,19 @@ export interface MhdLeaveChecklistItem {
   label: string;
   status: MhdLeaveChecklistStatus;
   due_at: string | null;
+  /** An item HR added to this case (0395); generated items are false. */
+  is_custom: boolean;
+  /** A generated item whose label, stage, due date or status HR adjusted on this case (0395). */
+  is_overridden: boolean;
+  /** A generated item whose due date HR set by hand (otherwise the rules' deadline governs). */
+  due_overridden: boolean;
+  /** What the rules compute for a generated item, before any adjustment; null for a custom item. */
+  generated_status: MhdLeaveChecklistStatus | null;
+  /** HR's note on the item; returned to leave administrators only. */
+  note: string | null;
+  /** Who set the status by hand (Mark Done, Reopen, Not Applicable), and when. */
+  status_set_by_name: string | null;
+  status_set_at: string | null;
 }
 
 export interface MhdLeavePaySource {
@@ -580,6 +593,14 @@ export const MHD_LEAVE_CHECKLIST_STAGE_KEYS = [
   'RETURN_TO_WORK',
 ] as const;
 export type MhdLeaveChecklistStageKey = (typeof MHD_LEAVE_CHECKLIST_STAGE_KEYS)[number];
+/** Status actions mhd_leave_checklist_set_status accepts (0395). */
+export const MHD_LEAVE_CHECKLIST_ACTIONS = [
+  'MARK_DONE',
+  'REOPEN',
+  'MARK_NOT_APPLICABLE',
+  'RESTORE',
+] as const;
+export type MhdLeaveChecklistAction = (typeof MHD_LEAVE_CHECKLIST_ACTIONS)[number];
 
 /** Dates mhd_leave_certification_clear_dates can remove (the cure date follows its deficiency date). */
 export const MHD_LEAVE_CERTIFICATION_CLEARABLE_DATES = [
@@ -669,6 +690,35 @@ export interface MhdLeaveCertificationClearDatesInput {
   certificationId: string;
   fields: MhdLeaveCertificationClearableDate[];
   reason: string;
+}
+
+// ---------------------------------------------------------------------------
+// Inputs for the checklist adjustment writers (migration 0395).
+// ---------------------------------------------------------------------------
+
+export interface MhdLeaveChecklistItemInput {
+  caseId: string;
+  stageKey: MhdLeaveChecklistStageKey;
+  label: string;
+  /** A calendar date (YYYY-MM-DD); the item is due by the end of that day, local time. */
+  dueDate?: string | null;
+  note?: string | null;
+}
+
+export interface MhdLeaveChecklistEditInput extends MhdLeaveChecklistItemInput {
+  itemKey: string;
+}
+
+export interface MhdLeaveChecklistStatusInput {
+  caseId: string;
+  itemKey: string;
+  action: MhdLeaveChecklistAction;
+  note?: string | null;
+}
+
+export interface MhdLeaveChecklistRemoveInput {
+  caseId: string;
+  itemKey: string;
 }
 
 export interface MhdLeavePolicySetInput {

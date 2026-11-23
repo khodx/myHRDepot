@@ -7,6 +7,7 @@ import { MhdCard, MhdCardHeader } from '@/components/ui/MhdCard';
 import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { MhdTabs } from '@/components/ui/MhdTabs';
 import { MhdComplianceGateBanner } from '@/components/ui/MhdComplianceGateBanner';
+import { mhdCanEditLeaveChecklist } from '@/appshell/mhdRouteAccess';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { mhdDocumentService } from '@/features/documents/Service';
 import { mhdFormatDate, mhdFormatDateTime } from '@/utils/mhdDateFormat';
@@ -97,7 +98,7 @@ export function MhdLeaveWorkflowPanel({
   privileged: boolean;
 }) {
   const workflow = useMhdLeaveWorkflow(caseId);
-  const { authUserId, profile } = useMhdAuth();
+  const { authUserId, profile, roles } = useMhdAuth();
   const templates = useQuery({
     queryKey: ['mhd-leaves', 'document-templates', profile?.companyId ?? ''],
     queryFn: () =>
@@ -222,7 +223,6 @@ export function MhdLeaveWorkflowPanel({
                 title="Evaluate Current Facts"
                 launchLabel="Evaluate Eligibility"
                 launchVariant="primary"
-                medicalFields
               >
                 <MhdLeaveEligibilityEvaluateForm
                   caseId={caseId}
@@ -375,7 +375,10 @@ export function MhdLeaveWorkflowPanel({
               empty="No legal deadlines have been opened on this case."
             />
           </MhdCard>
-          <MhdLeaveChecklistPanel items={record.checklist} />
+          <MhdLeaveChecklistPanel
+            items={record.checklist}
+            edit={mhdCanEditLeaveChecklist(roles) ? modalScope : undefined}
+          />
         </div>
       ) : null}
 
@@ -690,7 +693,6 @@ export function MhdLeaveWorkflowPanel({
                 launchLabel={
                   record.return_to_work ? 'Edit Return-To-Work Plan' : 'Add Return-To-Work Plan'
                 }
-                medicalFields
               >
                 <MhdLeaveReturnToWorkForm
                   caseId={caseId}

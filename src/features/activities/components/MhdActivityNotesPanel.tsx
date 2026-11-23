@@ -142,7 +142,6 @@ function MhdActivityNoteEditor({
           </Button>
         ) : null}
       </div>
-      <p className="text-xs text-muted-foreground">Medical details are not saved in drafts.</p>
 
       {localError ? <p className="text-sm text-red-700">{localError}</p> : null}
     </form>

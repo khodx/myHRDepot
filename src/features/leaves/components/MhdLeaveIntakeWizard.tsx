@@ -304,7 +304,7 @@ function ResultsList({ results }: { results: EligibilityResult[] }) {
 /**
  * Guided intake, shown as a popup over the Leaves list on both routes (/leaves/new/intake and
  * /leaves/:caseId/intake). Save and resume: the draft is keyed 'new' until the case is created mid-way, then by
- * the case id; the reason evaluation code and override reasons are left out of the draft (no medical detail).
+ * the case id. The draft keeps every answer, the reason evaluation code and override reasons included.
  */
 export function MhdLeaveIntakeWizard({
   caseId: caseIdProp,
@@ -581,13 +581,14 @@ export function MhdLeaveIntakeWizard({
 
   function getDraftValues(): MhdDraftPayload {
     return {
-      // The evaluation reason code and the override reasons are medical-adjacent free choices: never drafted.
-      basics: { ...basics, reasonCode: undefined },
+      basics,
       facts,
       results,
       snapshotId,
       confirmed,
       confirmationStale,
+      overrideReasons,
+      overrideOutcomes,
     };
   }
 
@@ -599,6 +600,8 @@ export function MhdLeaveIntakeWizard({
       snapshotId?: string;
       confirmed?: boolean;
       confirmationStale?: boolean;
+      overrideReasons?: Record<string, string>;
+      overrideOutcomes?: Record<string, EligibilityResult['evaluated_outcome']>;
     };
     setBasics((current) => ({ ...current, ...saved.basics }));
     setFacts((current) => ({ ...current, ...saved.facts }));
@@ -609,6 +612,8 @@ export function MhdLeaveIntakeWizard({
     setSnapshotId(saved.snapshotId ?? '');
     setConfirmed(Boolean(saved.confirmed));
     setConfirmationStale(Boolean(saved.confirmationStale));
+    setOverrideReasons(saved.overrideReasons ?? {});
+    setOverrideOutcomes(saved.overrideOutcomes ?? {});
     const stepIndex = steps.findIndex((step) => step.id === stepKey);
     if (stepIndex >= 0) setCurrentStepIndex(stepIndex);
   }
@@ -661,10 +666,6 @@ export function MhdLeaveIntakeWizard({
               title="Leave Intake"
             />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Medical details are not saved in drafts. The evaluation reason code and override reasons
-            are re-entered after you resume.
-          </p>
         </div>
       </MhdFormModal>
     </>

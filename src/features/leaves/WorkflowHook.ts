@@ -208,6 +208,42 @@ export function useMhdLeaveEssentialFunctions(caseId: string) {
   });
 }
 
+export function useMhdLeaveChecklistAdd(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.addChecklistItem>[0]) =>
+      mhdLeaveWorkflowService.addChecklistItem(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveChecklistEdit(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.editChecklistItem>[0]) =>
+      mhdLeaveWorkflowService.editChecklistItem(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveChecklistStatus(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.setChecklistStatus>[0]) =>
+      mhdLeaveWorkflowService.setChecklistStatus(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useMhdLeaveChecklistRemove(caseId: string) {
+  const refresh = useRefresh(caseId);
+  return useMutation({
+    mutationFn: (input: Parameters<typeof mhdLeaveWorkflowService.removeChecklistItem>[0]) =>
+      mhdLeaveWorkflowService.removeChecklistItem(input),
+    onSuccess: refresh,
+  });
+}
+
 export function useMhdLeaveCertificationClearDates(caseId: string) {
   const refresh = useRefresh(caseId);
   return useMutation({

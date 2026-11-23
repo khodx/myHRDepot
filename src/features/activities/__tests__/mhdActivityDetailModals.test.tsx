@@ -171,9 +171,7 @@ describe('Activity detail input screens', () => {
     expect(
       within(dialog).getByRole('heading', { name: 'Mark Activity Completed' }),
     ).toBeInTheDocument();
-    expect(
-      within(dialog).getByText('Medical details are not saved in drafts.'),
-    ).toBeInTheDocument();
+    expect(within(dialog).queryByText(/not saved in drafts/)).not.toBeInTheDocument();
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
     const outcome = within(dialog).getByPlaceholderText('What was the result of this interaction?');

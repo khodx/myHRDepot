@@ -60,6 +60,31 @@ describe('MhdDraftBanner', () => {
   });
 });
 
+describe('MhdDraftBanner shared drafts', () => {
+  const other = {
+    ...saved,
+    id: crypto.randomUUID(),
+    ownerUserId: crypto.randomUUID(),
+    ownerName: 'Priya Raman',
+  };
+
+  it("offers another person's draft and restores it into the form", () => {
+    const onRestore = vi.fn();
+    render(<MhdDraftBanner draft={controller({ shared: [other] })} onRestore={onRestore} />);
+    expect(screen.getByText(/Priya Raman has a saved draft/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: "Use Priya Raman's Draft" }));
+    expect(onRestore).toHaveBeenCalledWith(other.payload, 'facts');
+  });
+
+  it('shows both the own draft and others', () => {
+    render(
+      <MhdDraftBanner draft={controller({ draft: saved, shared: [other] })} onRestore={vi.fn()} />,
+    );
+    expect(screen.getByRole('button', { name: 'Resume Draft' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: "Use Priya Raman's Draft" })).toBeInTheDocument();
+  });
+});
+
 describe('MhdSaveDraftButton', () => {
   it('saves the values current at the click, with the step and title', () => {
     const draft = controller();

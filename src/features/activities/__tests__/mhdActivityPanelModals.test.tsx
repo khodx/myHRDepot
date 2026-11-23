@@ -100,9 +100,7 @@ describe('Activity notes panel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add Note' }));
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', { name: 'Add Note' })).toBeInTheDocument();
-    expect(
-      within(dialog).getByText('Medical details are not saved in drafts.'),
-    ).toBeInTheDocument();
+    expect(within(dialog).queryByText(/not saved in drafts/)).not.toBeInTheDocument();
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
     fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));

@@ -21,6 +21,7 @@ export const MHD_DRAFT_KINDS = {
   activityNote: 'ACTIVITY_NOTE',
   activityChecklistItem: 'ACTIVITY_CHECKLIST_ITEM',
   activityAttachment: 'ACTIVITY_ATTACHMENT',
+  leaveChecklistItem: 'LEAVE_CHECKLIST_ITEM',
 } as const;
 
 export type MhdDraftKind = (typeof MHD_DRAFT_KINDS)[keyof typeof MHD_DRAFT_KINDS];
@@ -39,6 +40,12 @@ export interface MhdDraft {
   payload: MhdDraftPayload;
   updatedAt: string;
   expiresAt: string;
+}
+
+/** Another person's live draft for the same screen instance, visible because the viewer has access to the record. */
+export interface MhdSharedDraft extends MhdDraft {
+  ownerUserId: string;
+  ownerName: string;
 }
 
 export interface MhdSaveDraftInput {

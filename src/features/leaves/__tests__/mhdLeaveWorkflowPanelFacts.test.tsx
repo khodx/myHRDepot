@@ -157,10 +157,10 @@ describe('MhdLeaveWorkflowPanel eligibility facts', () => {
     expect(screen.getByLabelText(LABELS.employer)).toHaveValue(62);
   });
 
-  it('saves the facts as a draft, never the self-care answer', async () => {
+  it('saves the facts as a draft, the self-care answer included', async () => {
     renderPanel();
     openEvaluate();
-    expect(screen.getByText('Medical details are not saved in drafts.')).toBeInTheDocument();
+    expect(screen.queryByText(/not saved in drafts/)).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Family relationship'), {
       target: { value: 'CHILD_ADULT' },
     });
@@ -185,10 +185,9 @@ describe('MhdLeaveWorkflowPanel eligibility facts', () => {
         hours: '1310',
         employerAgreedBonding: false,
         coveredEmployerOverride: false,
+        selfCare: 'YES',
       },
     });
-    expect(saved.payload).not.toHaveProperty('selfCare');
-    expect(JSON.stringify(saved.payload)).not.toMatch(/incapable/i);
   });
 
   it('resumes a saved evaluation draft, including the reason and relationship', async () => {
@@ -207,6 +206,19 @@ describe('MhdLeaveWorkflowPanel eligibility facts', () => {
     expect(screen.getByLabelText('Family relationship')).toHaveValue('PARENT');
     expect(screen.getByLabelText(LABELS.weekly)).toHaveValue(32);
     expect(screen.getByLabelText(LABELS.employer)).toHaveValue(140);
+  });
+
+  it('resumes the saved self-care answer', async () => {
+    drafts.get.mockResolvedValue(
+      mhdTestLeaveDraft(`${CASE_ID}:eligibility-evaluate`, {
+        familyRelationship: 'CHILD_ADULT',
+        selfCare: 'YES',
+      }),
+    );
+    renderPanel();
+    openEvaluate();
+    fireEvent.click(await screen.findByRole('button', { name: 'Resume Draft' }));
+    expect(screen.getByLabelText('Incapable Of Self-Care')).toHaveValue('YES');
   });
 });
 

@@ -4,7 +4,7 @@ import type { ButtonVariant } from '@/components/ui/buttonStyles';
 import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
 import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { useMhdDraft } from '@/features/drafts/Hook';
-import { MHD_DRAFT_KINDS, type MhdDraftPayload } from '@/features/drafts/Types';
+import { MHD_DRAFT_KINDS, type MhdDraftKind, type MhdDraftPayload } from '@/features/drafts/Types';
 import {
   MhdLeaveActionContext,
   useMhdLeaveAction,
@@ -12,12 +12,12 @@ import {
   type MhdLeaveDraftFieldEntry,
 } from './mhdLeaveActionContext';
 
-export const MHD_LEAVE_MEDICAL_DRAFT_NOTICE = 'Medical details are not saved in drafts.';
-
 interface MhdLeaveActionModalProps {
   caseId: string;
   /** Names the action within the case; the draft key is `${caseId}:${action}`. */
   action: string;
+  /** The draft kind; LEAVE_CASE_ACTION unless the screen has its own kind (the checklist item editor). */
+  draftKind?: MhdDraftKind;
   companyId: string | null;
   title: string;
   description?: string;
@@ -29,10 +29,6 @@ interface MhdLeaveActionModalProps {
   /** Controlled open state, for a modal launched from more than one place. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  /** False for an action whose every field is medical-tier: no draft is kept at all. */
-  draftable?: boolean;
-  /** Shows the "not saved in drafts" line for a modal that holds medical-tier fields. */
-  medicalFields?: boolean;
   children: ReactNode;
 }
 
@@ -41,6 +37,7 @@ interface MhdLeaveActionModalProps {
  * state, the server-side draft (kind LEAVE_CASE_ACTION) and the save runner, and hands them to
  * the form inside through MhdLeaveActionContext: fields declared with useMhdLeaveDraftField are
  * what Save Draft keeps and Resume Draft restores, and MhdLeaveActionButtons is the action row.
+ * Every field of the form is drafted, medical and certification content included.
  */
 export function MhdLeaveActionModal({
   launchLabel,
@@ -70,12 +67,11 @@ export function MhdLeaveActionModal({
 function MhdLeaveActionDialog({
   caseId,
   action,
+  draftKind = MHD_DRAFT_KINDS.leaveCaseAction,
   companyId,
   title,
   description,
   size = 'lg',
-  draftable = true,
-  medicalFields = false,
   onClose,
   children,
 }: Omit<
@@ -85,10 +81,9 @@ function MhdLeaveActionDialog({
   onClose: () => void;
 }) {
   const draft = useMhdDraft({
-    draftKind: MHD_DRAFT_KINDS.leaveCaseAction,
+    draftKind,
     draftKey: `${caseId}:${action}`,
     companyId,
-    enabled: draftable,
   });
   const fields = useRef(new Map<string, MhdLeaveDraftFieldEntry>());
   const [error, setError] = useState<string | null>(null);
@@ -113,8 +108,6 @@ function MhdLeaveActionDialog({
     }
   }, []);
 
-  const controller = draftable ? draft : null;
-
   const submit = useCallback(
     async (run: () => Promise<unknown>) => {
       setError(null);
@@ -128,7 +121,7 @@ function MhdLeaveActionDialog({
         return false;
       }
       try {
-        if (controller) await controller.discard();
+        await draft.discard();
       } catch (caught) {
         setError(
           `Saved, but the draft could not be removed: ${
@@ -142,31 +135,26 @@ function MhdLeaveActionDialog({
       onClose();
       return true;
     },
-    [controller, onClose],
+    [draft, onClose],
   );
 
   const context = useMemo<MhdLeaveActionContextValue>(
     () => ({
       title,
-      draft: controller,
+      draft,
       registerField,
       getDraftValues,
       submit,
       isSubmitting,
       close: onClose,
     }),
-    [title, controller, registerField, getDraftValues, submit, isSubmitting, onClose],
+    [title, draft, registerField, getDraftValues, submit, isSubmitting, onClose],
   );
 
   return (
     <MhdFormModal title={title} description={description} size={size} onClose={onClose}>
       <MhdLeaveActionContext.Provider value={context}>
-        {controller ? (
-          <MhdDraftBanner draft={controller} onRestore={(payload) => restore(payload)} />
-        ) : null}
-        {medicalFields || !draftable ? (
-          <p className="mb-3 text-xs text-muted-foreground">{MHD_LEAVE_MEDICAL_DRAFT_NOTICE}</p>
-        ) : null}
+        <MhdDraftBanner draft={draft} onRestore={(payload) => restore(payload)} />
         {error ? (
           <p role="alert" className="mb-3 rounded-md bg-rose-50 p-3 text-sm text-rose-800">
             {error}
@@ -188,7 +176,7 @@ interface MhdLeaveActionButtonsProps {
   children?: ReactNode;
 }
 
-/** The action row of a leave action form: submit, Save Draft (when the modal keeps one) and Cancel. */
+/** The action row of a leave action form: submit, Save Draft and Cancel. */
 export function MhdLeaveActionButtons({
   submitLabel,
   pendingLabel = 'Saving…',
@@ -203,7 +191,7 @@ export function MhdLeaveActionButtons({
         {isSubmitting ? pendingLabel : submitLabel}
       </Button>
       {children}
-      {draft ? <MhdSaveDraftButton draft={draft} getValues={getDraftValues} title={title} /> : null}
+      <MhdSaveDraftButton draft={draft} getValues={getDraftValues} title={title} />
       <Button variant="secondary" onClick={close}>
         Cancel
       </Button>

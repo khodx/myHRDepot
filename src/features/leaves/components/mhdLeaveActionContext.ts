@@ -18,8 +18,7 @@ export interface MhdLeaveDraftFieldEntry {
 export interface MhdLeaveActionContextValue {
   /** The modal's title, also the saved draft's title. */
   title: string;
-  /** Null when the modal keeps no draft (a medical-tier action). */
-  draft: MhdDraftController | null;
+  draft: MhdDraftController;
   registerField: (name: string, entry: MhdLeaveDraftFieldEntry) => () => void;
   getDraftValues: () => MhdDraftPayload;
   /**
@@ -41,8 +40,8 @@ export function useMhdLeaveAction(): MhdLeaveActionContextValue {
 
 /**
  * useState for a leave action form field that Save Draft keeps and Resume Draft restores.
- * A field carrying medical, certification or functional-limitation content must use plain
- * useState instead, so it never reaches the draft payload.
+ * Every input field of a leave action form uses it, medical, certification and
+ * functional-limitation content included, so a draft restores the whole screen.
  */
 export function useMhdLeaveDraftField<T>(
   name: string,

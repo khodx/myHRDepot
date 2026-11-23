@@ -14,6 +14,7 @@ import {
   type MhdAccommodationProviderCertificationReveal,
 } from '../Types';
 import { MhdAccommodationDraftModal } from './MhdAccommodationDraftModal';
+import { draftChoice, draftFlag, draftText } from './mhdAccommodationDraftValues';
 
 const inputClass =
   'w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent';
@@ -241,17 +242,37 @@ export function MhdAccommodationProviderCertPanel({
           description="Restricted to medical administrators. The provider's name and recommendation are encrypted at rest."
           draftKey={`${caseId}:provider-certification`}
           companyId={companyId}
-          // Section B is the provider's certification, so only the date the job-duty statement went
-          // out (a workflow fact) is drafted; every certification field is re-entered on resume.
-          getDraftValues={() => ({ jobDutyStatementSentAt })}
-          onRestore={(payload) =>
-            setJobDutyStatementSentAt(
-              typeof payload.jobDutyStatementSentAt === 'string'
-                ? payload.jobDutyStatementSentAt
-                : '',
-            )
-          }
-          excludesMedical
+          getDraftValues={() => ({
+            jobDutyStatementSentAt,
+            providerName,
+            certifiedAt,
+            disabilityVerified,
+            limitationDuration,
+            limitationEndDate,
+            accommodationBeginOn,
+            accommodationEndOn,
+            accommodationContinuous,
+            recommendation,
+          })}
+          onRestore={(payload) => {
+            setJobDutyStatementSentAt(draftText(payload.jobDutyStatementSentAt));
+            setProviderName(draftText(payload.providerName));
+            setCertifiedAt(draftText(payload.certifiedAt));
+            setDisabilityVerified(draftFlag(payload.disabilityVerified));
+            const duration = draftChoice<MhdAccommodationLimitationDuration | ''>(
+              payload.limitationDuration,
+              MHD_ACCOMMODATION_LIMITATION_DURATIONS,
+              '',
+            );
+            setLimitationDuration(duration);
+            setLimitationEndDate(
+              duration === 'TEMPORARY' ? draftText(payload.limitationEndDate) : '',
+            );
+            setAccommodationBeginOn(draftText(payload.accommodationBeginOn));
+            setAccommodationEndOn(draftText(payload.accommodationEndOn));
+            setAccommodationContinuous(draftFlag(payload.accommodationContinuous));
+            setRecommendation(draftText(payload.recommendation));
+          }}
           submitLabel="Save Provider Certification"
           pendingLabel="Saving…"
           isSubmitting={isPending}

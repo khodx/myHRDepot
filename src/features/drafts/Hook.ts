@@ -1,10 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mhdDraftService } from './Service';
-import type { MhdDraft, MhdDraftKind, MhdDraftPayload } from './Types';
+import type { MhdDraft, MhdDraftKind, MhdDraftPayload, MhdSharedDraft } from './Types';
 
 export const mhdDraftQueryKeys = {
   one: (draftKind: string, draftKey: string) => ['mhd-drafts', 'one', draftKind, draftKey] as const,
+  shared: (draftKind: string, draftKey: string) =>
+    ['mhd-drafts', 'shared', draftKind, draftKey] as const,
   list: (draftKind: string | null) => ['mhd-drafts', 'list', draftKind ?? 'ALL'] as const,
 };
 
@@ -18,6 +20,8 @@ export interface MhdDraftController {
   /** The caller's live draft for this screen instance, or null. */
   draft: MhdDraft | null;
   isLoading: boolean;
+  /** Other people's drafts for this screen that the caller may see (an administrator completing someone's work). */
+  shared?: MhdSharedDraft[];
   isSaving: boolean;
   /** ISO time of the last successful save made on this screen, or null if none yet this session. */
   savedAt: string | null;
@@ -56,6 +60,13 @@ export function useMhdDraft({
     staleTime: 0,
   });
 
+  const sharedQuery = useQuery({
+    queryKey: mhdDraftQueryKeys.shared(draftKind, draftKey),
+    queryFn: () => mhdDraftService.listShared(draftKind, draftKey),
+    enabled,
+    staleTime: 0,
+  });
+
   const saveMutation = useMutation({
     mutationFn: (input: MhdDraftSaveArgs) =>
       mhdDraftService.save({ draftKind, draftKey, companyId, ...input }),
@@ -90,6 +101,7 @@ export function useMhdDraft({
   return {
     draft: query.data ?? null,
     isLoading: query.isLoading,
+    shared: sharedQuery.data ?? [],
     isSaving: saveMutation.isPending,
     savedAt,
     saveError: saveMutation.error instanceof Error ? saveMutation.error.message : null,

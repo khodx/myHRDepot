@@ -258,9 +258,7 @@ describe('MhdAccommodationIntakeWizard as a modal with save and resume', () => {
     renderWizard();
     expect(screen.getByText('Accommodations list')).toBeInTheDocument();
     const dialog = screen.getByRole('dialog', { name: 'Guided Accommodation Intake' });
-    expect(
-      within(dialog).getByText('Medical details are not saved in drafts.'),
-    ).toBeInTheDocument();
+    expect(within(dialog).queryByText(/not saved in drafts/)).not.toBeInTheDocument();
     expect(draftOptionsLog.at(-1)).toMatchObject({
       draftKind: 'ACCOMMODATION_INTAKE',
       draftKey: 'new',
@@ -271,7 +269,7 @@ describe('MhdAccommodationIntakeWizard as a modal with save and resume', () => {
     expect(await screen.findByText('Back on the list')).toBeInTheDocument();
   });
 
-  it('saves the answers and the current step, but never the limitation duration', async () => {
+  it('saves every answer, the limitation duration included, and the current step', async () => {
     renderWizard();
     fireEvent.change(screen.getByLabelText('Person'), { target: { value: OTHER_PERSON_ID } });
     clickNext();
@@ -291,8 +289,33 @@ describe('MhdAccommodationIntakeWizard as a modal with save and resume', () => {
       requestSource: 'SELF',
       requestChannel: 'VERBAL',
       requestSummary: 'Later start time so the morning commute is manageable.',
+      limitationDuration: 'TEMPORARY',
     });
-    expect(saved.payload).not.toHaveProperty('limitationDuration');
+  });
+
+  it('restores the limitation duration on Resume Draft', () => {
+    mockDraft.draft = {
+      id: crypto.randomUUID(),
+      draftKind: 'ACCOMMODATION_INTAKE',
+      draftKey: 'new',
+      title: 'Accommodation request',
+      stepKey: 'details',
+      payload: {
+        personId: OTHER_PERSON_ID,
+        requestSource: 'SELF',
+        requestChannel: 'VERBAL',
+        requestSummary: 'Later start time so the morning commute is manageable.',
+        limitationDuration: 'TEMPORARY',
+        workersCompClaim: false,
+        leaveRequested: false,
+        leaveRequestDetails: '',
+      },
+      updatedAt: '2026-11-20T15:00:00Z',
+      expiresAt: '2026-12-20T15:00:00Z',
+    };
+    renderWizard();
+    fireEvent.click(screen.getByRole('button', { name: 'Resume Draft' }));
+    expect(screen.getByLabelText('Temporary')).toBeChecked();
   });
 
   it('restores every answer and reopens the saved step on Resume Draft', () => {
