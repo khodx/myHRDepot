@@ -31,6 +31,7 @@ import { mhdCanAccessRoute, mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAcc
 import { useMhdCreateLeaveCase, useMhdCreateLeaveCaseSelf, useMhdLeaveCases } from '../Hook';
 import { useMhdDraft } from '@/features/drafts/Hook';
 import { MHD_DRAFT_KINDS, MHD_DRAFT_NEW_KEY } from '@/features/drafts/Types';
+import { mhdEmployeeFileLabelForKey } from '@/features/employee-files/Types';
 import { useMhdPeoplePicker } from '@/features/people/Hook';
 import type { MhdLeaveCaseFormValues, MhdLeaveCaseSelfFormValues } from '../Schemas';
 import {
@@ -145,6 +146,7 @@ export function MhdLeavesPage() {
       companyId: values.companyId,
       personId: values.personId,
       reasonCategory: values.reasonCategory,
+      fileCategory: values.fileCategory,
       requestedStart: values.requestedStart ?? null,
       requestedEnd: values.requestedEnd ?? null,
       isIntermittent: values.isIntermittent,
@@ -157,6 +159,7 @@ export function MhdLeavesPage() {
   async function handleCreateSelf(values: MhdLeaveCaseSelfFormValues) {
     const result = await createCaseSelf.mutateAsync({
       reasonCategory: values.reasonCategory,
+      fileCategory: values.fileCategory,
       requestedStart: values.requestedStart ?? null,
       requestedEnd: values.requestedEnd ?? null,
       isIntermittent: values.isIntermittent,
@@ -339,6 +342,7 @@ export function MhdLeavesPage() {
                   <MhdTh>Reference</MhdTh>
                   {isPrivileged ? <MhdTh>Employee</MhdTh> : null}
                   <MhdTh>Reason</MhdTh>
+                  <MhdTh>Category</MhdTh>
                   <MhdTh>Dates</MhdTh>
                   <MhdTh className="text-right">Bases</MhdTh>
                   <MhdTh>Status</MhdTh>
@@ -364,6 +368,9 @@ export function MhdLeavesPage() {
                       <MhdTd className="whitespace-nowrap">{leaveCase.personDisplayName}</MhdTd>
                     ) : null}
                     <MhdTd>{leaveCase.reasonCategory}</MhdTd>
+                    <MhdTd className="whitespace-nowrap">
+                      {mhdEmployeeFileLabelForKey(leaveCase.fileCategory)}
+                    </MhdTd>
                     <MhdTd className="whitespace-nowrap text-muted-foreground">
                       {leaveCase.requestedStart ?? '—'}
                       {leaveCase.requestedEnd ? ` → ${leaveCase.requestedEnd}` : ''}

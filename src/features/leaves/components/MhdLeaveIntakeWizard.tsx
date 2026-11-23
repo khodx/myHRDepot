@@ -9,6 +9,10 @@ import { MhdFormModal } from '@/components/ui/MhdFormModal';
 import { MhdStepper, type MhdStep } from '@/components/ui/MhdStepper';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { mhdLeavesIsPrivileged } from '@/appshell/mhdRouteAccess';
+import {
+  MHD_EMPLOYEE_FILE_TYPES,
+  type MhdEmployeeFileTypeKey,
+} from '@/features/employee-files/Types';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdDraft } from '@/features/drafts/Hook';
 import { MHD_DRAFT_KINDS, MHD_DRAFT_NEW_KEY, type MhdDraftPayload } from '@/features/drafts/Types';
@@ -55,6 +59,7 @@ interface EligibilityResult {
 interface CaseBasicsState {
   personId: string;
   reasonCategory: string;
+  fileCategory: MhdEmployeeFileTypeKey;
   reasonCode: string;
   familyRelationship: string;
   requestedStart: string;
@@ -75,6 +80,7 @@ interface FactsState {
 const initialBasics: CaseBasicsState = {
   personId: '',
   reasonCategory: '',
+  fileCategory: 'hr',
   reasonCode: 'OWN_SERIOUS_HEALTH_CONDITION',
   familyRelationship: '',
   requestedStart: '',
@@ -135,13 +141,28 @@ function CaseBasicsStep({
             ))}
           </select>
         </Field>
-        <Field label="Reason category">
+        <Field label="Reason">
           <input
             className={inputClassName}
             value={value.reasonCategory}
             onChange={(e) => onChange({ ...value, reasonCategory: e.target.value })}
             placeholder="Family or medical leave"
           />
+        </Field>
+        <Field label="Category">
+          <select
+            className={inputClassName}
+            value={value.fileCategory}
+            onChange={(e) =>
+              onChange({ ...value, fileCategory: e.target.value as MhdEmployeeFileTypeKey })
+            }
+          >
+            {MHD_EMPLOYEE_FILE_TYPES.map((fileType) => (
+              <option key={fileType.key} value={fileType.key}>
+                {fileType.label}
+              </option>
+            ))}
+          </select>
         </Field>
         <Field label="Evaluation reason code">
           <select
@@ -382,6 +403,7 @@ export function MhdLeaveIntakeWizard({
           companyId,
           personId: basics.personId,
           reasonCategory: basics.reasonCategory,
+          fileCategory: basics.fileCategory,
           requestedStart: basics.requestedStart || null,
           requestedEnd: basics.requestedEnd || null,
           requestedMode: basics.requestedMode,

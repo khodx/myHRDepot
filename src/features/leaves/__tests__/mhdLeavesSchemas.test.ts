@@ -13,8 +13,18 @@ describe('mhdLeaveCaseFormSchema', () => {
       companyId: 'company-1',
       personId: 'person-1',
       reasonCategory: 'Serious health condition',
+      fileCategory: 'hr',
     });
     expect(result.success).toBe(true);
+  });
+
+  it('takes the category from the nine employee file categories and refuses anything else', () => {
+    const base = { companyId: 'company-1', personId: 'person-1', reasonCategory: 'Bonding' };
+    for (const key of ['general', 'payroll', 'i9', 'medical', 'benefits', 'confidential', 'supervisors', 'hr', 'private']) {
+      expect(mhdLeaveCaseFormSchema.safeParse({ ...base, fileCategory: key }).success).toBe(true);
+    }
+    expect(mhdLeaveCaseFormSchema.safeParse({ ...base, fileCategory: 'finance' }).success).toBe(false);
+    expect(mhdLeaveCaseFormSchema.safeParse(base).success).toBe(false);
   });
 
   it('rejects a reversed date range on the end field (mirrors the DB range CHECK)', () => {
@@ -22,6 +32,7 @@ describe('mhdLeaveCaseFormSchema', () => {
       companyId: 'company-1',
       personId: 'person-1',
       reasonCategory: 'Bonding',
+      fileCategory: 'hr',
       requestedStart: '2026-08-10',
       requestedEnd: '2026-08-01',
     });

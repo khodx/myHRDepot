@@ -44,6 +44,7 @@ import { MhdLeaveCertificationPanel } from './MhdLeaveCertificationPanel';
 import { MhdLeaveStatusBadge } from './MhdLeaveStatusBadge';
 import { useMhdLeaveCertificationClearDates, useMhdLeaveWorkflow } from '../WorkflowHook';
 import type { MhdLeavePolicy } from '../WorkflowTypes';
+import { mhdEmployeeFileLabelForKey } from '@/features/employee-files/Types';
 import { MhdLeaveWorkflowPanel } from './MhdLeaveWorkflowPanel';
 import { useMhdLeaveDraftField } from './mhdLeaveActionContext';
 import { mhdLeaveEnumLabel } from './mhdLeaveLabels';
@@ -185,7 +186,8 @@ export function MhdLeaveCaseDetailPage() {
         }
         description={
           <>
-            <span className="font-mono">{leaveCase.referenceId}</span> · {leaveCase.reasonCategory}
+            <span className="font-mono">{leaveCase.referenceId}</span> · {leaveCase.reasonCategory} ·{' '}
+            {mhdEmployeeFileLabelForKey(leaveCase.fileCategory)}
             {leaveCase.requestedStart ? ` · ${leaveCase.requestedStart}` : ''}
             {leaveCase.requestedEnd ? ` → ${leaveCase.requestedEnd}` : ''}
             {workflow.data ? ` · ${leaveYearText(workflow.data.policy)}` : ''}

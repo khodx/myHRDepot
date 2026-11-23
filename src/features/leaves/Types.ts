@@ -1,4 +1,5 @@
 import type { MhdLeaveAdminIntakeChannel, MhdLeaveRequestedMode } from './WorkflowTypes';
+import type { MhdEmployeeFileTypeKey } from '@/features/employee-files/Types';
 import type { Json } from '@/types/database.types';
 
 // ---------------------------------------------------------------------------
@@ -41,6 +42,7 @@ export interface MhdLeaveCaseRpcRow {
   person_id: string;
   person_display_name: string;
   reason_category: string;
+  file_category: string;
   status: string;
   requested_start: string | null;
   requested_end: string | null;
@@ -254,6 +256,8 @@ export interface MhdLeaveCaseSummary {
   personId: string;
   personDisplayName: string;
   reasonCategory: string;
+  /** The Employee File category the case is filed under. */
+  fileCategory: MhdEmployeeFileTypeKey;
   status: MhdLeaveCaseStatus;
   requestedStart: string | null;
   requestedEnd: string | null;
@@ -367,6 +371,7 @@ export interface MhdCreateLeaveCaseInput {
   companyId: string;
   personId: string;
   reasonCategory: string;
+  fileCategory: MhdEmployeeFileTypeKey;
   requestedStart?: string | null;
   requestedEnd?: string | null;
   isIntermittent?: boolean;
@@ -385,6 +390,7 @@ export interface MhdCreateLeaveCaseInput {
  */
 export interface MhdCreateLeaveCaseSelfInput {
   reasonCategory: string;
+  fileCategory: MhdEmployeeFileTypeKey;
   requestedStart?: string | null;
   requestedEnd?: string | null;
   isIntermittent?: boolean;

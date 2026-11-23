@@ -14200,6 +14200,7 @@ export type Database = {
           essential_functions_description_id: string | null
           essential_functions_provided_on: string | null
           family_relationship: string | null
+          file_category: string
           id: string
           intake_channel: string
           is_intermittent: boolean
@@ -14235,6 +14236,7 @@ export type Database = {
           essential_functions_description_id?: string | null
           essential_functions_provided_on?: string | null
           family_relationship?: string | null
+          file_category?: string
           id?: string
           intake_channel?: string
           is_intermittent?: boolean
@@ -14270,6 +14272,7 @@ export type Database = {
           essential_functions_description_id?: string | null
           essential_functions_provided_on?: string | null
           family_relationship?: string | null
+          file_category?: string
           id?: string
           intake_channel?: string
           is_intermittent?: boolean
@@ -32786,6 +32789,7 @@ export type Database = {
       mhd_leave_case_create: {
         Args: {
           p_company_id: string
+          p_file_category?: string
           p_intake_channel?: string
           p_is_intermittent?: boolean
           p_person_id: string
@@ -32801,6 +32805,7 @@ export type Database = {
       }
       mhd_leave_case_create_self: {
         Args: {
+          p_file_category?: string
           p_is_intermittent?: boolean
           p_reason_category: string
           p_requested_end?: string
@@ -32829,6 +32834,7 @@ export type Database = {
         Args: { p_company_id: string; p_person_id?: string; p_status?: string }
         Returns: {
           basis_count: number
+          file_category: string
           id: string
           person_display_name: string
           person_id: string
@@ -32956,6 +32962,7 @@ export type Database = {
           essential_functions_description_id: string | null
           essential_functions_provided_on: string | null
           family_relationship: string | null
+          file_category: string
           id: string
           intake_channel: string
           is_intermittent: boolean

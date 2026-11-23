@@ -129,7 +129,7 @@ describe('MhdLeaveIntakeWizard', () => {
   it('guards create and evaluate when navigating back and forward, while Previous stays side-effect-free', async () => {
     renderWizard();
     fireEvent.change(screen.getByLabelText('Subject person'), { target: { value: 'person-1' } });
-    fireEvent.change(screen.getByLabelText('Reason category'), {
+    fireEvent.change(screen.getByLabelText('Reason'), {
       target: { value: 'Medical leave' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
@@ -236,7 +236,7 @@ describe('MhdLeaveIntakeWizard', () => {
     ]);
     expect(screen.getByRole('option', { name: 'Manager Referral' })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Subject person'), { target: { value: 'person-1' } });
-    fireEvent.change(screen.getByLabelText('Reason category'), {
+    fireEvent.change(screen.getByLabelText('Reason'), {
       target: { value: 'Family care' },
     });
     fireEvent.change(screen.getByLabelText('Requested mode'), {
@@ -259,7 +259,7 @@ describe('MhdLeaveIntakeWizard', () => {
     renderWizard();
     expect(screen.queryByLabelText('Intake channel')).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Subject person'), { target: { value: 'person-1' } });
-    fireEvent.change(screen.getByLabelText('Reason category'), {
+    fireEvent.change(screen.getByLabelText('Reason'), {
       target: { value: 'Medical leave' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
@@ -283,7 +283,7 @@ describe('MhdLeaveIntakeWizard', () => {
     it('saves the step and every value, the evaluation reason code included', async () => {
       renderWizard();
       fireEvent.change(screen.getByLabelText('Subject person'), { target: { value: 'person-1' } });
-      fireEvent.change(screen.getByLabelText('Reason category'), {
+      fireEvent.change(screen.getByLabelText('Reason'), {
         target: { value: 'Family care' },
       });
       fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
@@ -293,6 +293,7 @@ describe('MhdLeaveIntakeWizard', () => {
       expect(saved.payload.basics).toMatchObject({
         personId: 'person-1',
         reasonCategory: 'Family care',
+        fileCategory: 'hr',
         reasonCode: 'OWN_SERIOUS_HEALTH_CONDITION',
       });
       expect(saved.payload).toMatchObject({ overrideReasons: {}, overrideOutcomes: {} });

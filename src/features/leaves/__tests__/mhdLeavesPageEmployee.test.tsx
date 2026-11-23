@@ -71,6 +71,7 @@ function leaveCase(overrides: Partial<MhdLeaveCaseSummary>): MhdLeaveCaseSummary
     personId: EMPLOYEE_PERSON_ID,
     personDisplayName: 'Ingrid Valdivia',
     reasonCategory: 'MEDICAL',
+    fileCategory: 'hr',
     status: 'APPROVED',
     requestedStart: '2026-09-14',
     requestedEnd: '2026-10-23',
@@ -184,17 +185,25 @@ describe('MhdLeavesPage input popups', () => {
     const dialog = screen.getByRole('dialog', { name: 'Request Leave' });
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
-    expect(within(dialog).getByLabelText('Reason category')).toHaveValue('Bonding');
+    expect(within(dialog).getByLabelText('Reason')).toHaveValue('Bonding');
+
+    // The category is one of the nine employee file categories, filed under HR unless changed.
+    const category = within(dialog).getByLabelText('Category');
+    expect(within(category).getAllByRole('option')).toHaveLength(9);
+    expect(category).toHaveValue('hr');
+    fireEvent.change(category, { target: { value: 'medical' } });
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));
     await waitFor(() => expect(draftController.current.save).toHaveBeenCalledTimes(1));
     expect(draftController.current.save.mock.calls[0][0].payload).toMatchObject({
       reasonCategory: 'Bonding',
+      fileCategory: 'medical',
       isIntermittent: true,
     });
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Request Leave' }));
     await waitFor(() => expect(createSelfMock).toHaveBeenCalledTimes(1));
+    expect(createSelfMock.mock.calls[0][0]).toMatchObject({ fileCategory: 'medical' });
     await waitFor(() => expect(draftController.current.discard).toHaveBeenCalled());
   });
 
@@ -211,7 +220,7 @@ describe('MhdLeavesPage input popups', () => {
     const dialog = screen.getByRole('dialog', { name: 'Open Leave Case' });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Resume Draft' }));
     expect(within(dialog).getByLabelText('Employee')).toHaveValue('person-9');
-    expect(within(dialog).getByLabelText('Reason category')).toHaveValue('Caregiver');
+    expect(within(dialog).getByLabelText('Reason')).toHaveValue('Caregiver');
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Save Draft' }));
     await waitFor(() => expect(draftController.current.save).toHaveBeenCalledTimes(1));

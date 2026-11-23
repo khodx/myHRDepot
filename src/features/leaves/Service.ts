@@ -77,6 +77,7 @@ function mapCaseSummary(row: MhdLeaveCaseRpcRow): MhdLeaveCaseSummary {
     personId: row.person_id,
     personDisplayName: row.person_display_name,
     reasonCategory: row.reason_category,
+    fileCategory: row.file_category as MhdLeaveCaseSummary['fileCategory'],
     status: row.status as MhdLeaveCaseSummary['status'],
     requestedStart: row.requested_start,
     requestedEnd: row.requested_end,
@@ -213,6 +214,7 @@ export const mhdLeavesService = {
       p_company_id: input.companyId,
       p_person_id: input.personId,
       p_reason_category: input.reasonCategory.trim(),
+      p_file_category: input.fileCategory,
       p_requested_start: input.requestedStart ?? undefined,
       p_requested_end: input.requestedEnd ?? undefined,
       p_is_intermittent: input.isIntermittent ?? false,
@@ -235,6 +237,7 @@ export const mhdLeavesService = {
   async createCaseSelf(input: MhdCreateLeaveCaseSelfInput): Promise<MhdMutationResult> {
     const { data, error } = await supabaseClient.rpc('mhd_leave_case_create_self', {
       p_reason_category: input.reasonCategory.trim(),
+      p_file_category: input.fileCategory,
       p_requested_start: input.requestedStart ?? undefined,
       p_requested_end: input.requestedEnd ?? undefined,
       p_is_intermittent: input.isIntermittent ?? false,

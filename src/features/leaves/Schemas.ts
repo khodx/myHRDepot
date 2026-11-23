@@ -1,10 +1,20 @@
 import { z } from 'zod';
 import {
+  MHD_EMPLOYEE_FILE_TYPE_KEYS,
+  type MhdEmployeeFileTypeKey,
+} from '@/features/employee-files/Types';
+import {
   MHD_LEAVE_CASE_STATUSES,
   MHD_LEAVE_CERTIFICATION_TYPES,
   MHD_LEAVE_JURISDICTIONS,
   MHD_LEAVE_MEASUREMENT_METHODS,
 } from './Types';
+
+/** The Category of a leave case is one of the nine Employee File categories, never free text. */
+const mhdLeaveFileCategory = z.enum(
+  MHD_EMPLOYEE_FILE_TYPE_KEYS as [MhdEmployeeFileTypeKey, ...MhdEmployeeFileTypeKey[]],
+  { message: 'A category is required.' },
+);
 
 const isoDate = z
   .string()
@@ -74,7 +84,8 @@ export const mhdLeaveCaseFormSchema = z
   .object({
     companyId: z.string().trim().min(1, 'Company is required.'),
     personId: z.string().trim().min(1, 'Employee is required.'),
-    reasonCategory: z.string().trim().min(1, 'A reason category is required.').max(200),
+    reasonCategory: z.string().trim().min(1, 'A reason is required.').max(200),
+    fileCategory: mhdLeaveFileCategory,
     requestedStart: isoDate.optional().nullable(),
     requestedEnd: isoDate.optional().nullable(),
     isIntermittent: z.boolean().default(false),
@@ -96,7 +107,8 @@ export const mhdLeaveCaseFormSchema = z
  */
 export const mhdLeaveCaseSelfFormSchema = z
   .object({
-    reasonCategory: z.string().trim().min(1, 'A reason category is required.').max(200),
+    reasonCategory: z.string().trim().min(1, 'A reason is required.').max(200),
+    fileCategory: mhdLeaveFileCategory,
     requestedStart: isoDate.optional().nullable(),
     requestedEnd: isoDate.optional().nullable(),
     isIntermittent: z.boolean().default(false),

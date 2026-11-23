@@ -55,6 +55,7 @@ vi.mock('../Hook', () => ({
         personId: PERSON_ID,
         personDisplayName: 'Graciela Montoya',
         reasonCategory: 'Own serious health condition',
+        fileCategory: 'hr',
         status: 'REQUESTED',
         requestedStart: '2026-09-08',
         requestedEnd: '2026-10-16',

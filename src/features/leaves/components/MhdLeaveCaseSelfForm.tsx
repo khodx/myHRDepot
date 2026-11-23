@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { MhdDraftBanner, MhdSaveDraftButton } from '@/components/ui/MhdDraftControls';
 import { MhdDateField } from '@/components/ui/MhdDateField';
 import { MhdFormFieldStack } from '@/components/ui/MhdFormFieldStack';
+import { MhdLeaveFileCategorySelect } from './MhdLeaveFileCategorySelect';
 import type { MhdDraftController } from '@/features/drafts/Hook';
 import { mhdLeaveCaseSelfFormSchema, type MhdLeaveCaseSelfFormValues } from '../Schemas';
 import type { z } from 'zod';
@@ -36,6 +37,7 @@ export function MhdLeaveCaseSelfForm({ onSubmit, onCancel, isSubmitting, draft }
     resolver: zodResolver(mhdLeaveCaseSelfFormSchema),
     defaultValues: {
       reasonCategory: '',
+      fileCategory: 'hr',
       requestedStart: null,
       requestedEnd: null,
       isIntermittent: false,
@@ -52,7 +54,7 @@ export function MhdLeaveCaseSelfForm({ onSubmit, onCancel, isSubmitting, draft }
       ) : null}
       <div>
         <label htmlFor="reasonCategory" className="block text-sm font-medium text-foreground">
-          Reason category
+          Reason
         </label>
         <input
           id="reasonCategory"
@@ -68,6 +70,12 @@ export function MhdLeaveCaseSelfForm({ onSubmit, onCancel, isSubmitting, draft }
           <p className="mt-1 text-xs text-rose-600">{errors.reasonCategory.message}</p>
         ) : null}
       </div>
+
+      <MhdLeaveFileCategorySelect
+        id="fileCategory"
+        className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        {...register('fileCategory')}
+      />
 
       <MhdFormFieldStack>
         <div>
