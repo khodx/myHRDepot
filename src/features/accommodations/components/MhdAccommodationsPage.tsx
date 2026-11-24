@@ -71,10 +71,7 @@ export function MhdAccommodationsPage() {
   const readiness = useMhdAccommodationReadiness();
   const peopleOptions = useMemo(
     () =>
-      (people.data ?? []).map((person) => ({
-        id: person.id,
-        name: [person.firstName, person.lastName].filter(Boolean).join(' '),
-      })),
+      (people.data ?? []).map((person) => ({ id: person.id, name: person.displayName })),
     [people.data],
   );
 

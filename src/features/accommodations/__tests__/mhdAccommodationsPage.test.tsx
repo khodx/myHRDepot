@@ -27,7 +27,9 @@ vi.mock('../Hook', () => ({
     casesHookMock(companyId, status, personId);
     return { data: casesRef.current, isLoading: false };
   },
-  useMhdAccommodationPeople: () => ({ data: [] }),
+  useMhdAccommodationPeople: () => ({
+    data: [{ id: 'person-9', firstName: 'Tobias', lastName: 'Lindqvist', displayName: 'Toby' }],
+  }),
   useMhdAccommodationReadiness: () => ({ data: readinessRef.current }),
 }));
 
@@ -105,6 +107,15 @@ describe('MhdAccommodationsPage compliance gate', () => {
     } satisfies MhdComplianceReadiness;
     renderPage();
     expect(screen.queryByRole('status')).toBeNull();
+  });
+});
+
+describe('MhdAccommodationsPage person filter', () => {
+  it('names people by their display name, as the intake picker does', () => {
+    rolesRef.current = ['HR Partner'];
+    renderPage();
+    expect(screen.getByRole('option', { name: 'Toby' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Tobias Lindqvist' })).not.toBeInTheDocument();
   });
 });
 

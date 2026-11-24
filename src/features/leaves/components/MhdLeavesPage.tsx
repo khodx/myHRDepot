@@ -123,10 +123,7 @@ export function MhdLeavesPage() {
 
   const peopleOptions = useMemo(
     () =>
-      (people.data ?? []).map((person: { id: string; firstName?: string; lastName?: string }) => ({
-        id: person.id,
-        displayName: [person.firstName, person.lastName].filter(Boolean).join(' '),
-      })),
+      (people.data ?? []).map((person) => ({ id: person.id, displayName: person.displayName })),
     [people.data],
   );
 

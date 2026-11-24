@@ -46,7 +46,7 @@ vi.mock('../Hook', () => ({
 
 vi.mock('@/features/people/Hook', () => ({
   useMhdPeoplePicker: () => ({
-    data: [{ id: 'person-9', firstName: 'Tobias', lastName: 'Lindqvist' }],
+    data: [{ id: 'person-9', firstName: 'Tobias', lastName: 'Lindqvist', displayName: 'Toby' }],
   }),
 }));
 
@@ -162,6 +162,13 @@ describe('MhdLeavesPage as an Employee', () => {
 });
 
 describe('MhdLeavesPage as an administrator', () => {
+  it("names people in the Employee filter by their display name, as the intake picker does", () => {
+    rolesRef.current = ['HR Partner'];
+    renderPage();
+    expect(screen.getByRole('option', { name: 'Toby' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Tobias Lindqvist' })).not.toBeInTheDocument();
+  });
+
   it('asks for the whole company and shows the Employee column and actions', () => {
     rolesRef.current = ['HR Partner'];
     casesRef.current = [leaveCase({ personDisplayName: 'Tobias Lindqvist' })];
