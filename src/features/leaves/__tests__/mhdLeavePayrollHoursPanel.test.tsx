@@ -76,6 +76,22 @@ describe('MhdLeavePayrollHoursPanel', () => {
     expect(await screen.findByText('Evaluation updated.')).toBeInTheDocument();
   });
 
+  it('words a blocker in plain language instead of showing its code', async () => {
+    roles.current = ['HR Partner'];
+    recordAsync.mockResolvedValueOnce({
+      ran: false,
+      blockers: ['SCHEDULE_ASSIGNMENT_REQUIRED', 'REASON_CODE_REQUIRED'],
+    });
+    render(<MhdLeavePayrollHoursPanel caseId={CASE_ID} />);
+    fireEvent.change(screen.getByLabelText('12-month hours'), { target: { value: '1200' } });
+    fireEvent.change(screen.getByLabelText('Period start'), { target: { value: '2025-11-01' } });
+    fireEvent.change(screen.getByLabelText('Period end'), { target: { value: '2026-10-31' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Payroll Hours' }));
+    expect(await screen.findByText(/no work schedule assigned/i)).toBeInTheDocument();
+    expect(screen.getByText(/leave reason is missing/i)).toBeInTheDocument();
+    expect(screen.queryByText(/SCHEDULE_ASSIGNMENT_REQUIRED|REASON_CODE_REQUIRED/)).toBeNull();
+  });
+
   it('shows a validation message instead of saving incomplete hours', async () => {
     roles.current = ['HR Admin'];
     render(<MhdLeavePayrollHoursPanel caseId={CASE_ID} />);

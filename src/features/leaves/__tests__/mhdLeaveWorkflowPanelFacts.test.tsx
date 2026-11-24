@@ -121,7 +121,7 @@ describe('MhdLeaveWorkflowPanel evaluation', () => {
   it('explains in plain language why an evaluation could not run', () => {
     runData.current = { ran: false, snapshotId: null, blockers: ['SCHEDULE_ASSIGNMENT_REQUIRED'] };
     renderPanel();
-    expect(screen.getByText(/schedule assignment is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/no work schedule assigned/i)).toBeInTheDocument();
   });
 
   it('shows HR the facts the evaluation used, with the 75-mile boundary warning', () => {

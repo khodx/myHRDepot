@@ -58,6 +58,7 @@ import {
   MhdLeaveBenefitObligationStatusControl,
   MhdLeaveSegmentStatusControl,
 } from './MhdLeaveWorkflowStatusControls';
+import { mhdEligibilityBlockerMessage } from '../EligibilityBlockers';
 import {
   MHD_LEAVE_CONTINUATION_BASIS_LABELS,
   MHD_LEAVE_NOTICE_DEADLINE_KINDS,
@@ -227,13 +228,7 @@ export function MhdLeaveWorkflowPanel({
               <MhdCardHeader title="Evaluation Blockers" />
               <ul className="list-disc space-y-1 pl-5 text-sm">
                 {runEligibility.data.blockers.map((blocker: string) => (
-                  <li key={blocker}>
-                    {blocker === 'SCHEDULE_ASSIGNMENT_REQUIRED'
-                      ? 'A schedule assignment is required before eligibility can be evaluated.'
-                      : blocker === 'REASON_CODE_REQUIRED'
-                        ? 'A leave reason is required before eligibility can be evaluated.'
-                        : 'The eligibility evaluation could not be completed.'}
-                  </li>
+                  <li key={blocker}>{mhdEligibilityBlockerMessage(blocker)}</li>
                 ))}
               </ul>
             </MhdCard>

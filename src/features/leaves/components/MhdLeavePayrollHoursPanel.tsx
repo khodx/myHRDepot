@@ -6,6 +6,7 @@ import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdAttachments } from '@/features/attachments/Hook';
 import { mhdLeavesIsHr } from '@/appshell/mhdRouteAccess';
+import { mhdEligibilityBlockerMessage } from '../EligibilityBlockers';
 import { mhdLeavePayrollHoursSchema } from '../Schemas';
 import { useMhdLeavePayrollHours, useMhdRecordLeavePayrollHours } from '../WorkflowHook';
 
@@ -52,7 +53,11 @@ export function MhdLeavePayrollHoursPanel({ caseId }: { caseId: string }) {
     }
     try {
       const result = await save.mutateAsync(parsed.data);
-      setOutcome(result?.blockers?.length ? result.blockers.join(', ') : 'Evaluation updated.');
+      setOutcome(
+        result?.blockers?.length
+          ? `Payroll hours saved. ${result.blockers.map(mhdEligibilityBlockerMessage).join(' ')}`
+          : 'Evaluation updated.',
+      );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'The payroll hours could not be saved.');
     }
