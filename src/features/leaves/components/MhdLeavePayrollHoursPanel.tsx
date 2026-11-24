@@ -6,6 +6,7 @@ import { MhdDetailField } from '@/components/ui/MhdDetailField';
 import { useMhdAuth } from '@/features/authentication/Hook';
 import { useMhdAttachments } from '@/features/attachments/Hook';
 import { mhdLeavesIsHr } from '@/appshell/mhdRouteAccess';
+import { mhdLeavePayrollHoursSchema } from '../Schemas';
 import { useMhdLeavePayrollHours, useMhdRecordLeavePayrollHours } from '../WorkflowHook';
 
 export function MhdLeavePayrollHoursPanel({ caseId }: { caseId: string }) {
@@ -19,27 +20,42 @@ export function MhdLeavePayrollHoursPanel({ caseId }: { caseId: string }) {
   const [note, setNote] = useState('');
   const [attachmentId, setAttachmentId] = useState('');
   const [outcome, setOutcome] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   if (!mhdLeavesIsHr(roles)) return null;
 
   const current = record.data;
+  // Newest document first. Until HR picks one explicitly, the newest is used and shown in the selector.
+  const documents = [...attachments.attachments].sort((x, y) =>
+    y.uploadedAt.localeCompare(x.uploadedAt),
+  );
+  const chosenAttachmentId = attachmentId || documents[0]?.id || '';
+
   async function submit() {
-    const parsedHours = Number(hours);
-    if (!Number.isFinite(parsedHours) || parsedHours < 0) {
-      throw new Error('Enter the 12-month hours worked.');
-    }
-    if (!periodStart || !periodEnd || !attachmentId) {
-      throw new Error('Period dates and a payroll document are required.');
-    }
-    const result = await save.mutateAsync({
+    setError(null);
+    setOutcome(null);
+    const parsed = mhdLeavePayrollHoursSchema.safeParse({
       caseId,
-      hoursWorked12Months: parsedHours,
+      hoursWorked12Months: hours.trim() === '' ? Number.NaN : Number(hours),
       periodStart,
       periodEnd,
-      attachmentId,
+      attachmentId: chosenAttachmentId,
       note: note.trim() || null,
     });
-    setOutcome(result?.blockers?.length ? result.blockers.join(', ') : 'Evaluation updated.');
+    if (!parsed.success) {
+      setError(
+        chosenAttachmentId
+          ? (parsed.error.issues[0]?.message ?? 'Check the payroll hours and try again.')
+          : 'Upload the payroll document before saving.',
+      );
+      return;
+    }
+    try {
+      const result = await save.mutateAsync(parsed.data);
+      setOutcome(result?.blockers?.length ? result.blockers.join(', ') : 'Evaluation updated.');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'The payroll hours could not be saved.');
+    }
   }
 
   return (
@@ -99,15 +115,37 @@ export function MhdLeavePayrollHoursPanel({ caseId }: { caseId: string }) {
         isUploading={attachments.isUploading}
         onUpload={async (file, richText, plainText) => {
           await attachments.uploadAttachment(file, richText, plainText);
-          const latest = attachments.attachments[attachments.attachments.length - 1];
-          if (latest) setAttachmentId(latest.id);
+          // The newest document is the one just uploaded; the selector below shows and can change it.
+          setAttachmentId('');
         }}
       />
+      <label className="block text-sm font-medium">
+        Payroll document
+        <select
+          className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2"
+          value={chosenAttachmentId}
+          onChange={(event) => setAttachmentId(event.target.value)}
+        >
+          {documents.length === 0 ? (
+            <option value="">Upload a payroll document first</option>
+          ) : null}
+          {documents.map((document) => (
+            <option key={document.id} value={document.id}>
+              {document.originalFileName}
+            </option>
+          ))}
+        </select>
+      </label>
       <div className="flex items-center justify-between gap-3">
-        <Button disabled={save.isPending || !attachmentId} onClick={() => void submit()}>
+        <Button disabled={save.isPending} onClick={() => void submit()}>
           {save.isPending ? 'Saving…' : 'Save Payroll Hours'}
         </Button>
         {outcome ? <p className="text-sm text-muted-foreground">{outcome}</p> : null}
+        {error ? (
+          <p role="alert" className="text-sm text-red-700">
+            {error}
+          </p>
+        ) : null}
       </div>
     </MhdCard>
   );

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { MhdCard } from '@/components/ui/MhdCard';
 import { MhdDateField } from '@/components/ui/MhdDateField';
@@ -618,19 +619,24 @@ export function MhdBenefitIntakeModal({ open, onClose, onSubmitted }: MhdBenefit
           <h2 className="text-lg font-semibold">Request submitted. HR has been notified.</h2>
           {result.leaveCaseId ? (
             <p className="text-sm">
-              <a className="text-accent underline" href={`/leaves/${result.leaveCaseId}`}>
+              <Link
+                className="text-accent underline"
+                to={`/leaves/${result.leaveCaseId}`}
+                onClick={onClose}
+              >
                 Open leave case
-              </a>
+              </Link>
             </p>
           ) : null}
           {result.accommodationCaseId ? (
             <p className="text-sm">
-              <a
+              <Link
                 className="text-accent underline"
-                href={`/accommodations/${result.accommodationCaseId}`}
+                to={`/accommodations/${result.accommodationCaseId}`}
+                onClick={onClose}
               >
                 Open accommodation case
-              </a>
+              </Link>
             </p>
           ) : null}
           {result.leaveCaseId ? (

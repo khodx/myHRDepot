@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { MhdAuthRoleName } from '@/features/authentication/Types';
-import { mhdCanAccessRoute } from '../mhdRouteAccess';
+import routerSource from '@/routes/AppRouter.tsx?raw';
+import { MHD_ROUTE_ACCESS, mhdCanAccessRoute } from '../mhdRouteAccess';
 import { mhdCategoryThemeForPath } from '../mhdModuleAccent';
 
 /**
@@ -40,6 +41,18 @@ describe('Leaves and Accommodations route access by role', () => {
 
   it('lets a Client Admin reach the leave policy settings', () => {
     expect(mhdCanAccessRoute('/leaves/settings', ['Client Admin'])).toBe(true);
+  });
+
+  it('has no access rule for the retired single-entry routes', () => {
+    const retired = ['/leaves/new/intake', '/leaves/:caseId/intake', '/accommodations/new'];
+    const paths = MHD_ROUTE_ACCESS.map((rule) => rule.path);
+    for (const path of retired) expect(paths).not.toContain(path);
+  });
+
+  it('defines none of the retired single-entry routes in the router', () => {
+    expect(routerSource).not.toMatch(/path="\/leaves\/new\/intake"/);
+    expect(routerSource).not.toMatch(/path="\/leaves\/:caseId\/intake"/);
+    expect(routerSource).not.toMatch(/path="\/accommodations\/new"/);
   });
 });
 
