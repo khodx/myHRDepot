@@ -69,8 +69,13 @@ export function useMhdCompanyWorksiteAssignments(companyId: string) {
   });
 }
 export function useMhdAssignWorksite() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: import('./Types').MhdPersonWorksiteAssignmentInput) =>
       mhdCompanyService.assignWorksite(input),
+    onSuccess: async () => {
+      // The input names a person and a worksite, not a company, so refresh every company's assignment list.
+      await qc.invalidateQueries({ queryKey: ['mhd-companies', 'worksite-assignments'] });
+    },
   });
 }
