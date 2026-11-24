@@ -137,9 +137,9 @@ export function MhdJobAssignmentPanel({ companyId, personId, canAssign }: Props)
               <option value="">Nobody recorded</option>
               {(people.data ?? [])
                 .filter((person: { id: string }) => person.id !== personId)
-                .map((person: { id: string; firstName?: string; lastName?: string }) => (
+                .map((person: { id: string; displayName: string }) => (
                   <option key={person.id} value={person.id}>
-                    {[person.firstName, person.lastName].filter(Boolean).join(' ')}
+                    {person.displayName}
                   </option>
                 ))}
             </select>

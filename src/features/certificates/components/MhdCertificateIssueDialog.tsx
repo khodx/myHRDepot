@@ -84,7 +84,7 @@ export function MhdCertificateIssueDialog({ companyId, templates, onClose, onIss
     }
 
     const personName =
-      selectedPerson.preferredName ?? `${selectedPerson.firstName} ${selectedPerson.lastName}`;
+      selectedPerson.displayName;
     const generatedDate = new Date().toISOString().slice(0, 10);
     const issuedByName = profile?.displayName ?? undefined;
 
@@ -176,7 +176,7 @@ export function MhdCertificateIssueDialog({ companyId, templates, onClose, onIss
               </option>
               {(people.data ?? []).map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.preferredName ?? `${p.firstName} ${p.lastName}`}
+                  {p.displayName}
                 </option>
               ))}
             </select>

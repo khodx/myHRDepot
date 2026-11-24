@@ -58,7 +58,7 @@ export function MhdSafetyModulePage() {
     () =>
       (people.data ?? []).map((person) => ({
         id: person.id,
-        name: [person.firstName, person.lastName].filter(Boolean).join(' '),
+        name: person.displayName,
       })),
     [people.data],
   );

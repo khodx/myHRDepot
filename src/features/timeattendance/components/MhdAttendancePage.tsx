@@ -140,9 +140,9 @@ function MhdAttendanceBoard({ access, companyId }: BoardProps) {
     () =>
       scope === 'company'
         ? (people.data ?? []).map(
-            (person: { id: string; firstName?: string; lastName?: string }) => ({
+            (person: { id: string; displayName: string }) => ({
               id: person.id,
-              displayName: [person.firstName, person.lastName].filter(Boolean).join(' '),
+              displayName: person.displayName,
             }),
           )
         : teamMembers,
