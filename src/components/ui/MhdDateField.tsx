@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
@@ -15,6 +16,35 @@ export interface MhdDateFieldProps {
   max?: string;
   'aria-label'?: string;
   'aria-invalid'?: boolean;
+}
+
+const POPOVER_WIDTH = 256;
+const POPOVER_HEIGHT = 290;
+const POPOVER_GAP = 4;
+
+interface PopoverPlacement {
+  left: number;
+  top: number;
+  /** The enclosing dialog (inside its focus trap) or the body. */
+  container: Element;
+}
+
+/**
+ * Viewport position for the calendar: under the field, flipped above it when there is no room below, and kept
+ * inside the viewport horizontally. Fixed positioning lets the calendar escape a scrolling modal body.
+ */
+function measurePlacement(anchor: HTMLElement | null): PopoverPlacement | null {
+  if (!anchor) return null;
+  const rect = anchor.getBoundingClientRect();
+  const fitsBelow = rect.bottom + POPOVER_GAP + POPOVER_HEIGHT <= window.innerHeight;
+  const top = fitsBelow
+    ? rect.bottom + POPOVER_GAP
+    : Math.max(POPOVER_GAP, rect.top - POPOVER_GAP - POPOVER_HEIGHT);
+  const left = Math.min(
+    Math.max(POPOVER_GAP, rect.left),
+    window.innerWidth - POPOVER_WIDTH - POPOVER_GAP,
+  );
+  return { left, top, container: anchor.closest('[role="dialog"]') ?? document.body };
 }
 
 const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -103,6 +133,10 @@ export function MhdDateField({
   });
   const [syncedValue, setSyncedValue] = useState(value);
   const containerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  // Set while returning focus to the input after a day is picked, so that focus does not reopen the calendar.
+  const skipOpenOnFocus = useRef(false);
+  const [placement, setPlacement] = useState<PopoverPlacement | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Adjusts local editing state when `value` changes externally, without the
@@ -118,15 +152,35 @@ export function MhdDateField({
   useEffect(() => {
     if (!open) return;
     function handlePointerDown(event: PointerEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (!containerRef.current?.contains(target) && !popoverRef.current?.contains(target)) {
         setOpen(false);
         const iso = displayToIso(text);
         setText(iso ? isoToDisplay(iso) : isoToDisplay(value));
       }
     }
+    function handleReposition() {
+      setPlacement(measurePlacement(containerRef.current));
+    }
     document.addEventListener('pointerdown', handlePointerDown);
-    return () => document.removeEventListener('pointerdown', handlePointerDown);
+    // Capture so a scrolling modal body (not only the window) repositions the calendar.
+    window.addEventListener('scroll', handleReposition, true);
+    window.addEventListener('resize', handleReposition);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('scroll', handleReposition, true);
+      window.removeEventListener('resize', handleReposition);
+    };
   }, [open, text, value]);
+
+  function openCalendar() {
+    if (skipOpenOnFocus.current) {
+      skipOpenOnFocus.current = false;
+      return;
+    }
+    setPlacement(measurePlacement(containerRef.current));
+    setOpen(true);
+  }
 
   const weeks = useMemo(() => buildCalendarWeeks(viewMonth), [viewMonth]);
   const monthLabel = viewMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
@@ -149,7 +203,10 @@ export function MhdDateField({
     setText(isoToDisplay(iso));
     onChange(iso);
     setOpen(false);
+    skipOpenOnFocus.current = true;
     inputRef.current?.focus();
+    // If the input was already focused no focus event fires, so clear the flag here.
+    skipOpenOnFocus.current = false;
   }
 
   const selectedIso = displayToIso(text);
@@ -165,7 +222,7 @@ export function MhdDateField({
         )}
         onClick={() => {
           if (disabled) return;
-          setOpen(true);
+          openCalendar();
           inputRef.current?.focus();
         }}
       >
@@ -181,7 +238,7 @@ export function MhdDateField({
           value={text}
           min={min}
           max={max}
-          onFocus={() => setOpen(true)}
+          onFocus={openCalendar}
           onChange={(event) => commitText(formatTypedDigits(event.target.value))}
           onKeyDown={(event) => {
             if (event.key === 'Escape') setOpen(false);
@@ -192,62 +249,70 @@ export function MhdDateField({
         <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
       </div>
 
-      {open && !disabled && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-md border border-border bg-card p-3 shadow-lg">
-          <div className="mb-2 flex items-center justify-between">
-            <button
-              type="button"
-              aria-label="Previous month"
-              className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-              onClick={() =>
-                setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
-              }
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <span className="text-sm font-medium text-foreground">{monthLabel}</span>
-            <button
-              type="button"
-              aria-label="Next month"
-              className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-              onClick={() =>
-                setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
-              }
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="grid grid-cols-7 gap-y-1 text-center text-[11px] font-semibold uppercase text-muted-foreground">
-            {WEEKDAY_LABELS.map((label, index) => (
-              <span key={`${label}-${index}`}>{label}</span>
-            ))}
-          </div>
-          {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} className="grid grid-cols-7 gap-y-1 text-center text-sm">
-              {week.map((day, dayIndex) => {
-                if (!day) return <span key={dayIndex} />;
-                const dayIso = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(
-                  day.getDate(),
-                ).padStart(2, '0')}`;
-                const isSelected = dayIso === selectedIso;
-                return (
-                  <button
-                    key={dayIndex}
-                    type="button"
-                    onClick={() => selectDay(day)}
-                    className={cn(
-                      'mx-auto flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-muted',
-                      isSelected && 'bg-accent text-accent-foreground hover:bg-accent-hover',
-                    )}
-                  >
-                    {day.getDate()}
-                  </button>
-                );
-              })}
+      {open &&
+        !disabled &&
+        placement &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            style={{ position: 'fixed', left: placement.left, top: placement.top }}
+            className="z-[60] w-64 rounded-md border border-border bg-card p-3 shadow-lg"
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <button
+                type="button"
+                aria-label="Previous month"
+                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                onClick={() =>
+                  setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
+                }
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="text-sm font-medium text-foreground">{monthLabel}</span>
+              <button
+                type="button"
+                aria-label="Next month"
+                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                onClick={() =>
+                  setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
+                }
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
-          ))}
-        </div>
-      )}
+            <div className="grid grid-cols-7 gap-y-1 text-center text-[11px] font-semibold uppercase text-muted-foreground">
+              {WEEKDAY_LABELS.map((label, index) => (
+                <span key={`${label}-${index}`}>{label}</span>
+              ))}
+            </div>
+            {weeks.map((week, weekIndex) => (
+              <div key={weekIndex} className="grid grid-cols-7 gap-y-1 text-center text-sm">
+                {week.map((day, dayIndex) => {
+                  if (!day) return <span key={dayIndex} />;
+                  const dayIso = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(
+                    day.getDate(),
+                  ).padStart(2, '0')}`;
+                  const isSelected = dayIso === selectedIso;
+                  return (
+                    <button
+                      key={dayIndex}
+                      type="button"
+                      onClick={() => selectDay(day)}
+                      className={cn(
+                        'mx-auto flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-muted',
+                        isSelected && 'bg-accent text-accent-foreground hover:bg-accent-hover',
+                      )}
+                    >
+                      {day.getDate()}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>,
+          placement.container,
+        )}
     </div>
   );
 }

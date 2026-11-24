@@ -108,6 +108,24 @@ describe('MhdBenefitIntakeModal', () => {
     expect(screen.getByLabelText('Who is this request for?')).toBeInTheDocument();
   });
 
+  it('names the chosen person, not the signed-in administrator, on the review step', async () => {
+    auth.current = {
+      profile: { personId: null, companyId: null, displayName: 'Marcel Furnace' },
+      roles: ['HR Partner'],
+    };
+    renderModal();
+    fireEvent.change(screen.getByLabelText('Who is this request for?'), {
+      target: { value: PERSON_ID },
+    });
+    await reachRouting('LEAVE', 'OWN_HEALTH', true, false);
+    next();
+    await waitFor(() => expect(step()).toBe('Leave'));
+    next();
+    await waitFor(() => expect(step()).toBe('Review'));
+    expect(screen.getByText('Person: Imani Okonkwo-Reyes')).toBeInTheDocument();
+    expect(screen.queryByText(/Marcel Furnace/)).not.toBeInTheDocument();
+  });
+
   it('offers no input for headcount, hours worked, months of service or worksite counts', async () => {
     renderModal();
     await reachRouting('BOTH', 'OWN_HEALTH', true, true);

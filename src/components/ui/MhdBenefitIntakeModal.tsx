@@ -154,8 +154,12 @@ export function MhdBenefitIntakeModal({ open, onClose, onSubmitted }: MhdBenefit
   );
   const currentStep = steps[stepIndex] ?? steps[0]!;
   const subjectPersonId = isAdministrator ? form.personId : (profile?.personId ?? '');
-  const personName =
+  const ownName =
     profile?.displayName ?? [profile?.firstName, profile?.lastName].filter(Boolean).join(' ');
+  // An administrator submits for the person chosen in the first step; anyone else submits for themselves.
+  const personName = isAdministrator
+    ? ((people.data ?? []).find((person) => person.id === form.personId)?.displayName ?? '')
+    : ownName;
 
   function getDraftValues(): MhdDraftPayload {
     return { form, outcome };
